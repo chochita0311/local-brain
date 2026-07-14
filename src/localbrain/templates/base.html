@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}LocalBrain{% endblock %}</title>
+    <link rel="icon" href="{{ url_for('static', path='/favicon.svg') }}" type="image/svg+xml">
+    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
+    <script src="{{ url_for('static', path='/app.js') }}" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="lnb">
+        <a class="brand" href="/">
+          <span class="brand-mark">LB</span>
+          <span class="brand-copy"><strong>LocalBrain</strong><small>Developer memory</small></span>
+        </a>
+
+        <nav class="lnb-nav" aria-label="주요 탐색">
+          <div class="nav-group">
+            <span class="nav-group-label">Overview</span>
+            <a class="lnb-item {% if active_page == 'dashboard' %}active{% endif %}" href="/">
+              <span class="nav-symbol">01</span><span>Dashboard</span>
+            </a>
+            <a class="lnb-item {% if active_page == 'sessions-dashboard' %}active{% endif %}" href="/sessions-dashboard">
+              <span class="nav-symbol">02</span><span>Sessions Dashboard</span>
+            </a>
+          </div>
+          <div class="nav-group">
+            <span class="nav-group-label">Workspace</span>
+            <a class="lnb-item {% if active_page == 'workstreams' %}active{% endif %}" href="/workstreams">
+              <span class="nav-symbol">03</span><span>Workstreams</span>
+            </a>
+            <a class="lnb-item {% if active_page == 'sessions' %}active{% endif %}" href="/sessions">
+              <span class="nav-symbol">04</span><span>Sessions</span>
+            </a>
+            <a class="lnb-item {% if active_page == 'atlassian' %}active{% endif %}" href="/atlassian">
+              <span class="nav-symbol">05</span><span>Atlassian</span>
+            </a>
+            <a class="lnb-item {% if active_page == 'context' %}active{% endif %}" href="/context">
+              <span class="nav-symbol">06</span><span>Local Contexts</span>
+            </a>
+            <a class="lnb-item {% if active_page == 'projects' %}active{% endif %}" href="/projects">
+              <span class="nav-symbol">07</span><span>Projects</span>
+            </a>
+          </div>
+          <div class="nav-group">
+            <span class="nav-group-label">System</span>
+            <a class="lnb-item {% if active_page == 'sources' %}active{% endif %}" href="/sources">
+              <span class="nav-symbol">08</span><span>Sources</span>
+            </a>
+          </div>
+        </nav>
+
+        <div class="lnb-footer">
+          <span class="local-status"><span class="status-dot"></span>Local index online</span>
+          <small>Private on this Mac</small>
+        </div>
+      </aside>
+
+      <div class="workspace-shell">
+        <header class="workspace-header">
+          <span class="page-location">{% block page_location %}LocalBrain{% endblock %}</span>
+          <form class="global-search" action="/search" method="get">
+            <label class="sr-only" for="global-query">전체 검색</label>
+            <input id="global-query" name="q" type="search" placeholder="세션, 질문, 문서 통합 검색" value="{{ query | default('') }}">
+          </form>
+          <a class="search-link {% if active_page == 'search' %}active{% endif %}" href="/search">Search</a>
+        </header>
+        <main class="app-main">
+          {% block content %}{% endblock %}
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

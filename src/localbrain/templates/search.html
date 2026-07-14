@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}검색 · LocalBrain{% endblock %}
+{% block page_location %}Search{% endblock %}
+{% block content %}
+  <section class="page-heading search-heading">
+    <div>
+      <p class="eyebrow">SEARCH</p>
+      <h1>{% if query %}“{{ query }}” 검색 결과{% else %}전체 검색{% endif %}</h1>
+      <p class="heading-copy">Claude, Codex 세션과 로컬 Markdown을 한 번에 검색합니다.</p>
+    </div>
+  </section>
+
+  <form class="page-search" action="/search" method="get">
+    <label class="sr-only" for="page-query">검색어</label>
+    <input id="page-query" name="q" type="search" value="{{ query }}" placeholder="질문, 오류, 파일명, 문서 제목">
+    <button class="primary-button" type="submit">검색</button>
+  </form>
+
+  {% if query %}
+    <p class="result-count">{{ results | length }}개 결과</p>
+    <div class="search-results">
+      {% for result in results %}
+        <a class="search-result" href="/{{ 'sessions' if result.entity_type == 'session' else 'documents' }}/{{ result.entity_id }}">
+            <div class="result-type {{ result.source_kind }}">{{ result.source_kind }}</div>
+            <div>
+              <h2>{{ result.title }}</h2>
+              <p class="path-line">{{ result.path }}</p>
+              <p class="result-excerpt">{{ result.excerpt }}</p>
+            </div>
+        </a>
+      {% else %}
+        <div class="empty-state">
+          <h3>일치하는 결과가 없습니다</h3>
+          <p>다른 표현이나 더 짧은 검색어를 사용해 보세요.</p>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endblock %}

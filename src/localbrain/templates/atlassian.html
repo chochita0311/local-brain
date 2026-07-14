@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Atlassian · LocalBrain{% endblock %}
+{% block page_location %}Atlassian{% endblock %}
+{% block content %}
+  <section class="page-heading">
+    <div>
+      <p class="eyebrow">CONNECTED WORK</p>
+      <h1>Atlassian</h1>
+      <p class="heading-copy">주제별 Jira 및 Confluence 자원</p>
+    </div>
+  </section>
+
+  <section class="section-toolbar atlassian-toolbar">
+    <nav class="segmented-control" aria-label="Atlassian 영역">
+      <a class="{% if selected_view == 'jira' %}active{% endif %}" href="/atlassian?view=jira">Jira</a>
+      <a class="{% if selected_view == 'confluence' %}active{% endif %}" href="/atlassian?view=confluence">Confluence</a>
+    </nav>
+    <span class="table-count">0 items</span>
+  </section>
+
+  <section class="resource-table atlassian-empty-list">
+    <div class="resource-row table-header"><span>제목</span><span>주제</span><span>상태</span><span>수정</span></div>
+    <div class="empty-state"><p>연결된 {{ 'Jira 항목이' if selected_view == 'jira' else 'Confluence 문서가' }} 없습니다.</p></div>
+  </section>
+{% endblock %}

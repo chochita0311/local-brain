@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Workstreams · LocalBrain{% endblock %}
+{% block page_location %}Workstreams{% endblock %}
+{% block content %}
+  <section class="page-heading">
+    <div><p class="eyebrow">INTENTIONAL STRUCTURE</p><h1>Workstreams</h1><p class="heading-copy">폴더와 프로젝트를 넘어 계속 이어갈 큰 작업 주제를 직접 관리합니다.</p></div>
+  </section>
+
+  <section class="workstream-management-layout">
+    <div class="workstream-index">
+      <div class="section-toolbar"><div><h2>전체 Workstream</h2><p>{{ workstreams | length }}개 주제</p></div></div>
+      <div class="workstream-table">
+        {% for workstream in workstreams %}
+          <a class="workstream-index-row" href="/workstreams/{{ workstream.id }}">
+            <span class="thread-state {{ workstream.status }}"></span>
+            <div><div class="thread-title-line"><strong>{{ workstream.name }}</strong><span>{{ workstream.status }}</span></div><p>{{ workstream.summary or '요약 없음' }}</p></div>
+            <div class="workstream-index-stats"><strong>{{ workstream.thread_count }}</strong><span>threads</span></div>
+            <div class="workstream-index-stats"><strong>{{ workstream.link_count }}</strong><span>resources</span></div>
+            <time datetime="{{ workstream.latest_activity_at }}" data-local-time>{{ workstream.latest_activity_at or '-' }}</time>
+          </a>
+        {% else %}
+          <div class="inline-empty padded">아직 등록된 Workstream이 없습니다.</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <aside class="editor-panel" id="new-workstream">
+      <div class="panel-heading"><div><h2>새 Workstream</h2><p>직접 결정한 대주제를 등록</p></div></div>
+      <form class="stack-form" data-api-form data-endpoint="/api/workstreams" data-method="POST">
+        <label><span>이름</span><input name="name" required maxlength="160" placeholder="예: 검색 경험 개선"></label>
+        <label><span>요약</span><textarea name="summary" rows="4" placeholder="범위와 이 Workstream을 유지하는 이유"></textarea></label>
+        <button class="primary-button" type="submit">만들기</button>
+        <p class="form-result" data-form-result hidden></p>
+      </form>
+    </aside>
+  </section>
+{% endblock %}

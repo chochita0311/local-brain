@@ -1,0 +1,3 @@
+# Exact repository-relative paths for reviewed binary or media files that are
+# safe to commit. Add one path per line only after confirming it contains no
+# private local or company information. Blank lines and comments are ignored.

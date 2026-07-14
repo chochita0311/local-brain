@@ -1,0 +1,35 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.DS_Store
+.claude/
+.codex/
+.local/
+.env
+.env.*
+!.env.example
+.privacy-patterns.local
+
+# Runtime and exported personal data must never be committed.
+data/
+runs/
+exports/
+artifacts/
+playwright-report/
+test-results/
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*.jsonl
+*.log
+*.har
+*.trace
+
+# Credentials and signing material never belong in the repository.
+*.key
+*.pem
+*.p8
+*.p12
+*.mobileprovision

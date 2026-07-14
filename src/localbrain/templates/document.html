@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}{{ document.title }} · LocalBrain{% endblock %}
+{% block page_location %}Local Contexts{% endblock %}
+{% block content %}
+  <a class="back-link" href="/context">Local Contexts로 돌아가기</a>
+  <section class="document-heading">
+    <p class="eyebrow">{{ 'APPLE NOTE' if document.content_type == 'application/x-apple-note' else 'LOCAL CONTEXT' }}</p>
+    <h1>{{ document.title }}</h1>
+    <p class="heading-copy path-copy">{{ document.path }}</p>
+  </section>
+
+  <section class="detail-strip document-details">
+    <div><span>소스</span><strong>{{ document.context_root_label or document.source_name }}</strong></div>
+    <div><span>상대 경로</span><strong>{{ document.relative_path }}</strong></div>
+    <div><span>크기</span><strong>{{ document.size_bytes }} bytes</strong></div>
+  </section>
+
+  {% if memberships %}
+    <section class="membership-strip">
+      <span>연결된 작업</span>
+      {% for membership in memberships %}<a href="/workstreams/{{ membership.workstream_id }}"><strong>{{ membership.workstream_name }}</strong>{% if membership.thread_title %}<small>{{ membership.thread_title }}</small>{% endif %}</a>{% endfor %}
+    </section>
+  {% endif %}
+
+  <article class="document-view">
+    <div class="document-view-header">
+      <span>{{ document.content_type }} 원문</span>
+    </div>
+    <div class="document-body">{{ document.body }}</div>
+  </article>
+{% endblock %}

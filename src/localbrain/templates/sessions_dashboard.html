@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Sessions Dashboard · LocalBrain{% endblock %}
+{% block page_location %}Sessions Dashboard{% endblock %}
+{% block content %}
+  <section class="page-heading dashboard-heading">
+    <div>
+      <p class="eyebrow">ACTIVITY ANALYSIS</p>
+      <h1>Sessions Dashboard</h1>
+      <p class="heading-copy">일반 작업 세션의 활동량, 도구 사용, 컨텍스트 전환을 분석합니다.</p>
+    </div>
+    <a class="secondary-button" href="/sources">소스 상태 보기</a>
+  </section>
+
+  <section class="overview-metrics" aria-label="최근 7일 업무 현황">
+    <div class="overview-metric"><span>최근 7일 세션</span><strong>{{ stats.recent_sessions }}</strong><small>전체 {{ stats.sessions }}개</small></div>
+    <div class="overview-metric"><span>활성 프로젝트</span><strong>{{ stats.active_workspaces }}</strong><small>최근 7일 기준</small></div>
+    <div class="overview-metric"><span>컨텍스트 전환</span><strong>{{ stats.context_switches }}</strong><small>세션 경로 전환 신호</small></div>
+    <div class="overview-metric attention"><span>확인 필요 경로</span><strong>{{ stats.missing_workspaces }}</strong><small>현재 로컬에 없음</small></div>
+  </section>
+
+  <section class="dashboard-grid">
+    <article class="analysis-panel activity-panel">
+      <div class="panel-heading"><div><h2>Activity trend</h2><p>최근 14일 일반 작업 세션</p></div><span>{{ stats.events }} indexed events</span></div>
+      <div class="activity-chart" aria-label="최근 14일 세션 수">
+        {% for day in activity %}<div class="activity-day" title="{{ day.day }} · {{ day.session_count }} sessions"><span class="activity-value">{{ day.session_count }}</span><div class="activity-track"><i style="height: {{ day.bar_percent }}%"></i></div><time datetime="{{ day.day }}">{{ day.day[5:] }}</time></div>{% endfor %}
+      </div>
+    </article>
+    <article class="analysis-panel source-mix-panel">
+      <div class="panel-heading"><div><h2>AI source mix</h2><p>이벤트 수 기준</p></div></div>
+      <div class="source-mix-list">
+        {% for source in source_activity %}<div class="source-mix-row"><div class="source-mix-label"><span><i class="source-indicator {{ source.kind }}"></i>{{ source.name }}</span><strong>{{ source.share_percent }}%</strong></div><div class="progress-track"><i class="{{ source.kind }}" style="width: {{ source.share_percent }}%"></i></div><div class="source-mix-meta"><span>{{ source.session_count }} sessions</span><span>{{ source.event_count }} events</span></div></div>{% endfor %}
+      </div>
+    </article>
+    <article class="analysis-panel project-panel">
+      <div class="panel-heading"><div><h2>Most active projects</h2><p>누적 세션 기준</p></div><a href="/projects">전체 보기</a></div>
+      <div class="ranked-list">{% for project in projects %}<a class="ranked-row" href="/sessions?workspace={{ project.id }}"><span class="rank-number">{{ loop.index }}</span><div><strong>{{ project.display_name }}</strong><span>{{ project.session_count }} sessions · {{ project.event_count }} events</span></div>{% if not project.exists_now %}<span class="missing-label">경로 없음</span>{% endif %}</a>{% endfor %}</div>
+    </article>
+    <article class="analysis-panel tools-panel">
+      <div class="panel-heading"><div><h2>Tool usage</h2><p>Claude와 Codex 도구 호출</p></div></div>
+      <div class="tool-list">{% for tool in tools %}<div class="tool-row"><span>{{ tool.tool_name }}</span><div class="progress-track"><i style="width: {{ tool.bar_percent }}%"></i></div><strong>{{ tool.use_count }}</strong></div>{% endfor %}</div>
+    </article>
+    <article class="analysis-panel source-health-panel">
+      <div class="panel-heading"><div><h2>Source health</h2><p>인덱스 최신성과 오류 상태</p></div><a href="/sources">관리</a></div>
+      <div class="health-list">{% for source in sources %}<div class="health-row"><span class="source-name"><i class="source-indicator {{ source.kind }}"></i>{{ source.name }}</span><div><strong>{{ source.file_count }} files</strong><time datetime="{{ source.last_scanned_at }}" data-local-time>{{ source.last_scanned_at or '-' }}</time></div><span class="health-label {{ 'error' if source.error_count else 'healthy' }}">{{ source.error_count if source.error_count else 'OK' }}</span></div>{% endfor %}</div>
+    </article>
+    <article class="analysis-panel attention-panel">
+      <div class="panel-heading"><div><h2>Attention</h2><p>세션 데이터 품질 신호</p></div></div>
+      <div class="attention-list"><a href="/projects"><strong>{{ stats.missing_workspaces }}</strong><span>현재 찾을 수 없는 과거 작업 경로</span></a><a href="/context"><strong>{{ stats.documents }}</strong><span>수집된 Local Contexts 문서</span></a><a href="/sessions"><strong>{{ stats.sessions }}</strong><span>분석 대상 일반 작업 세션</span></a></div>
+      <p class="attention-note">Maintenance 마커가 있는 정리 세션과 Claude subagent 대화는 이 통계에서 제외됩니다.</p>
+    </article>
+  </section>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Sessions · LocalBrain{% endblock %}
+{% block page_location %}Sessions{% endblock %}
+{% block content %}
+  <section class="page-heading">
+    <div>
+      <p class="eyebrow">AI ACTIVITY</p>
+      <h1>Sessions</h1>
+      <p class="heading-copy">Claude와 Codex에서 나눈 작업 대화를 시간순으로 살펴봅니다.</p>
+    </div>
+    <a class="secondary-button" href="/sources">소스 관리</a>
+  </section>
+
+  <section class="metric-band compact" aria-label="세션 현황">
+    <div class="metric"><strong>{{ stats.sessions }}</strong><span>전체 세션</span></div>
+    <div class="metric"><strong>{{ stats.events }}</strong><span>활동 이벤트</span></div>
+    <div class="metric"><strong>{{ stats.active_workspaces }}</strong><span>최근 활성 경로</span></div>
+    <div class="metric warning"><strong>{{ stats.missing_workspaces }}</strong><span>사라진 경로</span></div>
+  </section>
+
+  <section class="content-grid">
+    <div class="primary-column">
+      <div class="section-toolbar">
+        <div>
+          <h2>세션 타임라인</h2>
+          <p>{% if selected_workspace %}선택한 프로젝트의 세션{% else %}가장 최근 활동 기준{% endif %}</p>
+        </div>
+        <div class="segmented-control" aria-label="AI 도구 필터">
+          <a class="{% if selected_source == 'all' %}selected{% endif %}" href="/sessions{% if selected_workspace %}?workspace={{ selected_workspace }}{% endif %}">전체</a>
+          <a class="{% if selected_source == 'claude' %}selected{% endif %}" href="/sessions?source=claude{% if selected_workspace %}&workspace={{ selected_workspace }}{% endif %}">Claude</a>
+          <a class="{% if selected_source == 'codex' %}selected{% endif %}" href="/sessions?source=codex{% if selected_workspace %}&workspace={{ selected_workspace }}{% endif %}">Codex</a>
+        </div>
+      </div>
+
+      {% if sessions %}
+        <div class="session-list">
+          {% for session in sessions %}
+            <a class="session-row" href="/sessions/{{ session.id }}">
+              <div class="session-source {{ session.source_kind }}">{{ 'CL' if session.source_kind == 'claude' else 'CX' }}</div>
+              <div class="session-main">
+                <div class="session-title-line">
+                  <h3>{{ session.title }}</h3>
+                  {% if session.exists_now == 0 %}<span class="missing-label">경로 없음</span>{% endif %}
+                </div>
+                <p class="path-line">{{ session.workspace_name or session.cwd_raw or '작업 경로 없음' }}</p>
+                <div class="session-meta">
+                  <span>{{ session.source_name }}</span>
+                  {% if session.git_branch %}<span>{{ session.git_branch }}</span>{% endif %}
+                  <span>질문 {{ session.user_message_count }}</span>
+                  <span>이벤트 {{ session.event_count }}</span>
+                </div>
+              </div>
+              <time class="session-time" datetime="{{ session.last_event_at or session.started_at }}" data-local-time>{{ session.last_event_at or session.started_at or '-' }}</time>
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <h3>조건에 맞는 세션이 없습니다</h3>
+          <p>다른 소스나 프로젝트 필터를 선택해 보세요.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <aside class="secondary-column">
+      <section class="side-section">
+        <div class="side-heading">
+          <h2>최근 컨텍스트</h2>
+          <a href="/context">전체 보기</a>
+        </div>
+        <div class="document-list">
+          {% for document in documents %}
+            <a href="/documents/{{ document.id }}">
+              <strong>{{ document.title }}</strong>
+              <span>{{ document.relative_path }}</span>
+            </a>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="side-section source-status-section">
+        <div class="side-heading"><h2>수집 소스</h2><a href="/sources">관리</a></div>
+        {% for source in sources %}
+          <div class="source-status-row">
+            <span class="source-name"><i class="source-indicator {{ source.kind }}"></i>{{ source.name }}</span>
+            <span>{{ source.session_count or source.document_count }}</span>
+          </div>
+        {% endfor %}
+      </section>
+      <p class="database-note">DB: {{ database_path }}</p>
+    </aside>
+  </section>
+{% endblock %}
