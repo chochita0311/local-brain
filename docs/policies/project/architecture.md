@@ -58,15 +58,9 @@ Current adapters:
 - Apple Notes through local macOS Automation
 - local project and Git metadata discovered during scans
 
-Planned adapters:
+### Adapter Extension Boundary
 
-- optional cavemem SQLite or JSONL import
-- Jira and Confluence
-- Slack
-- hosted Git, pull requests, and commits
-- approved internal documents and operational systems
-
-External adapters must sit behind an approved connector boundary and follow the persistence modes in [Privacy And Data Handling](privacy-and-data.md).
+The [Project Roadmap](../../plans/project/roadmap.md) and [Project Backlog](../../plans/project/backlog.md) own adapter sequencing and named future targets. Any new external adapter must sit behind an approved connector boundary and follow the persistence modes in [Privacy And Data Handling](privacy-and-data.md).
 
 ## Persistence Model
 

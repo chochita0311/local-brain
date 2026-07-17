@@ -21,6 +21,17 @@ document.querySelectorAll("[data-local-epoch]").forEach((element) => {
   }
 });
 
+function showNotice(message, tone = "error") {
+  const region = document.querySelector("[data-toast-region]");
+  if (!region) return;
+  const notice = document.createElement("div");
+  notice.className = `toast-notice ${tone}`;
+  notice.setAttribute("role", tone === "error" ? "alert" : "status");
+  notice.textContent = message;
+  region.replaceChildren(notice);
+  window.setTimeout(() => notice.remove(), 5000);
+}
+
 const scanButton = document.querySelector("#scan-button");
 const scanResult = document.querySelector("#scan-result");
 
@@ -43,11 +54,13 @@ if (scanButton) {
       );
       scanResult.textContent = `${imported}개 변경 항목을 반영했습니다. 화면을 갱신합니다.`;
       scanResult.className = "scan-result success";
+      scanResult.setAttribute("role", "status");
       scanResult.hidden = false;
       window.setTimeout(() => window.location.reload(), 700);
     } catch (error) {
       scanResult.textContent = `스캔에 실패했습니다: ${error.message}`;
       scanResult.className = "scan-result error";
+      scanResult.setAttribute("role", "alert");
       scanResult.hidden = false;
       scanButton.disabled = false;
       idle.hidden = false;
@@ -77,6 +90,144 @@ function splitReference(value) {
   const separator = value.indexOf(":");
   if (separator < 1) return ["", ""];
   return [value.slice(0, separator), value.slice(separator + 1)];
+}
+
+const contextExplorer = document.querySelector("[data-context-explorer]");
+
+if (contextExplorer) {
+  const treePane = contextExplorer.querySelector(".source-tree-pane");
+  const previewStatus = contextExplorer.querySelector("[data-context-preview-status]");
+  const sourceId = contextExplorer.dataset.contextSourceId;
+  let previewRequest = null;
+
+  const documentLinks = () => [
+    ...treePane.querySelectorAll("[data-context-document-link]"),
+  ];
+
+  const destinationKey = (destination) => {
+    const url = new URL(destination, window.location.href);
+    return [url.searchParams.get("root"), url.searchParams.get("document")].join(":");
+  };
+
+  const revealDocumentLink = (link) => {
+    let ancestor = link.parentElement.closest("details");
+    while (ancestor && treePane.contains(ancestor)) {
+      ancestor.open = true;
+      ancestor = ancestor.parentElement.closest("details");
+    }
+
+    const paneBounds = treePane.getBoundingClientRect();
+    const linkBounds = link.getBoundingClientRect();
+    if (linkBounds.top < paneBounds.top) {
+      treePane.scrollTop -= paneBounds.top - linkBounds.top;
+    } else if (linkBounds.bottom > paneBounds.bottom) {
+      treePane.scrollTop += linkBounds.bottom - paneBounds.bottom;
+    }
+  };
+
+  const selectDocumentLink = (destination, fallbackLink = null) => {
+    const key = destinationKey(destination);
+    const selected = documentLinks().find((link) => destinationKey(link.href) === key)
+      || fallbackLink;
+
+    documentLinks().forEach((link) => {
+      const isSelected = link === selected;
+      link.classList.toggle("active", isSelected);
+      if (isSelected) {
+        link.setAttribute("aria-current", "page");
+      } else {
+        link.removeAttribute("aria-current");
+      }
+    });
+
+    if (selected) revealDocumentLink(selected);
+    return selected;
+  };
+
+  const destinationUsesCurrentSource = (destination) => {
+    const root = destination.searchParams.get("root") || sourceId;
+    return root === sourceId;
+  };
+
+  const loadDocumentPreview = async (
+    destination,
+    { pushHistory = false, focusSelection = false } = {},
+  ) => {
+    previewRequest?.abort();
+    const controller = new AbortController();
+    previewRequest = controller;
+    const currentPreview = contextExplorer.querySelector("[data-context-preview]");
+    currentPreview.setAttribute("aria-busy", "true");
+
+    try {
+      const response = await fetch(destination.href, {
+        credentials: "same-origin",
+        headers: { "X-Requested-With": "LocalBrain-Context-Preview" },
+        signal: controller.signal,
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      const parsed = new DOMParser().parseFromString(await response.text(), "text/html");
+      const incomingPreview = parsed.querySelector("[data-context-preview]");
+      if (!incomingPreview) throw new Error("미리보기 영역을 찾을 수 없습니다.");
+
+      const incomingSelected = parsed.querySelector("[data-context-document-link].active");
+      const selectedDestination = incomingSelected?.href || destination.href;
+      const adoptedPreview = document.importNode(incomingPreview, true);
+      adoptedPreview.setAttribute("aria-busy", "false");
+      currentPreview.replaceWith(adoptedPreview);
+      const selectedLink = selectDocumentLink(selectedDestination);
+      if (focusSelection && selectedLink) selectedLink.focus({ preventScroll: true });
+
+      if (pushHistory) {
+        window.history.pushState({ contextDocument: true }, "", destination.href);
+      }
+
+      const title = adoptedPreview.querySelector(".context-preview-heading h2")?.textContent.trim();
+      previewStatus.textContent = title
+        ? `${title} 문서를 미리보기에 표시했습니다.`
+        : "선택된 문서가 없습니다.";
+    } catch (error) {
+      if (error.name === "AbortError") return;
+      window.location.assign(destination.href);
+    } finally {
+      if (previewRequest === controller) {
+        previewRequest = null;
+        contextExplorer.querySelector("[data-context-preview]")?.setAttribute("aria-busy", "false");
+      }
+    }
+  };
+
+  treePane.addEventListener("click", (event) => {
+    const link = event.target.closest("[data-context-document-link]");
+    if (
+      !link
+      || event.defaultPrevented
+      || event.button !== 0
+      || event.metaKey
+      || event.ctrlKey
+      || event.shiftKey
+      || event.altKey
+    ) return;
+
+    const destination = new URL(link.href, window.location.href);
+    if (!destinationUsesCurrentSource(destination)) return;
+    event.preventDefault();
+    if (destination.href === window.location.href) return;
+    loadDocumentPreview(destination, { pushHistory: true });
+  });
+
+  window.addEventListener("popstate", () => {
+    const destination = new URL(window.location.href);
+    if (!destinationUsesCurrentSource(destination)) {
+      window.location.reload();
+      return;
+    }
+    loadDocumentPreview(destination, { focusSelection: true });
+  });
+
+  const initialSelection = treePane.querySelector("[data-context-document-link].active");
+  if (initialSelection) selectDocumentLink(initialSelection.href, initialSelection);
 }
 
 document.querySelectorAll("[data-api-form]").forEach((form) => {
@@ -111,6 +262,7 @@ document.querySelectorAll("[data-api-form]").forEach((form) => {
       if (result) {
         result.textContent = "저장했습니다.";
         result.className = "form-result success";
+        result.setAttribute("role", "status");
         result.hidden = false;
       }
       window.setTimeout(() => window.location.reload(), 350);
@@ -118,6 +270,7 @@ document.querySelectorAll("[data-api-form]").forEach((form) => {
       if (result) {
         result.textContent = error.message;
         result.className = "form-result error";
+        result.setAttribute("role", "alert");
         result.hidden = false;
       }
       submitButton.disabled = false;
@@ -133,7 +286,7 @@ document.querySelectorAll("[data-delete-link]").forEach((button) => {
       await requestJson(button.dataset.deleteLink, { method: "DELETE" });
       window.location.reload();
     } catch (error) {
-      window.alert(error.message);
+      showNotice(error.message);
       button.disabled = false;
     }
   });
@@ -150,7 +303,7 @@ document.querySelectorAll("[data-delete-context-root], [data-delete-context-sour
       });
       window.location.assign("/context");
     } catch (error) {
-      window.alert(error.message);
+      showNotice(error.message);
       button.disabled = false;
     }
   });
@@ -169,7 +322,7 @@ document.querySelectorAll("[data-suggestion-run]").forEach((button) => {
       button.textContent = `${data.created}개 제안`;
       window.setTimeout(() => window.location.reload(), 500);
     } catch (error) {
-      window.alert(error.message);
+      showNotice(error.message);
       button.disabled = false;
       button.textContent = original;
     }
@@ -183,7 +336,7 @@ document.querySelectorAll("[data-suggestion-action]").forEach((button) => {
       await requestJson(button.dataset.suggestionAction, { method: "POST" });
       window.location.reload();
     } catch (error) {
-      window.alert(error.message);
+      showNotice(error.message);
       button.disabled = false;
     }
   });
@@ -207,7 +360,7 @@ document.querySelectorAll("[data-maintenance-run]").forEach((button) => {
       copyButton.hidden = false;
       button.textContent = "새 마커 생성";
     } catch (error) {
-      window.alert(error.message);
+      showNotice(error.message);
     } finally {
       button.disabled = false;
     }
@@ -217,9 +370,18 @@ document.querySelectorAll("[data-maintenance-run]").forEach((button) => {
 document.querySelectorAll("[data-copy-marker]").forEach((button) => {
   button.addEventListener("click", async () => {
     const marker = button.parentElement.querySelector("[data-maintenance-marker]");
-    await navigator.clipboard.writeText(marker.textContent);
-    button.textContent = "복사됨";
-    window.setTimeout(() => { button.textContent = "마커 복사"; }, 1000);
+    button.disabled = true;
+    try {
+      await navigator.clipboard.writeText(marker.textContent);
+      button.textContent = "복사됨";
+      window.setTimeout(() => {
+        button.textContent = "마커 복사";
+        button.disabled = false;
+      }, 1000);
+    } catch (error) {
+      showNotice(`마커를 복사하지 못했습니다: ${error.message}`);
+      button.disabled = false;
+    }
   });
 });
 

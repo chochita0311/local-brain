@@ -5,7 +5,7 @@
   <a class="back-link" href="/workstreams/{{ run.workstream_id }}">{{ run.workstream_name }}로 돌아가기</a>
   <section class="page-heading run-page-heading">
     <div><p class="eyebrow">CLAUDE TASK RUNNER</p><h1>{{ run.task_type.replace('_', ' ') }}</h1><p class="heading-copy mono">{{ run.id }}</p></div>
-    <div class="run-page-actions"><span class="run-status large {{ run.status }}" data-run-status>{{ run.status }}</span><button class="secondary-button" type="button" data-cancel-run {% if run.status not in ['queued', 'running', 'cancelling'] %}hidden{% endif %}>실행 중지</button></div>
+    <div class="run-page-actions"><span class="run-status large {{ run.status }}" data-run-status role="status" aria-live="polite">{{ run.status }}</span><button class="secondary-button" type="button" data-cancel-run {% if run.status not in ['queued', 'running', 'cancelling'] %}hidden{% endif %}>실행 중지</button></div>
   </section>
 
   <section class="detail-strip run-details">
@@ -22,7 +22,7 @@
   <section class="run-console-section" data-run-console data-run-id="{{ run.id }}">
     <div class="run-console-toolbar"><div><span class="status-dot {{ run.status }}"></span><strong>Claude output</strong></div><span data-run-updated>{{ run.updated_at }}</span></div>
     <pre class="run-console-output" data-run-output>{{ output or 'Claude 실행을 준비하고 있습니다.' }}</pre>
-    <div class="run-error" data-run-error {% if not run.error %}hidden{% endif %}>{{ run.error or '' }}</div>
+    <div class="run-error" data-run-error role="alert" {% if not run.error %}hidden{% endif %}>{{ run.error or '' }}</div>
   </section>
 
   <section class="run-artifact-strip">

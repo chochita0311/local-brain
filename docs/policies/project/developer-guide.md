@@ -18,7 +18,7 @@ git config core.hooksPath .githooks
 Install dependencies:
 
 ```bash
-uv sync --system-certs
+uv sync
 ```
 
 Initialize or refresh indexed sources:
@@ -34,6 +34,18 @@ uv run uvicorn localbrain.main:app --reload
 ```
 
 Open `http://127.0.0.1:8000`.
+
+## Dependency Certificate Troubleshooting
+
+The default `uv sync` command verifies PyPI with uv's bundled certificate roots and should work on a normal network. If it fails with `UnknownIssuer` on a managed network, a proxy or security product may be using a certificate authority trusted by macOS but not included in uv's bundled roots.
+
+Retry the failed installation using the macOS system certificate store:
+
+```bash
+uv sync --system-certs
+```
+
+The flag applies to that command only. If later `uv` commands also need network access through the same managed network, set `UV_SYSTEM_CERTS=true` for the current shell before running them. Do not disable TLS verification. This setting affects dependency downloads only; it does not change where LocalBrain stores or processes indexed data.
 
 ## Configuration
 

@@ -13,7 +13,7 @@
         </li>
       {% else %}
         <li class="source-tree-document">
-          <a class="{% if selected_document_id == node.id %}active{% endif %}" href="/context?root={{ source_id }}&document={{ node.id }}" title="{{ node.relative_path }}">
+          <a class="{% if selected_document_id == node.id %}active{% endif %}" href="/context?root={{ source_id }}&document={{ node.id }}" title="{{ node.relative_path }}" data-context-document-link {% if selected_document_id == node.id %}aria-current="page"{% endif %}>
             <span class="tree-file-symbol">{{ 'N' if node.content_type == 'application/x-apple-note' else ('P' if node.content_type == 'application/pdf+text' else 'F') }}</span>
             <span>{{ node.name }}</span>
           </a>
@@ -54,13 +54,13 @@
           <form class="stack-form" data-api-form data-endpoint="/api/context-roots" data-method="POST">
             <label><span>Folder path</span><input name="path" required placeholder="~/Documents/notes"></label>
             <button class="secondary-button" type="submit">추가</button>
-            <p class="form-result" data-form-result hidden></p>
+            <p class="form-result" data-form-result role="status" aria-live="polite" hidden></p>
           </form>
         </details>
         {% if not has_apple_notes %}
           <form class="apple-notes-form" data-api-form data-endpoint="/api/context-sources/apple-notes" data-method="POST">
             <button class="secondary-button" type="submit">Apple Notes 추가</button>
-            <p class="form-result" data-form-result hidden></p>
+            <p class="form-result" data-form-result role="status" aria-live="polite" hidden></p>
           </form>
         {% endif %}
       </div>
@@ -82,13 +82,13 @@
           <form class="stack-form" data-api-form data-endpoint="/api/context-files" data-method="POST">
             <label><span>File path</span><input name="path" required placeholder="~/Downloads/report.pdf"></label>
             <button class="secondary-button" type="submit">추가</button>
-            <p class="form-result" data-form-result hidden></p>
+            <p class="form-result" data-form-result role="status" aria-live="polite" hidden></p>
           </form>
         </details>
       </div>
     </aside>
 
-    <div class="context-explorer">
+    <div class="context-explorer" data-context-explorer data-context-source-id="{{ selected_source.id if selected_source else '' }}">
       <div class="context-explorer-toolbar">
         <div><h2>{{ selected_source.label if selected_source else 'Source 없음' }}</h2><p>{{ selected_source.display_path if selected_source else '-' }}</p></div>
         {% if selected_source %}<span class="source-status {{ selected_source.status }}">{{ selected_source.status }}</span>{% endif %}
@@ -105,7 +105,7 @@
           {% endif %}
         </aside>
 
-        <article class="context-preview-pane">
+        <article class="context-preview-pane" data-context-preview aria-busy="false">
           {% if selected_document %}
             <header class="context-preview-heading">
               <div><span>{{ selected_document.content_type }}</span><h2>{{ selected_document.title }}</h2><p>{{ selected_document.relative_path }}</p></div>
@@ -117,6 +117,7 @@
           {% endif %}
         </article>
       </div>
+      <p class="sr-only" data-context-preview-status role="status" aria-live="polite" aria-atomic="true"></p>
     </div>
   </section>
 {% endblock %}

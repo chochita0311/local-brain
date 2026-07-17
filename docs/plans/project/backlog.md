@@ -60,12 +60,12 @@ Priority meaning:
 ## P1 - Sessions And Retrieval
 
 - [ ] Validate Claude and Codex parsers against format changes and malformed or partially written JSONL.
-- [ ] Expose lazy subagent exploration under the parent Session without counting it as ordinary activity.
+- [x] Expose lazy subagent exploration under the parent Session without counting it as ordinary activity.
 - [ ] Decide which additional subagent metadata is useful without importing nested events.
 - [ ] Decide which tool-result fields are valuable enough to index without adding opaque payload noise or excessive volume.
 - [ ] Improve source-aware matching and explain why each Session or Document was suggested.
 - [ ] Add batch review, filters, sorting, and clear pending, accepted, rejected, restored, and superseded states.
-- [ ] Keep candidate counts uncapped while avoiding repeated parsing through fingerprints, incremental indexes, and cached evidence.
+- [x] Keep candidate counts uncapped while avoiding repeated parsing through fingerprints, incremental indexes, and cached evidence.
 - [ ] Measure retrieval precision and missed-resource rates with synthetic local fixtures before changing ranking rules.
 
 ## P1 - External Sources
@@ -82,8 +82,8 @@ Priority meaning:
 - [ ] Add a durable Run queue with concurrency limits, restart recovery, timeouts, and orphan-process detection.
 - [ ] Make the exact prompt, manifest fingerprint, MCP budget, model, cwd, and tool policy inspectable before execution.
 - [ ] Separate local retrieval, external gap filling, synthesis, and review into visible Run stages.
-- [ ] Add retry and refresh behavior that preserves accepted and rejected decisions while replacing eligible pending Suggestions.
-- [ ] Verify that maintenance Runs and artifacts cannot be re-imported as ordinary Sessions or Local Context documents.
+- [x] Add retry and refresh behavior that preserves accepted and rejected decisions while replacing eligible pending Suggestions.
+- [x] Verify that maintenance Runs and artifacts cannot be re-imported as ordinary Sessions or Local Context documents.
 - [ ] Add cancellation and shutdown tests proving child processes do not survive unexpectedly.
 
 ## P2 - Dashboard And Workflow
@@ -98,8 +98,10 @@ Priority meaning:
 ## P2 - Quality And Distribution
 
 - [ ] Add browser-level tests for Workstream, Thread, source browsing, Suggestion review, and Run workflows.
+- [ ] Build a synthetic graphical regression matrix for the current screen families at `1440`, `920`, `700`, and `320`, covering representative long-content, empty, unavailable, error, and active-interaction states without tracking private runtime content.
 - [ ] Add performance tests using large synthetic Session and document sets.
 - [ ] Audit keyboard navigation, focus, contrast, empty states, long text, and narrow viewports.
+- [ ] Add a default `<meta name="description">` to the shared server-rendered shell and recheck Lighthouse SEO.
 - [ ] Add structured migrations and release compatibility checks before distributing builds.
 - [ ] Decide between Tauri, Electron, or a signed launcher after the localhost MVP stabilizes.
 - [ ] Package, sign, notarize, and document macOS permissions without broad filesystem entitlements.

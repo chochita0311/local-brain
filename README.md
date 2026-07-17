@@ -20,14 +20,24 @@ See [Project Architecture](docs/policies/project/architecture.md) for the implem
 
 LocalBrain currently targets macOS and requires Python 3.9 or later and [uv](https://docs.astral.sh/uv/). Claude CLI is optional unless the Task Runner is used.
 
+From the project root, install the Python dependencies and start LocalBrain:
+
 ```bash
-git config core.hooksPath .githooks
-uv sync --system-certs
-uv run localbrain scan --full
-uv run uvicorn localbrain.main:app --reload
+uv sync
+uv run --no-sync uvicorn localbrain.main:app --host 127.0.0.1 --port 8000
 ```
 
-Open `http://127.0.0.1:8000`.
+Open `http://127.0.0.1:8000`. The local database is created automatically on first startup. Stop the server with `Ctrl+C`.
+
+To import local Claude and Codex sessions, open the **Sources** page and run a scan. Local Context folders, files, and Apple Notes are added explicitly from the same page. The initial `uv sync` downloads Python packages, but LocalBrain's indexed content and runtime data remain on the local machine.
+
+Certificate configuration is not required on a normal network. If `uv sync` fails with an `UnknownIssuer` error, retry the installation with the macOS system certificate store:
+
+```bash
+uv sync --system-certs
+```
+
+See [Dependency Certificate Troubleshooting](docs/policies/project/developer-guide.md#dependency-certificate-troubleshooting) for details.
 
 Run the test suite with:
 
@@ -59,4 +69,4 @@ Repository-local agent instructions are in [AGENTS.md](AGENTS.md).
 
 ## Project Status
 
-Phase 1, the local activity foundation, is complete. The core Phase 2 Workstream and Thread workflow is implemented; unified cross-source timelines, stronger reconciliation, external source ingestion, insights, and desktop packaging remain planned.
+Current phase status and priorities are maintained in the [Project Roadmap](docs/plans/project/roadmap.md#current-direction).

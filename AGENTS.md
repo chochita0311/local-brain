@@ -38,6 +38,7 @@ Out of scope unless explicitly planned:
 - `docs/agents/`: planning and execution roles, flows, operations, and profiles
 - `docs/policies/`: durable product, architecture, privacy, development, and operations contracts
 - `docs/plans/`: roadmap, backlog, PRDs, features, specs, Runs, evaluations, and fix artifacts
+- `DESIGN.md`: creative design intent and source interpretation
 - `README.md`: user-facing overview and quick start
 
 Runtime data belongs under `~/Library/Application Support/LocalBrain` by default and is not part of the codebase.
@@ -65,7 +66,7 @@ Runtime data belongs under `~/Library/Application Support/LocalBrain` by default
 - A PRD request is planning-only until the human owner approves its boundary.
 - A `draft` PRD or unapproved Feature must not trigger spec work, code changes, or evaluation.
 - If an open point can change scope, acceptance, dependency, or user-visible behavior, stop and ask instead of carrying the ambiguity into implementation.
-- For visible screen or interaction work, declare the Frontend or Fullstack profile, affected surface lanes, and required design, functional, and UX evaluation.
+- For visible screen or interaction work, read the [Design Constitution](docs/policies/design/design-constitution.md), declare the Frontend or Fullstack profile and affected surface lanes, and apply [Design Evaluation](docs/policies/design/design-evaluation.md), functional evaluation, and [Interaction Evaluation](docs/policies/experience/interaction-evaluation.md).
 
 ## Privacy And Data Rules
 

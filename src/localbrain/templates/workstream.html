@@ -50,7 +50,7 @@
           <label class="runner-instruction"><span>추가 요청</span><textarea name="instruction" rows="2" placeholder="이 실행에서 추가로 확인할 범위"></textarea></label>
           <button class="primary-button" type="submit" {% if not runner_available %}disabled{% endif %}>Claude 실행</button>
           <label class="runner-refresh-toggle"><input type="checkbox" name="refresh_suggestions" value="true"><span><strong>기존 Claude 제안 교체</strong><small>성공한 실행 결과로 대기 중인 Claude 제안을 갱신합니다.</small></span></label>
-          <p class="form-result" data-form-result hidden></p>
+          <p class="form-result" data-form-result role="status" aria-live="polite" hidden></p>
         </form>
         <div class="runner-policy-strip"><span>local candidates first</span><span>read-only plan</span><span>MCP soft budget · {{ runner_mcp_budget }}/run</span><span>cwd · {{ runner_cwd }}</span></div>
 
@@ -76,7 +76,7 @@
                   <div class="form-grid two"><label><span>제목</span><input name="title" required value="{{ thread.title }}"></label><label><span>상태</span><select name="status"><option value="active" {% if thread.status == 'active' %}selected{% endif %}>active</option><option value="blocked" {% if thread.status == 'blocked' %}selected{% endif %}>blocked</option><option value="paused" {% if thread.status == 'paused' %}selected{% endif %}>paused</option><option value="done" {% if thread.status == 'done' %}selected{% endif %}>done</option></select></label></div>
                   <label><span>요약</span><textarea name="summary" rows="2">{{ thread.summary or '' }}</textarea></label>
                   <div class="form-grid two"><label><span>현재 목표</span><textarea name="current_goal" rows="3">{{ thread.current_goal or '' }}</textarea></label><label><span>다음 행동</span><textarea name="next_action" rows="3">{{ thread.next_action or '' }}</textarea></label></div>
-                  <div class="form-actions"><button class="secondary-button" type="submit">Thread 저장</button><p class="form-result" data-form-result hidden></p></div>
+                  <div class="form-actions"><button class="secondary-button" type="submit">Thread 저장</button><p class="form-result" data-form-result role="status" aria-live="polite" hidden></p></div>
                 </form>
                 <div class="linked-resource-list compact-resources">
                   {% for link in thread.links %}
@@ -94,7 +94,7 @@
             <label><span>제목</span><input name="title" required placeholder="예: 검색 필터 개선"></label>
             <label><span>요약</span><textarea name="summary" rows="2"></textarea></label>
             <div class="form-grid two"><label><span>현재 목표</span><textarea name="current_goal" rows="3"></textarea></label><label><span>다음 행동</span><textarea name="next_action" rows="3"></textarea></label></div>
-            <button class="primary-button" type="submit">Thread 추가</button><p class="form-result" data-form-result hidden></p>
+            <button class="primary-button" type="submit">Thread 추가</button><p class="form-result" data-form-result role="status" aria-live="polite" hidden></p>
           </form>
         </details>
       </section>
@@ -133,7 +133,7 @@
           <label><span>이름</span><input name="name" required value="{{ workstream.name }}"></label>
           <label><span>상태</span><select name="status"><option value="active" {% if workstream.status == 'active' %}selected{% endif %}>active</option><option value="paused" {% if workstream.status == 'paused' %}selected{% endif %}>paused</option><option value="done" {% if workstream.status == 'done' %}selected{% endif %}>done</option><option value="archived" {% if workstream.status == 'archived' %}selected{% endif %}>archived</option></select></label>
           <label><span>요약</span><textarea name="summary" rows="4">{{ workstream.summary or '' }}</textarea></label>
-          <button class="secondary-button" type="submit">저장</button><p class="form-result" data-form-result hidden></p>
+          <button class="secondary-button" type="submit">저장</button><p class="form-result" data-form-result role="status" aria-live="polite" hidden></p>
         </form>
       </details>
 
@@ -146,7 +146,7 @@
           <label><span>최근 결정</span><textarea name="recent_decisions" rows="4">{{ workstream.checkpoint.recent_decisions if workstream.checkpoint else '' }}</textarea></label>
           <label><span>열린 질문</span><textarea name="open_questions" rows="3">{{ workstream.checkpoint.open_questions if workstream.checkpoint else '' }}</textarea></label>
           <label><span>다시 열 파일</span><textarea name="files_to_open" rows="3">{{ workstream.checkpoint.files_to_open if workstream.checkpoint else '' }}</textarea></label>
-          <button class="primary-button" type="submit">새 버전 확정</button><p class="form-result" data-form-result hidden></p>
+          <button class="primary-button" type="submit">새 버전 확정</button><p class="form-result" data-form-result role="status" aria-live="polite" hidden></p>
         </form>
       </details>
 
@@ -156,7 +156,7 @@
           <label><span>연결 위치</span><select name="scope_ref">{% for thread in workstream.threads %}<option value="thread:{{ thread.id }}">Thread · {{ thread.title }}</option>{% endfor %}<option value="workstream:{{ workstream.id }}">공통 자원 · {{ workstream.name }}</option></select></label>
           <label><span>자원</span><select name="entity_ref" required><option value="">선택</option><optgroup label="최근 Sessions">{% for item in resources.sessions %}<option value="session:{{ item.id }}">{{ item.source_kind }} · {{ item.title }}</option>{% endfor %}</optgroup><optgroup label="Local Contexts">{% for item in resources.documents %}<option value="document:{{ item.id }}">{{ item.title }} · {{ item.relative_path }}</option>{% endfor %}</optgroup><optgroup label="Projects">{% for item in resources.projects %}<option value="project:{{ item.id }}">{{ item.display_name }}</option>{% endfor %}</optgroup><optgroup label="Local paths">{% for item in resources.local %}<option value="local:{{ item.id }}">{{ item.resource_type }} · {{ item.title }}</option>{% endfor %}</optgroup><optgroup label="External">{% for item in resources.external %}<option value="external:{{ item.id }}">{{ item.resource_type }} · {{ item.title }}</option>{% endfor %}</optgroup></select></label>
           <label><span>관계</span><input name="relation_type" value="related-to"></label>
-          <button class="secondary-button" type="submit">연결</button><p class="form-result" data-form-result hidden></p>
+          <button class="secondary-button" type="submit">연결</button><p class="form-result" data-form-result role="status" aria-live="polite" hidden></p>
         </form>
       </details>
 
@@ -168,7 +168,7 @@
           <label><span>제목</span><input name="title" placeholder="비우면 파일 또는 폴더 이름 사용"></label>
           <label><span>요약</span><textarea name="summary" rows="3"></textarea></label>
           <input name="relation_type" type="hidden" value="reference">
-          <button class="secondary-button" type="submit">추가하고 연결</button><p class="form-result" data-form-result hidden></p>
+          <button class="secondary-button" type="submit">추가하고 연결</button><p class="form-result" data-form-result role="status" aria-live="polite" hidden></p>
         </form>
       </details>
 
@@ -182,7 +182,7 @@
           <label><span>요약</span><textarea name="summary" rows="3"></textarea></label>
           <label><span>출처 역할</span><input name="source_role" placeholder="예: implementation truth"></label>
           <input name="relation_type" type="hidden" value="reference">
-          <button class="secondary-button" type="submit">추가하고 연결</button><p class="form-result" data-form-result hidden></p>
+          <button class="secondary-button" type="submit">추가하고 연결</button><p class="form-result" data-form-result role="status" aria-live="polite" hidden></p>
         </form>
       </details>
 

@@ -138,6 +138,24 @@
 - The expanded panel should align to its trigger in a predictable direction and should not imply a different disclosure direction than the control actually uses.
 - Hidden metadata chips shown in the disclosure should size to their own content unless a stronger system rule explicitly requires uniform widths.
 
+### Stateful Navigation And Selection
+
+#### Visible And Programmatic Selection Parity
+
+- A visible active or selected treatment should have the matching programmatic current or selected state when the control represents navigation or selection; color or background treatment alone is not sufficient evidence.
+- The current item should remain visibly reachable after navigation. In hierarchical surfaces, required ancestors should expose the item rather than leaving an active descendant hidden inside a collapsed group.
+- Compact and narrow states should preserve LocalBrain's approved target geometry, contrast, and readable state labels without forcing desktop density rules into touch-oriented layouts.
+- Evaluators should compare visible selection, accessibility semantics, focus treatment, ancestor disclosure, and narrow-screen reachability as one state contract.
+
+### Evaluation Evidence
+
+#### Rendered State And Viewport Evidence
+
+- Claims about geometry, overflow, contrast, selection visibility, focus, or responsive composition should use rendered evidence when those properties cannot be established from source inspection alone.
+- Broad screen-family work should sample LocalBrain's supported viewport boundaries and representative long-content, empty, unavailable, error, and active-interaction states. Exact widths and required states belong to the approved product or Feature contract.
+- Use synthetic or explicitly approved content when captures, fixtures, or audit artifacts could otherwise expose private runtime data.
+- If the required rendered evidence cannot be collected, record the evidence gap explicitly and do not describe unobserved runtime behavior as a verified pass. The owning Feature or product contract decides whether that gap blocks acceptance.
+
 ### First-State And Viewport Checks
 
 #### First-State Surface Separation

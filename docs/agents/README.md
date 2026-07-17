@@ -43,6 +43,7 @@ User-visible work uses the Frontend Product profile, or the Fullstack Product pr
 
 - Declare affected screens, routes, components, states, and browser behavior in the Feature and Spec artifacts.
 - Split multi-surface work into explicit lanes when frontend, backend, data, or connector changes can be evaluated independently.
+- Use the [Design Constitution](../policies/design/design-constitution.md) as the durable implementation baseline for visible surfaces.
 - Use [Design Evaluation](../policies/design/design-evaluation.md) for visible layout and presentation changes.
 - Use [Interaction Evaluation](../policies/experience/interaction-evaluation.md) for navigation continuity, state transitions, control behavior, and interaction regressions.
 - Run functional evaluation for user-visible workflows even when a separate design evaluator is used.

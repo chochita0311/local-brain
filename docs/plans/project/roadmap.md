@@ -2,11 +2,13 @@
 
 Status: Phase 1 complete; Phase 2 core vertical slice implemented
 
-Last reviewed: 2026-07-14
+Last reviewed: 2026-07-17
 
 ## Current Direction
 
 LocalBrain is validating the Workstream and Thread workflow as a local web application before expanding external connectors or desktop packaging.
+
+The design-system realignment of the current screen families is complete and accepted. Near-term work remains focused on validating and extending the product workflow rather than starting another broad visual redesign.
 
 Near-term priorities:
 

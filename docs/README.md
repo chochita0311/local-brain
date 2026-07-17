@@ -19,8 +19,14 @@ Durable rules and current contracts live under `docs/policies/`.
 - [Developer Guide](policies/project/developer-guide.md): setup, configuration, development workflow, and verification
 - [Claude Task Runner](policies/operations/claude-task-runner.md): in-app Claude maintenance execution, retrieval, persistence, and review behavior
 - [Harness Policies](policies/harness/): planning approval, execution routing, profiles, surface lanes, and traceability
-- [Design Evaluation](policies/design/design-evaluation.md): reusable visual and screen-surface checks
 - [Interaction Evaluation](policies/experience/interaction-evaluation.md): reusable interaction continuity and UX checks
+
+## Design System
+
+- [Creative Design Brief](../DESIGN.md): visual north star, source interpretation, and creative rationale
+- [Design Constitution](policies/design/design-constitution.md): durable tokens, layout rules, state-to-UI mapping, and component contracts
+- [Design Document Governance](policies/design/design-document-governance.md): design document ownership, source hierarchy, and update rules
+- [Design Evaluation](policies/design/design-evaluation.md): reusable visual and screen-surface checks
 
 ## Agent Package
 
@@ -35,7 +41,8 @@ Sequencing and unresolved work live under `docs/plans/`.
 
 - [Project Roadmap](plans/project/roadmap.md): phase direction, current priorities, validation strategy, and risk controls
 - [Project Backlog](plans/project/backlog.md): detailed open work and decisions ordered by priority
-- `docs/plans/prd/`, `feature/`, and `spec/`: approved planning and implementation boundaries
+- [UI Design-System Realignment PRD](plans/prd/prd-0001-ui-design-system-realignment.md): passed PRD with fourteen accepted Feature runs, evaluation and fix evidence, and a deferred nonblocking graphical-regression follow-up
+- `docs/plans/prd/`, `feature/`, and `spec/`: planning and implementation boundaries across their lifecycle
 - `docs/plans/run/`, `evaluation/`, `fix/`, and `heuristic/`: execution and review artifacts
 
 ## Ownership Rules

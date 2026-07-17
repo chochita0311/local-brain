@@ -9,51 +9,52 @@
     <script src="{{ url_for('static', path='/app.js') }}" defer></script>
   </head>
   <body>
+    <a class="skip-link" href="#main-content">본문으로 건너뛰기</a>
     <div class="app-shell">
       <aside class="lnb">
         <a class="brand" href="/">
-          <span class="brand-mark">LB</span>
+          <span class="brand-mark" aria-hidden="true">LB</span>
           <span class="brand-copy"><strong>LocalBrain</strong><small>Developer memory</small></span>
         </a>
 
         <nav class="lnb-nav" aria-label="주요 탐색">
           <div class="nav-group">
             <span class="nav-group-label">Overview</span>
-            <a class="lnb-item {% if active_page == 'dashboard' %}active{% endif %}" href="/">
-              <span class="nav-symbol">01</span><span>Dashboard</span>
+            <a class="lnb-item {% if active_page == 'dashboard' %}active{% endif %}" href="/" {% if active_page == 'dashboard' %}aria-current="page"{% endif %}>
+              <span class="nav-symbol" aria-hidden="true">01</span><span>Dashboard</span>
             </a>
-            <a class="lnb-item {% if active_page == 'sessions-dashboard' %}active{% endif %}" href="/sessions-dashboard">
-              <span class="nav-symbol">02</span><span>Sessions Dashboard</span>
+            <a class="lnb-item {% if active_page == 'sessions-dashboard' %}active{% endif %}" href="/sessions-dashboard" {% if active_page == 'sessions-dashboard' %}aria-current="page"{% endif %}>
+              <span class="nav-symbol" aria-hidden="true">02</span><span>Sessions Dashboard</span>
             </a>
           </div>
           <div class="nav-group">
             <span class="nav-group-label">Workspace</span>
-            <a class="lnb-item {% if active_page == 'workstreams' %}active{% endif %}" href="/workstreams">
-              <span class="nav-symbol">03</span><span>Workstreams</span>
+            <a class="lnb-item {% if active_page == 'workstreams' %}active{% endif %}" href="/workstreams" {% if active_page == 'workstreams' %}aria-current="page"{% endif %}>
+              <span class="nav-symbol" aria-hidden="true">03</span><span>Workstreams</span>
             </a>
-            <a class="lnb-item {% if active_page == 'sessions' %}active{% endif %}" href="/sessions">
-              <span class="nav-symbol">04</span><span>Sessions</span>
+            <a class="lnb-item {% if active_page == 'sessions' %}active{% endif %}" href="/sessions" {% if active_page == 'sessions' %}aria-current="page"{% endif %}>
+              <span class="nav-symbol" aria-hidden="true">04</span><span>Sessions</span>
             </a>
-            <a class="lnb-item {% if active_page == 'atlassian' %}active{% endif %}" href="/atlassian">
-              <span class="nav-symbol">05</span><span>Atlassian</span>
+            <a class="lnb-item {% if active_page == 'atlassian' %}active{% endif %}" href="/atlassian" {% if active_page == 'atlassian' %}aria-current="page"{% endif %}>
+              <span class="nav-symbol" aria-hidden="true">05</span><span>Atlassian</span>
             </a>
-            <a class="lnb-item {% if active_page == 'context' %}active{% endif %}" href="/context">
-              <span class="nav-symbol">06</span><span>Local Contexts</span>
+            <a class="lnb-item {% if active_page == 'context' %}active{% endif %}" href="/context" {% if active_page == 'context' %}aria-current="page"{% endif %}>
+              <span class="nav-symbol" aria-hidden="true">06</span><span>Local Contexts</span>
             </a>
-            <a class="lnb-item {% if active_page == 'projects' %}active{% endif %}" href="/projects">
-              <span class="nav-symbol">07</span><span>Projects</span>
+            <a class="lnb-item {% if active_page == 'projects' %}active{% endif %}" href="/projects" {% if active_page == 'projects' %}aria-current="page"{% endif %}>
+              <span class="nav-symbol" aria-hidden="true">07</span><span>Projects</span>
             </a>
           </div>
           <div class="nav-group">
             <span class="nav-group-label">System</span>
-            <a class="lnb-item {% if active_page == 'sources' %}active{% endif %}" href="/sources">
-              <span class="nav-symbol">08</span><span>Sources</span>
+            <a class="lnb-item {% if active_page == 'sources' %}active{% endif %}" href="/sources" {% if active_page == 'sources' %}aria-current="page"{% endif %}>
+              <span class="nav-symbol" aria-hidden="true">08</span><span>Sources</span>
             </a>
           </div>
         </nav>
 
         <div class="lnb-footer">
-          <span class="local-status"><span class="status-dot"></span>Local index online</span>
+          <span class="local-status"><span class="status-dot" aria-hidden="true"></span>Local index online</span>
           <small>Private on this Mac</small>
         </div>
       </aside>
@@ -65,12 +66,13 @@
             <label class="sr-only" for="global-query">전체 검색</label>
             <input id="global-query" name="q" type="search" placeholder="세션, 질문, 문서 통합 검색" value="{{ query | default('') }}">
           </form>
-          <a class="search-link {% if active_page == 'search' %}active{% endif %}" href="/search">Search</a>
+          <a class="search-link {% if active_page == 'search' %}active{% endif %}" href="/search" {% if active_page == 'search' %}aria-current="page"{% endif %}>Search</a>
         </header>
-        <main class="app-main">
+        <main class="app-main" id="main-content" tabindex="-1">
           {% block content %}{% endblock %}
         </main>
       </div>
     </div>
+    <div class="toast-region" data-toast-region aria-live="polite" aria-atomic="true"></div>
   </body>
 </html>

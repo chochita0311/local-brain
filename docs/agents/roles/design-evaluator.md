@@ -13,7 +13,9 @@
 - one approved feature document
 - one active spec document
 - build output or implementation snapshot
-- golden sources and design policies relevant to the feature
+- the [Design Constitution](../../policies/design/design-constitution.md) as the durable visual baseline
+- relevant checks from [Design Evaluation](../../policies/design/design-evaluation.md)
+- [DESIGN.md](../../../DESIGN.md) or feature-specific golden sources when creative or source rationale is relevant
 
 ## Capability Guidance
 - If a relevant local skill is installed, use it before ad hoc evaluation.

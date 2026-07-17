@@ -77,6 +77,15 @@
 - If the same detail item reached from a list expands or highlights a category, collection, or parent group, a direct URL entry should produce the same orientation state.
 - Evaluators should compare list-driven entry and direct-link entry for active navigation state, expanded groups, and visible parent labels.
 
+#### Hierarchical Browse-To-Preview Continuity
+
+- When selecting an item changes only a preview or detail region, stable navigation regions such as source rails, trees, and grouped lists should preserve their user-facing state unless the approved interaction intentionally resets their scope.
+- Whether those regions remain mounted or are rebuilt, preview changes should preserve or deliberately restore user-owned disclosure, navigation scroll, focus, interaction bindings, and current-item visibility inside any required expanded ancestors.
+- URL and history state, preview identity, visible selection, programmatic current or selected state, and bounded feedback should advance as one coherent update rather than settling independently.
+- Back and forward navigation should restore the same orientation contract as click-driven entry, including the active item, necessary ancestors, and an intentional focus destination.
+- Rapid consecutive selections should cancel or ignore superseded work so stale responses cannot overwrite the latest choice. Normal destination links should remain available as a no-script or failed-enhancement fallback when the product supports progressive enhancement.
+- Evaluators should test deep selection, repeated sibling selection, preserved scroll and disclosure, back and forward restoration, rapid input, and failed-update fallback instead of validating only the final preview content.
+
 #### Breakpoint Control-State Compatibility
 
 - If a responsive breakpoint hides or removes a mode switch, toggle, or similar state-changing control, the interface must also normalize into a state that remains supported without that control.
