@@ -43,6 +43,7 @@ def _latest_activity(connection: sqlite3.Connection, workstream_id: int) -> Opti
                 AND CAST(workstream_links.entity_id AS INTEGER) = sessions.id
             WHERE workstream_links.workstream_id = ?
               AND sessions.session_class = 'work'
+              AND sessions.session_role = 'primary'
             UNION ALL
             SELECT sessions.last_event_at
             FROM threads
@@ -51,6 +52,7 @@ def _latest_activity(connection: sqlite3.Connection, workstream_id: int) -> Opti
                 AND CAST(thread_links.entity_id AS INTEGER) = sessions.id
             WHERE threads.workstream_id = ?
               AND sessions.session_class = 'work'
+              AND sessions.session_role = 'primary'
             UNION ALL
             SELECT datetime(context_documents.mtime_ns / 1000000000, 'unixepoch')
             FROM workstream_links
@@ -72,6 +74,7 @@ def _latest_activity(connection: sqlite3.Connection, workstream_id: int) -> Opti
                 AND sessions.workspace_id = workspaces.id
             WHERE workstream_links.workstream_id = ?
               AND sessions.session_class = 'work'
+              AND sessions.session_role = 'primary'
             UNION ALL
             SELECT sessions.last_event_at
             FROM threads
@@ -81,6 +84,7 @@ def _latest_activity(connection: sqlite3.Connection, workstream_id: int) -> Opti
             JOIN sessions ON sessions.workspace_id = workspaces.id
             WHERE threads.workstream_id = ?
               AND sessions.session_class = 'work'
+              AND sessions.session_role = 'primary'
             UNION ALL
             SELECT external_resources.updated_at
             FROM workstream_links
@@ -666,6 +670,7 @@ def picker_resources(connection: sqlite3.Connection) -> dict:
                    sources.kind AS source_kind
             FROM sessions JOIN sources ON sources.id = sessions.source_id
             WHERE sessions.session_class = 'work'
+              AND sessions.session_role = 'primary'
             ORDER BY sessions.last_event_at DESC LIMIT 80
             """
         ).fetchall(),
@@ -823,6 +828,7 @@ def dashboard_overview(connection: sqlite3.Connection) -> dict:
         JOIN sources ON sources.id = sessions.source_id
         LEFT JOIN workspaces ON workspaces.id = sessions.workspace_id
         WHERE sessions.session_class = 'work'
+          AND sessions.session_role = 'primary'
           AND NOT EXISTS (SELECT 1 FROM workstream_links
                           WHERE entity_type = 'session'
                             AND entity_id = CAST(sessions.id AS TEXT))
@@ -905,6 +911,7 @@ def generate_suggestions(connection: sqlite3.Connection, workstream_id: int) -> 
                sessions.last_event_at AS activity_at, 'session' AS entity_type
         FROM sessions
         WHERE session_class = 'work'
+          AND session_role = 'primary'
         ORDER BY last_event_at DESC LIMIT 120
         """
     ).fetchall():
@@ -1094,7 +1101,11 @@ def _validate_entity(
         "external": "external_resources",
         "local": "local_resources",
     }[entity_type]
-    extra = " AND session_class = 'work'" if entity_type == "session" else ""
+    extra = (
+        " AND session_class = 'work' AND session_role = 'primary'"
+        if entity_type == "session"
+        else ""
+    )
     row = connection.execute(
         "SELECT id FROM {} WHERE id = ?{}".format(table, extra), (entity_id,)
     ).fetchone()

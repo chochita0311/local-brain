@@ -92,10 +92,13 @@ Checkpoint records are versioned, user-confirmed resume states. Confirmation cap
 
 Original Claude and Codex JSONL remains the authoritative Session source. LocalBrain stores normalized searchable text, selected metadata, source paths, source line numbers, and deterministic IDs so the index can be rebuilt.
 
+The Sessions inventory owns a Session-only incremental synchronization action. It scans the configured Claude and Codex roots, reconciles normalized Sessions and parent relations, and does not scan Local Context sources. The Sources inventory owns the wider scan that includes those Session sources plus every enabled Local Context root. Both web actions retain the source-file freshness check and skip unchanged healthy Session files.
+
 ### Adapter-specific Rules
 
-- Import Claude primary Session files while excluding nested `subagents/` files from primary Session identity.
+- Import Claude primary and nested `subagents/` files with distinct Session roles and a source-backed parent relation. Use the nested `agent-*.jsonl` filename stem as child identity; its record-level `sessionId` may denote the owning parent.
 - Use the first Codex `session_meta` record as the file identity because a rollout file may contain older embedded metadata.
+- Read Codex parent and Git context from that same primary metadata record; later embedded metadata never replaces the file identity.
 - Index human and assistant message text plus tool names; do not index opaque tool arguments or result payloads by default.
 - Preserve historical `cwd_raw` independently from an optional resolved current Project relation.
 - Handle a Session file that is still growing or partially written without discarding previously valid records.
@@ -109,7 +112,11 @@ Claude and Codex histories are parsed into normalized Sessions and Activity Even
 [MODE: maintenance]
 ```
 
-Claude subagent JSONL files are excluded from the primary index. They are discovered and parsed only when the parent Session detail is opened.
+Claude and Codex subsessions are normalized as source-backed Session rows with a retained source parent identity and a nullable resolved parent self-reference. Unresolved, unsafe, and deeper child relations remain stored but do not fall back to top-level presentation. Only primary Sessions contribute to global Search, Session-derived statistics, Workstream organization candidates, or Workstream maintenance retrieval.
+
+Session detail presentation selects normalized `message` events in source sequence for primary Sessions and eligible direct children. This is a read-model filter only: `tool_call` rows, tool names, source JSONL, and the Session's complete event count remain unchanged. Parent details list same-source direct children; child details resolve only to a same-source primary parent. Existing Claude lazy-subagent paths remain bounded compatibility routes and use the same message-only presentation.
+
+Session branch metadata is stored per Session from authoritative JSONL. Workspaces retain `git_root` as the filesystem root of the containing repository and do not store a branch value.
 
 ### Local Context Sources
 
@@ -137,7 +144,7 @@ Implemented in the current vertical slice:
 - manual Jira, Wiki, Slack, Git, document, and generic URL references
 - reversible keyword-based Session and Document link Suggestions
 - Workstream-first Dashboard and separate Sessions Dashboard
-- maintenance Session exclusion and lazy Claude subagent inspection
+- maintenance Session exclusion and source-neutral Claude/Codex subsession normalization
 - durable Claude Task Runner history, streaming result display, cancellation, and reviewable structured output
 - deterministic SQLite/FTS5 retrieval without hard candidate or evidence-count caps
 - normalized many-to-many Thread resource matches with reusable fingerprints and deduplicated evidence

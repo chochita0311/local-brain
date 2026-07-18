@@ -30,17 +30,46 @@ def _column_names(connection: sqlite3.Connection, table: str) -> set:
 
 def _ensure_column(
     connection: sqlite3.Connection, table: str, column: str, definition: str
-) -> None:
+) -> bool:
     if column in _column_names(connection, table):
-        return
+        return False
     connection.execute(
         "ALTER TABLE {} ADD COLUMN {} {}".format(table, column, definition)
     )
+    return True
+
+
+def _drop_column(connection: sqlite3.Connection, table: str, column: str) -> bool:
+    if column not in _column_names(connection, table):
+        return False
+    connection.execute("ALTER TABLE {} DROP COLUMN {}".format(table, column))
+    return True
 
 
 def _run_compatible_migrations(connection: sqlite3.Connection) -> None:
     # The local index is rebuildable, but user-curated workstreams are not. Keep
     # upgrades additive so both kinds of data survive normal application updates.
+    session_contract_changed = any(
+        (
+            _ensure_column(connection, "sessions", "git_branch", "TEXT"),
+            _ensure_column(
+                connection,
+                "sessions",
+                "session_role",
+                "TEXT NOT NULL DEFAULT 'primary' "
+                "CHECK(session_role IN ('primary', 'subsession'))",
+            ),
+            _ensure_column(connection, "sessions", "parent_external_id", "TEXT"),
+            _ensure_column(
+                connection,
+                "sessions",
+                "parent_session_id",
+                "INTEGER REFERENCES sessions(id) ON DELETE SET NULL",
+            ),
+        )
+    )
+    _drop_column(connection, "workspaces", "git_branch")
+
     for table, column, definition in (
         ("sessions", "session_class", "TEXT NOT NULL DEFAULT 'work'"),
         ("sessions", "index_policy", "TEXT NOT NULL DEFAULT 'full'"),
@@ -86,6 +115,17 @@ def _run_compatible_migrations(connection: sqlite3.Connection) -> None:
     ):
         _ensure_column(connection, table, column, definition)
 
+    if session_contract_changed:
+        connection.execute(
+            """
+            UPDATE source_files
+            SET status = 'stale'
+            WHERE source_id IN (
+                SELECT id FROM sources WHERE kind IN ('claude', 'codex')
+            )
+            """
+        )
+
     connection.execute(
         "UPDATE checkpoints SET updated_at = COALESCE(updated_at, created_at)"
     )
@@ -98,6 +138,10 @@ def _run_compatible_migrations(connection: sqlite3.Connection) -> None:
         """
         CREATE INDEX IF NOT EXISTS idx_sessions_class
             ON sessions(session_class, last_event_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_sessions_role
+            ON sessions(session_role, last_event_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_sessions_parent
+            ON sessions(parent_session_id, last_event_at DESC);
         CREATE INDEX IF NOT EXISTS idx_threads_workstream
             ON threads(workstream_id, status, position);
         CREATE INDEX IF NOT EXISTS idx_thread_links_entity

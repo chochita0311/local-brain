@@ -63,6 +63,18 @@
 - Re-rendering markup without restoring event behavior is a blocking defect, not an acceptable implementation detail.
 - Pagination, mode toggles, navigation controls, and repeated actions should be explicitly rechecked after any interactive-surface replacement strategy.
 
+#### Active Runtime And Mixed-Version Evidence
+
+- A fresh isolated process does not by itself prove that an already running application survives an update when server code, templates, schemas, generated assets, or browser caches can refresh independently.
+- Evaluators should check the active runtime before and after the intended restart or migration boundary, or record that mixed-version compatibility is unsupported and requires a bounded restart.
+- If independently refreshed layers can temporarily disagree on required fields, markup, or state, that transition should fail safely instead of turning an otherwise valid route into an unhandled error.
+
+#### Client Asset Freshness And Executable Fallback
+
+- When a visible action depends on client code, evaluators should confirm that the rendered page loads the matching asset version and that the control is actually bound after navigation, rerendering, restart, and a warm-cache revisit.
+- Endpoint success alone is insufficient evidence for a click-driven action because stale assets can leave new markup visible but inert.
+- When progressive enhancement is part of the approved contract, the underlying form or link should remain a safe executable path and preserve the relevant user scope.
+
 #### Scope Transition Reset Rule
 
 - When a scope change redefines the result set, explicit reset is usually safer than carrying forward the previous search or filter state.
@@ -70,6 +82,12 @@
 - Evaluators should check whether query, tag, category, collection, or similar browse states are reset or preserved intentionally rather than by accident.
 - If a scope change replaces the visible result set after the user has scrolled, the destination scope should start at an intentional anchor, usually the top of the new result list.
 - Carrying the previous scroll depth into a different category, collection, or result scope is usually a continuity failure because it hides the beginning of the newly selected content.
+
+#### Action And Status Scope Parity
+
+- A scoped action and the status or source summary placed beside it should describe the same operating boundary, or make their difference explicit.
+- Adjacent counts, labels, or source entries should not imply that an action will affect data that it intentionally excludes.
+- Implementation annotations such as storage paths or internal identifiers should stay off ordinary product surfaces unless they are required for the approved user task.
 
 #### Navigation Context Restoration
 

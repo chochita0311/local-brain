@@ -50,6 +50,8 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(parsed.external_id, "claude-1")
         self.assertEqual(parsed.title, "첫 질문")
         self.assertEqual(parsed.cwd_raw, "/tmp/project")
+        self.assertEqual(parsed.git_branch, "main")
+        self.assertEqual(parsed.session_role, "primary")
         self.assertEqual([event.event_type for event in parsed.events], ["message", "message", "tool_call"])
 
     def test_codex_parser_avoids_duplicate_response_messages(self):
@@ -87,6 +89,59 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(parsed.cwd_raw, "/tmp/project")
         self.assertEqual(parsed.title, "구현해줘")
         self.assertEqual(len(parsed.events), 2)
+
+    def test_codex_primary_metadata_owns_parent_and_branch(self):
+        path = self._write_jsonl(
+            [
+                {
+                    "type": "session_meta",
+                    "timestamp": "2026-07-13T02:00:00Z",
+                    "payload": {
+                        "id": "codex-child",
+                        "cwd": "/tmp/project",
+                        "source": {"subagent": {"kind": "worker"}},
+                        "parent_thread_id": "codex-parent",
+                        "git": {"branch": " feature/session-ui "},
+                    },
+                },
+                {
+                    "type": "session_meta",
+                    "timestamp": "2026-07-12T02:00:00Z",
+                    "payload": {
+                        "id": "embedded-old-session",
+                        "parent_thread_id": "wrong-parent",
+                        "git": {"branch": "wrong-branch"},
+                    },
+                },
+            ]
+        )
+        parsed = parse_codex_session(path)
+        self.assertEqual(parsed.external_id, "codex-child")
+        self.assertEqual(parsed.session_role, "subsession")
+        self.assertEqual(parsed.parent_external_id, "codex-parent")
+        self.assertEqual(parsed.git_branch, "feature/session-ui")
+
+    def test_claude_subagent_path_produces_parent_identity(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            parent_root = Path(temporary_directory) / "claude-parent"
+            subagent_root = parent_root / "subagents"
+            subagent_root.mkdir(parents=True)
+            path = subagent_root / "agent-child.jsonl"
+            path.write_text(
+                json.dumps(
+                    {
+                        "type": "assistant",
+                        "sessionId": "claude-child",
+                        "message": {"content": "정리 결과"},
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            parsed = parse_claude_session(path)
+        self.assertEqual(parsed.session_role, "subsession")
+        self.assertEqual(parsed.external_id, "agent-child")
+        self.assertEqual(parsed.parent_external_id, "claude-parent")
 
     def test_maintenance_marker_changes_index_policy(self):
         path = self._write_jsonl(

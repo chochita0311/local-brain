@@ -42,6 +42,8 @@ Sequencing and unresolved work live under `docs/plans/`.
 - [Project Roadmap](plans/project/roadmap.md): phase direction, current priorities, validation strategy, and risk controls
 - [Project Backlog](plans/project/backlog.md): detailed open work and decisions ordered by priority
 - [UI Design-System Realignment PRD](plans/prd/prd-0001-ui-design-system-realignment.md): passed PRD with fourteen accepted Feature runs, evaluation and fix evidence, and a deferred nonblocking graphical-regression follow-up
+- [Session Browsing And Subsession Organization PRD](plans/prd/prd-0002-session-browsing-and-subsession-organization.md): approved boundary with five passed Features for source-neutral subsessions, Session-owned branch metadata, combined navigation, paginated inventory, conversation-focused detail views, and Session-only synchronization; post-run human review remains
+- [Data Model Visibility And Schema Cleanup PRD](plans/prd/prd-0003-data-model-visibility-and-schema-cleanup.md): draft boundary for the complete ERD, seven subject-area catalogs, schema recovery classification, and evidence-backed cleanup planning
 - `docs/plans/prd/`, `feature/`, and `spec/`: planning and implementation boundaries across their lifecycle
 - `docs/plans/run/`, `evaluation/`, `fix/`, and `heuristic/`: execution and review artifacts
 

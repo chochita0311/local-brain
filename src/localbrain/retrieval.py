@@ -195,14 +195,16 @@ def _session_resource(connection: sqlite3.Connection, session_id: int) -> Option
                sessions.cwd_raw, sessions.started_at, sessions.ended_at,
                sessions.last_event_at, sessions.event_count,
                sessions.user_message_count, sessions.assistant_message_count,
+               sessions.git_branch,
                sources.kind AS source_kind,
                workspaces.display_name AS workspace_name,
                workspaces.canonical_path AS workspace_path,
-               workspaces.git_root, workspaces.git_branch
+               workspaces.git_root
         FROM sessions
         JOIN sources ON sources.id = sessions.source_id
         LEFT JOIN workspaces ON workspaces.id = sessions.workspace_id
         WHERE sessions.id = ? AND sessions.session_class = 'work'
+          AND sessions.session_role = 'primary'
         """,
         (session_id,),
     ).fetchone()
@@ -493,7 +495,7 @@ def _add_derived_resources(
             continue
         row = connection.execute(
             """
-            SELECT id, display_name AS title, canonical_path, git_root, git_branch,
+            SELECT id, display_name AS title, canonical_path, git_root,
                    exists_now, last_activity_at, updated_at
             FROM workspaces WHERE id = ?
             """,
@@ -565,11 +567,11 @@ def _add_derived_resources(
             connection.execute(
                 """
                 SELECT id, display_name AS title, canonical_path, git_root,
-                       git_branch, exists_now, last_activity_at, updated_at
+                       exists_now, last_activity_at, updated_at
                 FROM workspaces
                 """
             ).fetchall(),
-            ("title", "canonical_path", "git_root", "git_branch"),
+            ("title", "canonical_path", "git_root"),
         ),
         (
             "local_paths",

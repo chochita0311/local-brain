@@ -4,9 +4,10 @@ import uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional
+from urllib.parse import quote, urlencode
 
 from fastapi import FastAPI, HTTPException, Query, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
@@ -21,17 +22,19 @@ from .contexts import (
     remove_context_root,
 )
 from .db import connect, init_db, transaction
-from .ingest.scanner import scan_all, scan_context_root
+from .ingest.scanner import scan_all, scan_context_root, scan_session_sources
 from .queries import (
     daily_activity,
     dashboard_stats,
     document_detail,
     project_activity,
     recent_documents,
-    recent_sessions,
     search,
+    session_conversation_events,
+    session_inventory_page,
     session_detail,
-    session_events,
+    session_parent,
+    session_subsessions,
     source_activity,
     source_inventory,
     top_tools,
@@ -163,6 +166,11 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="LocalBrain", version="0.2.0", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=PACKAGE_ROOT / "static"), name="static")
 templates = Jinja2Templates(directory=PACKAGE_ROOT / "templates")
+templates.env.globals["asset_version"] = max(
+    path.stat().st_mtime_ns
+    for path in (PACKAGE_ROOT / "static").iterdir()
+    if path.is_file()
+)
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -274,19 +282,48 @@ def sessions_page(
     request: Request,
     source: str = Query(default="all"),
     workspace: Optional[int] = Query(default=None),
+    page: str = Query(default="1"),
 ):
     selected_source = source if source in {"claude", "codex"} else None
+    try:
+        requested_page = int(page)
+        page_is_valid = requested_page > 0
+    except (TypeError, ValueError):
+        requested_page = 1
+        page_is_valid = False
     with connect() as connection:
+        projects = project_activity(connection)
+        pagination = session_inventory_page(
+            connection, selected_source, workspace, requested_page
+        )
+        if request.query_params.get("page") is not None and (
+            not page_is_valid or requested_page != pagination["page"]
+        ):
+            params = {"page": pagination["page"]}
+            if selected_source:
+                params["source"] = selected_source
+            if workspace is not None:
+                params["workspace"] = workspace
+            return RedirectResponse(
+                url="/sessions?{}".format(urlencode(params)), status_code=303
+            )
         page_context = {
             "request": request,
             "active_page": "sessions",
+            "selected_inventory": "sessions",
+            "page_title": "Sessions",
             "selected_source": selected_source or "all",
             "selected_workspace": workspace,
             "stats": dashboard_stats(connection),
-            "sessions": recent_sessions(connection, selected_source, workspace),
+            "sessions": pagination["items"],
+            "pagination": pagination,
             "documents": recent_documents(connection),
             "sources": source_inventory(connection),
-            "database_path": str(settings.database_path),
+            "projects": projects,
+            "project_count": len(projects),
+            "missing_count": sum(
+                1 for project in projects if not project["exists_now"]
+            ),
         }
     return templates.TemplateResponse("sessions.html", page_context)
 
@@ -366,16 +403,52 @@ def atlassian_page(
 def projects_page(request: Request):
     with connect() as connection:
         projects = project_activity(connection)
-    return templates.TemplateResponse(
-        "projects.html",
-        {
+        pagination = session_inventory_page(connection)
+        page_context = {
             "request": request,
-            "active_page": "projects",
+            "active_page": "sessions",
+            "selected_inventory": "projects",
+            "page_title": "Projects",
+            "selected_source": "all",
+            "selected_workspace": None,
+            "stats": dashboard_stats(connection),
+            "sessions": pagination["items"],
+            "pagination": pagination,
+            "documents": recent_documents(connection),
+            "sources": source_inventory(connection),
             "projects": projects,
             "project_count": len(projects),
-            "missing_count": sum(1 for project in projects if not project["exists_now"]),
-        },
+            "missing_count": sum(
+                1 for project in projects if not project["exists_now"]
+            ),
+        }
+    return templates.TemplateResponse(
+        "sessions.html",
+        page_context,
     )
+
+
+@app.post("/sessions/sync")
+def sync_sessions_page(
+    view: str = Query(default="sessions"),
+    source: str = Query(default="all"),
+    workspace: Optional[int] = Query(default=None),
+    page: int = Query(default=1, ge=1),
+):
+    scan_session_sources()
+    if view == "projects":
+        return RedirectResponse(url="/projects", status_code=303)
+    params = {}
+    if source in {"claude", "codex"}:
+        params["source"] = source
+    if workspace is not None:
+        params["workspace"] = workspace
+    if page > 1:
+        params["page"] = page
+    destination = "/sessions"
+    if params:
+        destination += "?{}".format(urlencode(params))
+    return RedirectResponse(url=destination, status_code=303)
 
 
 @app.get("/sources", response_class=HTMLResponse)
@@ -399,9 +472,45 @@ def show_session(request: Request, session_id: int):
         session = session_detail(connection, session_id)
         if not session or session["session_class"] != "work":
             raise HTTPException(status_code=404, detail="Session not found")
-        events = session_events(connection, session_id)
+        events = session_conversation_events(connection, session_id)
+        parent = session_parent(connection, session_id)
+        direct_children = session_subsessions(connection, session_id)
         memberships = entity_memberships(connection, "session", session_id)
-    subagents = list_subagents(session["source_path"]) if session["source_kind"] == "claude" else []
+
+    subagents = [
+        {
+            "url": "/sessions/{}".format(child["id"]),
+            "source_kind": child["source_kind"],
+            "external_id": child["external_id"],
+            "title": child["title"],
+            "event_count": child["event_count"],
+            "last_event_at": child["last_event_at"],
+            "source_path": child["source_path"],
+        }
+        for child in direct_children
+    ]
+    if session["session_role"] == "primary" and session["source_kind"] == "claude":
+        normalized_paths = {item["source_path"] for item in subagents}
+        normalized_external_ids = {item["external_id"] for item in subagents}
+        for item in list_subagents(session["source_path"], session["external_id"]):
+            if (
+                item["source_path"] in normalized_paths
+                or item["external_id"] in normalized_external_ids
+            ):
+                continue
+            subagents.append(
+                {
+                    "url": "/sessions/{}/subagents/{}".format(
+                        session_id, quote(item["file_name"])
+                    ),
+                    "source_kind": "claude",
+                    "external_id": item["external_id"],
+                    "title": item["title"],
+                    "event_count": item["event_count"],
+                    "last_event_at": item["last_event_at"],
+                    "source_path": item["source_path"],
+                }
+            )
     return templates.TemplateResponse(
         "session.html",
         {
@@ -409,6 +518,7 @@ def show_session(request: Request, session_id: int):
             "active_page": "sessions",
             "session": session,
             "events": events,
+            "parent": parent,
             "memberships": memberships,
             "subagents": subagents,
         },
@@ -419,11 +529,33 @@ def show_session(request: Request, session_id: int):
 def show_subagent(request: Request, session_id: int, file_name: str):
     with connect() as connection:
         session = session_detail(connection, session_id)
-        if not session or session["source_kind"] != "claude":
+        if (
+            not session
+            or session["source_kind"] != "claude"
+            or session["session_role"] != "primary"
+        ):
             raise HTTPException(status_code=404, detail="Parent session not found")
+        direct_children = session_subsessions(connection, session_id)
     subagent = load_subagent(session["source_path"], file_name)
-    if not subagent:
+    if not subagent or subagent.parent_external_id != session["external_id"]:
         raise HTTPException(status_code=404, detail="Subagent not found")
+    normalized_child = next(
+        (
+            child
+            for child in direct_children
+            if child["source_path"] == subagent.source_path
+            or child["external_id"] == subagent.external_id
+        ),
+        None,
+    )
+    if normalized_child:
+        return RedirectResponse(
+            url="/sessions/{}".format(normalized_child["id"]), status_code=303
+        )
+    conversation_events = sorted(
+        (event for event in subagent.events if event.event_type == "message"),
+        key=lambda event: event.sequence,
+    )
     return templates.TemplateResponse(
         "subagent.html",
         {
@@ -431,6 +563,8 @@ def show_subagent(request: Request, session_id: int, file_name: str):
             "active_page": "sessions",
             "session": session,
             "subagent": subagent,
+            "events": conversation_events,
+            "event_count": len(subagent.events),
             "file_name": file_name,
         },
     )
@@ -824,6 +958,11 @@ async def api_cancel_run(run_id: str):
 @app.post("/api/scan")
 def scan_sources():
     return {"ok": True, "report": scan_all()}
+
+
+@app.post("/api/sessions/sync")
+def sync_session_sources():
+    return {"ok": True, "report": scan_session_sources()}
 
 
 @app.get("/api/health")

@@ -21,6 +21,134 @@ document.querySelectorAll("[data-local-epoch]").forEach((element) => {
   }
 });
 
+const inventorySwitch = document.querySelector("[data-inventory-switch]");
+
+if (inventorySwitch) {
+  const inventoryStatus = document.querySelector("[data-inventory-status]");
+  const inventoryLinks = [
+    ...inventorySwitch.querySelectorAll("[data-inventory-view]"),
+  ];
+  const inventoryPanels = [
+    ...document.querySelectorAll("[data-inventory-panel]"),
+  ];
+
+  const syncInventoryIndicator = () => {
+    const selectedLink = inventoryLinks.find(
+      (link) => link.getAttribute("aria-current") === "page",
+    );
+    if (!selectedLink) return;
+    inventorySwitch.style.setProperty(
+      "--inventory-indicator-left",
+      `${selectedLink.offsetLeft}px`,
+    );
+    inventorySwitch.style.setProperty(
+      "--inventory-indicator-width",
+      `${selectedLink.offsetWidth}px`,
+    );
+    inventorySwitch.dataset.indicatorReady = "true";
+  };
+
+  const inventoryFromPath = () => (
+    window.location.pathname === "/projects" ? "projects" : "sessions"
+  );
+
+  const selectInventory = (inventory, { pushHistory = false } = {}) => {
+    const selectedInventory = inventory === "projects" ? "projects" : "sessions";
+    inventorySwitch.dataset.selected = selectedInventory;
+
+    inventoryLinks.forEach((link) => {
+      const isSelected = link.dataset.inventoryView === selectedInventory;
+      if (isSelected) {
+        link.setAttribute("aria-current", "page");
+      } else {
+        link.removeAttribute("aria-current");
+      }
+    });
+    inventoryPanels.forEach((panel) => {
+      panel.hidden = panel.dataset.inventoryPanel !== selectedInventory;
+    });
+    syncInventoryIndicator();
+
+    const destination = selectedInventory === "projects" ? "/projects" : "/sessions";
+    document.title = `${selectedInventory === "projects" ? "Projects" : "Sessions"} · LocalBrain`;
+    if (pushHistory) window.history.pushState({ inventory: selectedInventory }, "", destination);
+    inventoryStatus.textContent = `${selectedInventory === "projects" ? "Projects" : "Sessions"} 보기를 표시했습니다.`;
+  };
+
+  inventorySwitch.addEventListener("click", (event) => {
+    const link = event.target.closest("[data-inventory-view]");
+    if (
+      !link
+      || event.defaultPrevented
+      || event.button !== 0
+      || event.metaKey
+      || event.ctrlKey
+      || event.shiftKey
+      || event.altKey
+    ) return;
+
+    const selectedInventory = link.dataset.inventoryView;
+    if (selectedInventory === inventorySwitch.dataset.selected) return;
+    event.preventDefault();
+    selectInventory(selectedInventory, { pushHistory: true });
+  });
+
+  window.addEventListener("popstate", () => selectInventory(inventoryFromPath()));
+  window.addEventListener("resize", syncInventoryIndicator);
+  syncInventoryIndicator();
+  document.fonts?.ready.then(syncInventoryIndicator);
+}
+
+const subsessionMenus = [...document.querySelectorAll("[data-subsession-menu]")];
+
+if (subsessionMenus.length) {
+  const closeSubsessionMenu = (menu, { restoreFocus = false } = {}) => {
+    const trigger = menu.querySelector("[data-subsession-trigger]");
+    const dropdown = menu.querySelector("[data-subsession-dropdown]");
+    trigger.setAttribute("aria-expanded", "false");
+    dropdown.hidden = true;
+    menu.closest(".session-row")?.classList.remove("disclosure-open");
+    if (restoreFocus) trigger.focus();
+  };
+
+  const closeSubsessionMenus = (except = null) => {
+    subsessionMenus.forEach((menu) => {
+      if (menu !== except) closeSubsessionMenu(menu);
+    });
+  };
+
+  subsessionMenus.forEach((menu) => {
+    const trigger = menu.querySelector("[data-subsession-trigger]");
+    const dropdown = menu.querySelector("[data-subsession-dropdown]");
+
+    trigger.addEventListener("click", () => {
+      const willOpen = trigger.getAttribute("aria-expanded") !== "true";
+      closeSubsessionMenus(willOpen ? menu : null);
+      trigger.setAttribute("aria-expanded", String(willOpen));
+      dropdown.hidden = !willOpen;
+      menu.closest(".session-row")?.classList.toggle("disclosure-open", willOpen);
+    });
+
+    menu.querySelectorAll("[data-subsession-link]").forEach((link) => {
+      link.addEventListener("click", () => closeSubsessionMenu(menu));
+    });
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest("[data-subsession-menu]")) closeSubsessionMenus();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    const openMenu = subsessionMenus.find(
+      (menu) => menu.querySelector("[data-subsession-trigger]").getAttribute("aria-expanded") === "true",
+    );
+    if (!openMenu) return;
+    event.preventDefault();
+    closeSubsessionMenu(openMenu, { restoreFocus: true });
+  });
+}
+
 function showNotice(message, tone = "error") {
   const region = document.querySelector("[data-toast-region]");
   if (!region) return;
@@ -32,42 +160,61 @@ function showNotice(message, tone = "error") {
   window.setTimeout(() => notice.remove(), 5000);
 }
 
-const scanButton = document.querySelector("#scan-button");
-const scanResult = document.querySelector("#scan-result");
-
-if (scanButton) {
-  scanButton.addEventListener("click", async () => {
-    const idle = scanButton.querySelector(".button-idle");
-    const working = scanButton.querySelector(".button-working");
-    scanButton.disabled = true;
+function bindScanAction(button, result, endpoint, actionLabel) {
+  if (!button || !result) return;
+  const eventTarget = button.form || button;
+  const eventName = button.form ? "submit" : "click";
+  eventTarget.addEventListener(eventName, async (event) => {
+    event.preventDefault();
+    const idle = button.querySelector(".button-idle");
+    const working = button.querySelector(".button-working");
+    button.disabled = true;
+    button.setAttribute("aria-busy", "true");
     idle.hidden = true;
     working.hidden = false;
-    scanResult.hidden = true;
+    result.textContent = `${actionLabel} 중...`;
+    result.className = "scan-result working";
+    result.setAttribute("role", "status");
+    result.hidden = false;
 
     try {
-      const response = await fetch("/api/scan", { method: "POST" });
+      const response = await fetch(endpoint, { method: "POST" });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
       const imported = Object.values(data.report).reduce(
         (sum, source) => sum + source.imported,
         0,
       );
-      scanResult.textContent = `${imported}개 변경 항목을 반영했습니다. 화면을 갱신합니다.`;
-      scanResult.className = "scan-result success";
-      scanResult.setAttribute("role", "status");
-      scanResult.hidden = false;
+      result.textContent = `${imported}개 변경 항목을 반영했습니다. 화면을 갱신합니다.`;
+      result.className = "scan-result success";
+      result.setAttribute("role", "status");
+      result.hidden = false;
       window.setTimeout(() => window.location.reload(), 700);
     } catch (error) {
-      scanResult.textContent = `스캔에 실패했습니다: ${error.message}`;
-      scanResult.className = "scan-result error";
-      scanResult.setAttribute("role", "alert");
-      scanResult.hidden = false;
-      scanButton.disabled = false;
+      result.textContent = `${actionLabel}에 실패했습니다: ${error.message}`;
+      result.className = "scan-result error";
+      result.setAttribute("role", "alert");
+      result.hidden = false;
+      button.disabled = false;
+      button.removeAttribute("aria-busy");
       idle.hidden = false;
       working.hidden = true;
     }
   });
 }
+
+bindScanAction(
+  document.querySelector("#scan-button"),
+  document.querySelector("#scan-result"),
+  "/api/scan",
+  "스캔",
+);
+bindScanAction(
+  document.querySelector("#session-sync-button"),
+  document.querySelector("#session-sync-result"),
+  "/api/sessions/sync",
+  "동기화",
+);
 
 async function requestJson(endpoint, options = {}) {
   const response = await fetch(endpoint, options);

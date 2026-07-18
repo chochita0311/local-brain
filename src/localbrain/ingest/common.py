@@ -34,6 +34,8 @@ class ParsedSession:
     session_class: str = "work"
     index_policy: str = "full"
     maintenance_run_id: Optional[str] = None
+    session_role: str = "primary"
+    parent_external_id: Optional[str] = None
 
 
 def stable_id(*parts: object) -> str:

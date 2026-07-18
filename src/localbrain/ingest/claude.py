@@ -28,15 +28,20 @@ def parse_claude_session(path: Path) -> ParsedSession:
     timestamps: List[str] = []
     events: List[ParsedEvent] = []
     skipped_lines = 0
+    is_subsession = path.parent.name == "subagents"
+    parent_external_id = path.parent.parent.name if is_subsession else None
 
     for line_number, record in read_json_lines(path):
         if not isinstance(record, dict):
             skipped_lines += 1
             continue
 
-        external_id = str(record.get("sessionId") or external_id)
+        if not is_subsession:
+            external_id = str(record.get("sessionId") or external_id)
         cwd = record.get("cwd") or cwd
-        git_branch = record.get("gitBranch") or git_branch
+        branch = record.get("gitBranch")
+        if isinstance(branch, str) and branch.strip():
+            git_branch = branch.strip()
         timestamp = record.get("timestamp")
         if isinstance(timestamp, str):
             timestamps.append(timestamp)
@@ -122,4 +127,6 @@ def parse_claude_session(path: Path) -> ParsedSession:
         session_class=session_class,
         index_policy=index_policy,
         maintenance_run_id=maintenance_run_id,
+        session_role="subsession" if is_subsession else "primary",
+        parent_external_id=parent_external_id,
     )

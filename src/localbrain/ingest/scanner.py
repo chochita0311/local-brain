@@ -178,7 +178,6 @@ def _find_git_root(path: Path) -> Optional[Path]:
 def _upsert_workspace(
     connection: sqlite3.Connection,
     cwd_raw: Optional[str],
-    git_branch: Optional[str],
     last_activity_at: Optional[str],
 ) -> Optional[int]:
     if not cwd_raw:
@@ -196,13 +195,12 @@ def _upsert_workspace(
     connection.execute(
         """
         INSERT INTO workspaces(
-            canonical_path, display_name, git_root, git_branch, exists_now,
+            canonical_path, display_name, git_root, exists_now,
             last_activity_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?)
         ON CONFLICT(canonical_path) DO UPDATE SET
             display_name = excluded.display_name,
             git_root = COALESCE(excluded.git_root, workspaces.git_root),
-            git_branch = COALESCE(excluded.git_branch, workspaces.git_branch),
             exists_now = excluded.exists_now,
             last_activity_at = CASE
                 WHEN workspaces.last_activity_at IS NULL THEN excluded.last_activity_at
@@ -215,7 +213,6 @@ def _upsert_workspace(
             canonical,
             display_name,
             str(git_root) if git_root else None,
-            git_branch,
             int(exists_now),
             last_activity_at,
             utc_now(),
@@ -275,9 +272,7 @@ def _store_session(
     source_kind: str,
     parsed: ParsedSession,
 ) -> None:
-    workspace_id = _upsert_workspace(
-        connection, parsed.cwd_raw, parsed.git_branch, parsed.last_event_at
-    )
+    workspace_id = _upsert_workspace(connection, parsed.cwd_raw, parsed.last_event_at)
     user_count = sum(
         1
         for event in parsed.events
@@ -291,15 +286,17 @@ def _store_session(
     connection.execute(
         """
         INSERT INTO sessions(
-            source_id, workspace_id, external_id, source_path, cwd_raw, title,
+            source_id, workspace_id, external_id, source_path, cwd_raw, git_branch, title,
             started_at, ended_at, last_event_at, event_count,
-            user_message_count, assistant_message_count, session_class,
+            user_message_count, assistant_message_count, session_class, session_role,
+            parent_external_id, parent_session_id,
             index_policy, maintenance_run_id, imported_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?)
         ON CONFLICT(source_id, external_id) DO UPDATE SET
             workspace_id = excluded.workspace_id,
             source_path = excluded.source_path,
             cwd_raw = excluded.cwd_raw,
+            git_branch = excluded.git_branch,
             title = excluded.title,
             started_at = excluded.started_at,
             ended_at = excluded.ended_at,
@@ -308,6 +305,9 @@ def _store_session(
             user_message_count = excluded.user_message_count,
             assistant_message_count = excluded.assistant_message_count,
             session_class = excluded.session_class,
+            session_role = excluded.session_role,
+            parent_external_id = excluded.parent_external_id,
+            parent_session_id = NULL,
             index_policy = excluded.index_policy,
             maintenance_run_id = excluded.maintenance_run_id,
             imported_at = excluded.imported_at
@@ -318,6 +318,7 @@ def _store_session(
             parsed.external_id,
             parsed.source_path,
             parsed.cwd_raw,
+            parsed.git_branch,
             parsed.title,
             parsed.started_at,
             parsed.ended_at,
@@ -326,6 +327,8 @@ def _store_session(
             user_count if parsed.index_policy == "full" else 0,
             assistant_count if parsed.index_policy == "full" else 0,
             parsed.session_class,
+            parsed.session_role,
+            parsed.parent_external_id,
             parsed.index_policy,
             parsed.maintenance_run_id,
             utc_now(),
@@ -368,14 +371,87 @@ def _store_session(
             ],
         )
         body = "\n".join(event.text for event in parsed.events if event.text)
-        _replace_search_item(
-            connection,
-            "session",
-            str(session_id),
-            source_kind,
-            parsed.title,
-            body,
-            parsed.cwd_raw or parsed.source_path,
+        if parsed.session_role == "primary":
+            _replace_search_item(
+                connection,
+                "session",
+                str(session_id),
+                source_kind,
+                parsed.title,
+                body,
+                parsed.cwd_raw or parsed.source_path,
+            )
+
+
+def _claude_parent_source_path(source_path: str) -> Optional[str]:
+    path = Path(source_path)
+    if path.parent.name != "subagents":
+        return None
+    return str(path.parent.parent.with_suffix(".jsonl"))
+
+
+def _reconcile_session_parents(
+    connection: sqlite3.Connection, source_id: int, source_kind: str
+) -> None:
+    rows = connection.execute(
+        """
+        SELECT id, external_id, source_path, session_role, parent_external_id
+        FROM sessions WHERE source_id = ?
+        """,
+        (source_id,),
+    ).fetchall()
+    by_external_id = {row["external_id"]: row for row in rows}
+    by_source_path = {row["source_path"]: row for row in rows}
+    candidate_parents = {}
+    normalized_parent_ids = {}
+
+    for row in rows:
+        if row["session_role"] != "subsession":
+            connection.execute(
+                """
+                UPDATE sessions
+                SET parent_external_id = NULL, parent_session_id = NULL
+                WHERE id = ?
+                """,
+                (row["id"],),
+            )
+            continue
+        parent = by_external_id.get(row["parent_external_id"])
+        if not parent and source_kind == "claude":
+            parent_path = _claude_parent_source_path(row["source_path"])
+            parent = by_source_path.get(parent_path) if parent_path else None
+        if not parent or parent["id"] == row["id"]:
+            continue
+        candidate_parents[row["id"]] = parent["id"]
+        normalized_parent_ids[row["id"]] = parent["external_id"]
+
+    def relation_is_safe(child_id: int) -> bool:
+        seen = {child_id}
+        current = candidate_parents.get(child_id)
+        while current is not None:
+            if current in seen:
+                return False
+            seen.add(current)
+            current = candidate_parents.get(current)
+        return True
+
+    for row in rows:
+        if row["session_role"] != "subsession":
+            continue
+        parent_id = candidate_parents.get(row["id"])
+        if parent_id is None or not relation_is_safe(row["id"]):
+            connection.execute(
+                "UPDATE sessions SET parent_session_id = NULL WHERE id = ?",
+                (row["id"],),
+            )
+            continue
+        connection.execute(
+            """
+            UPDATE sessions
+            SET parent_external_id = ?, parent_session_id = ?
+            WHERE id = ?
+            """,
+            (normalized_parent_ids[row["id"]], parent_id, row["id"]),
         )
 
 
@@ -393,12 +469,6 @@ def _scan_session_source(
         return imported, skipped, failed
 
     paths = sorted(root.rglob("*.jsonl"))
-    if source_kind == "claude":
-        paths = [path for path in paths if "subagents" not in path.parts]
-        connection.execute(
-            "DELETE FROM source_files WHERE source_id = ? AND path LIKE ?",
-            (source_id, "%/subagents/%"),
-        )
     _remove_stale_sessions(connection, source_id, paths)
 
     for path in paths:
@@ -413,6 +483,7 @@ def _scan_session_source(
         except Exception as exc:
             _record_source_file(connection, source_id, path, "error", str(exc))
             failed += 1
+    _reconcile_session_parents(connection, source_id, source_kind)
     connection.execute(
         "UPDATE sources SET last_scanned_at = ? WHERE id = ?", (utc_now(), source_id)
     )
@@ -556,7 +627,6 @@ def _scan_context_file(
     workspace_id = _upsert_workspace(
         connection,
         str(path.parent),
-        None,
         datetime.fromtimestamp(stat.st_mtime, timezone.utc).isoformat(),
     )
     _upsert_context_document(
@@ -757,7 +827,6 @@ def _scan_context_documents(
                 workspace_id = _upsert_workspace(
                     connection,
                     str(path.parent),
-                    None,
                     datetime.fromtimestamp(stat.st_mtime, timezone.utc).isoformat(),
                 )
                 connection.execute(
@@ -831,38 +900,56 @@ def scan_context_root(
     return _scan_context_documents(connection, force=force, root_id=root_id)
 
 
+def _scan_session_sources(
+    connection: sqlite3.Connection, force: bool = False
+) -> Dict[str, Dict[str, int]]:
+    report: Dict[str, Dict[str, int]] = {}
+    for key, values in (
+        (
+            "claude",
+            _scan_session_source(
+                connection,
+                "claude",
+                "Claude Code",
+                settings.claude_root,
+                parse_claude_session,
+                force,
+            ),
+        ),
+        (
+            "codex",
+            _scan_session_source(
+                connection,
+                "codex",
+                "Codex",
+                settings.codex_root,
+                parse_codex_session,
+                force,
+            ),
+        ),
+    ):
+        report[key] = {
+            "imported": values[0],
+            "skipped": values[1],
+            "failed": values[2],
+        }
+    return report
+
+
+def scan_session_sources(force: bool = False) -> Dict[str, Dict[str, int]]:
+    init_db()
+    with transaction() as connection:
+        return _scan_session_sources(connection, force=force)
+
+
 def scan_all(force: bool = False) -> Dict[str, Dict[str, int]]:
     init_db()
-    report: Dict[str, Dict[str, int]] = {}
     with transaction() as connection:
-        for key, values in (
-            (
-                "claude",
-                _scan_session_source(
-                    connection,
-                    "claude",
-                    "Claude Code",
-                    settings.claude_root,
-                    parse_claude_session,
-                    force,
-                ),
-            ),
-            (
-                "codex",
-                _scan_session_source(
-                    connection,
-                    "codex",
-                    "Codex",
-                    settings.codex_root,
-                    parse_codex_session,
-                    force,
-                ),
-            ),
-            ("context", _scan_context_documents(connection, force=force)),
-        ):
-            report[key] = {
-                "imported": values[0],
-                "skipped": values[1],
-                "failed": values[2],
-            }
+        report = _scan_session_sources(connection, force=force)
+        values = _scan_context_documents(connection, force=force)
+        report["context"] = {
+            "imported": values[0],
+            "skipped": values[1],
+            "failed": values[2],
+        }
     return report

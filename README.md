@@ -29,7 +29,7 @@ uv run --no-sync uvicorn localbrain.main:app --host 127.0.0.1 --port 8000
 
 Open `http://127.0.0.1:8000`. The local database is created automatically on first startup. Stop the server with `Ctrl+C`.
 
-To import local Claude and Codex sessions, open the **Sources** page and run a scan. Local Context folders, files, and Apple Notes are added explicitly from the same page. The initial `uv sync` downloads Python packages, but LocalBrain's indexed content and runtime data remain on the local machine.
+To import local Claude and Codex sessions, use **동기화** on the Sessions page. The **Sources** page keeps the wider scan across Session sources and enabled Local Context folders, files, and Apple Notes. The initial `uv sync` downloads Python packages, but LocalBrain's indexed content and runtime data remain on the local machine.
 
 Certificate configuration is not required on a normal network. If `uv sync` fails with an `UnknownIssuer` error, retry the installation with the macOS system certificate store:
 

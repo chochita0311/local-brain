@@ -148,9 +148,11 @@ def _resource_manifest(connection, link: dict) -> dict:
         row = connection.execute(
             """
             SELECT sessions.title, sessions.source_path, sessions.cwd_raw,
+                   sessions.git_branch,
                    sessions.last_event_at, sources.kind AS source_kind
             FROM sessions JOIN sources ON sources.id = sessions.source_id
             WHERE sessions.id = ? AND sessions.session_class = 'work'
+              AND sessions.session_role = 'primary'
             """,
             (entity_id,),
         ).fetchone()
@@ -162,7 +164,7 @@ def _resource_manifest(connection, link: dict) -> dict:
     elif entity_type == "project":
         row = connection.execute(
             """
-            SELECT display_name AS title, canonical_path, git_root, git_branch,
+            SELECT display_name AS title, canonical_path, git_root,
                    exists_now, last_activity_at
             FROM workspaces WHERE id = ?
             """,

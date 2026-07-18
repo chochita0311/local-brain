@@ -4,9 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}LocalBrain{% endblock %}</title>
-    <link rel="icon" href="{{ url_for('static', path='/favicon.svg') }}" type="image/svg+xml">
-    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
-    <script src="{{ url_for('static', path='/app.js') }}" defer></script>
+    <link rel="icon" href="{{ url_for('static', path='/favicon.svg') }}?v={{ asset_version | default('dev') }}" type="image/svg+xml">
+    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}?v={{ asset_version | default('dev') }}">
+    <script src="{{ url_for('static', path='/app.js') }}?v={{ asset_version | default('dev') }}" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main-content">본문으로 건너뛰기</a>
@@ -41,14 +41,11 @@
             <a class="lnb-item {% if active_page == 'context' %}active{% endif %}" href="/context" {% if active_page == 'context' %}aria-current="page"{% endif %}>
               <span class="nav-symbol" aria-hidden="true">06</span><span>Local Contexts</span>
             </a>
-            <a class="lnb-item {% if active_page == 'projects' %}active{% endif %}" href="/projects" {% if active_page == 'projects' %}aria-current="page"{% endif %}>
-              <span class="nav-symbol" aria-hidden="true">07</span><span>Projects</span>
-            </a>
           </div>
           <div class="nav-group">
             <span class="nav-group-label">System</span>
             <a class="lnb-item {% if active_page == 'sources' %}active{% endif %}" href="/sources" {% if active_page == 'sources' %}aria-current="page"{% endif %}>
-              <span class="nav-symbol" aria-hidden="true">08</span><span>Sources</span>
+              <span class="nav-symbol" aria-hidden="true">07</span><span>Sources</span>
             </a>
           </div>
         </nav>

@@ -101,6 +101,42 @@ class RetrievalTests(unittest.TestCase):
                 """,
                 (str(session_id), "검색 필터 개선 인증 세션", "\n".join(body)),
             )
+        child_id = self.connection.execute(
+            """
+            INSERT INTO sessions(
+                source_id, external_id, source_path, cwd_raw, title,
+                last_event_at, event_count, session_role, parent_session_id
+            ) VALUES (?, 'child-session', '/tmp/child-session.jsonl',
+                      '/tmp/sample-project', '검색 필터 개선 인증 child',
+                      '2026-07-14T02:00:00Z', 1, 'subsession', 1)
+            """,
+            (source_id,),
+        ).lastrowid
+        self.connection.execute(
+            """
+            INSERT INTO activity_events(
+                id, session_id, sequence, event_type, role, text, source_line
+            ) VALUES ('child-event', ?, 1, 'message', 'user',
+                      '검색 필터 개선 인증 child evidence', 1)
+            """,
+            (child_id,),
+        )
+        self.connection.execute(
+            """
+            INSERT INTO search_index(
+                entity_type, entity_id, source_kind, title, body, path
+            ) VALUES ('session', ?, 'codex', '검색 필터 개선 인증 child',
+                      '검색 필터 개선 인증 child evidence', '/tmp/sample-project')
+            """,
+            (str(child_id),),
+        )
+        self.connection.execute(
+            """
+            INSERT INTO thread_links(thread_id, entity_type, entity_id, relation_type)
+            VALUES (1, 'session', ?, 'evidence')
+            """,
+            (str(child_id),),
+        )
 
     def _insert_documents(self):
         source_id = self.connection.execute(

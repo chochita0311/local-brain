@@ -39,6 +39,7 @@ Priority meaning:
 ## P1 - Information Model
 
 - [ ] Validate the boundary between Workstream, Thread, Project, Context Source, Document, Session, and external Resource through daily use.
+- [ ] Review and approve PRD-0003 before implementing the complete ERD, subject-area table catalog, or wider schema cleanup.
 - [ ] Add Workstream and Thread merge, split, archive, move, and restore operations without losing history.
 - [ ] Build a unified Workstream timeline across Sessions, documents, Git, tickets, wiki pages, and conversations.
 - [ ] Track Resource freshness, last verification time, evidence, confidence, and review state separately.
@@ -49,6 +50,7 @@ Priority meaning:
 
 ## P1 - Local Contexts
 
+- [ ] Clarify or rename the Sessions `최근 Context` summary so it cannot be mistaken for files changed by the latest Session; it currently represents recently indexed Local Context documents.
 - [ ] Add lazy directory expansion, pagination, and incremental scanning for large source trees.
 - [ ] Show source health, last scan, changed files, extraction failures, and re-scan controls per source.
 - [ ] Improve PDF extraction beyond Spotlight and support common readable document formats and attachments.
@@ -97,6 +99,9 @@ Priority meaning:
 
 ## P2 - Quality And Distribution
 
+- [ ] Close FEAT-0019's direct rendered evidence gap at `1440`, `700`, and `320`, including selector geometry, same-row containment, and the Session-only source summary.
+- [ ] Recheck the Sessions `동기화` action from the current browser after a warm-cache revisit, then complete the human post-run acceptance or return decision for PRD-0002.
+- [ ] Add an official `localbrain serve` CLI subcommand with default host and port, an opt-in development reload flag, and a documented install/run-from-anywhere path so personal shell aliases are not required.
 - [ ] Add browser-level tests for Workstream, Thread, source browsing, Suggestion review, and Run workflows.
 - [ ] Build a synthetic graphical regression matrix for the current screen families at `1440`, `920`, `700`, and `320`, covering representative long-content, empty, unavailable, error, and active-interaction states without tracking private runtime content.
 - [ ] Add performance tests using large synthetic Session and document sets.
@@ -109,6 +114,7 @@ Priority meaning:
 
 ## Open Decisions
 
+- [ ] Choose one source-neutral user-facing term for child Session runs; the current UI uses `Subsessions` in the inventory and retains `Subagents` on parent details for compatibility.
 - [ ] Whether full source text stays in SQLite, is stored only as searchable excerpts, or is read from the original source on demand.
 - [ ] Which external metadata may be persisted under applicable policy and which must remain ephemeral.
 - [ ] Whether AI summaries are local-only, use an approved model path, or require per-Run confirmation.

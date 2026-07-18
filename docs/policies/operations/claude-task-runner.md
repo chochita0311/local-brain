@@ -23,6 +23,7 @@ The Task Runner starts a local Claude maintenance process from a Workstream for 
 Before Claude starts, LocalBrain performs deterministic SQLite and FTS5 retrieval without an AI call.
 
 - The context manifest contains Session, Document, Project, local-path, and external-reference candidates.
+- Session candidates are primary Sessions only. Subsessions never contribute candidate counts, evidence, fingerprints, manifests, or generated Suggestions, and their content is not merged into an eligible parent.
 - Candidate resources and matching evidence have relevance criteria but no hard count cap.
 - A resource is represented once even when it is relevant to multiple Threads.
 - Many-to-many Thread assignments and evidence IDs are stored separately.
@@ -76,7 +77,7 @@ Maintenance prompt headers identify housekeeping activity:
 [MODE: maintenance]
 ```
 
-Sessions beginning with this exact marker retain source metadata but are excluded from activity events, full-text search, and Sessions Dashboard statistics. Run artifacts and lazy subagent evidence must also remain outside ordinary Session and Local Context ingestion.
+Sessions beginning with this exact marker retain source metadata but are excluded from activity events, full-text search, and Sessions Dashboard statistics. Run artifacts remain outside ordinary Session and Local Context ingestion. Source-backed Claude and Codex subsessions may be normalized for parent-owned browsing, but remain excluded from maintenance retrieval and generated organization inputs.
 
 ## Required Follow-up
 

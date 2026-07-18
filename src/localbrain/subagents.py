@@ -10,7 +10,9 @@ def subagent_root(source_path: str) -> Path:
     return path.parent / path.stem / "subagents"
 
 
-def list_subagents(source_path: str) -> List[dict]:
+def list_subagents(
+    source_path: str, parent_external_id: Optional[str] = None
+) -> List[dict]:
     root = subagent_root(source_path)
     if not root.is_dir():
         return []
@@ -20,9 +22,17 @@ def list_subagents(source_path: str) -> List[dict]:
             parsed = parse_claude_session(path)
         except Exception:
             continue
+        if (
+            parent_external_id is not None
+            and parsed.parent_external_id != parent_external_id
+        ):
+            continue
         items.append(
             {
                 "file_name": path.name,
+                "source_path": parsed.source_path,
+                "external_id": parsed.external_id,
+                "parent_external_id": parsed.parent_external_id,
                 "agent_id": path.stem.removeprefix("agent-"),
                 "title": parsed.title,
                 "last_event_at": parsed.last_event_at,

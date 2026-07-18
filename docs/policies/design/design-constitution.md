@@ -409,13 +409,15 @@ Provenance color identifies origin only. It never communicates health, success, 
 
 ### Navigation Model
 
-The persistent navigation has three groups and eight stable destinations:
+The persistent navigation has three groups and seven stable destinations:
 
 - **Overview:** Dashboard, Sessions Dashboard
-- **Workspace:** Workstreams, Sessions, Atlassian, Local Contexts, Projects
+- **Workspace:** Workstreams, Sessions, Atlassian, Local Contexts
 - **System:** Sources
 
 Active navigation uses text, surface, and an accent indicator. Narrow navigation preserves every destination, supports horizontal scrolling, and keeps the active item visible.
+
+Sessions owns two mutually exclusive local inventory views: `Sessions` is the default and `Projects` is its Session-derived path grouping. Their selected indicator may move with the shared motion roles, but the visible label and matching programmatic current state remain authoritative under normal and reduced motion.
 
 ### Content Width And Rhythm
 

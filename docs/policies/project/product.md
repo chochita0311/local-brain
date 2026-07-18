@@ -78,7 +78,7 @@ The complete storage and disclosure contract is owned by [Privacy And Data Handl
 | `Thread` | Specific topic or effort inside one Workstream |
 | `Source` | Configured origin such as Claude, Codex, a folder, or an external service |
 | `Source Item` | Imported item retaining source identity and freshness |
-| `Session` | One Claude or Codex work session |
+| `Session` | One source-backed Claude or Codex primary or child session |
 | `Activity Event` | Normalized prompt, tool call, error, file action, or other event |
 | `Resource` | Linkable session, document, path, project, ticket, message, or URL |
 | `Suggestion` | Reversible proposed resource link or checkpoint draft |
@@ -86,11 +86,21 @@ The complete storage and disclosure contract is owned by [Privacy And Data Handl
 
 The same Resource may relate to multiple Threads. Relationship-specific evidence belongs to the relationship rather than being copied into a new Resource.
 
+### Session Hierarchy And Consumption
+
+- Original Claude and Codex metadata owns whether a Session is primary or a subsession and which source parent it reports.
+- LocalBrain retains both the source parent identity and the resolved internal parent relation. An unresolved child remains a subsession and never falls back to a primary Session.
+- Current Session browsing exposes only direct children of a primary Session. Deeper hierarchy remains preserved but is not flattened into user-facing lists.
+- Subsessions remain outside global Search, Session-derived statistics, Workstream organization candidates, and Workstream Claude maintenance evidence. Their stored source and events remain available through approved parent-owned browsing.
+- Primary and valid direct-child detail views are conversation-reading surfaces: they show source-ordered messages and omit visible tool-call rows while preserving the complete source event count and normalized tool events.
+- A primary detail keeps a Subagents section for its direct children. A child detail keeps explicit orientation back to its eligible primary parent.
+- Git branch metadata belongs to the Session that observed it. A workspace retains its working path and containing Git repository root, not one historical branch value.
+
 ## User Experience Contract
 
 ### Navigation
 
-The application uses a persistent left navigation boundary. Dashboard, Sessions Dashboard, Workstreams, Sessions, Atlassian, Local Contexts, Projects, and Sources have distinct responsibilities so source inspection does not overload the Session timeline.
+The application uses a persistent left navigation boundary. Dashboard, Sessions Dashboard, Workstreams, Sessions, Atlassian, Local Contexts, and Sources have distinct responsibilities so source inspection does not overload the Session timeline. Sessions owns a local `Sessions | Projects` view switch: Sessions is the default individual history and Projects is its path-derived grouping, not a separate persistent destination or entity. The shared inventory toolbar also owns a Session-only synchronization action for Claude and Codex activity; its source-status summary shows only those Session sources and does not expose the database path. The Sources destination retains the wider scan that includes enabled Local Context sources.
 
 ### Dashboard
 

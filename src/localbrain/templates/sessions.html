@@ -1,93 +1,220 @@
 {% extends "base.html" %}
-{% block title %}Sessions · LocalBrain{% endblock %}
+{% set inventory_mode = selected_inventory | default('sessions') %}
+{% set inventory_page_title = page_title | default('Sessions') %}
+{% set project_items = projects | default([]) %}
+{% set project_total = project_count | default(project_items | length) %}
+{% set unavailable_project_total = missing_count | default(0) %}
+{% macro session_page_url(target_page) -%}
+  /sessions?page={{ target_page }}{% if selected_source != 'all' %}&source={{ selected_source }}{% endif %}{% if selected_workspace is not none %}&workspace={{ selected_workspace }}{% endif %}
+{%- endmacro %}
+{% macro session_page_numbers(page_items, current_page, variant) -%}
+  <div class="session-page-numbers {{ variant }}" role="group" aria-label="페이지 선택">
+    {% for page_item in page_items %}
+      {% if not loop.first %}<span class="session-page-separator" aria-hidden="true">|</span>{% endif %}
+      {% if page_item is none %}
+        <span class="session-page-ellipsis" aria-hidden="true">…</span>
+      {% elif page_item == current_page %}
+        <span class="session-page-number current" aria-current="page"><span class="sr-only">현재 페이지 </span>{{ page_item }}</span>
+      {% else %}
+        <a class="session-page-number" href="{{ session_page_url(page_item) }}" aria-label="{{ page_item }}페이지">{{ page_item }}</a>
+      {% endif %}
+    {% endfor %}
+  </div>
+{%- endmacro %}
+{% block title %}{{ inventory_page_title }} · LocalBrain{% endblock %}
 {% block page_location %}Sessions{% endblock %}
 {% block content %}
   <section class="page-heading">
     <div>
       <p class="eyebrow">AI ACTIVITY</p>
       <h1>Sessions</h1>
-      <p class="heading-copy">Claude와 Codex에서 나눈 작업 대화를 시간순으로 살펴봅니다.</p>
+      <p class="heading-copy">AI 작업 대화와 경로별 프로젝트 활동을 한곳에서 살펴봅니다.</p>
     </div>
-    <a class="secondary-button" href="/sources">소스 관리</a>
   </section>
 
-  <section class="metric-band compact" aria-label="세션 현황">
-    <div class="metric"><strong>{{ stats.sessions }}</strong><span>전체 세션</span></div>
-    <div class="metric"><strong>{{ stats.events }}</strong><span>활동 이벤트</span></div>
-    <div class="metric"><strong>{{ stats.active_workspaces }}</strong><span>최근 활성 경로</span></div>
-    <div class="metric warning"><strong>{{ stats.missing_workspaces }}</strong><span>사라진 경로</span></div>
+  <section class="section-toolbar inventory-toolbar">
+    <nav class="inventory-switch" aria-label="Sessions 보기" data-inventory-switch data-selected="{{ inventory_mode }}">
+      <span class="inventory-switch-indicator" aria-hidden="true"></span>
+      <a href="/sessions" data-inventory-view="sessions" {% if inventory_mode == 'sessions' %}aria-current="page"{% endif %}>Sessions</a>
+      <a href="/projects" data-inventory-view="projects" {% if inventory_mode == 'projects' %}aria-current="page"{% endif %}>Projects</a>
+    </nav>
+    <form class="session-sync-form" action="/sessions/sync?view={{ inventory_mode }}{% if inventory_mode == 'sessions' and selected_source != 'all' %}&source={{ selected_source }}{% endif %}{% if inventory_mode == 'sessions' and selected_workspace is not none %}&workspace={{ selected_workspace }}{% endif %}{% if inventory_mode == 'sessions' and pagination is defined and pagination.page > 1 %}&page={{ pagination.page }}{% endif %}" method="post">
+      <button id="session-sync-button" class="primary-button" type="submit">
+        <span class="button-idle">동기화</span>
+        <span class="button-working" hidden>동기화 중...</span>
+      </button>
+    </form>
   </section>
+  <div id="session-sync-result" class="scan-result" role="status" hidden></div>
 
-  <section class="content-grid">
-    <div class="primary-column">
-      <div class="section-toolbar">
-        <div>
-          <h2>세션 타임라인</h2>
-          <p>{% if selected_workspace %}선택한 프로젝트의 세션{% else %}가장 최근 활동 기준{% endif %}</p>
-        </div>
-        <div class="segmented-control" aria-label="AI 도구 필터">
-          <a class="{% if selected_source == 'all' %}selected{% endif %}" href="/sessions{% if selected_workspace %}?workspace={{ selected_workspace }}{% endif %}">전체</a>
-          <a class="{% if selected_source == 'claude' %}selected{% endif %}" href="/sessions?source=claude{% if selected_workspace %}&workspace={{ selected_workspace }}{% endif %}">Claude</a>
-          <a class="{% if selected_source == 'codex' %}selected{% endif %}" href="/sessions?source=codex{% if selected_workspace %}&workspace={{ selected_workspace }}{% endif %}">Codex</a>
-        </div>
-      </div>
+  <div data-inventory-content>
+    <section data-inventory-panel="sessions" {% if inventory_mode != 'sessions' %}hidden{% endif %}>
+      <section class="metric-band compact" aria-label="세션 현황">
+        <div class="metric"><strong>{{ stats.sessions }}</strong><span>전체 세션</span></div>
+        <div class="metric"><strong>{{ stats.events }}</strong><span>활동 이벤트</span></div>
+        <div class="metric"><strong>{{ stats.active_workspaces }}</strong><span>최근 활성 경로</span></div>
+        <div class="metric warning"><strong>{{ stats.missing_workspaces }}</strong><span>사라진 경로</span></div>
+      </section>
 
-      {% if sessions %}
-        <div class="session-list">
-          {% for session in sessions %}
-            <a class="session-row" href="/sessions/{{ session.id }}">
-              <div class="session-source {{ session.source_kind }}">{{ 'CL' if session.source_kind == 'claude' else 'CX' }}</div>
-              <div class="session-main">
-                <div class="session-title-line">
-                  <h3>{{ session.title }}</h3>
-                  {% if session.exists_now == 0 %}<span class="missing-label">경로 없음</span>{% endif %}
+      <section class="content-grid">
+        <div class="primary-column">
+          <div class="section-toolbar">
+            <div>
+              <h2>세션 타임라인</h2>
+              <p>{% if selected_workspace %}선택한 프로젝트의 세션{% else %}가장 최근 활동 기준{% endif %}</p>
+            </div>
+            <div class="segmented-control" aria-label="AI 도구 필터">
+              <a class="{% if selected_source == 'all' %}selected{% endif %}" href="/sessions{% if selected_workspace %}?workspace={{ selected_workspace }}{% endif %}">전체</a>
+              <a class="{% if selected_source == 'claude' %}selected{% endif %}" href="/sessions?source=claude{% if selected_workspace %}&workspace={{ selected_workspace }}{% endif %}">Claude</a>
+              <a class="{% if selected_source == 'codex' %}selected{% endif %}" href="/sessions?source=codex{% if selected_workspace %}&workspace={{ selected_workspace }}{% endif %}">Codex</a>
+            </div>
+          </div>
+
+          {% if sessions %}
+            <div class="session-list">
+              {% for session in sessions %}
+                <div class="session-row">
+                  <a class="session-row-link" href="/sessions/{{ session.id }}">
+                    <div class="session-source {{ session.source_kind }}">
+                      <span aria-hidden="true">{{ 'CL' if session.source_kind == 'claude' else 'CX' }}</span>
+                      <span class="sr-only">{{ 'Claude' if session.source_kind == 'claude' else 'Codex' }}</span>
+                    </div>
+                    <div class="session-main">
+                      <div class="session-title-line">
+                        <h3>{{ session.title }}</h3>
+                        {% if session.exists_now == 0 %}<span class="missing-label">경로 없음</span>{% endif %}
+                      </div>
+                      <p class="path-line" title="{{ session.workspace_path or session.cwd_raw or '작업 경로 없음' }}">{{ session.workspace_path or session.cwd_raw or '작업 경로 없음' }}</p>
+                      <div class="session-meta">
+                        {% if session.git_branch %}<span>{{ session.git_branch }}</span>{% endif %}
+                        <span>질문 {{ session.user_message_count }}</span>
+                        <span>이벤트 {{ session.event_count }}</span>
+                      </div>
+                    </div>
+                    <time class="session-time" datetime="{{ session.last_event_at or session.started_at }}" data-local-time>{{ session.last_event_at or session.started_at or '-' }}</time>
+                  </a>
+                  {% if session.subsessions %}
+                    <div class="subsession-menu" data-subsession-menu>
+                      <button class="subsession-trigger" type="button" aria-expanded="false" aria-controls="subsessions-{{ session.id }}" data-subsession-trigger>
+                        <span class="sr-only">{{ session.title }}의 Subsessions {{ session.subsessions | length }}개 보기</span>
+                        <span aria-hidden="true">{{ session.subsessions | length }} ▾</span>
+                      </button>
+                      <div class="subsession-dropdown" id="subsessions-{{ session.id }}" data-subsession-dropdown hidden>
+                        <div class="subsession-dropdown-heading"><strong>Subsessions</strong><span>{{ session.subsessions | length }}</span></div>
+                        <div class="subsession-dropdown-list">
+                          {% for child in session.subsessions %}
+                            <a href="/sessions/{{ child.id }}" data-subsession-link>
+                              <strong>{{ child.title }}</strong>
+                              <span>질문 {{ child.user_message_count }} · 이벤트 {{ child.event_count }}</span>
+                              <time datetime="{{ child.last_event_at or child.started_at }}" data-local-time>{{ child.last_event_at or child.started_at or '-' }}</time>
+                            </a>
+                          {% endfor %}
+                        </div>
+                      </div>
+                    </div>
+                  {% endif %}
                 </div>
-                <p class="path-line">{{ session.workspace_name or session.cwd_raw or '작업 경로 없음' }}</p>
-                <div class="session-meta">
-                  <span>{{ session.source_name }}</span>
-                  {% if session.git_branch %}<span>{{ session.git_branch }}</span>{% endif %}
-                  <span>질문 {{ session.user_message_count }}</span>
-                  <span>이벤트 {{ session.event_count }}</span>
-                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="empty-state">
+              {% if selected_source != 'all' or selected_workspace is not none %}
+                <h3>조건에 맞는 세션이 없습니다</h3>
+                <p>다른 소스나 프로젝트 필터를 선택해 보세요.</p>
+              {% else %}
+                <h3>수집된 세션이 없습니다</h3>
+                <p>위의 동기화 버튼으로 Claude 또는 Codex 세션을 가져와 보세요.</p>
+              {% endif %}
+            </div>
+          {% endif %}
+
+          {% if pagination is defined %}
+            <nav class="session-pagination" aria-label="세션 페이지">
+              <p><strong>{{ pagination.total }}</strong>개 세션 · {{ pagination.page }} / {{ pagination.total_pages }} 페이지</p>
+              <div class="session-pagination-actions">
+                {% if pagination.previous_page %}
+                  <a class="secondary-button page-previous" href="{{ session_page_url(pagination.previous_page) }}">이전</a>
+                {% else %}
+                  <span class="secondary-button unavailable page-previous" aria-disabled="true">이전</span>
+                {% endif %}
+                {{ session_page_numbers(pagination.page_items, pagination.page, 'wide') }}
+                {{ session_page_numbers(pagination.compact_page_items | default(pagination.page_items), pagination.page, 'compact') }}
+                {% if pagination.next_page %}
+                  <a class="secondary-button page-next" href="{{ session_page_url(pagination.next_page) }}">다음</a>
+                {% else %}
+                  <span class="secondary-button unavailable page-next" aria-disabled="true">다음</span>
+                {% endif %}
               </div>
-              <time class="session-time" datetime="{{ session.last_event_at or session.started_at }}" data-local-time>{{ session.last_event_at or session.started_at or '-' }}</time>
+            </nav>
+          {% endif %}
+        </div>
+
+        <aside class="secondary-column">
+          <section class="side-section">
+            <div class="side-heading">
+              <h2>최근 컨텍스트</h2>
+              <a href="/context">전체 보기</a>
+            </div>
+            <div class="document-list">
+              {% for document in documents %}
+                <a href="/documents/{{ document.id }}">
+                  <strong>{{ document.title }}</strong>
+                  <span>{{ document.relative_path }}</span>
+                </a>
+              {% endfor %}
+            </div>
+          </section>
+
+          <section class="side-section source-status-section">
+            <div class="side-heading"><h2>수집 소스</h2><a href="/sources">관리</a></div>
+            {% for source in sources if source.kind in ['claude', 'codex'] %}
+              <div class="source-status-row">
+                <span class="source-name"><i class="source-indicator {{ source.kind }}"></i>{{ source.name }}</span>
+                <span>{{ source.session_count }}</span>
+              </div>
+            {% endfor %}
+          </section>
+        </aside>
+      </section>
+    </section>
+
+    <section data-inventory-panel="projects" {% if inventory_mode != 'projects' %}hidden{% endif %}>
+      <section class="metric-band compact" aria-label="프로젝트 현황">
+        <div class="metric"><strong>{{ project_total }}</strong><span>감지된 프로젝트</span></div>
+        <div class="metric"><strong>{{ unavailable_project_total }}</strong><span>현재 없는 경로</span></div>
+        <div class="metric"><strong>{{ project_items | sum(attribute='session_count') }}</strong><span>연결 세션</span></div>
+      </section>
+
+      <div class="section-toolbar">
+        <div><h2>프로젝트 활동</h2><p>최근 활동 순 · 세션 기반</p></div>
+      </div>
+      {% if project_items %}
+        <div class="project-list">
+          {% for project in project_items %}
+            <a class="project-row" href="/sessions?workspace={{ project.id }}">
+              <div class="project-state {{ 'available' if project.exists_now else 'missing' }}"></div>
+              <div class="project-main">
+                <div class="project-title-line">
+                  <h2>{{ project.display_name }}</h2>
+                  {% if project.git_root %}<span class="git-label">Git</span>{% endif %}
+                  {% if not project.exists_now %}<span class="missing-label">경로 없음</span>{% endif %}
+                </div>
+                <p class="path-line">{{ project.canonical_path }}</p>
+              </div>
+              <div class="project-stat"><strong>{{ project.session_count }}</strong><span>Sessions</span></div>
+              <div class="project-stat"><strong>{{ project.event_count }}</strong><span>Events</span></div>
+              <div class="project-stat"><strong>{{ project.source_count }}</strong><span>AI Sources</span></div>
+              <time class="project-time" datetime="{{ project.last_activity_at }}" data-local-time>{{ project.last_activity_at or '-' }}</time>
             </a>
           {% endfor %}
         </div>
       {% else %}
         <div class="empty-state">
-          <h3>조건에 맞는 세션이 없습니다</h3>
-          <p>다른 소스나 프로젝트 필터를 선택해 보세요.</p>
+          <h3>감지된 프로젝트가 없습니다</h3>
+          <p>Session 소스를 동기화하면 작업 경로별 활동이 여기에 표시됩니다.</p>
         </div>
       {% endif %}
-    </div>
-
-    <aside class="secondary-column">
-      <section class="side-section">
-        <div class="side-heading">
-          <h2>최근 컨텍스트</h2>
-          <a href="/context">전체 보기</a>
-        </div>
-        <div class="document-list">
-          {% for document in documents %}
-            <a href="/documents/{{ document.id }}">
-              <strong>{{ document.title }}</strong>
-              <span>{{ document.relative_path }}</span>
-            </a>
-          {% endfor %}
-        </div>
-      </section>
-
-      <section class="side-section source-status-section">
-        <div class="side-heading"><h2>수집 소스</h2><a href="/sources">관리</a></div>
-        {% for source in sources %}
-          <div class="source-status-row">
-            <span class="source-name"><i class="source-indicator {{ source.kind }}"></i>{{ source.name }}</span>
-            <span>{{ source.session_count or source.document_count }}</span>
-          </div>
-        {% endfor %}
-      </section>
-      <p class="database-note">DB: {{ database_path }}</p>
-    </aside>
-  </section>
+    </section>
+  </div>
+  <p class="sr-only" aria-live="polite" data-inventory-status></p>
 {% endblock %}
