@@ -10,16 +10,160 @@ function formatLocalTime(value) {
   }).format(date);
 }
 
-document.querySelectorAll("[data-local-time]").forEach((element) => {
-  element.textContent = formatLocalTime(element.getAttribute("datetime") || element.textContent);
-});
+function formatLocalTimes(root = document) {
+  root.querySelectorAll("[data-local-time]").forEach((element) => {
+    element.textContent = formatLocalTime(element.getAttribute("datetime") || element.textContent);
+  });
 
-document.querySelectorAll("[data-local-epoch]").forEach((element) => {
-  const milliseconds = Number(element.getAttribute("datetime"));
-  if (Number.isFinite(milliseconds)) {
-    element.textContent = formatLocalTime(new Date(milliseconds).toISOString());
+  root.querySelectorAll("[data-local-epoch]").forEach((element) => {
+    const milliseconds = Number(element.getAttribute("datetime"));
+    if (Number.isFinite(milliseconds)) {
+      element.textContent = formatLocalTime(new Date(milliseconds).toISOString());
+    }
+  });
+}
+
+formatLocalTimes();
+
+const usageDashboardStatus = document.querySelector("[data-usage-dashboard-status]");
+
+if (usageDashboardStatus) {
+  let usageDashboardRequest = null;
+
+  const currentUsageDashboard = () => document.querySelector("[data-usage-dashboard]");
+  const usageScrollFallbackKey = "localbrain:usage-dashboard-scroll";
+
+  const restoreUsageScroll = (scrollY) => {
+    const top = Number.isFinite(scrollY) ? scrollY : 0;
+    window.scrollTo(0, top);
+    window.requestAnimationFrame(() => window.scrollTo(0, top));
+  };
+
+  const announceUsageScope = (dashboard) => {
+    const metric = dashboard.querySelector('[data-usage-control="metric"][aria-current="page"]')?.textContent.trim();
+    const breakdown = dashboard.querySelector('[data-usage-control="breakdown"][aria-current="page"]')?.textContent.trim();
+    usageDashboardStatus.textContent = [metric, breakdown].filter(Boolean).join(" · ")
+      + " 보기로 전환했습니다.";
+  };
+
+  const loadUsageDashboard = async (
+    destination,
+    {
+      pushHistory = false,
+      scrollY = window.scrollY,
+      focusControl = null,
+      focusValue = null,
+    } = {},
+  ) => {
+    usageDashboardRequest?.abort();
+    const controller = new AbortController();
+    usageDashboardRequest = controller;
+    currentUsageDashboard()?.setAttribute("aria-busy", "true");
+
+    try {
+      const response = await fetch(destination.href, {
+        credentials: "same-origin",
+        headers: { "X-Requested-With": "LocalBrain-Usage-Dashboard" },
+        signal: controller.signal,
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      const parsed = new DOMParser().parseFromString(await response.text(), "text/html");
+      const incomingDashboard = parsed.querySelector("[data-usage-dashboard]");
+      const outgoingDashboard = currentUsageDashboard();
+      if (!incomingDashboard || !outgoingDashboard) {
+        throw new Error("사용량 대시보드 영역을 찾을 수 없습니다.");
+      }
+
+      const adoptedDashboard = document.importNode(incomingDashboard, true);
+      adoptedDashboard.setAttribute("aria-busy", "false");
+      outgoingDashboard.replaceWith(adoptedDashboard);
+      document.title = parsed.title || document.title;
+      formatLocalTimes(adoptedDashboard);
+
+      if (pushHistory) {
+        window.history.pushState(
+          { usageDashboard: true, usageScrollY: scrollY },
+          "",
+          destination.href,
+        );
+      }
+
+      if (focusControl && focusValue) {
+        adoptedDashboard
+          .querySelector(`[data-usage-control="${focusControl}"][data-usage-value="${focusValue}"]`)
+          ?.focus({ preventScroll: true });
+      }
+      announceUsageScope(adoptedDashboard);
+      restoreUsageScroll(scrollY);
+    } catch (error) {
+      if (error.name === "AbortError") return;
+      window.sessionStorage.setItem(
+        usageScrollFallbackKey,
+        JSON.stringify({ href: destination.href, scrollY }),
+      );
+      window.location.assign(destination.href);
+    } finally {
+      if (usageDashboardRequest === controller) {
+        usageDashboardRequest = null;
+        currentUsageDashboard()?.setAttribute("aria-busy", "false");
+      }
+    }
+  };
+
+  document.addEventListener("click", (event) => {
+    const link = event.target.closest("[data-usage-scope-link]");
+    if (
+      !link
+      || event.defaultPrevented
+      || event.button !== 0
+      || event.metaKey
+      || event.ctrlKey
+      || event.shiftKey
+      || event.altKey
+      || link.target
+    ) return;
+
+    const destination = new URL(link.href, window.location.href);
+    if (destination.origin !== window.location.origin) return;
+    event.preventDefault();
+    if (destination.href === window.location.href) return;
+
+    const scrollY = window.scrollY;
+    window.history.replaceState(
+      { ...window.history.state, usageDashboard: true, usageScrollY: scrollY },
+      "",
+    );
+    loadUsageDashboard(destination, {
+      pushHistory: true,
+      scrollY,
+      focusControl: link.dataset.usageControl,
+      focusValue: link.dataset.usageValue,
+    });
+  });
+
+  window.addEventListener("popstate", (event) => {
+    const destination = new URL(window.location.href);
+    if (destination.pathname !== "/sessions-dashboard") {
+      window.location.reload();
+      return;
+    }
+    const storedScrollY = Number(event.state?.usageScrollY);
+    loadUsageDashboard(destination, {
+      scrollY: Number.isFinite(storedScrollY) ? storedScrollY : window.scrollY,
+    });
+  });
+
+  try {
+    const fallback = JSON.parse(window.sessionStorage.getItem(usageScrollFallbackKey));
+    if (fallback?.href === window.location.href) {
+      window.sessionStorage.removeItem(usageScrollFallbackKey);
+      restoreUsageScroll(Number(fallback.scrollY));
+    }
+  } catch (_error) {
+    window.sessionStorage.removeItem(usageScrollFallbackKey);
   }
-});
+}
 
 const inventorySwitch = document.querySelector("[data-inventory-switch]");
 

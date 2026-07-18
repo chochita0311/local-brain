@@ -11,8 +11,9 @@ from urllib.parse import quote
 
 from ..config import settings
 from ..db import init_db, transaction
-from .claude import parse_claude_session
-from .codex import parse_codex_session
+from ..usage import reconcile_usage_fact_contract, store_usage_facts
+from .claude import CLAUDE_USAGE_CONTRACT_VERSION, parse_claude_session
+from .codex import CODEX_USAGE_CONTRACT_VERSION, parse_codex_session
 from .common import ParsedSession
 
 
@@ -116,11 +117,17 @@ def _upsert_source(
 
 
 def _file_is_current(
-    connection: sqlite3.Connection, source_id: int, path: Path
+    connection: sqlite3.Connection,
+    source_id: int,
+    path: Path,
+    usage_contract_version: Optional[str] = None,
 ) -> bool:
     stat = path.stat()
     row = connection.execute(
-        "SELECT size_bytes, mtime_ns, status FROM source_files WHERE source_id = ? AND path = ?",
+        """
+        SELECT size_bytes, mtime_ns, status, usage_contract_version
+        FROM source_files WHERE source_id = ? AND path = ?
+        """,
         (source_id, str(path)),
     ).fetchone()
     return bool(
@@ -128,6 +135,10 @@ def _file_is_current(
         and row["size_bytes"] == stat.st_size
         and row["mtime_ns"] == stat.st_mtime_ns
         and row["status"] == "ok"
+        and (
+            usage_contract_version is None
+            or row["usage_contract_version"] == usage_contract_version
+        )
     )
 
 
@@ -137,28 +148,39 @@ def _record_source_file(
     path: Path,
     status: str = "ok",
     error: Optional[str] = None,
+    usage_contract_version: Optional[str] = None,
+    scanned_size_bytes: Optional[int] = None,
+    scanned_mtime_ns: Optional[int] = None,
 ) -> None:
     stat = path.stat()
+    size_bytes = stat.st_size if scanned_size_bytes is None else scanned_size_bytes
+    mtime_ns = stat.st_mtime_ns if scanned_mtime_ns is None else scanned_mtime_ns
     connection.execute(
         """
         INSERT INTO source_files(
-            source_id, path, size_bytes, mtime_ns, last_scanned_at, status, error
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            source_id, path, size_bytes, mtime_ns, last_scanned_at, status, error,
+            usage_contract_version
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(source_id, path) DO UPDATE SET
             size_bytes = excluded.size_bytes,
             mtime_ns = excluded.mtime_ns,
             last_scanned_at = excluded.last_scanned_at,
             status = excluded.status,
-            error = excluded.error
+            error = excluded.error,
+            usage_contract_version = COALESCE(
+                excluded.usage_contract_version,
+                source_files.usage_contract_version
+            )
         """,
         (
             source_id,
             str(path),
-            stat.st_size,
-            stat.st_mtime_ns,
+            size_bytes,
+            mtime_ns,
             utc_now(),
             status,
             error,
+            usage_contract_version,
         ),
     )
 
@@ -169,7 +191,7 @@ def _find_git_root(path: Path) -> Optional[Path]:
     current = path if path.is_dir() else path.parent
     for candidate in [current] + list(current.parents):
         if (candidate / ".git").exists():
-            return candidate
+            return candidate.resolve()
         if candidate == Path.home():
             break
     return None
@@ -200,7 +222,7 @@ def _upsert_workspace(
         ) VALUES (?, ?, ?, ?, ?, ?)
         ON CONFLICT(canonical_path) DO UPDATE SET
             display_name = excluded.display_name,
-            git_root = COALESCE(excluded.git_root, workspaces.git_root),
+            git_root = excluded.git_root,
             exists_now = excluded.exists_now,
             last_activity_at = CASE
                 WHEN workspaces.last_activity_at IS NULL THEN excluded.last_activity_at
@@ -271,6 +293,7 @@ def _store_session(
     source_id: int,
     source_kind: str,
     parsed: ParsedSession,
+    usage_contract_version: Optional[str] = None,
 ) -> None:
     workspace_id = _upsert_workspace(connection, parsed.cwd_raw, parsed.last_event_at)
     user_count = sum(
@@ -339,6 +362,23 @@ def _store_session(
         (source_id, parsed.external_id),
     ).fetchone()
     session_id = int(session_row["id"])
+    store_usage_facts(
+        connection,
+        source_id,
+        session_id,
+        parsed.usage_facts,
+        workspace_id=workspace_id,
+        normalizer_version=(
+            usage_contract_version
+            or (
+                CLAUDE_USAGE_CONTRACT_VERSION
+                if source_kind == "claude"
+                else CODEX_USAGE_CONTRACT_VERSION
+                if source_kind == "codex"
+                else "legacy-v1"
+            )
+        ),
+    )
     connection.execute("DELETE FROM activity_events WHERE session_id = ?", (session_id,))
     connection.execute(
         "DELETE FROM search_index WHERE entity_type = 'session' AND entity_id = ?",
@@ -461,6 +501,7 @@ def _scan_session_source(
     name: str,
     root: Path,
     parser,
+    usage_contract_version: str,
     force: bool = False,
 ) -> Tuple[int, int, int]:
     source_id = _upsert_source(connection, source_kind, name, root)
@@ -469,20 +510,71 @@ def _scan_session_source(
         return imported, skipped, failed
 
     paths = sorted(root.rglob("*.jsonl"))
+    contract_repair_required = bool(
+        connection.execute(
+            """
+            SELECT 1 FROM source_files
+            WHERE source_id = ?
+              AND COALESCE(usage_contract_version, '') != ?
+            LIMIT 1
+            """,
+            (source_id, usage_contract_version),
+        ).fetchone()
+    )
+    if contract_repair_required:
+        connection.execute("SAVEPOINT source_usage_contract_repair")
     _remove_stale_sessions(connection, source_id, paths)
+    expected_fact_ids = set()
+    repair_errors = []
 
     for path in paths:
-        if not force and _file_is_current(connection, source_id, path):
+        if not force and not contract_repair_required and _file_is_current(
+            connection, source_id, path, usage_contract_version
+        ):
             skipped += 1
             continue
         try:
+            scanned_stat = path.stat()
             parsed = parser(path)
-            _store_session(connection, source_id, source_kind, parsed)
-            _record_source_file(connection, source_id, path)
+            _store_session(
+                connection,
+                source_id,
+                source_kind,
+                parsed,
+                usage_contract_version=usage_contract_version,
+            )
+            _record_source_file(
+                connection,
+                source_id,
+                path,
+                usage_contract_version=usage_contract_version,
+                scanned_size_bytes=scanned_stat.st_size,
+                scanned_mtime_ns=scanned_stat.st_mtime_ns,
+            )
+            expected_fact_ids.update(fact.fact_id for fact in parsed.usage_facts)
             imported += 1
         except Exception as exc:
-            _record_source_file(connection, source_id, path, "error", str(exc))
+            if contract_repair_required:
+                repair_errors.append((path, str(exc)))
+            else:
+                _record_source_file(connection, source_id, path, "error", str(exc))
             failed += 1
+    if contract_repair_required and failed:
+        connection.execute("ROLLBACK TO source_usage_contract_repair")
+        connection.execute("RELEASE source_usage_contract_repair")
+        imported = 0
+        for path, error in repair_errors:
+            _record_source_file(connection, source_id, path, "error", error)
+    elif contract_repair_required:
+        try:
+            reconcile_usage_fact_contract(
+                connection, source_id, expected_fact_ids
+            )
+            connection.execute("RELEASE source_usage_contract_repair")
+        except Exception:
+            connection.execute("ROLLBACK TO source_usage_contract_repair")
+            connection.execute("RELEASE source_usage_contract_repair")
+            raise
     _reconcile_session_parents(connection, source_id, source_kind)
     connection.execute(
         "UPDATE sources SET last_scanned_at = ? WHERE id = ?", (utc_now(), source_id)
@@ -913,6 +1005,7 @@ def _scan_session_sources(
                 "Claude Code",
                 settings.claude_root,
                 parse_claude_session,
+                CLAUDE_USAGE_CONTRACT_VERSION,
                 force,
             ),
         ),
@@ -924,6 +1017,7 @@ def _scan_session_sources(
                 "Codex",
                 settings.codex_root,
                 parse_codex_session,
+                CODEX_USAGE_CONTRACT_VERSION,
                 force,
             ),
         ),

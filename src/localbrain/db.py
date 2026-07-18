@@ -20,8 +20,27 @@ def connect() -> sqlite3.Connection:
 
 def init_db() -> None:
     with connect() as connection:
+        usage_contract_exists = connection.execute(
+            """
+            SELECT 1 FROM sqlite_master
+            WHERE type = 'table' AND name = 'usage_facts'
+            """
+        ).fetchone()
         connection.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
         _run_compatible_migrations(connection)
+        from .usage import ensure_default_price_snapshot
+
+        ensure_default_price_snapshot(connection)
+        if not usage_contract_exists:
+            connection.execute(
+                """
+                UPDATE source_files
+                SET status = 'stale'
+                WHERE source_id IN (
+                    SELECT id FROM sources WHERE kind IN ('claude', 'codex')
+                )
+                """
+            )
 
 
 def _column_names(connection: sqlite3.Connection, table: str) -> set:
@@ -68,6 +87,9 @@ def _run_compatible_migrations(connection: sqlite3.Connection) -> None:
             ),
         )
     )
+    usage_normalizer_contract_changed = _ensure_column(
+        connection, "source_files", "usage_contract_version", "TEXT"
+    )
     _drop_column(connection, "workspaces", "git_branch")
 
     for table, column, definition in (
@@ -112,10 +134,43 @@ def _run_compatible_migrations(connection: sqlite3.Connection) -> None:
         ("maintenance_runs", "error", "TEXT"),
         ("maintenance_runs", "updated_at", "TEXT"),
         ("suggestions", "origin_run_id", "TEXT"),
+        ("usage_facts", "workspace_id_snapshot", "INTEGER"),
+        ("usage_facts", "project_key", "TEXT"),
+        ("usage_facts", "project_name_snapshot", "TEXT"),
+        ("usage_facts", "project_path_snapshot", "TEXT"),
+        ("usage_facts", "project_git_root_snapshot", "TEXT"),
+        (
+            "usage_facts",
+            "attribution_basis",
+            "TEXT NOT NULL DEFAULT 'unassigned'",
+        ),
+        ("usage_facts", "attributed_at", "TEXT"),
+        (
+            "usage_facts",
+            "normalizer_version",
+            "TEXT NOT NULL DEFAULT 'legacy-v1'",
+        ),
+        (
+            "usage_model_prices",
+            "long_context_threshold_tokens",
+            "INTEGER CHECK(long_context_threshold_tokens IS NULL OR long_context_threshold_tokens > 0)",
+        ),
+        ("usage_model_prices", "long_context_input_usd_per_million", "TEXT"),
+        ("usage_model_prices", "long_context_output_usd_per_million", "TEXT"),
+        (
+            "usage_model_prices",
+            "long_context_cache_write_usd_per_million",
+            "TEXT",
+        ),
+        (
+            "usage_model_prices",
+            "long_context_cache_read_usd_per_million",
+            "TEXT",
+        ),
     ):
         _ensure_column(connection, table, column, definition)
 
-    if session_contract_changed:
+    if session_contract_changed or usage_normalizer_contract_changed:
         connection.execute(
             """
             UPDATE source_files
@@ -131,6 +186,13 @@ def _run_compatible_migrations(connection: sqlite3.Connection) -> None:
     )
     connection.execute(
         "UPDATE maintenance_runs SET updated_at = COALESCE(updated_at, created_at)"
+    )
+    connection.execute(
+        """
+        UPDATE usage_facts
+        SET attribution_basis = COALESCE(attribution_basis, 'unassigned'),
+            attributed_at = COALESCE(attributed_at, imported_at)
+        """
     )
     _migrate_context_roots(connection)
 

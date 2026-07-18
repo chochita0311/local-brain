@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS source_files (
     last_scanned_at TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'ok',
     error TEXT,
+    usage_contract_version TEXT,
     UNIQUE(source_id, path)
 );
 
@@ -86,6 +87,76 @@ CREATE TABLE IF NOT EXISTS activity_events (
     source_line INTEGER NOT NULL,
     metadata_json TEXT,
     UNIQUE(session_id, sequence, event_type, source_line)
+);
+
+CREATE TABLE IF NOT EXISTS usage_price_snapshots (
+    id TEXT PRIMARY KEY,
+    label TEXT NOT NULL,
+    source_ref TEXT NOT NULL,
+    calculator_version TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS usage_model_prices (
+    snapshot_id TEXT NOT NULL REFERENCES usage_price_snapshots(id) ON DELETE RESTRICT,
+    model_name TEXT NOT NULL,
+    input_usd_per_million TEXT NOT NULL,
+    output_usd_per_million TEXT NOT NULL,
+    cache_write_usd_per_million TEXT,
+    cache_read_usd_per_million TEXT,
+    long_context_threshold_tokens INTEGER
+        CHECK(long_context_threshold_tokens IS NULL OR long_context_threshold_tokens > 0),
+    long_context_input_usd_per_million TEXT,
+    long_context_output_usd_per_million TEXT,
+    long_context_cache_write_usd_per_million TEXT,
+    long_context_cache_read_usd_per_million TEXT,
+    PRIMARY KEY(snapshot_id, model_name)
+);
+
+CREATE TABLE IF NOT EXISTS usage_facts (
+    id TEXT PRIMARY KEY,
+    source_id INTEGER NOT NULL REFERENCES sources(id) ON DELETE CASCADE,
+    session_id INTEGER NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+    source_record_id TEXT NOT NULL,
+    source_line INTEGER NOT NULL,
+    occurred_at TEXT,
+    raw_model TEXT,
+    model_name TEXT,
+    input_tokens INTEGER CHECK(input_tokens IS NULL OR input_tokens >= 0),
+    output_tokens INTEGER CHECK(output_tokens IS NULL OR output_tokens >= 0),
+    cache_write_tokens INTEGER CHECK(cache_write_tokens IS NULL OR cache_write_tokens >= 0),
+    cache_read_tokens INTEGER CHECK(cache_read_tokens IS NULL OR cache_read_tokens >= 0),
+    reasoning_tokens INTEGER CHECK(reasoning_tokens IS NULL OR reasoning_tokens >= 0),
+    source_total_tokens INTEGER CHECK(source_total_tokens IS NULL OR source_total_tokens >= 0),
+    total_tokens INTEGER CHECK(total_tokens IS NULL OR total_tokens >= 0),
+    total_semantics TEXT NOT NULL,
+    aggregation_scope TEXT NOT NULL DEFAULT 'direct'
+        CHECK(aggregation_scope IN ('direct', 'includes_children')),
+    capability_state TEXT NOT NULL
+        CHECK(capability_state IN ('complete', 'partial', 'malformed')),
+    capability_json TEXT NOT NULL,
+    calculation_state TEXT NOT NULL
+        CHECK(calculation_state IN ('priced', 'unpriced', 'partial', 'failed')),
+    estimated_cost_usd TEXT,
+    price_snapshot_id TEXT NOT NULL
+        REFERENCES usage_price_snapshots(id) ON DELETE RESTRICT,
+    calculator_version TEXT NOT NULL,
+    normalizer_version TEXT NOT NULL DEFAULT 'legacy-v1',
+    calculated_at TEXT NOT NULL,
+    workspace_id_snapshot INTEGER,
+    project_key TEXT,
+    project_name_snapshot TEXT,
+    project_path_snapshot TEXT,
+    project_git_root_snapshot TEXT,
+    attribution_basis TEXT NOT NULL DEFAULT 'unassigned'
+        CHECK(attribution_basis IN ('git_root', 'workspace_path', 'unassigned')),
+    attributed_at TEXT NOT NULL,
+    imported_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CHECK(
+        (calculation_state = 'priced' AND estimated_cost_usd IS NOT NULL)
+        OR (calculation_state != 'priced' AND estimated_cost_usd IS NULL)
+    ),
+    UNIQUE(source_id, session_id, source_record_id)
 );
 
 CREATE TABLE IF NOT EXISTS context_documents (
@@ -265,6 +336,12 @@ CREATE INDEX IF NOT EXISTS idx_sessions_workspace
     ON sessions(workspace_id, last_event_at DESC);
 CREATE INDEX IF NOT EXISTS idx_events_session_sequence
     ON activity_events(session_id, sequence);
+CREATE INDEX IF NOT EXISTS idx_usage_facts_session_time
+    ON usage_facts(session_id, occurred_at);
+CREATE INDEX IF NOT EXISTS idx_usage_facts_source_time
+    ON usage_facts(source_id, occurred_at);
+CREATE INDEX IF NOT EXISTS idx_usage_facts_model_time
+    ON usage_facts(model_name, occurred_at);
 CREATE INDEX IF NOT EXISTS idx_documents_mtime
     ON context_documents(mtime_ns DESC);
 CREATE INDEX IF NOT EXISTS idx_local_resources_path

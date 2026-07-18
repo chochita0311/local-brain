@@ -44,6 +44,8 @@ Sequencing and unresolved work live under `docs/plans/`.
 - [UI Design-System Realignment PRD](plans/prd/prd-0001-ui-design-system-realignment.md): passed PRD with fourteen accepted Feature runs, evaluation and fix evidence, and a deferred nonblocking graphical-regression follow-up
 - [Session Browsing And Subsession Organization PRD](plans/prd/prd-0002-session-browsing-and-subsession-organization.md): approved boundary with five passed Features for source-neutral subsessions, Session-owned branch metadata, combined navigation, paginated inventory, conversation-focused detail views, and Session-only synchronization; post-run human review remains
 - [Data Model Visibility And Schema Cleanup PRD](plans/prd/prd-0003-data-model-visibility-and-schema-cleanup.md): draft boundary for the complete ERD, seven subject-area catalogs, schema recovery classification, and evidence-backed cleanup planning
+- [Session Usage And Cost Dashboard PRD](plans/prd/prd-0004-session-usage-and-cost-dashboard.md): passed boundary for source-neutral usage facts, estimated trend cost, activity and Project attribution, responsive history, composition, and trust
+- [Workflow And Skill Intelligence PRD](plans/prd/prd-0005-workflow-and-skill-intelligence.md): draft boundary for evidence-backed personal workflow patterns, repeated-process analysis, skill use, and reviewable skill suggestions
 - `docs/plans/prd/`, `feature/`, and `spec/`: planning and implementation boundaries across their lifecycle
 - `docs/plans/run/`, `evaluation/`, `fix/`, and `heuristic/`: execution and review artifacts
 

@@ -24,7 +24,6 @@ from .contexts import (
 from .db import connect, init_db, transaction
 from .ingest.scanner import scan_all, scan_context_root, scan_session_sources
 from .queries import (
-    daily_activity,
     dashboard_stats,
     document_detail,
     project_activity,
@@ -35,10 +34,7 @@ from .queries import (
     session_detail,
     session_parent,
     session_subsessions,
-    source_activity,
     source_inventory,
-    top_tools,
-    top_workspace_activity,
 )
 from .runner import (
     cancel_run,
@@ -53,6 +49,7 @@ from .runner import (
     task_choices,
 )
 from .subagents import list_subagents, load_subagent
+from .usage_queries import usage_dashboard_data
 from .workstreams import (
     add_link,
     create_checkpoint,
@@ -188,29 +185,30 @@ def dashboard(request: Request):
 
 
 @app.get("/sessions-dashboard", response_class=HTMLResponse)
-def sessions_dashboard(request: Request):
+def sessions_dashboard(
+    request: Request,
+    view: str = Query(default="daily"),
+    source: str = Query(default="all"),
+    metric: str = Query(default="tokens"),
+    breakdown: str = Query(default="source"),
+    from_date: Optional[str] = Query(default=None, alias="from"),
+    to_date: Optional[str] = Query(default=None, alias="to"),
+):
     with connect() as connection:
-        activity = [dict(row) for row in daily_activity(connection)]
-        max_activity = max((row["session_count"] for row in activity), default=1) or 1
-        for row in activity:
-            row["bar_percent"] = max(4, round(row["session_count"] / max_activity * 100))
-        source_rows = [dict(row) for row in source_activity(connection)]
-        total_source_events = sum(row["event_count"] for row in source_rows) or 1
-        for row in source_rows:
-            row["share_percent"] = round(row["event_count"] / total_source_events * 100)
-        tool_rows = [dict(row) for row in top_tools(connection)]
-        max_tool_count = max((row["use_count"] for row in tool_rows), default=1) or 1
-        for row in tool_rows:
-            row["bar_percent"] = round(row["use_count"] / max_tool_count * 100)
+        usage = usage_dashboard_data(
+            connection,
+            view=view,
+            source=source,
+            metric=metric,
+            breakdown=breakdown,
+            from_value=from_date,
+            to_value=to_date,
+            timezone_name=settings.timezone_name,
+        )
         page_context = {
             "request": request,
             "active_page": "sessions-dashboard",
-            "stats": dashboard_stats(connection),
-            "activity": activity,
-            "source_activity": source_rows,
-            "tools": tool_rows,
-            "projects": top_workspace_activity(connection),
-            "sources": source_inventory(connection),
+            "usage": usage,
         }
     return templates.TemplateResponse("sessions_dashboard.html", page_context)
 

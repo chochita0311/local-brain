@@ -4,12 +4,17 @@ from typing import Any, Dict, List, Optional
 from .common import (
     ParsedEvent,
     ParsedSession,
+    ParsedUsageFact,
     compact_title,
     read_json_lines,
     session_policy,
     stable_id,
     text_from_content,
+    token_value,
 )
+
+
+CLAUDE_USAGE_CONTRACT_VERSION = "claude-message-usage-v2-source-repair"
 
 
 def _message_content(record: Dict[str, Any]) -> Any:
@@ -17,6 +22,145 @@ def _message_content(record: Dict[str, Any]) -> Any:
     if isinstance(message, dict):
         return message.get("content")
     return message
+
+
+def _claude_usage_fact(
+    external_id: str,
+    line_number: int,
+    timestamp: Optional[str],
+    record: Dict[str, Any],
+) -> Optional[ParsedUsageFact]:
+    message = record.get("message")
+    if not isinstance(message, dict):
+        return None
+    usage = message.get("usage")
+    if not isinstance(usage, dict):
+        return None
+
+    raw_model = message.get("model")
+    if not isinstance(raw_model, str) or not raw_model.strip():
+        raw_model = None
+    else:
+        raw_model = raw_model.strip()
+
+    component_states: Dict[str, str] = {}
+    malformed = False
+
+    def required(name: str) -> Optional[int]:
+        nonlocal malformed
+        if name not in usage:
+            component_states[name] = "missing"
+            return None
+        value, state = token_value(usage.get(name))
+        component_states[name] = state
+        malformed = malformed or state == "malformed"
+        return value
+
+    input_tokens = required("input_tokens")
+    output_tokens = required("output_tokens")
+
+    cache_write_source = usage.get("cache_creation_input_tokens")
+    cache_creation = usage.get("cache_creation")
+    nested_cache_write = None
+    if isinstance(cache_creation, dict):
+        cache_values = [
+            cache_creation.get("ephemeral_1h_input_tokens", 0),
+            cache_creation.get("ephemeral_5m_input_tokens", 0),
+        ]
+        if all(
+            isinstance(value, int) and not isinstance(value, bool) and value >= 0
+            for value in cache_values
+        ):
+            nested_cache_write = sum(cache_values)
+        else:
+            nested_cache_write = "malformed"
+    if cache_write_source is None:
+        cache_write_source = 0 if nested_cache_write is None else nested_cache_write
+        component_states["cache_write_source"] = (
+            "nested_breakdown" if nested_cache_write is not None else "default_zero"
+        )
+    elif (
+        cache_write_source == 0
+        and isinstance(nested_cache_write, int)
+        and nested_cache_write > 0
+    ):
+        cache_write_source = nested_cache_write
+        component_states["cache_write_source"] = "nested_preferred_over_zero_aggregate"
+    elif (
+        isinstance(cache_write_source, int)
+        and isinstance(nested_cache_write, int)
+        and cache_write_source != nested_cache_write
+    ):
+        component_states["cache_write_source"] = "aggregate_breakdown_mismatch"
+    else:
+        component_states["cache_write_source"] = "aggregate"
+    cache_write_tokens, cache_write_state = token_value(cache_write_source)
+    component_states["cache_write_tokens"] = cache_write_state
+    malformed = malformed or cache_write_state == "malformed"
+
+    cache_read_source = usage.get("cache_read_input_tokens", 0)
+    cache_read_tokens, cache_read_state = token_value(cache_read_source)
+    component_states["cache_read_tokens"] = cache_read_state
+    malformed = malformed or cache_read_state == "malformed"
+
+    source_total_tokens = None
+    if "total_tokens" in usage:
+        source_total_tokens, total_state = token_value(usage.get("total_tokens"))
+        component_states["source_total_tokens"] = total_state
+        malformed = malformed or total_state == "malformed"
+    else:
+        component_states["source_total_tokens"] = "not_reported"
+
+    total_tokens = None
+    if None not in (
+        input_tokens,
+        output_tokens,
+        cache_write_tokens,
+        cache_read_tokens,
+    ):
+        total_tokens = (
+            input_tokens
+            + output_tokens
+            + cache_write_tokens
+            + cache_read_tokens
+        )
+
+    model_state = "available" if raw_model else "missing"
+    component_states["model"] = model_state
+    component_states["reasoning_tokens"] = "not_separately_reported"
+    if malformed:
+        capability_state = "malformed"
+    elif raw_model is None or input_tokens is None or output_tokens is None:
+        capability_state = "partial"
+    else:
+        capability_state = "complete"
+
+    record_identity = (
+        message.get("id")
+        or record.get("uuid")
+        or stable_id("claude-usage-line", external_id, line_number)
+    )
+    source_record_id = str(record_identity)
+    return ParsedUsageFact(
+        fact_id=stable_id("claude-usage", external_id, source_record_id),
+        source_record_id=source_record_id,
+        source_line=line_number,
+        occurred_at=timestamp,
+        raw_model=raw_model,
+        input_tokens=input_tokens,
+        output_tokens=output_tokens,
+        cache_write_tokens=cache_write_tokens,
+        cache_read_tokens=cache_read_tokens,
+        reasoning_tokens=None,
+        source_total_tokens=source_total_tokens,
+        total_tokens=total_tokens,
+        total_semantics=(
+            "normalized_non_cached_input_plus_output_plus_cache_write_plus_cache_read;"
+            "reasoning_not_separately_reported"
+        ),
+        capability_state=capability_state,
+        capability=component_states,
+    )
 
 
 def parse_claude_session(path: Path) -> ParsedSession:
@@ -27,6 +171,7 @@ def parse_claude_session(path: Path) -> ParsedSession:
     first_user_text = ""
     timestamps: List[str] = []
     events: List[ParsedEvent] = []
+    usage_by_record: Dict[str, ParsedUsageFact] = {}
     skipped_lines = 0
     is_subsession = path.parent.name == "subagents"
     parent_external_id = path.parent.parent.name if is_subsession else None
@@ -84,6 +229,21 @@ def parse_claude_session(path: Path) -> ParsedSession:
             )
 
         message = record.get("message")
+        if record_type == "assistant":
+            usage_fact = _claude_usage_fact(
+                external_id,
+                line_number,
+                timestamp if isinstance(timestamp, str) else None,
+                record,
+            )
+            if usage_fact:
+                previous = usage_by_record.get(usage_fact.source_record_id)
+                if not (
+                    previous
+                    and previous.capability_state != "malformed"
+                    and usage_fact.capability_state == "malformed"
+                ):
+                    usage_by_record[usage_fact.source_record_id] = usage_fact
         content = message.get("content") if isinstance(message, dict) else None
         if record_type == "assistant" and isinstance(content, list):
             for offset, item in enumerate(content, start=1):
@@ -129,4 +289,5 @@ def parse_claude_session(path: Path) -> ParsedSession:
         maintenance_run_id=maintenance_run_id,
         session_role="subsession" if is_subsession else "primary",
         parent_external_id=parent_external_id,
+        usage_facts=list(usage_by_record.values()),
     )

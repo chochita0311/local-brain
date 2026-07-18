@@ -90,15 +90,22 @@ Priority meaning:
 
 ## P2 - Dashboard And Workflow
 
+- [x] Implement PRD-0004's source-neutral usage facts, immutable trend-cost snapshots, activity and Project attribution contracts, summary/history, and composition/trust; the later human review retired the visible current-month projection.
+- [x] Complete RUN-20260718-25 as the superseded first repair: replace Codex latest-per-turn usage, align Claude's bounded cache-create fallback, version normalizer contracts, and prove automatic source-level repair without a reset button.
+- [x] Complete RUN-20260718-26: prefer Codex `last_token_usage`, use cumulative subtraction only as fallback, exclude spawned or forked replay prefixes, resolve dated fallback models, add the approved `fast` trend-price snapshot, and refresh the private local Fact set idempotently.
+- [x] Complete RUN-20260718-27: add immutable model-specific long-context thresholds and rates, calculate the tier per Codex Fact, repair the private Fact set, and match fixed-boundary ccusage monthly cost without a runtime dependency.
+- [x] Complete RUN-20260718-28: remove the `Projected month end` presentation and dedicated styles while preserving the cost read model, selected-period metrics, and scope-switch continuity.
+- [x] Complete RUN-20260718-29: retain Claude `<synthetic>` pseudo-message Facts and Session evidence in SQLite while excluding them from every Sessions Dashboard usage date, total, coverage, breakdown, and Session-count consumer.
 - [ ] Replace generic counts with a current-work view of Thread state, recent changes, blockers, next actions, and stale checkpoints.
 - [ ] Show cross-source evidence and freshness without copying full sensitive content into overview screens.
 - [ ] Add editable priorities, due signals, archive state, and a daily review flow.
 - [ ] Visualize how Sessions and Resources contributed to each Thread over time.
 - [ ] Add a structuring inbox for unassigned Sessions, documents, and external Resources.
-- [ ] Define cavemem-style metrics that are useful without incentivizing raw activity volume.
+- [ ] Define Session-derived workflow and skill metrics that are useful without incentivizing raw activity volume.
 
 ## P2 - Quality And Distribution
 
+- [x] Close PRD-0004's combined Sessions Dashboard rendered evidence gap at `1440`, `920`, `700`, and exact mobile-emulated `320`, covering scope controls, four-metric band, 30-day chart scrolling, long Model/Project labels, native disclosures, trust states, and in-place scroll continuity with synthetic data.
 - [ ] Close FEAT-0019's direct rendered evidence gap at `1440`, `700`, and `320`, including selector geometry, same-row containment, and the Session-only source summary.
 - [ ] Recheck the Sessions `동기화` action from the current browser after a warm-cache revisit, then complete the human post-run acceptance or return decision for PRD-0002.
 - [ ] Add an official `localbrain serve` CLI subcommand with default host and port, an opt-in development reload flag, and a documented install/run-from-anywhere path so personal shell aliases are not required.
@@ -120,6 +127,5 @@ Priority meaning:
 - [ ] Whether AI summaries are local-only, use an approved model path, or require per-Run confirmation.
 - [ ] Whether LocalBrain remains single-user local software or eventually supports encrypted sync or team sharing.
 - [ ] What evidence threshold permits an automatic Suggestion instead of requiring manual search.
-- [ ] Which parts of cavemem's schema or behavior should remain compatible.
 - [ ] Whether initial topic analysis should use deterministic rules, a local model, or an approved model.
 - [ ] Which minimum checkpoint fields provide enough resume value without becoming a documentation burden.

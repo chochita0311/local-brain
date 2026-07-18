@@ -83,6 +83,12 @@
 - If a scope change replaces the visible result set after the user has scrolled, the destination scope should start at an intentional anchor, usually the top of the new result list.
 - Carrying the previous scroll depth into a different category, collection, or result scope is usually a continuity failure because it hides the beginning of the newly selected content.
 
+#### In-Place Analytical Switch Continuity
+
+- Not every query-backed control changes the user's task scope. Switching metric units, aggregation, or composition inside the same analytical surface should usually preserve the surrounding document position and stable control anchors.
+- Evaluators should distinguish a new result destination that has a meaningful beginning from an in-place re-expression of the same selected data. The former may reset to an intentional anchor; the latter should not make the page jump merely because the URL or server-rendered region changed.
+- Test analytical switches after scrolling, with back and forward navigation, and across partial or full rendering paths. Verify page scroll, local scrollers, focus, selected state, and sticky regions rather than checking only the final values.
+
 #### Action And Status Scope Parity
 
 - A scoped action and the status or source summary placed beside it should describe the same operating boundary, or make their difference explicit.

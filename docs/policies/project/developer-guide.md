@@ -59,6 +59,7 @@ LocalBrain reads these environment variables at process startup:
 | `LOCALBRAIN_CODEX_ROOT` | `~/.codex/sessions` | Codex session history root |
 | `LOCALBRAIN_CLAUDE_BIN` | resolved from `PATH` | Claude CLI executable used by the Task Runner |
 | `LOCALBRAIN_MCP_CALL_BUDGET` | `20` | Advisory MCP call budget per maintenance Run |
+| `LOCALBRAIN_TIMEZONE` | system IANA timezone, then `UTC` | Local calendar boundaries for usage and activity reports |
 
 Do not place secrets in tracked environment files. See [Privacy And Data Handling](privacy-and-data.md) before changing data locations or persistence behavior.
 

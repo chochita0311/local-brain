@@ -1,8 +1,12 @@
 import re
+import sqlite3
 import unittest
+from datetime import date
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
+
+from localbrain.usage_queries import usage_dashboard_data
 
 
 ROOT = Path(__file__).parents[1]
@@ -13,6 +17,8 @@ CONTEXT = ROOT / "src" / "localbrain" / "templates" / "context.html"
 SESSIONS = ROOT / "src" / "localbrain" / "templates" / "sessions.html"
 SESSION_DETAIL = ROOT / "src" / "localbrain" / "templates" / "session.html"
 SUBAGENT_DETAIL = ROOT / "src" / "localbrain" / "templates" / "subagent.html"
+SESSIONS_DASHBOARD = ROOT / "src" / "localbrain" / "templates" / "sessions_dashboard.html"
+SCHEMA = ROOT / "src" / "localbrain" / "schema.sql"
 
 
 class UiContractTests(unittest.TestCase):
@@ -25,6 +31,7 @@ class UiContractTests(unittest.TestCase):
         cls.sessions = SESSIONS.read_text(encoding="utf-8")
         cls.session_detail = SESSION_DETAIL.read_text(encoding="utf-8")
         cls.subagent_detail = SUBAGENT_DETAIL.read_text(encoding="utf-8")
+        cls.sessions_dashboard = SESSIONS_DASHBOARD.read_text(encoding="utf-8")
 
     def test_component_rules_do_not_use_raw_colors(self):
         token_end = self.styles.index("\n}\n\n* { box-sizing")
@@ -99,6 +106,100 @@ class UiContractTests(unittest.TestCase):
         self.assertIn('id="main-content" tabindex="-1"', self.base)
         self.assertIn('aria-current="page"', self.base)
         self.assertIn('data-toast-region aria-live="polite"', self.base)
+
+    def test_usage_dashboard_keeps_one_summary_and_history_family(self):
+        for marker in (
+            'class="overview-metrics usage-summary"',
+            'class="analysis-panel usage-history-panel"',
+            'name="view"',
+            'name="source"',
+            'name="metric"',
+            'name="from"',
+            'name="to"',
+            'aria-current="page"',
+            'usage.history_has_values',
+            'usage.limitations',
+            'aria-label="Usage breakdown"',
+            'class="analysis-panel usage-breakdown-panel"',
+            'class="analysis-panel usage-trust-panel"',
+            'usage.breakdown.primary_rows',
+            'usage.breakdown.overflow_rows',
+            'usage.freshness.sources',
+            'How estimated cost is calculated',
+        ):
+            self.assertIn(marker, self.sessions_dashboard)
+        self.assertNotIn("Projected month end", self.sessions_dashboard)
+        self.assertNotIn("usage.projection", self.sessions_dashboard)
+        self.assertNotIn("Allocation", self.sessions_dashboard)
+        self.assertNotIn("budget", self.sessions_dashboard.lower())
+        self.assertNotIn("quota", self.sessions_dashboard.lower())
+
+    def test_usage_dashboard_does_not_render_month_end_projection(self):
+        connection = sqlite3.connect(":memory:")
+        connection.row_factory = sqlite3.Row
+        connection.executescript(SCHEMA.read_text(encoding="utf-8"))
+        usage = usage_dashboard_data(
+            connection,
+            metric="cost",
+            timezone_name="UTC",
+            today=date(2026, 7, 18),
+        )
+        environment = Environment(loader=FileSystemLoader(ROOT / "src/localbrain/templates"))
+        environment.globals["url_for"] = lambda name, path: "/static{}".format(path)
+        html = environment.get_template("sessions_dashboard.html").render(
+            active_page="sessions-dashboard",
+            usage=usage,
+        )
+        connection.close()
+
+        self.assertTrue(usage["projection"]["visible"])
+        self.assertNotIn("Projected month end", html)
+        self.assertNotIn("usage-projection-context", html)
+
+    def test_usage_dashboard_renders_empty_state_from_its_read_model(self):
+        connection = sqlite3.connect(":memory:")
+        connection.row_factory = sqlite3.Row
+        connection.executescript(SCHEMA.read_text(encoding="utf-8"))
+        usage = usage_dashboard_data(
+            connection, timezone_name="UTC", today=date(2026, 7, 18)
+        )
+        environment = Environment(loader=FileSystemLoader(ROOT / "src/localbrain/templates"))
+        environment.globals["url_for"] = lambda name, path: "/static{}".format(path)
+        html = environment.get_template("sessions_dashboard.html").render(
+            active_page="sessions-dashboard",
+            usage=usage,
+        )
+        connection.close()
+
+        self.assertIn("No usage indexed", html)
+        self.assertIn("2026-06-19 – 2026-07-18", html)
+        self.assertEqual(html.count('class="overview-metric unavailable"'), 2)
+        self.assertIn('/sessions-dashboard?view=weekly&source=all&metric=tokens', html)
+        self.assertIn('aria-current="page"', html)
+
+    def test_usage_dashboard_scope_switches_replace_only_the_dashboard(self):
+        for marker in (
+            "data-usage-dashboard",
+            "data-usage-dashboard-status",
+            "data-usage-scope-link",
+            'data-usage-control="metric"',
+            'data-usage-control="breakdown"',
+        ):
+            self.assertIn(marker, self.sessions_dashboard)
+
+        for behavior in (
+            "currentUsageDashboard",
+            'headers: { "X-Requested-With": "LocalBrain-Usage-Dashboard" }',
+            "new DOMParser()",
+            "outgoingDashboard.replaceWith(adoptedDashboard)",
+            "window.history.pushState",
+            'window.addEventListener("popstate"',
+            "AbortController",
+            "restoreUsageScroll(scrollY)",
+            "focus({ preventScroll: true })",
+            "window.location.assign(destination.href)",
+        ):
+            self.assertIn(behavior, self.script)
 
     def test_interaction_feedback_is_bounded_and_run_polling_is_active_only(self):
         self.assertNotIn("window.alert", self.script)

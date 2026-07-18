@@ -12,7 +12,7 @@ The current MVP runs as a FastAPI web application on the local machine. A native
 - Link sessions, documents, local paths, projects, and external references to Threads.
 - Maintain versioned checkpoints and review reversible resource Suggestions.
 - Run Claude maintenance tasks for resource organization, checkpoint drafting, and priority review.
-- Inspect session activity and source health through separate operational dashboards.
+- Inspect Claude and Codex tokens, estimated trend cost, primary-work Session volume, active days, and Daily, Weekly, or Cumulative history in Sessions Dashboard.
 
 See [Project Architecture](docs/policies/project/architecture.md) for the implementation boundary and current feature baseline.
 
@@ -29,7 +29,15 @@ uv run --no-sync uvicorn localbrain.main:app --host 127.0.0.1 --port 8000
 
 Open `http://127.0.0.1:8000`. The local database is created automatically on first startup. Stop the server with `Ctrl+C`.
 
-To import local Claude and Codex sessions, use **동기화** on the Sessions page. The **Sources** page keeps the wider scan across Session sources and enabled Local Context folders, files, and Apple Notes. The initial `uv sync` downloads Python packages, but LocalBrain's indexed content and runtime data remain on the local machine.
+To import local Claude and Codex sessions, use **동기화** on the Sessions page. The same action automatically repairs derived Usage Facts when LocalBrain's source-normalizer contract changes; no aggregate-reset control is required. The **Sources** page keeps the wider scan across Session sources and enabled Local Context folders, files, and Apple Notes. The initial `uv sync` downloads Python packages, but LocalBrain's indexed content and runtime data remain on the local machine.
+
+Sessions Dashboard defaults to the latest 30 inclusive local days. Its Source, Range, Tokens/Cost, and paired custom-date controls are ordinary GET state, so a filtered view can be bookmarked or reopened. Cost is a locally reproduced trend estimate from stored price snapshots, including model-specific request-context tiers when the frozen reference defines them; it is not billed spend, and unsupported pricing stays visibly unavailable.
+
+Actual model usage from primary, maintenance, and subsession records contributes to dashboard tokens and cost. Claude's source-generated `<synthetic>` assistant or API-error records remain stored for Session evidence but are excluded from usage periods, totals, coverage, and breakdowns because they are not model usage.
+
+The same selected facts can be explained by Source, normalized Model, or first-observation Project snapshot. The composition list keeps compatible shares and evidence links separate from the trust region, which reports token and price coverage, source freshness, calculation time, and retained data when a source needs attention.
+
+The dashboard deliberately stops at observed selected-period and month-to-date values. It does not surface a projected month-end cost, budget, cap, or billed amount.
 
 Certificate configuration is not required on a normal network. If `uv sync` fails with an `UnknownIssuer` error, retry the installation with the macOS system certificate store:
 

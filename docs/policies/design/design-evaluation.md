@@ -54,6 +54,26 @@
 - When density rises, the system should preserve hierarchy and containment before adding more visible information.
 - A visually compact layout that causes clipping, overlap, or scan breakdown is a failure, not a stylistic preference.
 
+### Information Hierarchy And Metric Meaning
+
+#### Presentation Eligibility Is A Separate Contract
+
+- Persisted evidence is not automatically eligible for a user-facing metric, rank, date range, or category row.
+- Diagnostic, synthetic, fallback, or error records may remain valuable for traceability while being excluded from ordinary analytical presentation when they do not represent the measured concept.
+- Evaluators should confirm that summary, history, composition, coverage, and linked counts use one coherent eligible set so an excluded record does not leak through a secondary consumer.
+
+#### Secondary Metric Explanatory Burden
+
+- A derived or supporting metric should earn its space by improving a decision or interpretation beyond the primary observed values.
+- If a secondary value needs extensive qualification, provenance, coverage, state, and timestamp copy but still adds little practical value, removing it may preserve hierarchy better than explaining it more loudly.
+- Evaluators should compare information value, false-precision risk, and explanatory burden before accepting another KPI block or repeated estimate.
+
+#### Adjacent Metric Denominator Clarity
+
+- Adjacent totals, costs, counts, and activity metrics may legitimately use different eligible populations, but the layout and labels must not imply that they reconcile one-to-one.
+- When one metric includes background or child activity while another counts only primary work, the distinction should be visible at the point of comparison or in a bounded trust explanation.
+- Evaluators should inspect denominator definitions together with hierarchy and supporting copy rather than assuming shared placement means shared scope.
+
 ### Boundary And Scope Discipline
 
 #### Shell Boundary Preservation
@@ -187,6 +207,12 @@
 - Broad screen-family work should sample LocalBrain's supported viewport boundaries and representative long-content, empty, unavailable, error, and active-interaction states. Exact widths and required states belong to the approved Feature, active Spec, or selected profile.
 - Use synthetic or explicitly approved content when captures, fixtures, or audit artifacts could otherwise expose private runtime data.
 - If the required rendered evidence cannot be collected, record the evidence gap explicitly and do not describe unobserved runtime behavior as a verified pass. The owning Feature, active Spec, or selected profile decides whether that gap blocks acceptance.
+
+#### Positive-State Suppression Evidence
+
+- When a change removes, hides, or excludes previously eligible content, an empty fixture is not sufficient evidence that the presentation boundary works.
+- Evaluators should exercise a positive producer or read-model state that would have rendered the content before the change and verify that the current consumer still suppresses it.
+- When storage retention is intentional, evidence should confirm both sides of the boundary: the record remains inspectable at its owning layer and does not leak into the excluded presentation consumers.
 
 ## Classification Guidance
 

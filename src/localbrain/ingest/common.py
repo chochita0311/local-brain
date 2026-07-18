@@ -20,6 +20,28 @@ class ParsedEvent:
 
 
 @dataclass
+class ParsedUsageFact:
+    fact_id: str
+    source_record_id: str
+    source_line: int
+    occurred_at: Optional[str]
+    raw_model: Optional[str]
+    input_tokens: Optional[int]
+    output_tokens: Optional[int]
+    cache_write_tokens: Optional[int]
+    cache_read_tokens: Optional[int]
+    reasoning_tokens: Optional[int]
+    source_total_tokens: Optional[int]
+    total_tokens: Optional[int]
+    total_semantics: str
+    aggregation_scope: str = "direct"
+    capability_state: str = "complete"
+    capability: Dict[str, Any] = field(default_factory=dict)
+    normalized_model: Optional[str] = None
+    price_snapshot_id: Optional[str] = None
+
+
+@dataclass
 class ParsedSession:
     external_id: str
     source_path: str
@@ -36,11 +58,18 @@ class ParsedSession:
     maintenance_run_id: Optional[str] = None
     session_role: str = "primary"
     parent_external_id: Optional[str] = None
+    usage_facts: List[ParsedUsageFact] = field(default_factory=list)
 
 
 def stable_id(*parts: object) -> str:
     value = "\x1f".join(str(part) for part in parts)
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
+def token_value(value: Any) -> tuple:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        return None, "malformed"
+    return value, "available"
 
 
 def read_json_lines(path: Path) -> Iterable[tuple]:

@@ -6,6 +6,20 @@ from pathlib import Path
 DEFAULT_DATA_DIR = Path.home() / "Library" / "Application Support" / "LocalBrain"
 
 
+def _system_timezone_name() -> str:
+    configured = os.environ.get("TZ")
+    if configured:
+        return configured
+    try:
+        resolved = str(Path("/etc/localtime").resolve())
+        marker = "/zoneinfo/"
+        if marker in resolved:
+            return resolved.split(marker, 1)[1]
+    except OSError:
+        pass
+    return "UTC"
+
+
 @dataclass(frozen=True)
 class Settings:
     data_dir: Path
@@ -14,6 +28,7 @@ class Settings:
     claude_root: Path
     codex_root: Path
     mcp_call_budget: int
+    timezone_name: str = "UTC"
 
 
 def load_settings() -> Settings:
@@ -43,6 +58,9 @@ def load_settings() -> Settings:
             )
         ).expanduser(),
         mcp_call_budget=mcp_call_budget,
+        timezone_name=os.environ.get(
+            "LOCALBRAIN_TIMEZONE", _system_timezone_name()
+        ),
     )
 
 

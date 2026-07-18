@@ -2,7 +2,7 @@
 
 Status: Phase 1 complete; Phase 2 core vertical slice implemented
 
-Last reviewed: 2026-07-17
+Last reviewed: 2026-07-18
 
 ## Current Direction
 
@@ -26,7 +26,7 @@ Detailed implementation tasks and unresolved decisions live in the [Project Back
 | 0. Discovery and constraints | Verify source availability, policy, and representative workflows | Ongoing as new source types are added |
 | 1. Local activity foundation | Reliably collect and inspect local activity | Complete |
 | 2. Workstream and resume MVP | Find and resume interrupted work | Core vertical slice implemented |
-| 3. Activity insights | Add reproducible cavemem-style workflow analysis | Planned |
+| 3. Activity insights | Add reproducible usage, cost, workflow, and skill intelligence | Usage and cost dashboard implemented; workflow intelligence planned |
 | 4. External read-only sources | Connect approved ticket, conversation, Git, and document systems | Planned |
 | 5. Context reconciliation | Produce reviewable current context while preserving uncertainty | Planned |
 | 6. Handoff and controlled actions | Support low-friction AI handoff and explicitly approved actions | Planned |
@@ -40,7 +40,7 @@ Work:
 
 - inspect installed Claude and Codex local formats and retention behavior
 - inspect representative project, context-folder, Git, and Apple Notes layouts
-- inspect cavemem schema and export formats when available
+- review activity-analysis tools such as cavemem as reference implementations, not LocalBrain sources or connectors
 - inventory approved MCP Gateway tools, authentication, and read/write capabilities
 - define reference, cache, and index policy for each external source type
 - validate the product model against representative Workstreams
@@ -104,24 +104,44 @@ Exit criteria:
 - incorrect Suggestions can be corrected without data loss
 - the application is useful in daily work without external connector ingestion
 
-## Phase 3: Activity Insights And cavemem Compatibility
+## Phase 3: Activity Insights And Workflow Intelligence
 
-**Goal:** provide useful workflow analysis from the same normalized events that power Workstreams.
+**Goal:** provide trustworthy usage, cost, and workflow analysis from the same source-backed activity that powers Workstreams.
+
+Planning tracks:
+
+- [PRD-0004: Session Usage And Cost Dashboard](../prd/prd-0004-session-usage-and-cost-dashboard.md) (`passed`)
+- [PRD-0005: Workflow And Skill Intelligence](../prd/prd-0005-workflow-and-skill-intelligence.md) (`draft`)
+
+Executed PRD-0004 Features:
+
+All implementation, corrective, and combined synthetic responsive-evidence checks are passed.
+
+- [FEAT-0020: Usage And Cost Fact Contract](../feature/feat-0020-usage-and-cost-fact-contract.md) (`passed`, direct-event-first normalization, request-tier pricing, and source-level repair)
+- [FEAT-0021: Activity And Project Attribution Contract](../feature/feat-0021-activity-and-project-attribution-contract.md) (`passed`)
+- [FEAT-0022: Usage Summary And History](../feature/feat-0022-usage-summary-and-history.md) (`passed`)
+- [FEAT-0023: Usage Breakdown And Trust](../feature/feat-0023-usage-breakdown-and-trust.md) (`passed`)
+- [FEAT-0024: Current-Month Projection](../feature/feat-0024-current-month-projection.md) (historical `passed`; visible presentation retired by RUN-20260718-28)
 
 Work:
 
-- add optional cavemem database or JSONL import
+- define source-neutral token components, model identity, cost basis, price provenance, and source-coverage rules
+- present period-scoped usage and cost history plus Source, Model, and Project breakdowns without implying calculated cost is actual billing
+- derive insights directly from LocalBrain's normalized Claude and Codex Session records
+- use cavemem only as a reference for lifecycle coverage, health reporting, and candidate metric patterns; do not import its database or JSONL and do not expose it as a connector
 - define reproducible Session duration and activity-count rules
 - implement tool, project, file type, topic, and error statistics
 - calculate context switching and Session fragmentation
-- surface repeated errors, repeated questions, and idle Workstreams
+- surface repeated errors, repeated questions, repeated workflows, skill usage, and idle Workstreams
+- keep explicitly observed skill use separate from inferred skill candidates and attach evidence to every generated Suggestion
 - link every metric back to filtered timelines and Workstreams
 - export user-owned normalized activity through a reviewed privacy flow
 
 Exit criteria:
 
+- usage and cost metrics state their inclusion scope, calculation basis, price provenance, freshness, and unavailable fields
 - statistics can be reproduced from stored events
-- imported cavemem records are deduplicated against directly collected activity where possible
+- insights depend only on source-backed LocalBrain records and remain usable without cavemem installed
 - metric definitions state source limitations and avoid false precision
 - insights reveal at least one actionable repeated or forgotten work pattern
 
