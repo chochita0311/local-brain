@@ -12,16 +12,16 @@ from localbrain.activity import (
     calendar_week_bounds,
 )
 from localbrain.db import _run_compatible_migrations
-from localbrain.ingest.common import ParsedSession, ParsedUsageFact
+from localbrain.ingest.common import ParsedSession, ParsedUsageRecord
 from localbrain.ingest.scanner import _store_session
 
 
 SCHEMA_PATH = Path(__file__).parents[1] / "src" / "localbrain" / "schema.sql"
 
 
-def usage_fact(identity: str, occurred_at: str = "2026-07-18T00:00:00Z"):
-    return ParsedUsageFact(
-        fact_id="fact-{}".format(identity),
+def usage_record(identity: str, occurred_at: str = "2026-07-18T00:00:00Z"):
+    return ParsedUsageRecord(
+        usage_record_id="record-{}".format(identity),
         source_record_id=identity,
         source_line=1,
         occurred_at=occurred_at,
@@ -37,7 +37,7 @@ def usage_fact(identity: str, occurred_at: str = "2026-07-18T00:00:00Z"):
     )
 
 
-def parsed_session(external_id: str, cwd: str, facts):
+def parsed_session(external_id: str, cwd: str, records):
     return ParsedSession(
         external_id=external_id,
         source_path="/tmp/{}.jsonl".format(external_id),
@@ -48,7 +48,7 @@ def parsed_session(external_id: str, cwd: str, facts):
         ended_at="2026-07-18T00:05:00Z",
         last_event_at="2026-07-18T00:05:00Z",
         events=[],
-        usage_facts=list(facts),
+        usage_records=list(records),
     )
 
 
@@ -65,11 +65,11 @@ class ActivityAttributionTests(unittest.TestCase):
     def tearDown(self):
         self.connection.close()
 
-    def test_late_git_discovery_changes_only_new_fact_attribution(self):
+    def test_late_git_discovery_changes_only_new_record_attribution(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
             project = Path(temporary_directory) / "project"
             project.mkdir()
-            first = usage_fact("first")
+            first = usage_record("first")
             _store_session(
                 self.connection,
                 self.source_id,
@@ -80,7 +80,7 @@ class ActivityAttributionTests(unittest.TestCase):
                 """
                 SELECT project_key, project_path_snapshot,
                        project_git_root_snapshot, attribution_basis, attributed_at
-                FROM usage_facts WHERE id = 'fact-first'
+                FROM usage_records WHERE id = 'record-first'
                 """
             ).fetchone()
             self.assertEqual(first_snapshot["attribution_basis"], "workspace_path")
@@ -90,7 +90,7 @@ class ActivityAttributionTests(unittest.TestCase):
             self.assertIsNone(first_snapshot["project_git_root_snapshot"])
 
             (project / ".git").mkdir()
-            second = usage_fact("second", "2026-07-18T00:02:00Z")
+            second = usage_record("second", "2026-07-18T00:02:00Z")
             _store_session(
                 self.connection,
                 self.source_id,
@@ -103,21 +103,21 @@ class ActivityAttributionTests(unittest.TestCase):
                     """
                     SELECT id, project_key, project_git_root_snapshot,
                            attribution_basis, attributed_at
-                    FROM usage_facts ORDER BY id
+                    FROM usage_records ORDER BY id
                     """
                 )
             }
-            self.assertEqual(rows["fact-first"]["project_key"], first_snapshot["project_key"])
+            self.assertEqual(rows["record-first"]["project_key"], first_snapshot["project_key"])
             self.assertEqual(
-                rows["fact-first"]["attributed_at"], first_snapshot["attributed_at"]
+                rows["record-first"]["attributed_at"], first_snapshot["attributed_at"]
             )
-            self.assertEqual(rows["fact-second"]["attribution_basis"], "git_root")
+            self.assertEqual(rows["record-second"]["attribution_basis"], "git_root")
             self.assertEqual(
-                rows["fact-second"]["project_key"], "git:{}".format(project.resolve())
+                rows["record-second"]["project_key"], "git:{}".format(project.resolve())
             )
 
             (project / ".git").rmdir()
-            third = usage_fact("third", "2026-07-18T00:03:00Z")
+            third = usage_record("third", "2026-07-18T00:03:00Z")
             _store_session(
                 self.connection,
                 self.source_id,
@@ -127,18 +127,18 @@ class ActivityAttributionTests(unittest.TestCase):
             rows = {
                 row["id"]: row
                 for row in self.connection.execute(
-                    "SELECT id, project_key, attribution_basis FROM usage_facts"
+                    "SELECT id, project_key, attribution_basis FROM usage_records"
                 )
             }
-            self.assertEqual(rows["fact-second"]["attribution_basis"], "git_root")
-            self.assertEqual(rows["fact-third"]["attribution_basis"], "workspace_path")
+            self.assertEqual(rows["record-second"]["attribution_basis"], "git_root")
+            self.assertEqual(rows["record-third"]["attribution_basis"], "workspace_path")
             current_git_root = self.connection.execute(
                 "SELECT git_root FROM workspaces"
             ).fetchone()[0]
             self.assertIsNone(current_git_root)
 
-    def test_unassigned_fact_is_not_reconciled_when_path_arrives_later(self):
-        first = usage_fact("unassigned")
+    def test_unassigned_record_is_not_reconciled_when_path_arrives_later(self):
+        first = usage_record("unassigned")
         _store_session(
             self.connection,
             self.source_id,
@@ -146,7 +146,7 @@ class ActivityAttributionTests(unittest.TestCase):
             parsed_session("unassigned-session", None, [first]),
         )
         with tempfile.TemporaryDirectory() as temporary_directory:
-            second = usage_fact("assigned", "2026-07-18T00:02:00Z")
+            second = usage_record("assigned", "2026-07-18T00:02:00Z")
             _store_session(
                 self.connection,
                 self.source_id,
@@ -158,12 +158,12 @@ class ActivityAttributionTests(unittest.TestCase):
         rows = {
             row["id"]: row
             for row in self.connection.execute(
-                "SELECT id, project_key, attribution_basis FROM usage_facts"
+                "SELECT id, project_key, attribution_basis FROM usage_records"
             )
         }
-        self.assertEqual(rows["fact-unassigned"]["attribution_basis"], "unassigned")
-        self.assertIsNone(rows["fact-unassigned"]["project_key"])
-        self.assertEqual(rows["fact-assigned"]["attribution_basis"], "workspace_path")
+        self.assertEqual(rows["record-unassigned"]["attribution_basis"], "unassigned")
+        self.assertIsNone(rows["record-unassigned"]["project_key"])
+        self.assertEqual(rows["record-assigned"]["attribution_basis"], "workspace_path")
 
     def test_exact_gap_threshold_and_incomplete_session_use_last_event(self):
         summary = activity_summary_from_events(
@@ -247,7 +247,7 @@ class ActivityAttributionTests(unittest.TestCase):
         self.assertEqual(summary["estimated_active_seconds"], 600)
         self.assertEqual(summary["observed_session_span_seconds"], 600)
 
-    def test_legacy_usage_fact_migrates_to_stable_unassigned_attribution(self):
+    def test_legacy_usage_record_migrates_to_stable_unassigned_attribution(self):
         attribution_block = """    workspace_id_snapshot INTEGER,
     project_key TEXT,
     project_name_snapshot TEXT,
@@ -283,13 +283,13 @@ class ActivityAttributionTests(unittest.TestCase):
         ).lastrowid
         legacy.execute(
             """
-            INSERT INTO usage_facts(
+            INSERT INTO usage_records(
                 id, source_id, session_id, source_record_id, source_line,
                 total_semantics, aggregation_scope, capability_state,
                 capability_json, calculation_state, estimated_cost_usd,
                 price_snapshot_id, calculator_version, calculated_at, imported_at
             ) VALUES (
-                'legacy-fact', ?, ?, 'legacy-record', 1,
+                'legacy-record', ?, ?, 'legacy-record', 1,
                 'legacy', 'direct', 'complete', '{}', 'priced', '0.01',
                 'legacy-price', 'v1', '2026-07-17T01:00:00Z', '2026-07-17T01:00:00Z'
             )
@@ -300,7 +300,7 @@ class ActivityAttributionTests(unittest.TestCase):
         row = legacy.execute(
             """
             SELECT attribution_basis, attributed_at, project_key
-            FROM usage_facts WHERE id = 'legacy-fact'
+            FROM usage_records WHERE id = 'legacy-record'
             """
         ).fetchone()
         self.assertEqual(row["attribution_basis"], "unassigned")

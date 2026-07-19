@@ -12,7 +12,7 @@ from localbrain.ingest.codex import (
     CODEX_USAGE_CONTRACT_VERSION,
     parse_codex_session,
 )
-from localbrain.ingest.common import ParsedSession, ParsedUsageFact, stable_id
+from localbrain.ingest.common import ParsedSession, ParsedUsageRecord, stable_id
 from localbrain.ingest.scanner import (
     _file_is_current,
     _scan_session_source,
@@ -23,7 +23,7 @@ from localbrain.usage import (
     CONTEXT_TIER_CALCULATOR_VERSION,
     DEFAULT_PRICE_SNAPSHOT_ID,
     ensure_default_price_snapshot,
-    reconcile_usage_fact_contract,
+    reconcile_usage_record_contract,
 )
 
 
@@ -83,23 +83,23 @@ class UsageContractTests(unittest.TestCase):
             ]
         )
         parsed = parse_claude_session(path)
-        self.assertEqual(len(parsed.usage_facts), 1)
-        fact = parsed.usage_facts[0]
+        self.assertEqual(len(parsed.usage_records), 1)
+        record = parsed.usage_records[0]
         self.assertEqual(
             (
-                fact.input_tokens,
-                fact.output_tokens,
-                fact.cache_write_tokens,
-                fact.cache_read_tokens,
-                fact.reasoning_tokens,
-                fact.total_tokens,
+                record.input_tokens,
+                record.output_tokens,
+                record.cache_write_tokens,
+                record.cache_read_tokens,
+                record.reasoning_tokens,
+                record.total_tokens,
             ),
             (100, 50, 20, 30, None, 200),
         )
-        self.assertEqual(fact.capability_state, "complete")
+        self.assertEqual(record.capability_state, "complete")
 
         _store_session(self.connection, self.claude_source_id, "claude", parsed)
-        stored = self.connection.execute("SELECT * FROM usage_facts").fetchone()
+        stored = self.connection.execute("SELECT * FROM usage_records").fetchone()
         self.assertEqual(stored["calculation_state"], "priced")
         self.assertEqual(stored["estimated_cost_usd"], "0.001134000000")
         self.assertEqual(stored["price_snapshot_id"], DEFAULT_PRICE_SNAPSHOT_ID)
@@ -131,11 +131,11 @@ class UsageContractTests(unittest.TestCase):
             ]
         )
 
-        fact = parse_claude_session(path).usage_facts[0]
+        record = parse_claude_session(path).usage_records[0]
 
-        self.assertEqual(fact.cache_write_tokens, 27)
+        self.assertEqual(record.cache_write_tokens, 27)
         self.assertEqual(
-            fact.capability["cache_write_source"],
+            record.capability["cache_write_source"],
             "nested_preferred_over_zero_aggregate",
         )
 
@@ -217,21 +217,21 @@ class UsageContractTests(unittest.TestCase):
             ]
         )
         parsed = parse_codex_session(path)
-        self.assertEqual(len(parsed.usage_facts), 2)
+        self.assertEqual(len(parsed.usage_records), 2)
         self.assertTrue(
             all(
-                fact.capability["usage_source"] == "last_token_usage"
-                for fact in parsed.usage_facts
+                record.capability["usage_source"] == "last_token_usage"
+                for record in parsed.usage_records
             )
         )
         self.assertEqual(
             (
-                sum(fact.input_tokens or 0 for fact in parsed.usage_facts),
-                sum(fact.output_tokens or 0 for fact in parsed.usage_facts),
-                sum(fact.cache_read_tokens or 0 for fact in parsed.usage_facts),
-                sum(fact.reasoning_tokens or 0 for fact in parsed.usage_facts),
-                sum(fact.source_total_tokens or 0 for fact in parsed.usage_facts),
-                sum(fact.total_tokens or 0 for fact in parsed.usage_facts),
+                sum(record.input_tokens or 0 for record in parsed.usage_records),
+                sum(record.output_tokens or 0 for record in parsed.usage_records),
+                sum(record.cache_read_tokens or 0 for record in parsed.usage_records),
+                sum(record.reasoning_tokens or 0 for record in parsed.usage_records),
+                sum(record.source_total_tokens or 0 for record in parsed.usage_records),
+                sum(record.total_tokens or 0 for record in parsed.usage_records),
             ),
             (600, 200, 400, 80, 1200, 1200),
         )
@@ -239,14 +239,14 @@ class UsageContractTests(unittest.TestCase):
         _store_session(self.connection, self.codex_source_id, "codex", parsed)
         stored = self.connection.execute(
             """
-            SELECT COUNT(*) AS facts,
+            SELECT COUNT(*) AS records,
                    SUM(CAST(estimated_cost_usd AS REAL)) AS cost,
                    MIN(normalizer_version) AS min_version,
                    MAX(normalizer_version) AS max_version
-            FROM usage_facts
+            FROM usage_records
             """
         ).fetchone()
-        self.assertEqual(stored["facts"], 2)
+        self.assertEqual(stored["records"], 2)
         self.assertAlmostEqual(stored["cost"], 0.023)
         self.assertEqual(stored["min_version"], CODEX_USAGE_CONTRACT_VERSION)
         self.assertEqual(stored["max_version"], CODEX_USAGE_CONTRACT_VERSION)
@@ -306,10 +306,10 @@ class UsageContractTests(unittest.TestCase):
             ]
         )
 
-        facts = parse_codex_session(path).usage_facts
+        records = parse_codex_session(path).usage_records
 
-        self.assertEqual(len(facts), 2)
-        fallback = facts[1]
+        self.assertEqual(len(records), 2)
+        fallback = records[1]
         self.assertEqual(fallback.capability["usage_source"], "cumulative_delta")
         self.assertEqual(
             (
@@ -364,7 +364,7 @@ class UsageContractTests(unittest.TestCase):
         rows = self.connection.execute(
             """
             SELECT estimated_cost_usd, price_snapshot_id, calculator_version
-            FROM usage_facts ORDER BY source_line
+            FROM usage_records ORDER BY source_line
             """
         ).fetchall()
 
@@ -502,16 +502,16 @@ class UsageContractTests(unittest.TestCase):
             ]
         )
 
-        facts = parse_codex_session(path).usage_facts
+        records = parse_codex_session(path).usage_records
 
-        self.assertEqual(len(facts), 1)
-        self.assertEqual(facts[0].capability["usage_source"], "cumulative_delta")
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0].capability["usage_source"], "cumulative_delta")
         self.assertEqual(
             (
-                facts[0].input_tokens,
-                facts[0].output_tokens,
-                facts[0].cache_read_tokens,
-                facts[0].total_tokens,
+                records[0].input_tokens,
+                records[0].output_tokens,
+                records[0].cache_read_tokens,
+                records[0].total_tokens,
             ),
             (60, 20, 40, 120),
         )
@@ -552,19 +552,19 @@ class UsageContractTests(unittest.TestCase):
         )
 
         parsed = parse_codex_session(path)
-        fact = parsed.usage_facts[0]
-        self.assertEqual(fact.raw_model, "codex-auto-review")
-        self.assertEqual(fact.normalized_model, "gpt-5.5")
+        record = parsed.usage_records[0]
+        self.assertEqual(record.raw_model, "codex-auto-review")
+        self.assertEqual(record.normalized_model, "gpt-5.5")
         self.assertEqual(
-            fact.capability["model_resolution"], "dated_auto_review_fallback"
+            record.capability["model_resolution"], "dated_auto_review_fallback"
         )
         self.assertEqual(
-            fact.price_snapshot_id, CODEX_FAST_TIERED_PRICE_SNAPSHOT_ID
+            record.price_snapshot_id, CODEX_FAST_TIERED_PRICE_SNAPSHOT_ID
         )
 
         _store_session(self.connection, self.codex_source_id, "codex", parsed)
         stored = self.connection.execute(
-            "SELECT raw_model, model_name, price_snapshot_id FROM usage_facts"
+            "SELECT raw_model, model_name, price_snapshot_id FROM usage_records"
         ).fetchone()
         self.assertEqual(stored["raw_model"], "codex-auto-review")
         self.assertEqual(stored["model_name"], "gpt-5.5")
@@ -573,8 +573,8 @@ class UsageContractTests(unittest.TestCase):
         )
 
     def test_contract_repair_applies_explicit_price_snapshot_and_preserves_project(self):
-        old_fact = ParsedUsageFact(
-            fact_id="old-turn-fact",
+        old_record = ParsedUsageRecord(
+            usage_record_id="old-turn-record",
             source_record_id="turn-1",
             source_line=10,
             occurred_at="2026-07-18T02:00:00Z",
@@ -598,7 +598,7 @@ class UsageContractTests(unittest.TestCase):
             ended_at=None,
             last_event_at=None,
             events=[],
-            usage_facts=[old_fact],
+            usage_records=[old_record],
         )
         _store_session(
             self.connection,
@@ -610,14 +610,14 @@ class UsageContractTests(unittest.TestCase):
         original = self.connection.execute(
             """
             SELECT price_snapshot_id, project_path_snapshot
-            FROM usage_facts WHERE id = 'old-turn-fact'
+            FROM usage_records WHERE id = 'old-turn-record'
             """
         ).fetchone()
 
         parsed.cwd_raw = "/tmp/current-project"
-        parsed.usage_facts = [
-            ParsedUsageFact(
-                fact_id="delta-1",
+        parsed.usage_records = [
+            ParsedUsageRecord(
+                usage_record_id="delta-1",
                 source_record_id="line-8",
                 source_line=8,
                 occurred_at="2026-07-18T01:59:00Z",
@@ -632,8 +632,8 @@ class UsageContractTests(unittest.TestCase):
                 total_semantics="cumulative-delta",
                 price_snapshot_id=CODEX_FAST_TIERED_PRICE_SNAPSHOT_ID,
             ),
-            ParsedUsageFact(
-                fact_id="delta-2",
+            ParsedUsageRecord(
+                usage_record_id="delta-2",
                 source_record_id="line-12",
                 source_line=12,
                 occurred_at="2026-07-18T02:01:00Z",
@@ -656,7 +656,7 @@ class UsageContractTests(unittest.TestCase):
             parsed,
             usage_contract_version=CODEX_USAGE_CONTRACT_VERSION,
         )
-        reconcile_usage_fact_contract(
+        reconcile_usage_record_contract(
             self.connection,
             self.codex_source_id,
             {"delta-1", "delta-2"},
@@ -664,7 +664,7 @@ class UsageContractTests(unittest.TestCase):
         rows = self.connection.execute(
             """
             SELECT id, price_snapshot_id, project_path_snapshot, normalizer_version
-            FROM usage_facts ORDER BY id
+            FROM usage_records ORDER BY id
             """
         ).fetchall()
 
@@ -692,13 +692,13 @@ class UsageContractTests(unittest.TestCase):
             usage_contract_version=CODEX_USAGE_CONTRACT_VERSION,
         )
         self.assertEqual(
-            self.connection.execute("SELECT COUNT(*) FROM usage_facts").fetchone()[0],
+            self.connection.execute("SELECT COUNT(*) FROM usage_records").fetchone()[0],
             2,
         )
 
-    def test_failed_contract_repair_rolls_back_the_prior_fact_set(self):
-        old_fact = ParsedUsageFact(
-            fact_id="retained-old-fact",
+    def test_failed_contract_repair_rolls_back_the_prior_record_set(self):
+        old_record = ParsedUsageRecord(
+            usage_record_id="retained-old-record",
             source_record_id="old",
             source_line=1,
             occurred_at=None,
@@ -722,7 +722,7 @@ class UsageContractTests(unittest.TestCase):
             ended_at=None,
             last_event_at=None,
             events=[],
-            usage_facts=[old_fact],
+            usage_records=[old_record],
         )
         _store_session(
             self.connection,
@@ -731,9 +731,9 @@ class UsageContractTests(unittest.TestCase):
             parsed,
             usage_contract_version="codex-latest-turn-v1",
         )
-        parsed.usage_facts = [
-            ParsedUsageFact(
-                fact_id="new-valid-before-failure",
+        parsed.usage_records = [
+            ParsedUsageRecord(
+                usage_record_id="new-valid-before-failure",
                 source_record_id="new-valid",
                 source_line=2,
                 occurred_at=None,
@@ -747,8 +747,8 @@ class UsageContractTests(unittest.TestCase):
                 total_tokens=25,
                 total_semantics="delta",
             ),
-            ParsedUsageFact(
-                fact_id="new-invalid",
+            ParsedUsageRecord(
+                usage_record_id="new-invalid",
                 source_record_id="new-invalid",
                 source_line=3,
                 occurred_at=None,
@@ -775,11 +775,11 @@ class UsageContractTests(unittest.TestCase):
             )
 
         rows = self.connection.execute(
-            "SELECT id, normalizer_version FROM usage_facts"
+            "SELECT id, normalizer_version FROM usage_records"
         ).fetchall()
         self.assertEqual(
             [(row["id"], row["normalizer_version"]) for row in rows],
-            [("retained-old-fact", "codex-latest-turn-v1")],
+            [("retained-old-record", "codex-latest-turn-v1")],
         )
 
     def test_source_file_contract_version_participates_in_freshness(self):
@@ -882,9 +882,9 @@ class UsageContractTests(unittest.TestCase):
             self.assertEqual((imported, skipped, failed), (2, 0, 0))
 
             parsed = parse_claude_session(first_path)
-            parsed.usage_facts.append(
-                ParsedUsageFact(
-                    fact_id="obsolete-shared-session-fact",
+            parsed.usage_records.append(
+                ParsedUsageRecord(
+                    usage_record_id="obsolete-shared-session-record",
                     source_record_id="obsolete",
                     source_line=99,
                     occurred_at="2026-07-18T01:02:00Z",
@@ -908,7 +908,7 @@ class UsageContractTests(unittest.TestCase):
             )
             self.assertEqual(
                 self.connection.execute(
-                    "SELECT COUNT(*) FROM usage_facts WHERE source_id = ?",
+                    "SELECT COUNT(*) FROM usage_records WHERE source_id = ?",
                     (self.claude_source_id,),
                 ).fetchone()[0],
                 3,
@@ -926,7 +926,7 @@ class UsageContractTests(unittest.TestCase):
             rows = self.connection.execute(
                 """
                 SELECT source_record_id, normalizer_version
-                FROM usage_facts
+                FROM usage_records
                 WHERE source_id = ?
                 ORDER BY source_record_id
                 """,
@@ -1030,7 +1030,7 @@ class UsageContractTests(unittest.TestCase):
             self.assertEqual((imported, skipped, failed), (1, 0, 0))
             self.assertEqual(
                 self.connection.execute(
-                    "SELECT COUNT(*) FROM usage_facts WHERE source_id = ?",
+                    "SELECT COUNT(*) FROM usage_records WHERE source_id = ?",
                     (self.claude_source_id,),
                 ).fetchone()[0],
                 2,
@@ -1045,8 +1045,8 @@ class UsageContractTests(unittest.TestCase):
             )
 
     def test_maintenance_and_subsession_usage_are_stored_and_rescan_is_idempotent(self):
-        fact = ParsedUsageFact(
-            fact_id=stable_id("usage", "maintenance", "turn-1"),
+        record = ParsedUsageRecord(
+            usage_record_id=stable_id("usage", "maintenance", "turn-1"),
             source_record_id="turn-1",
             source_line=2,
             occurred_at="2026-07-18T03:00:00Z",
@@ -1074,18 +1074,18 @@ class UsageContractTests(unittest.TestCase):
             index_policy="metadata_only",
             session_role="subsession",
             parent_external_id="parent",
-            usage_facts=[fact],
+            usage_records=[record],
         )
         _store_session(self.connection, self.codex_source_id, "codex", parsed)
         _store_session(self.connection, self.codex_source_id, "codex", parsed)
         self.assertEqual(
-            self.connection.execute("SELECT COUNT(*) FROM usage_facts").fetchone()[0],
+            self.connection.execute("SELECT COUNT(*) FROM usage_records").fetchone()[0],
             1,
         )
         row = self.connection.execute(
             """
             SELECT s.session_class, s.session_role, u.calculation_state
-            FROM usage_facts u JOIN sessions s ON s.id = u.session_id
+            FROM usage_records u JOIN sessions s ON s.id = u.session_id
             """
         ).fetchone()
         self.assertEqual(
@@ -1094,8 +1094,8 @@ class UsageContractTests(unittest.TestCase):
         )
 
     def test_unknown_and_malformed_usage_never_become_zero_cost(self):
-        unknown = ParsedUsageFact(
-            fact_id="unknown",
+        unknown = ParsedUsageRecord(
+            usage_record_id="unknown",
             source_record_id="unknown",
             source_line=1,
             occurred_at=None,
@@ -1109,8 +1109,8 @@ class UsageContractTests(unittest.TestCase):
             total_tokens=15,
             total_semantics="reasoning_subset_of_output",
         )
-        malformed = ParsedUsageFact(
-            fact_id="malformed",
+        malformed = ParsedUsageRecord(
+            usage_record_id="malformed",
             source_record_id="malformed",
             source_line=2,
             occurred_at=None,
@@ -1135,13 +1135,13 @@ class UsageContractTests(unittest.TestCase):
             ended_at=None,
             last_event_at=None,
             events=[],
-            usage_facts=[unknown, malformed],
+            usage_records=[unknown, malformed],
         )
         _store_session(self.connection, self.codex_source_id, "codex", parsed)
         rows = {
             row["id"]: row
             for row in self.connection.execute(
-                "SELECT id, calculation_state, estimated_cost_usd FROM usage_facts"
+                "SELECT id, calculation_state, estimated_cost_usd FROM usage_records"
             )
         }
         self.assertEqual(rows["unknown"]["calculation_state"], "unpriced")
@@ -1149,9 +1149,9 @@ class UsageContractTests(unittest.TestCase):
         self.assertEqual(rows["malformed"]["calculation_state"], "failed")
         self.assertIsNone(rows["malformed"]["estimated_cost_usd"])
 
-    def test_existing_fact_retains_snapshot_when_default_changes(self):
-        fact = ParsedUsageFact(
-            fact_id="stable-fact",
+    def test_existing_record_retains_snapshot_when_default_changes(self):
+        record = ParsedUsageRecord(
+            usage_record_id="stable-record",
             source_record_id="turn-stable",
             source_line=1,
             occurred_at="2026-07-18T04:00:00Z",
@@ -1175,11 +1175,11 @@ class UsageContractTests(unittest.TestCase):
             ended_at=None,
             last_event_at=None,
             events=[],
-            usage_facts=[fact],
+            usage_records=[record],
         )
         _store_session(self.connection, self.codex_source_id, "codex", parsed)
         original = self.connection.execute(
-            "SELECT price_snapshot_id, estimated_cost_usd FROM usage_facts"
+            "SELECT price_snapshot_id, estimated_cost_usd FROM usage_records"
         ).fetchone()
 
         with patch("localbrain.usage.DEFAULT_PRICE_SNAPSHOT_ID", "future-snapshot"):
@@ -1191,15 +1191,15 @@ class UsageContractTests(unittest.TestCase):
                 WHERE snapshot_id = 'future-snapshot' AND model_name = 'gpt-5.5'
                 """
             )
-            fact.input_tokens = 1200
-            fact.output_tokens = 400
-            fact.cache_read_tokens = 800
-            fact.source_total_tokens = 2400
-            fact.total_tokens = 2400
+            record.input_tokens = 1200
+            record.output_tokens = 400
+            record.cache_read_tokens = 800
+            record.source_total_tokens = 2400
+            record.total_tokens = 2400
             _store_session(self.connection, self.codex_source_id, "codex", parsed)
 
         updated = self.connection.execute(
-            "SELECT price_snapshot_id, estimated_cost_usd FROM usage_facts"
+            "SELECT price_snapshot_id, estimated_cost_usd FROM usage_records"
         ).fetchone()
         self.assertEqual(original["price_snapshot_id"], DEFAULT_PRICE_SNAPSHOT_ID)
         self.assertEqual(updated["price_snapshot_id"], DEFAULT_PRICE_SNAPSHOT_ID)

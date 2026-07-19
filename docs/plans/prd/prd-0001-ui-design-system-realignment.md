@@ -211,7 +211,7 @@ This PRD is satisfied only through approved child Features that collectively mee
 - [FEAT-0010: Workstream Core Workspace](../feature/feat-0010-workstream-core-workspace.md) (`product`): renew Workstream identity, Threads, editing, and checkpoint recovery context.
 - [FEAT-0011: Workstream Evidence Review](../feature/feat-0011-workstream-evidence-review.md) (`product`): renew confirmed Resources, linking, and reviewable Suggestions.
 - [FEAT-0012: Run Console](../feature/feat-0012-run-console.md) (`product`): renew Run lifecycle, cancellation, output, error, and artifact presentation.
-- [FEAT-0013: Workstream Maintenance](../feature/feat-0013-workstream-maintenance.md) (`product`): renew the Workstream Run launcher, Run history, and maintenance marker controls.
+- [FEAT-0013: Workstream Maintenance](../feature/feat-0013-workstream-maintenance.md) (`product`): renewed the Workstream Run launcher and Run history; FEAT-0036 later retired its separate maintenance-marker controls.
 - [FEAT-0014: Local Context Explorer](../feature/feat-0014-local-context-explorer.md) (`product`): renew source management, tree navigation, preview, and source-health states.
 
 Recommended dependency order:

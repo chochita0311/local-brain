@@ -417,6 +417,11 @@ def build_candidate_bundle(connection: sqlite3.Connection, workstream: dict) -> 
             "candidate_count_limit": None,
             "evidence_count_limit_per_resource": None,
             "deduplication": "resource and evidence IDs",
+            "session_candidates": {
+                "session_class": "work",
+                "session_role": "primary",
+                "excluded": ["maintenance", "subsession"],
+            },
         },
         "fingerprint": fingerprint,
         "counts": {

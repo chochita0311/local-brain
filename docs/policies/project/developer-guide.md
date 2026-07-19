@@ -67,9 +67,68 @@ Do not place secrets in tracked environment files. See [Privacy And Data Handlin
 
 - Read the touched modules, tests, and owner docs first.
 - Reuse current FastAPI, SQLite, Jinja2, and local helper patterns before introducing a new abstraction.
-- Keep migrations additive until a deliberate migration framework replaces the current startup migration path.
+- Keep migrations additive by default. An approved structural repair must be separately bounded and supply backup, preflight, rollback, exact preservation, idempotency, and fresh/compatible parity evidence until a deliberate migration framework replaces the startup path.
 - Preserve source IDs, timestamps, provenance, and user review state when changing ingestion or relationships.
 - Keep maintenance artifacts excluded from ordinary Session and Local Context ingestion.
+
+### Schema Documentation Changes
+
+- `src/localbrain/schema.sql` owns fresh-database DDL, and `src/localbrain/db.py` owns compatible startup migrations and runtime-only indexes until an approved migration system replaces that split.
+- The first approved [Data Model Visibility And Schema Cleanup](../../plans/prd/prd-0003-data-model-visibility-and-schema-cleanup.md) documentation Feature establishes the complete human-readable baseline.
+- After that baseline, keep planning and execution artifacts delta-scoped: name only the affected schema objects, contract behavior, migrations, tests, and owner documents.
+- Update the affected subject-area catalog in place so durable data-model documentation continues to describe the complete current state. Do not copy unrelated tables or domains into each later change artifact.
+- Update the global ERD only for object additions or removals, subject-owner changes, or cross-domain relationship changes. Update a focused ERD only when its visible keys, constraints, relations, cascades, or ownership change.
+- Update Project Architecture only when runtime ownership, persistence boundaries, or cross-domain behavior changes. A local table or column delta does not require restating the complete persistence model there.
+- Complete schema and documentation changes in the same approved execution boundary, with focused contract tests and a fresh-schema versus compatible-migration parity check.
+
+### Local Mermaid Browser Assets
+
+- LocalBrain pins Mermaid `11.16.0` as a project dependency and esbuild `0.28.1` as its build-only bundler in the repository-owned `package.json` and `package-lock.json`.
+- The packages come from the public npm distributions named `mermaid` and `esbuild`. Both direct dependencies are MIT-licensed; reviewed license copies are emitted with the browser asset and the lockfile retains transitive package license metadata.
+- Node.js `20` or later and npm are required only when installing or updating browser build inputs. The Python application, installed `localbrain` command, and web runtime do not invoke Node, npm, a CDN, or an external renderer.
+- Install the exact lockfile graph and generate the reviewed output set with:
+
+```bash
+npm ci --no-audit
+npm run build:mermaid
+```
+
+- Generated browser outputs belong under `src/localbrain/static/vendor/mermaid/`. The asset manifest records the lockfile digest, exact direct versions, licenses, and output digests. The Python package includes this directory through `src/localbrain/static/` ownership.
+- Verify both freshness and the deliberate stale-output failure path with:
+
+```bash
+npm run check:mermaid
+npm run test:mermaid
+```
+
+- Application screens consume `src/localbrain/static/mermaid-adapter.js`, not npm paths directly. The adapter initializes Mermaid once with strict security, never scans the page automatically, and renders only application-owned nodes marked `data-localbrain-mermaid="owned"` whose source is LocalBrain-authored markup. Imported documents, Session content, persisted rows, request/query values, and arbitrary user text must never be inserted into those source nodes.
+- To update Mermaid, change its exact version in `package.json`, regenerate `package-lock.json` against the public npm registry, run the build and test commands, review dependency and license changes, then commit the manifest and all generated outputs together. Never commit `node_modules`, npm caches, temporary builds, or browser downloads.
+
+### Schema Presentation Data
+
+- The complete semantic baseline remains in [Data Model](data-model.md); [Schema Presentation](schema-presentation.md) defines the package-owned v1 consumer shape.
+- After an approved schema or Data Model change passes its owner checks, regenerate and verify the derived package data:
+
+```bash
+uv run python scripts/check-data-model-docs.py
+node scripts/check-data-model-mermaid.mjs
+uv run python scripts/build-schema-presentation.py build
+uv run python scripts/build-schema-presentation.py check
+```
+
+- Generation uses SQLite `:memory:` and invokes compatible structure/index migrations with data migrations disabled. It must not open the configured database, inspect Context roots, read runtime rows, or serialize machine state.
+- Commit `src/localbrain/schema-presentation.json` with the source change. Later application screens load it only through `localbrain.schema_presentation.load_schema_presentation`; missing or invalid package data stays a bounded unavailable state and never triggers runtime introspection.
+
+### Schema Explorer Verification
+
+- With LocalBrain running locally, verify the read-only `/schema` route, exact supported widths, URL selection, history/focus, rapid selection, local Mermaid failure, and no-script fallback with the dependency-free Chrome QA harness:
+
+```bash
+node scripts/qa-schema-explorer-browser.mjs http://127.0.0.1:8000 /tmp/localbrain-schema-browser-qa
+```
+
+- The harness uses a temporary Chrome profile and writes synthetic schema-only screenshots to the requested output directory. Set `LOCALBRAIN_CHROME_PATH` only when Chrome is installed outside the normal macOS application path.
+- Browser runtime still requires neither Node nor npm. Node is used here only by the repository verification harness and by the existing Mermaid build/check workflow.
 
 ## Verification
 
@@ -98,5 +157,6 @@ Do not claim full verification when a required local source, macOS permission, C
 - Update `README.md` for first-run or user-visible usage changes.
 - Update [Product Model](product.md) for durable product and organization rules.
 - Update [Project Architecture](architecture.md) for runtime ownership, source adapters, data model, or ingestion behavior.
+- After the PRD-0003 baseline exists, update only the affected data-model subject documents for ordinary schema deltas; update their entry map when subject files or cross-domain ownership changes.
 - Update [Claude Task Runner](../operations/claude-task-runner.md) for in-app maintenance execution or review semantics.
 - Update [Project Roadmap](../../plans/project/roadmap.md) for sequencing and [Project Backlog](../../plans/project/backlog.md) for unresolved work.

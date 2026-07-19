@@ -11,7 +11,7 @@ from urllib.parse import quote
 
 from ..config import settings
 from ..db import init_db, transaction
-from ..usage import reconcile_usage_fact_contract, store_usage_facts
+from ..usage import reconcile_usage_record_contract, store_usage_records
 from .claude import CLAUDE_USAGE_CONTRACT_VERSION, parse_claude_session
 from .codex import CODEX_USAGE_CONTRACT_VERSION, parse_codex_session
 from .common import ParsedSession
@@ -270,7 +270,8 @@ def _remove_stale_sessions(
 ) -> None:
     valid = {str(path) for path in valid_paths}
     rows = connection.execute(
-        "SELECT id, source_path FROM sessions WHERE source_id = ?", (source_id,)
+        "SELECT id, source_path FROM sessions WHERE source_id = ?",
+        (source_id,),
     ).fetchall()
     for row in rows:
         if row["source_path"] in valid:
@@ -296,6 +297,11 @@ def _store_session(
     usage_contract_version: Optional[str] = None,
 ) -> None:
     workspace_id = _upsert_workspace(connection, parsed.cwd_raw, parsed.last_event_at)
+    maintenance_run_id = parsed.maintenance_run_id
+    if maintenance_run_id and not connection.execute(
+        "SELECT 1 FROM maintenance_runs WHERE id = ?", (maintenance_run_id,)
+    ).fetchone():
+        maintenance_run_id = None
     user_count = sum(
         1
         for event in parsed.events
@@ -353,7 +359,7 @@ def _store_session(
             parsed.session_role,
             parsed.parent_external_id,
             parsed.index_policy,
-            parsed.maintenance_run_id,
+            maintenance_run_id,
             utc_now(),
         ),
     )
@@ -362,11 +368,11 @@ def _store_session(
         (source_id, parsed.external_id),
     ).fetchone()
     session_id = int(session_row["id"])
-    store_usage_facts(
+    store_usage_records(
         connection,
         source_id,
         session_id,
-        parsed.usage_facts,
+        parsed.usage_records,
         workspace_id=workspace_id,
         normalizer_version=(
             usage_contract_version
@@ -389,8 +395,8 @@ def _store_session(
             """
             INSERT INTO activity_events(
                 id, session_id, sequence, occurred_at, event_type, role, text,
-                tool_name, source_line, metadata_json
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                tool_name, source_line
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             [
                 (
@@ -403,9 +409,6 @@ def _store_session(
                     event.text,
                     event.tool_name,
                     event.source_line,
-                    json.dumps(event.metadata, ensure_ascii=False)
-                    if event.metadata
-                    else None,
                 )
                 for event in parsed.events
             ],
@@ -435,13 +438,15 @@ def _reconcile_session_parents(
 ) -> None:
     rows = connection.execute(
         """
-        SELECT id, external_id, source_path, session_role, parent_external_id
+        SELECT id, external_id, source_path, session_class, session_role,
+               parent_external_id, index_policy, maintenance_run_id
         FROM sessions WHERE source_id = ?
         """,
         (source_id,),
     ).fetchall()
     by_external_id = {row["external_id"]: row for row in rows}
     by_source_path = {row["source_path"]: row for row in rows}
+    by_id = {row["id"]: row for row in rows}
     candidate_parents = {}
     normalized_parent_ids = {}
 
@@ -493,6 +498,25 @@ def _reconcile_session_parents(
             """,
             (normalized_parent_ids[row["id"]], parent_id, row["id"]),
         )
+        parent = by_id[parent_id]
+        if parent["session_class"] == "maintenance":
+            connection.execute(
+                """
+                UPDATE sessions
+                SET session_class = 'maintenance', index_policy = 'metadata_only',
+                    maintenance_run_id = NULL, event_count = 0,
+                    user_message_count = 0, assistant_message_count = 0
+                WHERE id = ?
+                """,
+                (row["id"],),
+            )
+            connection.execute(
+                "DELETE FROM activity_events WHERE session_id = ?", (row["id"],)
+            )
+            connection.execute(
+                "DELETE FROM search_index WHERE entity_type = 'session' AND entity_id = ?",
+                (str(row["id"]),),
+            )
 
 
 def _scan_session_source(
@@ -524,7 +548,7 @@ def _scan_session_source(
     if contract_repair_required:
         connection.execute("SAVEPOINT source_usage_contract_repair")
     _remove_stale_sessions(connection, source_id, paths)
-    expected_fact_ids = set()
+    expected_usage_record_ids = set()
     repair_errors = []
 
     for path in paths:
@@ -551,7 +575,7 @@ def _scan_session_source(
                 scanned_size_bytes=scanned_stat.st_size,
                 scanned_mtime_ns=scanned_stat.st_mtime_ns,
             )
-            expected_fact_ids.update(fact.fact_id for fact in parsed.usage_facts)
+            expected_usage_record_ids.update(record.usage_record_id for record in parsed.usage_records)
             imported += 1
         except Exception as exc:
             if contract_repair_required:
@@ -567,8 +591,8 @@ def _scan_session_source(
             _record_source_file(connection, source_id, path, "error", error)
     elif contract_repair_required:
         try:
-            reconcile_usage_fact_contract(
-                connection, source_id, expected_fact_ids
+            reconcile_usage_record_contract(
+                connection, source_id, expected_usage_record_ids
             )
             connection.execute("RELEASE source_usage_contract_repair")
         except Exception:
@@ -999,15 +1023,7 @@ def _scan_session_sources(
     for key, values in (
         (
             "claude",
-            _scan_session_source(
-                connection,
-                "claude",
-                "Claude Code",
-                settings.claude_root,
-                parse_claude_session,
-                CLAUDE_USAGE_CONTRACT_VERSION,
-                force,
-            ),
+            _scan_claude_source(connection, force),
         ),
         (
             "codex",
@@ -1028,6 +1044,27 @@ def _scan_session_sources(
             "failed": values[2],
         }
     return report
+
+
+def _scan_claude_source(
+    connection: sqlite3.Connection, force: bool = False
+) -> Tuple[int, int, int]:
+    return _scan_session_source(
+        connection,
+        "claude",
+        "Claude Code",
+        settings.claude_root,
+        parse_claude_session,
+        CLAUDE_USAGE_CONTRACT_VERSION,
+        force,
+    )
+
+
+def scan_claude_sessions(force: bool = False) -> Dict[str, int]:
+    init_db()
+    with transaction() as connection:
+        values = _scan_claude_source(connection, force=force)
+    return {"imported": values[0], "skipped": values[1], "failed": values[2]}
 
 
 def scan_session_sources(force: bool = False) -> Dict[str, Dict[str, int]]:

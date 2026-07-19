@@ -12,13 +12,14 @@ fi
 
 candidate_list="$(mktemp)"
 content_list="$(mktemp)"
+local_content_list="$(mktemp)"
 regex_patterns="$(mktemp)"
 fixed_patterns="$(mktemp)"
 local_patterns="$(mktemp)"
 matches="$(mktemp)"
 
 cleanup() {
-  rm -f "$candidate_list" "$content_list" "$regex_patterns" "$fixed_patterns" "$local_patterns" "$matches"
+  rm -f "$candidate_list" "$content_list" "$local_content_list" "$regex_patterns" "$fixed_patterns" "$local_patterns" "$matches"
 }
 trap cleanup EXIT
 
@@ -59,6 +60,9 @@ while IFS= read -r -d '' file; do
 
   if [[ "$file" != "scripts/check-repo-privacy.sh" ]]; then
     printf '%s\0' "$file" >> "$content_list"
+    if ! is_allowlisted "$file"; then
+      printf '%s\0' "$file" >> "$local_content_list"
+    fi
   fi
 done < "$candidate_list"
 
@@ -95,8 +99,8 @@ if [[ -s "$content_list" ]]; then
   if [[ -s "$fixed_patterns" ]]; then
     xargs -0 rg -l -F --no-messages -f "$fixed_patterns" -- < "$content_list" >> "$matches" || true
   fi
-  if [[ -s "$local_patterns" ]]; then
-    xargs -0 rg -l -F -i -w --no-messages -f "$local_patterns" -- < "$content_list" >> "$matches" || true
+  if [[ -s "$local_patterns" && -s "$local_content_list" ]]; then
+    xargs -0 rg -l -F -i -w --no-messages -f "$local_patterns" -- < "$local_content_list" >> "$matches" || true
   fi
 fi
 

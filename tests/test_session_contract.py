@@ -33,11 +33,33 @@ def legacy_schema() -> str:
     schema = schema.replace("    git_branch TEXT,\n", "", 1)
     schema = schema.replace("    git_root TEXT,\n", "    git_root TEXT,\n    git_branch TEXT,\n", 1)
     schema = schema.replace(
+        "    session_class TEXT NOT NULL DEFAULT 'work'\n"
+        "        CHECK(session_class IN ('work', 'maintenance')),\n"
         "    session_role TEXT NOT NULL DEFAULT 'primary'\n"
         "        CHECK(session_role IN ('primary', 'subsession')),\n"
         "    parent_external_id TEXT,\n"
         "    parent_session_id INTEGER REFERENCES sessions(id) ON DELETE SET NULL,\n",
-        "",
+        "    session_class TEXT NOT NULL DEFAULT 'work',\n",
+        1,
+    )
+    schema = schema.replace(
+        "    index_policy TEXT NOT NULL DEFAULT 'full'\n"
+        "        CHECK(index_policy IN ('full', 'metadata_only')),\n"
+        "    maintenance_run_id TEXT UNIQUE\n"
+        "        REFERENCES maintenance_runs(id) ON DELETE SET NULL,\n"
+        "    imported_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,\n"
+        "    CHECK(\n"
+        "        maintenance_run_id IS NULL\n"
+        "        OR (\n"
+        "            session_class = 'maintenance'\n"
+        "            AND session_role = 'primary'\n"
+        "            AND index_policy = 'metadata_only'\n"
+        "        )\n"
+        "    ),\n",
+        "    index_policy TEXT NOT NULL DEFAULT 'full',\n"
+        "    maintenance_run_id TEXT,\n"
+        "    imported_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,\n",
+        1,
     )
     return schema
 
@@ -81,6 +103,74 @@ def parsed_session(
 
 
 class SessionContractTests(unittest.TestCase):
+    def test_claude_child_inherits_maintenance_policy_from_native_parent(self):
+        connection = connection_for(SCHEMA_PATH.read_text(encoding="utf-8"))
+        self.addCleanup(connection.close)
+        source_id = connection.execute(
+            "INSERT INTO sources(kind, name, root_path) VALUES ('claude', 'Claude', '/tmp')"
+        ).lastrowid
+        run_id = "lb-nativeparent01"
+        connection.execute(
+            "INSERT INTO maintenance_runs(id, status) VALUES (?, 'completed')",
+            (run_id,),
+        )
+        parent = parsed_session("maintenance-parent")
+        parent.session_class = "maintenance"
+        parent.index_policy = "metadata_only"
+        parent.maintenance_run_id = run_id
+        _store_session(connection, source_id, "claude", parent)
+        _store_session(
+            connection,
+            source_id,
+            "claude",
+            parsed_session("maintenance-child", "subsession", "maintenance-parent"),
+        )
+
+        child_before = connection.execute(
+            "SELECT id FROM sessions WHERE external_id = 'maintenance-child'"
+        ).fetchone()
+        self.assertEqual(
+            connection.execute(
+                "SELECT COUNT(*) FROM activity_events WHERE session_id = ?",
+                (child_before["id"],),
+            ).fetchone()[0],
+            2,
+        )
+
+        _reconcile_session_parents(connection, source_id, "claude")
+
+        rows = {
+            row["external_id"]: row
+            for row in connection.execute(
+                """
+                SELECT id, external_id, session_class, session_role,
+                       parent_session_id, index_policy, maintenance_run_id,
+                       event_count, user_message_count, assistant_message_count
+                FROM sessions
+                """
+            )
+        }
+        parent_row = rows["maintenance-parent"]
+        child = rows["maintenance-child"]
+        self.assertEqual(child["parent_session_id"], parent_row["id"])
+        self.assertEqual(child["session_class"], "maintenance")
+        self.assertEqual(child["session_role"], "subsession")
+        self.assertEqual(child["index_policy"], "metadata_only")
+        self.assertIsNone(child["maintenance_run_id"])
+        self.assertEqual(parent_row["maintenance_run_id"], run_id)
+        self.assertEqual(
+            (child["event_count"], child["user_message_count"], child["assistant_message_count"]),
+            (0, 0, 0),
+        )
+        self.assertEqual(
+            connection.execute(
+                "SELECT COUNT(*) FROM activity_events WHERE session_id = ?",
+                (child["id"],),
+            ).fetchone()[0],
+            0,
+        )
+        self.assertEqual(dashboard_stats(connection)["sessions"], 0)
+
     def test_compatible_migration_preserves_workspace_identity_and_stales_sources(self):
         connection = connection_for(legacy_schema())
         self.addCleanup(connection.close)

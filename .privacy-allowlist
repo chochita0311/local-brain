@@ -1,3 +1,6 @@
-# Exact repository-relative paths for reviewed binary or media files that are
-# safe to commit. Add one path per line only after confirming it contains no
-# private local or company information. Blank lines and comments are ignored.
+# Exact repository-relative paths for reviewed binary/media files or generated
+# public-vendor text that may collide with a local denylist. Generic secret,
+# personal-path, email, and Git identity checks still apply to every path. Add
+# one path per line only after confirming it contains no private local or company
+# information. Blank lines and comments are ignored.
+src/localbrain/static/vendor/mermaid/mermaid.esm.min.js

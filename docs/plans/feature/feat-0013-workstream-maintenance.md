@@ -104,3 +104,4 @@
 
 - `2026-07-16`: initial draft separated maintenance entry from Workstream structure, evidence review, and Run detail execution.
 - `2026-07-16`: executed and passed in `run-20260716-13`.
+- `2026-07-19`: [FEAT-0036](feat-0036-native-maintenance-session-and-runner-ui-consolidation.md) later retired the separate marker creation path and replaced it with one native-session Task Runner flow plus exact command confirmation. The original Run launcher/history alignment remains valid.

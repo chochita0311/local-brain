@@ -409,11 +409,11 @@ Provenance color identifies origin only. It never communicates health, success, 
 
 ### Navigation Model
 
-The persistent navigation has three groups and seven stable destinations:
+The persistent navigation has three groups and eight stable destinations:
 
 - **Overview:** Dashboard, Sessions Dashboard
 - **Workspace:** Workstreams, Sessions, Atlassian, Local Contexts
-- **System:** Sources
+- **System:** Sources, Schema
 
 Active navigation uses text, surface, and an accent indicator. Narrow navigation preserves every destination, supports horizontal scrolling, and keeps the active item visible.
 
@@ -620,7 +620,7 @@ Any durable change to visual DNA, primitive families, semantic roles, shell geom
 | Browse and inventory | Workstreams, Sessions, Projects, Sources, Atlassian, Search | supports filtering, long labels, empty results, source identity, and stable row/card metadata |
 | Detail and read | Session, subagent, Document, local Resource | prioritizes readable body width, source metadata, deep links, and long technical content |
 | Workstream workspace | Workstream detail | preserves Workstream → Thread → evidence hierarchy and separates confirmed organization from Suggestions |
-| Explorer | Local Contexts | preserves source selection, tree orientation, document preview, unreadable and missing states |
+| Explorer | Local Contexts, Schema | preserves source or subject selection, tree or table orientation, progressive preview, unreadable, missing, and diagram-unavailable states |
 | Run and console | maintenance Run | represents the complete Run lifecycle, cancellation, output, artifacts, and terminal result |
 
 New routes fit one of these families or justify a constitution change. A new feature does not create a new visual family merely because its data is new.

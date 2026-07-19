@@ -1,0 +1,3856 @@
+{
+  "baseline": {
+    "explicit_index_count": 20,
+    "fts5_table_count": 1,
+    "id": "localbrain-data-model-2026-07-18",
+    "ordinary_table_count": 20,
+    "physical_foreign_key_count": 20,
+    "sources": [
+      {
+        "path": "src/localbrain/schema.sql",
+        "role": "fresh-schema-truth",
+        "sha256": "2a9dc61cac9217e9e2f9961911d443bd1b33d7e6b23b185032dcf6fe6aae03b3"
+      },
+      {
+        "path": "src/localbrain/db.py",
+        "role": "compatible-structure-truth",
+        "sha256": "d3b4b1494d1db90859a1c1a9b097b50dae912a758a8fa324d0a8a75b0b3f540f"
+      },
+      {
+        "path": "docs/policies/project/data-model.md",
+        "role": "semantic-truth",
+        "sha256": "ece03029e66bf77ea43c48084c9d4ecc44e2667717993391e0c602b39b7c1e06"
+      },
+      {
+        "path": "docs/policies/project/data-model/source-registry-and-scans.md",
+        "role": "semantic-truth",
+        "sha256": "8e0b9dd2ef4c6e84f0f8532815d1c224a82b227ee97d2ffbcb0f98c41cb9c4dd"
+      },
+      {
+        "path": "docs/policies/project/data-model/workspace-and-session-activity.md",
+        "role": "semantic-truth",
+        "sha256": "c1924306e8da7179c94647f2a2c224089afd347d937b695682ebb000ac17c328"
+      },
+      {
+        "path": "docs/policies/project/data-model/usage-and-cost-records.md",
+        "role": "semantic-truth",
+        "sha256": "39d74160b72c0daf6c286eb1af6250c592b605a5edbc37ffa37f998ea9cada73"
+      },
+      {
+        "path": "docs/policies/project/data-model/local-context-corpus.md",
+        "role": "semantic-truth",
+        "sha256": "4778edffeb5e029f1a4b012e7b615e92d810a50f6efa558113edeef1f559d5f6"
+      },
+      {
+        "path": "docs/policies/project/data-model/work-organization-and-resources.md",
+        "role": "semantic-truth",
+        "sha256": "ef139e4b8d5ef360d077a5f5f753f2b16c7a6ccee3ae6f6e551ff61dd651b088"
+      },
+      {
+        "path": "docs/policies/project/data-model/review-and-resume-continuity.md",
+        "role": "semantic-truth",
+        "sha256": "b7a4d67ff202219f5901dd9ee73e4e87c214c811cf917b3c007506b4e288795f"
+      },
+      {
+        "path": "docs/policies/project/data-model/maintenance-execution.md",
+        "role": "semantic-truth",
+        "sha256": "1314f35a4937386b5760ec0c5501b719a810231a693fa2def4744148c77ea31d"
+      },
+      {
+        "path": "docs/policies/project/data-model/derived-retrieval-index.md",
+        "role": "semantic-truth",
+        "sha256": "62ad1fa22ba112b295ecc38a2b4445629a118a1090477c14d9067773d30e67d0"
+      }
+    ],
+    "subject_count": 8
+  },
+  "derived": true,
+  "global": {
+    "mermaid": "erDiagram\n    SOURCES { integer id PK }\n    SOURCE_FILES { integer id PK }\n    WORKSPACES { integer id PK }\n    SESSIONS { integer id PK }\n    ACTIVITY_EVENTS { string id PK }\n    USAGE_PRICE_SNAPSHOTS { string id PK }\n    USAGE_MODEL_PRICES { string snapshot_model PK }\n    USAGE_RECORDS { string id PK }\n    CONTEXT_ROOTS { integer id PK }\n    CONTEXT_DOCUMENTS { integer id PK }\n    WORKSTREAMS { integer id PK }\n    THREADS { integer id PK }\n    WORKSTREAM_LINKS { integer id PK }\n    THREAD_LINKS { integer id PK }\n    LOCAL_RESOURCES { integer id PK }\n    EXTERNAL_RESOURCES { integer id PK }\n    SUGGESTIONS { integer id PK }\n    CHECKPOINTS { integer id PK }\n    CHECKPOINT_RESOURCE_REFS { integer id PK }\n    MAINTENANCE_RUNS { string id PK }\n    SEARCH_INDEX { string entity_key \"derived\" }\n\n    SOURCES ||--o{ SOURCE_FILES : \"physical CASCADE\"\n    SOURCES ||--o{ SESSIONS : \"physical CASCADE\"\n    SOURCES ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    SOURCES ||--o{ CONTEXT_DOCUMENTS : \"physical CASCADE\"\n    WORKSPACES o|--o{ SESSIONS : \"physical SET_NULL\"\n    WORKSPACES o|--o{ CONTEXT_DOCUMENTS : \"physical SET_NULL\"\n    MAINTENANCE_RUNS o|--o| SESSIONS : \"physical SET_NULL unique\"\n    SESSIONS o|--o{ SESSIONS : \"physical parent SET_NULL\"\n    SESSIONS ||--o{ ACTIVITY_EVENTS : \"physical CASCADE\"\n    SESSIONS ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    USAGE_PRICE_SNAPSHOTS ||--o{ USAGE_MODEL_PRICES : \"physical RESTRICT\"\n    USAGE_PRICE_SNAPSHOTS ||--o{ USAGE_RECORDS : \"physical RESTRICT\"\n    CONTEXT_ROOTS o|--o{ CONTEXT_DOCUMENTS : \"physical SET_NULL\"\n    WORKSTREAMS ||--o{ THREADS : \"physical CASCADE\"\n    WORKSTREAMS ||--o{ WORKSTREAM_LINKS : \"physical CASCADE\"\n    WORKSTREAMS ||--o{ CHECKPOINTS : \"physical CASCADE\"\n    WORKSTREAMS o|--o{ MAINTENANCE_RUNS : \"physical SET_NULL\"\n    THREADS ||--o{ THREAD_LINKS : \"physical CASCADE\"\n    THREADS o|--o{ CHECKPOINT_RESOURCE_REFS : \"physical SET_NULL\"\n    CHECKPOINTS ||--o{ CHECKPOINT_RESOURCE_REFS : \"physical CASCADE\"\n\n    SOURCE_FILES ||..o| SESSIONS : \"app source_path\"\n    SOURCE_FILES ||..o| CONTEXT_DOCUMENTS : \"app path\"\n    WORKSPACES o|..o{ USAGE_RECORDS : \"app frozen snapshot\"\n    WORKSTREAM_LINKS }o..o| SESSIONS : \"app session target\"\n    WORKSTREAM_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document target\"\n    WORKSTREAM_LINKS }o..o| WORKSPACES : \"app project target\"\n    WORKSTREAM_LINKS }o..o| EXTERNAL_RESOURCES : \"app external target\"\n    WORKSTREAM_LINKS }o..o| LOCAL_RESOURCES : \"app local target\"\n    THREAD_LINKS }o..o| SESSIONS : \"app session target\"\n    THREAD_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document target\"\n    THREAD_LINKS }o..o| WORKSPACES : \"app project target\"\n    THREAD_LINKS }o..o| EXTERNAL_RESOURCES : \"app external target\"\n    THREAD_LINKS }o..o| LOCAL_RESOURCES : \"app local target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| SESSIONS : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| CONTEXT_DOCUMENTS : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| WORKSPACES : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| EXTERNAL_RESOURCES : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| LOCAL_RESOURCES : \"app snapshot target\"\n    SUGGESTIONS }o..o| WORKSTREAMS : \"app target\"\n    SUGGESTIONS }o..o| THREADS : \"app target\"\n    SUGGESTIONS }o..o| MAINTENANCE_RUNS : \"app origin\"\n    SEARCH_INDEX }o..o| SESSIONS : \"app projection\"\n    SEARCH_INDEX }o..o| CONTEXT_DOCUMENTS : \"app projection\"\n"
+  },
+  "relationships": {
+    "application": [
+      {
+        "enforcement": "application",
+        "label": "app snapshot target",
+        "source_cardinality": "}o",
+        "source_table": "checkpoint_resource_refs",
+        "target_cardinality": "o|",
+        "target_table": "context_documents"
+      },
+      {
+        "enforcement": "application",
+        "label": "app snapshot target",
+        "source_cardinality": "}o",
+        "source_table": "checkpoint_resource_refs",
+        "target_cardinality": "o|",
+        "target_table": "external_resources"
+      },
+      {
+        "enforcement": "application",
+        "label": "app snapshot target",
+        "source_cardinality": "}o",
+        "source_table": "checkpoint_resource_refs",
+        "target_cardinality": "o|",
+        "target_table": "local_resources"
+      },
+      {
+        "enforcement": "application",
+        "label": "app snapshot target",
+        "source_cardinality": "}o",
+        "source_table": "checkpoint_resource_refs",
+        "target_cardinality": "o|",
+        "target_table": "sessions"
+      },
+      {
+        "enforcement": "application",
+        "label": "app snapshot target",
+        "source_cardinality": "}o",
+        "source_table": "checkpoint_resource_refs",
+        "target_cardinality": "o|",
+        "target_table": "workspaces"
+      },
+      {
+        "enforcement": "application",
+        "label": "app projection",
+        "source_cardinality": "}o",
+        "source_table": "search_index",
+        "target_cardinality": "o|",
+        "target_table": "context_documents"
+      },
+      {
+        "enforcement": "application",
+        "label": "app projection",
+        "source_cardinality": "}o",
+        "source_table": "search_index",
+        "target_cardinality": "o|",
+        "target_table": "sessions"
+      },
+      {
+        "enforcement": "application",
+        "label": "app path",
+        "source_cardinality": "||",
+        "source_table": "source_files",
+        "target_cardinality": "o|",
+        "target_table": "context_documents"
+      },
+      {
+        "enforcement": "application",
+        "label": "app source_path",
+        "source_cardinality": "||",
+        "source_table": "source_files",
+        "target_cardinality": "o|",
+        "target_table": "sessions"
+      },
+      {
+        "enforcement": "application",
+        "label": "app origin",
+        "source_cardinality": "}o",
+        "source_table": "suggestions",
+        "target_cardinality": "o|",
+        "target_table": "maintenance_runs"
+      },
+      {
+        "enforcement": "application",
+        "label": "app target",
+        "source_cardinality": "}o",
+        "source_table": "suggestions",
+        "target_cardinality": "o|",
+        "target_table": "threads"
+      },
+      {
+        "enforcement": "application",
+        "label": "app target",
+        "source_cardinality": "}o",
+        "source_table": "suggestions",
+        "target_cardinality": "o|",
+        "target_table": "workstreams"
+      },
+      {
+        "enforcement": "application",
+        "label": "app document target",
+        "source_cardinality": "}o",
+        "source_table": "thread_links",
+        "target_cardinality": "o|",
+        "target_table": "context_documents"
+      },
+      {
+        "enforcement": "application",
+        "label": "app external target",
+        "source_cardinality": "}o",
+        "source_table": "thread_links",
+        "target_cardinality": "o|",
+        "target_table": "external_resources"
+      },
+      {
+        "enforcement": "application",
+        "label": "app local target",
+        "source_cardinality": "}o",
+        "source_table": "thread_links",
+        "target_cardinality": "o|",
+        "target_table": "local_resources"
+      },
+      {
+        "enforcement": "application",
+        "label": "app session target",
+        "source_cardinality": "}o",
+        "source_table": "thread_links",
+        "target_cardinality": "o|",
+        "target_table": "sessions"
+      },
+      {
+        "enforcement": "application",
+        "label": "app project target",
+        "source_cardinality": "}o",
+        "source_table": "thread_links",
+        "target_cardinality": "o|",
+        "target_table": "workspaces"
+      },
+      {
+        "enforcement": "application",
+        "label": "app frozen snapshot",
+        "source_cardinality": "o|",
+        "source_table": "workspaces",
+        "target_cardinality": "o{",
+        "target_table": "usage_records"
+      },
+      {
+        "enforcement": "application",
+        "label": "app document target",
+        "source_cardinality": "}o",
+        "source_table": "workstream_links",
+        "target_cardinality": "o|",
+        "target_table": "context_documents"
+      },
+      {
+        "enforcement": "application",
+        "label": "app external target",
+        "source_cardinality": "}o",
+        "source_table": "workstream_links",
+        "target_cardinality": "o|",
+        "target_table": "external_resources"
+      },
+      {
+        "enforcement": "application",
+        "label": "app local target",
+        "source_cardinality": "}o",
+        "source_table": "workstream_links",
+        "target_cardinality": "o|",
+        "target_table": "local_resources"
+      },
+      {
+        "enforcement": "application",
+        "label": "app session target",
+        "source_cardinality": "}o",
+        "source_table": "workstream_links",
+        "target_cardinality": "o|",
+        "target_table": "sessions"
+      },
+      {
+        "enforcement": "application",
+        "label": "app project target",
+        "source_cardinality": "}o",
+        "source_table": "workstream_links",
+        "target_cardinality": "o|",
+        "target_table": "workspaces"
+      }
+    ],
+    "physical": [
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "session_id"
+        ],
+        "source_table": "activity_events",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "sessions"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "checkpoint_id"
+        ],
+        "source_table": "checkpoint_resource_refs",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "checkpoints"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "SET NULL",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "thread_id"
+        ],
+        "source_table": "checkpoint_resource_refs",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "threads"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "workstream_id"
+        ],
+        "source_table": "checkpoints",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "workstreams"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "SET NULL",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "context_root_id"
+        ],
+        "source_table": "context_documents",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "context_roots"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "source_id"
+        ],
+        "source_table": "context_documents",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "sources"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "SET NULL",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "workspace_id"
+        ],
+        "source_table": "context_documents",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "workspaces"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "SET NULL",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "workstream_id"
+        ],
+        "source_table": "maintenance_runs",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "workstreams"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "SET NULL",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "maintenance_run_id"
+        ],
+        "source_table": "sessions",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "maintenance_runs"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "SET NULL",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "parent_session_id"
+        ],
+        "source_table": "sessions",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "sessions"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "source_id"
+        ],
+        "source_table": "sessions",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "sources"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "SET NULL",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "workspace_id"
+        ],
+        "source_table": "sessions",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "workspaces"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "source_id"
+        ],
+        "source_table": "source_files",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "sources"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "thread_id"
+        ],
+        "source_table": "thread_links",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "threads"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "workstream_id"
+        ],
+        "source_table": "threads",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "workstreams"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "RESTRICT",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "snapshot_id"
+        ],
+        "source_table": "usage_model_prices",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "usage_price_snapshots"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "session_id"
+        ],
+        "source_table": "usage_records",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "sessions"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "source_id"
+        ],
+        "source_table": "usage_records",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "sources"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "RESTRICT",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "price_snapshot_id"
+        ],
+        "source_table": "usage_records",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "usage_price_snapshots"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "workstream_id"
+        ],
+        "source_table": "workstream_links",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "workstreams"
+      }
+    ]
+  },
+  "schema": "localbrain.schema-presentation.v1",
+  "subjects": [
+    {
+      "document": "docs/policies/project/data-model/source-registry-and-scans.md",
+      "id": "source-registry-and-scans",
+      "label": "Source registry and scans",
+      "mermaid": "erDiagram\n    SOURCES {\n        integer id PK\n        string kind UK\n        string root_path\n        integer enabled\n    }\n    SOURCE_FILES {\n        integer id PK\n        integer source_id FK\n        string path\n        string status\n        string usage_contract_version\n    }\n    SESSIONS { integer id PK string source_path }\n    USAGE_RECORDS { string id PK integer source_id FK }\n    CONTEXT_DOCUMENTS { integer id PK string path }\n\n    SOURCES ||--o{ SOURCE_FILES : \"physical CASCADE\"\n    SOURCES ||--o{ SESSIONS : \"physical CASCADE\"\n    SOURCES ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    SOURCES ||--o{ CONTEXT_DOCUMENTS : \"physical CASCADE\"\n    SOURCE_FILES ||..o| SESSIONS : \"app source_path\"\n    SOURCE_FILES ||..o| CONTEXT_DOCUMENTS : \"app path\"\n",
+      "table_ids": [
+        "sources",
+        "source_files"
+      ]
+    },
+    {
+      "document": "docs/policies/project/data-model/workspace-and-session-activity.md",
+      "id": "workspace-and-session-activity",
+      "label": "Workspace and Session activity",
+      "mermaid": "erDiagram\n    SOURCES { integer id PK }\n    WORKSPACES {\n        integer id PK\n        string canonical_path UK\n        string git_root\n    }\n    SESSIONS {\n        integer id PK\n        integer source_id FK\n        integer workspace_id FK\n        string external_id UK\n        string git_branch\n        string session_role\n        integer parent_session_id FK\n        string maintenance_run_id\n    }\n    ACTIVITY_EVENTS {\n        string id PK\n        integer session_id FK\n        integer sequence UK\n        string event_type\n    }\n    MAINTENANCE_RUNS { string id PK }\n    USAGE_RECORDS { string id PK integer session_id FK }\n\n    SOURCES ||--o{ SESSIONS : \"physical CASCADE\"\n    WORKSPACES o|--o{ SESSIONS : \"physical SET_NULL\"\n    SESSIONS o|--o{ SESSIONS : \"physical parent SET_NULL\"\n    SESSIONS ||--o{ ACTIVITY_EVENTS : \"physical CASCADE\"\n    SESSIONS ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    MAINTENANCE_RUNS o|--o| SESSIONS : \"physical SET_NULL unique\"\n",
+      "table_ids": [
+        "workspaces",
+        "sessions",
+        "activity_events"
+      ]
+    },
+    {
+      "document": "docs/policies/project/data-model/usage-and-cost-records.md",
+      "id": "usage-and-cost-records",
+      "label": "Usage and cost records",
+      "mermaid": "erDiagram\n    SOURCES { integer id PK }\n    SESSIONS { integer id PK }\n    WORKSPACES { integer id PK }\n    USAGE_PRICE_SNAPSHOTS {\n        string id PK\n        string calculator_version\n        string created_at\n    }\n    USAGE_MODEL_PRICES {\n        string snapshot_id PK,FK\n        string model_name PK\n        string long_context_threshold_tokens\n    }\n    USAGE_RECORDS {\n        string id PK\n        integer source_id FK\n        integer session_id FK\n        string source_record_id UK\n        string price_snapshot_id FK\n        integer workspace_id_snapshot\n        string project_key\n    }\n\n    SOURCES ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    SESSIONS ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    USAGE_PRICE_SNAPSHOTS ||--o{ USAGE_MODEL_PRICES : \"physical RESTRICT\"\n    USAGE_PRICE_SNAPSHOTS ||--o{ USAGE_RECORDS : \"physical RESTRICT\"\n    WORKSPACES o|..o{ USAGE_RECORDS : \"app browse snapshot\"\n",
+      "table_ids": [
+        "usage_price_snapshots",
+        "usage_model_prices",
+        "usage_records"
+      ]
+    },
+    {
+      "document": "docs/policies/project/data-model/local-context-corpus.md",
+      "id": "local-context-corpus",
+      "label": "Local Context corpus",
+      "mermaid": "erDiagram\n    SOURCES { integer id PK }\n    WORKSPACES { integer id PK }\n    CONTEXT_ROOTS {\n        integer id PK\n        string path UK\n        string source_type\n        integer enabled\n    }\n    CONTEXT_DOCUMENTS {\n        integer id PK\n        integer source_id FK\n        integer context_root_id FK\n        integer workspace_id FK\n        string path UK\n        string content_hash\n    }\n    SOURCE_FILES { integer id PK string path }\n    SEARCH_INDEX { string entity_id \"derived\" }\n\n    SOURCES ||--o{ CONTEXT_DOCUMENTS : \"physical CASCADE\"\n    CONTEXT_ROOTS o|--o{ CONTEXT_DOCUMENTS : \"physical SET_NULL\"\n    WORKSPACES o|--o{ CONTEXT_DOCUMENTS : \"physical SET_NULL\"\n    SOURCE_FILES ||..o| CONTEXT_DOCUMENTS : \"app path\"\n    CONTEXT_DOCUMENTS o|..o| SEARCH_INDEX : \"app projection\"\n",
+      "table_ids": [
+        "context_roots",
+        "context_documents"
+      ]
+    },
+    {
+      "document": "docs/policies/project/data-model/work-organization-and-resources.md",
+      "id": "work-organization-and-resources",
+      "label": "Work organization and resources",
+      "mermaid": "erDiagram\n    WORKSTREAMS {\n        integer id PK\n        string name UK\n        string status\n    }\n    THREADS {\n        integer id PK\n        integer workstream_id FK\n        string title UK\n        integer position\n    }\n    WORKSTREAM_LINKS {\n        integer id PK\n        integer workstream_id FK\n        string entity_type UK\n        string entity_id UK\n    }\n    THREAD_LINKS {\n        integer id PK\n        integer thread_id FK\n        string entity_type UK\n        string entity_id UK\n    }\n    LOCAL_RESOURCES { integer id PK string path UK }\n    EXTERNAL_RESOURCES { integer id PK string url UK }\n    SESSIONS { integer id PK }\n    CONTEXT_DOCUMENTS { integer id PK }\n    WORKSPACES { integer id PK }\n\n    WORKSTREAMS ||--o{ THREADS : \"physical CASCADE\"\n    WORKSTREAMS ||--o{ WORKSTREAM_LINKS : \"physical CASCADE\"\n    THREADS ||--o{ THREAD_LINKS : \"physical CASCADE\"\n    WORKSTREAM_LINKS }o..o| SESSIONS : \"app session\"\n    WORKSTREAM_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document\"\n    WORKSTREAM_LINKS }o..o| WORKSPACES : \"app project\"\n    WORKSTREAM_LINKS }o..o| EXTERNAL_RESOURCES : \"app external\"\n    WORKSTREAM_LINKS }o..o| LOCAL_RESOURCES : \"app local\"\n    THREAD_LINKS }o..o| SESSIONS : \"app session\"\n    THREAD_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document\"\n    THREAD_LINKS }o..o| WORKSPACES : \"app project\"\n    THREAD_LINKS }o..o| EXTERNAL_RESOURCES : \"app external\"\n    THREAD_LINKS }o..o| LOCAL_RESOURCES : \"app local\"\n",
+      "table_ids": [
+        "workstreams",
+        "threads",
+        "workstream_links",
+        "thread_links",
+        "local_resources",
+        "external_resources"
+      ]
+    },
+    {
+      "document": "docs/policies/project/data-model/review-and-resume-continuity.md",
+      "id": "review-and-resume-continuity",
+      "label": "Review and resume continuity",
+      "mermaid": "erDiagram\n    WORKSTREAMS { integer id PK }\n    THREADS { integer id PK }\n    MAINTENANCE_RUNS { string id PK }\n    SUGGESTIONS {\n        integer id PK\n        string target_type\n        integer target_id\n        string fingerprint UK\n        string origin_run_id\n        string status\n    }\n    CHECKPOINTS {\n        integer id PK\n        integer workstream_id FK\n        integer version\n    }\n    CHECKPOINT_RESOURCE_REFS {\n        integer id PK\n        integer checkpoint_id FK\n        integer thread_id FK\n        string entity_type UK\n        string entity_id UK\n    }\n\n    WORKSTREAMS ||--o{ CHECKPOINTS : \"physical CASCADE\"\n    CHECKPOINTS ||--o{ CHECKPOINT_RESOURCE_REFS : \"physical CASCADE\"\n    THREADS o|--o{ CHECKPOINT_RESOURCE_REFS : \"physical SET_NULL\"\n    SUGGESTIONS }o..o| WORKSTREAMS : \"app target\"\n    SUGGESTIONS }o..o| THREADS : \"app target\"\n    SUGGESTIONS }o..o| MAINTENANCE_RUNS : \"app origin\"\n",
+      "table_ids": [
+        "suggestions",
+        "checkpoints",
+        "checkpoint_resource_refs"
+      ]
+    },
+    {
+      "document": "docs/policies/project/data-model/maintenance-execution.md",
+      "id": "maintenance-execution",
+      "label": "Maintenance execution",
+      "mermaid": "erDiagram\n    WORKSTREAMS { integer id PK }\n    MAINTENANCE_RUNS {\n        string id PK\n        integer workstream_id FK\n        string status\n        integer pid\n        integer mcp_call_budget\n        integer mcp_calls_used\n    }\n    SESSIONS { integer id PK string maintenance_run_id }\n    SUGGESTIONS { integer id PK string origin_run_id }\n\n    WORKSTREAMS o|--o{ MAINTENANCE_RUNS : \"physical SET_NULL\"\n    MAINTENANCE_RUNS o|--o| SESSIONS : \"physical SET_NULL unique\"\n    MAINTENANCE_RUNS o|..o{ SUGGESTIONS : \"app origin\"\n",
+      "table_ids": [
+        "maintenance_runs"
+      ]
+    },
+    {
+      "document": "docs/policies/project/data-model/derived-retrieval-index.md",
+      "id": "derived-retrieval-index",
+      "label": "Derived retrieval index",
+      "mermaid": "erDiagram\n    SESSIONS { integer id PK string index_policy }\n    CONTEXT_DOCUMENTS { integer id PK }\n    SEARCH_INDEX {\n        string entity_type\n        string entity_id\n        string source_kind\n        string title\n        string body\n        string path\n    }\n\n    SESSIONS o|..o| SEARCH_INDEX : \"app projection\"\n    CONTEXT_DOCUMENTS o|..o| SEARCH_INDEX : \"app projection\"\n",
+      "table_ids": [
+        "search_index"
+      ]
+    }
+  ],
+  "tables": [
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY`; stable local registry identity and physical parent key.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "kind",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL UNIQUE`; normalized adapter identity such as Claude, Codex, or a Local Context source kind.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "name",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; user-facing source label.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "root_path",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; configured local scan root or source locator; runtime values remain outside tracked docs.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "1",
+          "name": "enabled",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL DEFAULT 1`; registry participation flag.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "last_scanned_at",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; completion time of the latest source-level scan attempt.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "created_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; registry creation time.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [],
+        "documented": "uniqueness of `kind`. Explicit indexes: none; SQLite owns the uniqueness autoindex.",
+        "primary_key": [
+          "id"
+        ],
+        "unique": [
+          [
+            "kind"
+          ]
+        ]
+      },
+      "foreign_keys": [],
+      "id": "sources",
+      "indexes": [],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/source-registry-and-scans.md",
+      "semantics": {
+        "class": "Source-derived and rebuildable",
+        "class_contract": "Normalized from still-available local sources; rescans can recreate content, though stable relational IDs must be preserved during ordinary refreshes.",
+        "consumers": "`queries.py`, `activity.py`, `retrieval.py`, `usage_queries.py`, `workstreams.py`, `runner.py`, `main.py`, and CLI scan reporting.",
+        "deletion_effect": "physical parent of `source_files`, `sessions`, `usage_records`, and `context_documents`, all `ON DELETE CASCADE`. Deleting a source would remove normalized descendants and can invalidate application-enforced links or search rows, so no cleanup is implied.",
+        "documented_constraints": "uniqueness of `kind`. Explicit indexes: none; SQLite owns the uniqueness autoindex.",
+        "lifecycle_contract": "source-derived registry. It is reproducible from configuration and registered roots, but its IDs are physical parents, so ordinary scans update rows in place.",
+        "producers": "`ingest/scanner.py`; `db.py` reads kinds when migration changes must stale Session inputs.",
+        "purpose_and_authority": "one application-managed registry row per source kind. Configured Claude, Codex, and Local Context source roots are authoritative; `ingest/scanner.py` upserts their current registry representation.",
+        "rebuildability": "source-rebuildable",
+        "recovery_path": "recreate registry rows through approved scans, then rescan source files. Preserve the database for user-curated links and review state that may refer to descendant IDs.",
+        "schema_ownership": "complete fresh definition in `schema.sql`; no compatible columns or explicit named indexes in `db.py`."
+      },
+      "subject_id": "source-registry-and-scans"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY`; local scan-evidence identity.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "source_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL` FK to `sources.id`, `ON DELETE CASCADE`.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "path",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; source-local file identity used for scanner correlation.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "size_bytes",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL`; fingerprint size captured at the latest attempt.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "mtime_ns",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL`; nanosecond file modification fingerprint.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "last_scanned_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; latest attempt time for this input.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "'ok'",
+          "name": "status",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT 'ok'`; freshness state such as healthy, stale, or error.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "error",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; bounded scan or parse error evidence.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "usage_contract_version",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; normalizer contract used to decide whether Usage Records remain current.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [],
+        "documented": "`UNIQUE(source_id, path)`. Explicit indexes: none; SQLite owns the composite uniqueness autoindex.",
+        "primary_key": [
+          "id"
+        ],
+        "unique": [
+          [
+            "source_id",
+            "path"
+          ]
+        ]
+      },
+      "foreign_keys": [
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "source_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "sources"
+        }
+      ],
+      "id": "source_files",
+      "indexes": [],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/source-registry-and-scans.md",
+      "semantics": {
+        "class": "Source-derived and rebuildable",
+        "class_contract": "Normalized from still-available local sources; rescans can recreate content, though stable relational IDs must be preserved during ordinary refreshes.",
+        "consumers": "`ingest/scanner.py` skip/retry logic, `queries.py` source status, `usage_queries.py` freshness/trust, and `contexts.py` root lifecycle.",
+        "deletion_effect": "`source_id` physically cascades from `sources`. The correlation from `path` to `sessions.source_path` or `context_documents.path` is application-managed; removing a file row alone does not cascade those objects. Scanner reconciliation explicitly removes disappeared normalized rows and their search entries.",
+        "documented_constraints": "`UNIQUE(source_id, path)`. Explicit indexes: none; SQLite owns the composite uniqueness autoindex.",
+        "lifecycle_contract": "source-derived and rebuildable. Healthy unchanged rows are freshness inputs; failed rows retain the latest error rather than masquerading as absent.",
+        "producers": "`ingest/scanner.py` inserts and updates scan results; `contexts.py` removes Context-owned rows when a root is disabled; `db.py` adds `usage_contract_version` and marks Claude/Codex rows stale when Session or Usage contracts change.",
+        "purpose_and_authority": "per-source scan evidence for a local input path, including its file fingerprint, latest attempt state, error, and usage-normalizer contract version.",
+        "rebuildability": "source-rebuildable",
+        "recovery_path": "rescan the owning source. Errors and exact prior attempt times are operational history and are not reproduced exactly.",
+        "schema_ownership": "fresh definition in `schema.sql`; `db.py` compatibly adds `usage_contract_version` and uses it to trigger staleness. No explicit named index."
+      },
+      "subject_id": "source-registry-and-scans"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY`; stable local project identity.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "canonical_path",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL UNIQUE`; normalized current workspace path.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "display_name",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; current user-facing project label.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "git_root",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; current discovered repository root, not branch history.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "0",
+          "name": "exists_now",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL DEFAULT 0`; current filesystem existence signal.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "last_activity_at",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; latest attributed Session activity.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "created_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; first registry creation.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "updated_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; latest registry update.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [],
+        "documented": "uniqueness of `canonical_path`. Explicit indexes: none.",
+        "primary_key": [
+          "id"
+        ],
+        "unique": [
+          [
+            "canonical_path"
+          ]
+        ]
+      },
+      "foreign_keys": [],
+      "id": "workspaces",
+      "indexes": [],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/workspace-and-session-activity.md",
+      "semantics": {
+        "class": "Mixed source identity and curated references",
+        "class_contract": "Source-derived identity participates in user-curated links or immutable historical evidence, so delete-and-recreate is not equivalent to an in-place refresh.",
+        "consumers": "inventory/detail queries, retrieval, Workstream resource pickers and links, Runner context, activity attribution, and Usage Record attribution/browse joins.",
+        "deletion_effect": "physical optional parent of `sessions` and `context_documents`, both `SET NULL`. It is an application target for `project` polymorphic links and `usage_records.workspace_id_snapshot`; those are not cascaded by SQLite.",
+        "documented_constraints": "uniqueness of `canonical_path`. Explicit indexes: none.",
+        "lifecycle_contract": "mixed source identity and curated references. Discovery can rebuild path metadata, but Workstream/Thread links and Usage Record snapshot browsing use its stable ID, so delete-and-recreate is not equivalent to update-in-place.",
+        "producers": "`ingest/scanner.py` upserts path, display name, Git root, existence, and activity; `db.py` removes the obsolete `git_branch` column during compatible migration.",
+        "purpose_and_authority": "current canonical project/workspace identity discovered from Session working directories; the containing Git repository root is current discovery, not historical branch state.",
+        "rebuildability": "conditional-stable-id",
+        "recovery_path": "rescan Sessions to rediscover paths. Preserve or restore the database to retain stable link targets and historical current-row resolution.",
+        "schema_ownership": "fresh definition in `schema.sql`; compatible migration in `db.py` drops legacy `git_branch`. No explicit named index."
+      },
+      "subject_id": "workspace-and-session-activity"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY`; stable normalized Session identity.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "source_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL` FK to `sources.id`, `ON DELETE CASCADE`.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "workspace_id",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `INTEGER` FK to `workspaces.id`, `ON DELETE SET NULL`.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "external_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; source-scoped Session or subsession identity.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "source_path",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; authoritative native Claude or Codex JSONL path.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "cwd_raw",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; historical working directory exactly as normalized from source evidence.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "git_branch",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; branch observed in authoritative Session metadata.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "title",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; normalized display title.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "started_at",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; first known Session time.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "ended_at",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; declared or last known end time.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "last_event_at",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; latest normalized event time.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "0",
+          "name": "event_count",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL DEFAULT 0`; normalized source event count.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": "0",
+          "name": "user_message_count",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL DEFAULT 0`; normalized user-message count.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": "0",
+          "name": "assistant_message_count",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL DEFAULT 0`; normalized assistant-message count.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": "'work'",
+          "name": "session_class",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT 'work'`; checked to `work` or `maintenance`.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "'primary'",
+          "name": "session_role",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT 'primary'`; checked to `primary` or `subsession`.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "parent_external_id",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; source-backed parent identity retained even when unresolved.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "parent_session_id",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable self-FK, `ON DELETE SET NULL`; resolved same-source parent.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": "'full'",
+          "name": "index_policy",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT 'full'`; checked to `full` or `metadata_only`.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "maintenance_run_id",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable unique `TEXT` FK to `maintenance_runs.id`, `ON DELETE SET NULL`; present only for a primary metadata-only Maintenance Session.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "imported_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; latest normalized import write time.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [
+          "session_class IN ('work', 'maintenance')",
+          "session_role IN ('primary', 'subsession')",
+          "index_policy IN ('full', 'metadata_only')",
+          "maintenance_run_id IS NULL OR ( session_class = 'maintenance' AND session_role = 'primary' AND index_policy = 'metadata_only' )"
+        ],
+        "documented": "`UNIQUE(source_id, external_id)`, unique nullable `maintenance_run_id`, checks for the two-value class, role, and index-policy vocabularies, and a linked-Session shape check requiring `maintenance`, `primary`, and `metadata_only`. Explicit indexes: `idx_sessions_last_event`, `idx_sessions_workspace`, `idx_sessions_class`, `idx_sessions_role`, `idx_sessions_parent`.",
+        "primary_key": [
+          "id"
+        ],
+        "unique": [
+          [
+            "maintenance_run_id"
+          ],
+          [
+            "source_id",
+            "external_id"
+          ]
+        ]
+      },
+      "foreign_keys": [
+        {
+          "on_delete": "SET NULL",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "maintenance_run_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "maintenance_runs"
+        },
+        {
+          "on_delete": "SET NULL",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "parent_session_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "sessions"
+        },
+        {
+          "on_delete": "SET NULL",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "workspace_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "workspaces"
+        },
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "source_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "sources"
+        }
+      ],
+      "id": "sessions",
+      "indexes": [
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "session_class"
+            },
+            {
+              "descending": true,
+              "name": "last_event_at"
+            }
+          ],
+          "name": "idx_sessions_class",
+          "partial": false,
+          "unique": false
+        },
+        {
+          "columns": [
+            {
+              "descending": true,
+              "name": "last_event_at"
+            }
+          ],
+          "name": "idx_sessions_last_event",
+          "partial": false,
+          "unique": false
+        },
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "parent_session_id"
+            },
+            {
+              "descending": true,
+              "name": "last_event_at"
+            }
+          ],
+          "name": "idx_sessions_parent",
+          "partial": false,
+          "unique": false
+        },
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "session_role"
+            },
+            {
+              "descending": true,
+              "name": "last_event_at"
+            }
+          ],
+          "name": "idx_sessions_role",
+          "partial": false,
+          "unique": false
+        },
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "workspace_id"
+            },
+            {
+              "descending": true,
+              "name": "last_event_at"
+            }
+          ],
+          "name": "idx_sessions_workspace",
+          "partial": false,
+          "unique": false
+        }
+      ],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/workspace-and-session-activity.md",
+      "semantics": {
+        "class": "Source-derived and rebuildable",
+        "class_contract": "Normalized from still-available local sources; rescans can recreate content, though stable relational IDs must be preserved during ordinary refreshes.",
+        "consumers": "Session inventory/detail, dashboard counts, normalized activity, retrieval, Workstream linking/suggestions, Runner context, search projection, Usage Records, and Usage Dashboard denominators.",
+        "deletion_effect": "physical `source_id` cascades; optional `workspace_id`, `parent_session_id`, and unique `maintenance_run_id` set null. Deleting a Session cascades `activity_events` and `usage_records`; scanner also removes its search row. Polymorphic links and checkpoint refs are application edges and can retain an unresolved historical ID.",
+        "documented_constraints": "`UNIQUE(source_id, external_id)`, unique nullable `maintenance_run_id`, checks for the two-value class, role, and index-policy vocabularies, and a linked-Session shape check requiring `maintenance`, `primary`, and `metadata_only`. Explicit indexes: `idx_sessions_last_event`, `idx_sessions_workspace`, `idx_sessions_class`, `idx_sessions_role`, `idx_sessions_parent`.",
+        "lifecycle_contract": "all Sessions are source-derived from retained native JSONL. Stable IDs are preserved so curated links and Usage Records remain valid. A Run-linked primary and its resolved child Sessions keep metadata while maintenance index/event policy is restricted; the private Runner stream is an operational artifact only.",
+        "producers": "`ingest/scanner.py` plus Claude/Codex parsers create Sessions and Usage Records; parent reconciliation updates self-references and propagates maintenance policy to Claude children. `runner.py` triggers Claude-only synchronization after terminal and recovered Runs. `db.py` owns the classification/Run-link constraint repair and stales source files when parser contracts change.",
+        "purpose_and_authority": "one normalized Claude or Codex Session/subsession per native source external identity. An in-app Task Runner Run is represented by its persisted native Claude primary Session, linked to the Run ledger rather than duplicated by LocalBrain.",
+        "rebuildability": "source-rebuildable",
+        "recovery_path": "rescan the authoritative native source file and reconcile parents. Restoring only a Task Runner stream cannot rebuild a Session or Usage Record; restore native Claude JSONL and the Run ledger together. A full database rebuild cannot restore user-curated links, exact operational history, or confirmed review state without backup.",
+        "schema_ownership": "fresh definition and `idx_sessions_last_event`, `idx_sessions_workspace` in `schema.sql`; compatible columns, backup-backed classification/Run-link table repair, and runtime-only `idx_sessions_class`, `idx_sessions_role`, `idx_sessions_parent` in `db.py`. Before that structural repair, startup preserves `localbrain.db-pre-maintenance-session-contract-v1.bak` and validates it with SQLite `quick_check`. An older additive layout may have the same approved columns in a different physical order; migration validates every name/type/null/default/key contract, copies values by canonical column name, and converges only the physical order."
+      },
+      "subject_id": "workspace-and-session-activity"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`TEXT PRIMARY KEY`; deterministic normalized event identity.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "session_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL` FK to `sessions.id`, `ON DELETE CASCADE`.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "sequence",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL`; normalized order within the Session.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "occurred_at",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; observed event time.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "event_type",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; normalized message/tool event category.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "role",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; conversational role when applicable.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "text",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; normalized human/assistant content eligible under ingestion policy.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "tool_name",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; tool identity without opaque arguments/results by default.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "source_line",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL`; source evidence location.",
+          "type": "INTEGER"
+        }
+      ],
+      "constraints": {
+        "checks": [],
+        "documented": "`UNIQUE(session_id, sequence, event_type, source_line)`. Explicit indexes: none; SQLite owns the composite uniqueness autoindex used for Session event ordering.",
+        "primary_key": [
+          "id"
+        ],
+        "unique": [
+          [
+            "session_id",
+            "sequence",
+            "event_type",
+            "source_line"
+          ]
+        ]
+      },
+      "foreign_keys": [
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "session_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "sessions"
+        }
+      ],
+      "id": "activity_events",
+      "indexes": [],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/workspace-and-session-activity.md",
+      "semantics": {
+        "class": "Source-derived and rebuildable",
+        "class_contract": "Normalized from still-available local sources; rescans can recreate content, though stable relational IDs must be preserved during ordinary refreshes.",
+        "consumers": "`queries.py` Session detail and counts, `activity.py` active-time attribution, and `retrieval.py` evidence loading.",
+        "deletion_effect": "`session_id` cascades from `sessions`; replacement deletes prior rows before inserting the new normalized sequence.",
+        "documented_constraints": "`UNIQUE(session_id, sequence, event_type, source_line)`. Explicit indexes: none; SQLite owns the composite uniqueness autoindex used for Session event ordering.",
+        "lifecycle_contract": "source-derived and rebuildable. Scanner replaces the Session's event set atomically during re-import.",
+        "producers": "`ingest/scanner.py` from normalized parser events.",
+        "purpose_and_authority": "normalized, ordered Session events used for conversation presentation, activity calculation, retrieval evidence, and tool/message counts without exposing raw event payload files.",
+        "rebuildability": "source-rebuildable",
+        "recovery_path": "rescan the Session source. Opaque tool arguments/results are not indexed by default; a later concrete metadata requirement must introduce an explicit bounded contract rather than relying on an unused generic JSON slot.",
+        "schema_ownership": "fresh definition in `schema.sql`; event ordering uses the leading `session_id, sequence` keys of the table's UNIQUE autoindex. Compatible migration removes the former redundant named index only after verifying that coverage and removes the legacy metadata column only when every value is `NULL`."
+      },
+      "subject_id": "workspace-and-session-activity"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`TEXT PRIMARY KEY`; immutable snapshot identity.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "label",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; human-readable pricing reference label.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "source_ref",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; local provenance description for the reference data.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "calculator_version",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; calculation contract compatible with the snapshot.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "created_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; fixed snapshot creation/effective evidence time.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [],
+        "documented": "primary key only. Explicit indexes: none.",
+        "primary_key": [
+          "id"
+        ],
+        "unique": []
+      },
+      "foreign_keys": [],
+      "id": "usage_price_snapshots",
+      "indexes": [],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/usage-and-cost-records.md",
+      "semantics": {
+        "class": "Code-seeded reference",
+        "class_contract": "Versioned reference data is reproduced from application code and protected once Usage Records cite it.",
+        "consumers": "`usage.py` calculation/version validation and `usage_queries.py` trust/provenance presentation.",
+        "deletion_effect": "physical parent of model prices and Usage Records with `ON DELETE RESTRICT`; cited pricing evidence cannot be removed.",
+        "documented_constraints": "primary key only. Explicit indexes: none.",
+        "lifecycle_contract": "code-seeded reference. `usage.ensure_default_price_snapshot` inserts known versions without overwriting existing evidence.",
+        "producers": "`usage.py` startup seeding.",
+        "purpose_and_authority": "immutable identity and provenance for a versioned local pricing set used by estimated-cost calculations.",
+        "rebuildability": "code-rebuildable",
+        "recovery_path": "reproduce the exact application version's seeded snapshots. Database backup is preferred when retaining records calculated by an older version.",
+        "schema_ownership": "fresh definition in `schema.sql`; seed rows are owned by `usage.py`; no explicit named index."
+      },
+      "subject_id": "usage-and-cost-records"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "snapshot_id",
+          "not_null": true,
+          "primary_key_position": 1,
+          "semantic_contract": "`TEXT NOT NULL`, composite PK and FK to `usage_price_snapshots.id`, `ON DELETE RESTRICT`.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "model_name",
+          "not_null": true,
+          "primary_key_position": 2,
+          "semantic_contract": "`TEXT NOT NULL`, composite PK; normalized priced-model identity.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "input_usd_per_million",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; exact decimal input rate.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "output_usd_per_million",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; exact decimal output rate.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "cache_write_usd_per_million",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; exact cache-write rate when supported.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "cache_read_usd_per_million",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; exact cache-read rate when supported.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "long_context_threshold_tokens",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable positive `INTEGER`; per-request threshold enabling long-context rates.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "long_context_input_usd_per_million",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; long-context input rate.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "long_context_output_usd_per_million",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; long-context output rate.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "long_context_cache_write_usd_per_million",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; long-context cache-write rate.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "long_context_cache_read_usd_per_million",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; long-context cache-read rate.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [
+          "long_context_threshold_tokens IS NULL OR long_context_threshold_tokens > 0"
+        ],
+        "documented": "`PRIMARY KEY(snapshot_id, model_name)` and positive-or-null threshold check. Explicit indexes: none beyond the composite primary-key autoindex.",
+        "primary_key": [
+          "snapshot_id",
+          "model_name"
+        ],
+        "unique": []
+      },
+      "foreign_keys": [
+        {
+          "on_delete": "RESTRICT",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "snapshot_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "usage_price_snapshots"
+        }
+      ],
+      "id": "usage_model_prices",
+      "indexes": [],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/usage-and-cost-records.md",
+      "semantics": {
+        "class": "Code-seeded reference",
+        "class_contract": "Versioned reference data is reproduced from application code and protected once Usage Records cite it.",
+        "consumers": "`usage.py` price selection and exact Decimal-based calculation.",
+        "deletion_effect": "composite identity belongs to `usage_price_snapshots`; deleting the parent is restricted.",
+        "documented_constraints": "`PRIMARY KEY(snapshot_id, model_name)` and positive-or-null threshold check. Explicit indexes: none beyond the composite primary-key autoindex.",
+        "lifecycle_contract": "code-seeded reference and physically restricted once its snapshot is cited.",
+        "producers": "`usage.py` idempotent snapshot seeding.",
+        "purpose_and_authority": "per-model decimal price strings for one immutable snapshot, including optional long-context thresholds and tiered rates.",
+        "rebuildability": "code-rebuildable",
+        "recovery_path": "recreate from the same versioned code constants. Changing a rate requires a new snapshot, not mutation of cited rows.",
+        "schema_ownership": "fresh definition in `schema.sql`; `db.py` compatibly adds all five long-context fields."
+      },
+      "subject_id": "usage-and-cost-records"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`TEXT PRIMARY KEY`; deterministic normalized Usage Record identity.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "source_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL` FK to `sources.id`, `ON DELETE CASCADE`.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "session_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL` FK to `sessions.id`, `ON DELETE CASCADE`.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "source_record_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; source-scoped usage observation identity.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "source_line",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL`; source evidence line/order.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "occurred_at",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; observation time used for history when valid.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "raw_model",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; source model value retained for provenance.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "model_name",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; normalized model used for pricing/grouping.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "input_tokens",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable nonnegative `INTEGER`; direct input token count.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "output_tokens",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable nonnegative `INTEGER`; direct output token count.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "cache_write_tokens",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable nonnegative `INTEGER`; cache creation/write tokens.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "cache_read_tokens",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable nonnegative `INTEGER`; cache read tokens.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "reasoning_tokens",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable nonnegative `INTEGER`; source-supported reasoning tokens.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "source_total_tokens",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable nonnegative `INTEGER`; total reported by the source.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "total_tokens",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable nonnegative `INTEGER`; normalized supported total.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "total_semantics",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; states what the selected total represents.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "'direct'",
+          "name": "aggregation_scope",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT 'direct'`; checked to `direct` or `includes_children`.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "capability_state",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; checked to `complete`, `partial`, or `malformed`.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "capability_json",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; versioned detail for available/missing usage components.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "calculation_state",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; checked to `priced`, `unpriced`, `partial`, or `failed`.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "estimated_cost_usd",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; exact decimal estimate, present only when priced.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "price_snapshot_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL` FK to `usage_price_snapshots.id`, `ON DELETE RESTRICT`.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "calculator_version",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; cost formula/version used.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "'legacy-v1'",
+          "name": "normalizer_version",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT 'legacy-v1'`; source normalization contract.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "calculated_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; calculation evidence time.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "workspace_id_snapshot",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `INTEGER`; non-FK current browse hint captured at attribution.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "project_key",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; immutable grouping identity, including stable unassigned identity.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "project_name_snapshot",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; frozen display name.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "project_path_snapshot",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; frozen canonical-path evidence.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "project_git_root_snapshot",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; frozen repository-root evidence.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "'unassigned'",
+          "name": "attribution_basis",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT 'unassigned'`, checked to `git_root`, `workspace_path`, or `unassigned`; compatible startup rebuilds only a legacy table missing this CHECK and preserves every stored value exactly.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "attributed_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "Fresh schema: `TEXT NOT NULL`; compatible addition is nullable `TEXT` and startup backfills existing nulls. Time the immutable Project attribution was selected.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "imported_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; persistence time.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [
+          "input_tokens IS NULL OR input_tokens >= 0",
+          "output_tokens IS NULL OR output_tokens >= 0",
+          "cache_write_tokens IS NULL OR cache_write_tokens >= 0",
+          "cache_read_tokens IS NULL OR cache_read_tokens >= 0",
+          "reasoning_tokens IS NULL OR reasoning_tokens >= 0",
+          "source_total_tokens IS NULL OR source_total_tokens >= 0",
+          "total_tokens IS NULL OR total_tokens >= 0",
+          "aggregation_scope IN ('direct', 'includes_children')",
+          "capability_state IN ('complete', 'partial', 'malformed')",
+          "calculation_state IN ('priced', 'unpriced', 'partial', 'failed')",
+          "attribution_basis IN ('git_root', 'workspace_path', 'unassigned')",
+          "(calculation_state = 'priced' AND estimated_cost_usd IS NOT NULL) OR (calculation_state != 'priced' AND estimated_cost_usd IS NULL)"
+        ],
+        "documented": "fresh and compatible schemas have nonnegative token checks; aggregation, capability, calculation, and attribution checks; priced-cost nullability check; and `UNIQUE(source_id, session_id, source_record_id)`. The attribution repair refuses unknown values rather than rewriting them. Explicit indexes: `idx_usage_records_session_time`, `idx_usage_records_source_time`, `idx_usage_records_model_time`.",
+        "primary_key": [
+          "id"
+        ],
+        "unique": [
+          [
+            "source_id",
+            "session_id",
+            "source_record_id"
+          ]
+        ]
+      },
+      "foreign_keys": [
+        {
+          "on_delete": "RESTRICT",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "price_snapshot_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "usage_price_snapshots"
+        },
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "session_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "sessions"
+        },
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "source_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "sources"
+        }
+      ],
+      "id": "usage_records",
+      "indexes": [
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "model_name"
+            },
+            {
+              "descending": false,
+              "name": "occurred_at"
+            }
+          ],
+          "name": "idx_usage_records_model_time",
+          "partial": false,
+          "unique": false
+        },
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "session_id"
+            },
+            {
+              "descending": false,
+              "name": "occurred_at"
+            }
+          ],
+          "name": "idx_usage_records_session_time",
+          "partial": false,
+          "unique": false
+        },
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "source_id"
+            },
+            {
+              "descending": false,
+              "name": "occurred_at"
+            }
+          ],
+          "name": "idx_usage_records_source_time",
+          "partial": false,
+          "unique": false
+        }
+      ],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/usage-and-cost-records.md",
+      "semantics": {
+        "class": "Mixed source identity and curated references",
+        "class_contract": "Source-derived identity participates in user-curated links or immutable historical evidence, so delete-and-recreate is not equivalent to an in-place refresh.",
+        "consumers": "`usage.py` repair/idempotency, `usage_queries.py` period summary/history/breakdowns/trust, and activity/project attribution tests. Dashboard selection excludes exact Claude `<synthetic>` pseudo-model rows without deleting them.",
+        "deletion_effect": "physical source and Session parents cascade; pricing snapshot deletion is restricted. `workspace_id_snapshot` is an application-only optional current browse join, never attribution authority.",
+        "documented_constraints": "fresh and compatible schemas have nonnegative token checks; aggregation, capability, calculation, and attribution checks; priced-cost nullability check; and `UNIQUE(source_id, session_id, source_record_id)`. The attribution repair refuses unknown values rather than rewriting them. Explicit indexes: `idx_usage_records_session_time`, `idx_usage_records_source_time`, `idx_usage_records_model_time`.",
+        "lifecycle_contract": "mixed source-derived and immutable historical evidence. Source observations can be re-normalized, but exact calculated cost and Project attribution must retain their cited versions and snapshot values.",
+        "producers": "Claude/Codex native source normalizers feed `usage.py`; source repair replaces a source's complete record set, including Run-linked Maintenance Sessions. The Runner stream is not a Usage producer. `db.py` compatibly adds attribution, normalizer, and snapshot fields and backfills missing basis/time.",
+        "purpose_and_authority": "one normalized direct or aggregate usage observation per source record, with token semantics, capability/calculation state, cited pricing, and frozen Project attribution.",
+        "rebuildability": "conditional-stable-id",
+        "recovery_path": "native source records plus the correct normalizer/calculator and price snapshots can rebuild observations, but a Runner stream alone cannot and current paths may not reproduce historical Project attribution. Before repairing a legacy attribution CHECK, startup preserves `localbrain.db-pre-usage-attribution-check-v1.bak` beside the database and validates it with SQLite `quick_check`.",
+        "schema_ownership": "fresh `usage_records` definition and three time indexes in `schema.sql`; `db.py` performs a one-way in-place rename from legacy `usage_facts`, replaces only the explicit legacy index names, and owns attribution and normalizer compatible columns. It refuses startup if legacy and canonical tables coexist. Older compatible tables retain their historical column metadata, including nullable `attributed_at`, while a backup-backed transactional repair adds only the missing three-value `attribution_basis` CHECK after exact full-row preflight and comparison."
+      },
+      "subject_id": "usage-and-cost-records"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY`; stable Context registration identity.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "path",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL UNIQUE`; canonical local path or source locator.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "label",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; user-facing source label.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "'folder'",
+          "name": "source_type",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT 'folder'`; folder, file, or approved adapter type.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "1",
+          "name": "readable",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL DEFAULT 1`; current source readability signal.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": "'ready'",
+          "name": "status",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT 'ready'`; ready, scanning, error, or other bounded source state.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "error",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; latest bounded source error.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "1",
+          "name": "enabled",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL DEFAULT 1`; browse/scan participation.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "last_scanned_at",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; latest completed scan time.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "created_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; registration creation time.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "updated_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; latest registry/state update.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [],
+        "documented": "uniqueness of `path`. Explicit indexes: none.",
+        "primary_key": [
+          "id"
+        ],
+        "unique": [
+          [
+            "path"
+          ]
+        ]
+      },
+      "foreign_keys": [],
+      "id": "context_roots",
+      "indexes": [],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/local-context-corpus.md",
+      "semantics": {
+        "class": "User-curated and non-rebuildable",
+        "class_contract": "User intent or registration is authoritative and requires database backup for full recovery.",
+        "consumers": "Context source listing/detail in `contexts.py` and `queries.py`, scanner source enumeration, Workstream pickers/suggestions, and document visibility filters.",
+        "deletion_effect": "optional physical parent of `context_documents` with `ON DELETE SET NULL`; ordinary removal disables the root and removes indexed rows for that source boundary rather than deleting the registry row or original local content.",
+        "documented_constraints": "uniqueness of `path`. Explicit indexes: none.",
+        "lifecycle_contract": "user-curated and non-rebuildable as a registry. A default Context directory may be discovered compatibly, but user additions/removals and source types require backup.",
+        "producers": "`contexts.py` adds, restores, disables, and validates roots; `ingest/scanner.py` updates scan outcomes; `db.py` compatibly seeds/migrates older folder roots.",
+        "purpose_and_authority": "user-managed registry of folders, individual files, and Apple Notes sources, including readability, enablement, scan status, and error state.",
+        "rebuildability": "non-rebuildable",
+        "recovery_path": "restore the LocalBrain database or re-register every root manually, then scan. Original files/Notes remain external authorities.",
+        "schema_ownership": "fresh definition in `schema.sql`; `db.py` compatibly adds `source_type`, `readable`, `status`, and `error` and migrates document ownership."
+      },
+      "subject_id": "local-context-corpus"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY`; stable indexed-document identity.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "source_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL` FK to `sources.id`, `ON DELETE CASCADE`.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "context_root_id",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `INTEGER` FK to `context_roots.id`, `ON DELETE SET NULL`.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "workspace_id",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `INTEGER` FK to `workspaces.id`, `ON DELETE SET NULL`.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "path",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL UNIQUE`; canonical external document path/locator.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "relative_path",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; root-relative browse path.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "title",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; normalized display title.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "body",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; locally indexed plaintext content.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "'text/markdown'",
+          "name": "content_type",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT 'text/markdown'`; normalized media/content contract.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "size_bytes",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL`; source size fingerprint.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "mtime_ns",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL`; nanosecond source modification fingerprint.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "content_hash",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; indexed content fingerprint.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "imported_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; latest indexed write time.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [],
+        "documented": "uniqueness of `path`. Explicit indexes: `idx_documents_mtime`, `idx_documents_context_root`, `idx_documents_source`, and `idx_documents_workspace`; the workspace index orders `mtime_ns DESC` after `workspace_id`.",
+        "primary_key": [
+          "id"
+        ],
+        "unique": [
+          [
+            "path"
+          ]
+        ]
+      },
+      "foreign_keys": [
+        {
+          "on_delete": "SET NULL",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "workspace_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "workspaces"
+        },
+        {
+          "on_delete": "SET NULL",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "context_root_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "context_roots"
+        },
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "source_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "sources"
+        }
+      ],
+      "id": "context_documents",
+      "indexes": [
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "context_root_id"
+            },
+            {
+              "descending": true,
+              "name": "mtime_ns"
+            }
+          ],
+          "name": "idx_documents_context_root",
+          "partial": false,
+          "unique": false
+        },
+        {
+          "columns": [
+            {
+              "descending": true,
+              "name": "mtime_ns"
+            }
+          ],
+          "name": "idx_documents_mtime",
+          "partial": false,
+          "unique": false
+        },
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "source_id"
+            }
+          ],
+          "name": "idx_documents_source",
+          "partial": false,
+          "unique": false
+        },
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "workspace_id"
+            },
+            {
+              "descending": true,
+              "name": "mtime_ns"
+            }
+          ],
+          "name": "idx_documents_workspace",
+          "partial": false,
+          "unique": false
+        }
+      ],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/local-context-corpus.md",
+      "semantics": {
+        "class": "Source-derived and rebuildable",
+        "class_contract": "Normalized from still-available local sources; rescans can recreate content, though stable relational IDs must be preserved during ordinary refreshes.",
+        "consumers": "Context browse/detail in `queries.py` and `main.py`, retrieval evidence, Runner context manifests, Workstream links/suggestions, source summaries, and `search_index` projection.",
+        "deletion_effect": "source deletion cascades. Context root and workspace deletion set their keys null, retaining the document until scanner/root lifecycle removes it. Scanner and `contexts.py` explicitly remove matching FTS rows. It is an application target for Workstream, Thread, and checkpoint references.",
+        "documented_constraints": "uniqueness of `path`. Explicit indexes: `idx_documents_mtime`, `idx_documents_context_root`, `idx_documents_source`, and `idx_documents_workspace`; the workspace index orders `mtime_ns DESC` after `workspace_id`.",
+        "lifecycle_contract": "source-derived and rebuildable while the external source remains available. The stored body is local indexed content and is never copied into tracked schema evidence.",
+        "producers": "`ingest/scanner.py` upserts documents and removes disappeared rows; `db.py` migrates older root associations and relative paths.",
+        "purpose_and_authority": "normalized text and metadata indexed from a registered local file/folder/Notes source, with source path, content fingerprint, and optional current workspace association.",
+        "rebuildability": "source-rebuildable",
+        "recovery_path": "rescan external sources. If the original content is gone, only a database/host backup can recover the indexed body; LocalBrain is not the authority for the original file.",
+        "schema_ownership": "fresh definition plus `idx_documents_mtime` in `schema.sql`; compatible `context_root_id` and `content_type`, migration assignment, and runtime-only `idx_documents_context_root` in `db.py`."
+      },
+      "subject_id": "local-context-corpus"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY`; stable Workstream identity.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "name",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL UNIQUE`; user-owned top-level name.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "'active'",
+          "name": "status",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT 'active'`; application-bounded active, paused, done, or archived state.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "summary",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; user-maintained purpose/context.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "last_activity_at",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; latest linked/user organization activity signal.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "created_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; creation time.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "updated_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; latest mutation time.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [],
+        "documented": "uniqueness of `name`; status vocabulary is application-enforced. Explicit indexes: none.",
+        "primary_key": [
+          "id"
+        ],
+        "unique": [
+          [
+            "name"
+          ]
+        ]
+      },
+      "foreign_keys": [],
+      "id": "workstreams",
+      "indexes": [],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/work-organization-and-resources.md",
+      "semantics": {
+        "class": "User-curated and non-rebuildable",
+        "class_contract": "User intent or registration is authoritative and requires database backup for full recovery.",
+        "consumers": "Dashboard and Workstream detail, retrieval scope, Runner context and Run association, Suggestions, Threads, checkpoints, and resource memberships.",
+        "deletion_effect": "physical parent of `threads`, `workstream_links`, and `checkpoints` with cascade; optional parent of `maintenance_runs` with set null. No ordinary delete workflow currently treats this as disposable.",
+        "documented_constraints": "uniqueness of `name`; status vocabulary is application-enforced. Explicit indexes: none.",
+        "lifecycle_contract": "user-curated and non-rebuildable.",
+        "producers": "`workstreams.py` create/update/touch operations.",
+        "purpose_and_authority": "user-created top-level organization with current status, summary, and activity marker.",
+        "rebuildability": "non-rebuildable",
+        "recovery_path": "LocalBrain database backup; source rescans cannot recover names, summaries, statuses, or grouping intent.",
+        "schema_ownership": "fresh definition in `schema.sql`; no compatible columns or explicit named index."
+      },
+      "subject_id": "work-organization-and-resources"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY`; stable Thread identity.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "workstream_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL` FK to `workstreams.id`, `ON DELETE CASCADE`.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "title",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; title unique within its Workstream.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "'active'",
+          "name": "status",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT 'active'`; application-bounded active, blocked, paused, or done state.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "summary",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; current Thread context.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "current_goal",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; current intended outcome.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "next_action",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; next executable step.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "last_activity_at",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; latest Thread-scoped activity signal.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "0",
+          "name": "position",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL DEFAULT 0`; user-facing order within the Workstream.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "created_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; creation time.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "updated_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; latest mutation time.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [],
+        "documented": "`UNIQUE(workstream_id, title)`; status vocabulary is application-enforced. Explicit index: `idx_threads_workstream`.",
+        "primary_key": [
+          "id"
+        ],
+        "unique": [
+          [
+            "workstream_id",
+            "title"
+          ]
+        ]
+      },
+      "foreign_keys": [
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "workstream_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "workstreams"
+        }
+      ],
+      "id": "threads",
+      "indexes": [
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "workstream_id"
+            },
+            {
+              "descending": false,
+              "name": "status"
+            },
+            {
+              "descending": false,
+              "name": "position"
+            }
+          ],
+          "name": "idx_threads_workstream",
+          "partial": false,
+          "unique": false
+        }
+      ],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/work-organization-and-resources.md",
+      "semantics": {
+        "class": "User-curated and non-rebuildable",
+        "class_contract": "User intent or registration is authoritative and requires database backup for full recovery.",
+        "consumers": "Workstream detail, retrieval scoping, Runner structured results, Suggestions, links, checkpoints, and membership queries.",
+        "deletion_effect": "Workstream deletion cascades; Thread deletion cascades `thread_links` and sets historical `checkpoint_resource_refs.thread_id` null.",
+        "documented_constraints": "`UNIQUE(workstream_id, title)`; status vocabulary is application-enforced. Explicit index: `idx_threads_workstream`.",
+        "lifecycle_contract": "user-curated and non-rebuildable.",
+        "producers": "`workstreams.py` create and update operations.",
+        "purpose_and_authority": "ordered, nested work track inside one Workstream, including status, summary, goal, and next action.",
+        "rebuildability": "non-rebuildable",
+        "recovery_path": "database backup. Recreating a title does not recreate identity, order, links, or checkpoint history.",
+        "schema_ownership": "fresh definition and `idx_threads_workstream` in `schema.sql`; `db.py` repeats the index idempotently."
+      },
+      "subject_id": "work-organization-and-resources"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY`; link identity.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "workstream_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL` FK to `workstreams.id`, `ON DELETE CASCADE`.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "entity_type",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; application-enforced target discriminator.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "entity_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; target identity interpreted by `entity_type`.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "'related-to'",
+          "name": "relation_type",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT 'related-to'`; user/reviewed relation meaning.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "confidence",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `REAL`; generated-link confidence when applicable.",
+          "type": "REAL"
+        },
+        {
+          "default_sql": "'user'",
+          "name": "linked_by",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT 'user'`; user or generator provenance.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "created_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; link creation time.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [],
+        "documented": "`UNIQUE(workstream_id, entity_type, entity_id)`. Explicit index: `idx_workstream_links_entity`.",
+        "primary_key": [
+          "id"
+        ],
+        "unique": [
+          [
+            "workstream_id",
+            "entity_type",
+            "entity_id"
+          ]
+        ]
+      },
+      "foreign_keys": [
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "workstream_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "workstreams"
+        }
+      ],
+      "id": "workstream_links",
+      "indexes": [
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "entity_type"
+            },
+            {
+              "descending": false,
+              "name": "entity_id"
+            }
+          ],
+          "name": "idx_workstream_links_entity",
+          "partial": false,
+          "unique": false
+        }
+      ],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/work-organization-and-resources.md",
+      "semantics": {
+        "class": "User-curated and non-rebuildable",
+        "class_contract": "User intent or registration is authoritative and requires database backup for full recovery.",
+        "consumers": "Workstream detail, latest activity, memberships, retrieval exclusions/scope, Runner manifests, checkpoint snapshots, and suggestion deduplication.",
+        "deletion_effect": "Workstream deletion cascades. Target edges are application-enforced and do not cascade; target removal can leave historical/unresolved identity.",
+        "documented_constraints": "`UNIQUE(workstream_id, entity_type, entity_id)`. Explicit index: `idx_workstream_links_entity`.",
+        "lifecycle_contract": "user-curated and non-rebuildable; `linked_by` and `confidence` retain origin context.",
+        "producers": "`workstreams.py` validated add/update/remove operations and accepted suggestions.",
+        "purpose_and_authority": "one reviewed or generated relationship from a Workstream to a heterogeneous resource, shared by multiple Threads.",
+        "rebuildability": "non-rebuildable",
+        "recovery_path": "database backup or accepted external workflow record; source scanning does not infer the same relation reliably.",
+        "schema_ownership": "fresh definition and `idx_workstream_links_entity` in `schema.sql`; relation type compatible addition and repeated index in `db.py`."
+      },
+      "subject_id": "work-organization-and-resources"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY`; link identity.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "thread_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL` FK to `threads.id`, `ON DELETE CASCADE`.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "entity_type",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; application-enforced target discriminator.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "entity_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; target identity interpreted by `entity_type`.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "'related-to'",
+          "name": "relation_type",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT 'related-to'`; relation meaning.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "confidence",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `REAL`; generated-link confidence.",
+          "type": "REAL"
+        },
+        {
+          "default_sql": "'user'",
+          "name": "linked_by",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT 'user'`; origin provenance.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "created_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; link creation time.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [],
+        "documented": "`UNIQUE(thread_id, entity_type, entity_id)`. Explicit index: `idx_thread_links_entity`.",
+        "primary_key": [
+          "id"
+        ],
+        "unique": [
+          [
+            "thread_id",
+            "entity_type",
+            "entity_id"
+          ]
+        ]
+      },
+      "foreign_keys": [
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "thread_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "threads"
+        }
+      ],
+      "id": "thread_links",
+      "indexes": [
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "entity_type"
+            },
+            {
+              "descending": false,
+              "name": "entity_id"
+            }
+          ],
+          "name": "idx_thread_links_entity",
+          "partial": false,
+          "unique": false
+        }
+      ],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/work-organization-and-resources.md",
+      "semantics": {
+        "class": "User-curated and non-rebuildable",
+        "class_contract": "User intent or registration is authoritative and requires database backup for full recovery.",
+        "consumers": "Workstream/Thread detail, activity, memberships, retrieval scope, Runner manifests, checkpoint snapshots, and suggestion deduplication.",
+        "deletion_effect": "Thread deletion cascades. Target relations are application-enforced and have no SQLite cascade.",
+        "documented_constraints": "`UNIQUE(thread_id, entity_type, entity_id)`. Explicit index: `idx_thread_links_entity`.",
+        "lifecycle_contract": "user-curated and non-rebuildable.",
+        "producers": "`workstreams.py` validated add/update/remove operations and accepted suggestions.",
+        "purpose_and_authority": "one reviewed or generated relationship from a Thread to a heterogeneous resource.",
+        "rebuildability": "non-rebuildable",
+        "recovery_path": "database backup; inference may suggest a new link but cannot restore review provenance exactly.",
+        "schema_ownership": "fresh definition and `idx_thread_links_entity` in `schema.sql`; `db.py` repeats the index idempotently."
+      },
+      "subject_id": "work-organization-and-resources"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY`; canonical local-resource identity.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "path",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL UNIQUE`; canonical local locator.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "'path'",
+          "name": "resource_type",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT 'path'`; repository, directory, file, or generic path category.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "title",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; user-facing name.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "summary",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; user/reviewed description.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "0",
+          "name": "exists_now",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL DEFAULT 0`; current existence signal.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": "'user'",
+          "name": "discovered_by",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT 'user'`; registration provenance.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "created_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; creation time.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "updated_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; latest metadata/existence update.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [],
+        "documented": "uniqueness of `path`; resource-type vocabulary is application-enforced. Explicit indexes: none; SQLite owns the path uniqueness autoindex.",
+        "primary_key": [
+          "id"
+        ],
+        "unique": [
+          [
+            "path"
+          ]
+        ]
+      },
+      "foreign_keys": [],
+      "id": "local_resources",
+      "indexes": [],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/work-organization-and-resources.md",
+      "semantics": {
+        "class": "User-curated and non-rebuildable",
+        "class_contract": "User intent or registration is authoritative and requires database backup for full recovery.",
+        "consumers": "resource picker/detail, Workstream/Thread link resolution, retrieval context, and Runner reference manifests.",
+        "deletion_effect": "application target of link and checkpoint tables only; SQLite does not cascade target deletion.",
+        "documented_constraints": "uniqueness of `path`; resource-type vocabulary is application-enforced. Explicit indexes: none; SQLite owns the path uniqueness autoindex.",
+        "lifecycle_contract": "user-curated and non-rebuildable as organization, even though existence can be rechecked.",
+        "producers": "`workstreams.py` canonical registration and update; Runner structured output can propose/register reviewed local resources.",
+        "purpose_and_authority": "canonical user-visible local repository, directory, file, or generic path resource independent of indexed Context Documents.",
+        "rebuildability": "non-rebuildable",
+        "recovery_path": "database backup plus local filesystem. A path scan cannot reconstruct title, summary, discovery provenance, or memberships.",
+        "schema_ownership": "fresh definition in `schema.sql`; path lookup and uniqueness use the `UNIQUE(path)` autoindex, and the compatible migration removes the former redundant named path index only after verifying that coverage."
+      },
+      "subject_id": "work-organization-and-resources"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY`; canonical external-resource identity.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "resource_type",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; application-bounded Jira, Wiki, Slack, Git, document, or URL type.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "title",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; user-facing label.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "url",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL UNIQUE`; canonical external locator.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "summary",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; user/reviewed description.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "source_role",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; role of the reference in the current work context.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "created_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; creation time.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "updated_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; latest metadata update.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [],
+        "documented": "uniqueness of `url`; resource type is application-enforced. Explicit indexes: none.",
+        "primary_key": [
+          "id"
+        ],
+        "unique": [
+          [
+            "url"
+          ]
+        ]
+      },
+      "foreign_keys": [],
+      "id": "external_resources",
+      "indexes": [],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/work-organization-and-resources.md",
+      "semantics": {
+        "class": "User-curated and non-rebuildable",
+        "class_contract": "User intent or registration is authoritative and requires database backup for full recovery.",
+        "consumers": "resource picker/detail, link resolution, retrieval context, and Runner manifests.",
+        "deletion_effect": "application target of link and checkpoint tables only; no SQLite cascade. Approved integrations remain read-only unless separately planned.",
+        "documented_constraints": "uniqueness of `url`; resource type is application-enforced. Explicit indexes: none.",
+        "lifecycle_contract": "user-curated and non-rebuildable.",
+        "producers": "`workstreams.py` registration/update and reviewed Runner structured output.",
+        "purpose_and_authority": "canonical user-visible external reference such as Jira, Wiki, Slack, Git, document, or generic URL; storage does not imply external ingestion or writes.",
+        "rebuildability": "non-rebuildable",
+        "recovery_path": "database backup or manual re-entry from the original reference system.",
+        "schema_ownership": "fresh definition in `schema.sql`; no compatible migration or explicit named index."
+      },
+      "subject_id": "work-organization-and-resources"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY`; review-item identity.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "suggestion_type",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; proposed operation category.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "target_type",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; application target discriminator, normally Workstream or Thread.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "target_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL`; application target identity.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "title",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; concise proposal label.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "description",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; proposed change detail.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "rationale",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; human-readable evidence/reasoning.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "payload_json",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; structured proposal payload applied only after validation/acceptance.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "fingerprint",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL UNIQUE`; stable deduplication identity.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "origin_run_id",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; non-FK Task Runner provenance.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "'pending'",
+          "name": "status",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT 'pending'`; explicit review state.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "confidence",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `REAL`; bounded generator confidence.",
+          "type": "REAL"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "created_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; proposal creation time.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "resolved_at",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; acceptance/rejection time.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [],
+        "documented": "uniqueness of `fingerprint`; target/status/payload validation is application-enforced. Explicit indexes: `idx_suggestions_target`, `idx_suggestions_origin_run`.",
+        "primary_key": [
+          "id"
+        ],
+        "unique": [
+          [
+            "fingerprint"
+          ]
+        ]
+      },
+      "foreign_keys": [],
+      "id": "suggestions",
+      "indexes": [
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "origin_run_id"
+            },
+            {
+              "descending": false,
+              "name": "status"
+            }
+          ],
+          "name": "idx_suggestions_origin_run",
+          "partial": false,
+          "unique": false
+        },
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "target_type"
+            },
+            {
+              "descending": false,
+              "name": "target_id"
+            },
+            {
+              "descending": false,
+              "name": "status"
+            }
+          ],
+          "name": "idx_suggestions_target",
+          "partial": false,
+          "unique": false
+        }
+      ],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/review-and-resume-continuity.md",
+      "semantics": {
+        "class": "Generated review state",
+        "class_contract": "Suggestions may be regenerated, but accepted/rejected state and origin evidence are not equivalent after regeneration.",
+        "consumers": "Dashboard and Workstream review queues, retrieval exclusions/context, accept/reject actions, and pending counts.",
+        "deletion_effect": "`target_type` plus `target_id` application-addresses a Workstream or Thread; `origin_run_id` application-addresses `maintenance_runs.id`. No physical cascade applies. Refresh replaces eligible pending suggestions while preserving rejected decisions and other protected state.",
+        "documented_constraints": "uniqueness of `fingerprint`; target/status/payload validation is application-enforced. Explicit indexes: `idx_suggestions_target`, `idx_suggestions_origin_run`.",
+        "lifecycle_contract": "generated review state. Pending content can be regenerated, but accepted/rejected decisions, resolution times, and original Run provenance are non-rebuildable history.",
+        "producers": "quick-match generation and refresh in `workstreams.py`; structured Task Runner output and reconciliation in `runner.py`.",
+        "purpose_and_authority": "proposed organizational or checkpoint changes with evidence, deterministic fingerprint, provenance, confidence, and explicit pending/accepted/rejected review state.",
+        "rebuildability": "partial-review-history",
+        "recovery_path": "rerun generation for new pending proposals; restore the database for historical review decisions and exact provenance.",
+        "schema_ownership": "fresh definition and `idx_suggestions_target` in `schema.sql`; compatible `origin_run_id`, repeated target index, and runtime-only `idx_suggestions_origin_run` in `db.py`."
+      },
+      "subject_id": "review-and-resume-continuity"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY`; checkpoint identity.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "workstream_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL` FK to `workstreams.id`, `ON DELETE CASCADE`.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "current_goal",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; confirmed goal at snapshot time.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "confirmed_facts",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; confirmed factual context.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "recent_decisions",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; decisions that govern resumption.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "open_questions",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; unresolved questions.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "next_actions",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; confirmed subsequent steps.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "files_to_open",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; explicit resume file hints.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "confirmed_at",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; human confirmation time.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "based_on_activity_at",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; latest linked activity included in the summary.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "1",
+          "name": "version",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL DEFAULT 1`; monotonic number within the Workstream.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "updated_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "Fresh schema: `TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; compatible addition is nullable `TEXT`, then existing nulls are backfilled from `created_at`. Latest compatible/update time.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "created_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; snapshot creation time.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [
+          "id INTEGER PRIMARY KEY, workstream_id INTEGER NOT NULL REFERENCES workstreams(id) ON DELETE CASCADE, current_goal TEXT, confirmed_facts TEXT, recent_decisions TEXT, open_questions TEXT, next_actions TEXT, files_to_open TEXT, confirmed_at TEXT, based_on_activity_at TEXT, version INTEGER NOT NULL DEFAULT 1, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP"
+        ],
+        "documented": "version uniqueness per Workstream is application-enforced by next-version selection, not a SQL unique constraint. Explicit index: `idx_checkpoints_workstream_version`; it orders `version DESC` after `workstream_id` for latest-version allocation and retrieval.",
+        "primary_key": [
+          "id"
+        ],
+        "unique": []
+      },
+      "foreign_keys": [
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "workstream_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "workstreams"
+        }
+      ],
+      "id": "checkpoints",
+      "indexes": [
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "workstream_id"
+            },
+            {
+              "descending": true,
+              "name": "version"
+            }
+          ],
+          "name": "idx_checkpoints_workstream_version",
+          "partial": false,
+          "unique": false
+        }
+      ],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/review-and-resume-continuity.md",
+      "semantics": {
+        "class": "Confirmed continuity snapshot",
+        "class_contract": "Human-confirmed resume state and the resource set captured at that time are historical records, not derived views.",
+        "consumers": "Workstream detail/resume presentation and checkpoint history.",
+        "deletion_effect": "Workstream deletion cascades checkpoints, then checkpoint resource references. This destructive path is not an implied cleanup action.",
+        "documented_constraints": "version uniqueness per Workstream is application-enforced by next-version selection, not a SQL unique constraint. Explicit index: `idx_checkpoints_workstream_version`; it orders `version DESC` after `workstream_id` for latest-version allocation and retrieval.",
+        "lifecycle_contract": "confirmed continuity snapshot; user-curated and non-rebuildable.",
+        "producers": "`workstreams.py` creates the next Workstream-scoped version and snapshots current links.",
+        "purpose_and_authority": "versioned, human-confirmed resume state for a Workstream, including facts, decisions, open questions, next actions, files, and the activity boundary it summarizes.",
+        "rebuildability": "non-rebuildable-snapshot",
+        "recovery_path": "database backup or an explicit export; Sessions and documents do not reconstruct confirmed wording or decision boundaries.",
+        "schema_ownership": "fresh definition in `schema.sql`; compatible `based_on_activity_at`, `version`, and `updated_at` plus value backfill in `db.py`. On an older database, `updated_at` remains nullable and has no database default after the one-time backfill. No explicit named index."
+      },
+      "subject_id": "review-and-resume-continuity"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY`; snapshot-reference identity.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "checkpoint_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL` FK to `checkpoints.id`, `ON DELETE CASCADE`.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "thread_id",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `INTEGER` FK to `threads.id`, `ON DELETE SET NULL`; null denotes Workstream-level or removed Thread context.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "entity_type",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; snapshotted polymorphic target type.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "entity_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; target identity at checkpoint time.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "'evidence'",
+          "name": "relation_type",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT 'evidence'`; captured relation meaning.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "created_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; capture time.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [
+          "id INTEGER PRIMARY KEY, checkpoint_id INTEGER NOT NULL REFERENCES checkpoints(id) ON DELETE CASCADE, thread_id INTEGER REFERENCES threads(id) ON DELETE SET NULL, entity_type TEXT NOT NULL, entity_id TEXT NOT NULL, relation_type TEXT NOT NULL DEFAULT 'evidence', created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, UNIQUE(checkpoint_id, thread_id, entity_type, entity_id)"
+        ],
+        "documented": "`UNIQUE(checkpoint_id, thread_id, entity_type, entity_id)`. Explicit indexes: none; SQLite owns the composite uniqueness autoindex.",
+        "primary_key": [
+          "id"
+        ],
+        "unique": [
+          [
+            "checkpoint_id",
+            "thread_id",
+            "entity_type",
+            "entity_id"
+          ]
+        ]
+      },
+      "foreign_keys": [
+        {
+          "on_delete": "SET NULL",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "thread_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "threads"
+        },
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "checkpoint_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "checkpoints"
+        }
+      ],
+      "id": "checkpoint_resource_refs",
+      "indexes": [],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/review-and-resume-continuity.md",
+      "semantics": {
+        "class": "Confirmed continuity snapshot",
+        "class_contract": "Human-confirmed resume state and the resource set captured at that time are historical records, not derived views.",
+        "consumers": "checkpoint detail and resume evidence in `workstreams.py`.",
+        "deletion_effect": "checkpoint deletion cascades; Thread deletion sets `thread_id` null while retaining the captured heterogeneous identity. `entity_type` and `entity_id` target Session, Context Document, Workspace, External Resource, or Local Resource by application contract only.",
+        "documented_constraints": "`UNIQUE(checkpoint_id, thread_id, entity_type, entity_id)`. Explicit indexes: none; SQLite owns the composite uniqueness autoindex.",
+        "lifecycle_contract": "confirmed continuity snapshot. It is generated from curated links at checkpoint time but cannot be regenerated after those links change.",
+        "producers": "`_snapshot_checkpoint_resources` in `workstreams.py` copies current Workstream/Thread links with `INSERT OR IGNORE`.",
+        "purpose_and_authority": "immutable-at-creation snapshot of Workstream- and Thread-level links included in one checkpoint.",
+        "rebuildability": "non-rebuildable-snapshot",
+        "recovery_path": "restore the database. Re-running a snapshot produces current, not historical, membership.",
+        "schema_ownership": "fresh definition in `schema.sql`; checkpoint/thread lookup uses the leading keys of the table's UNIQUE autoindex, and the compatible migration removes the former redundant named index only after verifying that coverage."
+      },
+      "subject_id": "review-and-resume-continuity"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`TEXT PRIMARY KEY`; stable local Run identity.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "workstream_id",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `INTEGER` FK to `workstreams.id`, `ON DELETE SET NULL`; identifies the Workstream from which the maintenance execution was started.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "task_type",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; bounded maintenance operation category.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "'claude'",
+          "name": "runner",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT 'claude'`; selected local runner implementation.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "cwd",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; local working directory used for execution.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "'prepared'",
+          "name": "status",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT 'prepared'`; durable lifecycle state.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "pid",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `INTEGER`; active local process identity, never sufficient alone for ownership after restart.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "started_at",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; process start time.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "completed_at",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; terminal completion time.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "source_snapshot_json",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; bounded source-selection snapshot.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "manifest_path",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; private runtime reference manifest path.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "prompt_path",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; private runtime prompt artifact path.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "stream_path",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; private runtime stream artifact path.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "result_path",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; private runtime result artifact path.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "stderr_path",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; private runtime stderr artifact path.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "structured_result_json",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; validated structured result retained for review.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "0",
+          "name": "suggestions_created",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL DEFAULT 0`; accepted parse output count, not acceptance count.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": "0",
+          "name": "refresh_suggestions",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL DEFAULT 0`; whether eligible pending suggestions were refreshed.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": "20",
+          "name": "mcp_call_budget",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL DEFAULT 20`; advisory call ceiling for the Run.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": "0",
+          "name": "mcp_calls_used",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL DEFAULT 0`; observed call count.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "mcp_tool_calls_json",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; bounded tool-call accounting.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "0",
+          "name": "mcp_budget_exceeded",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL DEFAULT 0`; recorded budget breach signal.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "summary",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; terminal human-readable outcome.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "error",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; bounded failure evidence.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "updated_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "Fresh schema: `TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; compatible addition is nullable `TEXT`, then existing nulls are backfilled from `created_at`. Latest state transition time.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "created_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; preparation time.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [],
+        "documented": "fresh and upgraded databases include the optional Workstream foreign key. The reverse Session relation is physically unique and optional. Lifecycle, counters, and runner/task vocabularies are application-enforced. Explicit indexes: `idx_maintenance_runs_workstream`, `idx_maintenance_runs_status`.",
+        "primary_key": [
+          "id"
+        ],
+        "unique": []
+      },
+      "foreign_keys": [
+        {
+          "on_delete": "SET NULL",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "workstream_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "workstreams"
+        }
+      ],
+      "id": "maintenance_runs",
+      "indexes": [
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "status"
+            },
+            {
+              "descending": true,
+              "name": "updated_at"
+            }
+          ],
+          "name": "idx_maintenance_runs_status",
+          "partial": false,
+          "unique": false
+        },
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "workstream_id"
+            },
+            {
+              "descending": true,
+              "name": "created_at"
+            }
+          ],
+          "name": "idx_maintenance_runs_workstream",
+          "partial": false,
+          "unique": false
+        }
+      ],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/maintenance-execution.md",
+      "semantics": {
+        "class": "Operational history",
+        "class_contract": "Execution state and artifact references describe what happened; files outside SQLite may be required for complete recovery.",
+        "consumers": "Runner list/detail/polling, Workstream detail, restart reconciliation, structured Suggestion creation, the linked Maintenance Session, and its Usage Records.",
+        "deletion_effect": "`workstream_id` is an optional physical FK to `workstreams.id` with `ON DELETE SET NULL` in both fresh and upgraded databases. Deleting the Workstream removes only that current association and retains the Run. `sessions.maintenance_run_id` is a nullable unique physical FK with `ON DELETE SET NULL`; `suggestions.origin_run_id` remains an application edge without cascade.",
+        "documented_constraints": "fresh and upgraded databases include the optional Workstream foreign key. The reverse Session relation is physically unique and optional. Lifecycle, counters, and runner/task vocabularies are application-enforced. Explicit indexes: `idx_maintenance_runs_workstream`, `idx_maintenance_runs_status`.",
+        "lifecycle_contract": "operational history. Database state is durable, while referenced manifest/prompt/stream/result/stderr files live under the private runtime data directory and are required for complete evidence recovery.",
+        "producers": "`runner.py` prepares, starts, streams, reconciles, cancels, parses, and completes Runs. Task Runner preparation writes private artifacts and inserts a `queued` ledger row; terminal and recovered paths trigger native Claude-source synchronization. `POST /api/workstreams/{workstream_id}/runs` is the only in-app Run creation boundary.",
+        "purpose_and_authority": "durable state machine for prepared/running/terminal maintenance execution, with local process, bounded MCP budget, artifact paths, structured output, summary, and error evidence.",
+        "rebuildability": "database-plus-artifacts",
+        "recovery_path": "restore the SQLite database, native Claude source history, and runtime artifact directory according to the evidence required. The native JSONL can rebuild its Session and Usage Records; a retained Runner stream can recover console/result evidence but cannot create them. A failed Run must not clear an existing review queue.",
+        "schema_ownership": "fresh definition in `schema.sql`; numerous compatible fields, `updated_at` value backfill, runtime-only `idx_maintenance_runs_workstream` and `idx_maintenance_runs_status`, and the backup-backed Workstream FK repair in `db.py`. Before the first repair, startup preserves `localbrain.db-pre-maintenance-workstream-fk-v1.bak`, rejects orphan or unexpected shapes, copies every Run value by column name, and verifies dependent Session/Suggestion links plus `foreign_key_check`. Compatible `updated_at` remains nullable without a database default after backfill."
+      },
+      "subject_id": "maintenance-execution"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "entity_type",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "FTS5 `UNINDEXED`; application discriminator for `session` or `document`.",
+          "type": null
+        },
+        {
+          "default_sql": null,
+          "name": "entity_id",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "FTS5 `UNINDEXED`; text identity of the projected source object.",
+          "type": null
+        },
+        {
+          "default_sql": null,
+          "name": "source_kind",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "FTS5 `UNINDEXED`; normalized source provenance used by consumers.",
+          "type": null
+        },
+        {
+          "default_sql": null,
+          "name": "title",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "indexed FTS5 text; display/search title.",
+          "type": null
+        },
+        {
+          "default_sql": null,
+          "name": "body",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "indexed FTS5 text; eligible message/document body.",
+          "type": null
+        },
+        {
+          "default_sql": null,
+          "name": "path",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "indexed FTS5 text; bounded source or relative-path search field.",
+          "type": null
+        }
+      ],
+      "constraints": {
+        "checks": [],
+        "documented": "`fts5(..., tokenize = 'unicode61')`; entity uniqueness is maintained by delete-before-insert application logic, not a SQL unique constraint. Explicit named indexes: none.",
+        "primary_key": [],
+        "unique": []
+      },
+      "foreign_keys": [],
+      "id": "search_index",
+      "indexes": [],
+      "kind": "fts5",
+      "semantic_document": "docs/policies/project/data-model/derived-retrieval-index.md",
+      "semantics": {
+        "class": "Fully derived projection",
+        "class_contract": "Safe to clear and rebuild from current eligible source objects.",
+        "consumers": "`queries.py` search results and `retrieval.py` ranked FTS candidates. Retrieval adds current relational evidence after candidate selection.",
+        "deletion_effect": "no physical FK. `entity_type` plus `entity_id` application-addresses `sessions` or `context_documents`; scanner/context lifecycle explicitly removes projections. Maintenance Sessions, subsessions, and policy-excluded content do not enter the projection.",
+        "documented_constraints": "`fts5(..., tokenize = 'unicode61')`; entity uniqueness is maintained by delete-before-insert application logic, not a SQL unique constraint. Explicit named indexes: none.",
+        "lifecycle_contract": "fully derived projection. It is safe to clear and rebuild from current eligible source objects.",
+        "producers": "`ingest/scanner.py` replaces Session and document rows during scan; `contexts.py` deletes root-owned document projections on disable; source cleanup deletes projections before normalized objects.",
+        "purpose_and_authority": "FTS5 search projection for eligible primary work Sessions and enabled Context Documents, retaining unindexed target/provenance fields beside indexed title/body/path text.",
+        "rebuildability": "fully-derived",
+        "recovery_path": "rescan all enabled Session and Context sources. No backup is required for this table itself, though authoritative sources and user registration must exist.",
+        "schema_ownership": "FTS5 virtual-table declaration in `schema.sql`; no compatible migration or separate explicit named index. FTS5 shadow tables are SQLite internals."
+      },
+      "subject_id": "derived-retrieval-index"
+    }
+  ]
+}

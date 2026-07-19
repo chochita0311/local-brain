@@ -1,0 +1,23 @@
+{
+  "schema": "localbrain.mermaid-assets.v1",
+  "build": {
+    "command": "npm run build:mermaid",
+    "node": ">=20",
+    "packageLockSha256": "70a3239f8eb058021816c3e4730b1013724b03d60a6979ec3634488ad4ba7d9f"
+  },
+  "dependencies": {
+    "esbuild": {
+      "license": "MIT",
+      "version": "0.28.1"
+    },
+    "mermaid": {
+      "license": "MIT",
+      "version": "11.16.0"
+    }
+  },
+  "outputs": {
+    "mermaid.esm.min.js": "73dfaa6b847ae12e7262ad50dbbc92783fd6b74785932637bf5624ae5d82439b",
+    "mermaid-LICENSE.txt": "ec9fb67dcb25eccc416ed56e1aab819222c805a2a4bfe4cb19e7556bf2ffde80",
+    "esbuild-LICENSE.txt": "b40ec5baec7bb34fa5b1c09521fa3cd52d5fad7adafed74932a2010d3612a681"
+  }
+}

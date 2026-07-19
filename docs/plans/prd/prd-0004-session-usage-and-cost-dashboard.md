@@ -10,8 +10,8 @@
 
 ## Completion State
 
-- All five implementation Features and the follow-up contract corrections through RUN-20260718-29 are `passed`.
-- Current product behavior includes source-neutral usage facts, immutable Project and price snapshots, request-level Codex context-tier pricing, Daily/Weekly/Cumulative history, Source/Model/Project composition, and bounded trust states.
+- All five implementation Features and follow-up contract corrections through RUN-20260719-39 are `passed`.
+- Current product behavior includes source-neutral Usage Records, immutable Project and price snapshots, request-level Codex context-tier pricing, Daily/Weekly/Cumulative history, Source/Model/Project composition, and bounded trust states.
 - The visible month-end projection was intentionally retired after human review, while its non-persisted read-model calculation remains internal compatibility behavior.
 - The combined synthetic rendered-evidence pass at `1440`, `920`, `700`, and `320` is complete; no PRD-level acceptance gap remains.
 
@@ -51,19 +51,19 @@
 
 - `src/localbrain/templates/sessions_dashboard.html`: current scope controls, four-metric summary, usage history, one composition family, and trust presentation.
 - `src/localbrain/main.py`: `/sessions-dashboard` query-state validation and route composition.
-- `src/localbrain/usage_queries.py`: shared selected-Fact eligibility, period aggregation, breakdown, coverage, freshness, and internal projection compatibility read model.
-- `src/localbrain/usage.py`: immutable price snapshots, request-level cost calculation, Usage Fact persistence, and source-level repair reconciliation.
-- `src/localbrain/schema.sql`: normalized Usage Facts, immutable Project attribution fields, price snapshots, and model-price persistence.
+- `src/localbrain/usage_queries.py`: shared selected-record eligibility, period aggregation, breakdown, coverage, freshness, and internal projection compatibility read model.
+- `src/localbrain/usage.py`: immutable price snapshots, request-level cost calculation, Usage Record persistence, and source-level repair reconciliation.
+- `src/localbrain/schema.sql`: normalized Usage Records, immutable Project attribution fields, price snapshots, and model-price persistence.
 - `src/localbrain/ingest/claude.py` and `src/localbrain/ingest/codex.py`: source-specific token, model, replay, pseudo-record, and contract-version normalization.
 - `tests/test_usage_contract.py`, `tests/test_usage_dashboard.py`, `tests/test_activity_attribution.py`, and `tests/test_ui_contract.py`: synthetic contract, query, route, presentation, and interaction evidence.
 
 ## Current Findings
 
-- Event, tool-call, and context-switch counts remain behavior evidence, not token usage or spend; the Sessions Dashboard now derives its usage hierarchy only from eligible Usage Facts.
-- Usage Facts retain token components, raw and normalized model identity, immutable Project attribution, price snapshot, calculator version, and source capability state required for reproducible trend estimates.
+- Event, tool-call, and context-switch counts remain behavior evidence, not token usage or spend; the Sessions Dashboard now derives its usage hierarchy only from eligible Usage Records.
+- Usage Records retain token components, raw and normalized model identity, immutable Project attribution, price snapshot, calculator version, and source capability state required for reproducible trend estimates.
 - `ccusage` remains an independently versioned offline comparison reference. The page neither invokes it nor adopts its current JSON as an internal schema.
 - Claude and Codex keep source-specific normalization rules for cache, reasoning, cumulative versus direct event usage, replay exclusion, fallback models, and pseudo-records while exposing one source-neutral read contract.
-- Historical Project and price attribution remain frozen. Later Git-root discovery and ordinary catalog updates enrich current or future facts without silently rewriting past statistics.
+- Historical Project and price attribution remain frozen. Later Git-root discovery and ordinary catalog updates enrich current or future Usage Records without silently rewriting past statistics.
 - Estimated cost is model-priced trend context, not subscription charge, entitlement use, credit consumption, invoice, or actual payment.
 - The dashboard uses one compact metric and history hierarchy. The company reference's repeated capacity, allocation, entitlement, and projection surfaces were not carried into the current product.
 
@@ -93,7 +93,7 @@
   - price snapshot identity or calculator version and calculation time
   - unavailable-price state when no compatible model price exists
   - source freshness and capability limitations
-- Preserve original Claude and Codex local records as authority. Normalized usage and estimated cost remain derived, rebuildable LocalBrain facts.
+- Preserve original Claude and Codex local records as authority. Normalized usage and estimated cost remain derived, rebuildable LocalBrain Usage Records.
 - Include every directly observed real-model usage record in token and cost totals regardless of Session class or role, including primary work Sessions, maintenance Sessions, and subsessions. Retain source-generated pseudo assistant or API-error records as Session evidence but exclude them from usage dates, totals, coverage, breakdowns, and usage-linked Session counts. Prevent double counting when a source-level parent total already includes child usage.
 - Keep workflow-oriented Session counts and behavior metrics on their explicitly labeled scope, such as primary work Sessions only, instead of applying that narrower scope to monetary totals.
 - Calculate one canonical trend cost from the source adapter's supported model and token fields using the matching model-specific price snapshot. Do not calculate, store for comparison, or display parallel alternative cost figures for the same usage record.
@@ -108,7 +108,7 @@
 - Preserve the Session-observed working path, source path, Git branch when supplied, and the basis used to resolve its Project or workspace as immutable provenance.
 - Snapshot each usage record's Project or workspace attribution when the record is normalized. Historical Project breakdowns use that stored attribution rather than a later current-path lookup.
 - Allow later scans to enrich current workspace metadata, including a Git root discovered after a directory becomes a Git repository, without silently reassigning prior Sessions or rewriting historical Project totals.
-- Apply new or changed Project-path and Git-root relations only to source usage records first observed after the relation changes. Rebuilding derived facts for an older record must reuse its stored attribution snapshot; previously unassigned or differently assigned history remains stable unless a future, explicitly reviewable user action owns reconciliation.
+- Apply new or changed Project-path and Git-root relations only to source usage records first observed after the relation changes. Rebuilding derived Usage Records for an older record must reuse its stored attribution snapshot; previously unassigned or differently assigned history remains stable unless a future, explicitly reviewable user action owns reconciliation.
 - Keep automatic historical Project reconciliation and bulk retroactive reassignment outside this increment.
 
 ### Activity-Time Semantics
@@ -255,8 +255,10 @@
 - [FEAT-0022: Usage Summary And History](../feature/feat-0022-usage-summary-and-history.md) (`product`, `fullstack`, `passed`): provide period and source scope, four-metric summary, token or cost mode, and daily, weekly, or cumulative history.
 - [FEAT-0023: Usage Breakdown And Trust](../feature/feat-0023-usage-breakdown-and-trust.md) (`product`, `fullstack`, `passed`): provide Source, Model, and Project composition, drill-downs, coverage, stale, partial, unpriced, and failure states.
 - [FEAT-0024: Current-Month Projection](../feature/feat-0024-current-month-projection.md) (`product`, `fullstack`, historical `passed`): its calculation remains internal compatibility behavior, while RUN-20260718-28 retires the visible projection from the dashboard.
+- [FEAT-0033: Usage Record Dashboard Terminology](../feature/feat-0033-usage-record-dashboard-terminology.md) (`product`, `fullstack`, `passed`): replace implementation-facing Fact language on the Dashboard with plain `usage records` while preserving the internal data contract.
+- [FEAT-0034: Usage Record Canonical Terminology](../feature/feat-0034-usage-record-canonical-terminology.md) (`foundation`, `data`, `passed`): align the table, parser, query, count-key, test, and owner-document contracts on `Usage Record`, with a one-way data-preserving legacy-table migration.
 
-The human owner approved this boundary, and all five Feature loops plus the later normalization, pricing, presentation, pseudo-record, and responsive-evidence checks passed.
+The human owner approved this boundary, and all five original Feature loops plus the later normalization, pricing, presentation, pseudo-record, responsive-evidence, and terminology checks passed.
 
 ## Source Map
 
@@ -266,7 +268,7 @@ The human owner approved this boundary, and all five Feature loops plus the late
 | Codex `/usage` examples | primary visual and metric reference | long-range activity, daily/weekly/cumulative modes, lifetime, peak, streak, and longest-task cues | terminal presentation and current labels are not direct screen specifications |
 | Installed `ccusage` behavior | primary data-dimension reference | token components, models, costs, periods, Sessions, blocks, burn rate, projection, JSON, and offline behavior | not a connector, source of authority, mandatory dependency, or stable internal schema |
 | Supplied company dashboard | supporting information-hierarchy reference | compact KPI hierarchy, projection, freshness, cost composition, and trust cues | identity, allocation, entitlement, approval, quota, and organization behavior do not transfer |
-| Current LocalBrain code and schema | implementation truth | normalized Usage Facts, immutable attribution and price snapshots, route state, history, composition, trust, and retained Session evidence | behavior-oriented event counts remain separate from usage and cost denominators |
+| Current LocalBrain code and schema | implementation truth | normalized Usage Records, immutable attribution and price snapshots, route state, history, composition, trust, and retained Session evidence | behavior-oriented event counts remain separate from usage and cost denominators |
 | Design and interaction policies | durable presentation contract | shell, dashboard family, density, provenance, responsive, accessibility, and state behavior | do not decide token or price semantics |
 | PRD-0005 | sibling planning boundary | workflow, error, file, topic, tool-sequence, and skill intelligence | must not expand the cost dashboard into a generic insight wall |
 
@@ -286,8 +288,12 @@ The human owner approved this boundary, and all five Feature loops plus the late
 - `2026-07-18`: a later installed-report and official-adapter comparison invalidated RUN-20260718-25 as current acceptance evidence. FEAT-0020 is blocked pending human approval to revise SPEC-0020 around `last_token_usage`-first normalization, dated fallback models, model coverage, and configured service-tier pricing; no second runtime repair has been run.
 - `2026-07-18`: human review approved Attempt 3. RUN-20260718-26 passed with direct-event-first Codex normalization, cumulative fallback, spawned and forked replay exclusion, dated fallback models, one immutable `fast` trend-price snapshot, private local repair, and repeat-sync integrity evidence. FEAT-0020 is restored to `passed` without a reset control or runtime ccusage dependency.
 - `2026-07-18`: human review approved a return to SPEC-0020 after the remaining cost variance was isolated to request-level long-context tiers. Attempt 4 keeps trend and non-invoice semantics while requiring model-specific context thresholds and above-threshold rates from the frozen ccusage reference.
-- `2026-07-18`: RUN-20260718-27 passed with per-Fact request-context tiers, an immutable calculator-v2 snapshot, private corrective repair, and exact fixed-boundary token and estimated-cost parity against the installed offline ccusage reference.
+- `2026-07-18`: RUN-20260718-27 passed with per-Record request-context tiers, an immutable calculator-v2 snapshot, private corrective repair, and exact fixed-boundary token and estimated-cost parity against the installed offline ccusage reference.
 - `2026-07-18`: human review found the visible `Projected month end` detail unnecessary. RUN-20260718-28 removed the entire projection block and its dedicated styles from Cost mode while retaining the existing observed-cost, MTD, coverage, freshness, filters, and internal compatibility calculation.
 - `2026-07-18`: human review confirmed that real Haiku subsession usage remains monetary usage while Claude `<synthetic>` assistant and API-error records are evidence rather than usage. RUN-20260718-29 keeps those records in SQLite and Session activity but excludes them from every Sessions Dashboard usage consumer.
 - `2026-07-18`: documentation reconciliation replaced stale baseline and blocked-state wording with the completed implementation truth. PRD status remains `approved` only for the open combined rendered-evidence requirement; no functional Feature remains blocked.
 - `2026-07-18`: a privacy-safe synthetic dashboard passed direct rendered checks at `1440`, `920`, `700`, and exact mobile-emulated `320`. Scope controls, the four-metric band, 30-day local chart scrolling, long Model and Project labels, overflow and price disclosures, error/stale trust states, and in-place scroll continuity remained contained and usable. PRD-0004 is `passed`.
+- `2026-07-19`: human feedback selected `usage records` as the Dashboard-facing count term. At that point FEAT-0033 kept the internal Fact names and calculations unchanged and added only the narrow Usage-summary containment needed for readable record labels and long unavailable values; FEAT-0034 later supersedes that temporary vocabulary split.
+- `2026-07-19`: FEAT-0033 passed all required evaluators with populated/empty local renders, singular/plural and large-count formatting, unchanged controls and calculations, exact 1440/320 containment, 121 tests, and privacy verification.
+- `2026-07-19`: human review approved FEAT-0034 to make `Usage Record` canonical across persistence and code. The approved compatibility boundary renames legacy `usage_facts` in place, preserves all rows and values, refuses coexisting legacy/canonical tables, and leaves historical artifact titles intact.
+- `2026-07-19`: RUN-20260719-39 passed. The actual local table was backed up and renamed with exact row/metadata equality and valid SQLite integrity; current code, owner docs, schema presentation, audit evidence, Dashboard rendering, 126 tests, and privacy checks use the canonical Usage Record contract.

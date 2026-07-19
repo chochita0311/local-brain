@@ -33,11 +33,13 @@ The default runtime directory is:
 ~/Library/Application Support/LocalBrain
 ```
 
-It contains `localbrain.db` and Run artifacts. `LOCALBRAIN_DATA_DIR` may override this location, but it should not point to a tracked repository path.
+It contains `localbrain.db`, guarded schema-migration backups such as `localbrain.db-pre-usage-attribution-check-v1.bak`, `localbrain.db-pre-maintenance-workstream-fk-v1.bak`, and `localbrain.db-pre-maintenance-session-contract-v1.bak`, and Run artifacts. `LOCALBRAIN_DATA_DIR` may override this location, but it should not point to a tracked repository path. A versioned migration backup is local-only, is validated before use, and is never overwritten by a later startup.
+
+An in-app Task Runner stream remains a private Run artifact used for the Run Console and result parsing. It must not be re-imported as a Session, Usage Record, Local Context document, Activity Event, or search row. Claude's persisted native JSONL is the sole Session and Usage source for that execution; maintenance policy keeps its content and resolved child content out of ordinary activity and search consumers while their direct real-model Usage Records remain eligible for cost totals.
 
 Removing a source from LocalBrain must be distinguished from deleting the original local file or note. The application must not delete an original source as a side effect of unregistering or purging its index.
 
-Backup, restore, retention, purge, encryption, and schema-recovery controls remain open work tracked in the [Project Backlog](../../plans/project/backlog.md).
+General backup, user-facing restore, retention, purge, encryption, and broader schema-recovery controls remain open work tracked in the [Project Backlog](../../plans/project/backlog.md); a migration-specific recovery copy does not close that wider requirement.
 
 ## Source Persistence Modes
 

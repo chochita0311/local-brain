@@ -1,0 +1,21 @@
+{
+  "name": "localbrain-web-assets",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Build-only browser assets for LocalBrain",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build:mermaid": "node scripts/build-mermaid-assets.mjs build",
+    "check:mermaid": "node scripts/build-mermaid-assets.mjs check",
+    "test:mermaid": "node scripts/test-mermaid-assets.mjs"
+  },
+  "dependencies": {
+    "mermaid": "11.16.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.1"
+  }
+}

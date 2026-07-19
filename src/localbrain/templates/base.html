@@ -47,6 +47,9 @@
             <a class="lnb-item {% if active_page == 'sources' %}active{% endif %}" href="/sources" {% if active_page == 'sources' %}aria-current="page"{% endif %}>
               <span class="nav-symbol" aria-hidden="true">07</span><span>Sources</span>
             </a>
+            <a class="lnb-item {% if active_page == 'schema' %}active{% endif %}" href="/schema" {% if active_page == 'schema' %}aria-current="page"{% endif %}>
+              <span class="nav-symbol" aria-hidden="true">08</span><span>Schema</span>
+            </a>
           </div>
         </nav>
 
@@ -71,5 +74,6 @@
       </div>
     </div>
     <div class="toast-region" data-toast-region aria-live="polite" aria-atomic="true"></div>
+    {% block scripts %}{% endblock %}
   </body>
 </html>

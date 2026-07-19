@@ -112,6 +112,7 @@ class RetrievalTests(unittest.TestCase):
             """,
             (source_id,),
         ).lastrowid
+        self.child_session_id = child_id
         self.connection.execute(
             """
             INSERT INTO activity_events(
@@ -136,6 +137,34 @@ class RetrievalTests(unittest.TestCase):
             VALUES (1, 'session', ?, 'evidence')
             """,
             (str(child_id),),
+        )
+        maintenance_id = self.connection.execute(
+            """
+            INSERT INTO sessions(
+                source_id, external_id, source_path, cwd_raw, title,
+                last_event_at, event_count, session_class
+            ) VALUES (?, 'maintenance-session', '/tmp/maintenance-session.jsonl',
+                      '/tmp/sample-project', '검색 필터 개선 인증 maintenance run',
+                      '2026-07-14T03:00:00Z', 1, 'maintenance')
+            """,
+            (source_id,),
+        ).lastrowid
+        self.maintenance_session_id = maintenance_id
+        self.connection.execute(
+            """
+            INSERT INTO search_index(
+                entity_type, entity_id, source_kind, title, body, path
+            ) VALUES ('session', ?, 'claude', '검색 필터 개선 인증 maintenance run',
+                      '검색 필터 개선 인증 Claude Run evidence', '/tmp/sample-project')
+            """,
+            (str(maintenance_id),),
+        )
+        self.connection.execute(
+            """
+            INSERT INTO thread_links(thread_id, entity_type, entity_id, relation_type)
+            VALUES (1, 'session', ?, 'evidence')
+            """,
+            (str(maintenance_id),),
         )
 
     def _insert_documents(self):
@@ -201,6 +230,31 @@ class RetrievalTests(unittest.TestCase):
         )
         self.assertTrue(Path(session["evidence_path"]).is_file())
         self.assertGreaterEqual(session["evidence_count"], 4)
+
+    def test_session_candidates_exclude_subsessions_and_maintenance_runs(self):
+        workstream = get_workstream(self.connection, 1)
+        bundle = build_candidate_bundle(self.connection, workstream)
+        candidate_ids = {
+            item["id"] for item in bundle["candidate_resources"]["sessions"]
+        }
+
+        self.assertNotIn(self.child_session_id, candidate_ids)
+        self.assertNotIn(self.maintenance_session_id, candidate_ids)
+        self.assertEqual(
+            bundle["policy"]["session_candidates"],
+            {
+                "session_class": "work",
+                "session_role": "primary",
+                "excluded": ["maintenance", "subsession"],
+            },
+        )
+        relation_ids = {
+            relation["resource_id"]
+            for relation in bundle["thread_resource_matches"]
+            if relation["resource_type"] == "session"
+        }
+        self.assertNotIn(self.child_session_id, relation_ids)
+        self.assertNotIn(self.maintenance_session_id, relation_ids)
 
 
 if __name__ == "__main__":

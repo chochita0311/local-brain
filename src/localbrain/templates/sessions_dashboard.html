@@ -17,7 +17,7 @@
       </dl>
       <div class="usage-breakdown-evidence">
         {% if item.evidence_url %}<a class="text-link" href="{{ item.evidence_url }}">{{ item.evidence_label }}</a>{% else %}<small>{{ item.evidence_note }}</small>{% endif %}
-        <small>{{ item.priced_fact_count }}/{{ item.fact_count }} facts priced</small>
+        <small>{{ item.priced_record_count }}/{{ item.usage_record_count }} usage record{% if item.usage_record_count != 1 %}s{% endif %} priced</small>
       </div>
     </div>
   {%- endmacro %}
@@ -196,7 +196,7 @@
                 <strong><i class="source-indicator {{ source.kind }}" aria-hidden="true"></i>{{ source.name }}</strong>
                 <span class="usage-freshness {{ source.status }}">{{ source.status | replace('_', ' ') }}</span>
                 <small>Last successful {% if source.last_successful_at %}<time datetime="{{ source.last_successful_at }}" data-local-time>{{ source.last_successful_at }}</time>{% else %}unavailable{% endif %}</small>
-                <small>{{ source.selected_fact_count }} selected usage facts</small>
+                <small>{{ source.selected_usage_record_count }} selected usage record{% if source.selected_usage_record_count != 1 %}s{% endif %}</small>
                 {% if source.error_count or source.stale_count %}<small>{{ source.error_count }} errors · {{ source.stale_count }} stale files</small>{% endif %}
               </div>
             {% endfor %}
@@ -208,9 +208,9 @@
       <section>
         <h3>Calculation coverage</h3>
         <dl class="usage-calculation-list">
-          <div><dt>Selected usage facts</dt><dd>{{ usage.aggregate.fact_count }}</dd></div>
-          <div><dt>Token coverage</dt><dd>{{ usage.aggregate.token_fact_count }} / {{ usage.aggregate.fact_count }}</dd></div>
-          <div><dt>Estimated-price coverage</dt><dd>{{ usage.aggregate.priced_fact_count }} / {{ usage.aggregate.fact_count }}</dd></div>
+          <div><dt>Selected usage records</dt><dd>{{ usage.aggregate.usage_record_count }}</dd></div>
+          <div><dt>Token coverage</dt><dd>{{ usage.aggregate.token_covered_record_count }} / {{ usage.aggregate.usage_record_count }}</dd></div>
+          <div><dt>Estimated-price coverage</dt><dd>{{ usage.aggregate.priced_record_count }} / {{ usage.aggregate.usage_record_count }}</dd></div>
           <div><dt>Price states</dt><dd>{{ usage.aggregate.calculation_state_label }}</dd></div>
           <div><dt>Last calculation</dt><dd>{% if usage.last_calculated_at %}<time datetime="{{ usage.last_calculated_at }}" data-local-time>{{ usage.last_calculated_at }}</time>{% else %}Unavailable{% endif %}</dd></div>
         </dl>
@@ -219,7 +219,7 @@
     <details class="usage-price-disclosure">
       <summary>How estimated cost is calculated</summary>
       <div>
-        <p>Stored token components are priced once with the model-specific snapshot attached when each fact is first observed. This is a trend estimate, not billed spend.</p>
+        <p>Stored token components are priced once with the model-specific snapshot attached when each usage record is first observed. This is a trend estimate, not billed spend.</p>
         <p>Unsupported models or incomplete token components remain unavailable and are excluded from compatible cost shares.</p>
         <strong>Active snapshots</strong>
         <span>{{ usage.snapshot_labels | join(', ') if usage.snapshot_labels else 'No priced snapshot in this selection' }}</span>

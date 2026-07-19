@@ -1,7 +1,9 @@
 import asyncio
 import hashlib
 import json
+import logging
 import os
+import shlex
 import shutil
 import uuid
 from pathlib import Path
@@ -9,6 +11,7 @@ from typing import Dict, List, Optional
 
 from .config import settings
 from .db import connect, transaction
+from .ingest.scanner import scan_claude_sessions
 from .retrieval import build_candidate_bundle, write_candidate_evidence
 from .workstreams import get_workstream, utc_now
 
@@ -118,6 +121,25 @@ RESULT_SCHEMA = {
 
 _tasks: Dict[str, asyncio.Task] = {}
 _processes: Dict[str, asyncio.subprocess.Process] = {}
+logger = logging.getLogger(__name__)
+
+
+def runner_command_args(executable: str = "claude") -> List[str]:
+    return [
+        executable,
+        "--print",
+        "--output-format",
+        "stream-json",
+        "--verbose",
+        "--permission-mode",
+        "plan",
+        "--json-schema",
+        json.dumps(RESULT_SCHEMA, ensure_ascii=True, separators=(",", ":")),
+    ]
+
+
+def runner_command_preview() -> str:
+    return shlex.join(runner_command_args())
 
 
 def runner_executable() -> Optional[str]:
@@ -130,12 +152,17 @@ def runner_executable() -> Optional[str]:
 
 def task_choices() -> List[dict]:
     return [
-        {"value": key, "label": value["label"], "description": value["description"]}
+        {
+            "value": key,
+            "label": value["label"],
+            "description": value["description"],
+            "instruction": value["instruction"],
+        }
         for key, value in TASK_DEFINITIONS.items()
     ]
 
 
-def _resource_manifest(connection, link: dict) -> dict:
+def _resource_manifest(connection, link: dict) -> Optional[dict]:
     entity_type = link["entity_type"]
     entity_id = str(link.get("resource_id") or link.get("entity_id"))
     base = {
@@ -186,9 +213,20 @@ def _resource_manifest(connection, link: dict) -> dict:
             """,
             (entity_id,),
         ).fetchone()
+    if entity_type == "session" and not row:
+        return None
     if row:
         base.update(dict(row))
     return base
+
+
+def _resource_manifests(connection, links: List[dict]) -> List[dict]:
+    resources = []
+    for link in links:
+        resource = _resource_manifest(connection, link)
+        if resource is not None:
+            resources.append(resource)
+    return resources
 
 
 def _pending_suggestion_manifest(suggestion: dict) -> dict:
@@ -265,9 +303,7 @@ def build_manifest(
             "status": workstream["status"],
             "summary": workstream.get("summary"),
             "checkpoint": workstream.get("checkpoint"),
-            "resources": [
-                _resource_manifest(connection, link) for link in workstream["links"]
-            ],
+            "resources": _resource_manifests(connection, workstream["links"]),
         },
         "threads": [
             {
@@ -277,9 +313,7 @@ def build_manifest(
                 "summary": thread.get("summary"),
                 "current_goal": thread.get("current_goal"),
                 "next_action": thread.get("next_action"),
-                "resources": [
-                    _resource_manifest(connection, link) for link in thread["links"]
-                ],
+                "resources": _resource_manifests(connection, thread["links"]),
             }
             for thread in workstream["threads"]
         ],
@@ -346,6 +380,9 @@ def build_prompt(
 - 이 작업은 읽기 전용이다. 파일, Git, 티켓, 문서, Slack 등 외부 자원을 수정하지 마라.
 - 먼저 manifest의 candidate_resources와 thread_resource_matches를 검토하라. 이는 LocalBrain이
   SQLite/FTS로 계산한 로컬 후보이며 후보 수와 evidence 수에는 하드 제한이 없다.
+- candidate_resources의 Session은 `session_class=work`, `session_role=primary`만 포함한다.
+  maintenance Session, subsession, 현재 또는 이전 Claude Run과 그 subagent 실행을 후보 근거나
+  새 자원으로 다시 포함하지 마라.
 - evidence 본문은 각 candidate의 evidence_path에 분리되어 있다. 관계 판단에 필요한 자원의
   evidence만 열고 같은 파일을 반복해서 읽지 마라.
 - 로컬 세션과 문서를 다시 광범위하게 탐색하지 마라. 후보에 명백한 공백이 있을 때만 해당
@@ -360,8 +397,9 @@ def build_prompt(
   근거는 evidence에 요약하라.
 - MCP는 로컬 후보에서 해결되지 않은 외부 공백을 채울 때만 사용하고 이 Run에서 최대
   {mcp_call_budget}회 호출하라. 동일 검색과 동일 자원 조회를 반복하지 마라.
-- previous_analysis.local_candidate_snapshot_unchanged가 true이면 이전 결과를 재사용하고,
-  변경되었거나 stale 여부가 중요한 외부 근거만 다시 확인하라.
+- previous_analysis는 후보 근거가 아니라 동일한 로컬 후보 snapshot의 이전 분석 cache다.
+  local_candidate_snapshot_unchanged가 true이면 이전 판단을 재사용하고, 변경되었거나 stale
+  여부가 중요한 외부 근거만 다시 확인하라.
 {refresh_instruction}
 
 Context manifest:
@@ -495,17 +533,29 @@ def read_run_output(run) -> str:
     return ""
 
 
-def reconcile_interrupted_runs() -> None:
+def reconcile_interrupted_runs() -> int:
     with transaction() as connection:
-        connection.execute(
+        now = utc_now()
+        rows = connection.execute(
             """
-            UPDATE maintenance_runs
-            SET status = 'interrupted', pid = NULL, completed_at = ?, updated_at = ?,
-                error = COALESCE(error, 'LocalBrain restarted while the run was active.')
+            SELECT id FROM maintenance_runs
             WHERE status IN ('queued', 'running', 'cancelling')
-            """,
-            (utc_now(), utc_now()),
-        )
+              AND task_type IS NOT NULL AND stream_path IS NOT NULL
+            """
+        ).fetchall()
+        for row in rows:
+            _update_run_row(
+                connection,
+                row["id"],
+                status="interrupted",
+                pid=None,
+                completed_at=now,
+                error="LocalBrain restarted while the run was active.",
+            )
+        count = len(rows)
+    if count:
+        _sync_native_claude_sessions()
+    return count
 
 
 def start_run(run_id: str) -> None:
@@ -514,15 +564,58 @@ def start_run(run_id: str) -> None:
     task.add_done_callback(lambda _task: _tasks.pop(run_id, None))
 
 
-def _update_run(run_id: str, **values) -> None:
+def _update_run_row(connection, run_id: str, **values) -> None:
     if not values:
         return
     values["updated_at"] = utc_now()
     assignments = ", ".join("{} = ?".format(key) for key in values)
+    connection.execute(
+        "UPDATE maintenance_runs SET {} WHERE id = ?".format(assignments),
+        tuple(values.values()) + (run_id,),
+    )
+
+
+def _update_run(run_id: str, **values) -> None:
+    if not values:
+        return
     with transaction() as connection:
-        connection.execute(
-            "UPDATE maintenance_runs SET {} WHERE id = ?".format(assignments),
-            tuple(values.values()) + (run_id,),
+        _update_run_row(connection, run_id, **values)
+
+
+def _sync_native_claude_sessions() -> bool:
+    try:
+        scan_claude_sessions()
+    except Exception:
+        logger.exception("Claude Session synchronization failed after a Task Runner run")
+        return False
+    return True
+
+
+def _finalize_run(run_id: str, status: str, **values) -> None:
+    completed_at = values.pop("completed_at", None) or utc_now()
+    with transaction() as connection:
+        _update_run_row(
+            connection,
+            run_id,
+            status=status,
+            completed_at=completed_at,
+            **values,
+        )
+    _sync_native_claude_sessions()
+
+
+def _finalize_failed_run(run_id: str, error: str) -> None:
+    try:
+        _finalize_run(run_id, "failed", pid=None, error=error[-4000:])
+    except Exception as finalization_error:
+        _update_run(
+            run_id,
+            status="failed",
+            pid=None,
+            completed_at=utc_now(),
+            error=("{} · Run finalization failed: {}".format(error, finalization_error))[
+                -4000:
+            ],
         )
 
 
@@ -872,25 +965,11 @@ async def _execute_run(run_id: str) -> None:
             return
         executable = runner_executable()
         if not executable:
-            _update_run(
-                run_id,
-                status="failed",
-                completed_at=utc_now(),
-                error="Claude executable was not found.",
-            )
+            _finalize_failed_run(run_id, "Claude executable was not found.")
             return
         prompt = Path(run["prompt_path"]).read_text(encoding="utf-8")
         process = await asyncio.create_subprocess_exec(
-            executable,
-            "--print",
-            "--no-session-persistence",
-            "--output-format",
-            "stream-json",
-            "--verbose",
-            "--permission-mode",
-            "plan",
-            "--json-schema",
-            json.dumps(RESULT_SCHEMA, ensure_ascii=True, separators=(",", ":")),
+            *runner_command_args(executable),
             cwd=run["cwd"],
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
@@ -898,7 +977,16 @@ async def _execute_run(run_id: str) -> None:
             env={**os.environ, "LOCALBRAIN_RUN_ID": run_id},
         )
         _processes[run_id] = process
-        _update_run(run_id, status="running", pid=process.pid, started_at=utc_now(), error=None)
+        started_at = utc_now()
+        with transaction() as connection:
+            _update_run_row(
+                connection,
+                run_id,
+                status="running",
+                pid=process.pid,
+                started_at=started_at,
+                error=None,
+            )
         process.stdin.write(prompt.encode("utf-8"))
         await process.stdin.drain()
         process.stdin.close()
@@ -922,16 +1010,16 @@ async def _execute_run(run_id: str) -> None:
         with connect() as connection:
             current = get_run(connection, run_id)
         if current and current["status"] in {"cancelling", "cancelled"}:
-            _update_run(
-                run_id, status="cancelled", pid=None, completed_at=utc_now()
-            )
+            _finalize_run(run_id, "cancelled", pid=None)
         elif return_code == 0:
             structured = _structured_result(final_event)
             suggestions_created = 0
             if structured:
                 output = render_structured_result(structured)
                 Path(run["result_path"]).write_text(output, encoding="utf-8")
-                with transaction() as connection:
+            completed_at = utc_now()
+            with transaction() as connection:
+                if structured:
                     if run["refresh_suggestions"]:
                         supersede_runner_suggestions(
                             connection, run["workstream_id"]
@@ -939,44 +1027,40 @@ async def _execute_run(run_id: str) -> None:
                     suggestions_created = persist_structured_suggestions(
                         connection, run_id, run["workstream_id"], structured
                     )
-            _update_run(
-                run_id,
-                status="completed",
-                pid=None,
-                completed_at=utc_now(),
-                summary=output[:2000] or None,
-                structured_result_json=(
-                    json.dumps(structured, ensure_ascii=False) if structured else None
-                ),
-                suggestions_created=suggestions_created,
-                mcp_calls_used=len(mcp_calls),
-                mcp_tool_calls_json=json.dumps(mcp_calls, ensure_ascii=False),
-                mcp_budget_exceeded=int(
-                    len(mcp_calls) > (run["mcp_call_budget"] or 0)
-                ),
-            )
+                _update_run_row(
+                    connection,
+                    run_id,
+                    status="completed",
+                    pid=None,
+                    completed_at=completed_at,
+                    summary=output[:2000] or None,
+                    structured_result_json=(
+                        json.dumps(structured, ensure_ascii=False) if structured else None
+                    ),
+                    suggestions_created=suggestions_created,
+                    mcp_calls_used=len(mcp_calls),
+                    mcp_tool_calls_json=json.dumps(mcp_calls, ensure_ascii=False),
+                    mcp_budget_exceeded=int(
+                        len(mcp_calls) > (run["mcp_call_budget"] or 0)
+                    ),
+                )
+            _sync_native_claude_sessions()
         else:
-            _update_run(
+            _finalize_failed_run(
                 run_id,
-                status="failed",
-                pid=None,
-                completed_at=utc_now(),
-                error=(stderr.strip() or "Claude exited with code {}".format(return_code))[-4000:],
+                (
+                    stderr.strip()
+                    or "Claude exited with code {}".format(return_code)
+                )[-4000:],
             )
     except asyncio.CancelledError:
         if process and process.returncode is None:
             process.terminate()
             await process.wait()
-        _update_run(run_id, status="cancelled", pid=None, completed_at=utc_now())
+        _finalize_run(run_id, "cancelled", pid=None)
         raise
     except Exception as exc:
-        _update_run(
-            run_id,
-            status="failed",
-            pid=None,
-            completed_at=utc_now(),
-            error=str(exc)[-4000:],
-        )
+        _finalize_failed_run(run_id, str(exc))
     finally:
         _processes.pop(run_id, None)
 
@@ -995,7 +1079,7 @@ async def cancel_run(run_id: str) -> bool:
     if task and not task.done():
         task.cancel()
         return True
-    _update_run(run_id, status="cancelled", pid=None, completed_at=utc_now())
+    _finalize_run(run_id, "cancelled", pid=None)
     return True
 
 
@@ -1013,12 +1097,12 @@ async def shutdown_runs() -> None:
         now = utc_now()
         with transaction() as connection:
             for run_id in active_ids:
-                connection.execute(
-                    """
-                    UPDATE maintenance_runs
-                    SET status = 'interrupted', pid = NULL, completed_at = ?,
-                        updated_at = ?, error = 'LocalBrain stopped during the run.'
-                    WHERE id = ? AND status IN ('queued', 'running', 'cancelling')
-                    """,
-                    (now, now, run_id),
+                _update_run_row(
+                    connection,
+                    run_id,
+                    status="interrupted",
+                    pid=None,
+                    completed_at=now,
+                    error="LocalBrain stopped during the run.",
                 )
+        _sync_native_claude_sessions()

@@ -58,6 +58,13 @@ def _format_duration(seconds: int) -> str:
     return "{}m".format(minutes)
 
 
+def _format_usage_record_count(value: int, modifier: str = "") -> str:
+    prefix = "{} ".format(modifier) if modifier else ""
+    return "{:,} {}usage record{}".format(
+        value, prefix, "" if value == 1 else "s"
+    )
+
+
 def _local_date(timestamp: object, zone: ZoneInfo) -> Optional[date]:
     parsed = timestamp if isinstance(timestamp, datetime) else parse_timestamp(timestamp)
     if parsed is None:
@@ -75,13 +82,13 @@ def _earliest_usage_date(
         params.append(source)
     rows = connection.execute(
         """
-        SELECT usage_facts.occurred_at
-        FROM usage_facts
-        JOIN sources ON sources.id = usage_facts.source_id
-        WHERE usage_facts.occurred_at IS NOT NULL
+        SELECT usage_records.occurred_at
+        FROM usage_records
+        JOIN sources ON sources.id = usage_records.source_id
+        WHERE usage_records.occurred_at IS NOT NULL
           AND NOT (
               sources.kind = 'claude'
-              AND COALESCE(usage_facts.raw_model, '') = ?
+              AND COALESCE(usage_records.raw_model, '') = ?
           )
         {source_filter}
         """.format(source_filter=source_filter),
@@ -172,23 +179,23 @@ def _usage_rows(connection: sqlite3.Connection, source: str) -> List[sqlite3.Row
         params.append(source)
     return connection.execute(
         """
-        SELECT usage_facts.*, sources.kind AS source_kind,
+        SELECT usage_records.*, sources.kind AS source_kind,
                sessions.session_class, sessions.session_role, sessions.title AS session_title,
                usage_price_snapshots.label AS price_snapshot_label,
                current_workspace.id AS current_workspace_id,
                current_workspace.exists_now AS current_workspace_exists
-        FROM usage_facts
-        JOIN sources ON sources.id = usage_facts.source_id
-        JOIN sessions ON sessions.id = usage_facts.session_id
+        FROM usage_records
+        JOIN sources ON sources.id = usage_records.source_id
+        JOIN sessions ON sessions.id = usage_records.session_id
         LEFT JOIN usage_price_snapshots
-          ON usage_price_snapshots.id = usage_facts.price_snapshot_id
+          ON usage_price_snapshots.id = usage_records.price_snapshot_id
         LEFT JOIN workspaces AS current_workspace
-          ON current_workspace.id = usage_facts.workspace_id_snapshot
+          ON current_workspace.id = usage_records.workspace_id_snapshot
         WHERE NOT (
             sources.kind = 'claude'
-            AND COALESCE(usage_facts.raw_model, '') = ?
+            AND COALESCE(usage_records.raw_model, '') = ?
         ) {source_filter}
-        ORDER BY usage_facts.occurred_at, usage_facts.id
+        ORDER BY usage_records.occurred_at, usage_records.id
         """.format(source_filter=source_filter),
         tuple(params),
     ).fetchall()
@@ -228,11 +235,11 @@ def _aggregate_rows(rows: Iterable[Tuple[sqlite3.Row, datetime]], zone: ZoneInfo
         states[row["calculation_state"]] += 1
     state_counts = dict(states)
     return {
-        "fact_count": len(rows),
+        "usage_record_count": len(rows),
         "total_tokens": sum(token_values) if token_values else None,
-        "token_fact_count": len(token_values),
+        "token_covered_record_count": len(token_values),
         "estimated_cost": sum(priced_values, Decimal("0")) if priced_values else None,
-        "priced_fact_count": len(priced_values),
+        "priced_record_count": len(priced_values),
         "session_count": len(primary_sessions),
         "active_days": len(active_days),
         "calculation_states": state_counts,
@@ -480,9 +487,9 @@ def _breakdown(
                 "estimated_cost": aggregate["estimated_cost"],
                 "cost_label": _format_cost(aggregate["estimated_cost"]),
                 "session_count": aggregate["session_count"],
-                "fact_count": aggregate["fact_count"],
-                "token_fact_count": aggregate["token_fact_count"],
-                "priced_fact_count": aggregate["priced_fact_count"],
+                "usage_record_count": aggregate["usage_record_count"],
+                "token_covered_record_count": aggregate["token_covered_record_count"],
+                "priced_record_count": aggregate["priced_record_count"],
                 "share": share,
                 "share_label": "Unavailable" if share is None else "{}%".format(format(share.quantize(Decimal("0.1")), "f")),
                 "last_activity_at": max(
@@ -559,8 +566,8 @@ def current_month_projection(
         "input_label": "Unavailable",
         "elapsed_fraction": None,
         "complete_days": (current_day - current_day.replace(day=1)).days,
-        "fact_count": 0,
-        "priced_fact_count": 0,
+        "usage_record_count": 0,
+        "priced_record_count": 0,
         "coverage_state": "unavailable",
         "status": "not_applicable",
         "reason": None,
@@ -573,8 +580,8 @@ def current_month_projection(
         {
             "input_mtd_cost": aggregate["estimated_cost"],
             "input_label": _format_cost(aggregate["estimated_cost"]),
-            "fact_count": aggregate["fact_count"],
-            "priced_fact_count": aggregate["priced_fact_count"],
+            "usage_record_count": aggregate["usage_record_count"],
+            "priced_record_count": aggregate["priced_record_count"],
         }
     )
     if base["complete_days"] < 3:
@@ -585,7 +592,7 @@ def current_month_projection(
             }
         )
         return base
-    if aggregate["fact_count"] == 0:
+    if aggregate["usage_record_count"] == 0:
         base.update(
             {
                 "status": "no_usage",
@@ -627,7 +634,7 @@ def current_month_projection(
 
     coverage_state = (
         "complete"
-        if aggregate["priced_fact_count"] == aggregate["fact_count"]
+        if aggregate["priced_record_count"] == aggregate["usage_record_count"]
         else "partial"
     )
     status = (
@@ -647,7 +654,7 @@ def current_month_projection(
             "coverage_state": coverage_state,
             "status": status,
             "reason": (
-                "Uses compatible priced facts only."
+                "Uses compatible priced usage records only."
                 if coverage_state == "partial"
                 else "Directional estimate from current-month compatible usage."
             ),
@@ -735,21 +742,25 @@ def usage_dashboard_data(
     limitations = []
     if untimed_count:
         limitations.append(
-            "{} usage facts have no usable occurrence time and are excluded from history.".format(
-                untimed_count
+            "{} {} no usable occurrence time and {} excluded from history.".format(
+                _format_usage_record_count(untimed_count),
+                "has" if untimed_count == 1 else "have",
+                "is" if untimed_count == 1 else "are",
             )
         )
-    unavailable_cost_count = aggregate["fact_count"] - aggregate["priced_fact_count"]
-    if aggregate["fact_count"] and unavailable_cost_count:
+    unavailable_cost_count = aggregate["usage_record_count"] - aggregate["priced_record_count"]
+    if aggregate["usage_record_count"] and unavailable_cost_count:
         limitations.append(
-            "Estimated cost covers {} of {} selected usage facts; unsupported or incomplete pricing remains unavailable.".format(
-                aggregate["priced_fact_count"], aggregate["fact_count"]
+            "Estimated cost covers {:,} of {}; unsupported or incomplete pricing remains unavailable.".format(
+                aggregate["priced_record_count"],
+                _format_usage_record_count(aggregate["usage_record_count"], "selected"),
             )
         )
-    if aggregate["fact_count"] and aggregate["token_fact_count"] < aggregate["fact_count"]:
+    if aggregate["usage_record_count"] and aggregate["token_covered_record_count"] < aggregate["usage_record_count"]:
         limitations.append(
-            "Token totals cover {} of {} selected usage facts.".format(
-                aggregate["token_fact_count"], aggregate["fact_count"]
+            "Token totals cover {:,} of {}.".format(
+                aggregate["token_covered_record_count"],
+                _format_usage_record_count(aggregate["usage_record_count"], "selected"),
             )
         )
 
@@ -768,15 +779,16 @@ def usage_dashboard_data(
         {
             "label": "Estimated cost",
             "value": _format_cost(aggregate["estimated_cost"]),
-            "detail": "{} of {} facts priced · trend estimate".format(
-                aggregate["priced_fact_count"], aggregate["fact_count"]
+            "detail": "{:,} of {} priced · trend estimate".format(
+                aggregate["priced_record_count"],
+                _format_usage_record_count(aggregate["usage_record_count"]),
             ),
             "state": "unavailable" if aggregate["estimated_cost"] is None else "default",
         },
         {
             "label": "Total tokens",
             "value": _format_tokens(aggregate["total_tokens"]),
-            "detail": "{} normalized usage facts".format(aggregate["fact_count"]),
+            "detail": _format_usage_record_count(aggregate["usage_record_count"]),
             "state": "unavailable" if aggregate["total_tokens"] is None else "default",
         },
         {
@@ -827,11 +839,11 @@ def usage_dashboard_data(
         ],
     }
     freshness = _freshness(connection, scope["source"])
-    source_fact_counts: DefaultDict[str, int] = defaultdict(int)
+    source_usage_record_counts: DefaultDict[str, int] = defaultdict(int)
     for row, _ in selected_rows:
-        source_fact_counts[row["source_kind"]] += 1
+        source_usage_record_counts[row["source_kind"]] += 1
     for source_row in freshness["sources"]:
-        source_row["selected_fact_count"] = source_fact_counts[source_row["kind"]]
+        source_row["selected_usage_record_count"] = source_usage_record_counts[source_row["kind"]]
     projection = current_month_projection(
         month_rows,
         scope,
@@ -852,9 +864,9 @@ def usage_dashboard_data(
         "activity": activity,
         "history": _history(selected_rows, scope, zone),
         "history_has_values": bool(
-            aggregate["token_fact_count"]
+            aggregate["token_covered_record_count"]
             if scope["metric"] == "tokens"
-            else aggregate["priced_fact_count"]
+            else aggregate["priced_record_count"]
         ),
         "history_title": (
             "Cumulative estimated cost"
@@ -872,7 +884,7 @@ def usage_dashboard_data(
         "last_calculated_at": last_calculated_at,
         "snapshot_labels": snapshot_labels,
         "limitations": limitations,
-        "has_usage": bool(aggregate["fact_count"]),
+        "has_usage": bool(aggregate["usage_record_count"]),
         "empty_kind": "source" if not all_rows else "filtered",
         "clear_date_url": "/sessions-dashboard?{}".format(
             urlencode(

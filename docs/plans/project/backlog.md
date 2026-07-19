@@ -39,7 +39,7 @@ Priority meaning:
 ## P1 - Information Model
 
 - [ ] Validate the boundary between Workstream, Thread, Project, Context Source, Document, Session, and external Resource through daily use.
-- [ ] Review and approve PRD-0003 before implementing the complete ERD, subject-area table catalog, or wider schema cleanup.
+- [x] Review and approve the revised PRD-0003 before establishing the 20-table plus FTS5 baseline, eight subject-area catalogs, local Mermaid contract, `System > Schema` explorer, incremental schema-update guide, or wider schema cleanup.
 - [ ] Add Workstream and Thread merge, split, archive, move, and restore operations without losing history.
 - [ ] Build a unified Workstream timeline across Sessions, documents, Git, tickets, wiki pages, and conversations.
 - [ ] Track Resource freshness, last verification time, evidence, confidence, and review state separately.
@@ -47,6 +47,8 @@ Priority meaning:
 - [ ] Preserve many-to-many Session and Document mappings with relationship-specific evidence.
 - [ ] Keep shared Workstream Resources distinct from Thread-specific Resources in the model and review UI.
 - [ ] Define checkpoint supersession and comparison semantics.
+- <a id="schema-audit-timestamp-contract"></a>[ ] Define one canonical UTC timestamp storage, parsing, precision, comparison, and legacy-preservation contract before normalizing mixed source, Python ISO, and SQLite timestamp text identified by FEAT-0029.
+- <a id="schema-audit-closed-vocabularies"></a>[ ] Approve extensibility and legacy-row handling for closed schema vocabularies before adding CHECK enforcement to Session policy, Context state, organization state, polymorphic target, Suggestion review, Maintenance Run, or FTS projection fields identified by FEAT-0029. FEAT-0031 separately resolved the narrow three-value Usage attribution basis; this item owns the remaining fourteen fields.
 
 ## P1 - Local Contexts
 
@@ -86,11 +88,12 @@ Priority meaning:
 - [ ] Separate local retrieval, external gap filling, synthesis, and review into visible Run stages.
 - [x] Add retry and refresh behavior that preserves accepted and rejected decisions while replacing eligible pending Suggestions.
 - [x] Verify that maintenance Runs and artifacts cannot be re-imported as ordinary Sessions or Local Context documents.
+- [x] Connect every in-app Task Runner Run to its persisted native Claude Maintenance Session and normalize native Usage Records without work-count or retrieval leakage; keep the Runner stream as console/result evidence only.
 - [ ] Add cancellation and shutdown tests proving child processes do not survive unexpectedly.
 
 ## P2 - Dashboard And Workflow
 
-- [x] Implement PRD-0004's source-neutral usage facts, immutable trend-cost snapshots, activity and Project attribution contracts, summary/history, and composition/trust; the later human review retired the visible current-month projection.
+- [x] Implement PRD-0004's source-neutral Usage Records, immutable trend-cost snapshots, activity and Project attribution contracts, summary/history, and composition/trust; the later human review retired the visible current-month projection.
 - [x] Complete RUN-20260718-25 as the superseded first repair: replace Codex latest-per-turn usage, align Claude's bounded cache-create fallback, version normalizer contracts, and prove automatic source-level repair without a reset button.
 - [x] Complete RUN-20260718-26: prefer Codex `last_token_usage`, use cumulative subtraction only as fallback, exclude spawned or forked replay prefixes, resolve dated fallback models, add the approved `fast` trend-price snapshot, and refresh the private local Fact set idempotently.
 - [x] Complete RUN-20260718-27: add immutable model-specific long-context thresholds and rates, calculate the tier per Codex Fact, repair the private Fact set, and match fixed-boundary ccusage monthly cost without a runtime dependency.

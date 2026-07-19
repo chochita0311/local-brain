@@ -16,12 +16,11 @@ class ParsedEvent:
     role: Optional[str] = None
     text: Optional[str] = None
     tool_name: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
-class ParsedUsageFact:
-    fact_id: str
+class ParsedUsageRecord:
+    usage_record_id: str
     source_record_id: str
     source_line: int
     occurred_at: Optional[str]
@@ -58,7 +57,7 @@ class ParsedSession:
     maintenance_run_id: Optional[str] = None
     session_role: str = "primary"
     parent_external_id: Optional[str] = None
-    usage_facts: List[ParsedUsageFact] = field(default_factory=list)
+    usage_records: List[ParsedUsageRecord] = field(default_factory=list)
 
 
 def stable_id(*parts: object) -> str:

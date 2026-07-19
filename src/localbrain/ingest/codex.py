@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional
 from .common import (
     ParsedEvent,
     ParsedSession,
-    ParsedUsageFact,
+    ParsedUsageRecord,
     compact_title,
     read_json_lines,
     session_policy,
@@ -107,7 +107,7 @@ def _update_previous_total_usage(
             previous_total_usage[name] = value
 
 
-def _codex_usage_fact(
+def _codex_usage_record(
     external_id: str,
     line_number: int,
     timestamp: Optional[str],
@@ -115,7 +115,7 @@ def _codex_usage_fact(
     turn_id: Optional[str],
     raw_model: Optional[str],
     previous_usage: Dict[str, int],
-) -> Optional[ParsedUsageFact]:
+) -> Optional[ParsedUsageRecord]:
     info = payload.get("info")
     if not isinstance(info, dict):
         return None
@@ -223,8 +223,8 @@ def _codex_usage_fact(
         turn_id or "unscoped",
         line_number,
     )
-    return ParsedUsageFact(
-        fact_id=stable_id(
+    return ParsedUsageRecord(
+        usage_record_id=stable_id(
             "codex-usage", CODEX_USAGE_CONTRACT_VERSION, external_id, record_identity
         ),
         source_record_id=str(record_identity),
@@ -255,7 +255,7 @@ def parse_codex_session(path: Path) -> ParsedSession:
     first_user_text = ""
     timestamps: List[str] = []
     events: List[ParsedEvent] = []
-    usage_by_record: Dict[str, ParsedUsageFact] = {}
+    usage_by_record: Dict[str, ParsedUsageRecord] = {}
     skipped_lines = 0
     session_meta_seen = False
     primary_started_at: Optional[str] = None
@@ -344,7 +344,7 @@ def parse_codex_session(path: Path) -> ParsedSession:
                 )
                 if parsed_model:
                     current_model = parsed_model
-                usage_fact = _codex_usage_fact(
+                usage_record = _codex_usage_record(
                     external_id,
                     line_number,
                     timestamp if isinstance(timestamp, str) else None,
@@ -354,8 +354,8 @@ def parse_codex_session(path: Path) -> ParsedSession:
                     previous_total_usage,
                 )
                 _update_previous_total_usage(previous_total_usage, payload)
-                if usage_fact:
-                    usage_by_record[usage_fact.source_record_id] = usage_fact
+                if usage_record:
+                    usage_by_record[usage_record.source_record_id] = usage_record
                 continue
             role = None
             text = None
@@ -423,5 +423,5 @@ def parse_codex_session(path: Path) -> ParsedSession:
         maintenance_run_id=maintenance_run_id,
         session_role=session_role,
         parent_external_id=parent_external_id,
-        usage_facts=list(usage_by_record.values()),
+        usage_records=list(usage_by_record.values()),
     )

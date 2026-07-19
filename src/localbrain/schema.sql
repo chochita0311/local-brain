@@ -64,14 +64,25 @@ CREATE TABLE IF NOT EXISTS sessions (
     event_count INTEGER NOT NULL DEFAULT 0,
     user_message_count INTEGER NOT NULL DEFAULT 0,
     assistant_message_count INTEGER NOT NULL DEFAULT 0,
-    session_class TEXT NOT NULL DEFAULT 'work',
+    session_class TEXT NOT NULL DEFAULT 'work'
+        CHECK(session_class IN ('work', 'maintenance')),
     session_role TEXT NOT NULL DEFAULT 'primary'
         CHECK(session_role IN ('primary', 'subsession')),
     parent_external_id TEXT,
     parent_session_id INTEGER REFERENCES sessions(id) ON DELETE SET NULL,
-    index_policy TEXT NOT NULL DEFAULT 'full',
-    maintenance_run_id TEXT,
+    index_policy TEXT NOT NULL DEFAULT 'full'
+        CHECK(index_policy IN ('full', 'metadata_only')),
+    maintenance_run_id TEXT UNIQUE
+        REFERENCES maintenance_runs(id) ON DELETE SET NULL,
     imported_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CHECK(
+        maintenance_run_id IS NULL
+        OR (
+            session_class = 'maintenance'
+            AND session_role = 'primary'
+            AND index_policy = 'metadata_only'
+        )
+    ),
     UNIQUE(source_id, external_id)
 );
 
@@ -85,7 +96,6 @@ CREATE TABLE IF NOT EXISTS activity_events (
     text TEXT,
     tool_name TEXT,
     source_line INTEGER NOT NULL,
-    metadata_json TEXT,
     UNIQUE(session_id, sequence, event_type, source_line)
 );
 
@@ -113,7 +123,7 @@ CREATE TABLE IF NOT EXISTS usage_model_prices (
     PRIMARY KEY(snapshot_id, model_name)
 );
 
-CREATE TABLE IF NOT EXISTS usage_facts (
+CREATE TABLE IF NOT EXISTS usage_records (
     id TEXT PRIMARY KEY,
     source_id INTEGER NOT NULL REFERENCES sources(id) ON DELETE CASCADE,
     session_id INTEGER NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
@@ -334,18 +344,18 @@ CREATE INDEX IF NOT EXISTS idx_sessions_last_event
     ON sessions(last_event_at DESC);
 CREATE INDEX IF NOT EXISTS idx_sessions_workspace
     ON sessions(workspace_id, last_event_at DESC);
-CREATE INDEX IF NOT EXISTS idx_events_session_sequence
-    ON activity_events(session_id, sequence);
-CREATE INDEX IF NOT EXISTS idx_usage_facts_session_time
-    ON usage_facts(session_id, occurred_at);
-CREATE INDEX IF NOT EXISTS idx_usage_facts_source_time
-    ON usage_facts(source_id, occurred_at);
-CREATE INDEX IF NOT EXISTS idx_usage_facts_model_time
-    ON usage_facts(model_name, occurred_at);
+CREATE INDEX IF NOT EXISTS idx_usage_records_session_time
+    ON usage_records(session_id, occurred_at);
+CREATE INDEX IF NOT EXISTS idx_usage_records_source_time
+    ON usage_records(source_id, occurred_at);
+CREATE INDEX IF NOT EXISTS idx_usage_records_model_time
+    ON usage_records(model_name, occurred_at);
 CREATE INDEX IF NOT EXISTS idx_documents_mtime
     ON context_documents(mtime_ns DESC);
-CREATE INDEX IF NOT EXISTS idx_local_resources_path
-    ON local_resources(path);
+CREATE INDEX IF NOT EXISTS idx_documents_source
+    ON context_documents(source_id);
+CREATE INDEX IF NOT EXISTS idx_documents_workspace
+    ON context_documents(workspace_id, mtime_ns DESC);
 CREATE INDEX IF NOT EXISTS idx_threads_workstream
     ON threads(workstream_id, status, position);
 CREATE INDEX IF NOT EXISTS idx_thread_links_entity
@@ -354,5 +364,5 @@ CREATE INDEX IF NOT EXISTS idx_workstream_links_entity
     ON workstream_links(entity_type, entity_id);
 CREATE INDEX IF NOT EXISTS idx_suggestions_target
     ON suggestions(target_type, target_id, status);
-CREATE INDEX IF NOT EXISTS idx_checkpoint_resource_refs
-    ON checkpoint_resource_refs(checkpoint_id, thread_id);
+CREATE INDEX IF NOT EXISTS idx_checkpoints_workstream_version
+    ON checkpoints(workstream_id, version DESC);

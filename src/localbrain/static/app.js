@@ -521,6 +521,18 @@ if (contextExplorer) {
   if (initialSelection) selectDocumentLink(initialSelection.href, initialSelection);
 }
 
+document.querySelectorAll("[data-task-run-form]").forEach((form) => {
+  const taskSelect = form.querySelector("[data-runner-task-select]");
+  const baseRequest = form.querySelector("[data-runner-base-request-text]");
+  if (!taskSelect || !baseRequest) return;
+
+  const syncBaseRequest = () => {
+    baseRequest.textContent = taskSelect.selectedOptions[0]?.dataset.baseRequest || "";
+  };
+  taskSelect.addEventListener("change", syncBaseRequest);
+  syncBaseRequest();
+});
+
 document.querySelectorAll("[data-api-form]").forEach((form) => {
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -628,49 +640,6 @@ document.querySelectorAll("[data-suggestion-action]").forEach((button) => {
       window.location.reload();
     } catch (error) {
       showNotice(error.message);
-      button.disabled = false;
-    }
-  });
-});
-
-document.querySelectorAll("[data-maintenance-run]").forEach((button) => {
-  button.addEventListener("click", async () => {
-    const container = button.parentElement;
-    const marker = container.querySelector("[data-maintenance-marker]");
-    const copyButton = container.querySelector("[data-copy-marker]");
-    button.disabled = true;
-    try {
-      const workstreamId = button.dataset.maintenanceRun || null;
-      const data = await requestJson("/api/maintenance-runs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ workstream_id: workstreamId }),
-      });
-      marker.textContent = data.marker;
-      marker.hidden = false;
-      copyButton.hidden = false;
-      button.textContent = "새 마커 생성";
-    } catch (error) {
-      showNotice(error.message);
-    } finally {
-      button.disabled = false;
-    }
-  });
-});
-
-document.querySelectorAll("[data-copy-marker]").forEach((button) => {
-  button.addEventListener("click", async () => {
-    const marker = button.parentElement.querySelector("[data-maintenance-marker]");
-    button.disabled = true;
-    try {
-      await navigator.clipboard.writeText(marker.textContent);
-      button.textContent = "복사됨";
-      window.setTimeout(() => {
-        button.textContent = "마커 복사";
-        button.disabled = false;
-      }, 1000);
-    } catch (error) {
-      showNotice(`마커를 복사하지 못했습니다: ${error.message}`);
       button.disabled = false;
     }
   });

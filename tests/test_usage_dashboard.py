@@ -3,7 +3,7 @@ import unittest
 from datetime import date, datetime, timezone
 from pathlib import Path
 
-from localbrain.ingest.common import ParsedSession, ParsedUsageFact
+from localbrain.ingest.common import ParsedSession, ParsedUsageRecord
 from localbrain.ingest.scanner import _store_session
 from localbrain.usage_queries import normalize_usage_scope, usage_dashboard_data
 
@@ -11,9 +11,9 @@ from localbrain.usage_queries import normalize_usage_scope, usage_dashboard_data
 SCHEMA_PATH = Path(__file__).parents[1] / "src" / "localbrain" / "schema.sql"
 
 
-def usage_fact(identity, occurred_at, model="gpt-5.5"):
-    return ParsedUsageFact(
-        fact_id="fact-{}".format(identity),
+def usage_record(identity, occurred_at, model="gpt-5.5"):
+    return ParsedUsageRecord(
+        usage_record_id="record-{}".format(identity),
         source_record_id=identity,
         source_line=1,
         occurred_at=occurred_at,
@@ -29,9 +29,9 @@ def usage_fact(identity, occurred_at, model="gpt-5.5"):
     )
 
 
-def synthetic_usage_fact(identity, occurred_at):
-    return ParsedUsageFact(
-        fact_id="fact-{}".format(identity),
+def synthetic_usage_record(identity, occurred_at):
+    return ParsedUsageRecord(
+        usage_record_id="record-{}".format(identity),
         source_record_id=identity,
         source_line=1,
         occurred_at=occurred_at,
@@ -49,11 +49,11 @@ def synthetic_usage_fact(identity, occurred_at):
 
 def parsed_session(
     identity,
-    facts,
+    records,
     session_class="work",
     session_role="primary",
 ):
-    first_time = facts[0].occurred_at if facts else None
+    first_time = records[0].occurred_at if records else None
     return ParsedSession(
         external_id=identity,
         source_path="/tmp/{}.jsonl".format(identity),
@@ -67,7 +67,7 @@ def parsed_session(
         session_class=session_class,
         index_policy="metadata_only" if session_class == "maintenance" else "full",
         session_role=session_role,
-        usage_facts=list(facts),
+        usage_records=list(records),
     )
 
 
@@ -101,7 +101,7 @@ class UsageDashboardTests(unittest.TestCase):
             parsed_session(
                 "claude-primary",
                 [
-                    usage_fact(
+                    usage_record(
                         "claude-primary",
                         "2026-07-01T10:00:00Z",
                         "claude-sonnet-4-6",
@@ -116,8 +116,8 @@ class UsageDashboardTests(unittest.TestCase):
             parsed_session(
                 "codex-primary",
                 [
-                    usage_fact("codex-primary", "2026-07-18T09:00:00Z"),
-                    usage_fact(
+                    usage_record("codex-primary", "2026-07-18T09:00:00Z"),
+                    usage_record(
                         "codex-unpriced", "2026-07-18T09:10:00Z", "future-model"
                     ),
                 ],
@@ -129,7 +129,7 @@ class UsageDashboardTests(unittest.TestCase):
             "codex",
             parsed_session(
                 "codex-maintenance",
-                [usage_fact("codex-maintenance", "2026-07-18T11:00:00Z")],
+                [usage_record("codex-maintenance", "2026-07-18T11:00:00Z")],
                 session_class="maintenance",
                 session_role="subsession",
             ),
@@ -162,10 +162,16 @@ class UsageDashboardTests(unittest.TestCase):
         self.assertEqual(result["aggregate"]["session_count"], 2)
         self.assertEqual(result["aggregate"]["active_days"], 2)
         self.assertEqual(result["activity"]["estimated_active_seconds"], 1200)
-        self.assertEqual(result["aggregate"]["priced_fact_count"], 3)
+        self.assertEqual(result["aggregate"]["priced_record_count"], 3)
         self.assertEqual(result["summary"][0]["value"], "$0.0051")
+        self.assertEqual(
+            result["summary"][0]["detail"],
+            "3 of 4 usage records priced · trend estimate",
+        )
         self.assertEqual(result["summary"][1]["value"], "680")
+        self.assertEqual(result["summary"][1]["detail"], "4 usage records")
         self.assertTrue(any("3 of 4" in item for item in result["limitations"]))
+        self.assertTrue(all("usage facts" not in item for item in result["limitations"]))
         self.assertEqual(result["breakdown"]["mode"], "source")
         self.assertEqual(
             [(row["label"], row["tokens"]) for row in result["breakdown"]["rows"]],
@@ -173,14 +179,29 @@ class UsageDashboardTests(unittest.TestCase):
         )
         self.assertEqual(result["breakdown"]["rows"][0]["share_label"], "75.0%")
 
-    def test_claude_synthetic_facts_stay_stored_but_are_excluded_from_dashboard(self):
+    def test_usage_record_count_copy_handles_singular_values(self):
+        self._seed_usage()
+        result = usage_dashboard_data(
+            self.connection,
+            source="claude",
+            timezone_name="UTC",
+            today=date(2026, 7, 18),
+        )
+
+        self.assertEqual(
+            result["summary"][0]["detail"],
+            "1 of 1 usage record priced · trend estimate",
+        )
+        self.assertEqual(result["summary"][1]["detail"], "1 usage record")
+
+    def test_claude_synthetic_records_stay_stored_but_are_excluded_from_dashboard(self):
         _store_session(
             self.connection,
             self.claude_id,
             "claude",
             parsed_session(
                 "synthetic-primary",
-                [synthetic_usage_fact("synthetic-primary", "2026-06-01T09:00:00Z")],
+                [synthetic_usage_record("synthetic-primary", "2026-06-01T09:00:00Z")],
             ),
         )
         _store_session(
@@ -190,7 +211,7 @@ class UsageDashboardTests(unittest.TestCase):
             parsed_session(
                 "haiku-subsession",
                 [
-                    usage_fact(
+                    usage_record(
                         "haiku-subsession",
                         "2026-07-02T07:20:00Z",
                         "claude-haiku-4-5-20251001",
@@ -201,7 +222,7 @@ class UsageDashboardTests(unittest.TestCase):
         )
 
         stored_synthetic = self.connection.execute(
-            "SELECT COUNT(*) FROM usage_facts WHERE raw_model = '<synthetic>'"
+            "SELECT COUNT(*) FROM usage_records WHERE raw_model = '<synthetic>'"
         ).fetchone()[0]
         result = usage_dashboard_data(
             self.connection,
@@ -213,14 +234,14 @@ class UsageDashboardTests(unittest.TestCase):
 
         self.assertEqual(stored_synthetic, 1)
         self.assertEqual(result["scope"]["from_iso"], "2026-07-02")
-        self.assertEqual(result["aggregate"]["fact_count"], 1)
+        self.assertEqual(result["aggregate"]["usage_record_count"], 1)
         self.assertEqual(result["aggregate"]["total_tokens"], 170)
         self.assertEqual(result["aggregate"]["session_count"], 0)
         self.assertEqual(
             [row["label"] for row in result["breakdown"]["rows"]],
             ["claude-haiku-4-5-20251001"],
         )
-        self.assertEqual(result["breakdown"]["rows"][0]["priced_fact_count"], 1)
+        self.assertEqual(result["breakdown"]["rows"][0]["priced_record_count"], 1)
 
     def test_weekly_cumulative_custom_and_source_scopes_are_deterministic(self):
         self._seed_usage()
@@ -300,7 +321,7 @@ class UsageDashboardTests(unittest.TestCase):
             "codex",
             parsed_session(
                 "future",
-                [usage_fact("future", "2026-07-18T09:00:00Z", "future-model")],
+                [usage_record("future", "2026-07-18T09:00:00Z", "future-model")],
             ),
         )
         unpriced = usage_dashboard_data(
@@ -322,7 +343,7 @@ class UsageDashboardTests(unittest.TestCase):
             parsed_session(
                 "aliased-model",
                 [
-                    usage_fact(
+                    usage_record(
                         "aliased-model",
                         "2026-07-18T12:00:00Z",
                         "openai/gpt-5.5",
@@ -348,12 +369,12 @@ class UsageDashboardTests(unittest.TestCase):
         ).lastrowid
         self.connection.execute(
             """
-            UPDATE usage_facts
+            UPDATE usage_records
             SET workspace_id_snapshot = ?, project_key = 'path:/tmp/original',
                 project_name_snapshot = 'Original name',
                 project_path_snapshot = '/tmp/original',
                 attribution_basis = 'workspace_path'
-            WHERE id = 'fact-claude-primary'
+            WHERE id = 'record-claude-primary'
             """,
             (workspace_id,),
         )
@@ -386,7 +407,7 @@ class UsageDashboardTests(unittest.TestCase):
                 parsed_session(
                     "model-{}".format(index),
                     [
-                        usage_fact(
+                        usage_record(
                             "model-{}".format(index),
                             "2026-07-18T12:{:02d}:00Z".format(index),
                             "future-model-{}".format(index),
@@ -518,7 +539,7 @@ class UsageDashboardTests(unittest.TestCase):
             parsed_session(
                 "only-unpriced",
                 [
-                    usage_fact(
+                    usage_record(
                         "only-unpriced",
                         "2026-07-18T09:00:00Z",
                         "future-model",

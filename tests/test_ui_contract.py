@@ -13,11 +13,16 @@ ROOT = Path(__file__).parents[1]
 STYLES = ROOT / "src" / "localbrain" / "static" / "styles.css"
 SCRIPT = ROOT / "src" / "localbrain" / "static" / "app.js"
 BASE = ROOT / "src" / "localbrain" / "templates" / "base.html"
+DASHBOARD = ROOT / "src" / "localbrain" / "templates" / "dashboard.html"
 CONTEXT = ROOT / "src" / "localbrain" / "templates" / "context.html"
 SESSIONS = ROOT / "src" / "localbrain" / "templates" / "sessions.html"
 SESSION_DETAIL = ROOT / "src" / "localbrain" / "templates" / "session.html"
 SUBAGENT_DETAIL = ROOT / "src" / "localbrain" / "templates" / "subagent.html"
 SESSIONS_DASHBOARD = ROOT / "src" / "localbrain" / "templates" / "sessions_dashboard.html"
+SCHEMA_EXPLORER = ROOT / "src" / "localbrain" / "templates" / "schema.html"
+WORKSTREAM = ROOT / "src" / "localbrain" / "templates" / "workstream.html"
+MAIN = ROOT / "src" / "localbrain" / "main.py"
+SCHEMA_SCRIPT = ROOT / "src" / "localbrain" / "static" / "schema-explorer.js"
 SCHEMA = ROOT / "src" / "localbrain" / "schema.sql"
 
 
@@ -27,11 +32,16 @@ class UiContractTests(unittest.TestCase):
         cls.styles = STYLES.read_text(encoding="utf-8")
         cls.script = SCRIPT.read_text(encoding="utf-8")
         cls.base = BASE.read_text(encoding="utf-8")
+        cls.dashboard = DASHBOARD.read_text(encoding="utf-8")
         cls.context = CONTEXT.read_text(encoding="utf-8")
         cls.sessions = SESSIONS.read_text(encoding="utf-8")
         cls.session_detail = SESSION_DETAIL.read_text(encoding="utf-8")
         cls.subagent_detail = SUBAGENT_DETAIL.read_text(encoding="utf-8")
         cls.sessions_dashboard = SESSIONS_DASHBOARD.read_text(encoding="utf-8")
+        cls.schema_explorer = SCHEMA_EXPLORER.read_text(encoding="utf-8")
+        cls.workstream = WORKSTREAM.read_text(encoding="utf-8")
+        cls.main = MAIN.read_text(encoding="utf-8")
+        cls.schema_script = SCHEMA_SCRIPT.read_text(encoding="utf-8")
 
     def test_component_rules_do_not_use_raw_colors(self):
         token_end = self.styles.index("\n}\n\n* { box-sizing")
@@ -107,6 +117,91 @@ class UiContractTests(unittest.TestCase):
         self.assertIn('aria-current="page"', self.base)
         self.assertIn('data-toast-region aria-live="polite"', self.base)
 
+    def test_task_runner_shows_base_request_and_exact_command_contract(self):
+        for marker in (
+            "data-task-run-form",
+            "data-runner-task-select",
+            'data-base-request="{{ task.instruction }}"',
+            "data-runner-base-request-text",
+            "기본 요청",
+            "실제 명령",
+            "{{ runner_command }}",
+            "stdin으로 전달됩니다",
+            "sessions · work/primary only",
+        ):
+            self.assertIn(marker, self.workstream)
+        for behavior in (
+            'document.querySelectorAll("[data-task-run-form]")',
+            'taskSelect.addEventListener("change", syncBaseRequest)',
+            "taskSelect.selectedOptions[0]?.dataset.baseRequest",
+        ):
+            self.assertIn(behavior, self.script)
+        for style in (
+            ".runner-base-request { grid-column: 1 / -1;",
+            ".runner-request-copy p {",
+            ".runner-command-preview pre { max-width: 100%;",
+            "overflow-x: auto;",
+        ):
+            self.assertIn(style, self.styles)
+
+    def test_marker_creation_ui_and_api_are_removed(self):
+        for content in (self.dashboard, self.workstream, self.script, self.main):
+            self.assertNotIn("data-maintenance-run", content)
+            self.assertNotIn("data-copy-marker", content)
+            self.assertNotIn("/api/maintenance-runs", content)
+            self.assertNotIn("실행 마커 생성", content)
+
+    def test_schema_extends_the_shell_and_explorer_family_without_custom_system(self):
+        sources_position = self.base.index(">07</span><span>Sources</span>")
+        schema_position = self.base.index(">08</span><span>Schema</span>")
+        self.assertLess(sources_position, schema_position)
+        self.assertIn("active_page == 'schema'", self.base)
+        self.assertIn('href="/schema"', self.base)
+
+        for marker in (
+            "data-schema-explorer",
+            'data-schema-focus="page"',
+            'data-schema-focus="area"',
+            'data-schema-focus="table"',
+            "data-schema-link",
+            'aria-current="page"',
+            'data-localbrain-mermaid="owned"',
+            "data-localbrain-mermaid-source",
+            "data-schema-source-json",
+            "data-schema-diagram-fallback",
+            "schema-table-title",
+            "schema-contract-grid",
+            "schema-column-list",
+            "schema-relation-groups",
+            "schema-explorer.js",
+            "asset_version",
+        ):
+            self.assertIn(marker, self.schema_explorer)
+
+        for behavior in (
+            "AbortController",
+            "new DOMParser()",
+            "outgoing.replaceWith(adopted)",
+            "window.history.pushState",
+            'window.addEventListener("popstate"',
+            "schemaFocusTarget",
+            'destination.searchParams.has("table")',
+            "focus({ preventScroll: true })",
+            'scrollIntoView({ block: "start", inline: "nearest" })',
+            "window.location.assign(destination.href)",
+            "await import(adapterUrl)",
+            "JSON.parse(source.textContent)",
+            "renderLocalBrainMermaid",
+        ):
+            self.assertIn(behavior, self.schema_script)
+
+        for responsive_rule in (
+            ".schema-layout { grid-template-columns: 1fr; }",
+            ".schema-subject-links { grid-template-columns: repeat(2, minmax(0, 1fr)); }",
+            ".schema-subject-links, .schema-table-links, .schema-contract-grid, .schema-relation-groups { grid-template-columns: 1fr; }",
+        ):
+            self.assertIn(responsive_rule, self.styles)
+
     def test_usage_dashboard_keeps_one_summary_and_history_family(self):
         for marker in (
             'class="overview-metrics usage-summary"',
@@ -133,6 +228,22 @@ class UiContractTests(unittest.TestCase):
         self.assertNotIn("Allocation", self.sessions_dashboard)
         self.assertNotIn("budget", self.sessions_dashboard.lower())
         self.assertNotIn("quota", self.sessions_dashboard.lower())
+
+        for copy in (
+            "usage record{% if item.usage_record_count != 1 %}s{% endif %} priced",
+            "selected usage record{% if source.selected_usage_record_count != 1 %}s{% endif %}",
+            "Selected usage records",
+            "each usage record is first observed",
+        ):
+            self.assertIn(copy, self.sessions_dashboard)
+        self.assertNotIn("usage facts", self.sessions_dashboard.lower())
+        self.assertNotIn("facts priced", self.sessions_dashboard.lower())
+        self.assertNotIn("each fact", self.sessions_dashboard.lower())
+        self.assertIn(".usage-summary { grid-template-columns: 1fr; }", self.styles)
+        self.assertIn(
+            ".usage-summary .overview-metric:last-child { border-bottom: var(--border-width-none); }",
+            self.styles,
+        )
 
     def test_usage_dashboard_does_not_render_month_end_projection(self):
         connection = sqlite3.connect(":memory:")

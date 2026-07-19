@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional
 from .common import (
     ParsedEvent,
     ParsedSession,
-    ParsedUsageFact,
+    ParsedUsageRecord,
     compact_title,
     read_json_lines,
     session_policy,
@@ -24,12 +24,12 @@ def _message_content(record: Dict[str, Any]) -> Any:
     return message
 
 
-def _claude_usage_fact(
+def _claude_usage_record(
     external_id: str,
     line_number: int,
     timestamp: Optional[str],
     record: Dict[str, Any],
-) -> Optional[ParsedUsageFact]:
+) -> Optional[ParsedUsageRecord]:
     message = record.get("message")
     if not isinstance(message, dict):
         return None
@@ -141,8 +141,8 @@ def _claude_usage_fact(
         or stable_id("claude-usage-line", external_id, line_number)
     )
     source_record_id = str(record_identity)
-    return ParsedUsageFact(
-        fact_id=stable_id("claude-usage", external_id, source_record_id),
+    return ParsedUsageRecord(
+        usage_record_id=stable_id("claude-usage", external_id, source_record_id),
         source_record_id=source_record_id,
         source_line=line_number,
         occurred_at=timestamp,
@@ -171,7 +171,7 @@ def parse_claude_session(path: Path) -> ParsedSession:
     first_user_text = ""
     timestamps: List[str] = []
     events: List[ParsedEvent] = []
-    usage_by_record: Dict[str, ParsedUsageFact] = {}
+    usage_by_record: Dict[str, ParsedUsageRecord] = {}
     skipped_lines = 0
     is_subsession = path.parent.name == "subagents"
     parent_external_id = path.parent.parent.name if is_subsession else None
@@ -230,20 +230,20 @@ def parse_claude_session(path: Path) -> ParsedSession:
 
         message = record.get("message")
         if record_type == "assistant":
-            usage_fact = _claude_usage_fact(
+            usage_record = _claude_usage_record(
                 external_id,
                 line_number,
                 timestamp if isinstance(timestamp, str) else None,
                 record,
             )
-            if usage_fact:
-                previous = usage_by_record.get(usage_fact.source_record_id)
+            if usage_record:
+                previous = usage_by_record.get(usage_record.source_record_id)
                 if not (
                     previous
                     and previous.capability_state != "malformed"
-                    and usage_fact.capability_state == "malformed"
+                    and usage_record.capability_state == "malformed"
                 ):
-                    usage_by_record[usage_fact.source_record_id] = usage_fact
+                    usage_by_record[usage_record.source_record_id] = usage_record
         content = message.get("content") if isinstance(message, dict) else None
         if record_type == "assistant" and isinstance(content, list):
             for offset, item in enumerate(content, start=1):
@@ -289,5 +289,5 @@ def parse_claude_session(path: Path) -> ParsedSession:
         maintenance_run_id=maintenance_run_id,
         session_role="subsession" if is_subsession else "primary",
         parent_external_id=parent_external_id,
-        usage_facts=list(usage_by_record.values()),
+        usage_records=list(usage_by_record.values()),
     )

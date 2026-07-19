@@ -1,6 +1,5 @@
 import json
 import sqlite3
-import uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional
@@ -43,11 +42,13 @@ from .runner import (
     prepare_run,
     read_run_output,
     reconcile_interrupted_runs,
+    runner_command_preview,
     runner_executable,
     shutdown_runs,
     start_run,
     task_choices,
 )
+from .schema_explorer import schema_explorer_page_data
 from .subagents import list_subagents, load_subagent
 from .usage_queries import usage_dashboard_data
 from .workstreams import (
@@ -68,7 +69,6 @@ from .workstreams import (
     resolve_suggestion,
     update_thread,
     update_workstream,
-    utc_now,
 )
 
 
@@ -130,10 +130,6 @@ class LocalResourceCreate(BaseModel):
     scope_type: str
     scope_id: int
     relation_type: str = Field(default="reference", min_length=1, max_length=80)
-
-
-class MaintenanceRunCreate(BaseModel):
-    workstream_id: Optional[int] = None
 
 
 class TaskRunCreate(BaseModel):
@@ -245,6 +241,7 @@ def show_workstream(request: Request, workstream_id: int):
             "runs": runs,
             "task_choices": task_choices(),
             "runner_available": bool(runner_executable()),
+            "runner_command": runner_command_preview(),
             "runner_cwd": str(Path.home()),
             "runner_mcp_budget": settings.mcp_call_budget,
         },
@@ -460,6 +457,22 @@ def sources_page(request: Request):
             "active_page": "sources",
             "sources": sources,
             "database_path": str(settings.database_path),
+        },
+    )
+
+
+@app.get("/schema", response_class=HTMLResponse)
+def schema_page(
+    request: Request,
+    area: Optional[str] = Query(default=None),
+    table: Optional[str] = Query(default=None),
+):
+    return templates.TemplateResponse(
+        "schema.html",
+        {
+            "request": request,
+            "active_page": "schema",
+            "schema_view": schema_explorer_page_data(area=area, table=table),
         },
     )
 
@@ -867,42 +880,6 @@ def api_resolve_suggestion(suggestion_id: int, action: str):
     except (ValueError, LookupError, KeyError) as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return {"ok": True}
-
-
-@app.post("/api/maintenance-runs")
-def api_create_maintenance_run(payload: MaintenanceRunCreate):
-    run_id = "lb-{}".format(uuid.uuid4().hex[:12])
-    with transaction() as connection:
-        connection.execute(
-            """
-            INSERT INTO maintenance_runs(
-                id, workstream_id, runner, cwd, status, started_at, updated_at
-            ) VALUES (?, ?, 'claude', ?, 'prepared', ?, ?)
-            """,
-            (
-                run_id,
-                payload.workstream_id,
-                str(Path.home()),
-                utc_now(),
-                utc_now(),
-            ),
-        )
-        target = None
-        if payload.workstream_id:
-            target = get_workstream(connection, payload.workstream_id)
-    target_text = ""
-    if target:
-        target_text = "\n대상 Workstream: {} (LocalBrain #{})".format(
-            target["name"], target["id"]
-        )
-    marker = (
-        "[LOCALBRAIN_RUN: {run_id}]\n"
-        "[MODE: maintenance]\n"
-        "LocalBrain의 작업 우선순위와 Dashboard 갱신안을 검토해줘. "
-        "원본 자원을 다시 복제하지 말고 변경점, 제안, 체크포인트 후보만 정리해줘."
-        "{target_text}"
-    ).format(run_id=run_id, target_text=target_text)
-    return {"ok": True, "run_id": run_id, "marker": marker}
 
 
 @app.post("/api/workstreams/{workstream_id}/runs")

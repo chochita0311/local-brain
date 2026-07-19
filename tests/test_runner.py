@@ -1,10 +1,13 @@
 import json
+import shlex
 import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from localbrain.runner import (
+    _finalize_run,
     _extract_text,
     _extract_tool_uses,
     _is_mcp_tool,
@@ -12,7 +15,11 @@ from localbrain.runner import (
     persist_structured_suggestions,
     prepare_run,
     render_structured_result,
+    reconcile_interrupted_runs,
+    runner_command_args,
+    runner_command_preview,
     supersede_runner_suggestions,
+    task_choices,
 )
 from localbrain.workstreams import resolve_suggestion
 
@@ -80,6 +87,147 @@ class RunnerTests(unittest.TestCase):
         self.assertIn("검색 필터 관련 자원을 우선 확인", prompt)
         self.assertIn("MCP", prompt)
         self.assertIn("제안 갱신 모드", prompt)
+        self.assertIn(task_choices()[0]["instruction"], prompt)
+        self.assertIn("session_class=work", prompt)
+        self.assertIn("현재 또는 이전 Claude Run과 그 subagent 실행", prompt)
+        self.assertIn("이전 분석 cache", prompt)
+        maintenance_session = self.connection.execute(
+            "SELECT * FROM sessions WHERE maintenance_run_id = ?", (run_id,)
+        ).fetchone()
+        self.assertIsNone(maintenance_session)
+
+    def test_manifest_excludes_linked_subsessions_and_maintenance_sessions(self):
+        source_id = self.connection.execute(
+            "INSERT INTO sources(kind, name, root_path) VALUES ('claude', 'Claude', '/tmp')"
+        ).lastrowid
+        work_id = self.connection.execute(
+            """
+            INSERT INTO sessions(
+                source_id, external_id, source_path, title, session_class,
+                session_role, last_event_at
+            ) VALUES (?, 'work-primary', '/tmp/work.jsonl', 'Work primary',
+                      'work', 'primary', '2026-07-14T01:00:00Z')
+            """,
+            (source_id,),
+        ).lastrowid
+        child_id = self.connection.execute(
+            """
+            INSERT INTO sessions(
+                source_id, external_id, source_path, title, session_class,
+                session_role, parent_session_id, last_event_at
+            ) VALUES (?, 'work-child', '/tmp/child.jsonl', 'Work child',
+                      'work', 'subsession', ?, '2026-07-14T02:00:00Z')
+            """,
+            (source_id, work_id),
+        ).lastrowid
+        maintenance_id = self.connection.execute(
+            """
+            INSERT INTO sessions(
+                source_id, external_id, source_path, title, session_class,
+                session_role, last_event_at
+            ) VALUES (?, 'runner-session', '/tmp/runner.jsonl', 'Claude Run',
+                      'maintenance', 'primary', '2026-07-14T03:00:00Z')
+            """,
+            (source_id,),
+        ).lastrowid
+        for session_id in (work_id, child_id, maintenance_id):
+            self.connection.execute(
+                """
+                INSERT INTO thread_links(
+                    thread_id, entity_type, entity_id, relation_type
+                ) VALUES (1, 'session', ?, 'evidence')
+                """,
+                (str(session_id),),
+            )
+        self.connection.commit()
+
+        run_id = prepare_run(
+            self.connection, 1, "organize_resources", run_root=self.run_root
+        )
+        manifest_path = self.connection.execute(
+            "SELECT manifest_path FROM maintenance_runs WHERE id = ?", (run_id,)
+        ).fetchone()["manifest_path"]
+        manifest = json.loads(Path(manifest_path).read_text(encoding="utf-8"))
+        linked_session_ids = {
+            int(resource["entity_id"])
+            for resource in manifest["threads"][0]["resources"]
+            if resource["entity_type"] == "session"
+        }
+
+        self.assertEqual(linked_session_ids, {work_id})
+        self.assertNotIn(child_id, linked_session_ids)
+        self.assertNotIn(maintenance_id, linked_session_ids)
+
+    def test_task_choices_expose_the_base_request_for_every_task(self):
+        choices = task_choices()
+        self.assertTrue(choices)
+        self.assertTrue(all(choice["instruction"].strip() for choice in choices))
+
+    def test_runner_command_uses_native_session_persistence_and_shared_preview(self):
+        arguments = runner_command_args()
+        self.assertEqual(arguments[0], "claude")
+        self.assertIn("--print", arguments)
+        self.assertIn("--output-format", arguments)
+        self.assertIn("stream-json", arguments)
+        self.assertNotIn("--no-session-persistence", arguments)
+        self.assertEqual(runner_command_preview(), shlex.join(arguments))
+
+    def test_terminal_finalization_syncs_native_claude_sessions(self):
+        run_id = prepare_run(
+            self.connection, 1, "organize_resources", run_root=self.run_root
+        )
+        def transaction_context():
+            class Context:
+                def __enter__(inner_self):
+                    return self.connection
+
+                def __exit__(inner_self, *_args):
+                    self.connection.commit()
+
+            return Context()
+
+        with patch("localbrain.runner.transaction", transaction_context), patch(
+            "localbrain.runner._sync_native_claude_sessions", return_value=True
+        ) as sync:
+            _finalize_run(run_id, "completed", pid=None)
+        self.assertEqual(
+            self.connection.execute(
+                "SELECT status FROM maintenance_runs WHERE id = ?", (run_id,)
+            ).fetchone()["status"],
+            "completed",
+        )
+        sync.assert_called_once_with()
+
+    def test_interrupted_recovery_syncs_native_claude_sessions(self):
+        run_id = prepare_run(
+            self.connection, 1, "organize_resources", run_root=self.run_root
+        )
+        self.connection.execute(
+            "UPDATE maintenance_runs SET status = 'running' WHERE id = ?", (run_id,)
+        )
+        self.connection.commit()
+
+        def transaction_context():
+            class Context:
+                def __enter__(inner_self):
+                    return self.connection
+
+                def __exit__(inner_self, *_args):
+                    self.connection.commit()
+
+            return Context()
+
+        with patch("localbrain.runner.transaction", transaction_context), patch(
+            "localbrain.runner._sync_native_claude_sessions", return_value=True
+        ) as sync:
+            self.assertEqual(reconcile_interrupted_runs(), 1)
+        self.assertEqual(
+            self.connection.execute(
+                "SELECT status FROM maintenance_runs WHERE id = ?", (run_id,)
+            ).fetchone()["status"],
+            "interrupted",
+        )
+        sync.assert_called_once_with()
 
     def test_extracts_assistant_and_final_result_text(self):
         self.assertEqual(

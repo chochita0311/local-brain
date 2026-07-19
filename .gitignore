@@ -18,6 +18,12 @@ exports/
 artifacts/
 playwright-report/
 test-results/
+node_modules/
+.npm/
+.cache/
+.parcel-cache/
+.playwright/
+playwright/.cache/
 *.db
 *.db-*
 *.sqlite

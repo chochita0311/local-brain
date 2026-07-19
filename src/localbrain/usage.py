@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Dict, Iterable, Optional, Tuple
 
-from .ingest.common import ParsedUsageFact
+from .ingest.common import ParsedUsageRecord
 
 
 DEFAULT_PRICE_SNAPSHOT_ID = "ccusage-20.0.14-litellm-20260718"
@@ -206,20 +206,20 @@ def _price_row(
 
 
 def calculate_estimated_cost(
-    fact: ParsedUsageFact,
+    record: ParsedUsageRecord,
     price_row: Optional[sqlite3.Row],
 ) -> Tuple[str, Optional[str]]:
-    if fact.capability_state == "malformed":
+    if record.capability_state == "malformed":
         return "failed", None
     if price_row is None:
         return "unpriced", None
-    if fact.input_tokens is None or fact.output_tokens is None:
+    if record.input_tokens is None or record.output_tokens is None:
         return "partial", None
 
     threshold = price_row["long_context_threshold_tokens"]
-    if threshold is not None and fact.cache_read_tokens is None:
+    if threshold is not None and record.cache_read_tokens is None:
         return "partial", None
-    context_input_tokens = fact.input_tokens + (fact.cache_read_tokens or 0)
+    context_input_tokens = record.input_tokens + (record.cache_read_tokens or 0)
     long_context = threshold is not None and context_input_tokens > threshold
 
     def selected_rate(base_column: str, long_context_column: str) -> Optional[str]:
@@ -240,12 +240,12 @@ def calculate_estimated_cost(
     if input_rate is None or output_rate is None:
         return "partial", None
     components = [
-        (fact.input_tokens, input_rate),
-        (fact.output_tokens, output_rate),
+        (record.input_tokens, input_rate),
+        (record.output_tokens, output_rate),
     ]
     for tokens, base_rate, component_rate in (
         (
-            fact.cache_write_tokens,
+            record.cache_write_tokens,
             price_row["cache_write_usd_per_million"],
             selected_rate(
                 "cache_write_usd_per_million",
@@ -253,7 +253,7 @@ def calculate_estimated_cost(
             ),
         ),
         (
-            fact.cache_read_tokens,
+            record.cache_read_tokens,
             price_row["cache_read_usd_per_million"],
             selected_rate(
                 "cache_read_usd_per_million",
@@ -334,18 +334,18 @@ def _attribution_snapshot(
     }
 
 
-def store_usage_facts(
+def store_usage_records(
     connection: sqlite3.Connection,
     source_id: int,
     session_id: int,
-    usage_facts: Iterable[ParsedUsageFact],
+    usage_records: Iterable[ParsedUsageRecord],
     workspace_id: Optional[int] = None,
     normalizer_version: str = "legacy-v1",
 ) -> None:
     ensure_default_price_snapshot(connection)
-    facts = sorted(list(usage_facts), key=lambda item: (item.source_line, item.fact_id))
+    records = sorted(list(usage_records), key=lambda item: (item.source_line, item.usage_record_id))
     existing_rows = connection.execute(
-        "SELECT * FROM usage_facts WHERE session_id = ? ORDER BY source_line, id",
+        "SELECT * FROM usage_records WHERE session_id = ? ORDER BY source_line, id",
         (session_id,),
     ).fetchall()
     existing_by_id = {row["id"]: row for row in existing_rows}
@@ -353,41 +353,41 @@ def store_usage_facts(
         row["normalizer_version"] != normalizer_version for row in existing_rows
     )
 
-    def reference_row(fact: ParsedUsageFact) -> Optional[sqlite3.Row]:
-        exact = existing_by_id.get(fact.fact_id)
+    def reference_row(record: ParsedUsageRecord) -> Optional[sqlite3.Row]:
+        exact = existing_by_id.get(record.usage_record_id)
         if exact is not None:
             return exact
         if not contract_changed:
             return None
-        prior = [row for row in existing_rows if row["source_line"] <= fact.source_line]
+        prior = [row for row in existing_rows if row["source_line"] <= record.source_line]
         if prior:
             return max(prior, key=lambda row: (row["source_line"], row["id"]))
         if existing_rows:
             return min(existing_rows, key=lambda row: (row["source_line"], row["id"]))
         return None
 
-    connection.execute("SAVEPOINT usage_fact_reconcile")
+    connection.execute("SAVEPOINT usage_record_reconcile")
     try:
-        for fact in facts:
-            existing = existing_by_id.get(fact.fact_id)
-            reference = reference_row(fact)
+        for record in records:
+            existing = existing_by_id.get(record.usage_record_id)
+            reference = reference_row(record)
             if (
                 existing
                 and existing["capability_state"] != "malformed"
-                and fact.capability_state == "malformed"
+                and record.capability_state == "malformed"
             ):
                 continue
 
-            snapshot_id = fact.price_snapshot_id or (
+            snapshot_id = record.price_snapshot_id or (
                 reference["price_snapshot_id"]
                 if reference and reference["price_snapshot_id"]
                 else DEFAULT_PRICE_SNAPSHOT_ID
             )
-            model_name = normalize_model(fact.normalized_model or fact.raw_model)
+            model_name = normalize_model(record.normalized_model or record.raw_model)
             price = _price_row(connection, snapshot_id, model_name)
             calculator_version = _snapshot_calculator_version(connection, snapshot_id)
             calculation_state, estimated_cost_usd = calculate_estimated_cost(
-                fact, price
+                record, price
             )
             if reference:
                 attribution = {
@@ -412,21 +412,21 @@ def store_usage_facts(
                 and all(
                     existing[column] == value
                     for column, value in (
-                        ("raw_model", fact.raw_model),
-                        ("input_tokens", fact.input_tokens),
-                        ("output_tokens", fact.output_tokens),
-                        ("cache_write_tokens", fact.cache_write_tokens),
-                        ("cache_read_tokens", fact.cache_read_tokens),
-                        ("reasoning_tokens", fact.reasoning_tokens),
-                        ("source_total_tokens", fact.source_total_tokens),
-                        ("total_tokens", fact.total_tokens),
+                        ("raw_model", record.raw_model),
+                        ("input_tokens", record.input_tokens),
+                        ("output_tokens", record.output_tokens),
+                        ("cache_write_tokens", record.cache_write_tokens),
+                        ("cache_read_tokens", record.cache_read_tokens),
+                        ("reasoning_tokens", record.reasoning_tokens),
+                        ("source_total_tokens", record.source_total_tokens),
+                        ("total_tokens", record.total_tokens),
                     )
                 )
                 else utc_now()
             )
             connection.execute(
                 """
-                INSERT INTO usage_facts(
+                INSERT INTO usage_records(
                     id, source_id, session_id, source_record_id, source_line,
                     occurred_at, raw_model, model_name, input_tokens, output_tokens,
                     cache_write_tokens, cache_read_tokens, reasoning_tokens,
@@ -464,25 +464,25 @@ def store_usage_facts(
                     imported_at = excluded.imported_at
                 """,
                 (
-                    fact.fact_id,
+                    record.usage_record_id,
                     source_id,
                     session_id,
-                    fact.source_record_id,
-                    fact.source_line,
-                    fact.occurred_at,
-                    fact.raw_model,
+                    record.source_record_id,
+                    record.source_line,
+                    record.occurred_at,
+                    record.raw_model,
                     model_name,
-                    fact.input_tokens,
-                    fact.output_tokens,
-                    fact.cache_write_tokens,
-                    fact.cache_read_tokens,
-                    fact.reasoning_tokens,
-                    fact.source_total_tokens,
-                    fact.total_tokens,
-                    fact.total_semantics,
-                    fact.aggregation_scope,
-                    fact.capability_state,
-                    json.dumps(fact.capability, ensure_ascii=False, sort_keys=True),
+                    record.input_tokens,
+                    record.output_tokens,
+                    record.cache_write_tokens,
+                    record.cache_read_tokens,
+                    record.reasoning_tokens,
+                    record.source_total_tokens,
+                    record.total_tokens,
+                    record.total_semantics,
+                    record.aggregation_scope,
+                    record.capability_state,
+                    json.dumps(record.capability, ensure_ascii=False, sort_keys=True),
                     calculation_state,
                     estimated_cost_usd,
                     snapshot_id,
@@ -501,36 +501,36 @@ def store_usage_facts(
             )
 
     except Exception:
-        connection.execute("ROLLBACK TO usage_fact_reconcile")
-        connection.execute("RELEASE usage_fact_reconcile")
+        connection.execute("ROLLBACK TO usage_record_reconcile")
+        connection.execute("RELEASE usage_record_reconcile")
         raise
     else:
-        connection.execute("RELEASE usage_fact_reconcile")
+        connection.execute("RELEASE usage_record_reconcile")
 
 
-def reconcile_usage_fact_contract(
+def reconcile_usage_record_contract(
     connection: sqlite3.Connection,
     source_id: int,
-    expected_fact_ids: Iterable[str],
+    expected_usage_record_ids: Iterable[str],
 ) -> None:
     connection.execute(
         """
-        CREATE TEMP TABLE IF NOT EXISTS expected_usage_fact_ids (
+        CREATE TEMP TABLE IF NOT EXISTS expected_usage_record_ids (
             id TEXT PRIMARY KEY
         )
         """
     )
-    connection.execute("DELETE FROM expected_usage_fact_ids")
+    connection.execute("DELETE FROM expected_usage_record_ids")
     connection.executemany(
-        "INSERT OR IGNORE INTO expected_usage_fact_ids(id) VALUES (?)",
-        ((fact_id,) for fact_id in expected_fact_ids),
+        "INSERT OR IGNORE INTO expected_usage_record_ids(id) VALUES (?)",
+        ((usage_record_id,) for usage_record_id in expected_usage_record_ids),
     )
     connection.execute(
         """
-        DELETE FROM usage_facts
+        DELETE FROM usage_records
         WHERE source_id = ?
-          AND id NOT IN (SELECT id FROM expected_usage_fact_ids)
+          AND id NOT IN (SELECT id FROM expected_usage_record_ids)
         """,
         (source_id,),
     )
-    connection.execute("DELETE FROM expected_usage_fact_ids")
+    connection.execute("DELETE FROM expected_usage_record_ids")

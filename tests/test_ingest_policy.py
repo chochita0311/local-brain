@@ -65,3 +65,44 @@ class IngestPolicyTests(unittest.TestCase):
             self.connection.execute("SELECT COUNT(*) FROM search_index").fetchone()[0],
             0,
         )
+        self.assertEqual(
+            self.connection.execute("SELECT COUNT(*) FROM maintenance_runs").fetchone()[0],
+            0,
+        )
+        self.assertIsNone(session["maintenance_run_id"])
+
+    def test_registered_marker_cannot_link_two_sessions_to_one_run(self):
+        run_id = "lb-123456789abc"
+        self.connection.execute(
+            "INSERT INTO maintenance_runs(id, status) VALUES (?, 'prepared')", (run_id,)
+        )
+
+        def marker_session(external_id: str) -> ParsedSession:
+            return ParsedSession(
+                external_id=external_id,
+                source_path="/tmp/{}.jsonl".format(external_id),
+                cwd_raw="/tmp",
+                git_branch=None,
+                title="LocalBrain maintenance",
+                started_at="2026-07-19T00:00:00Z",
+                ended_at="2026-07-19T00:01:00Z",
+                last_event_at="2026-07-19T00:01:00Z",
+                events=[],
+                session_class="maintenance",
+                index_policy="metadata_only",
+                maintenance_run_id=run_id,
+            )
+
+        _store_session(
+            self.connection,
+            self.source_id,
+            "codex",
+            marker_session("maintenance-one"),
+        )
+        with self.assertRaises(sqlite3.IntegrityError):
+            _store_session(
+                self.connection,
+                self.source_id,
+                "codex",
+                marker_session("maintenance-two"),
+            )

@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %}Schema · LocalBrain{% endblock %}
+{% block page_location %}Schema{% endblock %}
+{% block content %}
+  {% set view = schema_view %}
+  <section class="schema-explorer-page" data-schema-explorer aria-busy="false" data-mermaid-adapter-url="{{ url_for('static', path='/mermaid-adapter.js') }}?v={{ asset_version | default('dev') }}">
+    <header class="page-heading schema-page-heading">
+      <div>
+        <p class="eyebrow">SYSTEM MODEL</p>
+        <h1 tabindex="-1" data-schema-focus="page">Schema</h1>
+        {% if view.available and view.selected_table %}
+          <p class="heading-copy"><code>{{ view.selected_table.id }}</code>의 구조, 관계, 수명주기와 복구 계약</p>
+        {% elif view.available and view.selected_subject %}
+          <p class="heading-copy">{{ view.selected_subject.label }} 영역의 구조와 소유 테이블</p>
+        {% else %}
+          <p class="heading-copy">LocalBrain의 전체 데이터 구조와 주제별 소유 경계</p>
+        {% endif %}
+      </div>
+    </header>
+
+    {% if not view.available %}
+      <section class="schema-unavailable" data-schema-error="{{ view.error_code }}" aria-labelledby="schema-unavailable-title">
+        <p class="eyebrow">UNAVAILABLE</p>
+        <h2 id="schema-unavailable-title">Schema 설명을 표시할 수 없습니다</h2>
+        <p>{{ view.message }}</p>
+      </section>
+    {% else %}
+      {% if view.notice %}
+        <p class="schema-notice" role="status" data-schema-notice="{{ view.notice.code }}">{{ view.notice.message }}</p>
+      {% endif %}
+
+      <section class="metric-band compact schema-metrics" aria-label="스키마 기준선 요약">
+        <div class="metric"><strong>{{ view.baseline.object_count }}</strong><span>Schema objects</span></div>
+        <div class="metric"><strong>{{ view.baseline.subject_count }}</strong><span>Subject areas</span></div>
+        <div class="metric"><strong>{{ view.baseline.physical_foreign_key_count }}</strong><span>Physical relations</span></div>
+        <div class="metric"><strong>{{ view.baseline.explicit_index_count }}</strong><span>Explicit indexes</span></div>
+      </section>
+
+      <div class="schema-layout">
+        <aside class="schema-subject-rail" aria-label="Schema 주제 영역">
+          <div class="schema-rail-heading">
+            <span>Model areas</span>
+            <code>{{ view.baseline.id }}</code>
+          </div>
+          <nav class="schema-subject-links">
+            <a class="schema-subject-link {% if view.mode == 'global' %}active{% endif %}" href="{{ view.global_href }}" data-schema-link {% if view.mode == 'global' %}aria-current="page"{% endif %}>
+              <span><strong>Global model</strong><small>전체 객체와 교차 영역 관계</small></span>
+              <b>{{ view.baseline.object_count }}</b>
+            </a>
+            {% for subject in view.subjects %}
+              <a class="schema-subject-link {% if subject.current %}active{% endif %}" href="{{ subject.href }}" data-schema-link {% if subject.current %}aria-current="page"{% endif %}>
+                <span><strong>{{ subject.label }}</strong><small>{{ subject.table_ids | length }} objects</small></span>
+                <b>{{ loop.index }}</b>
+              </a>
+            {% endfor %}
+          </nav>
+        </aside>
+
+        <div class="schema-main-canvas">
+          <section class="schema-panel schema-diagram-panel" aria-labelledby="schema-diagram-title" data-schema-diagram-mode="{{ 'global' if view.mode == 'global' else 'subject' }}">
+            <header class="schema-panel-heading">
+              <div>
+                <p class="eyebrow">RELATIONSHIP MAP</p>
+                <h2 id="schema-diagram-title" tabindex="-1" data-schema-focus="area">{{ view.diagram_label }}</h2>
+                {% if view.mode == 'global' %}<p class="schema-diagram-hint">넓은 전체 모델은 이 패널 안에서 좌우로 이동할 수 있습니다.</p>{% endif %}
+              </div>
+              <div class="schema-relation-legend" aria-label="관계 표기 범례">
+                <span><i class="solid" aria-hidden="true"></i>Physical FK</span>
+                <span><i class="dotted" aria-hidden="true"></i>Application</span>
+              </div>
+            </header>
+            <div class="schema-diagram-scroll">
+              <div class="schema-diagram" data-localbrain-mermaid="owned">
+                <p class="schema-diagram-fallback" data-schema-diagram-fallback>다이어그램을 표시할 수 없습니다. 주제 및 테이블 링크로 같은 구조를 확인할 수 있습니다.</p>
+                <script type="text/plain" data-localbrain-mermaid-source data-schema-source-json>{{ view.diagram | tojson }}</script>
+              </div>
+            </div>
+          </section>
+
+          {% if view.selected_subject %}
+            <section class="schema-panel schema-table-index" aria-labelledby="schema-table-index-title">
+              <header class="schema-panel-heading">
+                <div>
+                  <p class="eyebrow">OWNED OBJECTS</p>
+                  <h2 id="schema-table-index-title">{{ view.selected_subject.label }}</h2>
+                </div>
+                <span class="schema-count">{{ view.area_tables | length }} objects</span>
+              </header>
+              <nav class="schema-table-links" aria-label="{{ view.selected_subject.label }} 테이블">
+                {% for table in view.area_tables %}
+                  <a class="schema-table-link {% if table.current %}active{% endif %}" href="{{ table.href }}" data-schema-link {% if table.current %}aria-current="page"{% endif %}>
+                    <span><code>{{ table.id }}</code><small>{{ table.purpose }}</small></span>
+                    <b>{{ table.column_count }} columns</b>
+                  </a>
+                {% endfor %}
+              </nav>
+            </section>
+          {% endif %}
+
+          {% if view.selected_table %}
+            {% set table = view.selected_table %}
+            <article class="schema-panel schema-table-detail" aria-labelledby="schema-table-title">
+              <header class="schema-table-title">
+                <div>
+                  <p class="eyebrow">{{ table.kind | upper }} · {{ view.selected_subject.label }}</p>
+                  <h2 id="schema-table-title" tabindex="-1" data-schema-focus="table"><code>{{ table.id }}</code></h2>
+                  <p class="schema-purpose-label">Purpose and authority</p>
+                  <p>{{ table.semantics.purpose_and_authority }}</p>
+                </div>
+                <span class="schema-lifecycle">{{ table.semantics.rebuildability }}</span>
+              </header>
+
+              <dl class="schema-contract-grid">
+                <div><dt>Lifecycle</dt><dd><strong>{{ table.semantics['class'] }}</strong>{{ table.semantics.lifecycle_contract }}</dd></div>
+                <div><dt>Producers</dt><dd>{{ table.semantics.producers }}</dd></div>
+                <div><dt>Consumers</dt><dd>{{ table.semantics.consumers }}</dd></div>
+                <div><dt>Deletion effect</dt><dd>{{ table.semantics.deletion_effect }}</dd></div>
+                <div><dt>Recovery</dt><dd>{{ table.semantics.recovery_path }}</dd></div>
+                <div><dt>DDL ownership</dt><dd>{{ table.semantics.schema_ownership }}</dd></div>
+              </dl>
+
+              <section class="schema-detail-section" aria-labelledby="schema-columns-title">
+                <div class="schema-detail-heading"><h3 id="schema-columns-title">Columns</h3><span>{{ table.columns | length }}</span></div>
+                <div class="schema-column-list">
+                  {% for column in table.columns %}
+                    <div class="schema-column-row">
+                      <code>{{ column.name }}</code>
+                      <div class="schema-column-shape">
+                        <span>{{ column.type or 'ANY' }}</span>
+                        {% if column.primary_key_position %}<span>PK {{ column.primary_key_position }}</span>{% endif %}
+                        <span>{{ 'Required' if column.not_null else 'Nullable' }}</span>
+                        {% if column.default_sql is not none %}<span>Default {{ column.default_sql }}</span>{% endif %}
+                      </div>
+                      <p>{{ column.semantic_contract }}</p>
+                    </div>
+                  {% endfor %}
+                </div>
+              </section>
+
+              <section class="schema-detail-section" aria-labelledby="schema-constraints-title">
+                <div class="schema-detail-heading"><h3 id="schema-constraints-title">Keys and constraints</h3></div>
+                <p class="schema-detail-copy">{{ table.constraints.documented }}</p>
+                <dl class="schema-compact-list">
+                  <div><dt>Primary key</dt><dd>{{ table.constraints.primary_key | join(', ') if table.constraints.primary_key else 'None' }}</dd></div>
+                  <div><dt>Unique groups</dt><dd>{% if table.constraints.unique %}{% for group in table.constraints.unique %}<code>{{ group | join(', ') }}</code>{% if not loop.last %}, {% endif %}{% endfor %}{% else %}None{% endif %}</dd></div>
+                  <div><dt>Checks</dt><dd>{% if table.constraints.checks %}{% for check in table.constraints.checks %}<code>{{ check }}</code>{% if not loop.last %}<br>{% endif %}{% endfor %}{% else %}None{% endif %}</dd></div>
+                </dl>
+              </section>
+
+              <section class="schema-detail-section" aria-labelledby="schema-indexes-title">
+                <div class="schema-detail-heading"><h3 id="schema-indexes-title">Explicit indexes</h3><span>{{ table.indexes | length }}</span></div>
+                {% if table.indexes %}
+                  <div class="schema-index-list">
+                    {% for index in table.indexes %}
+                      <div><code>{{ index.name }}</code><span>{% for column in index.columns %}{{ column.name }}{{ ' DESC' if column.descending else '' }}{% if not loop.last %}, {% endif %}{% endfor %}</span><small>{{ 'Unique' if index.unique else 'Non-unique' }}{{ ' · Partial' if index.partial else '' }}</small></div>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <p class="schema-detail-copy">명시적으로 이름이 지정된 인덱스가 없습니다.</p>
+                {% endif %}
+              </section>
+
+              <section class="schema-detail-section" aria-labelledby="schema-relations-title">
+                <div class="schema-detail-heading"><h3 id="schema-relations-title">Relationships</h3><span>{{ view.relationships.physical | length + view.relationships.application | length }}</span></div>
+                <div class="schema-relation-groups">
+                  <div>
+                    <h4>Physical foreign keys</h4>
+                    {% for relation in view.relationships.physical %}
+                      <p><code>{{ relation.source_table }}.{{ relation.source_columns | join(', ') }}</code> → <code>{{ relation.target_table }}.{{ relation.target_columns | join(', ') }}</code><small>ON UPDATE {{ relation.on_update }} · ON DELETE {{ relation.on_delete }}</small></p>
+                    {% else %}
+                      <p class="schema-detail-copy">직접 연결된 physical foreign key가 없습니다.</p>
+                    {% endfor %}
+                  </div>
+                  <div>
+                    <h4>Application-enforced</h4>
+                    {% for relation in view.relationships.application %}
+                      <p><code>{{ relation.source_table }}</code> ·· <code>{{ relation.target_table }}</code><small>{{ relation.label }} · {{ relation.source_cardinality }} / {{ relation.target_cardinality }}</small></p>
+                    {% else %}
+                      <p class="schema-detail-copy">직접 연결된 application relation이 없습니다.</p>
+                    {% endfor %}
+                  </div>
+                </div>
+              </section>
+            </article>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+    <p class="sr-only" data-schema-status role="status" aria-live="polite" aria-atomic="true"></p>
+  </section>
+{% endblock %}
+{% block scripts %}
+  <script type="module" src="{{ url_for('static', path='/schema-explorer.js') }}?v={{ asset_version | default('dev') }}"></script>
+{% endblock %}
