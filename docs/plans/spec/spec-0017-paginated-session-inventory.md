@@ -13,11 +13,11 @@
 - Surface Lane: backend read model → frontend inventory and disclosure → route/interaction integration
 - Required Evaluators: `contract`, `design`, `functional`, `ux-heuristic`
 - Created: `2026-07-17`
-- Updated: `2026-07-17`
+- Updated: `2026-07-19`
 
 ## Source Set
 
-- Human request: show Sessions 15 at a time, use responsive compact numbered pagination, remove redundant source text, display local path/branch/questions/events, and expose subagent Sessions through a conditional right-edge dropdown while retaining the detail Subagents section.
+- Human request: show Sessions 15 at a time, use responsive compact numbered pagination, remove redundant source text, display local path/branch/questions/events, and expose child Sessions through a conditional right-edge dropdown while retaining the detail Subsessions section.
 - Passed FEAT-0015 hierarchy contract and FEAT-0016 combined destination.
 - Current rendered Session inventory, Product Model, Design Constitution, Design Evaluation, and Interaction Evaluation.
 - screen-alignment `extend` mode using the existing browse and inventory family.
@@ -42,7 +42,7 @@
 
 ## Out-Of-Scope Behavior
 
-- Page-size selection, sorting controls, infinite scroll, nested hierarchy, detail event filtering, Project aggregation, Search/statistics policy, or changes to parent detail Subagents.
+- Page-size selection, sorting controls, infinite scroll, nested hierarchy, detail event filtering, Project aggregation, Search/statistics policy, or changes to parent detail Subsessions.
 
 ## Affected Surfaces
 
@@ -109,7 +109,7 @@
 - Filter-preserving movement and invalid recovery map to route parsing and canonical redirects.
 - Concise metadata maps to the row template and accessible provenance label.
 - One-depth child disclosure maps to the same-source parent FK query and sibling interaction structure.
-- Parent detail preservation maps to no changes in the current detail Subagents template path.
+- Parent detail preservation maps to no changes in the current detail Subsessions presentation path.
 
 ## Evaluation Focus
 
@@ -127,3 +127,4 @@
 - `2026-07-17`: approved for sequential execution after FEAT-0015 and FEAT-0016 passed; screen-alignment mode is `extend`.
 - `2026-07-17`: Attempt 3 revised only the approved pagination and disclosure presentation contract; the 20-item LIMIT/OFFSET semantics and one-depth relation remained unchanged.
 - `2026-07-17`: Attempt 4 changed the approved page size to 15 and split desktop and narrow page-item arrays while retaining LIMIT/OFFSET, filters, and one-depth relation semantics.
+- `2026-07-19`: post-run human review aligned the preserved parent-detail child label with the source-neutral `Subsession` product term.

@@ -1,0 +1,25 @@
+{% macro conversation_message(event, user_label, assistant_label) -%}
+  <article class="event-row {{ event.role }}">
+    <div class="event-rail"><span></span></div>
+    <div class="event-content">
+      <div class="event-header">
+        <strong>{{ user_label if event.role == 'user' else assistant_label }}</strong>
+        <time datetime="{{ event.occurred_at }}" data-local-time>{{ event.occurred_at or '' }}</time>
+      </div>
+      {% if event.text %}
+        {% if event.rendered_body is defined %}
+          {% if event.render_properties %}
+            <dl class="markdown-properties conversation-markdown-properties" aria-label="메시지 속성">
+              {% for property in event.render_properties %}
+                <div><dt>{{ property.name }}</dt><dd>{{ property.value }}</dd></div>
+              {% endfor %}
+            </dl>
+          {% endif %}
+          <div class="event-text markdown-body" data-conversation-markdown>{{ event.rendered_body }}</div>
+        {% else %}
+          <div class="event-text">{{ event.text }}</div>
+        {% endif %}
+      {% endif %}
+    </div>
+  </article>
+{%- endmacro %}

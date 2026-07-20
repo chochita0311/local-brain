@@ -1,27 +1,7 @@
 {% extends "base.html" %}
+{% from "_context_tree.html" import render_context_tree %}
 {% block title %}Local Contexts · LocalBrain{% endblock %}
 {% block page_location %}Local Contexts{% endblock %}
-{% macro render_tree(nodes, source_id, selected_document_id, depth=0) %}
-  <ul class="source-tree-list depth-{{ depth }}">
-    {% for node in nodes %}
-      {% if node.kind == 'directory' %}
-        <li class="source-tree-directory">
-          <details {% if depth == 0 %}open{% endif %}>
-            <summary><span class="tree-symbol">▸</span><strong>{{ node.name }}</strong></summary>
-            {{ render_tree(node.children, source_id, selected_document_id, depth + 1) }}
-          </details>
-        </li>
-      {% else %}
-        <li class="source-tree-document">
-          <a class="{% if selected_document_id == node.id %}active{% endif %}" href="/context?root={{ source_id }}&document={{ node.id }}" title="{{ node.relative_path }}" data-context-document-link {% if selected_document_id == node.id %}aria-current="page"{% endif %}>
-            <span class="tree-file-symbol">{{ 'N' if node.content_type == 'application/x-apple-note' else ('P' if node.content_type == 'application/pdf+text' else 'F') }}</span>
-            <span>{{ node.name }}</span>
-          </a>
-        </li>
-      {% endif %}
-    {% endfor %}
-  </ul>
-{% endmacro %}
 {% block content %}
   <section class="page-heading context-page-heading">
     <div>
@@ -43,7 +23,7 @@
         <h2>Folders</h2>
         {% for source in folders %}
           <div class="context-root-row {% if not source.exists_now or source.status == 'error' %}missing{% endif %}">
-            <a class="filter-item {% if selected_source and selected_source.id == source.id %}active{% endif %}" href="/context?root={{ source.id }}" title="{{ source.path }}">
+            <a class="filter-item {% if selected_source and selected_source.id == source.id %}active{% endif %}" href="/context?root={{ source.id }}" title="{{ source.path }}" data-context-folder-source-link>
               <span><strong>{{ source.label }}</strong><small>{{ source.display_path }}</small></span><b>{{ source.document_count }}</b>
             </a>
             <button class="context-root-remove" type="button" title="인덱스에서 Source 제거" aria-label="{{ source.label }} Source 제거" data-delete-context-source="{{ source.id }}">&times;</button>
@@ -93,11 +73,11 @@
         <div><h2>{{ selected_source.label if selected_source else 'Source 없음' }}</h2><p>{{ selected_source.display_path if selected_source else '-' }}</p></div>
         {% if selected_source %}<span class="source-status {{ selected_source.status }}">{{ selected_source.status }}</span>{% endif %}
       </div>
-      <div class="context-explorer-body">
-        <aside class="source-tree-pane">
+      <div class="context-explorer-body" data-context-split>
+        <aside class="source-tree-pane" id="context-source-tree">
           <div class="pane-heading"><span>Source tree</span><strong>{{ selected_source.document_count if selected_source else 0 }}</strong></div>
           {% if tree and selected_source %}
-            {{ render_tree(tree, selected_source.id, selected_document.id if selected_document else none) }}
+            {{ render_context_tree(tree, selected_source.id, selected_document.id if selected_document else none) }}
           {% elif selected_source and selected_source.error %}
             <div class="tree-empty"><p>{{ selected_source.error }}</p></div>
           {% else %}
@@ -105,13 +85,44 @@
           {% endif %}
         </aside>
 
-        <article class="context-preview-pane" data-context-preview aria-busy="false">
+        <div
+          class="context-pane-separator"
+          role="separator"
+          tabindex="0"
+          aria-label="Source tree와 Markdown 미리보기 너비 조절"
+          aria-orientation="vertical"
+          aria-controls="context-source-tree context-markdown-preview"
+          aria-valuemin="220"
+          aria-valuemax="480"
+          aria-valuenow="300"
+          aria-valuetext="Source tree 300 pixels"
+          data-context-pane-separator
+          data-default-size="300"
+          data-min-size="220"
+          data-max-size="480"
+          data-keyboard-step="16"
+        ></div>
+
+        <article class="context-preview-pane" id="context-markdown-preview" data-context-preview data-context-document-id="{{ selected_document.id if selected_document else '' }}" aria-busy="false">
           {% if selected_document %}
             <header class="context-preview-heading">
               <div><span>{{ selected_document.content_type }}</span><h2>{{ selected_document.title }}</h2><p>{{ selected_document.relative_path }}</p></div>
               <a class="text-link" href="/documents/{{ selected_document.id }}">전체 화면</a>
             </header>
-            <div class="context-preview-body">{{ selected_document.body }}</div>
+            <div class="context-preview-content">
+              {% if selected_document.render_properties %}
+                <dl class="markdown-properties" aria-label="문서 속성">
+                  {% for property in selected_document.render_properties %}
+                    <div><dt>{{ property.name }}</dt><dd>{{ property.value }}</dd></div>
+                  {% endfor %}
+                </dl>
+              {% endif %}
+              {% if selected_document.render_state == 'empty' %}
+                <div class="context-preview-empty"><p>문서 내용 없음</p></div>
+              {% else %}
+                <div class="context-preview-body markdown-body" data-markdown-body>{{ selected_document.rendered_body }}</div>
+              {% endif %}
+            </div>
           {% else %}
             <div class="context-preview-empty"><p>선택된 문서 없음</p></div>
           {% endif %}

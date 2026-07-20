@@ -1,31 +1,57 @@
 {% extends "base.html" %}
+{% from "_context_tree.html" import render_context_tree %}
 {% block title %}{{ document.title }} · LocalBrain{% endblock %}
 {% block page_location %}Local Contexts{% endblock %}
 {% block content %}
-  <a class="back-link" href="/context">Local Contexts로 돌아가기</a>
-  <section class="document-heading">
-    <p class="eyebrow">{{ 'APPLE NOTE' if document.content_type == 'application/x-apple-note' else 'LOCAL CONTEXT' }}</p>
-    <h1>{{ document.title }}</h1>
-    <p class="heading-copy path-copy">{{ document.path }}</p>
-  </section>
+  <div class="document-reader{% if has_context_tree %} has-context-tree{% endif %}" data-document-reader data-document-reader-source-id="{{ context_source.id if context_source else '' }}">
+    <a class="back-link" href="{{ return_href }}" data-document-reader-return>Local Contexts로 돌아가기</a>
+    <div class="document-reader-layout">
+      {% if has_context_tree %}
+        <aside class="document-reader-tree" id="document-reader-tree" data-document-reader-tree>
+          <div class="pane-heading"><span>Source tree</span><strong>{{ context_source.document_count }}</strong></div>
+          {{ render_context_tree(context_tree, context_source.id, document.id, 'document') }}
+        </aside>
+      {% endif %}
 
-  <section class="detail-strip document-details">
-    <div><span>소스</span><strong>{{ document.context_root_label or document.source_name }}</strong></div>
-    <div><span>상대 경로</span><strong>{{ document.relative_path }}</strong></div>
-    <div><span>크기</span><strong>{{ document.size_bytes }} bytes</strong></div>
-  </section>
+      <section class="document-reader-content" data-document-reader-content data-document-id="{{ document.id }}" aria-busy="false">
+        <section class="document-heading">
+          <p class="eyebrow">{{ 'APPLE NOTE' if document.content_type == 'application/x-apple-note' else 'LOCAL CONTEXT' }}</p>
+          <h1>{{ document.title }}</h1>
+          <p class="heading-copy path-copy">{{ document.path }}</p>
+        </section>
 
-  {% if memberships %}
-    <section class="membership-strip">
-      <span>연결된 작업</span>
-      {% for membership in memberships %}<a href="/workstreams/{{ membership.workstream_id }}"><strong>{{ membership.workstream_name }}</strong>{% if membership.thread_title %}<small>{{ membership.thread_title }}</small>{% endif %}</a>{% endfor %}
-    </section>
-  {% endif %}
+        <section class="detail-strip document-details">
+          <div><span>소스</span><strong>{{ document.context_root_label or document.source_name }}</strong></div>
+          <div><span>상대 경로</span><strong>{{ document.relative_path }}</strong></div>
+          <div><span>크기</span><strong>{{ document.size_bytes }} bytes</strong></div>
+        </section>
 
-  <article class="document-view">
-    <div class="document-view-header">
-      <span>{{ document.content_type }} 원문</span>
+        {% if memberships %}
+          <section class="membership-strip">
+            <span>연결된 작업</span>
+            {% for membership in memberships %}<a href="/workstreams/{{ membership.workstream_id }}"><strong>{{ membership.workstream_name }}</strong>{% if membership.thread_title %}<small>{{ membership.thread_title }}</small>{% endif %}</a>{% endfor %}
+          </section>
+        {% endif %}
+
+        <article class="document-view">
+          <div class="document-view-header"><span>{{ document.content_type }} 원문</span></div>
+          <div class="document-reading-content">
+            {% if document.render_properties %}
+              <dl class="markdown-properties" aria-label="문서 속성">
+                {% for property in document.render_properties %}
+                  <div><dt>{{ property.name }}</dt><dd>{{ property.value }}</dd></div>
+                {% endfor %}
+              </dl>
+            {% endif %}
+            {% if document.render_state == 'empty' %}
+              <div class="document-reading-empty"><p>문서 내용 없음</p></div>
+            {% else %}
+              <div class="document-reading-body markdown-body" data-markdown-body>{{ document.rendered_body }}</div>
+            {% endif %}
+          </div>
+        </article>
+      </section>
     </div>
-    <div class="document-body">{{ document.body }}</div>
-  </article>
+    <p class="sr-only" data-document-reader-status role="status" aria-live="polite" aria-atomic="true"></p>
+  </div>
 {% endblock %}

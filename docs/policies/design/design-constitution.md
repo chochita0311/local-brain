@@ -127,6 +127,11 @@ Primitive tokens are raw constants. They do not describe components or screen ro
   --color-amber-700: #875a00;
   --color-red-100: #feeceb;
   --color-red-700: #b42318;
+  --color-code-blue-500: #9bbcf4;
+  --color-code-cyan-500: #8fd3df;
+  --color-code-green-500: #9ed6bd;
+  --color-code-amber-500: #f0c36e;
+  --color-code-violet-500: #c8b6e8;
 
   /* Source provenance */
   --color-claude-100: #f9ece7;
@@ -227,6 +232,8 @@ Components consume semantic roles only. Color, type, spacing, radius, elevation,
   --surface-navigation: var(--color-neutral-950);
   --surface-navigation-active: var(--color-neutral-900);
   --surface-code: var(--color-neutral-1000);
+  --surface-code-reading: var(--color-neutral-950);
+  --surface-code-reading-header: var(--color-neutral-900);
   --surface-overlay: var(--color-neutral-0);
   --surface-scrim: var(--color-black-35);
 
@@ -254,12 +261,20 @@ Components consume semantic roles only. Color, type, spacing, radius, elevation,
   --text-danger: var(--color-red-700);
   --text-source-claude: var(--color-claude-700);
   --text-source-codex: var(--color-codex-700);
+  --text-code-reading: var(--color-neutral-100);
+  --text-code-muted: var(--color-neutral-550);
+  --text-code-keyword: var(--color-code-blue-500);
+  --text-code-name: var(--color-code-cyan-500);
+  --text-code-string: var(--color-code-green-500);
+  --text-code-number: var(--color-code-amber-500);
+  --text-code-attribute: var(--color-code-violet-500);
 
   /* Borders, dividers, and focus */
   --border-subtle: var(--color-neutral-450);
   --border-default: var(--color-neutral-700);
   --border-strong: var(--color-neutral-800);
   --border-navigation: var(--color-neutral-900);
+  --border-code-reading: var(--color-neutral-800);
   --border-brand: var(--color-brand-500);
   --border-info: var(--color-blue-600);
   --border-success: var(--color-green-600);
@@ -551,6 +566,7 @@ Running and working indicators may animate with motion tokens. Under `prefers-re
 
 - Paths, identifiers, source excerpts, and Run output use mono type roles.
 - The Run console uses `--surface-code`, `--text-inverse`, reading line height, and an independently scrollable output region inside the page.
+- Markdown reading code uses the separate `--surface-code-reading`, `--surface-code-reading-header`, and `--text-code-*` roles. Its calmer syntax palette supports sustained reading and does not repurpose brand, status, provenance, or Run-console semantics.
 - Console status, cancellation, errors, and completion remain outside or above the output stream so they do not disappear in long logs.
 - Raw local paths wrap or truncate safely and never force the page wider than its container.
 
@@ -618,7 +634,7 @@ Any durable change to visual DNA, primitive families, semantic roles, shell geom
 |---|---|---|
 | Overview and dashboard | Dashboard, Sessions Dashboard | summary must lead to underlying Workstreams, Sessions, Sources, or evidence; metrics are not decorative |
 | Browse and inventory | Workstreams, Sessions, Projects, Sources, Atlassian, Search | supports filtering, long labels, empty results, source identity, and stable row/card metadata |
-| Detail and read | Session, subagent, Document, local Resource | prioritizes readable body width, source metadata, deep links, and long technical content |
+| Detail and read | Session, Subsession, Document, local Resource | prioritizes readable body width, source metadata, deep links, and long technical content |
 | Workstream workspace | Workstream detail | preserves Workstream → Thread → evidence hierarchy and separates confirmed organization from Suggestions |
 | Explorer | Local Contexts, Schema | preserves source or subject selection, tree or table orientation, progressive preview, unreadable, missing, and diagram-unavailable states |
 | Run and console | maintenance Run | represents the complete Run lifecycle, cancellation, output, artifacts, and terminal result |

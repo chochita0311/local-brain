@@ -91,6 +91,10 @@ Priority meaning:
 - [x] Connect every in-app Task Runner Run to its persisted native Claude Maintenance Session and normalize native Usage Records without work-count or retrieval leakage; keep the Runner stream as console/result evidence only.
 - [ ] Add cancellation and shutdown tests proving child processes do not survive unexpectedly.
 
+## P2 - Reading And Context Polish
+
+- <a id="markdown-image-and-attachment-rendering"></a>[ ] Add safe Markdown image and attachment rendering after PRD-0006's core text and Obsidian-syntax reader stabilizes, covering source-contained relative assets, missing files, root-escape rejection, remote-loading policy, responsive containment, and safe fallbacks for unsupported embeds.
+
 ## P2 - Dashboard And Workflow
 
 - [x] Implement PRD-0004's source-neutral Usage Records, immutable trend-cost snapshots, activity and Project attribution contracts, summary/history, and composition/trust; the later human review retired the visible current-month projection.
@@ -110,7 +114,7 @@ Priority meaning:
 
 - [x] Close PRD-0004's combined Sessions Dashboard rendered evidence gap at `1440`, `920`, `700`, and exact mobile-emulated `320`, covering scope controls, four-metric band, 30-day chart scrolling, long Model/Project labels, native disclosures, trust states, and in-place scroll continuity with synthetic data.
 - [ ] Close FEAT-0019's direct rendered evidence gap at `1440`, `700`, and `320`, including selector geometry, same-row containment, and the Session-only source summary.
-- [ ] Recheck the Sessions `동기화` action from the current browser after a warm-cache revisit, then complete the human post-run acceptance or return decision for PRD-0002.
+- [ ] Capture the Sessions `동기화` working, success, failure, focus, and scope-preservation states from a browser after a warm-cache revisit; versioned assets, local HTTP synchronization, and human PRD-0002 acceptance are complete, so this is non-blocking regression evidence.
 - [ ] Add an official `localbrain serve` CLI subcommand with default host and port, an opt-in development reload flag, and a documented install/run-from-anywhere path so personal shell aliases are not required.
 - [ ] Add browser-level tests for Workstream, Thread, source browsing, Suggestion review, and Run workflows.
 - [ ] Build a synthetic graphical regression matrix for the current screen families at `1440`, `920`, `700`, and `320`, covering representative long-content, empty, unavailable, error, and active-interaction states without tracking private runtime content.
@@ -124,7 +128,7 @@ Priority meaning:
 
 ## Open Decisions
 
-- [ ] Choose one source-neutral user-facing term for child Session runs; the current UI uses `Subsessions` in the inventory and retains `Subagents` on parent details for compatibility.
+- [x] Use `Subsession` as the single source-neutral LocalBrain product term for child Session records; retain `subagent` only in source-native Claude/Codex formats, redirect-only legacy URLs, and agent-orchestration prompts.
 - [ ] Whether full source text stays in SQLite, is stored only as searchable excerpts, or is read from the original source on demand.
 - [ ] Which external metadata may be persisted under applicable policy and which must remain ephemeral.
 - [ ] Whether AI summaries are local-only, use an approved model path, or require per-Run confirmation.

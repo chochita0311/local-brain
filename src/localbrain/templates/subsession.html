@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% from "_conversation.html" import conversation_message %}
+{% block title %}Subsession · {{ session.title }} · LocalBrain{% endblock %}
+{% block page_location %}Subsession detail{% endblock %}
+{% block content %}
+  <nav class="detail-backlinks" aria-label="Subsession 상세 탐색"><a class="back-link" href="/sessions/{{ session.id }}">상위 Session으로 돌아가기</a><a class="back-link" href="/sessions">Sessions 목록</a></nav>
+  <section class="session-heading"><div class="session-source large claude"><span aria-hidden="true">CL</span><span class="sr-only">Claude Subsession</span></div><div><p class="eyebrow">CLAUDE SUBSESSION · LAZY VIEW</p><h1>{{ subsession.title }}</h1><p class="heading-copy path-copy">{{ file_name }}</p></div></section>
+  <div class="scope-notice">이 대화는 요청 시 원본에서 읽었으며 LocalBrain 세션 수, 검색, 활동 통계에는 포함되지 않습니다. 도구 활동은 원본 이벤트에 남아 있지만 이 화면에서는 숨깁니다.</div>
+  <section class="timeline-section">
+    <div class="section-toolbar"><div><h2>대화</h2><p>{{ events | length }}개 메시지 · 원본 이벤트 {{ event_count }}개</p></div></div>
+    <div class="event-timeline">
+      {% for event in events %}
+        {{ conversation_message(event, '상위 Session', 'Claude Subsession') }}
+      {% else %}
+        <div class="empty-state conversation-empty"><p>표시할 대화 메시지가 없습니다.</p><small>도구 활동은 원본 이벤트 수에 포함되지만 대화 화면에는 표시하지 않습니다.</small></div>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}

@@ -83,6 +83,12 @@
 - If a scope change replaces the visible result set after the user has scrolled, the destination scope should start at an intentional anchor, usually the top of the new result list.
 - Carrying the previous scroll depth into a different category, collection, or result scope is usually a continuity failure because it hides the beginning of the newly selected content.
 
+#### Layered Scope-Transition State
+
+- A scope transition may preserve the outer page position while resetting state owned by the replaced scope; page scroll, local scrollers, disclosure, selection, preview state, and pane geometry must be evaluated separately.
+- The approved interaction contract should identify which layer provides continuity and which layers start fresh rather than describing the whole transition only as a reset or preservation.
+- When a shared scope selector serves several equivalent roots, tabs, or categories, test more than the originally reported instance and confirm the common transition owner applies the same rule to every peer scope.
+
 #### In-Place Analytical Switch Continuity
 
 - Not every query-backed control changes the user's task scope. Switching metric units, aggregation, or composition inside the same analytical surface should usually preserve the surrounding document position and stable control anchors.

@@ -3,10 +3,16 @@
 ## Metadata
 
 - ID: `prd-0002`
-- Status: `approved`
+- Status: `passed`
 - Owner role: `human`
 - Created: `2026-07-17`
-- Updated: `2026-07-18`
+- Updated: `2026-07-19`
+
+## Completion State
+
+- FEAT-0015 through FEAT-0019 are `passed`, and their source contract, navigation, pagination, conversation detail, and Session-only synchronization outcomes remain accepted.
+- Human post-run review fixed `Subsession` as the single LocalBrain product term and accepted the completed PRD boundary on `2026-07-19`.
+- Contract, functional, local HTTP, compilation, and repository privacy verification passed after the terminology alignment. Browser-only pixel and interaction-state captures that were unavailable in the current control environment remain explicit non-blocking quality backlog rather than unverified pass claims.
 
 ## Request Summary
 
@@ -52,20 +58,20 @@
 - [Session And Subagent Details](../feature/feat-0008-session-subagent-details.md): accepted Session and Claude subagent detail behavior and regression surface.
 - [Data Model Visibility And Schema Cleanup](prd-0003-data-model-visibility-and-schema-cleanup.md): draft follow-up for the complete ERD, table catalog, schema ownership, and cleanup decisions outside this Session-specific change.
 
-### Current Implementation References
+### Initial Implementation References
 
-- `src/localbrain/main.py`: Sessions, Projects, Session detail, and Claude subagent routes.
+- `src/localbrain/main.py`: Sessions, Projects, Session detail, and the original Claude lazy-child route.
 - `src/localbrain/queries.py`: current 100-item recent Session query, workspace metadata, Projects aggregation, and unfiltered event timeline query.
 - `src/localbrain/ingest/scanner.py`: all-Codex JSONL collection and explicit Claude `subagents/` exclusion.
 - `src/localbrain/ingest/claude.py`: Claude Session and tool-call normalization.
 - `src/localbrain/ingest/codex.py`: Codex Session and tool-call normalization.
-- `src/localbrain/subagents.py`: Claude-only directory-based lazy subagent discovery.
+- `src/localbrain/subagents.py`: Claude-only discovery from the source-native `subagents/` directory.
 - `src/localbrain/templates/base.html`: separate Sessions and Projects navigation items.
 - `src/localbrain/templates/sessions.html`: Session list, source filters, row metadata, and current lack of pagination or subsession disclosure.
-- `src/localbrain/templates/session.html` and `subagent.html`: current tool-call rendering and Claude subagent detail presentation.
+- `src/localbrain/templates/session.html` and the former `subagent.html`: initial tool-call rendering and Claude child-detail presentation.
 - `src/localbrain/templates/atlassian.html`: current segmented-control reference.
 
-## Current Implementation Findings
+## Initial Implementation Findings
 
 - Claude and Codex currently follow different child-session policies.
   - Claude JSONL under a `subagents/` directory is excluded from primary Session ingestion and is read lazily from the parent Session's source path.
@@ -74,11 +80,11 @@
 - Representative Codex metadata also carries Git context, but the current Codex parser does not normalize its branch while the Claude parser reads `gitBranch`.
 - The `sessions` table currently has no branch field. Session list, detail, retrieval, Project resource, and maintenance context consumers instead receive `workspaces.git_branch`, so multiple Sessions launched from the same path cannot retain their own historical branches.
 - `workspaces.git_root` already represents the filesystem root of the Git repository containing the workspace path. It is repository identity and has no relationship to a branch's base, parent, `main`, or `master` lineage.
-- A Codex subagent with no user question can therefore be normalized as a regular `work` Session, receive a fallback title, and appear independently in the Sessions inventory after synchronization.
+- A Codex child identified by source-native subagent metadata could therefore be normalized as a regular `work` Session, receive a fallback title, and appear independently in the Sessions inventory after synchronization.
 - The Sessions query currently returns at most 100 `work` Sessions and has no page or offset contract.
-- Session and subagent detail views render both conversational messages and normalized `tool_call` events.
+- Session and child-detail views initially rendered both conversational messages and normalized `tool_call` events.
 - Workstream Claude Task Runner executions use no Session persistence and remain durable `maintenance_runs`; this PRD does not change that boundary.
-- Workstream retrieval currently consumes indexed ordinary `work` Sessions. Claude subagents are already absent because they are lazily excluded, while Codex subagents can enter the same retrieval path because they are currently misclassified as ordinary Sessions.
+- Workstream retrieval initially consumed indexed ordinary `work` Sessions. Claude source-native child files were absent because they were lazily excluded, while Codex children could enter the same retrieval path because they were misclassified as ordinary Sessions.
 
 ## Product Intent
 
@@ -114,8 +120,8 @@
 - Sessions with a valid parent relation must not appear as independent top-level rows in the default Sessions inventory.
 - A top-level Session row exposes a right-edge dropdown trigger only when one or more subsessions are available.
 - The dropdown provides direct access to the available child records while retaining clear parent orientation.
-- A parent Session detail retains its existing Subagents section as a second access path to available children in addition to the inventory-row dropdown.
-- The inventory dropdown and the retained parent-detail Subagents section expose only direct children of a top-level Session. Deeper descendants remain source-backed subsessions but are not flattened or exposed on current user-facing Session surfaces.
+- A parent Session detail retains a Subsessions section as a second access path to available children in addition to the inventory-row dropdown.
+- The inventory dropdown and the parent-detail Subsessions section expose only direct children of a top-level Session. Deeper descendants remain source-backed subsessions but are not flattened or exposed on current user-facing Session surfaces.
 - Synchronization must reconcile already imported Codex child records into the parent/subsession presentation without deleting the authoritative source JSONL.
 - A subsession whose parent cannot be resolved because the parent is missing, unavailable, or not imported is preserved as source evidence but is not exposed on user-facing Session surfaces.
 - Claude and Codex retain their provenance even when both use the same parent/subsession interaction pattern.
@@ -180,9 +186,11 @@
 - User-facing inventory, dropdown, or detail access for a subsession whose parent cannot be resolved.
 - Spec, implementation, feature execution, or evaluation before this PRD boundary is approved.
 
-## Remaining Product Decision
+## Resolved Product Terminology
 
-- Decide whether source-neutral product terminology should be `Subsession`, `Subagent`, or a parent label with source-specific child labels.
+- `Subsession` is the single source-neutral LocalBrain product term for a child Session in schema values, domain contracts, UI labels, routes, and product-facing implementation names.
+- Source-native `subagent` identifiers remain only where LocalBrain must read or preserve upstream Claude or Codex formats, including Claude's `subagents/` directory and Codex `source.subagent` metadata.
+- Agent-orchestration prompts may still use `subagent` when they refer to an agent process rather than a LocalBrain Session record; that source-operation term is not a product label.
 
 ## Constraints
 
@@ -207,11 +215,11 @@
 - The selector sits immediately below the Sessions description with the compact Atlassian selector geometry, and a same-row primary `동기화` action incrementally refreshes Claude and Codex Sessions without scanning Local Context sources.
 - The Sessions inventory returns at most 15 top-level rows per page and supports repeatable numbered, previous, and next navigation while preserving source and workspace scope.
 - Valid direct Claude and Codex child records are reachable from their top-level parent row and no longer appear as ordinary independent top-level rows solely because their source formats differ.
-- Only direct children of a top-level Session appear in its dropdown and retained detail Subagents section; deeper descendants are preserved but absent from current user-facing Session lookup and presentation.
+- Only direct children of a top-level Session appear in its dropdown and retained detail Subsessions section; deeper descendants are preserved but absent from current user-facing Session lookup and presentation.
 - A subsession without a resolvable parent is absent from Session inventories, parent dropdowns, and user-facing Session detail access while its authoritative source remains untouched.
 - Rows without subsessions do not expose an empty or disabled dropdown trigger.
 - The subsession dropdown is keyboard reachable, dismisses intentionally, does not conflict with the row's Session-detail destination, keeps its outer border and radius intact when the child list scrolls, and remains usable at supported narrow widths.
-- Opening a parent Session detail continues to expose its Subagents section so direct detail entry does not depend on having visited the inventory dropdown first.
+- Opening a parent Session detail continues to expose its Subsessions section so direct detail entry does not depend on having visited the inventory dropdown first.
 - Session rows show the requested path, optional branch, question count, event count, and last activity without duplicating the visible Claude or Codex name next to an already present provenance mark.
 - When Claude or Codex source metadata provides a branch, LocalBrain persists and presents it from `sessions.git_branch` without mutating the source project or Git state.
 - `workspaces.git_root` remains the containing repository's filesystem root, while `workspaces.git_branch` is absent from both the canonical schema and upgraded runtime databases and from Project, retrieval, Task Runner, manifest, and resource payloads.
@@ -222,7 +230,7 @@
 - Global Search and every Session-derived Dashboard or activity statistic exclude subsessions from both sources without deleting their stored events or source identity.
 - Existing direct links, filters, Workstream memberships, Projects aggregation, Search destinations, maintenance Run exclusion, and missing-path treatment continue to work.
 - Synthetic browser evidence for FEAT-0015 through FEAT-0018 covers default, filtered, paged, short-final-page, no-results, parent-with-children, parent-without-children, open-dropdown, missing-path, long-path, and conversation-with-tool-events states at the required viewport boundaries.
-- Repository privacy checks and the relevant parser, ingestion, query, route, and UI contract tests pass; FEAT-0019's unavailable rendered evidence remains explicit and must be resolved in post-run human review before PRD acceptance.
+- Repository privacy checks and the relevant parser, ingestion, query, route, and UI contract tests pass; FEAT-0019's unavailable rendered evidence remains explicit and was accepted by the human owner as a non-blocking quality-evidence limit.
 
 ## Candidate Features
 
@@ -232,14 +240,14 @@
 - [FEAT-0018: Conversation-Focused Session Details](../feature/feat-0018-conversation-focused-session-details.md) (`product`, `passed`): make Session and subsession details conversation-focused while preserving stored tool events and relationship navigation.
 - [FEAT-0019: Session Inventory Sync Toolbar](../feature/feat-0019-session-inventory-sync-toolbar.md) (`product`, `passed`): align the combined inventory toolbar with the Atlassian selector and add a Session-only synchronization action.
 
-All five linked Features completed their Specs, Runs, and automated verification. Features 0015 through 0018 include synthetic browser evidence; Feature 0019 records the current environment's rendered-browser evidence gap explicitly. The PRD remains `approved` until post-run human review accepts or returns the completed run set.
+All five linked Features completed their Specs, Runs, and automated verification. Features 0015 through 0018 include synthetic browser evidence; Feature 0019 records the current environment's rendered-browser evidence gap explicitly. Human post-run review accepted the completed run set and the PRD is `passed`.
 
-### Outstanding Post-Run Review
+### Accepted Post-Run Evidence Boundary
 
-- FEAT-0019 still needs direct rendered checks at 1440, 700, and 320px for selector geometry, same-row containment, and the Session-only source-status summary.
-- The current browser should exercise the versioned `동기화` action after a warm-cache revisit, including working, success, failure, and scope-preserving fallback behavior.
-- These items are evidence gaps rather than known implementation defects. After they are checked, the human owner still needs to accept the completed PRD-0002 run set or return it to the appropriate layer.
-- Complete ERD and wider schema cleanup remain in draft PRD-0003 and are not implied by acceptance of this PRD.
+- FEAT-0019's direct rendered checks at 1440, 700, and 320px for selector geometry, same-row containment, and the Session-only source-status summary remain a quality-evidence gap rather than a known implementation defect.
+- Synthetic warm-revisit HTTP verification confirmed stable versioned assets, a successful Session-only synchronization response, and the canonical Subsession terminology. Browser-only working, success, failure, and focus-state capture remains unavailable in the current control environment.
+- The human owner accepted these explicit non-blocking evidence limits and closed PRD-0002. They remain in the project quality backlog for later browser regression coverage.
+- Complete ERD visibility and wider approved cleanup passed separately under PRD-0003 and are not part of this PRD's acceptance boundary.
 
 Executed order:
 
@@ -264,10 +272,10 @@ The Features ran sequentially as authorized by the human owner.
 | Human request | primary | navigation consolidation, default view, Session-only synchronization, 15-item pagination, responsive numbered reach, row metadata, subsession dropdown, conversation-only display, non-exposure of parentless subsessions, Workstream maintenance exclusion, and Session-owned branch data | wider schema cleanup remains a separate planning boundary |
 | Current Claude and Codex source metadata | primary implementation evidence | proves that Claude directory structure and Codex parent metadata can identify source-backed child relationships | private source content and machine-specific paths are not copied into this PRD |
 | Current LocalBrain code and schema | primary compatibility evidence | owns existing ingestion, Session identity, query, route, event, and maintenance Run behavior | current asymmetry is evidence, not the desired product contract |
-| Product Model and Project Architecture | durable supporting contract | owns entity responsibility, source authority, Workstream separation, and existing lazy Claude subagent policy | navigation and source-neutral subsession wording require an approved downstream contract update |
+| Product Model and Project Architecture | durable supporting contract | owns entity responsibility, source authority, Workstream separation, and existing lazy Claude Subsession compatibility policy | navigation and source-neutral Subsession wording require an approved downstream contract update |
 | Design Constitution | primary design contract | owns provenance, navigation, density, responsive, accessibility, and reduced-motion behavior | does not decide parent identity or pagination query semantics |
 | Design and Interaction Evaluation | supporting evaluation contract | owns pagination, disclosure, focus, transition, containment, and viewport checks | does not invent product scope or implementation mechanism |
-| Accepted Features 0005 and 0008 | regression evidence | owns the current Sessions inventory and Session/subagent detail behavior that this increment intentionally revises | passed presentation decisions do not prevent a newly approved product change |
+| Accepted Features 0005 and 0008 | regression evidence | owns the prior Sessions inventory and Session/Subsession detail behavior that this increment intentionally revises | passed presentation decisions do not prevent a newly approved product change |
 | Claude Task Runner policy | durable exclusion contract | confirms Workstream maintenance Runs remain outside ordinary Sessions | does not govern normal Claude or Codex parent/subsession ingestion |
 
 ## Continuity Notes
@@ -292,3 +300,5 @@ The Features ran sequentially as authorized by the human owner.
 - `2026-07-18`: human direction added the compact inventory-toolbar alignment and Session-only `동기화` action; FEAT-0019 implemented the scoped endpoint while preserving the wider Sources scan.
 - `2026-07-18`: the Sessions source-status summary was narrowed to Claude and Codex and the database-path annotation was removed; automated coverage reached 47 tests, while direct FEAT-0019 rendered and warm-cache interaction evidence remains open for post-run review.
 - `2026-07-18`: removed the resolved selector route/enhancement question from uncertainty; direct links, progressive enhancement, history behavior, selected semantics, and reduced-motion handling are now implementation decisions owned by FEAT-0016 and FEAT-0019. Source-neutral `Subsession` versus `Subagent` product terminology remains open.
+- `2026-07-19`: human review selected `Subsession` as LocalBrain's single product term. Source-native `subagent` names remain only at upstream format and agent-orchestration boundaries.
+- `2026-07-19`: 142 tests, Python compilation, repository privacy verification, synthetic parent/child HTTP rendering, stable versioned warm-revisit assets, Session-only synchronization, and the legacy-route redirect passed. The human owner accepted the explicit browser-only evidence limit and closed the PRD as `passed`.

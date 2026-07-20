@@ -8,6 +8,7 @@ The current MVP runs as a FastAPI web application on the local machine. A native
 
 - Ingest local Claude and Codex session history.
 - Register and browse folders, individual files, and Apple Notes as Local Context sources.
+- Read safe, locally rendered Markdown in Local Context previews, context-aware full Document views, and Session or Subsession conversations.
 - Organize work into user-created Workstreams and Threads.
 - Link sessions, documents, local paths, projects, and external references to Threads.
 - Maintain versioned checkpoints and review reversible resource Suggestions.
@@ -71,6 +72,7 @@ Read [Privacy And Data Handling](docs/policies/project/privacy-and-data.md) befo
 - [Documentation Map](docs/README.md): owner and navigation map for all project docs
 - [Product Model](docs/policies/project/product.md): product scope, terminology, and organization rules
 - [Project Architecture](docs/policies/project/architecture.md): stack, source adapters, persistence, and implementation baseline
+- [Markdown Rendering Contract](docs/policies/project/markdown-rendering.md): shared syntax, safety, local-reference, highlighting, and fallback rules
 - [Claude Task Runner](docs/policies/operations/claude-task-runner.md): in-app Claude maintenance execution and review contract
 - [Agent Workflow](docs/agents/README.md): PRD, feature, spec, build, screen-surface evaluation, and fix roles
 - [Project Roadmap](docs/plans/project/roadmap.md): phased product direction and current priorities

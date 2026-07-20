@@ -19,6 +19,7 @@ Durable rules and current contracts live under `docs/policies/`.
 - [Schema Presentation](policies/project/schema-presentation.md): deterministic package manifest, source ownership, loader/failure behavior, and downstream Schema consumer contract
 - [Privacy And Data Handling](policies/project/privacy-and-data.md): repository boundary, local persistence, external access, and disclosure constraints
 - [Developer Guide](policies/project/developer-guide.md): setup, configuration, development workflow, and verification
+- [Markdown Rendering Contract](policies/project/markdown-rendering.md): shared syntax, trust, local-reference, highlighting, consumer, and fallback rules
 - [Claude Task Runner](policies/operations/claude-task-runner.md): in-app Claude maintenance execution, retrieval, persistence, and review behavior
 - [Harness Policies](policies/harness/): planning approval, execution routing, profiles, surface lanes, and traceability
 - [Interaction Evaluation](policies/experience/interaction-evaluation.md): reusable interaction continuity and UX checks
@@ -44,10 +45,11 @@ Sequencing and unresolved work live under `docs/plans/`.
 - [Project Roadmap](plans/project/roadmap.md): phase direction, current priorities, validation strategy, and risk controls
 - [Project Backlog](plans/project/backlog.md): detailed open work and decisions ordered by priority
 - [UI Design-System Realignment PRD](plans/prd/prd-0001-ui-design-system-realignment.md): passed PRD with fourteen accepted Feature runs, evaluation and fix evidence, and a deferred nonblocking graphical-regression follow-up
-- [Session Browsing And Subsession Organization PRD](plans/prd/prd-0002-session-browsing-and-subsession-organization.md): approved boundary with five passed Features for source-neutral subsessions, Session-owned branch metadata, combined navigation, paginated inventory, conversation-focused detail views, and Session-only synchronization; post-run human review remains
-- [Data Model Visibility And Schema Cleanup PRD](plans/prd/prd-0003-data-model-visibility-and-schema-cleanup.md): approved boundary in sequential execution; local Mermaid, the complete 20-table plus FTS5 baseline, deterministic presentation, and `System > Schema` have passed; evidence-backed cleanup decisions are next, while migration Features remain gated on the audit
+- [Session Browsing And Subsession Organization PRD](plans/prd/prd-0002-session-browsing-and-subsession-organization.md): passed boundary for source-neutral Subsessions, Session-owned branch metadata, combined navigation, paginated inventory, conversation-focused detail views, and Session-only synchronization
+- [Data Model Visibility And Schema Cleanup PRD](plans/prd/prd-0003-data-model-visibility-and-schema-cleanup.md): passed boundary for local Mermaid, the complete 20-table plus FTS5 baseline, deterministic presentation, `System > Schema`, audited cleanup decisions, and approved schema-maintenance migrations
 - [Session Usage And Cost Dashboard PRD](plans/prd/prd-0004-session-usage-and-cost-dashboard.md): passed boundary for source-neutral Usage Records, estimated trend cost, activity and Project attribution, responsive history, composition, and trust
 - [Workflow And Skill Intelligence PRD](plans/prd/prd-0005-workflow-and-skill-intelligence.md): draft boundary for evidence-backed personal workflow patterns, repeated-process analysis, skill use, and reviewable skill suggestions
+- [Markdown Reading And Context Continuity PRD](plans/prd/prd-0006-markdown-reading-and-context-continuity.md): passed boundary for shared safe Markdown, source-local references, Local Context preview and full reading, Session conversation rendering, and navigation continuity; image and attachment rendering remains deferred
 - `docs/plans/prd/`, `feature/`, and `spec/`: planning and implementation boundaries across their lifecycle
 - `docs/plans/run/`, `evaluation/`, `fix/`, and `heuristic/`: execution and review artifacts
 

@@ -10,7 +10,7 @@
 - Required Evaluators: `contract`, `design`, `functional`, `ux-heuristic`
 - Parent PRD: [prd-0002-session-browsing-and-subsession-organization](../prd/prd-0002-session-browsing-and-subsession-organization.md)
 - Created: `2026-07-17`
-- Updated: `2026-07-17`
+- Updated: `2026-07-19`
 
 ## Goal
 
@@ -26,7 +26,7 @@
 - A separate right-edge dropdown trigger exists only for top-level Sessions with displayable subsessions.
 - The dropdown includes only direct children of that top-level Session. It does not flatten or expose descendants whose parent is itself a subsession.
 - The dropdown exposes valid child destinations without nesting an interactive control inside the row's Session-detail link.
-- The dropdown supplements rather than replaces the parent Session detail's existing Subagents section.
+- The dropdown supplements rather than replaces the parent Session detail's Subsessions section.
 - A scrolling child list is contained inside a non-scrolling overlay shell so the dropdown's solid border and rounded corners remain intact.
 - Hover or focus-within feedback spans the complete Session row, including the right disclosure cell, without merging the sibling navigation and disclosure targets.
 - Unresolved-parent subsessions are absent from inventory, counts, dropdowns, and direct user-facing detail lookup.
@@ -48,7 +48,7 @@
   - parent/subsession source inference or schema ownership from `feat-0015`
   - global Search, Sessions Dashboard, or activity-metric policy changes
   - Session detail timeline filtering from `feat-0018`
-  - removal or replacement of the parent Session detail Subagents section
+  - removal or replacement of the parent Session detail Subsessions section
   - redefining or associating the existing recent Local Context section with files changed by a Session
   - Project inventory aggregation changes
 
@@ -140,7 +140,7 @@
 - Claude and Codex source filters
 - `/sessions?workspace=<id>` Project transitions
 - existing Session detail, Workstream membership, and Search destinations
-- parent Session detail Subagents access
+- parent Session detail Subsessions access
 - source status and recent Local Context sections
 - missing and historical path presentation
 - shell, combined Sessions/Projects mode, global search, and narrow navigation
@@ -166,3 +166,4 @@
 - `2026-07-17`: actual-runtime evidence invalidated the initial pass because a pre-change Python process loaded the new template without its new context. Attempt 2 passed after the compatibility fallback, controlled restart, actual schema migration, real page checks, and 38-test regression.
 - `2026-07-17`: Attempt 3 passed after human runtime feedback added compact numbered page reach, preserved scroll-overlay boundaries, unified row hover feedback, symmetric 320px pagination, actual route verification, and a complete 40-test regression.
 - `2026-07-17`: Attempt 4 passed after the default slice changed to 15 and viewport-specific page models limited desktop to seven and narrow screens to five tokens.
+- `2026-07-19`: post-run human review aligned the preserved parent-detail child label with the source-neutral `Subsession` product term.

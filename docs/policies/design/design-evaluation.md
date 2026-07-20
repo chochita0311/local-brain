@@ -54,6 +54,12 @@
 - When density rises, the system should preserve hierarchy and containment before adding more visible information.
 - A visually compact layout that causes clipping, overlap, or scan breakdown is a failure, not a stylistic preference.
 
+#### Shared Markdown Consumer Coverage
+
+- A Markdown defect found in one Document may belong to the shared renderer, wrapper, or `.markdown-body` presentation rather than to that source file.
+- Tables should fill their available reading region through the final column and keep overflow inside a dedicated wrapper; code should use reading-specific semantics rather than Run-console, brand, status, or provenance colors.
+- When the shared owner changes, evaluators should inspect representative preview, full-Document, and conversation consumers instead of treating the reported note as the complete scope.
+
 ### Information Hierarchy And Metric Meaning
 
 #### Presentation Eligibility Is A Separate Contract

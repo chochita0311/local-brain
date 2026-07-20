@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_conversation.html" import conversation_message %}
 {% block title %}{{ session.title }} · LocalBrain{% endblock %}
 {% block page_location %}Session detail{% endblock %}
 {% block content %}
@@ -34,11 +35,11 @@
     </section>
   {% endif %}
 
-  {% if subagents %}
-    <section class="subagent-section">
-      <div class="section-toolbar"><div><h2>Subagents</h2><p>이 Session의 직접 하위 실행</p></div><span class="table-count">{{ subagents | length }}</span></div>
-      <div class="subagent-list">
-        {% for subagent in subagents %}<a href="{{ subagent.url }}"><span class="session-source {{ subagent.source_kind }}">AG</span><div><strong>{{ subagent.title }}</strong><small>{{ subagent.external_id }} · 원본 이벤트 {{ subagent.event_count }}</small></div><time datetime="{{ subagent.last_event_at }}" data-local-time>{{ subagent.last_event_at or '-' }}</time></a>{% endfor %}
+  {% if subsessions %}
+    <section class="subsession-section">
+      <div class="section-toolbar"><div><h2>Subsessions</h2><p>이 Session의 직접 하위 Session</p></div><span class="table-count">{{ subsessions | length }}</span></div>
+      <div class="subsession-list">
+        {% for subsession in subsessions %}<a href="{{ subsession.url }}"><span class="session-source {{ subsession.source_kind }}"><span aria-hidden="true">{{ 'CL' if subsession.source_kind == 'claude' else 'CX' }}</span><span class="sr-only">{{ subsession.source_kind | capitalize }} Subsession</span></span><div><strong>{{ subsession.title }}</strong><small>{{ subsession.external_id }} · 원본 이벤트 {{ subsession.event_count }}</small></div><time datetime="{{ subsession.last_event_at }}" data-local-time>{{ subsession.last_event_at or '-' }}</time></a>{% endfor %}
       </div>
     </section>
   {% endif %}
@@ -49,16 +50,11 @@
     </div>
     <div class="event-timeline">
       {% for event in events %}
-        <article class="event-row {{ event.role }}">
-          <div class="event-rail"><span></span></div>
-          <div class="event-content">
-            <div class="event-header">
-              <strong>{% if event.role == 'user' %}{{ '상위 Agent' if parent else '나' }}{% else %}{{ session.source_name ~ ' Subagent' if parent else session.source_name }}{% endif %}</strong>
-              <time datetime="{{ event.occurred_at }}" data-local-time>{{ event.occurred_at or '' }}</time>
-            </div>
-            {% if event.text %}<div class="event-text">{{ event.text }}</div>{% endif %}
-          </div>
-        </article>
+        {{ conversation_message(
+          event,
+          '상위 Session' if parent else '나',
+          session.source_name ~ ' Subsession' if parent else session.source_name
+        ) }}
       {% else %}
         <div class="empty-state conversation-empty"><p>표시할 대화 메시지가 없습니다.</p><small>도구 활동은 원본 이벤트 수에 포함되지만 대화 화면에는 표시하지 않습니다.</small></div>
       {% endfor %}

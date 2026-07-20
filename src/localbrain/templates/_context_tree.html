@@ -1,0 +1,25 @@
+{% macro render_context_tree(nodes, source_id, selected_document_id, link_mode='context', depth=0) %}
+  <ul class="source-tree-list depth-{{ depth }}">
+    {% for node in nodes %}
+      {% if node.kind == 'directory' %}
+        <li class="source-tree-directory">
+          <details {% if node.contains_selected %}open{% endif %}>
+            <summary><span class="tree-symbol">▸</span><strong>{{ node.name }}</strong></summary>
+            {{ render_context_tree(node.children, source_id, selected_document_id, link_mode, depth + 1) }}
+          </details>
+        </li>
+      {% else %}
+        <li class="source-tree-document">
+          {% if link_mode == 'document' %}
+            <a class="{% if selected_document_id == node.id %}active{% endif %}" href="/documents/{{ node.id }}" title="{{ node.relative_path }}" data-document-reader-link data-context-href="/context?root={{ source_id }}&document={{ node.id }}" {% if selected_document_id == node.id %}aria-current="page"{% endif %}>
+          {% else %}
+            <a class="{% if selected_document_id == node.id %}active{% endif %}" href="/context?root={{ source_id }}&document={{ node.id }}" title="{{ node.relative_path }}" data-context-document-link {% if selected_document_id == node.id %}aria-current="page"{% endif %}>
+          {% endif %}
+            <span class="tree-file-symbol">{{ 'N' if node.content_type == 'application/x-apple-note' else ('P' if node.content_type == 'application/pdf+text' else 'F') }}</span>
+            <span>{{ node.name }}</span>
+          </a>
+        </li>
+      {% endif %}
+    {% endfor %}
+  </ul>
+{% endmacro %}

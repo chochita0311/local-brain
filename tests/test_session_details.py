@@ -1,13 +1,16 @@
 import sqlite3
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
+from localbrain.ingest.common import ParsedEvent
 from localbrain.queries import (
     session_conversation_events,
     session_events,
     session_parent,
     session_subsessions,
 )
+from localbrain.session_reading import conversation_event_view, conversation_event_views
 
 
 SCHEMA_PATH = Path(__file__).parents[1] / "src" / "localbrain" / "schema.sql"
@@ -148,6 +151,85 @@ class SessionDetailTests(unittest.TestCase):
             ).fetchone()[0],
             4,
         )
+
+    def test_conversation_views_render_eligible_roles_without_mutating_events(self):
+        conversation = session_conversation_events(self.connection, self.parent)
+        original_rows = [dict(row) for row in conversation]
+        views = conversation_event_views(conversation)
+
+        self.assertEqual(
+            [view["text"] for view in views],
+            [row["text"] for row in original_rows],
+        )
+        self.assertEqual([view["sequence"] for view in views], [10, 20])
+        self.assertTrue(all(view["render_state"] == "ready" for view in views))
+        self.assertIn(
+            "<p>Bash와 exec 결과를 대화로 설명해줘</p>",
+            views[0]["rendered_body"],
+        )
+        self.assertEqual([dict(row) for row in conversation], original_rows)
+        self.assertEqual(
+            self.connection.execute(
+                "SELECT COUNT(*) FROM activity_events WHERE session_id = ?",
+                (self.parent,),
+            ).fetchone()[0],
+            4,
+        )
+
+    def test_lazy_and_no_source_message_rendering_share_the_safe_contract(self):
+        event = ParsedEvent(
+            event_id="lazy-message",
+            sequence=7,
+            source_line=3,
+            event_type="message",
+            occurred_at="2026-07-17T00:03:00Z",
+            role="assistant",
+            text=(
+                "# 응답\n\n[[note]] [relative](guide.md) "
+                "[external](https://example.test/read) "
+                "[unsafe](javascript:alert(1))"
+            ),
+        )
+        view = conversation_event_view(event)
+
+        self.assertEqual(view["text"], event.text)
+        self.assertEqual(view["sequence"], 7)
+        self.assertEqual(
+            view["rendered_body"].count('data-reference-state="no-source"'),
+            2,
+        )
+        self.assertIn('rel="noopener noreferrer external"', view["rendered_body"])
+        self.assertNotIn('href="javascript:', view["rendered_body"])
+
+    def test_non_eligible_role_stays_plain_and_renderer_failure_is_local(self):
+        structural = ParsedEvent(
+            event_id="structural",
+            sequence=1,
+            source_line=1,
+            event_type="message",
+            role="system",
+            text="# Do not render",
+        )
+        plain = conversation_event_view(structural)
+        self.assertNotIn("rendered_body", plain)
+        self.assertEqual(plain["text"], "# Do not render")
+
+        eligible = ParsedEvent(
+            event_id="fallback",
+            sequence=2,
+            source_line=2,
+            event_type="message",
+            role="user",
+            text="<unsafe>",
+        )
+        with patch(
+            "localbrain.markdown._MARKDOWN.render",
+            side_effect=ValueError("synthetic"),
+        ):
+            fallback = conversation_event_view(eligible)
+        self.assertEqual(fallback["render_state"], "fallback")
+        self.assertIn("&lt;unsafe&gt;", fallback["rendered_body"])
+        self.assertNotIn("synthetic", fallback["rendered_body"])
 
     def test_tool_only_session_has_an_empty_conversation_without_data_loss(self):
         self.assertEqual(

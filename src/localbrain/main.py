@@ -16,6 +16,8 @@ from .contexts import (
     add_apple_notes_source,
     add_context_file,
     add_context_root,
+    context_document_preview,
+    context_document_reader,
     context_source_tree,
     list_context_sources,
     remove_context_root,
@@ -49,6 +51,7 @@ from .runner import (
     task_choices,
 )
 from .schema_explorer import schema_explorer_page_data
+from .session_reading import conversation_event_views
 from .subagents import list_subagents, load_subagent
 from .usage_queries import usage_dashboard_data
 from .workstreams import (
@@ -341,10 +344,6 @@ def context_page(
         )
         if selected_source is None and sources:
             selected_source = sources[0]
-        tree = (
-            context_source_tree(connection, selected_source["id"])
-            if selected_source else []
-        )
         selected_document = document_detail(connection, document) if document else None
         if (
             selected_document
@@ -359,6 +358,16 @@ def context_page(
             ).fetchone()
             if first_document:
                 selected_document = document_detail(connection, first_document["id"])
+        if selected_document:
+            selected_document = context_document_preview(connection, selected_document)
+        tree = (
+            context_source_tree(
+                connection,
+                selected_source["id"],
+                selected_document["id"] if selected_document else None,
+            )
+            if selected_source else []
+        )
     return templates.TemplateResponse(
         "context.html",
         {
@@ -483,12 +492,14 @@ def show_session(request: Request, session_id: int):
         session = session_detail(connection, session_id)
         if not session or session["session_class"] != "work":
             raise HTTPException(status_code=404, detail="Session not found")
-        events = session_conversation_events(connection, session_id)
+        events = conversation_event_views(
+            session_conversation_events(connection, session_id)
+        )
         parent = session_parent(connection, session_id)
         direct_children = session_subsessions(connection, session_id)
         memberships = entity_memberships(connection, "session", session_id)
 
-    subagents = [
+    subsessions = [
         {
             "url": "/sessions/{}".format(child["id"]),
             "source_kind": child["source_kind"],
@@ -501,17 +512,17 @@ def show_session(request: Request, session_id: int):
         for child in direct_children
     ]
     if session["session_role"] == "primary" and session["source_kind"] == "claude":
-        normalized_paths = {item["source_path"] for item in subagents}
-        normalized_external_ids = {item["external_id"] for item in subagents}
+        normalized_paths = {item["source_path"] for item in subsessions}
+        normalized_external_ids = {item["external_id"] for item in subsessions}
         for item in list_subagents(session["source_path"], session["external_id"]):
             if (
                 item["source_path"] in normalized_paths
                 or item["external_id"] in normalized_external_ids
             ):
                 continue
-            subagents.append(
+            subsessions.append(
                 {
-                    "url": "/sessions/{}/subagents/{}".format(
+                    "url": "/sessions/{}/subsessions/{}".format(
                         session_id, quote(item["file_name"])
                     ),
                     "source_kind": "claude",
@@ -531,13 +542,13 @@ def show_session(request: Request, session_id: int):
             "events": events,
             "parent": parent,
             "memberships": memberships,
-            "subagents": subagents,
+            "subsessions": subsessions,
         },
     )
 
 
-@app.get("/sessions/{session_id}/subagents/{file_name}", response_class=HTMLResponse)
-def show_subagent(request: Request, session_id: int, file_name: str):
+@app.get("/sessions/{session_id}/subsessions/{file_name}", response_class=HTMLResponse)
+def show_subsession(request: Request, session_id: int, file_name: str):
     with connect() as connection:
         session = session_detail(connection, session_id)
         if (
@@ -547,15 +558,15 @@ def show_subagent(request: Request, session_id: int, file_name: str):
         ):
             raise HTTPException(status_code=404, detail="Parent session not found")
         direct_children = session_subsessions(connection, session_id)
-    subagent = load_subagent(session["source_path"], file_name)
-    if not subagent or subagent.parent_external_id != session["external_id"]:
-        raise HTTPException(status_code=404, detail="Subagent not found")
+    subsession = load_subagent(session["source_path"], file_name)
+    if not subsession or subsession.parent_external_id != session["external_id"]:
+        raise HTTPException(status_code=404, detail="Subsession not found")
     normalized_child = next(
         (
             child
             for child in direct_children
-            if child["source_path"] == subagent.source_path
-            or child["external_id"] == subagent.external_id
+            if child["source_path"] == subsession.source_path
+            or child["external_id"] == subsession.external_id
         ),
         None,
     )
@@ -563,21 +574,31 @@ def show_subagent(request: Request, session_id: int, file_name: str):
         return RedirectResponse(
             url="/sessions/{}".format(normalized_child["id"]), status_code=303
         )
-    conversation_events = sorted(
-        (event for event in subagent.events if event.event_type == "message"),
-        key=lambda event: event.sequence,
+    conversation_events = conversation_event_views(
+        sorted(
+            (event for event in subsession.events if event.event_type == "message"),
+            key=lambda event: event.sequence,
+        )
     )
     return templates.TemplateResponse(
-        "subagent.html",
+        "subsession.html",
         {
             "request": request,
             "active_page": "sessions",
             "session": session,
-            "subagent": subagent,
+            "subsession": subsession,
             "events": conversation_events,
-            "event_count": len(subagent.events),
+            "event_count": len(subsession.events),
             "file_name": file_name,
         },
+    )
+
+
+@app.get("/sessions/{session_id}/subagents/{file_name}", include_in_schema=False)
+def redirect_legacy_subagent_route(session_id: int, file_name: str):
+    return RedirectResponse(
+        url="/sessions/{}/subsessions/{}".format(session_id, quote(file_name)),
+        status_code=308,
     )
 
 
@@ -587,13 +608,14 @@ def show_document(request: Request, document_id: int):
         document = document_detail(connection, document_id)
         if not document:
             raise HTTPException(status_code=404, detail="Document not found")
+        reader = context_document_reader(connection, document)
         memberships = entity_memberships(connection, "document", document_id)
     return templates.TemplateResponse(
         "document.html",
         {
             "request": request,
             "active_page": "context",
-            "document": document,
+            **reader,
             "memberships": memberships,
         },
     )

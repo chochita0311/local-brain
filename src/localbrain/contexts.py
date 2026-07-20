@@ -2,6 +2,8 @@ import sqlite3
 from pathlib import Path, PurePosixPath
 from typing import Optional
 
+from .markdown import render_markdown
+from .markdown_references import MarkdownDocumentReference, MarkdownReferenceContext
 from .workstreams import utc_now
 
 
@@ -206,7 +208,11 @@ def list_context_roots(connection: sqlite3.Connection) -> list:
     return list_context_sources(connection)
 
 
-def context_source_tree(connection: sqlite3.Connection, source_id: int) -> list:
+def context_source_tree(
+    connection: sqlite3.Connection,
+    source_id: int,
+    selected_document_id: Optional[int] = None,
+) -> list:
     documents = connection.execute(
         """
         SELECT id, title, relative_path, content_type
@@ -243,9 +249,15 @@ def context_source_tree(connection: sqlite3.Connection, source_id: int) -> list:
                 {
                     "kind": "document",
                     "name": PurePosixPath(document["relative_path"]).name,
+                    "contains_selected": document["id"] == selected_document_id,
                     **document,
                 }
             )
+        for entry in entries:
+            if entry["kind"] == "directory":
+                entry["contains_selected"] = any(
+                    child["contains_selected"] for child in entry["children"]
+                )
         return entries
 
     return materialize(root)
@@ -260,3 +272,85 @@ def get_context_root(
         "SELECT * FROM context_roots WHERE id = ? AND enabled = 1", (root_id,)
     ).fetchone()
     return dict(row) if row else None
+
+
+def build_markdown_reference_context(
+    connection: sqlite3.Connection, document_id: int
+) -> Optional[MarkdownReferenceContext]:
+    current = connection.execute(
+        """
+        SELECT context_documents.id, context_documents.context_root_id
+        FROM context_documents
+        JOIN context_roots
+          ON context_roots.id = context_documents.context_root_id
+        WHERE context_documents.id = ?
+          AND context_roots.enabled = 1
+          AND context_roots.source_type = 'folder'
+        """,
+        (document_id,),
+    ).fetchone()
+    if not current:
+        return None
+
+    rows = connection.execute(
+        """
+        SELECT id, context_root_id, relative_path, title, body, content_type
+        FROM context_documents
+        WHERE context_root_id = ?
+        ORDER BY relative_path, id
+        """,
+        (current["context_root_id"],),
+    ).fetchall()
+    documents = tuple(
+        MarkdownDocumentReference(
+            id=int(row["id"]),
+            context_root_id=int(row["context_root_id"]),
+            relative_path=row["relative_path"],
+            title=row["title"],
+            body=row["body"],
+            content_type=row["content_type"],
+        )
+        for row in rows
+    )
+    return MarkdownReferenceContext(documents, int(current["id"]))
+
+
+def context_document_preview(connection: sqlite3.Connection, document) -> dict:
+    view = dict(document)
+    reference_context = build_markdown_reference_context(connection, int(view["id"]))
+    rendered = render_markdown(
+        view["body"],
+        reference_context=reference_context,
+    )
+    view["rendered_body"] = rendered.html
+    view["render_state"] = rendered.state
+    view["render_properties"] = rendered.properties
+    return view
+
+
+def context_document_reader(connection: sqlite3.Connection, document) -> dict:
+    view = context_document_preview(connection, document)
+    source = get_context_root(connection, view.get("context_root_id"))
+    has_context_tree = bool(source and source["source_type"] == "folder")
+    tree = (
+        context_source_tree(connection, int(source["id"]), int(view["id"]))
+        if has_context_tree
+        else []
+    )
+    if source:
+        source["document_count"] = connection.execute(
+            "SELECT COUNT(*) FROM context_documents WHERE context_root_id = ?",
+            (source["id"],),
+        ).fetchone()[0]
+        return_href = "/context?root={}&document={}".format(
+            source["id"], view["id"]
+        )
+    else:
+        return_href = "/context"
+    return {
+        "document": view,
+        "context_source": source,
+        "context_tree": tree,
+        "has_context_tree": has_context_tree,
+        "return_href": return_href,
+    }

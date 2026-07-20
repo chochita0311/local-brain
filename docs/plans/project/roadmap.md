@@ -2,7 +2,7 @@
 
 Status: Phase 1 complete; Phase 2 core vertical slice implemented
 
-Last reviewed: 2026-07-18
+Last reviewed: 2026-07-20
 
 ## Current Direction
 
@@ -86,6 +86,8 @@ Delivered:
 - deterministic Session and Document Suggestions with reject, restore, and refresh behavior
 - Workstream-first Dashboard and separate Sessions Dashboard
 - folder, individual file, and Apple Notes source browsing
+- shared safe Markdown reading across Local Context previews, context-aware full Documents, and Session or Subsession conversations
+- passed source-neutral Session/Subsession browsing, parent-owned child disclosure, and conversation-focused detail behavior
 - Claude maintenance Runs with structured reviewable output
 - local full-text search and source filtering
 

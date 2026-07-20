@@ -39,13 +39,15 @@ Approved external sources through MCP Gateway
 - `src/localbrain/db.py` and `schema.sql`: connection lifecycle, fresh schema, compatible startup migrations, and explicitly approved backup-backed structural repair
 - `src/localbrain/ingest/`: source parsing, normalization, scanning, and deduplication
 - `src/localbrain/contexts.py`: Local Context source registration and browsing behavior
+- `src/localbrain/markdown.py`: shared safe Markdown and approved Obsidian-style parsing, derived render state, local code and MathML rendering, attachment deferral, and reusable consumer output governed by the [Markdown Rendering Contract](markdown-rendering.md)
+- `src/localbrain/markdown_references.py`: one-FOLDERS-root Markdown and wikilink resolution, stable anchor identity, and bounded note-fragment extraction
 - `src/localbrain/queries.py`: read models for dashboards, sessions, sources, search, and detail views
 - `src/localbrain/usage.py`: immutable price snapshots, model normalization, and per-Usage-Record estimated-cost calculation
 - `src/localbrain/usage_queries.py`: Sessions Dashboard scope normalization, summary, MTD, history buckets, freshness, and limitation states
 - `src/localbrain/workstreams.py`: Workstreams, Threads, checkpoints, resources, links, Suggestions, and retrieval mappings
 - `src/localbrain/retrieval.py`: deterministic candidate selection and evidence preparation
 - `src/localbrain/runner.py`: maintenance Run preparation, execution, streaming, and structured result processing
-- `src/localbrain/subagents.py`: lazy Claude subagent discovery and parsing
+- `src/localbrain/subagents.py`: lazy Claude Subsession compatibility discovery over the source-native `subagents/` directory
 - `src/localbrain/schema_explorer.py`: manifest-only Schema query normalization and read model; it never opens the runtime database
 - `src/localbrain/templates/`: server-rendered UI views
 - `src/localbrain/static/`: browser behavior and visual presentation
@@ -143,7 +145,7 @@ Claude and Codex histories are parsed into normalized Sessions and Activity Even
 
 Claude and Codex subsessions are normalized as source-backed Session rows with a retained source parent identity and a nullable resolved parent self-reference. Unresolved, unsafe, and deeper child relations remain stored but do not fall back to top-level presentation. Only primary work Sessions contribute to global Search, Session-derived statistics, Workstream organization candidates, or Workstream maintenance retrieval.
 
-Session detail presentation selects normalized `message` events in source sequence for primary Sessions and eligible direct children. This is a read-model filter only: `tool_call` rows, tool names, source JSONL, and the Session's complete event count remain unchanged. Parent details list same-source direct children; child details resolve only to a same-source primary parent. Existing Claude lazy-subagent paths remain bounded compatibility routes and use the same message-only presentation.
+Session detail presentation selects normalized `message` events in source sequence for primary Sessions and eligible direct children. A copied presentation view renders only user and assistant text through the shared Markdown contract without an owning Local Context source; raw event text, source-relative unresolved references, `tool_call` rows, tool names, source JSONL, and the Session's complete event count remain unchanged. Parent details list same-source direct children as Subsessions; child details resolve only to a same-source primary parent. `/sessions/{id}/subsessions/{file}` is the canonical lazy compatibility route. Existing Claude `/subagents/` links redirect to that route, which still reads the source-native `subagents/` directory and uses the same message-only Markdown presentation.
 
 Session branch metadata is stored per Session from authoritative JSONL. Workspaces retain the currently discovered canonical `git_root` of the containing repository and do not store a branch value; historical Project attribution belongs to Usage Record snapshots instead.
 
@@ -180,6 +182,8 @@ Implemented in the current vertical slice:
 - deterministic SQLite/FTS5 retrieval without hard candidate or evidence-count caps
 - normalized many-to-many Thread resource matches with reusable fingerprints and deduplicated evidence
 - source browsing for folders, files, and Apple Notes
+- context-aware full Document reading with an owning FOLDERS tree, bounded non-FOLDERS fallback, and source-preserving Markdown presentation
+- safe Markdown conversation reading for visible Session and Subsession user and assistant messages without Local Context source guessing
 - Atlassian navigation shell without external ingestion
 
 Open implementation work is tracked in the [Project Backlog](../../plans/project/backlog.md).

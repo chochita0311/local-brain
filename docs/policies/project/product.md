@@ -99,9 +99,11 @@ The same Resource may relate to multiple Threads. Relationship-specific evidence
 - Claude cache creation prefers a positive internally consistent ephemeral breakdown over a contradictory zero aggregate. Codex usage prefers every positive direct `last_token_usage` event, uses Session-cumulative subtraction only when the direct event value is absent, excludes copied spawned or forked replay prefixes, and ignores repeated zero deltas.
 - Session synchronization owns normalizer-version repair. A changed contract automatically reparses every current file for the affected source and transactionally replaces that source's derived Usage Record set with the complete file union while retaining historical price and Project snapshots. Users do not manage this with an aggregate-reset button.
 - Each Usage Record freezes its Project attribution when first observed. Historical usage groups by that snapshot rather than current workspace or Git metadata; later Git discovery and path changes affect only newly observed records, and unassigned history is not reconciled silently.
-- Primary and valid direct-child detail views are conversation-reading surfaces: they show source-ordered messages and omit visible tool-call rows while preserving the complete source event count and normalized tool events.
-- A primary detail keeps a Subagents section for its direct children. A child detail keeps explicit orientation back to its eligible primary parent.
+- Primary and valid direct-child detail views are conversation-reading surfaces: they show source-ordered user and assistant messages through the shared safe Markdown presentation, omit visible tool-call rows, and preserve raw text, the complete source event count, and normalized tool events. Session text has no owning Local Context source, so source-relative references remain visibly unresolved rather than using a global guess.
+- A primary detail keeps a Subsessions section for its direct children. A child detail keeps explicit orientation back to its eligible primary parent.
 - Git branch metadata belongs to the Session that observed it. A workspace retains its working path and containing Git repository root, not one historical branch value.
+
+The syntax, safety, local-reference, highlighting, and consumer boundaries for these reading surfaces are owned by the [Markdown Rendering Contract](markdown-rendering.md).
 
 ## User Experience Contract
 

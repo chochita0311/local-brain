@@ -15,9 +15,12 @@ SCRIPT = ROOT / "src" / "localbrain" / "static" / "app.js"
 BASE = ROOT / "src" / "localbrain" / "templates" / "base.html"
 DASHBOARD = ROOT / "src" / "localbrain" / "templates" / "dashboard.html"
 CONTEXT = ROOT / "src" / "localbrain" / "templates" / "context.html"
+CONTEXT_TREE = ROOT / "src" / "localbrain" / "templates" / "_context_tree.html"
+DOCUMENT = ROOT / "src" / "localbrain" / "templates" / "document.html"
 SESSIONS = ROOT / "src" / "localbrain" / "templates" / "sessions.html"
 SESSION_DETAIL = ROOT / "src" / "localbrain" / "templates" / "session.html"
-SUBAGENT_DETAIL = ROOT / "src" / "localbrain" / "templates" / "subagent.html"
+SUBSESSION_DETAIL = ROOT / "src" / "localbrain" / "templates" / "subsession.html"
+CONVERSATION = ROOT / "src" / "localbrain" / "templates" / "_conversation.html"
 SESSIONS_DASHBOARD = ROOT / "src" / "localbrain" / "templates" / "sessions_dashboard.html"
 SCHEMA_EXPLORER = ROOT / "src" / "localbrain" / "templates" / "schema.html"
 WORKSTREAM = ROOT / "src" / "localbrain" / "templates" / "workstream.html"
@@ -33,10 +36,17 @@ class UiContractTests(unittest.TestCase):
         cls.script = SCRIPT.read_text(encoding="utf-8")
         cls.base = BASE.read_text(encoding="utf-8")
         cls.dashboard = DASHBOARD.read_text(encoding="utf-8")
-        cls.context = CONTEXT.read_text(encoding="utf-8")
+        cls.context_tree = CONTEXT_TREE.read_text(encoding="utf-8")
+        cls.context = CONTEXT.read_text(encoding="utf-8") + cls.context_tree
+        cls.document = DOCUMENT.read_text(encoding="utf-8") + cls.context_tree
         cls.sessions = SESSIONS.read_text(encoding="utf-8")
-        cls.session_detail = SESSION_DETAIL.read_text(encoding="utf-8")
-        cls.subagent_detail = SUBAGENT_DETAIL.read_text(encoding="utf-8")
+        cls.conversation = CONVERSATION.read_text(encoding="utf-8")
+        cls.session_detail = (
+            SESSION_DETAIL.read_text(encoding="utf-8") + cls.conversation
+        )
+        cls.subsession_detail = (
+            SUBSESSION_DETAIL.read_text(encoding="utf-8") + cls.conversation
+        )
         cls.sessions_dashboard = SESSIONS_DASHBOARD.read_text(encoding="utf-8")
         cls.schema_explorer = SCHEMA_EXPLORER.read_text(encoding="utf-8")
         cls.workstream = WORKSTREAM.read_text(encoding="utf-8")
@@ -88,6 +98,10 @@ class UiContractTests(unittest.TestCase):
             "--surface-source-codex",
             "--text-source-claude",
             "--text-source-codex",
+            "--surface-code-reading",
+            "--text-code-keyword",
+            "--text-code-string",
+            "--text-code-attribute",
             "--shell-sidebar-width: 220px",
             "--shell-sidebar-width-compact: 188px",
             "--breakpoint-compact: 920px",
@@ -116,6 +130,47 @@ class UiContractTests(unittest.TestCase):
         self.assertIn('id="main-content" tabindex="-1"', self.base)
         self.assertIn('aria-current="page"', self.base)
         self.assertIn('data-toast-region aria-live="polite"', self.base)
+
+    def test_local_contexts_follows_sessions_in_visible_and_keyboard_order(self):
+        destinations = (
+            ("04", "Sessions", "/sessions", "sessions"),
+            ("05", "Local Contexts", "/context", "context"),
+            ("06", "Atlassian", "/atlassian", "atlassian"),
+            ("07", "Sources", "/sources", "sources"),
+            ("08", "Schema", "/schema", "schema"),
+        )
+        positions = []
+        for number, label, href, active_page in destinations:
+            marker = ">{}</span><span>{}</span>".format(number, label)
+            positions.append(self.base.index(marker))
+            self.assertIn('href="{}"'.format(href), self.base)
+            self.assertIn("active_page == '{}'".format(active_page), self.base)
+        self.assertEqual(positions, sorted(positions))
+
+        environment = Environment(loader=FileSystemLoader(BASE.parent))
+        environment.globals["url_for"] = lambda name, path: path
+        template = environment.get_template("base.html")
+        for _, label, href, active_page in destinations:
+            with self.subTest(active_page=active_page):
+                html = template.render(
+                    active_page=active_page,
+                    asset_version="synthetic",
+                )
+                current = re.findall(
+                    r'<a class="lnb-item active" href="([^"]+)" aria-current="page">',
+                    html,
+                )
+                self.assertEqual(current, [href])
+                self.assertIn("<span>{}</span>".format(label), html)
+
+        narrow_navigation = self.styles[
+            self.styles.index("@media (max-width: 700px)") :
+        ]
+        self.assertIn(
+            ".lnb-nav { display: flex; gap: var(--space-compact); overflow-x: auto;",
+            narrow_navigation,
+        )
+        self.assertIn(".lnb-item { flex: 0 0 auto;", narrow_navigation)
 
     def test_task_runner_shows_base_request_and_exact_command_contract(self):
         for marker in (
@@ -327,6 +382,14 @@ class UiContractTests(unittest.TestCase):
             "data-context-document-link",
             "data-context-preview",
             "data-context-preview-status",
+            "data-context-split",
+            "data-context-pane-separator",
+            'role="separator"',
+            'aria-orientation="vertical"',
+            'aria-controls="context-source-tree context-markdown-preview"',
+            "data-markdown-body",
+            "selected_document.rendered_body",
+            "selected_document.render_properties",
             'aria-current="page"',
         ):
             self.assertIn(marker, self.context)
@@ -340,13 +403,109 @@ class UiContractTests(unittest.TestCase):
             "AbortController",
             'link.setAttribute("aria-current", "page")',
             "selectedLink.focus({ preventScroll: true })",
+            'paneSeparator.addEventListener("pointerdown"',
+            'paneSeparator.addEventListener("pointermove"',
+            'paneSeparator.addEventListener("keydown"',
+            "setPointerCapture",
+            "releasePointerCapture",
+            'Math.max(160, Math.floor(bodyWidth * 0.35))',
+            'Math.max(180, Math.floor(bodyWidth * 0.42))',
+            'explorerBody.style.setProperty("--context-tree-width"',
+            'explorerBody.style.removeProperty("--context-tree-width")',
+            'window.matchMedia("(max-width: 700px)")',
+            '"ArrowLeft", "ArrowRight"',
+            "contextExplorer.addEventListener(\"click\"",
+            "markdown-reference-internal[href^='/documents/']",
+            "scrollPreviewFragment(destination)",
+            "data-context-folder-source-link",
+            'const sourceScrollKey = "localbrain:context-source-window-scroll"',
+            "savedSourceScroll?.href === window.location.href",
+            "restoreSourceScroll",
+            "Storage denial must not block ordinary source-link navigation.",
         ):
             self.assertIn(behavior, self.script)
 
+        context_script = self.script[
+            self.script.index("const contextExplorer") : self.script.index(
+                'document.querySelectorAll("[data-task-run-form]")'
+            )
+        ]
+        self.assertNotIn("localStorage", context_script)
+        self.assertNotIn("visibilitychange", context_script)
+        self.assertNotIn("blur", context_script)
+        splitter_script = context_script[
+            context_script.index("if (explorerBody && paneSeparator)") :
+            context_script.index("const documentLinks")
+        ]
+        self.assertNotIn("sessionStorage", splitter_script)
+        self.assertNotIn("localStorage", splitter_script)
+        self.assertIn("data-context-folder-source-link", self.context)
+        self.assertNotIn("depth == 0 or node.contains_selected", self.context_tree)
+        self.assertIn("if node.contains_selected", self.context_tree)
+        self.assertIn(
+            ".context-root-add { margin-top: var(--space-control-gap); padding-top: var(--space-control-gap); }",
+            self.styles,
+        )
+        self.assertIn(
+            ".files-group { padding-top: var(--space-card); border-top: var(--border-width-control) solid var(--border-subtle); }",
+            self.styles,
+        )
+        self.assertIn(".markdown-body {", self.styles)
+        self.assertIn(".markdown-code-block {", self.styles)
+        self.assertIn(".markdown-table-scroll {", self.styles)
+        self.assertIn(".markdown-body table {", self.styles)
+        self.assertIn("background: var(--surface-code-reading);", self.styles)
+        self.assertIn("color: var(--text-code-keyword);", self.styles)
+        self.assertIn(".context-pane-separator { display: none; }", self.styles)
         self.assertIn(
             ".source-tree-document > a { height: auto; min-height: var(--control-min-height-touch); }",
             self.styles,
         )
+
+    def test_full_document_reader_reuses_context_tree_and_markdown_contracts(self):
+        for marker in (
+            "data-document-reader",
+            "data-document-reader-source-id",
+            "data-document-reader-tree",
+            "data-document-reader-link",
+            "data-document-reader-return",
+            "data-context-href",
+            "data-document-reader-content",
+            "data-document-reader-status",
+            "data-markdown-body",
+            "document.rendered_body",
+            "document.render_properties",
+            'aria-current="page"',
+        ):
+            self.assertIn(marker, self.document)
+
+        for behavior in (
+            'const documentReader = document.querySelector("[data-document-reader]")',
+            'treePane.addEventListener("click"',
+            'documentReader.addEventListener("click"',
+            'headers: { "X-Requested-With": "LocalBrain-Document-Reader" }',
+            "new DOMParser()",
+            "currentContent.replaceWith(adoptedContent)",
+            "window.history.pushState",
+            'window.addEventListener("popstate"',
+            "AbortController",
+            "selectedLink.focus({ preventScroll: true })",
+            "scrollReaderDestination(destination)",
+            "window.location.assign(destination.href)",
+        ):
+            self.assertIn(behavior, self.script)
+
+        for rule in (
+            ".document-reader.has-context-tree .document-reader-layout {",
+            ".document-reader-tree {",
+            ".document-reading-content {",
+            ".document-reading-body {",
+            ".document-reading-empty {",
+            ".document-reader.has-context-tree .document-reader-layout { grid-template-columns: 1fr; }",
+        ):
+            self.assertIn(rule, self.styles)
+
+        self.assertNotIn("| safe", self.document)
 
     def test_sessions_and_projects_share_one_navigation_destination(self):
         self.assertNotIn('<span>Projects</span>', self.base)
@@ -583,7 +742,7 @@ class UiContractTests(unittest.TestCase):
         self.assertIn(".session-pagination .page-next", self.styles)
 
     def test_session_details_render_conversations_without_tool_rows(self):
-        for template in (self.session_detail, self.subagent_detail):
+        for template in (self.session_detail, self.subsession_detail):
             self.assertNotIn("event.event_type == 'tool_call'", template)
             self.assertIn("도구 활동은 원본 이벤트", template)
             self.assertIn("표시할 대화 메시지가 없습니다.", template)
@@ -591,11 +750,46 @@ class UiContractTests(unittest.TestCase):
         for marker in (
             "parent",
             "상위 Session으로 돌아가기",
-            "subagent.url",
-            "이 Session의 직접 하위 실행",
+            "subsession.url",
+            "이 Session의 직접 하위 Session",
             "원본 이벤트",
         ):
             self.assertIn(marker, self.session_detail)
+
+        for template in (self.session_detail, self.subsession_detail):
+            self.assertNotIn("Subagent", template)
+            self.assertNotIn("Subagents", template)
+            self.assertIn("Subsession", template)
+
+        self.assertIn('/sessions/{session_id}/subsessions/{file_name}', self.main)
+        self.assertIn('/sessions/{session_id}/subagents/{file_name}', self.main)
+        self.assertIn("redirect_legacy_subagent_route", self.main)
+
+    def test_session_conversations_use_shared_markdown_without_source_guessing(self):
+        for template in (self.session_detail, self.subsession_detail):
+            self.assertIn('from "_conversation.html" import conversation_message', template)
+            self.assertIn("event.rendered_body", template)
+            self.assertIn("event.render_properties", template)
+            self.assertIn('class="event-text markdown-body"', template)
+            self.assertIn("data-conversation-markdown", template)
+            self.assertIn('<div class="event-text">{{ event.text }}</div>', template)
+            self.assertNotIn("| safe", template)
+
+        for marker in (
+            "conversation_event_views(",
+            "session_conversation_events(connection, session_id)",
+            "event.event_type == \"message\"",
+        ):
+            self.assertIn(marker, self.main)
+
+        for rule in (
+            ".conversation-markdown-properties {",
+            ".event-text.markdown-body {",
+            "white-space: normal;",
+            ".event-text.markdown-body h1 { font-size: var(--type-title-size);",
+            ".event-text.markdown-body h2 { font-size: var(--type-body-size);",
+        ):
+            self.assertIn(rule, self.styles)
 
 
 if __name__ == "__main__":

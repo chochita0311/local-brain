@@ -13,18 +13,18 @@
 - Surface Lane: backend presentation read model → detail reading surface → legacy-route integration
 - Required Evaluators: `contract`, `design`, `functional`, `ux-heuristic`
 - Created: `2026-07-17`
-- Updated: `2026-07-17`
+- Updated: `2026-07-19`
 
 ## Source Set
 
-- Human request: hide visible `exec`, `Bash`, `Write`, and other tool events without deleting source data; keep the parent-detail Subagents area; expose one direct-child depth for both Claude and Codex.
+- Human request: hide visible `exec`, `Bash`, `Write`, and other tool events without deleting source data; keep the parent-detail Subsessions area; expose one direct-child depth for both Claude and Codex.
 - Passed FEAT-0015 source-neutral relation and FEAT-0017 valid child destinations.
-- Existing Session and Claude lazy-subagent detail routes, Product Model, Design Constitution, Design Evaluation, and Interaction Evaluation.
+- Existing Session and Claude lazy-Subsession detail routes, Product Model, Design Constitution, Design Evaluation, and Interaction Evaluation.
 - screen-alignment `extend` mode using the existing detail-reading family.
 
 ## Implementation Goal
 
-- Render primary Sessions and valid direct children through one conversation-focused detail contract while retaining raw events, parent orientation, Workstream links, the parent Subagents section, and safe legacy Claude destinations.
+- Render primary Sessions and valid direct children through one conversation-focused detail contract while retaining raw events, parent orientation, Workstream links, the parent Subsessions section, and safe legacy Claude destinations.
 
 ## In-Scope Behavior
 
@@ -33,9 +33,9 @@
 - Label the Session-level event count as the source-backed total and state that tool activity is hidden from the reading timeline.
 - Render an intentional conversation-empty state for a tool-only Session.
 - Resolve a direct child’s eligible primary parent and render a parent backlink and child role orientation.
-- Query same-source, `work`, direct subsessions for a primary detail and render them in the existing Subagents section for Claude and Codex.
-- Do not render a Subagents section on a child detail and do not expose grandchildren.
-- Preserve valid legacy Claude lazy-subagent links. Validate that their source-derived parent identity matches the requested primary; redirect to the normalized child detail when an equivalent imported child exists, otherwise render the legacy source through the same message-only presentation.
+- Query same-source, `work`, direct subsessions for a primary detail and render them in the Subsessions section for Claude and Codex.
+- Do not render a Subsessions section on a child detail and do not expose grandchildren.
+- Preserve valid legacy Claude lazy-Subsession links. Validate that their source-derived parent identity matches the requested primary; redirect to the normalized child detail when an equivalent imported child exists, otherwise render the legacy source through the same message-only presentation.
 - Preserve current Workstream membership destinations.
 
 ## Out-Of-Scope Behavior
@@ -45,8 +45,8 @@
 ## Affected Surfaces
 
 - `src/localbrain/queries.py`, `src/localbrain/main.py`, `src/localbrain/subagents.py`
-- `/sessions/{id}` and `/sessions/{id}/subagents/{file}`
-- `src/localbrain/templates/session.html`, `subagent.html`
+- `/sessions/{id}`, canonical `/sessions/{id}/subsessions/{file}`, and legacy redirect `/sessions/{id}/subagents/{file}`
+- `src/localbrain/templates/session.html`, `subsession.html`
 - `src/localbrain/static/styles.css`
 - detail query, route contract, template, and browser tests
 
@@ -59,7 +59,7 @@
   - evaluators: Contract and Functional
 - Frontend reading lane:
   - dependency order: backend contract passed locally
-  - responsibility: unified role hierarchy, parent context, retained Subagents section, empty state, count clarification, long-content containment
+  - responsibility: unified role hierarchy, parent context, retained Subsessions section, empty state, count clarification, long-content containment
   - validation evidence: template contracts and 1440/920/700/320 browser renders
   - evaluators: Design, Functional, and UX
 - Legacy-route integration lane:
@@ -71,7 +71,7 @@
 ## State And Interaction Contract
 
 - A primary detail links back to the Sessions inventory; a child detail links to its eligible primary parent and also offers inventory return.
-- A parent with direct children renders the retained Subagents section above the conversation. A parent without children does not render an empty child section.
+- A parent with direct children renders the Subsessions section above the conversation. A parent without children does not render an empty child section.
 - Child entries use normal links to the same valid destinations exposed by the inventory dropdown.
 - Message role labels are `나` and source agent for a primary Session, and `상위 Agent` and child agent for a subsession.
 - The visible timeline never branches on tool name because tool rows never enter its presentation model.
@@ -106,14 +106,14 @@
 - Tool omission maps to the message-only presentation query and timeline template.
 - Raw preservation maps to unchanged storage, raw query, and source count.
 - Unified child orientation maps to parent/direct-child queries and the shared Session template.
-- Existing Subagents retention maps to the source-neutral direct-child list plus bounded Claude compatibility fallback.
+- Existing child-list retention maps to the source-neutral Subsessions list plus bounded Claude compatibility fallback.
 - Empty-state acceptance maps to an explicit message-only empty panel.
 
 ## Evaluation Focus
 
 - Verify that a message containing a tool word remains visible while an adjacent tool event is absent.
 - Compare database row and `event_count` totals before and after rendering.
-- Inspect primary, direct-child, tool-only, long-content, no-child, and retained Subagents states.
+- Inspect primary, direct-child, tool-only, long-content, no-child, and retained Subsessions states.
 - Confirm nested and unresolved subsessions still return no user-facing detail.
 
 ## Open Blockers
@@ -123,3 +123,4 @@
 ## Continuity Notes
 
 - `2026-07-17`: approved for sequential execution after FEAT-0017 passed; screen-alignment mode is `extend`.
+- `2026-07-19`: post-run human review fixed `Subsession` as the product term; canonical UI, route, template, and implementation names follow it while `/subagents/` remains a redirect-only compatibility input.
