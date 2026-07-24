@@ -8,7 +8,7 @@ This contract defines the deterministic, package-owned data consumed by LocalBra
 
 - `src/localbrain/schema.sql` owns fresh executable structure.
 - `src/localbrain/db.py` owns compatible structure and runtime-only indexes. Generation invokes its real structural path against SQLite `:memory:` with data migrations disabled.
-- `docs/policies/project/data-model.md` and its eight subject documents own order, subject ownership, lifecycle/recovery semantics, column explanations, application relations, and Mermaid definitions.
+- `docs/policies/project/data-model.md` and its nine subject documents own order, subject ownership, lifecycle/recovery semantics, column explanations, application relations, and Mermaid definitions.
 - `scripts/schema_presentation_builder.py` owns transformation and validation only.
 - `src/localbrain/schema-presentation.json` is committed derived output and is packaged with LocalBrain.
 - `src/localbrain/schema_presentation.py` is the only application loader. Consumers must not parse repository Markdown or introspect a runtime database as fallback.
@@ -21,7 +21,7 @@ The top-level `schema` is exactly `localbrain.schema-presentation.v1` and `deriv
 | --- | --- |
 | `baseline` | Baseline ID, current object/relation/index/subject counts, and repository-relative source roles plus SHA-256 digests. No generation timestamp is stored. |
 | `global.mermaid` | Exact reviewed global Mermaid definition from Data Model. |
-| `subjects` | Eight ordered entries with stable kebab-case `id`, display `label`, repository-relative semantic `document`, ordered `table_ids`, and exact focused `mermaid`. |
+| `subjects` | Nine ordered entries with stable kebab-case `id`, display `label`, repository-relative semantic `document`, ordered `table_ids`, and exact focused `mermaid`. |
 | `tables` | Ordered table/FTS catalogs grouped by subject order. Each table occurs exactly once. |
 | `relationships.physical` | SQLite-FK facts derived from `PRAGMA foreign_key_list`, including source/target columns and update/delete actions. |
 | `relationships.application` | Dotted global-ERD relations parsed from semantic truth, including source/target tables, cardinalities, label, and application enforcement. |
@@ -37,7 +37,7 @@ Each table contains:
 | `foreign_keys` | Table-local physical target, columns, and update/delete behavior. |
 | `semantics` | Purpose/authority, lifecycle contract and class, rebuildability code, producers, consumers, deletion effect, recovery path, DDL/migration ownership, and documented constraints. |
 
-The current baseline has eight subjects, 20 ordinary tables plus one FTS5 object, 244 effective columns, 20 explicit indexes, 20 physical relations, and 23 application relations. Count changes are accepted only with the implementation and semantic owners updated together.
+The current baseline has nine subjects, 34 ordinary tables plus one FTS5 object, 381 effective columns, 33 explicit indexes, 39 physical relations, and 24 application relations. Count changes are accepted only with the implementation and semantic owners updated together.
 
 ## Determinism And Failure
 
@@ -63,6 +63,8 @@ The loader never exposes parser internals to a screen and never falls back to do
 `localbrain.schema_explorer` is the bounded read model for `GET /schema`. It normalizes optional `area` and `table` query state against v1, projects only the selected table's related physical and application edges, and supplies ordinary server-rendered links plus approved text and Mermaid definitions. An invalid area returns the global overview; an invalid or cross-area table returns the valid area overview. Raw invalid query values are not reflected.
 
 The route never opens the configured database or reads repository Markdown. Missing or invalid package data produces the loader's intentional unavailable state. JavaScript progressively replaces only the Schema region for history and focus continuity, but it is not a data producer and the complete selected table catalog remains executable HTML without it.
+
+Successfully rendered diagrams start at their existing `100%` width and expose bounded `10%–300%` local presentation controls. `Ctrl`/`Cmd` plus wheel, including browser-normalized trackpad pinch, zooms around the pointer; an unmodified wheel remains ordinary scroll input. Reset restores `100%`, and width fit only reduces diagrams that exceed the current viewport. Zoom changes the rendered wrapper and local scroll position only: it never reruns Mermaid, alters presentation data, enters URL state, or persists user data. Render failure keeps the controls unavailable and the textual fallback authoritative.
 
 ## Privacy And Packaging
 

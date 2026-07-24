@@ -164,6 +164,7 @@ A constitution change fails when:
 | 2026-07-18 | v6 | Expanded the stable System navigation from seven to eight destinations and added the read-only Schema surface to the Explorer family without changing shell geometry or component vocabulary. |
 | 2026-07-19 | v7 | Aligned the detail-and-read screen family with the source-neutral `Subsession` product term without changing its layout, tokens, or component behavior. |
 | 2026-07-20 | v8 | Added dedicated Markdown reading-code surfaces, syntax-text roles, and border semantics so sustained reading does not reuse Run-console or product-state color meaning. |
+| 2026-07-23 | v9 | Added External Source Instance capability and Atlassian Item freshness mappings for the Atlassian browse-and-inventory family. |
 
 ## Practical Summary
 

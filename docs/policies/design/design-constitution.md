@@ -487,6 +487,14 @@ Every persisted or user-visible derived state has one semantic family and a text
 | Source file | `error` | danger | contributes to source error count |
 | Local resource | available | success | normal link treatment |
 | Local resource | missing | warning | historical path remains visible |
+| External Source Instance capability | `current` | success | remote maintenance action may be offered |
+| External Source Instance capability | `unknown` or `stale` | warning | identity remains visible; remote action unavailable pending inspection |
+| External Source Instance capability | `disabled` or `unavailable` | neutral | local inventory remains visible; remote action unavailable |
+| External Source Instance capability | `unauthorized` or `error` | danger | bounded reason and recovery context remain visible |
+| Atlassian Item freshness | `current` | success | last successful check remains visible |
+| Atlassian Item freshness | `due` or `stale` | warning | advisory label; never implies an automatic refresh |
+| Atlassian Item freshness | `unknown` | neutral | no successful check evidence |
+| Atlassian Item freshness | `unavailable` | danger | last-known local record remains visible |
 
 ### Derived And Transient UI States
 

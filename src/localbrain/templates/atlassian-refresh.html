@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% block title %}Atlassian refresh · LocalBrain{% endblock %}
+{% block page_location %}Atlassian refresh{% endblock %}
+{% block content %}
+  <div class="atlassian-refresh-page" data-atlassian-refresh data-call-budget="{{ preview.call_budget }}" data-executor-ready="{{ 'true' if external_executor_ready else 'false' }}">
+    <a class="back-link" href="{{ preview.scope.return_to }}">원래 컨텍스트로 돌아가기</a>
+    <section class="page-heading atlassian-refresh-heading">
+      <div>
+        <p class="eyebrow">EXPLICIT REMOTE REFRESH</p>
+        <h1>{{ preview.scope.label }}</h1>
+        <p class="heading-copy">{{ preview.scope.kind }} 범위의 로컬 대상을 먼저 확인하고 한 번의 maintenance Run으로 조회합니다.</p>
+      </div>
+      <a class="text-link" href="/atlassian">Atlassian inventory</a>
+    </section>
+
+    {% if form_error %}
+      <div class="atlassian-feedback error" role="alert">{{ form_error }}</div>
+    {% endif %}
+
+    {% if run_result %}
+      <section
+        class="atlassian-refresh-result"
+        aria-labelledby="refresh-result-title"
+        data-refresh-run="{{ run_result.run_id }}"
+        data-refresh-status="{{ run_result.status }}"
+      >
+        <div class="atlassian-section-heading">
+          <div>
+            <p class="eyebrow">MAINTENANCE RUN</p>
+            <h2 id="refresh-result-title">최근 refresh 결과</h2>
+          </div>
+          <a class="text-link" href="/runs/{{ run_result.run_id }}">Run 전체 보기</a>
+        </div>
+        <div class="atlassian-catalog-summary">
+          <span class="status-badge {{ 'success' if run_result.status == 'completed' else ('danger' if run_result.status == 'failed' else ('warning' if run_result.status == 'partial' else 'info')) }}">{{ run_result.status }}</span>
+          <span>{{ run_result.targets | length }} targets · {{ run_result.run_id }}</span>
+          {% if run_result.status in ['queued', 'running', 'cancelling'] %}
+            <a href="/atlassian/refresh?scope={{ scope_kind }}{% if scope_id %}&id={{ scope_id }}{% endif %}&page={{ page }}&run={{ run_result.run_id }}">상태 새로고침</a>
+          {% endif %}
+        </div>
+        {% if run_result.targets %}
+          <div class="atlassian-refresh-outcomes">
+            {% for target in run_result.targets %}
+              <div>
+                <span class="mono">{{ target.target_id }}</span>
+                <span class="status-badge {{ 'success' if target.outcome in ['resolved', 'unchanged', 'changed'] else 'danger' }}">{{ target.outcome }}</span>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+        {% if run_result.retry_item_ids %}
+          <a class="secondary-button button-link" href="/atlassian/refresh?scope={{ scope_kind }}{% if scope_id %}&id={{ scope_id }}{% endif %}&page={{ page }}&retry={{ run_result.retry_item_ids | join(',') }}">실패한 {{ run_result.retry_item_ids | length }}개만 다시 preview</a>
+        {% endif %}
+      </section>
+    {% endif %}
+
+    <section class="atlassian-refresh-summary" aria-label="Refresh 범위 요약">
+      <div>
+        <span>Known Items</span>
+        <strong>{{ preview.target_count }}</strong>
+      </div>
+      <div>
+        <span>기본 선택</span>
+        <strong data-selected-count>{{ preview.selected_count }}</strong>
+      </div>
+      <div>
+        <span>예상 remote reads</span>
+        <strong><span data-selected-calls>{{ preview.selected_calls }}</span> / {{ preview.call_budget }}</strong>
+      </div>
+      <div>
+        <span>실행 형태</span>
+        <strong>1 maintenance Run</strong>
+      </div>
+    </section>
+
+    <form class="atlassian-refresh-form" method="post" action="/atlassian/refresh">
+      <input type="hidden" name="scope" value="{{ scope_kind }}">
+      {% if scope_id %}<input type="hidden" name="scope_id" value="{{ scope_id }}">{% endif %}
+      <input type="hidden" name="page" value="{{ page }}">
+
+      <section class="atlassian-refresh-targets" aria-labelledby="refresh-targets-title">
+        <div class="atlassian-section-heading">
+          <div>
+            <p class="eyebrow">LOCAL PREVIEW</p>
+            <h2 id="refresh-targets-title">조회할 Item 선택</h2>
+          </div>
+          <span class="status-badge neutral">preview는 원격 조회 없음</span>
+        </div>
+        <p class="atlassian-action-copy">unknown, due, stale, unavailable은 기본 선택됩니다. current도 직접 포함할 수 있으며 전체 선택은 {{ preview.call_budget }} reads를 넘을 수 없습니다.</p>
+
+        {% if preview['items'] %}
+          <div class="atlassian-refresh-list">
+            {% for item in preview['items'] %}
+              <label class="atlassian-refresh-row {% if not item.selectable %}unavailable{% endif %}">
+                <input
+                  type="checkbox"
+                  name="item_id"
+                  value="{{ item.id }}"
+                  data-refresh-item
+                  data-request-count="{{ item.request_count }}"
+                  {% if item.selected %}checked{% endif %}
+                  {% if not item.selectable %}disabled{% endif %}
+                >
+                <span class="atlassian-refresh-row-main">
+                  <span class="atlassian-record-title">
+                    <strong>{{ item.remote_key or item.title }}</strong>
+                    <span class="status-badge neutral">{{ item.coverage }}</span>
+                    <span class="status-badge {{ 'warning' if item.freshness in ['due', 'stale'] else ('danger' if item.freshness == 'unavailable' else ('success' if item.freshness == 'current' else 'neutral')) }}">{{ item.freshness }}</span>
+                  </span>
+                  <span>{{ item.source_name }} · {{ item.normalized_domain }}{% if item.space_name %} · {{ item.space_name }}{% endif %}</span>
+                  <span class="atlassian-url">{{ item.canonical_url }}</span>
+                </span>
+                <span class="atlassian-refresh-row-meta">
+                  <span>{{ item.request_count }} read{{ '' if item.request_count == 1 else 's' }}</span>
+                  <span>last check · {{ item.last_successful_at or '아직 없음' }}</span>
+                  <span>content · {{ item.content_applied_at or '아직 없음' }}</span>
+                  {% if not item.selectable %}<strong>{{ item.capability_state }}</strong>{% elif item.overflow %}<strong>기본 batch 초과</strong>{% endif %}
+                </span>
+              </label>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="atlassian-empty-state">
+            <p>이 범위에 알려진 Atlassian Item이 없습니다.</p>
+            <span>Thread와 Workstream은 직접 연결된 Item만 포함하며 all-known은 회사 전체 목록이 아닙니다.</span>
+          </div>
+        {% endif %}
+
+        {% if preview.catalog %}
+          <label class="atlassian-refresh-catalog-option {% if not preview.catalog.selectable %}unavailable{% endif %}">
+            <input
+              type="checkbox"
+              name="include_catalog"
+              value="true"
+              data-refresh-item
+              data-request-count="1"
+              {% if preview.catalog.selected %}checked{% endif %}
+              {% if not preview.catalog.selectable %}disabled{% endif %}
+            >
+            <span>
+              <strong>Confluence regular-Page catalog · page {{ preview.catalog.page }}</strong>
+              <small>최대 {{ preview.catalog.limit }}개 후보를 1 read로 확인합니다. 새 Page 본문은 다음 명시적 batch에서 조회합니다.</small>
+            </span>
+            <span class="status-badge neutral">{{ preview.catalog.coverage }}</span>
+          </label>
+        {% endif %}
+      </section>
+
+      <section class="atlassian-refresh-submit" aria-labelledby="refresh-submit-title">
+        <div>
+          <p class="eyebrow">RUN HANDOFF</p>
+          <h2 id="refresh-submit-title">Maintenance runner</h2>
+          <p>선택된 Source Instance별 read 권한을 host가 검증한 뒤 Claude 또는 Codex에는 이미 검증된 evidence만 전달합니다.</p>
+        </div>
+        <label for="refresh-runner">Runner</label>
+        <select id="refresh-runner" name="runner">
+          <option value="claude" {% if not runner_ready.claude %}disabled{% endif %}>Claude{% if not runner_ready.claude %} · unavailable{% endif %}</option>
+          <option value="codex" {% if not runner_ready.codex %}disabled{% endif %}>Codex{% if not runner_ready.codex %} · unavailable{% endif %}</option>
+        </select>
+        <button class="primary-button" type="submit" data-refresh-submit {% if not external_executor_ready %}disabled{% endif %}>선택한 대상 refresh</button>
+        <p class="form-result" data-refresh-budget-message role="status" aria-live="polite"></p>
+        {% if not external_executor_ready %}
+          <p class="atlassian-inline-state warning">승인된 host-side read executor가 연결되지 않아 Run을 시작할 수 없습니다. Preview와 기존 로컬 내용은 계속 사용할 수 있습니다.</p>
+        {% endif %}
+      </section>
+    </form>
+  </div>
+{% endblock %}
+{% block scripts %}
+  <script src="{{ url_for('static', path='/atlassian-refresh.js') }}?v={{ asset_version | default('dev') }}" defer></script>
+{% endblock %}

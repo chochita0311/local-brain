@@ -20,7 +20,7 @@ Durable rules and current contracts live under `docs/policies/`.
 - [Privacy And Data Handling](policies/project/privacy-and-data.md): repository boundary, local persistence, external access, and disclosure constraints
 - [Developer Guide](policies/project/developer-guide.md): setup, configuration, development workflow, and verification
 - [Markdown Rendering Contract](policies/project/markdown-rendering.md): shared syntax, trust, local-reference, highlighting, consumer, and fallback rules
-- [Claude Task Runner](policies/operations/claude-task-runner.md): in-app Claude maintenance execution, retrieval, persistence, and review behavior
+- [Maintenance Task Runner](policies/operations/claude-task-runner.md): in-app Claude/Codex maintenance execution, retrieval, external-sync boundaries, persistence, and review behavior
 - [Harness Policies](policies/harness/): planning approval, execution routing, profiles, surface lanes, and traceability
 - [Interaction Evaluation](policies/experience/interaction-evaluation.md): reusable interaction continuity and UX checks
 
@@ -50,6 +50,8 @@ Sequencing and unresolved work live under `docs/plans/`.
 - [Session Usage And Cost Dashboard PRD](plans/prd/prd-0004-session-usage-and-cost-dashboard.md): passed boundary for source-neutral Usage Records, estimated trend cost, activity and Project attribution, responsive history, composition, and trust
 - [Workflow And Skill Intelligence PRD](plans/prd/prd-0005-workflow-and-skill-intelligence.md): draft boundary for evidence-backed personal workflow patterns, repeated-process analysis, skill use, and reviewable skill suggestions
 - [Markdown Reading And Context Continuity PRD](plans/prd/prd-0006-markdown-reading-and-context-continuity.md): passed boundary for shared safe Markdown, source-local references, Local Context preview and full reading, Session conversation rendering, and navigation continuity; image and attachment rendering remains deferred
+- [Atlassian Source Memory And Explicit Refresh PRD](plans/prd/prd-0007-atlassian-source-memory-and-refresh.md): passed boundary for read-only MCP capability policy, source-neutral maintenance synchronization, stable Atlassian identity and freshness, URL evidence, registration, explicit refresh, local browse/search/classification, and URL-first connection onboarding
+- [Connected Atlassian Validation And Schema ERD Routing PRD](plans/prd/prd-0008-connected-atlassian-validation-and-schema-erd-routing.md): draft next-session boundary for connected Atlassian first-use validation and official Mermaid ELK orthogonal-routing evaluation
 - `docs/plans/prd/`, `feature/`, and `spec/`: planning and implementation boundaries across their lifecycle
 - `docs/plans/run/`, `evaluation/`, `fix/`, and `heuristic/`: execution and review artifacts
 

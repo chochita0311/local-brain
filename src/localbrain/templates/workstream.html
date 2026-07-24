@@ -9,7 +9,10 @@
       <h1>{{ workstream.name }}</h1>
       <p class="heading-copy">{{ workstream.summary or 'Workstream의 범위와 목적을 입력하세요.' }}</p>
     </div>
-    <button class="secondary-button" type="button" data-suggestion-run="{{ workstream.id }}">빠른 연결 제안</button>
+    <div class="workstream-heading-actions">
+      <a class="secondary-button button-link" href="/atlassian/refresh?scope=workstream&id={{ workstream.id }}">Atlassian refresh preview</a>
+      <button class="secondary-button" type="button" data-suggestion-run="{{ workstream.id }}">빠른 연결 제안</button>
+    </div>
   </section>
 
   <section class="workstream-detail-grid">
@@ -83,6 +86,7 @@
                 <span class="link-count">{{ thread.link_count }} links</span>
               </summary>
               <div class="thread-editor-body">
+                <a class="text-link thread-refresh-link" href="/atlassian/refresh?scope=thread&id={{ thread.id }}">이 Thread의 Atlassian refresh preview</a>
                 <form class="stack-form compact-form" data-api-form data-endpoint="/api/threads/{{ thread.id }}" data-method="PUT">
                   <div class="form-grid two"><label><span>제목</span><input name="title" required value="{{ thread.title }}"></label><label><span>상태</span><select name="status"><option value="active" {% if thread.status == 'active' %}selected{% endif %}>active</option><option value="blocked" {% if thread.status == 'blocked' %}selected{% endif %}>blocked</option><option value="paused" {% if thread.status == 'paused' %}selected{% endif %}>paused</option><option value="done" {% if thread.status == 'done' %}selected{% endif %}>done</option></select></label></div>
                   <label><span>요약</span><textarea name="summary" rows="2">{{ thread.summary or '' }}</textarea></label>

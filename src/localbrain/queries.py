@@ -563,19 +563,55 @@ def _fts_expression(query: str) -> str:
     return " AND ".join('"{}"'.format(token.replace('"', '""')) for token in tokens[:12])
 
 
-def search(connection: sqlite3.Connection, query: str, limit: int = 80):
+def search(
+    connection: sqlite3.Connection,
+    query: str,
+    limit: int = 80,
+    *,
+    source_scope: str = "all",
+    atlassian_filters: Optional[dict] = None,
+):
     expression = _fts_expression(query)
     if not expression:
         return []
-    return connection.execute(
-        """
-        SELECT entity_type, entity_id, source_kind, title, path,
-               snippet(search_index, 4, '[[', ']]', ' ... ', 26) AS excerpt,
-               bm25(search_index) AS score
-        FROM search_index
-        WHERE search_index MATCH ?
-        ORDER BY score
-        LIMIT ?
-        """,
-        (expression, limit),
-    ).fetchall()
+    results = []
+    if source_scope != "atlassian":
+        entity_filter = {
+            "sessions": "AND entity_type = 'session'",
+            "documents": "AND entity_type = 'document'",
+        }.get(source_scope, "AND entity_type IN ('session', 'document')")
+        results.extend(
+            dict(row)
+            for row in connection.execute(
+                """
+                SELECT entity_type, entity_id, source_kind, title, path,
+                       snippet(search_index, 4, '[[', ']]', ' ... ', 26) AS excerpt,
+                       bm25(search_index) AS score
+                FROM search_index
+                WHERE search_index MATCH ?
+                  {entity_filter}
+                ORDER BY score
+                LIMIT ?
+                """.format(entity_filter=entity_filter),
+                (expression, limit),
+            ).fetchall()
+        )
+    if source_scope not in {"sessions", "documents"}:
+        from .atlassian_browse import atlassian_search_results
+
+        results.extend(
+            atlassian_search_results(
+                connection,
+                query,
+                atlassian_filters,
+                limit=limit,
+            )
+        )
+    return sorted(
+        results,
+        key=lambda result: (
+            result.get("score", 0),
+            result.get("title") or "",
+            result.get("entity_id") or "",
+        ),
+    )[:limit]

@@ -2,24 +2,477 @@
 {% block title %}Atlassian · LocalBrain{% endblock %}
 {% block page_location %}Atlassian{% endblock %}
 {% block content %}
-  <section class="page-heading">
-    <div>
-      <p class="eyebrow">CONNECTED WORK</p>
-      <h1>Atlassian</h1>
-      <p class="heading-copy">주제별 Jira 및 Confluence 자원</p>
-    </div>
-  </section>
+  <div data-atlassian-registration>
+    <section class="page-heading">
+      <div>
+        <p class="eyebrow">CONNECTED WORK</p>
+        <h1>Atlassian</h1>
+        <p class="heading-copy">원격 사실과 로컬 분류를 분리해 보관하는 개인 지식 인벤토리</p>
+      </div>
+    </section>
 
-  <section class="section-toolbar atlassian-toolbar">
-    <nav class="segmented-control" aria-label="Atlassian 영역">
-      <a class="{% if selected_view == 'jira' %}active{% endif %}" href="/atlassian?view=jira">Jira</a>
-      <a class="{% if selected_view == 'confluence' %}active{% endif %}" href="/atlassian?view=confluence">Confluence</a>
-    </nav>
-    <span class="table-count">0 items</span>
-  </section>
+    <section class="section-toolbar atlassian-toolbar">
+      <nav class="segmented-control" aria-label="Atlassian 영역">
+        <a class="{% if selected_view == 'jira' %}selected{% endif %}" href="/atlassian?view=jira&amp;mode={{ selected_mode }}" {% if selected_view == 'jira' %}aria-current="page"{% endif %}>Jira</a>
+        <a class="{% if selected_view == 'confluence' %}selected{% endif %}" href="/atlassian?view=confluence&amp;mode={{ selected_mode }}" {% if selected_view == 'confluence' %}aria-current="page"{% endif %}>Confluence</a>
+      </nav>
+      <div class="atlassian-toolbar-actions">
+        <nav class="segmented-control compact" aria-label="Atlassian 작업">
+          <a class="{% if selected_mode == 'browse' %}selected{% endif %}" href="/atlassian?view={{ selected_view }}&amp;mode=browse" {% if selected_mode == 'browse' %}aria-current="page"{% endif %}>Browse</a>
+          <a class="{% if selected_mode == 'setup' %}selected{% endif %}" href="/atlassian?view={{ selected_view }}&amp;mode=setup" {% if selected_mode == 'setup' %}aria-current="page"{% endif %}>Add / discover</a>
+        </nav>
+        <a class="secondary-button button-link" href="/atlassian/refresh?scope=all_known">보유 링크 refresh preview</a>
+        <span class="table-count">{{ item_count }} items · {{ space_count }} spaces</span>
+      </div>
+    </section>
 
-  <section class="resource-table atlassian-empty-list">
-    <div class="resource-row table-header"><span>제목</span><span>주제</span><span>상태</span><span>수정</span></div>
-    <div class="empty-state"><p>연결된 {{ 'Jira 항목이' if selected_view == 'jira' else 'Confluence 문서가' }} 없습니다.</p></div>
-  </section>
+    {% if notice %}
+      <div class="atlassian-feedback success" role="status" tabindex="-1" data-registration-notice>{{ notice }}</div>
+    {% endif %}
+    {% if form_error %}
+      <div class="atlassian-feedback error" role="alert">{{ form_error }}</div>
+    {% endif %}
+
+    {% if selected_mode == 'setup' %}
+    <section class="atlassian-connections-panel" aria-labelledby="atlassian-connections-title">
+      <div class="atlassian-section-heading">
+        <div>
+          <p class="eyebrow">MCP CONNECTIONS</p>
+          <h2 id="atlassian-connections-title">Source Instance와 Site</h2>
+          <p>Source Instance는 LocalBrain이 사용할 MCP 연결이고, Site는 그 연결 아래의 Atlassian 도메인입니다.</p>
+        </div>
+        <span class="table-count">{{ sites | length }} connections</span>
+      </div>
+      {% if sites %}
+        <div class="atlassian-connection-list">
+          {% for site in sites %}
+            <details class="atlassian-connection-row" id="atlassian-connection-{{ site.site_id }}" tabindex="-1">
+              <summary>
+                <span class="atlassian-connection-summary">
+                  <strong>{{ site.source_display_name }}</strong>
+                  <small>{{ site.site_display_name or site.normalized_domain }} · {{ site.normalized_domain }}</small>
+                </span>
+                <span class="atlassian-connection-state">
+                  <span class="status-badge neutral">{{ site.provider_label }}</span>
+                  <span class="status-badge {{ 'success' if site.enabled else 'danger' }}">{{ 'enabled' if site.enabled else 'disabled' }}</span>
+                  <span class="status-badge {{ 'info' if site.config_bound else 'warning' }}">{{ 'bound' if site.config_bound else 'local only' }}</span>
+                  <span class="status-badge neutral">{{ site.capability_state }}</span>
+                </span>
+              </summary>
+              <form class="atlassian-form atlassian-connection-edit" method="post" action="/atlassian/connections/{{ site.source_instance_id }}/sites/{{ site.site_id }}">
+                <input type="hidden" name="service" value="{{ selected_view }}">
+                <label for="source-name-{{ site.site_id }}">Source 표시 이름</label>
+                <input id="source-name-{{ site.site_id }}" name="source_name" maxlength="160" required value="{{ site.source_display_name }}">
+
+                <label for="site-name-{{ site.site_id }}">Site 표시 이름</label>
+                <input id="site-name-{{ site.site_id }}" name="site_name" maxlength="300" required value="{{ site.site_display_name or site.normalized_domain.split('.')[0] }}">
+
+                {% if not site.config_bound %}
+                  <label for="config-ref-{{ site.site_id }}">연결 reference <span class="optional-label">선택</span></label>
+                  <input id="config-ref-{{ site.site_id }}" name="config_ref" maxlength="300" placeholder="{{ 'Atlassian Cloud ID' if site.provider_kind == 'atlassian_cloud' else 'Gateway configuration alias' }}">
+                  <span class="field-help">한 번 바인딩한 reference는 이 화면에서 다른 값으로 교체하지 않습니다.</span>
+                {% else %}
+                  <p class="atlassian-bound-note">연결 reference가 바인딩되어 있습니다. MCP Provider와 바인딩 값은 안정적인 접근 경계로 유지됩니다.</p>
+                {% endif %}
+
+                <label class="atlassian-check-label" for="connection-enabled-{{ site.site_id }}">
+                  <input id="connection-enabled-{{ site.site_id }}" name="enabled" type="checkbox" value="1" {% if site.enabled %}checked{% endif %}>
+                  <span>이 Source Instance 사용</span>
+                </label>
+                <button class="secondary-button" type="submit">연결 정보 저장</button>
+              </form>
+            </details>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="atlassian-inline-state neutral">아직 등록된 연결이 없습니다. 아래에서 첫 URL과 MCP 연결을 함께 등록할 수 있습니다.</p>
+      {% endif %}
+    </section>
+
+    <section class="atlassian-registration-grid" aria-label="{{ 'Jira' if selected_view == 'jira' else 'Confluence' }} 등록">
+      <article class="atlassian-action-card">
+        <div class="atlassian-action-heading">
+          <div>
+            <p class="eyebrow">LOCAL ONLY</p>
+            <h2>URL로 등록</h2>
+          </div>
+          <span class="status-badge neutral">원격 조회 없음</span>
+        </div>
+        <p class="atlassian-action-copy">
+          {{ '티켓 또는 프로젝트' if selected_view == 'jira' else 'Page 또는 Space' }} URL을 reference로 저장합니다.
+          키만 입력하면 등록되지 않습니다. Space coverage 기본값은
+          <strong>{{ 'selected-content' if selected_view == 'jira' else 'full-content' }}</strong>입니다.
+        </p>
+        <form class="atlassian-form" method="post" action="/atlassian/register">
+          <input type="hidden" name="service" value="{{ selected_view }}">
+          <label for="atlassian-site">Source Instance / Site</label>
+          <select id="atlassian-site" name="site_id" data-atlassian-site-select>
+            {% if sites %}
+              <option value="">URL이 하나의 Site와 일치하면 자동 선택</option>
+            {% endif %}
+            {% for site in sites %}
+              <option value="{{ site.site_id }}" {% if not site.enabled %}disabled{% endif %} {% if form_state.get('site_id') == site.site_id|string %}selected{% endif %}>
+                {{ site.source_display_name }} · {{ site.normalized_domain }}{% if not site.enabled %} · disabled{% endif %}
+              </option>
+            {% endfor %}
+            <option value="new" {% if form_state.get('site_id') == 'new' or not sites %}selected{% endif %}>새 Source Instance / Site 만들기</option>
+          </select>
+          <span class="field-help">기존 Site는 자동 재사용하고, 처음 보는 도메인만 사용할 MCP 연결을 확인합니다.</span>
+
+          <label for="atlassian-url">Atlassian URL <span aria-hidden="true">*</span></label>
+          <input
+            id="atlassian-url"
+            name="url"
+            type="url"
+            required
+            maxlength="8000"
+            value="{{ form_state.get('url', '') }}"
+            placeholder="{{ 'https://jira.example.test/browse/PROJ-123' if selected_view == 'jira' else 'https://wiki.example.test/spaces/TEAM/pages/12345/Title' }}"
+          >
+          <span class="field-help">HTTP(S) Item 또는 Space URL만 허용됩니다.</span>
+          <div class="atlassian-url-preview neutral" role="status" aria-live="polite" data-atlassian-url-preview>
+            URL을 입력하면 Jira/Confluence, Site 도메인, Item 또는 Space 식별자를 로컬에서 확인합니다.
+          </div>
+
+          <details class="atlassian-new-connection" data-atlassian-new-connection {% if form_state.get('site_id') == 'new' or not sites %}open{% endif %}>
+            <summary>새 연결 설정</summary>
+            <div class="atlassian-new-connection-fields">
+              <label for="atlassian-provider">MCP 연결 (Provider) <span aria-hidden="true">*</span></label>
+              <select id="atlassian-provider" name="provider_kind">
+                <option value="">MCP 연결 선택</option>
+                <option value="atlassian_cloud" {% if form_state.get('provider_kind') == 'atlassian_cloud' %}selected{% endif %}>공식 Atlassian MCP</option>
+                <option value="mcp_gateway" {% if form_state.get('provider_kind') == 'mcp_gateway' %}selected{% endif %}>회사 MCP Gateway</option>
+              </select>
+
+              <label for="atlassian-source-name">Source 표시 이름 <span class="optional-label">선택</span></label>
+              <input id="atlassian-source-name" name="source_name" maxlength="160" value="{{ form_state.get('source_name', '') }}" placeholder="비워두면 MCP 연결과 도메인으로 생성" data-atlassian-source-name>
+
+              <label for="atlassian-site-name">Site 표시 이름 <span class="optional-label">선택</span></label>
+              <input id="atlassian-site-name" name="site_name" maxlength="300" value="{{ form_state.get('site_name', '') }}" placeholder="비워두면 도메인의 첫 이름 사용" data-atlassian-site-name>
+
+              <label for="atlassian-config-ref">연결 reference <span class="optional-label">나중에 설정 가능</span></label>
+              <input id="atlassian-config-ref" name="config_ref" maxlength="300" value="{{ form_state.get('config_ref', '') }}" placeholder="Cloud ID 또는 Gateway configuration alias">
+              <span class="field-help">비워두면 local-only 연결로 생성됩니다. 원격 조회 전에 한 번 바인딩할 수 있습니다.</span>
+            </div>
+          </details>
+
+          <label for="atlassian-title">로컬 표시 이름 <span class="optional-label">선택</span></label>
+          <input id="atlassian-title" name="title" maxlength="500" value="{{ form_state.get('title', '') }}" placeholder="비워두면 URL 또는 Space key 사용">
+          <button class="primary-button" type="submit">로컬에 등록</button>
+        </form>
+        {% if not sites %}
+          <p class="atlassian-inline-state neutral">첫 등록에서는 URL과 MCP 연결을 확인한 뒤 Source Instance, Site, reference를 함께 만듭니다.</p>
+        {% endif %}
+      </article>
+
+      <article class="atlassian-action-card">
+        <div class="atlassian-action-heading">
+          <div>
+            <p class="eyebrow">MAINTENANCE RUN</p>
+            <h2>Space 후보 조회</h2>
+          </div>
+          <span class="status-badge info">원격 read 1회</span>
+        </div>
+        <p class="atlassian-action-copy">
+          현재 read capability로 접근 가능한 {{ '프로젝트' if selected_view == 'jira' else 'Space' }} 후보를 한 번 조회합니다.
+          전용 목록 API가 없어 결과는 일부 후보일 수 있으며 자동 등록하지 않습니다.
+        </p>
+        <form class="atlassian-form" method="post" action="/atlassian/spaces/discover">
+          <input type="hidden" name="service" value="{{ selected_view }}">
+          <label for="atlassian-discovery-site">Source Instance / Site <span aria-hidden="true">*</span></label>
+          <select id="atlassian-discovery-site" name="site_id" required>
+            <option value="">조회 대상을 선택</option>
+            {% for site in sites %}
+              <option value="{{ site.site_id }}" {% if not site.enabled or site.capability_state != 'current' %}disabled{% endif %} {% if form_state.get('site_id') == site.site_id|string %}selected{% endif %}>
+                {{ site.display_name }} · {{ site.normalized_domain }} · {{ site.capability_state }}
+              </option>
+            {% endfor %}
+          </select>
+          <span class="field-help">선택한 Source Instance만 조회하며 회사 전체 자원을 의미하지 않습니다.</span>
+
+          <label for="atlassian-discovery-runner">Maintenance runner</label>
+          <select id="atlassian-discovery-runner" name="runner">
+            <option value="claude" {% if form_state.get('runner', 'claude') == 'claude' %}selected{% endif %}>Claude</option>
+            <option value="codex" {% if form_state.get('runner') == 'codex' %}selected{% endif %}>Codex</option>
+          </select>
+          <button class="secondary-button" type="submit" {% if not external_executor_ready %}aria-describedby="atlassian-executor-state"{% endif %}>후보 조회 Run 시작</button>
+        </form>
+        {% if not external_executor_ready %}
+          <p id="atlassian-executor-state" class="atlassian-inline-state warning">현재 LocalBrain 프로세스에 승인된 host-side read executor가 연결되지 않아 조회 Run을 시작할 수 없습니다. URL 등록은 계속 사용할 수 있습니다.</p>
+        {% endif %}
+      </article>
+    </section>
+
+    {% if catalog_error %}
+      <section class="atlassian-catalog-panel" aria-labelledby="space-catalog-title">
+        <div class="atlassian-section-heading"><div><p class="eyebrow">SPACE DISCOVERY</p><h2 id="space-catalog-title">후보 조회 결과</h2></div></div>
+        <p class="atlassian-inline-state error">{{ catalog_error }}</p>
+      </section>
+    {% elif catalog %}
+      <section class="atlassian-catalog-panel" aria-labelledby="space-catalog-title" data-catalog-run="{{ catalog.run_id }}" data-catalog-status="{{ catalog.status }}">
+        <div class="atlassian-section-heading">
+          <div><p class="eyebrow">SPACE DISCOVERY</p><h2 id="space-catalog-title">후보 조회 결과</h2></div>
+          <a class="text-link" href="/runs/{{ catalog.run_id }}">Run 보기</a>
+        </div>
+        <div class="atlassian-catalog-summary">
+          <span class="status-badge {{ 'success' if catalog.status in ['completed', 'partial'] else ('danger' if catalog.status == 'failed' else 'info') }}">{{ catalog.status }}</span>
+          <span>일부 후보 결과 · {{ catalog.candidates | length }}개</span>
+          {% if catalog.status in ['queued', 'running', 'cancelling'] %}
+            <a href="/atlassian?view={{ selected_view }}&catalog_run={{ catalog.run_id }}">상태 새로고침</a>
+          {% endif %}
+        </div>
+        {% if catalog.candidates %}
+          <div class="atlassian-candidate-list">
+            {% for candidate in catalog.candidates %}
+              <form class="atlassian-candidate-row" method="post" action="/atlassian/spaces/register">
+                <input type="hidden" name="service" value="{{ selected_view }}">
+                <input type="hidden" name="site_id" value="{{ catalog.site_id }}">
+                <input type="hidden" name="space_key" value="{{ candidate.key }}">
+                <input type="hidden" name="remote_id" value="{{ candidate.remote_id or '' }}">
+                <input type="hidden" name="name" value="{{ candidate.name }}">
+                <div>
+                  <strong>{{ candidate.name }}</strong>
+                  <span class="mono">{{ candidate.key }}</span>
+                </div>
+                <button class="secondary-button" type="submit">이 Space 등록</button>
+              </form>
+            {% endfor %}
+          </div>
+        {% elif catalog.status in ['completed', 'partial'] %}
+          <p class="atlassian-inline-state neutral">이 bounded 조회에서 등록 가능한 Space 후보를 찾지 못했습니다. URL 직접 등록을 사용할 수 있습니다.</p>
+        {% endif %}
+      </section>
+    {% endif %}
+
+    <section class="atlassian-inventory-section" aria-labelledby="registered-spaces-title">
+      <div class="atlassian-section-heading">
+        <div>
+          <p class="eyebrow">REGISTERED SPACES</p>
+          <h2 id="registered-spaces-title">{{ 'Jira projects' if selected_view == 'jira' else 'Confluence Spaces' }}</h2>
+        </div>
+        <span class="table-count">{{ space_count }} spaces</span>
+      </div>
+      {% if inventory['spaces'] %}
+        <div class="atlassian-record-list">
+          {% for space in inventory['spaces'] %}
+            <article class="atlassian-record" id="atlassian-space-{{ space.id }}" tabindex="-1">
+              <div class="atlassian-record-main">
+                <div class="atlassian-record-title">
+                  <strong>{{ space.name }}</strong>
+                  <span class="status-badge neutral">{{ space.coverage }}</span>
+                </div>
+                <span>{{ space.source_name }} · {{ space.normalized_domain }}</span>
+                <a class="atlassian-url" href="{{ space.canonical_url }}" target="_blank" rel="noreferrer">{{ space.canonical_url }}</a>
+              </div>
+              <div class="atlassian-record-meta">
+                <span>Space key</span>
+                <strong class="mono">{{ space.space_key or space.remote_id }}</strong>
+                <a class="text-link" href="/atlassian/refresh?scope=space&id={{ space.id }}">Refresh preview</a>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="atlassian-empty-state">
+          <p>등록된 {{ 'Jira 프로젝트가' if selected_view == 'jira' else 'Confluence Space가' }} 없습니다.</p>
+          <span>URL 직접 등록 또는 명시적인 후보 조회를 사용하세요.</span>
+        </div>
+      {% endif %}
+    </section>
+
+    <section class="atlassian-inventory-section" aria-labelledby="registered-items-title">
+      <div class="atlassian-section-heading">
+        <div>
+          <p class="eyebrow">REGISTERED ITEMS</p>
+          <h2 id="registered-items-title">{{ 'Jira tickets' if selected_view == 'jira' else 'Confluence Pages' }}</h2>
+        </div>
+        <span class="table-count">{{ item_count }} items</span>
+      </div>
+      {% if inventory['items'] %}
+        <div class="atlassian-record-list">
+          {% for item in inventory['items'] %}
+            <article class="atlassian-record" id="atlassian-item-{{ item.id }}" tabindex="-1">
+              <div class="atlassian-record-main">
+                <div class="atlassian-record-title">
+                  <strong>{{ item.remote_key or item.title }}</strong>
+                  <span class="status-badge neutral">{{ item.coverage }}</span>
+                  <span class="status-badge {{ 'warning' if item.freshness in ['due', 'stale'] else ('danger' if item.freshness == 'unavailable' else ('success' if item.freshness == 'current' else 'neutral')) }}">{{ item.freshness }}</span>
+                </div>
+                <span>{{ item.source_name }} · {{ item.normalized_domain }}</span>
+                <a class="atlassian-url" href="{{ item.canonical_url }}" target="_blank" rel="noreferrer">{{ item.canonical_url }}</a>
+              </div>
+              <div class="atlassian-record-meta">
+                <span>Last successful check</span>
+                <time datetime="{{ item.last_successful_at or '' }}" data-local-time>{{ item.last_successful_at or '아직 없음' }}</time>
+                <a class="text-link" href="/atlassian/refresh?scope=item&id={{ item.id }}">Refresh preview</a>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="atlassian-empty-state">
+          <p>연결된 {{ 'Jira 티켓이' if selected_view == 'jira' else 'Confluence Page가' }} 없습니다.</p>
+          <span>실제 URL을 등록해 reference부터 시작할 수 있습니다.</span>
+        </div>
+      {% endif %}
+    </section>
+    {% else %}
+    <section class="atlassian-inventory-section atlassian-browse-panel" aria-labelledby="atlassian-browse-title">
+      <div class="atlassian-section-heading">
+        <div>
+          <p class="eyebrow">LOCAL KNOWLEDGE BASE</p>
+          <h2 id="atlassian-browse-title">{{ 'Jira tickets' if selected_view == 'jira' else 'Confluence Pages' }}</h2>
+          <p>검색과 필터는 저장된 로컬 상태만 사용하며 원격 조회나 maintenance Run을 시작하지 않습니다.</p>
+        </div>
+        <span class="table-count">{{ browse.matching_count }} / {{ browse.known_count }} items</span>
+      </div>
+
+      <form class="atlassian-filter-form" method="get" action="/atlassian">
+        <input type="hidden" name="view" value="{{ selected_view }}">
+        <input type="hidden" name="mode" value="browse">
+        <label class="atlassian-filter-query">
+          <span>로컬 검색</span>
+          <input name="q" type="search" maxlength="300" value="{{ browse.filters.q }}" placeholder="키, 제목, metadata, indexed body, 메모">
+        </label>
+        <label>
+          <span>Source Instance</span>
+          <select name="source_instance_id">
+            <option value="">전체</option>
+            {% for source in browse.options.sources if source.service == selected_view %}
+              <option value="{{ source.id }}" {% if browse.filters.source_instance_id == source.id %}selected{% endif %}>{{ source.display_name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          <span>Site</span>
+          <select name="site_id">
+            <option value="">전체</option>
+            {% for site in browse.options.sites if site.service == selected_view %}
+              <option value="{{ site.id }}" {% if browse.filters.site_id == site.id %}selected{% endif %}>{{ site.display_name or site.normalized_domain }} · {{ site.normalized_domain }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          <span>Space</span>
+          <select name="space_id">
+            <option value="">전체</option>
+            {% for space in browse.options.spaces if space.service == selected_view %}
+              <option value="{{ space.id }}" {% if browse.filters.space_id == space.id %}selected{% endif %}>{{ space.name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          <span>Coverage</span>
+          <select name="coverage">
+            <option value="">전체</option>
+            {% for value in ['reference', 'metadata', 'indexed'] %}
+              <option value="{{ value }}" {% if browse.filters.coverage == value %}selected{% endif %}>{{ value }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          <span>Item type</span>
+          <select name="item_type">
+            <option value="">전체</option>
+            {% for value in ['jira_issue', 'confluence_page'] %}
+              <option value="{{ value }}" {% if browse.filters.item_type == value %}selected{% endif %}>{{ value }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          <span>Freshness</span>
+          <select name="freshness">
+            <option value="">전체</option>
+            {% for value in ['unknown', 'current', 'due', 'stale', 'unavailable'] %}
+              <option value="{{ value }}" {% if browse.filters.freshness == value %}selected{% endif %}>{{ value }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          <span>Attention</span>
+          <select name="attention">
+            <option value="">기본 · archived 제외</option>
+            <option value="all" {% if browse.filters.attention == 'all' %}selected{% endif %}>전체 · archived 포함</option>
+            {% for value in ['normal', 'pinned', 'ignored', 'archived'] %}
+              <option value="{{ value }}" {% if browse.filters.attention == value %}selected{% endif %}>{{ value }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          <span>Topic</span>
+          <select name="topic_id">
+            <option value="">전체</option>
+            {% for topic in browse.options.topics %}
+              <option value="{{ topic.id }}" {% if browse.filters.topic_id == topic.id %}selected{% endif %}>{{ topic.name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          <span>Tag</span>
+          <select name="tag_id">
+            <option value="">전체</option>
+            {% for tag in browse.options.tags %}
+              <option value="{{ tag.id }}" {% if browse.filters.tag_id == tag.id %}selected{% endif %}>{{ tag.name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          <span>Workstream</span>
+          <select name="workstream_id">
+            <option value="">매핑 여부 무관</option>
+            {% for workstream in browse.options.workstreams %}
+              <option value="{{ workstream.id }}" {% if browse.filters.workstream_id == workstream.id %}selected{% endif %}>{{ workstream.name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <div class="atlassian-filter-actions">
+          <button class="primary-button" type="submit">필터 적용</button>
+          <a class="secondary-button button-link" href="/atlassian?view={{ selected_view }}&amp;mode=browse">초기화</a>
+        </div>
+      </form>
+
+      {% if browse['items'] %}
+        <div class="atlassian-knowledge-list">
+          {% for item in browse['items'] %}
+            <article class="atlassian-knowledge-row attention-{{ item.attention }}" id="atlassian-item-{{ item.id }}">
+              <div class="atlassian-knowledge-main">
+                <div class="atlassian-record-title">
+                  <a href="/atlassian/items/{{ item.id }}"><strong>{{ item.remote_key or item.display_title }}</strong></a>
+                  <span class="status-badge neutral">{{ item.coverage }}</span>
+                  <span class="status-badge {{ 'warning' if item.freshness in ['due', 'stale'] else ('danger' if item.freshness == 'unavailable' else ('success' if item.freshness == 'current' else 'neutral')) }}">{{ item.freshness }}</span>
+                  {% if item.attention != 'normal' %}<span class="status-badge info">{{ item.attention }}</span>{% endif %}
+                </div>
+                {% if item.remote_key %}<h3><a href="/atlassian/items/{{ item.id }}">{{ item.display_title }}</a></h3>{% endif %}
+                <p>{{ item.source_name }} · {{ item.normalized_domain }}{% if item.space_name %} · {{ item.space_name }}{% endif %}</p>
+                <div class="atlassian-classification-strip">
+                  {% for topic in item.topics %}<span class="status-badge info">Topic · {{ topic.name }}</span>{% endfor %}
+                  {% for tag in item.tags %}<span class="status-badge neutral">#{{ tag.name }}</span>{% endfor %}
+                </div>
+              </div>
+              <div class="atlassian-record-meta">
+                <span>Last check</span>
+                <time datetime="{{ item.last_successful_at or '' }}" data-local-time>{{ item.last_successful_at or '아직 없음' }}</time>
+                <a class="text-link" href="/atlassian/items/{{ item.id }}">로컬 상세</a>
+                <a class="text-link" href="{{ item.canonical_url }}" target="_blank" rel="noreferrer">Atlassian에서 열기</a>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% elif browse.known_count == 0 %}
+        <div class="atlassian-empty-state">
+          <p>아직 알려진 Atlassian Item이 없습니다.</p>
+          <span><a href="/atlassian?view={{ selected_view }}&amp;mode=setup">실제 URL을 먼저 등록</a>할 수 있습니다.</span>
+        </div>
+      {% else %}
+        <div class="atlassian-empty-state">
+          <p>현재 로컬 검색과 필터에 일치하는 Item이 없습니다.</p>
+          <span>필터를 초기화하거나 archived 포함 여부를 확인하세요.</span>
+        </div>
+      {% endif %}
+    </section>
+    {% endif %}
+  </div>
+{% endblock %}
+{% block scripts %}
+  <script src="{{ url_for('static', path='/atlassian.js') }}?v={{ asset_version | default('dev') }}" defer></script>
 {% endblock %}

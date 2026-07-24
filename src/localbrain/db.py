@@ -16,6 +16,9 @@ MAINTENANCE_SESSION_CONTRACT_BACKUP_SUFFIX = (
 MAINTENANCE_WORKSTREAM_FK_BACKUP_SUFFIX = (
     "-pre-maintenance-workstream-fk-v1.bak"
 )
+EXTERNAL_RESOURCE_URL_SCOPE_BACKUP_SUFFIX = (
+    "-pre-external-resource-url-scope-v1.bak"
+)
 USAGE_ATTRIBUTION_CHECK = (
     "CHECK(attribution_basis IN ('git_root', 'workspace_path', 'unassigned'))"
 )
@@ -58,6 +61,14 @@ def connect() -> sqlite3.Connection:
 
 def init_db() -> None:
     with connect() as connection:
+        external_resource_url_scope_needs_repair = bool(
+            _table_sql(connection, "external_resources")
+            and _external_resource_url_unique_exists(connection)
+        )
+        if external_resource_url_scope_needs_repair:
+            _ensure_external_resource_url_scope_backup(
+                connection, settings.database_path
+            )
         usage_contract_table = _usage_contract_table(connection)
         usage_contract_exists = usage_contract_table is not None
         maintenance_workstream_fk_needs_repair = bool(
@@ -126,6 +137,211 @@ def _table_sql(connection: sqlite3.Connection, table: str):
         (table,),
     ).fetchone()
     return row["sql"] if row else None
+
+
+def _unique_index_columns(
+    connection: sqlite3.Connection, table: str
+) -> list[list[str]]:
+    return [
+        [
+            column["name"]
+            for column in connection.execute(
+                "PRAGMA index_info({})".format(_quote_identifier(index["name"]))
+            )
+        ]
+        for index in connection.execute(
+            "PRAGMA index_list({})".format(_quote_identifier(table))
+        )
+        if bool(index["unique"])
+    ]
+
+
+def _external_resource_url_unique_exists(
+    connection: sqlite3.Connection,
+) -> bool:
+    return ["url"] in _unique_index_columns(connection, "external_resources")
+
+
+def _external_resource_url_scope_backup_path(database_path: Path) -> Path:
+    return database_path.with_name(
+        database_path.name + EXTERNAL_RESOURCE_URL_SCOPE_BACKUP_SUFFIX
+    )
+
+
+def _ensure_external_resource_url_scope_backup(
+    connection: sqlite3.Connection, database_path: Path
+) -> Path:
+    backup_path = _external_resource_url_scope_backup_path(database_path)
+    if backup_path.exists():
+        _quick_check_database(backup_path)
+        return backup_path
+
+    backup_connection = sqlite3.connect(str(backup_path))
+    try:
+        connection.backup(backup_connection)
+    except Exception:
+        backup_connection.close()
+        backup_path.unlink(missing_ok=True)
+        raise
+    else:
+        backup_connection.close()
+    try:
+        _quick_check_database(backup_path)
+    except Exception:
+        backup_path.unlink(missing_ok=True)
+        raise
+    return backup_path
+
+
+def _expected_external_resource_columns() -> list:
+    reference = sqlite3.connect(":memory:")
+    try:
+        reference.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
+        return [
+            tuple(row)
+            for row in reference.execute("PRAGMA table_info(external_resources)")
+        ]
+    finally:
+        reference.close()
+
+
+def _canonical_external_resources_sql() -> str:
+    reference = sqlite3.connect(":memory:")
+    try:
+        reference.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
+        row = reference.execute(
+            "SELECT sql FROM sqlite_master "
+            "WHERE type = 'table' AND name = 'external_resources'"
+        ).fetchone()
+        if not row or not row[0]:
+            raise RuntimeError("Canonical External Resource schema is unavailable")
+        return row[0]
+    finally:
+        reference.close()
+
+
+def _external_relation_snapshots(connection: sqlite3.Connection) -> dict:
+    snapshots = {}
+    for table, order_by in (
+        ("workstream_links", "id"),
+        ("thread_links", "id"),
+        ("checkpoint_resource_refs", "id"),
+    ):
+        if not _table_sql(connection, table):
+            continue
+        snapshots[table] = [
+            tuple(row)
+            for row in connection.execute(
+                "SELECT * FROM {} WHERE entity_type = 'external' ORDER BY {}".format(
+                    _quote_identifier(table), order_by
+                )
+            )
+        ]
+    return snapshots
+
+
+def _repair_external_resource_url_scope(
+    connection: sqlite3.Connection,
+) -> bool:
+    if not _table_sql(connection, "external_resources"):
+        return False
+    if not _external_resource_url_unique_exists(connection):
+        return False
+
+    source_info = [
+        tuple(row)
+        for row in connection.execute("PRAGMA table_info(external_resources)")
+    ]
+    expected_info = _expected_external_resource_columns()
+    if source_info != expected_info:
+        raise RuntimeError(
+            "External Resource URL migration found an unexpected table shape"
+        )
+    indexes = list(connection.execute("PRAGMA index_list(external_resources)"))
+    if any(index["origin"] != "u" for index in indexes):
+        raise RuntimeError(
+            "External Resource URL migration found an unexpected explicit index"
+        )
+    if _unique_index_columns(connection, "external_resources") != [["url"]]:
+        raise RuntimeError(
+            "External Resource URL migration found unexpected uniqueness"
+        )
+    trigger_count = connection.execute(
+        """
+        SELECT COUNT(*) FROM sqlite_master
+        WHERE type = 'trigger' AND tbl_name = 'external_resources'
+        """
+    ).fetchone()[0]
+    if trigger_count:
+        raise RuntimeError(
+            "External Resource URL migration found an unexpected trigger"
+        )
+
+    legacy_table = "external_resources__url_scope_legacy"
+    if _table_sql(connection, legacy_table):
+        raise RuntimeError("External Resource URL migration target already exists")
+
+    columns = [row[1] for row in source_info]
+    column_list = ", ".join(_quote_identifier(column) for column in columns)
+    before_rows = [
+        tuple(row)
+        for row in connection.execute(
+            "SELECT {} FROM external_resources ORDER BY id".format(column_list)
+        )
+    ]
+    before_relations = _external_relation_snapshots(connection)
+    canonical_sql = _canonical_external_resources_sql()
+    foreign_keys_enabled = bool(connection.execute("PRAGMA foreign_keys").fetchone()[0])
+
+    connection.commit()
+    connection.execute("PRAGMA foreign_keys = OFF")
+    connection.execute("PRAGMA legacy_alter_table = ON")
+    try:
+        connection.execute("BEGIN IMMEDIATE")
+        connection.execute(
+            "ALTER TABLE external_resources RENAME TO {}".format(
+                _quote_identifier(legacy_table)
+            )
+        )
+        connection.execute(canonical_sql)
+        connection.execute(
+            "INSERT INTO external_resources ({columns}) "
+            "SELECT {columns} FROM {legacy}".format(
+                columns=column_list, legacy=_quote_identifier(legacy_table)
+            )
+        )
+        after_rows = [
+            tuple(row)
+            for row in connection.execute(
+                "SELECT {} FROM external_resources ORDER BY id".format(column_list)
+            )
+        ]
+        if after_rows != before_rows:
+            raise RuntimeError(
+                "External Resource URL migration changed External Resource rows"
+            )
+        if _external_relation_snapshots(connection) != before_relations:
+            raise RuntimeError(
+                "External Resource URL migration changed Resource relations"
+            )
+        connection.execute("DROP TABLE {}".format(_quote_identifier(legacy_table)))
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+    finally:
+        connection.execute("PRAGMA legacy_alter_table = OFF")
+        connection.execute(
+            "PRAGMA foreign_keys = {}".format("ON" if foreign_keys_enabled else "OFF")
+        )
+
+    if _external_resource_url_unique_exists(connection):
+        raise RuntimeError(
+            "External Resource URL migration did not remove global uniqueness"
+        )
+    if connection.execute("PRAGMA foreign_key_check").fetchall():
+        raise RuntimeError("External Resource URL migration foreign key check failed")
+    return True
 
 
 def _maintenance_session_contract_exists(connection: sqlite3.Connection) -> bool:
@@ -940,6 +1156,18 @@ def _run_compatible_migrations(
     usage_normalizer_contract_changed = _ensure_column(
         connection, "source_files", "usage_contract_version", "TEXT"
     )
+    atlassian_space_url_added = _ensure_column(
+        connection,
+        "atlassian_spaces",
+        "canonical_url",
+        "TEXT NOT NULL DEFAULT ''",
+    )
+    atlassian_space_coverage_added = _ensure_column(
+        connection,
+        "atlassian_spaces",
+        "coverage",
+        "TEXT NOT NULL DEFAULT 'selected-content'",
+    )
     _drop_column(connection, "workspaces", "git_branch")
 
     for table, column, definition in (
@@ -1022,6 +1250,38 @@ def _run_compatible_migrations(
     )
 
     if include_data_migrations:
+        if atlassian_space_url_added:
+            connection.execute(
+                """
+                UPDATE atlassian_spaces
+                SET canonical_url = (
+                    SELECT atlassian_sites.canonical_base_url ||
+                           CASE atlassian_spaces.service
+                               WHEN 'jira' THEN '/projects/'
+                               ELSE '/spaces/'
+                           END ||
+                           COALESCE(
+                               atlassian_spaces.space_key,
+                               atlassian_spaces.remote_id
+                           ) ||
+                           CASE atlassian_spaces.service
+                               WHEN 'confluence' THEN '/overview'
+                               ELSE ''
+                           END
+                    FROM atlassian_sites
+                    WHERE atlassian_sites.id = atlassian_spaces.site_id
+                )
+                WHERE canonical_url = ''
+                """
+            )
+        if atlassian_space_coverage_added:
+            connection.execute(
+                """
+                UPDATE atlassian_spaces
+                SET coverage = 'full-content'
+                WHERE service = 'confluence'
+                """
+            )
         if session_contract_changed or usage_normalizer_contract_changed:
             connection.execute(
                 """
@@ -1048,6 +1308,7 @@ def _run_compatible_migrations(
                 """
             )
         _migrate_context_roots(connection)
+        _repair_external_resource_url_scope(connection)
         _repair_usage_attribution_check(connection)
         _repair_maintenance_workstream_fk(connection)
         _repair_maintenance_session_contract(connection)
@@ -1075,6 +1336,29 @@ def _run_compatible_migrations(
             ON maintenance_runs(workstream_id, created_at DESC);
         CREATE INDEX IF NOT EXISTS idx_maintenance_runs_status
             ON maintenance_runs(status, updated_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_external_sync_runs_source_instance
+            ON external_sync_runs(source_instance_id, maintenance_run_id);
+        CREATE INDEX IF NOT EXISTS idx_external_sync_runs_scope
+            ON external_sync_runs(requested_scope_kind, maintenance_run_id);
+        CREATE INDEX IF NOT EXISTS idx_atlassian_sites_source
+            ON atlassian_sites(source_instance_id, normalized_domain);
+        CREATE INDEX IF NOT EXISTS idx_atlassian_spaces_site
+            ON atlassian_spaces(site_id, service, name);
+        CREATE INDEX IF NOT EXISTS idx_atlassian_items_site
+            ON atlassian_items(site_id, service, coverage);
+        CREATE INDEX IF NOT EXISTS idx_atlassian_items_space
+            ON atlassian_items(space_id, service);
+        CREATE INDEX IF NOT EXISTS idx_atlassian_item_urls_item
+            ON atlassian_item_urls(external_resource_id, url_role);
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_atlassian_item_urls_canonical
+            ON atlassian_item_urls(external_resource_id)
+            WHERE url_role = 'canonical';
+        CREATE INDEX IF NOT EXISTS idx_atlassian_remote_state_check
+            ON atlassian_item_remote_state(last_successful_at, last_outcome);
+        CREATE INDEX IF NOT EXISTS idx_atlassian_item_classifications_classification
+            ON atlassian_item_classifications(
+                classification_id, external_resource_id
+            );
         CREATE INDEX IF NOT EXISTS idx_suggestions_origin_run
             ON suggestions(origin_run_id, status);
         CREATE INDEX IF NOT EXISTS idx_documents_context_root

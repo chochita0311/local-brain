@@ -27,6 +27,18 @@ WORKSTREAM = ROOT / "src" / "localbrain" / "templates" / "workstream.html"
 MAIN = ROOT / "src" / "localbrain" / "main.py"
 SCHEMA_SCRIPT = ROOT / "src" / "localbrain" / "static" / "schema-explorer.js"
 SCHEMA = ROOT / "src" / "localbrain" / "schema.sql"
+ATLASSIAN = ROOT / "src" / "localbrain" / "templates" / "atlassian.html"
+ATLASSIAN_SCRIPT = ROOT / "src" / "localbrain" / "static" / "atlassian.js"
+ATLASSIAN_REFRESH = (
+    ROOT / "src" / "localbrain" / "templates" / "atlassian-refresh.html"
+)
+ATLASSIAN_REFRESH_SCRIPT = (
+    ROOT / "src" / "localbrain" / "static" / "atlassian-refresh.js"
+)
+ATLASSIAN_ITEM = (
+    ROOT / "src" / "localbrain" / "templates" / "atlassian-item.html"
+)
+SEARCH = ROOT / "src" / "localbrain" / "templates" / "search.html"
 
 
 class UiContractTests(unittest.TestCase):
@@ -52,6 +64,14 @@ class UiContractTests(unittest.TestCase):
         cls.workstream = WORKSTREAM.read_text(encoding="utf-8")
         cls.main = MAIN.read_text(encoding="utf-8")
         cls.schema_script = SCHEMA_SCRIPT.read_text(encoding="utf-8")
+        cls.atlassian = ATLASSIAN.read_text(encoding="utf-8")
+        cls.atlassian_script = ATLASSIAN_SCRIPT.read_text(encoding="utf-8")
+        cls.atlassian_refresh = ATLASSIAN_REFRESH.read_text(encoding="utf-8")
+        cls.atlassian_refresh_script = ATLASSIAN_REFRESH_SCRIPT.read_text(
+            encoding="utf-8"
+        )
+        cls.atlassian_item = ATLASSIAN_ITEM.read_text(encoding="utf-8")
+        cls.search = SEARCH.read_text(encoding="utf-8")
 
     def test_component_rules_do_not_use_raw_colors(self):
         token_end = self.styles.index("\n}\n\n* { box-sizing")
@@ -206,6 +226,73 @@ class UiContractTests(unittest.TestCase):
             self.assertNotIn("/api/maintenance-runs", content)
             self.assertNotIn("실행 마커 생성", content)
 
+    def test_atlassian_registration_extends_inventory_without_hidden_refresh(self):
+        for marker in (
+            "data-atlassian-registration",
+            'action="/atlassian/register"',
+            'action="/atlassian/spaces/discover"',
+            'action="/atlassian/spaces/register"',
+            "원격 조회 없음",
+            "원격 read 1회",
+            "일부 후보",
+            "Source Instance / Site",
+            "selected-content",
+            "full-content",
+            "data-atlassian-url-preview",
+            "data-atlassian-new-connection",
+            "공식 Atlassian MCP",
+            "회사 MCP Gateway",
+            "MCP 연결 (Provider)",
+            "Source Instance는 LocalBrain이 사용할 MCP 연결",
+            "atlassian.js",
+        ):
+            self.assertIn(marker, self.atlassian)
+        for selected_toggle in (
+            """class="{% if selected_view == 'jira' %}selected{% endif %}" """,
+            """class="{% if selected_view == 'confluence' %}selected{% endif %}" """,
+            """class="{% if selected_mode == 'browse' %}selected{% endif %}" """,
+            """class="{% if selected_mode == 'setup' %}selected{% endif %}" """,
+        ):
+            self.assertIn(selected_toggle, self.atlassian)
+        self.assertNotIn(
+            """class="{% if selected_view == 'jira' %}active{% endif %}" """,
+            self.atlassian,
+        )
+        for ordinary_behavior in (
+            "window.location.hash",
+            "focus({ preventScroll: true })",
+            "scrollIntoView({ block: \"center\" })",
+        ):
+            self.assertIn(ordinary_behavior, self.atlassian_script)
+        self.assertIn(
+            'new Set(["queued", "running", "cancelling"])',
+            self.atlassian_script,
+        )
+        self.assertIn(
+            "window.setTimeout(poll, 1500)",
+            self.atlassian_script,
+        )
+        self.assertNotIn("/atlassian/spaces/discover", self.atlassian_script)
+        for preview_behavior in (
+            "/api/atlassian/registration-preview",
+            'siteSelect.value = "new"',
+            "syncConnectionMode()",
+        ):
+            self.assertIn(preview_behavior, self.atlassian_script)
+        for connection_style in (
+            ".atlassian-connections-panel {",
+            ".atlassian-connection-row > summary {",
+            ".atlassian-url-preview.warning {",
+            ".atlassian-new-connection-fields {",
+        ):
+            self.assertIn(connection_style, self.styles)
+        for responsive_rule in (
+            ".atlassian-registration-grid { grid-template-columns: 1fr; }",
+            ".atlassian-candidate-row, .atlassian-record { grid-template-columns: 1fr; }",
+            ".atlassian-record-meta { justify-items: start; text-align: left; }",
+        ):
+            self.assertIn(responsive_rule, self.styles)
+
     def test_schema_extends_the_shell_and_explorer_family_without_custom_system(self):
         sources_position = self.base.index(">07</span><span>Sources</span>")
         schema_position = self.base.index(">08</span><span>Schema</span>")
@@ -224,6 +311,13 @@ class UiContractTests(unittest.TestCase):
             "data-localbrain-mermaid-source",
             "data-schema-source-json",
             "data-schema-diagram-fallback",
+            "data-schema-diagram-viewport",
+            "data-schema-zoom-controls",
+            "data-schema-zoom-out",
+            "data-schema-zoom-reset",
+            "data-schema-zoom-in",
+            "data-schema-zoom-fit",
+            "Ctrl/Cmd + 휠",
             "schema-table-title",
             "schema-contract-grid",
             "schema-column-list",
@@ -247,6 +341,14 @@ class UiContractTests(unittest.TestCase):
             "await import(adapterUrl)",
             "JSON.parse(source.textContent)",
             "renderLocalBrainMermaid",
+            "setupSchemaDiagramZoom",
+            "schemaZoomFromWheel",
+            "schemaAnchoredScroll",
+            "if (!event.ctrlKey && !event.metaKey) return;",
+            "event.preventDefault()",
+            '{ passive: false }',
+            "rendered.style.width",
+            "rendered.style.minWidth",
         ):
             self.assertIn(behavior, self.schema_script)
 
@@ -254,6 +356,7 @@ class UiContractTests(unittest.TestCase):
             ".schema-layout { grid-template-columns: 1fr; }",
             ".schema-subject-links { grid-template-columns: repeat(2, minmax(0, 1fr)); }",
             ".schema-subject-links, .schema-table-links, .schema-contract-grid, .schema-relation-groups { grid-template-columns: 1fr; }",
+            ".schema-panel-actions { width: 100%; justify-items: start; }",
         ):
             self.assertIn(responsive_rule, self.styles)
 
@@ -790,6 +893,87 @@ class UiContractTests(unittest.TestCase):
             ".event-text.markdown-body h2 { font-size: var(--type-body-size);",
         ):
             self.assertIn(rule, self.styles)
+
+    def test_atlassian_refresh_is_an_explicit_local_preview_and_one_run_handoff(self):
+        for marker in (
+            "EXPLICIT REMOTE REFRESH",
+            "LOCAL PREVIEW",
+            "preview는 원격 조회 없음",
+            'name="item_id"',
+            'name="include_catalog"',
+            "예상 remote reads",
+            "1 maintenance Run",
+            "host-side read executor",
+            "실패한",
+        ):
+            self.assertIn(marker, self.atlassian_refresh)
+        for contextual in (
+            "/atlassian/refresh?scope=all_known",
+            "/atlassian/refresh?scope=space",
+            "/atlassian/refresh?scope=item",
+        ):
+            self.assertIn(contextual, self.atlassian)
+        self.assertIn(
+            "/atlassian/refresh?scope=workstream", self.workstream
+        )
+        self.assertIn("/atlassian/refresh?scope=thread", self.workstream)
+        for behavior in (
+            "[data-refresh-item]",
+            "requestCount",
+            "calls > budget",
+            "/api/runs/",
+            'window.location.reload()',
+        ):
+            self.assertIn(behavior, self.atlassian_refresh_script)
+        for rule in (
+            ".atlassian-refresh-summary {",
+            ".atlassian-refresh-row {",
+            ".atlassian-refresh-submit {",
+            ".atlassian-refresh-outcomes {",
+        ):
+            self.assertIn(rule, self.styles)
+
+    def test_atlassian_knowledge_browse_keeps_source_regions_separate(self):
+        for marker in (
+            "LOCAL KNOWLEDGE BASE",
+            'name="source_instance_id"',
+            'name="coverage"',
+            'name="freshness"',
+            'name="attention"',
+            'name="topic_id"',
+            'name="tag_id"',
+            'name="workstream_id"',
+            "/atlassian/items/{{ item.id }}",
+            'target="_blank" rel="noreferrer"',
+        ):
+            self.assertIn(marker, self.atlassian)
+        for marker in (
+            "REMOTE FACTS · LAST KNOWN",
+            "LOCAL ONLY",
+            "LOCAL EVIDENCE",
+            "REFRESH STATE",
+            'name="note"',
+            'name="new_topic_name"',
+            'name="tags"',
+            'action="/atlassian/items/{{ item.id }}/links"',
+        ):
+            self.assertIn(marker, self.atlassian_item)
+        for marker in (
+            "Atlassian 필터",
+            "result.match_roles",
+            "/atlassian/items/{{ result.entity_id }}",
+            "result.normalized_domain",
+        ):
+            self.assertIn(marker, self.search)
+        for marker in (
+            ".atlassian-filter-form {",
+            ".atlassian-knowledge-row {",
+            ".atlassian-detail-grid {",
+            ".atlassian-fact-grid {",
+            ".atlassian-local-form {",
+            ".atlassian-evidence-row, .atlassian-run-summary {",
+        ):
+            self.assertIn(marker, self.styles)
 
 
 if __name__ == "__main__":

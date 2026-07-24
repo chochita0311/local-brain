@@ -34,7 +34,7 @@ erDiagram
         string entity_id UK
     }
     LOCAL_RESOURCES { integer id PK string path UK }
-    EXTERNAL_RESOURCES { integer id PK string url UK }
+    EXTERNAL_RESOURCES { integer id PK string url }
     SESSIONS { integer id PK }
     CONTEXT_DOCUMENTS { integer id PK }
     WORKSPACES { integer id PK }
@@ -113,7 +113,7 @@ Constraints: `UNIQUE(workstream_id, title)`; status vocabulary is application-en
 - Purpose and authority: one reviewed or generated relationship from a Workstream to a heterogeneous resource, shared by multiple Threads.
 - Lifecycle: user-curated and non-rebuildable; `linked_by` and `confidence` retain origin context.
 - Producers: `workstreams.py` validated add/update/remove operations and accepted suggestions.
-- Consumers: Workstream detail, latest activity, memberships, retrieval exclusions/scope, Runner manifests, checkpoint snapshots, and suggestion deduplication.
+- Consumers: Workstream detail, latest activity, memberships, Atlassian Item detail, retrieval exclusions/scope, Runner manifests, checkpoint snapshots, and suggestion deduplication.
 - Relations and deletion: Workstream deletion cascades. Target edges are application-enforced and do not cascade; target removal can leave historical/unresolved identity.
 - Recovery: database backup or accepted external workflow record; source scanning does not infer the same relation reliably.
 - DDL ownership: fresh definition and `idx_workstream_links_entity` in `schema.sql`; relation type compatible addition and repeated index in `db.py`.
@@ -136,7 +136,7 @@ Constraints: `UNIQUE(workstream_id, entity_type, entity_id)`. Explicit index: `i
 - Purpose and authority: one reviewed or generated relationship from a Thread to a heterogeneous resource.
 - Lifecycle: user-curated and non-rebuildable.
 - Producers: `workstreams.py` validated add/update/remove operations and accepted suggestions.
-- Consumers: Workstream/Thread detail, activity, memberships, retrieval scope, Runner manifests, checkpoint snapshots, and suggestion deduplication.
+- Consumers: Workstream/Thread detail, activity, memberships, Atlassian Item detail, retrieval scope, Runner manifests, checkpoint snapshots, and suggestion deduplication.
 - Relations and deletion: Thread deletion cascades. Target relations are application-enforced and have no SQLite cascade.
 - Recovery: database backup; inference may suggest a new link but cannot restore review provenance exactly.
 - DDL ownership: fresh definition and `idx_thread_links_entity` in `schema.sql`; `db.py` repeats the index idempotently.
@@ -182,24 +182,24 @@ Constraints: uniqueness of `path`; resource-type vocabulary is application-enfor
 
 - Purpose and authority: canonical user-visible external reference such as Jira, Wiki, Slack, Git, document, or generic URL; storage does not imply external ingestion or writes.
 - Lifecycle: user-curated and non-rebuildable.
-- Producers: `workstreams.py` registration/update and reviewed Runner structured output.
-- Consumers: resource picker/detail, link resolution, retrieval context, and Runner manifests.
+- Producers: `workstreams.py` registration/update and reviewed Runner structured output; Atlassian registration owns its strict one-to-one source-specific extension.
+- Consumers: resource picker/detail, Atlassian browse/search/detail, link resolution, retrieval context, and Runner manifests.
 - Relations and deletion: application target of link and checkpoint tables only; no SQLite cascade. Approved integrations remain read-only unless separately planned.
 - Recovery: database backup or manual re-entry from the original reference system.
-- DDL ownership: fresh definition in `schema.sql`; no compatible migration or explicit named index.
+- DDL ownership: fresh definition in `schema.sql`; `db.py` performs the approved backup-backed compatible rebuild that removes only the former global URL uniqueness constraint while preserving every row, ID, and polymorphic relation. No explicit named index remains.
 
 | Column | Contract |
 | --- | --- |
 | `id` | `INTEGER PRIMARY KEY`; canonical external-resource identity. |
 | `resource_type` | `TEXT NOT NULL`; application-bounded Jira, Wiki, Slack, Git, document, or URL type. |
 | `title` | `TEXT NOT NULL`; user-facing label. |
-| `url` | `TEXT NOT NULL UNIQUE`; canonical external locator. |
+| `url` | `TEXT NOT NULL`; user-visible external locator. Generic registration reuses an existing exact URL by application policy, while source-specific integrations own scoped identity separately. |
 | `summary` | nullable `TEXT`; user/reviewed description. |
 | `source_role` | nullable `TEXT`; role of the reference in the current work context. |
 | `created_at` | `TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; creation time. |
 | `updated_at` | `TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; latest metadata update. |
 
-Constraints: uniqueness of `url`; resource type is application-enforced. Explicit indexes: none.
+Constraints: resource type and generic exact-URL reuse are application-enforced. URL is deliberately not globally unique because different Source Instances and future source-specific extensions can observe the same locator independently. Explicit indexes: none.
 
 ## Subject Recovery Boundary
 

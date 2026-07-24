@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% block title %}{{ item.remote_key or item.display_title }} · Atlassian · LocalBrain{% endblock %}
+{% block page_location %}Atlassian Item{% endblock %}
+{% block content %}
+  <div class="atlassian-item-page">
+    <a class="context-back-link" href="/atlassian?view={{ item.service }}&amp;mode=browse">← {{ 'Jira' if item.service == 'jira' else 'Confluence' }} inventory</a>
+
+    <section class="page-heading atlassian-item-heading">
+      <div>
+        <p class="eyebrow">LOCAL SOURCE ITEM · {{ item.service | upper }}</p>
+        <h1>{{ item.remote_key or item.display_title }}</h1>
+        {% if item.remote_key %}<p class="heading-copy">{{ item.display_title }}</p>{% endif %}
+        <p class="atlassian-item-origin">{{ item.source_name }} · {{ item.normalized_domain }}{% if item.space_name %} · {{ item.space_name }}{% endif %}</p>
+        <div class="atlassian-classification-strip">
+          <span class="status-badge neutral">{{ item.coverage }}</span>
+          <span class="status-badge {{ 'warning' if item.freshness in ['due', 'stale'] else ('danger' if item.freshness == 'unavailable' else ('success' if item.freshness == 'current' else 'neutral')) }}">{{ item.freshness }}</span>
+          <span class="status-badge info">{{ item.attention }}</span>
+          {% for topic in item.topics %}<span class="status-badge info">Topic · {{ topic.name }}</span>{% endfor %}
+          {% for tag in item.tags %}<span class="status-badge neutral">#{{ tag.name }}</span>{% endfor %}
+        </div>
+      </div>
+      <div class="atlassian-item-heading-actions">
+        <a class="secondary-button button-link" href="/atlassian/refresh?scope=item&amp;id={{ item.id }}">Refresh preview</a>
+        <a class="primary-button button-link" href="{{ item.canonical_url }}" target="_blank" rel="noreferrer">Atlassian에서 열기</a>
+      </div>
+    </section>
+
+    {% if notice %}<div class="atlassian-feedback success" role="status" tabindex="-1">{{ notice }}</div>{% endif %}
+    {% if form_error %}<div class="atlassian-feedback error" role="alert">{{ form_error }}</div>{% endif %}
+    {% if item.attention == 'archived' %}
+      <div class="atlassian-inline-state warning">이 Item은 archived 상태입니다. 직접 링크와 archived 필터에서는 계속 접근할 수 있습니다.</div>
+    {% endif %}
+
+    <div class="atlassian-detail-grid">
+      <section class="atlassian-detail-card remote-facts" aria-labelledby="remote-facts-title">
+        <div class="atlassian-section-heading">
+          <div><p class="eyebrow">REMOTE FACTS · LAST KNOWN</p><h2 id="remote-facts-title">Atlassian 정보</h2></div>
+          <span class="status-badge {{ 'danger' if item.freshness == 'unavailable' else ('warning' if item.freshness in ['due', 'stale'] else 'neutral') }}">{{ item.freshness }}</span>
+        </div>
+        <dl class="atlassian-fact-grid">
+          <div><dt>Source Instance</dt><dd>{{ item.source_name }}</dd></div>
+          <div><dt>Site</dt><dd>{{ item.normalized_domain }}</dd></div>
+          <div><dt>Space</dt><dd>{{ item.space_name or '확인되지 않음' }}</dd></div>
+          <div><dt>Remote ID</dt><dd class="mono">{{ item.remote_id or '확인되지 않음' }}</dd></div>
+          <div><dt>Remote version</dt><dd>{{ item.remote_version or '확인되지 않음' }}</dd></div>
+          <div><dt>Remote updated</dt><dd><time datetime="{{ item.remote_updated_at or '' }}" data-local-time>{{ item.remote_updated_at or '확인되지 않음' }}</time></dd></div>
+          <div><dt>Last successful check</dt><dd><time datetime="{{ item.last_successful_at or '' }}" data-local-time>{{ item.last_successful_at or '아직 없음' }}</time></dd></div>
+          <div><dt>Latest outcome</dt><dd>{{ item.last_outcome or '아직 없음' }}</dd></div>
+        </dl>
+        {% if item.metadata %}
+          <details class="atlassian-remote-document" open>
+            <summary>확인된 remote metadata</summary>
+            <pre>{{ item.metadata | tojson(indent=2) }}</pre>
+          </details>
+        {% else %}
+          <p class="atlassian-inline-state neutral">저장된 remote metadata가 없습니다. reference Item은 로컬 identity만 유지합니다.</p>
+        {% endif %}
+        {% if item.coverage == 'indexed' and item.normalized_text %}
+          <div class="atlassian-source-content">
+            <div class="atlassian-section-heading"><div><h3>{{ 'Jira description' if item.service == 'jira' else 'Confluence Page body' }}</h3></div><span>last applied · {{ item.content_applied_at }}</span></div>
+            <pre>{{ item.normalized_text }}</pre>
+            {% if item.normalization_warning %}<p class="atlassian-inline-state warning">{{ item.normalization_warning }}</p>{% endif %}
+          </div>
+        {% elif item.coverage == 'indexed' %}
+          <p class="atlassian-inline-state warning">indexed coverage가 선택되었지만 적용된 본문이 없어 projection이 stale할 수 있습니다.</p>
+        {% else %}
+          <p class="atlassian-inline-state neutral">{{ item.coverage }} coverage는 remote body를 로컬에 저장하지 않습니다.</p>
+        {% endif %}
+      </section>
+
+      <section class="atlassian-detail-card local-organization" id="local-organization" aria-labelledby="local-organization-title">
+        <div class="atlassian-section-heading">
+          <div><p class="eyebrow">LOCAL ONLY</p><h2 id="local-organization-title">내 메모와 분류</h2></div>
+          <span class="status-badge neutral">Atlassian write 없음</span>
+        </div>
+        <form class="atlassian-local-form" method="post" action="/atlassian/items/{{ item.id }}/local">
+          <label for="item-attention">Attention</label>
+          <select id="item-attention" name="attention">
+            {% for value in ['normal', 'pinned', 'ignored', 'archived'] %}
+              <option value="{{ value }}" {% if item.attention == value %}selected{% endif %}>{{ value }}</option>
+            {% endfor %}
+          </select>
+          <label for="item-note">Local note</label>
+          <textarea id="item-note" name="note" maxlength="50000" rows="8" placeholder="원격 내용과 분리된 내 메모">{{ item.note or '' }}</textarea>
+
+          <fieldset>
+            <legend>Topics</legend>
+            <div class="atlassian-topic-options">
+              {% for topic in item.classification_options.topics %}
+                <label class="checkbox-row">
+                  <input type="checkbox" name="topic_id" value="{{ topic.id }}" {% if topic.id in item.selected_topic_ids %}checked{% endif %}>
+                  <span><strong>{{ topic.name }}</strong>{% if topic.description %}<small>{{ topic.description }}</small>{% endif %}</span>
+                </label>
+              {% else %}
+                <p class="atlassian-inline-state neutral">아직 만든 Topic이 없습니다.</p>
+              {% endfor %}
+            </div>
+          </fieldset>
+          <div class="atlassian-new-topic">
+            <label for="new-topic-name">새 Topic <span class="optional-label">선택</span></label>
+            <input id="new-topic-name" name="new_topic_name" maxlength="160" placeholder="예: Release readiness">
+            <label for="new-topic-description">Topic 설명</label>
+            <textarea id="new-topic-description" name="new_topic_description" maxlength="4000" rows="3" placeholder="내 분류 기준을 짧게 기록"></textarea>
+          </div>
+          <label for="item-tags">Tags</label>
+          <input id="item-tags" name="tags" maxlength="4000" value="{{ item.tags | map(attribute='name') | join(', ') }}" placeholder="comma, separated, tags">
+          <span class="field-help">최대 30개. Topic, Tag, Workstream은 서로 독립적입니다.</span>
+          <button class="primary-button" type="submit">로컬 정보 저장</button>
+        </form>
+
+        <div class="atlassian-relation-panel">
+          <h3>Workstream / Thread 관계</h3>
+          {% if item.memberships %}
+            <div class="atlassian-membership-list">
+              {% for membership in item.memberships %}
+                <div class="atlassian-membership-row">
+                  <span><strong>{{ membership.workstream_name }}</strong>{% if membership.thread_title %} · {{ membership.thread_title }}{% endif %}</span>
+                  <form method="post" action="/atlassian/items/{{ item.id }}/links/{{ membership.scope_type }}/{{ membership.scope_id }}/{{ membership.link_id }}">
+                    <button class="text-button danger" type="submit">연결 해제</button>
+                  </form>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="atlassian-inline-state neutral">Workstream에 연결하지 않아도 검색과 분류를 모두 사용할 수 있습니다.</p>
+          {% endif %}
+          {% if item.workstreams %}
+            <form class="atlassian-link-form" method="post" action="/atlassian/items/{{ item.id }}/links">
+              <label for="item-link-target">기존 작업에 연결</label>
+              <select id="item-link-target" name="target" required>
+                <option value="">Workstream 또는 Thread 선택</option>
+                {% for workstream in item.workstreams %}
+                  <option value="workstream:{{ workstream.id }}">{{ workstream.name }} · Workstream</option>
+                  {% for thread in workstream.threads %}
+                    <option value="thread:{{ thread.id }}">{{ workstream.name }} · {{ thread.title }}</option>
+                  {% endfor %}
+                {% endfor %}
+              </select>
+              <button class="secondary-button" type="submit">로컬 관계 추가</button>
+            </form>
+          {% endif %}
+        </div>
+      </section>
+    </div>
+
+    <section class="atlassian-detail-card" aria-labelledby="item-evidence-title">
+      <div class="atlassian-section-heading">
+        <div><p class="eyebrow">LOCAL EVIDENCE</p><h2 id="item-evidence-title">어디에서 발견했는지</h2></div>
+        <span class="table-count">{{ item.evidence | length }} sightings</span>
+      </div>
+      {% if item.evidence %}
+        <div class="atlassian-evidence-list">
+          {% for evidence in item.evidence %}
+            <a class="atlassian-evidence-row" href="/{{ 'sessions' if evidence.session_id else 'documents' }}/{{ evidence.session_id or evidence.document_id }}">
+              <span class="status-badge neutral">{{ 'Session' if evidence.session_id else 'Local Context' }}</span>
+              <span><strong>{{ evidence.session_title or evidence.document_title }}</strong><small>{{ evidence.document_path or evidence.source_channel }} · line {{ evidence.source_line }}</small></span>
+              <time datetime="{{ evidence.observed_at or '' }}" data-local-time>{{ evidence.observed_at or '시간 정보 없음' }}</time>
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="atlassian-inline-state neutral">연결된 Session 또는 Local Context URL evidence가 없습니다. 수동 등록 Item도 그대로 사용할 수 있습니다.</p>
+      {% endif %}
+    </section>
+
+    <section class="atlassian-detail-card" aria-labelledby="item-refresh-history-title">
+      <div class="atlassian-section-heading">
+        <div><p class="eyebrow">REFRESH STATE</p><h2 id="item-refresh-history-title">최근 maintenance Run</h2></div>
+      </div>
+      {% if item.latest_refresh_run %}
+        <a class="atlassian-run-summary" href="/runs/{{ item.latest_refresh_run.id }}">
+          <span class="run-status {{ item.latest_refresh_run.status }}">{{ item.latest_refresh_run.status }}</span>
+          <span><strong>{{ item.latest_refresh_run.id }}</strong><small>{{ item.latest_refresh_run.runner }} · {{ item.latest_refresh_run.summary or item.latest_refresh_run.error or '요약 없음' }}</small></span>
+          <time datetime="{{ item.latest_refresh_run.completed_at or item.latest_refresh_run.created_at }}" data-local-time>{{ item.latest_refresh_run.completed_at or item.latest_refresh_run.created_at }}</time>
+        </a>
+      {% else %}
+        <p class="atlassian-inline-state neutral">이 Item을 대상으로 한 explicit refresh Run이 아직 없습니다.</p>
+      {% endif %}
+    </section>
+  </div>
+{% endblock %}

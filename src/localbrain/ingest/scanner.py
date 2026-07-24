@@ -9,6 +9,13 @@ from pathlib import Path
 from typing import Dict, Iterable, Optional, Tuple
 from urllib.parse import quote
 
+from ..atlassian_evidence import (
+    document_evidence_source_fingerprint,
+    evidence_scan_is_current,
+    reconcile_document_evidence,
+    reconcile_session_evidence,
+    session_evidence_source_fingerprint,
+)
 from ..config import settings
 from ..db import init_db, transaction
 from ..usage import reconcile_usage_record_contract, store_usage_records
@@ -281,6 +288,31 @@ def _remove_stale_sessions(
             (str(row["id"]),),
         )
         connection.execute("DELETE FROM sessions WHERE id = ?", (row["id"],))
+    scan_rows = connection.execute(
+        """
+        SELECT atlassian_evidence_scans.id,
+               atlassian_evidence_scans.session_id,
+               atlassian_evidence_scans.source_path
+        FROM atlassian_evidence_scans
+        JOIN sessions ON sessions.id = atlassian_evidence_scans.session_id
+        WHERE sessions.source_id = ?
+        """,
+        (source_id,),
+    ).fetchall()
+    for row in scan_rows:
+        if row["source_path"] in valid:
+            continue
+        connection.execute(
+            """
+            DELETE FROM atlassian_item_evidence
+            WHERE session_id = ? AND source_path = ?
+            """,
+            (row["session_id"], row["source_path"]),
+        )
+        connection.execute(
+            "DELETE FROM atlassian_evidence_scans WHERE id = ?",
+            (row["id"],),
+        )
     source_file_rows = connection.execute(
         "SELECT id, path FROM source_files WHERE source_id = ?", (source_id,)
     ).fetchall()
@@ -295,7 +327,7 @@ def _store_session(
     source_kind: str,
     parsed: ParsedSession,
     usage_contract_version: Optional[str] = None,
-) -> None:
+) -> int:
     workspace_id = _upsert_workspace(connection, parsed.cwd_raw, parsed.last_event_at)
     maintenance_run_id = parsed.maintenance_run_id
     if maintenance_run_id and not connection.execute(
@@ -424,6 +456,7 @@ def _store_session(
                 body,
                 parsed.cwd_raw or parsed.source_path,
             )
+    return session_id
 
 
 def _claude_parent_source_path(source_path: str) -> Optional[str]:
@@ -552,20 +585,51 @@ def _scan_session_source(
     repair_errors = []
 
     for path in paths:
+        current_stat = path.stat()
+        evidence_source_fingerprint = session_evidence_source_fingerprint(
+            source_id=source_id,
+            source_path=str(path),
+            size_bytes=current_stat.st_size,
+            mtime_ns=current_stat.st_mtime_ns,
+        )
         if not force and not contract_repair_required and _file_is_current(
             connection, source_id, path, usage_contract_version
         ):
-            skipped += 1
-            continue
+            session_row = connection.execute(
+                """
+                SELECT sessions.id
+                FROM atlassian_evidence_scans
+                JOIN sessions
+                  ON sessions.id = atlassian_evidence_scans.session_id
+                WHERE sessions.source_id = ?
+                  AND atlassian_evidence_scans.source_path = ?
+                """,
+                (source_id, str(path)),
+            ).fetchone()
+            if session_row and evidence_scan_is_current(
+                connection,
+                session_id=int(session_row["id"]),
+                source_path=str(path),
+                source_fingerprint=evidence_source_fingerprint,
+            ):
+                skipped += 1
+                continue
         try:
-            scanned_stat = path.stat()
+            scanned_stat = current_stat
             parsed = parser(path)
-            _store_session(
+            session_id = _store_session(
                 connection,
                 source_id,
                 source_kind,
                 parsed,
                 usage_contract_version=usage_contract_version,
+            )
+            reconcile_session_evidence(
+                connection,
+                session_id=session_id,
+                source_path=str(path),
+                source_fingerprint=evidence_source_fingerprint,
+                candidates=parsed.url_evidence,
             )
             _record_source_file(
                 connection,
@@ -720,11 +784,30 @@ def _read_context_file(path: Path) -> Tuple[Optional[str], Optional[str], Option
 
 
 def _scan_context_file(
-    connection: sqlite3.Connection, source_id: int, root_row: sqlite3.Row
+    connection: sqlite3.Connection,
+    source_id: int,
+    root_row: sqlite3.Row,
+    force: bool = False,
 ) -> Tuple[int, int, int]:
     path = Path(root_row["path"])
     if not path.is_file():
         raise FileNotFoundError("Context file does not exist: {}".format(path))
+    if not force and _file_is_current(connection, source_id, path):
+        document = connection.execute(
+            """
+            SELECT id, content_hash FROM context_documents
+            WHERE context_root_id = ? AND path = ?
+            """,
+            (root_row["id"], str(path)),
+        ).fetchone()
+        if document and evidence_scan_is_current(
+            connection,
+            document_id=int(document["id"]),
+            source_fingerprint=document_evidence_source_fingerprint(
+                document["content_hash"]
+            ),
+        ):
+            return 0, 1, 0
     body, content_type, error = _read_context_file(path)
     if body is None or content_type is None:
         _remove_context_source_documents(connection, root_row["id"], set())
@@ -745,7 +828,7 @@ def _scan_context_file(
         str(path.parent),
         datetime.fromtimestamp(stat.st_mtime, timezone.utc).isoformat(),
     )
-    _upsert_context_document(
+    document_id = _upsert_context_document(
         connection,
         source_id,
         root_row["id"],
@@ -757,6 +840,14 @@ def _scan_context_file(
         stat.st_mtime_ns,
         content_type,
         workspace_id,
+    )
+    reconcile_document_evidence(
+        connection,
+        document_id=document_id,
+        source_fingerprint=document_evidence_source_fingerprint(
+            hashlib.sha256(body.encode("utf-8")).hexdigest()
+        ),
+        body=body,
     )
     _record_source_file(connection, source_id, path)
     now = utc_now()
@@ -816,7 +907,7 @@ def _scan_apple_notes(
         except (TypeError, ValueError):
             mtime_ns = 0
         body = _plain_text(str(note.get("body") or ""))
-        _upsert_context_document(
+        document_id = _upsert_context_document(
             connection,
             source_id,
             root_row["id"],
@@ -828,6 +919,19 @@ def _scan_apple_notes(
             mtime_ns,
             "application/x-apple-note",
         )
+        content_hash = hashlib.sha256(body.encode("utf-8")).hexdigest()
+        source_fingerprint = document_evidence_source_fingerprint(content_hash)
+        if not evidence_scan_is_current(
+            connection,
+            document_id=document_id,
+            source_fingerprint=source_fingerprint,
+        ):
+            reconcile_document_evidence(
+                connection,
+                document_id=document_id,
+                source_fingerprint=source_fingerprint,
+                body=body,
+            )
         imported += 1
     _remove_context_source_documents(connection, root_row["id"], valid_paths)
     now = utc_now()
@@ -867,7 +971,9 @@ def _scan_context_documents(
         if root_row["source_type"] in {"file", "apple_notes"}:
             try:
                 if root_row["source_type"] == "file":
-                    values = _scan_context_file(connection, source_id, root_row)
+                    values = _scan_context_file(
+                        connection, source_id, root_row, force=force
+                    )
                 else:
                     values = _scan_apple_notes(connection, source_id, root_row)
                 imported += values[0]
@@ -932,8 +1038,22 @@ def _scan_context_documents(
 
         for path in paths:
             if not force and _file_is_current(connection, source_id, path):
-                skipped += 1
-                continue
+                document = connection.execute(
+                    """
+                    SELECT id, content_hash FROM context_documents
+                    WHERE context_root_id = ? AND path = ?
+                    """,
+                    (root_row["id"], str(path)),
+                ).fetchone()
+                if document and evidence_scan_is_current(
+                    connection,
+                    document_id=int(document["id"]),
+                    source_fingerprint=document_evidence_source_fingerprint(
+                        document["content_hash"]
+                    ),
+                ):
+                    skipped += 1
+                    continue
             try:
                 body = path.read_text(encoding="utf-8", errors="replace")
                 stat = path.stat()
@@ -978,7 +1098,11 @@ def _scan_context_documents(
                     ),
                 )
                 document_row = connection.execute(
-                    "SELECT id FROM context_documents WHERE path = ?", (str(path),)
+                    """
+                    SELECT id, content_hash FROM context_documents
+                    WHERE path = ?
+                    """,
+                    (str(path),),
                 ).fetchone()
                 _replace_search_item(
                     connection,
@@ -988,6 +1112,14 @@ def _scan_context_documents(
                     title,
                     body,
                     str(path),
+                )
+                reconcile_document_evidence(
+                    connection,
+                    document_id=int(document_row["id"]),
+                    source_fingerprint=document_evidence_source_fingerprint(
+                        document_row["content_hash"]
+                    ),
+                    body=body,
                 )
                 _record_source_file(connection, source_id, path)
                 imported += 1
@@ -1064,6 +1196,21 @@ def scan_claude_sessions(force: bool = False) -> Dict[str, int]:
     init_db()
     with transaction() as connection:
         values = _scan_claude_source(connection, force=force)
+    return {"imported": values[0], "skipped": values[1], "failed": values[2]}
+
+
+def scan_codex_sessions(force: bool = False) -> Dict[str, int]:
+    init_db()
+    with transaction() as connection:
+        values = _scan_session_source(
+            connection,
+            "codex",
+            "Codex",
+            settings.codex_root,
+            parse_codex_session,
+            CODEX_USAGE_CONTRACT_VERSION,
+            force,
+        )
     return {"imported": values[0], "skipped": values[1], "failed": values[2]}
 
 

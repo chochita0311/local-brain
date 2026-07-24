@@ -66,6 +66,6 @@ Templates are named `template-*.md` in their owning directories. Generated artif
 ## Local Ownership
 
 - Shared role and policy text remains general unless LocalBrain requires a documented specialization.
-- LocalBrain-specific product, architecture, privacy, and Claude Task Runner contracts remain under `docs/policies/project/` and `docs/policies/operations/`.
+- LocalBrain-specific product, architecture, privacy, and Maintenance Task Runner contracts remain under `docs/policies/project/` and `docs/policies/operations/`.
 - Refreshing the shared package must preserve local plans, completed Runs, evaluations, and project policy.
 - Reusable improvements may be promoted upstream only after removing LocalBrain-specific assumptions.

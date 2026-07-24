@@ -6,13 +6,93 @@
     <div>
       <p class="eyebrow">SEARCH</p>
       <h1>{% if query %}“{{ query }}” 검색 결과{% else %}전체 검색{% endif %}</h1>
-      <p class="heading-copy">Claude, Codex 세션과 로컬 Markdown을 한 번에 검색합니다.</p>
+      <p class="heading-copy">Claude·Codex 세션, Local Context, 저장된 Atlassian identity·metadata·indexed body·로컬 분류를 검색합니다.</p>
     </div>
   </section>
 
-  <form class="page-search" action="/search" method="get">
-    <label class="sr-only" for="page-query">검색어</label>
-    <input id="page-query" name="q" type="search" value="{{ query }}" placeholder="질문, 오류, 파일명, 문서 제목">
+  <form class="page-search search-filter-form" action="/search" method="get">
+    <label class="search-query-control" for="page-query"><span>검색어</span>
+      <input id="page-query" name="q" type="search" value="{{ query }}" placeholder="질문, 오류, 티켓 키, 문서 제목">
+    </label>
+    <label><span>Source</span>
+      <select name="source">
+        {% for value, label in [('all', '전체'), ('sessions', 'Sessions'), ('documents', 'Local Context'), ('atlassian', 'Atlassian')] %}
+          <option value="{{ value }}" {% if selected_source == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <details class="search-atlassian-filters" {% if selected_source == 'atlassian' or filters.service or filters.coverage or filters.freshness or filters.attention or filters.topic_id or filters.tag_id or filters.workstream_id %}open{% endif %}>
+      <summary>Atlassian 필터</summary>
+      <div>
+        <label><span>Service</span>
+          <select name="service">
+            <option value="">전체</option>
+            {% for value in ['jira', 'confluence'] %}<option value="{{ value }}" {% if filters.service == value %}selected{% endif %}>{{ value }}</option>{% endfor %}
+          </select>
+        </label>
+        <label><span>Source Instance</span>
+          <select name="source_instance_id">
+            <option value="">전체</option>
+            {% for source in search_options.sources %}<option value="{{ source.id }}" {% if filters.source_instance_id == source.id %}selected{% endif %}>{{ source.display_name }}</option>{% endfor %}
+          </select>
+        </label>
+        <label><span>Site</span>
+          <select name="site_id">
+            <option value="">전체</option>
+            {% for site in search_options.sites %}<option value="{{ site.id }}" {% if filters.site_id == site.id %}selected{% endif %}>{{ site.display_name or site.normalized_domain }}</option>{% endfor %}
+          </select>
+        </label>
+        <label><span>Space</span>
+          <select name="space_id">
+            <option value="">전체</option>
+            {% for space in search_options.spaces %}<option value="{{ space.id }}" {% if filters.space_id == space.id %}selected{% endif %}>{{ space.name }}</option>{% endfor %}
+          </select>
+        </label>
+        <label><span>Coverage</span>
+          <select name="coverage">
+            <option value="">전체</option>
+            {% for value in ['reference', 'metadata', 'indexed'] %}<option value="{{ value }}" {% if filters.coverage == value %}selected{% endif %}>{{ value }}</option>{% endfor %}
+          </select>
+        </label>
+        <label><span>Item type</span>
+          <select name="item_type">
+            <option value="">전체</option>
+            {% for value in ['jira_issue', 'confluence_page'] %}<option value="{{ value }}" {% if filters.item_type == value %}selected{% endif %}>{{ value }}</option>{% endfor %}
+          </select>
+        </label>
+        <label><span>Freshness</span>
+          <select name="freshness">
+            <option value="">전체</option>
+            {% for value in ['unknown', 'current', 'due', 'stale', 'unavailable'] %}<option value="{{ value }}" {% if filters.freshness == value %}selected{% endif %}>{{ value }}</option>{% endfor %}
+          </select>
+        </label>
+        <label><span>Attention</span>
+          <select name="attention">
+            <option value="">기본 · archived 제외</option>
+            <option value="all" {% if filters.attention == 'all' %}selected{% endif %}>전체</option>
+            {% for value in ['normal', 'pinned', 'ignored', 'archived'] %}<option value="{{ value }}" {% if filters.attention == value %}selected{% endif %}>{{ value }}</option>{% endfor %}
+          </select>
+        </label>
+        <label><span>Topic</span>
+          <select name="topic_id">
+            <option value="">전체</option>
+            {% for topic in search_options.topics %}<option value="{{ topic.id }}" {% if filters.topic_id == topic.id %}selected{% endif %}>{{ topic.name }}</option>{% endfor %}
+          </select>
+        </label>
+        <label><span>Tag</span>
+          <select name="tag_id">
+            <option value="">전체</option>
+            {% for tag in search_options.tags %}<option value="{{ tag.id }}" {% if filters.tag_id == tag.id %}selected{% endif %}>{{ tag.name }}</option>{% endfor %}
+          </select>
+        </label>
+        <label><span>Workstream</span>
+          <select name="workstream_id">
+            <option value="">매핑 여부 무관</option>
+            {% for workstream in search_options.workstreams %}<option value="{{ workstream.id }}" {% if filters.workstream_id == workstream.id %}selected{% endif %}>{{ workstream.name }}</option>{% endfor %}
+          </select>
+        </label>
+      </div>
+    </details>
     <button class="primary-button" type="submit">검색</button>
   </form>
 
@@ -20,11 +100,14 @@
     <p class="result-count">{{ results | length }}개 결과</p>
     <div class="search-results">
       {% for result in results %}
-        <a class="search-result" href="/{{ 'sessions' if result.entity_type == 'session' else 'documents' }}/{{ result.entity_id }}">
-            <div class="result-type {{ result.source_kind }}">{{ result.source_kind }}</div>
+        <a class="search-result" href="{% if result.entity_type == 'session' %}/sessions/{{ result.entity_id }}{% elif result.entity_type == 'document' %}/documents/{{ result.entity_id }}{% else %}/atlassian/items/{{ result.entity_id }}{% endif %}">
+            <div class="result-type {{ result.source_kind | replace(':', '-') }}">{{ result.source_kind }}</div>
             <div>
               <h2>{{ result.title }}</h2>
               <p class="path-line">{{ result.path }}</p>
+              {% if result.entity_type == 'atlassian_item' %}
+                <p class="search-result-context">{{ result.source_name }} · {{ result.normalized_domain }}{% if result.space_name %} · {{ result.space_name }}{% endif %} · {{ result.coverage }} · {{ result.freshness }} · matched {{ result.match_roles | join(', ') }}</p>
+              {% endif %}
               <p class="result-excerpt">{{ result.excerpt }}</p>
             </div>
         </a>

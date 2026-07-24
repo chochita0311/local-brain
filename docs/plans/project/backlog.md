@@ -13,7 +13,7 @@ Priority meaning:
 - [ ] Exercise multiple real Workstreams through repeated context switches and record model gaps locally.
 - [ ] Build the unified cross-source Workstream timeline.
 - [ ] Add historical path aliases and repository identity reconciliation.
-- [ ] Improve source-aware matching and batch Suggestion review before external ingestion.
+- [ ] Improve source-aware matching and batch Suggestion review as connected source use expands.
 
 ## P0 - Privacy And Repository Boundary
 
@@ -74,12 +74,14 @@ Priority meaning:
 
 ## P1 - External Sources
 
-- [ ] Design Atlassian navigation and ownership for tickets, watched work, pages, spaces, and topic grouping.
-- [ ] Implement read-only Jira and Confluence ingestion through the approved MCP Gateway with durable provenance.
+- [x] Design Atlassian navigation and ownership for tickets, Pages, projects, Spaces, freshness, local Topics/Tags, and explicit refresh.
+- [x] Implement local Jira and Confluence source memory, durable provenance, URL-first setup, bounded refresh preparation, and source-neutral result application.
+- [ ] Review and complete PRD-0008's connected read-only executor validation against the owner's approved Atlassian MCP paths before claiming live end-to-end ingestion.
 - [ ] Add conversation message and thread references with permalink, participants, location, timestamp, and bounded excerpts.
 - [ ] Add Git commits, branches, pull requests, changed files, and repository identity as first-class Resources.
-- [ ] Define connector refresh, authentication failure, caching, and content deletion behavior.
-- [ ] Enforce MCP call limits through a gateway or broker; the current prompt budget is advisory and audited after calls occur.
+- [ ] Define remaining connector-specific refresh, authentication failure, caching, and content deletion behavior beyond the passed Atlassian contract.
+- [x] Enforce external-sync request limits and read authorization before host dispatch; selected Atlassian refreshes are hard-capped at 20 calculated reads.
+- [ ] Add hard MCP call-count enforcement for legacy Workstream gap filling; its prompt budget remains advisory and is audited after calls occur.
 
 ## P1 - Task Runner
 
@@ -88,7 +90,7 @@ Priority meaning:
 - [ ] Separate local retrieval, external gap filling, synthesis, and review into visible Run stages.
 - [x] Add retry and refresh behavior that preserves accepted and rejected decisions while replacing eligible pending Suggestions.
 - [x] Verify that maintenance Runs and artifacts cannot be re-imported as ordinary Sessions or Local Context documents.
-- [x] Connect every in-app Task Runner Run to its persisted native Claude Maintenance Session and normalize native Usage Records without work-count or retrieval leakage; keep the Runner stream as console/result evidence only.
+- [x] Connect every in-app Task Runner Run to the selected persisted native Claude or Codex Maintenance Session and normalize native Usage Records without work-count or retrieval leakage; existing Workstream tasks remain Claude-only, while external synchronization is runner-neutral and the Runner stream remains console/result evidence only.
 - [ ] Add cancellation and shutdown tests proving child processes do not survive unexpectedly.
 
 ## P2 - Reading And Context Polish
@@ -112,6 +114,7 @@ Priority meaning:
 
 ## P2 - Quality And Distribution
 
+- [ ] Review and complete draft [PRD-0008](../prd/prd-0008-connected-atlassian-validation-and-schema-erd-routing.md): define the connected read-only Atlassian validation inventory and evidence matrix, compare current Dagre Schema ERDs with Mermaid's official ELK orthogonal-routing candidate, and decompose only the owner-approved findings and adoption boundary.
 - [x] Close PRD-0004's combined Sessions Dashboard rendered evidence gap at `1440`, `920`, `700`, and exact mobile-emulated `320`, covering scope controls, four-metric band, 30-day chart scrolling, long Model/Project labels, native disclosures, trust states, and in-place scroll continuity with synthetic data.
 - [ ] Close FEAT-0019's direct rendered evidence gap at `1440`, `700`, and `320`, including selector geometry, same-row containment, and the Session-only source summary.
 - [ ] Capture the Sessions `동기화` working, success, failure, focus, and scope-preservation states from a browser after a warm-cache revisit; versioned assets, local HTTP synchronization, and human PRD-0002 acceptance are complete, so this is non-blocking regression evidence.

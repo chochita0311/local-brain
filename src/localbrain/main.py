@@ -3,7 +3,7 @@ import sqlite3
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional
-from urllib.parse import quote, urlencode
+from urllib.parse import parse_qs, quote, urlencode
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -21,6 +21,31 @@ from .contexts import (
     context_source_tree,
     list_context_sources,
     remove_context_root,
+)
+from .atlassian_registration import (
+    AtlassianRegistrationError,
+    prepare_space_catalog_run,
+    registration_preview,
+    register_atlassian_url,
+    register_atlassian_url_with_connection,
+    register_space_candidate,
+    registration_inventory,
+    registration_sites,
+    space_catalog_candidates,
+    update_atlassian_connection,
+)
+from .atlassian_refresh import (
+    AtlassianRefreshError,
+    prepare_atlassian_refresh_run,
+    refresh_preview,
+    refresh_run_result,
+)
+from .atlassian_browse import (
+    AtlassianBrowseError,
+    atlassian_item_detail,
+    browse_inventory,
+    normalize_browse_filters,
+    update_atlassian_local_state,
 )
 from .db import connect, init_db, transaction
 from .ingest.scanner import scan_all, scan_context_root, scan_session_sources
@@ -160,6 +185,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="LocalBrain", version="0.2.0", lifespan=lifespan)
+app.state.external_read_executor = None
 app.mount("/static", StaticFiles(directory=PACKAGE_ROOT / "static"), name="static")
 templates = Jinja2Templates(directory=PACKAGE_ROOT / "templates")
 templates.env.globals["asset_version"] = max(
@@ -388,18 +414,785 @@ def context_page(
     )
 
 
+def _atlassian_page_context(
+    connection,
+    *,
+    request: Request,
+    selected_view: str,
+    notice: Optional[str] = None,
+    form_state: Optional[dict] = None,
+    form_error: Optional[str] = None,
+    catalog_run: Optional[str] = None,
+    selected_mode: str = "browse",
+    browse_values: Optional[dict] = None,
+) -> dict:
+    inventory = registration_inventory(connection, selected_view)
+    browse = browse_inventory(
+        connection,
+        {
+            **(browse_values or {}),
+            "service": selected_view,
+        },
+    )
+    catalog = None
+    catalog_error = None
+    if catalog_run:
+        try:
+            catalog = space_catalog_candidates(
+                connection, catalog_run, selected_view
+            )
+        except AtlassianRegistrationError as exc:
+            catalog_error = str(exc)
+    notices = {
+        "connection-created": "연결과 Atlassian reference를 로컬에 등록했습니다.",
+        "connection-updated": "Source Instance와 Site 표시 정보를 저장했습니다.",
+        "item-created": "Item reference를 로컬에 등록했습니다.",
+        "item-reused": "이미 등록된 Item reference를 열었습니다.",
+        "space-created": "Space를 로컬에 등록했습니다.",
+        "space-reused": "이미 등록된 Space를 열었습니다.",
+        "catalog-started": "Space 후보 조회 maintenance Run을 시작했습니다.",
+    }
+    return {
+        "request": request,
+        "active_page": "atlassian",
+        "selected_view": selected_view,
+        "selected_mode": selected_mode,
+        "sites": registration_sites(connection, selected_view),
+        "inventory": inventory,
+        "browse": browse,
+        "item_count": browse["known_count"],
+        "space_count": len(inventory["spaces"]),
+        "notice": notices.get(notice),
+        "form_state": form_state or {},
+        "form_error": form_error,
+        "catalog": catalog,
+        "catalog_error": catalog_error,
+        "external_executor_ready": bool(
+            getattr(request.app.state, "external_read_executor", None)
+        ),
+    }
+
+
+async def _bounded_urlencoded_form(request: Request) -> dict:
+    content_type = request.headers.get("content-type", "")
+    if not content_type.startswith("application/x-www-form-urlencoded"):
+        raise AtlassianRegistrationError(
+            "invalid-form", "Form encoding is unsupported"
+        )
+    body = await request.body()
+    if len(body) > 32_768:
+        raise AtlassianRegistrationError("invalid-form", "Form is too large")
+    try:
+        parsed = parse_qs(
+            body.decode("utf-8"),
+            keep_blank_values=True,
+            max_num_fields=128,
+        )
+    except (UnicodeDecodeError, ValueError) as exc:
+        raise AtlassianRegistrationError(
+            "invalid-form", "Form data is invalid"
+        ) from exc
+    return {
+        key: values if key in {"item_id", "topic_id"} else values[-1]
+        for key, values in parsed.items()
+        if values
+    }
+
+
+def _optional_form_int(value: Optional[str], field: str) -> Optional[int]:
+    if value in {None, ""}:
+        return None
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError) as exc:
+        raise AtlassianRegistrationError(
+            "invalid-form", "{} is invalid".format(field)
+        ) from exc
+    if parsed < 1:
+        raise AtlassianRegistrationError(
+            "invalid-form", "{} is invalid".format(field)
+        )
+    return parsed
+
+
 @app.get("/atlassian", response_class=HTMLResponse)
 def atlassian_page(
-    request: Request, view: str = Query(default="jira")
+    request: Request,
+    view: str = Query(default="jira"),
+    mode: str = Query(default="browse"),
+    q: str = Query(default="", max_length=300),
+    source_instance_id: Optional[int] = Query(default=None, ge=1),
+    site_id: Optional[int] = Query(default=None, ge=1),
+    space_id: Optional[int] = Query(default=None, ge=1),
+    item_type: Optional[str] = Query(default=None),
+    coverage: Optional[str] = Query(default=None),
+    freshness: Optional[str] = Query(default=None),
+    attention: Optional[str] = Query(default=None),
+    topic_id: Optional[int] = Query(default=None, ge=1),
+    tag_id: Optional[int] = Query(default=None, ge=1),
+    workstream_id: Optional[int] = Query(default=None, ge=1),
+    notice: Optional[str] = Query(default=None),
+    catalog_run: Optional[str] = Query(default=None),
 ):
     selected_view = view if view in {"jira", "confluence"} else "jira"
+    selected_mode = mode if mode in {"browse", "setup"} else "browse"
+    browse_values = {
+        "q": q,
+        "source_instance_id": source_instance_id,
+        "site_id": site_id,
+        "space_id": space_id,
+        "item_type": item_type,
+        "coverage": coverage,
+        "freshness": freshness,
+        "attention": attention,
+        "topic_id": topic_id,
+        "tag_id": tag_id,
+        "workstream_id": workstream_id,
+    }
+    with connect() as connection:
+        try:
+            page_context = _atlassian_page_context(
+                connection,
+                request=request,
+                selected_view=selected_view,
+                selected_mode=selected_mode,
+                browse_values=browse_values,
+                notice=notice,
+                catalog_run=catalog_run,
+            )
+        except AtlassianBrowseError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
     return templates.TemplateResponse(
         "atlassian.html",
+        page_context,
+    )
+
+
+@app.post("/atlassian/register", response_class=HTMLResponse)
+async def atlassian_register(request: Request):
+    form = {}
+    try:
+        form = await _bounded_urlencoded_form(request)
+        service = form.get("service", "")
+        if service not in {"jira", "confluence"}:
+            raise AtlassianRegistrationError(
+                "invalid-service", "Atlassian service is invalid"
+            )
+        with transaction() as connection:
+            if form.get("site_id") == "new":
+                result = register_atlassian_url_with_connection(
+                    connection,
+                    url=form.get("url", ""),
+                    service=service,
+                    provider_kind=form.get("provider_kind", ""),
+                    source_name=form.get("source_name") or None,
+                    site_name=form.get("site_name") or None,
+                    config_ref=form.get("config_ref") or None,
+                    title=form.get("title") or None,
+                )
+            else:
+                site_id = _optional_form_int(
+                    form.get("site_id"), "Site"
+                )
+                result = register_atlassian_url(
+                    connection,
+                    url=form.get("url", ""),
+                    service=service,
+                    site_id=site_id,
+                    title=form.get("title") or None,
+                )
+    except AtlassianRegistrationError as exc:
+        selected_view = (
+            form.get("service")
+            if form.get("service") in {"jira", "confluence"}
+            else "jira"
+        )
+        with connect() as connection:
+            page_context = _atlassian_page_context(
+                connection,
+                request=request,
+                selected_view=selected_view,
+                selected_mode="setup",
+                form_state=form,
+                form_error=str(exc),
+            )
+        return templates.TemplateResponse(
+            "atlassian.html", page_context, status_code=422
+        )
+    notice = (
+        "connection-created"
+        if result.get("source_created") or result.get("site_created")
+        else "{}-{}".format(
+            result["kind"],
+            "created" if result["created"] else "reused",
+        )
+    )
+    fragment = "atlassian-{}-{}".format(result["kind"], result["id"])
+    return RedirectResponse(
+        url="/atlassian?{}#{}".format(
+            urlencode(
+                {"view": service, "mode": "setup", "notice": notice}
+            ),
+            fragment,
+        ),
+        status_code=303,
+    )
+
+
+@app.get("/api/atlassian/registration-preview")
+def atlassian_registration_preview(
+    url: str = Query(min_length=1, max_length=8000),
+    service: Optional[str] = Query(default=None),
+):
+    expected_service = (
+        service if service in {"jira", "confluence"} else None
+    )
+    try:
+        with connect() as connection:
+            return registration_preview(
+                connection,
+                url=url,
+                expected_service=expected_service,
+            )
+    except AtlassianRegistrationError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail={"code": exc.code, "message": str(exc)},
+        ) from exc
+
+
+@app.post(
+    "/atlassian/connections/{source_instance_id}/sites/{site_id}",
+    response_class=HTMLResponse,
+)
+async def atlassian_update_connection(
+    request: Request, source_instance_id: int, site_id: int
+):
+    form = {}
+    try:
+        form = await _bounded_urlencoded_form(request)
+        service = form.get("service", "")
+        if service not in {"jira", "confluence"}:
+            raise AtlassianRegistrationError(
+                "invalid-service", "Atlassian service is invalid"
+            )
+        with transaction() as connection:
+            result = update_atlassian_connection(
+                connection,
+                source_instance_id=source_instance_id,
+                site_id=site_id,
+                source_name=form.get("source_name", ""),
+                site_name=form.get("site_name", ""),
+                enabled=form.get("enabled") == "1",
+                config_ref=form.get("config_ref") or None,
+            )
+            if result["service"] != service:
+                raise AtlassianRegistrationError(
+                    "service-mismatch",
+                    "The connection does not belong to this service",
+                )
+    except AtlassianRegistrationError as exc:
+        selected_view = (
+            form.get("service")
+            if form.get("service") in {"jira", "confluence"}
+            else "jira"
+        )
+        with connect() as connection:
+            page_context = _atlassian_page_context(
+                connection,
+                request=request,
+                selected_view=selected_view,
+                selected_mode="setup",
+                form_state=form,
+                form_error=str(exc),
+            )
+        return templates.TemplateResponse(
+            "atlassian.html", page_context, status_code=422
+        )
+    return RedirectResponse(
+        url="/atlassian?{}#atlassian-connection-{}".format(
+            urlencode(
+                {
+                    "view": service,
+                    "mode": "setup",
+                    "notice": "connection-updated",
+                }
+            ),
+            site_id,
+        ),
+        status_code=303,
+    )
+
+
+@app.post("/atlassian/spaces/discover", response_class=HTMLResponse)
+async def atlassian_discover_spaces(request: Request):
+    form = {}
+    try:
+        form = await _bounded_urlencoded_form(request)
+        service = form.get("service", "")
+        if service not in {"jira", "confluence"}:
+            raise AtlassianRegistrationError(
+                "invalid-service", "Atlassian service is invalid"
+            )
+        site_id = _optional_form_int(form.get("site_id"), "Site")
+        if site_id is None:
+            raise AtlassianRegistrationError(
+                "site-required", "Select one Source Instance/Site"
+            )
+        runner = form.get("runner", "claude")
+        if runner not in {"claude", "codex"}:
+            raise AtlassianRegistrationError(
+                "invalid-runner", "Maintenance runner is invalid"
+            )
+        executor = getattr(request.app.state, "external_read_executor", None)
+        if executor is None:
+            raise AtlassianRegistrationError(
+                "executor-unavailable",
+                "Approved host-side read executor is not connected",
+            )
+        if not runner_executable(runner):
+            raise AtlassianRegistrationError(
+                "runner-unavailable",
+                "{} runner is unavailable".format(runner.capitalize()),
+            )
+        with transaction() as connection:
+            run_id = prepare_space_catalog_run(
+                connection, site_id=site_id, runner=runner
+            )
+        start_run(run_id, executor)
+    except AtlassianRegistrationError as exc:
+        selected_view = (
+            form.get("service")
+            if form.get("service") in {"jira", "confluence"}
+            else "jira"
+        )
+        with connect() as connection:
+            page_context = _atlassian_page_context(
+                connection,
+                request=request,
+                selected_view=selected_view,
+                selected_mode="setup",
+                form_state=form,
+                form_error=str(exc),
+            )
+        return templates.TemplateResponse(
+            "atlassian.html", page_context, status_code=422
+        )
+    return RedirectResponse(
+        url="/atlassian?{}".format(
+            urlencode(
+                {
+                    "view": service,
+                    "mode": "setup",
+                    "notice": "catalog-started",
+                    "catalog_run": run_id,
+                }
+            )
+        ),
+        status_code=303,
+    )
+
+
+@app.post("/atlassian/spaces/register", response_class=HTMLResponse)
+async def atlassian_register_space_candidate(request: Request):
+    form = {}
+    try:
+        form = await _bounded_urlencoded_form(request)
+        service = form.get("service", "")
+        if service not in {"jira", "confluence"}:
+            raise AtlassianRegistrationError(
+                "invalid-service", "Atlassian service is invalid"
+            )
+        site_id = _optional_form_int(form.get("site_id"), "Site")
+        if site_id is None:
+            raise AtlassianRegistrationError(
+                "site-required", "Space candidate has no Site"
+            )
+        with transaction() as connection:
+            result = register_space_candidate(
+                connection,
+                site_id=site_id,
+                service=service,
+                space_key=form.get("space_key", ""),
+                name=form.get("name", ""),
+                remote_id=form.get("remote_id") or None,
+            )
+    except AtlassianRegistrationError as exc:
+        selected_view = (
+            form.get("service")
+            if form.get("service") in {"jira", "confluence"}
+            else "jira"
+        )
+        with connect() as connection:
+            page_context = _atlassian_page_context(
+                connection,
+                request=request,
+                selected_view=selected_view,
+                selected_mode="setup",
+                form_state=form,
+                form_error=str(exc),
+            )
+        return templates.TemplateResponse(
+            "atlassian.html", page_context, status_code=422
+        )
+    notice = "space-{}".format(
+        "created" if result["created"] else "reused"
+    )
+    return RedirectResponse(
+        url="/atlassian?{}#atlassian-space-{}".format(
+            urlencode(
+                {"view": service, "mode": "setup", "notice": notice}
+            ),
+            result["id"],
+        ),
+        status_code=303,
+    )
+
+
+@app.get("/atlassian/items/{item_id}", response_class=HTMLResponse)
+def atlassian_item_page(
+    request: Request,
+    item_id: int,
+    notice: Optional[str] = Query(default=None),
+):
+    with connect() as connection:
+        item = atlassian_item_detail(connection, item_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Atlassian Item not found")
+    notices = {
+        "local-saved": "로컬 메모와 분류를 저장했습니다.",
+        "linked": "기존 Workstream 관계를 추가했습니다.",
+        "unlinked": "로컬 Workstream 관계를 제거했습니다.",
+    }
+    return templates.TemplateResponse(
+        "atlassian-item.html",
         {
             "request": request,
             "active_page": "atlassian",
-            "selected_view": selected_view,
+            "item": item,
+            "notice": notices.get(notice),
+            "form_error": None,
         },
+    )
+
+
+@app.post("/atlassian/items/{item_id}/local", response_class=HTMLResponse)
+async def atlassian_update_local(request: Request, item_id: int):
+    form = {}
+    try:
+        form = await _bounded_urlencoded_form(request)
+        topic_ids = [
+            _optional_form_int(value, "Topic")
+            for value in form.get("topic_id", [])
+        ]
+        with transaction() as connection:
+            update_atlassian_local_state(
+                connection,
+                item_id,
+                note=form.get("note", ""),
+                attention=form.get("attention", "normal"),
+                topic_ids=[
+                    value for value in topic_ids if value is not None
+                ],
+                tags=form.get("tags", ""),
+                new_topic_name=form.get("new_topic_name", ""),
+                new_topic_description=form.get(
+                    "new_topic_description", ""
+                ),
+            )
+    except (AtlassianBrowseError, AtlassianRegistrationError) as exc:
+        with connect() as connection:
+            item = atlassian_item_detail(connection, item_id)
+        if not item:
+            raise HTTPException(
+                status_code=404, detail="Atlassian Item not found"
+            ) from exc
+        item["note"] = form.get("note", item.get("note") or "")
+        item["attention"] = form.get("attention", item["attention"])
+        item["selected_topic_ids"] = {
+            value
+            for value in (
+                _optional_form_int(raw, "Topic")
+                for raw in form.get("topic_id", [])
+            )
+            if value is not None
+        }
+        item["tags"] = [
+            {"name": value.strip()}
+            for value in form.get("tags", "").split(",")
+            if value.strip()
+        ]
+        return templates.TemplateResponse(
+            "atlassian-item.html",
+            {
+                "request": request,
+                "active_page": "atlassian",
+                "item": item,
+                "notice": None,
+                "form_error": str(exc),
+            },
+            status_code=422,
+        )
+    return RedirectResponse(
+        url="/atlassian/items/{}?notice=local-saved#local-organization".format(
+            item_id
+        ),
+        status_code=303,
+    )
+
+
+@app.post("/atlassian/items/{item_id}/links", response_class=HTMLResponse)
+async def atlassian_add_local_link(request: Request, item_id: int):
+    try:
+        form = await _bounded_urlencoded_form(request)
+        target = form.get("target", "")
+        scope_type, raw_scope_id = target.split(":", 1)
+        scope_id = _optional_form_int(raw_scope_id, "Link target")
+        if scope_type not in {"workstream", "thread"} or scope_id is None:
+            raise AtlassianBrowseError(
+                "invalid-link", "Select a Workstream or Thread"
+            )
+        with transaction() as connection:
+            if not atlassian_item_detail(connection, item_id):
+                raise AtlassianBrowseError(
+                    "item-not-found", "Atlassian Item was not found"
+                )
+            add_link(
+                connection,
+                scope_type,
+                scope_id,
+                "external",
+                str(item_id),
+                "reference",
+            )
+    except (
+        AtlassianBrowseError,
+        AtlassianRegistrationError,
+        ValueError,
+        LookupError,
+    ) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return RedirectResponse(
+        url="/atlassian/items/{}?notice=linked#local-organization".format(
+            item_id
+        ),
+        status_code=303,
+    )
+
+
+@app.post(
+    "/atlassian/items/{item_id}/links/{scope_type}/{scope_id}/{link_id}",
+    response_class=HTMLResponse,
+)
+def atlassian_remove_local_link(
+    item_id: int, scope_type: str, scope_id: int, link_id: int
+):
+    try:
+        with transaction() as connection:
+            if not atlassian_item_detail(connection, item_id):
+                raise AtlassianBrowseError(
+                    "item-not-found", "Atlassian Item was not found"
+                )
+            if scope_type == "workstream":
+                link = connection.execute(
+                    """
+                    SELECT 1 FROM workstream_links
+                    WHERE id = ? AND workstream_id = ?
+                      AND entity_type = 'external' AND entity_id = ?
+                    """,
+                    (link_id, scope_id, str(item_id)),
+                ).fetchone()
+            elif scope_type == "thread":
+                link = connection.execute(
+                    """
+                    SELECT 1 FROM thread_links
+                    WHERE id = ? AND thread_id = ?
+                      AND entity_type = 'external' AND entity_id = ?
+                    """,
+                    (link_id, scope_id, str(item_id)),
+                ).fetchone()
+            else:
+                link = None
+            if not link:
+                raise AtlassianBrowseError(
+                    "link-not-found",
+                    "The selected local relation was not found",
+                )
+            remove_link(connection, scope_type, scope_id, link_id)
+    except (AtlassianBrowseError, ValueError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return RedirectResponse(
+        url="/atlassian/items/{}?notice=unlinked#local-organization".format(
+            item_id
+        ),
+        status_code=303,
+    )
+
+
+def _refresh_retry_ids(value: Optional[str]) -> Optional[list[int]]:
+    if not value:
+        return None
+    values = []
+    for raw in value.split(",")[:20]:
+        try:
+            item_id = int(raw)
+        except (TypeError, ValueError) as exc:
+            raise AtlassianRefreshError(
+                "invalid-retry", "Retry Item selection is invalid"
+            ) from exc
+        if item_id < 1:
+            raise AtlassianRefreshError(
+                "invalid-retry", "Retry Item selection is invalid"
+            )
+        if item_id not in values:
+            values.append(item_id)
+    return values or None
+
+
+def _atlassian_refresh_context(
+    connection,
+    *,
+    request: Request,
+    scope_kind: str,
+    scope_id: Optional[int],
+    page: int,
+    retry: Optional[str] = None,
+    selected_ids: Optional[list[int]] = None,
+    run_id: Optional[str] = None,
+    form_error: Optional[str] = None,
+) -> dict:
+    retry_ids = selected_ids
+    if retry_ids is None:
+        retry_ids = _refresh_retry_ids(retry)
+    preview = refresh_preview(
+        connection,
+        scope_kind=scope_kind,
+        scope_id=scope_id,
+        page=page,
+        selected_ids=retry_ids,
+    )
+    run_result = refresh_run_result(connection, run_id) if run_id else None
+    return {
+        "request": request,
+        "active_page": "atlassian",
+        "preview": preview,
+        "scope_kind": scope_kind,
+        "scope_id": scope_id,
+        "page": page,
+        "run_result": run_result,
+        "form_error": form_error,
+        "external_executor_ready": bool(
+            getattr(request.app.state, "external_read_executor", None)
+        ),
+        "runner_ready": {
+            runner: bool(runner_executable(runner))
+            for runner in ("claude", "codex")
+        },
+    }
+
+
+@app.get("/atlassian/refresh", response_class=HTMLResponse)
+def atlassian_refresh_page(
+    request: Request,
+    scope: str = Query(default="all_known"),
+    scope_id: Optional[int] = Query(default=None, alias="id"),
+    page: int = Query(default=1, ge=1),
+    retry: Optional[str] = Query(default=None),
+    run_id: Optional[str] = Query(default=None, alias="run"),
+):
+    try:
+        with connect() as connection:
+            page_context = _atlassian_refresh_context(
+                connection,
+                request=request,
+                scope_kind=scope,
+                scope_id=scope_id,
+                page=page,
+                retry=retry,
+                run_id=run_id,
+            )
+    except AtlassianRefreshError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return templates.TemplateResponse(
+        "atlassian-refresh.html", page_context
+    )
+
+
+@app.post("/atlassian/refresh", response_class=HTMLResponse)
+async def atlassian_start_refresh(request: Request):
+    scope_kind = "all_known"
+    scope_id = None
+    page = 1
+    selected_ids: list[int] = []
+    try:
+        form = await _bounded_urlencoded_form(request)
+        scope_kind = str(form.get("scope", "all_known"))
+        scope_id = _optional_form_int(
+            form.get("scope_id"), "Refresh scope"
+        )
+        page = _optional_form_int(form.get("page"), "Page") or 1
+        raw_ids = form.get("item_id", [])
+        if isinstance(raw_ids, str):
+            raw_ids = [raw_ids]
+        selected_ids = [
+            item_id
+            for item_id in (
+                _optional_form_int(value, "Item") for value in raw_ids
+            )
+            if item_id is not None
+        ]
+        runner = str(form.get("runner", "claude"))
+        if runner not in {"claude", "codex"}:
+            raise AtlassianRefreshError(
+                "invalid-runner", "Maintenance runner is invalid"
+            )
+        executor = getattr(request.app.state, "external_read_executor", None)
+        if executor is None:
+            raise AtlassianRefreshError(
+                "executor-unavailable",
+                "Approved host-side read executor is not connected",
+            )
+        if not runner_executable(runner):
+            raise AtlassianRefreshError(
+                "runner-unavailable",
+                "{} runner is unavailable".format(runner.capitalize()),
+            )
+        with transaction() as connection:
+            run_id = prepare_atlassian_refresh_run(
+                connection,
+                scope_kind=scope_kind,
+                scope_id=scope_id,
+                selected_item_ids=selected_ids,
+                include_catalog=form.get("include_catalog") == "true",
+                page=page,
+                runner=runner,
+            )
+        start_run(run_id, executor)
+    except (AtlassianRegistrationError, AtlassianRefreshError) as exc:
+        try:
+            with connect() as connection:
+                page_context = _atlassian_refresh_context(
+                    connection,
+                    request=request,
+                    scope_kind=scope_kind,
+                    scope_id=scope_id,
+                    page=page,
+                    selected_ids=selected_ids,
+                    form_error=str(exc),
+                )
+        except AtlassianRefreshError as context_exc:
+            raise HTTPException(
+                status_code=422, detail=str(context_exc)
+            ) from context_exc
+        return templates.TemplateResponse(
+            "atlassian-refresh.html", page_context, status_code=422
+        )
+    query = {"scope": scope_kind, "page": page, "run": run_id}
+    if scope_id is not None:
+        query["id"] = scope_id
+    return RedirectResponse(
+        url="/atlassian/refresh?{}".format(urlencode(query)),
+        status_code=303,
     )
 
 
@@ -640,9 +1433,54 @@ def show_local_resource(request: Request, resource_id: int):
 
 
 @app.get("/search", response_class=HTMLResponse)
-def search_page(request: Request, q: str = Query(default="", max_length=300)):
+def search_page(
+    request: Request,
+    q: str = Query(default="", max_length=300),
+    source: str = Query(default="all"),
+    service: Optional[str] = Query(default=None),
+    source_instance_id: Optional[int] = Query(default=None, ge=1),
+    site_id: Optional[int] = Query(default=None, ge=1),
+    space_id: Optional[int] = Query(default=None, ge=1),
+    item_type: Optional[str] = Query(default=None),
+    coverage: Optional[str] = Query(default=None),
+    freshness: Optional[str] = Query(default=None),
+    attention: Optional[str] = Query(default=None),
+    topic_id: Optional[int] = Query(default=None, ge=1),
+    tag_id: Optional[int] = Query(default=None, ge=1),
+    workstream_id: Optional[int] = Query(default=None, ge=1),
+):
+    selected_source = (
+        source if source in {"all", "sessions", "documents", "atlassian"} else "all"
+    )
+    filter_values = {
+        "service": service,
+        "source_instance_id": source_instance_id,
+        "site_id": site_id,
+        "space_id": space_id,
+        "item_type": item_type,
+        "coverage": coverage,
+        "freshness": freshness,
+        "attention": attention,
+        "topic_id": topic_id,
+        "tag_id": tag_id,
+        "workstream_id": workstream_id,
+    }
     with connect() as connection:
-        results = search(connection, q) if q.strip() else []
+        try:
+            filters = normalize_browse_filters(filter_values)
+            results = (
+                search(
+                    connection,
+                    q,
+                    source_scope=selected_source,
+                    atlassian_filters=filters,
+                )
+                if q.strip()
+                else []
+            )
+            search_options = browse_inventory(connection)["options"]
+        except AtlassianBrowseError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
     return templates.TemplateResponse(
         "search.html",
         {
@@ -650,6 +1488,9 @@ def search_page(request: Request, q: str = Query(default="", max_length=300)):
             "active_page": "search",
             "query": q,
             "results": results,
+            "selected_source": selected_source,
+            "filters": filters,
+            "search_options": search_options,
         },
     )
 

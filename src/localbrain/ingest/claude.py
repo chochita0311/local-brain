@@ -5,12 +5,15 @@ from .common import (
     ParsedEvent,
     ParsedSession,
     ParsedUsageRecord,
+    approved_atlassian_tool_call,
+    approved_tool_result_evidence,
     compact_title,
     read_json_lines,
     session_policy,
     stable_id,
     text_from_content,
     token_value,
+    visible_url_evidence,
 )
 
 
@@ -172,6 +175,8 @@ def parse_claude_session(path: Path) -> ParsedSession:
     timestamps: List[str] = []
     events: List[ParsedEvent] = []
     usage_by_record: Dict[str, ParsedUsageRecord] = {}
+    url_evidence = []
+    approved_tool_calls: Dict[str, bool] = {}
     skipped_lines = 0
     is_subsession = path.parent.name == "subagents"
     parent_external_id = path.parent.parent.name if is_subsession else None
@@ -210,21 +215,54 @@ def parse_claude_session(path: Path) -> ParsedSession:
             "toolUseResult" in record
         )
         if record_type == "user" and is_tool_result:
+            content = _message_content(record)
+            items = content if isinstance(content, list) else []
+            for offset, item in enumerate(items, start=1):
+                if not isinstance(item, dict) or item.get("type") != "tool_result":
+                    continue
+                tool_use_id = item.get("tool_use_id")
+                if not isinstance(tool_use_id, str) or not approved_tool_calls.get(
+                    tool_use_id
+                ):
+                    continue
+                url_evidence.extend(
+                    approved_tool_result_evidence(
+                        item.get("content"),
+                        source_line=line_number,
+                        source_event_id=stable_id(
+                            "claude",
+                            external_id,
+                            line_number,
+                            "approved-tool-result",
+                            offset,
+                        ),
+                        observed_at=timestamp if isinstance(timestamp, str) else None,
+                    )
+                )
             continue
 
         text = text_from_content(_message_content(record))
         if text:
             if record_type == "user" and not first_user_text:
                 first_user_text = text
+            event_id = stable_id("claude", external_id, line_number, record_type)
             events.append(
                 ParsedEvent(
-                    event_id=stable_id("claude", external_id, line_number, record_type),
+                    event_id=event_id,
                     sequence=line_number * 10,
                     source_line=line_number,
                     event_type="message",
                     occurred_at=timestamp if isinstance(timestamp, str) else None,
                     role=record_type,
                     text=text,
+                )
+            )
+            url_evidence.extend(
+                visible_url_evidence(
+                    text,
+                    source_line=line_number,
+                    source_event_id=event_id,
+                    observed_at=timestamp if isinstance(timestamp, str) else None,
                 )
             )
 
@@ -250,6 +288,13 @@ def parse_claude_session(path: Path) -> ParsedSession:
                 if isinstance(item, dict) and item.get("type") == "tool_use":
                     tool_name = item.get("name")
                     if isinstance(tool_name, str):
+                        tool_use_id = item.get("id")
+                        if isinstance(tool_use_id, str):
+                            approved_tool_calls[tool_use_id] = (
+                                approved_atlassian_tool_call(
+                                    tool_name, item.get("input")
+                                )
+                            )
                         events.append(
                             ParsedEvent(
                                 event_id=stable_id(
@@ -290,4 +335,5 @@ def parse_claude_session(path: Path) -> ParsedSession:
         session_role="subsession" if is_subsession else "primary",
         parent_external_id=parent_external_id,
         usage_records=list(usage_by_record.values()),
+        url_evidence=url_evidence,
     )

@@ -62,14 +62,25 @@
               <div>
                 <p class="eyebrow">RELATIONSHIP MAP</p>
                 <h2 id="schema-diagram-title" tabindex="-1" data-schema-focus="area">{{ view.diagram_label }}</h2>
-                {% if view.mode == 'global' %}<p class="schema-diagram-hint">넓은 전체 모델은 이 패널 안에서 좌우로 이동할 수 있습니다.</p>{% endif %}
+                <p class="schema-diagram-hint">
+                  Ctrl/Cmd + 휠 또는 트랙패드 핀치로 확대할 수 있습니다.
+                  {% if view.mode == 'global' %}넓은 전체 모델은 이 패널 안에서 좌우로 이동합니다.{% endif %}
+                </p>
               </div>
-              <div class="schema-relation-legend" aria-label="관계 표기 범례">
-                <span><i class="solid" aria-hidden="true"></i>Physical FK</span>
-                <span><i class="dotted" aria-hidden="true"></i>Application</span>
+              <div class="schema-panel-actions">
+                <div class="schema-zoom-controls" role="group" aria-label="다이어그램 확대/축소" data-schema-zoom-controls>
+                  <button type="button" data-schema-zoom-out aria-label="다이어그램 축소" aria-controls="schema-diagram-viewport" disabled>−</button>
+                  <button type="button" class="schema-zoom-value" data-schema-zoom-reset aria-label="현재 배율 100%, 100%로 재설정" aria-controls="schema-diagram-viewport" disabled>100%</button>
+                  <button type="button" data-schema-zoom-in aria-label="다이어그램 확대" aria-controls="schema-diagram-viewport" disabled>+</button>
+                  <button type="button" class="schema-zoom-fit" data-schema-zoom-fit aria-label="다이어그램 너비 맞춤" aria-controls="schema-diagram-viewport" disabled>맞춤</button>
+                </div>
+                <div class="schema-relation-legend" aria-label="관계 표기 범례">
+                  <span><i class="solid" aria-hidden="true"></i>Physical FK</span>
+                  <span><i class="dotted" aria-hidden="true"></i>Application</span>
+                </div>
               </div>
             </header>
-            <div class="schema-diagram-scroll">
+            <div class="schema-diagram-scroll" id="schema-diagram-viewport" data-schema-diagram-viewport>
               <div class="schema-diagram" data-localbrain-mermaid="owned">
                 <p class="schema-diagram-fallback" data-schema-diagram-fallback>다이어그램을 표시할 수 없습니다. 주제 및 테이블 링크로 같은 구조를 확인할 수 있습니다.</p>
                 <script type="text/plain" data-localbrain-mermaid-source data-schema-source-json>{{ view.diagram | tojson }}</script>

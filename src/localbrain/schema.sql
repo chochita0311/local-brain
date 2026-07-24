@@ -24,6 +24,45 @@ CREATE TABLE IF NOT EXISTS source_files (
     UNIQUE(source_id, path)
 );
 
+CREATE TABLE IF NOT EXISTS external_source_instances (
+    id INTEGER PRIMARY KEY,
+    instance_key TEXT NOT NULL UNIQUE,
+    provider_kind TEXT NOT NULL
+        CHECK(provider_kind IN ('mcp_gateway', 'atlassian_cloud')),
+    service TEXT NOT NULL
+        CHECK(service IN ('jira', 'confluence')),
+    display_name TEXT NOT NULL,
+    config_ref TEXT,
+    enabled INTEGER NOT NULL DEFAULT 1
+        CHECK(enabled IN (0, 1)),
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS external_source_capabilities (
+    source_instance_id INTEGER PRIMARY KEY
+        REFERENCES external_source_instances(id) ON DELETE CASCADE,
+    policy_version TEXT NOT NULL,
+    schema_fingerprint TEXT,
+    availability TEXT NOT NULL
+        CHECK(
+            availability IN (
+                'available',
+                'unavailable',
+                'unauthorized',
+                'error'
+            )
+        ),
+    capability_json TEXT NOT NULL,
+    error_code TEXT,
+    error_message TEXT CHECK(
+        error_message IS NULL OR length(error_message) <= 500
+    ),
+    checked_at TEXT NOT NULL,
+    invalidated_at TEXT,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS workspaces (
     id INTEGER PRIMARY KEY,
     canonical_path TEXT NOT NULL UNIQUE,
@@ -238,11 +277,300 @@ CREATE TABLE IF NOT EXISTS external_resources (
     id INTEGER PRIMARY KEY,
     resource_type TEXT NOT NULL,
     title TEXT NOT NULL,
-    url TEXT NOT NULL UNIQUE,
+    url TEXT NOT NULL,
     summary TEXT,
     source_role TEXT,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS atlassian_sites (
+    id INTEGER PRIMARY KEY,
+    source_instance_id INTEGER NOT NULL
+        REFERENCES external_source_instances(id) ON DELETE RESTRICT,
+    normalized_domain TEXT NOT NULL,
+    display_name TEXT,
+    remote_site_id TEXT,
+    canonical_base_url TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(source_instance_id, normalized_domain),
+    UNIQUE(source_instance_id, remote_site_id),
+    CHECK(length(normalized_domain) > 0),
+    CHECK(remote_site_id IS NULL OR length(remote_site_id) > 0)
+);
+
+CREATE TABLE IF NOT EXISTS atlassian_spaces (
+    id INTEGER PRIMARY KEY,
+    site_id INTEGER NOT NULL
+        REFERENCES atlassian_sites(id) ON DELETE RESTRICT,
+    service TEXT NOT NULL
+        CHECK(service IN ('jira', 'confluence')),
+    remote_id TEXT,
+    space_key TEXT,
+    name TEXT NOT NULL,
+    canonical_url TEXT NOT NULL,
+    coverage TEXT NOT NULL
+        CHECK(coverage IN ('selected-content', 'full-content')),
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(site_id, service, remote_id),
+    UNIQUE(site_id, service, space_key),
+    CHECK(remote_id IS NOT NULL OR space_key IS NOT NULL),
+    CHECK(remote_id IS NULL OR length(remote_id) > 0),
+    CHECK(space_key IS NULL OR length(space_key) > 0),
+    CHECK(length(canonical_url) > 0)
+);
+
+CREATE TABLE IF NOT EXISTS atlassian_items (
+    external_resource_id INTEGER PRIMARY KEY
+        REFERENCES external_resources(id) ON DELETE CASCADE,
+    site_id INTEGER NOT NULL
+        REFERENCES atlassian_sites(id) ON DELETE RESTRICT,
+    space_id INTEGER
+        REFERENCES atlassian_spaces(id) ON DELETE SET NULL,
+    service TEXT NOT NULL
+        CHECK(service IN ('jira', 'confluence')),
+    item_type TEXT NOT NULL
+        CHECK(item_type IN ('jira_issue', 'confluence_page')),
+    remote_id TEXT,
+    remote_key TEXT,
+    coverage TEXT NOT NULL DEFAULT 'reference'
+        CHECK(coverage IN ('reference', 'metadata', 'indexed')),
+    attention TEXT NOT NULL DEFAULT 'normal'
+        CHECK(attention IN ('normal', 'pinned', 'ignored', 'archived')),
+    confirmed_at TEXT,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(external_resource_id, site_id),
+    UNIQUE(site_id, service, remote_id),
+    UNIQUE(site_id, service, remote_key),
+    CHECK(
+        (service = 'jira' AND item_type = 'jira_issue')
+        OR
+        (service = 'confluence' AND item_type = 'confluence_page')
+    ),
+    CHECK(remote_id IS NULL OR length(remote_id) > 0),
+    CHECK(remote_key IS NULL OR length(remote_key) > 0)
+);
+
+CREATE TABLE IF NOT EXISTS atlassian_item_urls (
+    id INTEGER PRIMARY KEY,
+    external_resource_id INTEGER NOT NULL,
+    site_id INTEGER NOT NULL,
+    url_role TEXT NOT NULL
+        CHECK(url_role IN ('canonical', 'alias')),
+    observed_url TEXT NOT NULL,
+    normalized_url TEXT NOT NULL,
+    first_observed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_observed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(external_resource_id, site_id)
+        REFERENCES atlassian_items(external_resource_id, site_id)
+        ON DELETE CASCADE,
+    UNIQUE(site_id, normalized_url),
+    CHECK(length(observed_url) > 0),
+    CHECK(length(normalized_url) > 0)
+);
+
+CREATE TABLE IF NOT EXISTS atlassian_item_remote_state (
+    external_resource_id INTEGER PRIMARY KEY
+        REFERENCES atlassian_items(external_resource_id) ON DELETE CASCADE,
+    metadata_schema_version TEXT NOT NULL DEFAULT 'localbrain.atlassian-metadata.v1',
+    metadata_json TEXT NOT NULL DEFAULT '{}',
+    remote_version TEXT,
+    remote_updated_at TEXT,
+    last_attempted_at TEXT,
+    last_successful_at TEXT,
+    last_confirmed_at TEXT,
+    last_outcome TEXT
+        CHECK(
+            last_outcome IS NULL
+            OR last_outcome IN (
+                'resolved',
+                'unchanged',
+                'changed',
+                'unavailable',
+                'not_found',
+                'error'
+            )
+        ),
+    last_error_code TEXT,
+    known_changed INTEGER NOT NULL DEFAULT 0
+        CHECK(known_changed IN (0, 1)),
+    projection_stale INTEGER NOT NULL DEFAULT 0
+        CHECK(projection_stale IN (0, 1)),
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CHECK(
+        (
+            last_outcome IN ('unavailable', 'not_found', 'error')
+            AND last_error_code IS NOT NULL
+        )
+        OR
+        (
+            (
+                last_outcome IS NULL
+                OR last_outcome IN ('resolved', 'unchanged', 'changed')
+            )
+            AND last_error_code IS NULL
+        )
+    ),
+    CHECK(
+        last_error_code IS NULL
+        OR (length(last_error_code) > 0 AND length(last_error_code) <= 80)
+    )
+);
+
+CREATE TABLE IF NOT EXISTS atlassian_item_content (
+    external_resource_id INTEGER PRIMARY KEY
+        REFERENCES atlassian_items(external_resource_id) ON DELETE CASCADE,
+    source_format TEXT NOT NULL
+        CHECK(
+            source_format IN (
+                'jira_adf',
+                'confluence_adf',
+                'confluence_html',
+                'confluence_markdown',
+                'plain_text'
+            )
+        ),
+    source_body TEXT NOT NULL,
+    source_hash TEXT NOT NULL,
+    normalized_document_json TEXT NOT NULL,
+    normalized_text TEXT NOT NULL,
+    normalizer_version TEXT NOT NULL,
+    normalization_warning TEXT,
+    remote_version TEXT,
+    remote_updated_at TEXT,
+    applied_at TEXT NOT NULL,
+    search_projection_hash TEXT,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CHECK(length(source_hash) = 64),
+    CHECK(search_projection_hash IS NULL OR length(search_projection_hash) = 64)
+);
+
+CREATE TABLE IF NOT EXISTS atlassian_item_local_state (
+    external_resource_id INTEGER PRIMARY KEY
+        REFERENCES atlassian_items(external_resource_id) ON DELETE CASCADE,
+    note TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CHECK(length(note) <= 50000)
+);
+
+CREATE TABLE IF NOT EXISTS atlassian_classifications (
+    id INTEGER PRIMARY KEY,
+    kind TEXT NOT NULL
+        CHECK(kind IN ('topic', 'tag')),
+    name TEXT NOT NULL,
+    normalized_name TEXT NOT NULL,
+    description TEXT,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(kind, normalized_name),
+    CHECK(length(name) > 0 AND length(name) <= 160),
+    CHECK(length(normalized_name) > 0 AND length(normalized_name) <= 320),
+    CHECK(description IS NULL OR length(description) <= 4000),
+    CHECK(kind = 'topic' OR description IS NULL)
+);
+
+CREATE TABLE IF NOT EXISTS atlassian_item_classifications (
+    external_resource_id INTEGER NOT NULL
+        REFERENCES atlassian_items(external_resource_id) ON DELETE CASCADE,
+    classification_id INTEGER NOT NULL
+        REFERENCES atlassian_classifications(id) ON DELETE CASCADE,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY(external_resource_id, classification_id)
+);
+
+CREATE TABLE IF NOT EXISTS atlassian_evidence_scans (
+    id INTEGER PRIMARY KEY,
+    session_id INTEGER
+        REFERENCES sessions(id) ON DELETE CASCADE,
+    source_path TEXT,
+    document_id INTEGER UNIQUE
+        REFERENCES context_documents(id) ON DELETE CASCADE,
+    source_fingerprint TEXT NOT NULL,
+    site_fingerprint TEXT NOT NULL,
+    extractor_version TEXT NOT NULL,
+    status TEXT NOT NULL
+        CHECK(status IN ('ok', 'error')),
+    error_code TEXT,
+    error_message TEXT
+        CHECK(error_message IS NULL OR length(error_message) <= 500),
+    scanned_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CHECK(length(source_fingerprint) = 64),
+    CHECK(length(site_fingerprint) = 64),
+    CHECK(
+        (
+            session_id IS NOT NULL
+            AND source_path IS NOT NULL
+            AND document_id IS NULL
+        )
+        OR (
+            session_id IS NULL
+            AND source_path IS NULL
+            AND document_id IS NOT NULL
+        )
+    ),
+    CHECK(source_path IS NULL OR length(source_path) <= 8000),
+    CHECK(
+        (status = 'error' AND error_code IS NOT NULL)
+        OR (status = 'ok' AND error_code IS NULL AND error_message IS NULL)
+    ),
+    CHECK(
+        error_code IS NULL
+        OR (length(error_code) > 0 AND length(error_code) <= 80)
+    ),
+    UNIQUE(session_id, source_path)
+);
+
+CREATE TABLE IF NOT EXISTS atlassian_item_evidence (
+    id INTEGER PRIMARY KEY,
+    external_resource_id INTEGER NOT NULL
+        REFERENCES atlassian_items(external_resource_id) ON DELETE CASCADE,
+    session_id INTEGER
+        REFERENCES sessions(id) ON DELETE CASCADE,
+    source_path TEXT,
+    document_id INTEGER
+        REFERENCES context_documents(id) ON DELETE CASCADE,
+    source_channel TEXT NOT NULL
+        CHECK(source_channel IN ('visible_text', 'approved_tool_result')),
+    source_event_id TEXT,
+    source_line INTEGER NOT NULL CHECK(source_line > 0),
+    url_ordinal INTEGER NOT NULL CHECK(url_ordinal > 0),
+    observed_url TEXT NOT NULL,
+    normalized_url TEXT NOT NULL,
+    observed_remote_id TEXT,
+    observed_title TEXT,
+    observed_at TEXT,
+    extractor_version TEXT NOT NULL,
+    evidence_key TEXT NOT NULL UNIQUE,
+    first_observed_at TEXT NOT NULL,
+    last_observed_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CHECK(
+        (
+            session_id IS NOT NULL
+            AND source_path IS NOT NULL
+            AND document_id IS NULL
+            AND source_event_id IS NOT NULL
+        )
+        OR (
+            session_id IS NULL
+            AND source_path IS NULL
+            AND document_id IS NOT NULL
+            AND source_event_id IS NULL
+        )
+    ),
+    CHECK(source_path IS NULL OR length(source_path) <= 8000),
+    CHECK(length(observed_url) > 0 AND length(observed_url) <= 8000),
+    CHECK(length(normalized_url) > 0 AND length(normalized_url) <= 8000),
+    CHECK(
+        observed_remote_id IS NULL OR length(observed_remote_id) <= 300
+    ),
+    CHECK(observed_title IS NULL OR length(observed_title) <= 500),
+    CHECK(length(evidence_key) = 64)
 );
 
 CREATE TABLE IF NOT EXISTS local_resources (
@@ -300,6 +628,30 @@ CREATE TABLE IF NOT EXISTS maintenance_runs (
     summary TEXT,
     error TEXT,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS external_sync_runs (
+    maintenance_run_id TEXT PRIMARY KEY
+        REFERENCES maintenance_runs(id) ON DELETE CASCADE,
+    source_instance_id INTEGER
+        REFERENCES external_source_instances(id) ON DELETE SET NULL,
+    source_kind TEXT NOT NULL,
+    service TEXT NOT NULL,
+    requested_scope_kind TEXT NOT NULL
+        CHECK(
+            requested_scope_kind IN (
+                'item',
+                'space',
+                'thread',
+                'workstream',
+                'all_known'
+            )
+        ),
+    selected_target_count INTEGER NOT NULL
+        CHECK(selected_target_count >= 0),
+    manifest_schema_version TEXT NOT NULL,
+    read_policy_version TEXT NOT NULL,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -366,3 +718,30 @@ CREATE INDEX IF NOT EXISTS idx_suggestions_target
     ON suggestions(target_type, target_id, status);
 CREATE INDEX IF NOT EXISTS idx_checkpoints_workstream_version
     ON checkpoints(workstream_id, version DESC);
+CREATE INDEX IF NOT EXISTS idx_external_sync_runs_source_instance
+    ON external_sync_runs(source_instance_id, maintenance_run_id);
+CREATE INDEX IF NOT EXISTS idx_external_sync_runs_scope
+    ON external_sync_runs(requested_scope_kind, maintenance_run_id);
+CREATE INDEX IF NOT EXISTS idx_atlassian_sites_source
+    ON atlassian_sites(source_instance_id, normalized_domain);
+CREATE INDEX IF NOT EXISTS idx_atlassian_spaces_site
+    ON atlassian_spaces(site_id, service, name);
+CREATE INDEX IF NOT EXISTS idx_atlassian_items_site
+    ON atlassian_items(site_id, service, coverage);
+CREATE INDEX IF NOT EXISTS idx_atlassian_items_space
+    ON atlassian_items(space_id, service);
+CREATE INDEX IF NOT EXISTS idx_atlassian_item_urls_item
+    ON atlassian_item_urls(external_resource_id, url_role);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_atlassian_item_urls_canonical
+    ON atlassian_item_urls(external_resource_id)
+    WHERE url_role = 'canonical';
+CREATE INDEX IF NOT EXISTS idx_atlassian_remote_state_check
+    ON atlassian_item_remote_state(last_successful_at, last_outcome);
+CREATE INDEX IF NOT EXISTS idx_atlassian_item_classifications_classification
+    ON atlassian_item_classifications(classification_id, external_resource_id);
+CREATE INDEX IF NOT EXISTS idx_atlassian_evidence_item
+    ON atlassian_item_evidence(external_resource_id, last_observed_at DESC);
+CREATE INDEX IF NOT EXISTS idx_atlassian_evidence_session
+    ON atlassian_item_evidence(session_id, source_line, url_ordinal);
+CREATE INDEX IF NOT EXISTS idx_atlassian_evidence_document
+    ON atlassian_item_evidence(document_id, source_line, url_ordinal);

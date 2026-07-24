@@ -1,35 +1,35 @@
 {
   "baseline": {
-    "explicit_index_count": 20,
+    "explicit_index_count": 33,
     "fts5_table_count": 1,
-    "id": "localbrain-data-model-2026-07-18",
-    "ordinary_table_count": 20,
-    "physical_foreign_key_count": 20,
+    "id": "localbrain-data-model-2026-07-23",
+    "ordinary_table_count": 34,
+    "physical_foreign_key_count": 39,
     "sources": [
       {
         "path": "src/localbrain/schema.sql",
         "role": "fresh-schema-truth",
-        "sha256": "2a9dc61cac9217e9e2f9961911d443bd1b33d7e6b23b185032dcf6fe6aae03b3"
+        "sha256": "30398c7f06a99cefc3808f845cb58421783923c5134c111d5a75ec54e3ac5269"
       },
       {
         "path": "src/localbrain/db.py",
         "role": "compatible-structure-truth",
-        "sha256": "d3b4b1494d1db90859a1c1a9b097b50dae912a758a8fa324d0a8a75b0b3f540f"
+        "sha256": "83b4ebcde6d7ccb2b80a0b79489c2c0e1bcd04153206f38e72873099702977a3"
       },
       {
         "path": "docs/policies/project/data-model.md",
         "role": "semantic-truth",
-        "sha256": "ece03029e66bf77ea43c48084c9d4ecc44e2667717993391e0c602b39b7c1e06"
+        "sha256": "7945343f5d2fff0ce9ece77ca4288a2f55ebf23e3be13df5ce37f24e86126df1"
       },
       {
         "path": "docs/policies/project/data-model/source-registry-and-scans.md",
         "role": "semantic-truth",
-        "sha256": "8e0b9dd2ef4c6e84f0f8532815d1c224a82b227ee97d2ffbcb0f98c41cb9c4dd"
+        "sha256": "130663fc75f102bb3e8eeeddcb148247fc753fe8a96deb2a175ce1655e90f5bd"
       },
       {
         "path": "docs/policies/project/data-model/workspace-and-session-activity.md",
         "role": "semantic-truth",
-        "sha256": "c1924306e8da7179c94647f2a2c224089afd347d937b695682ebb000ac17c328"
+        "sha256": "e4e156d9dec67188b8f12716f75db9504e81aaa6d50a023be960255340d0cc7e"
       },
       {
         "path": "docs/policies/project/data-model/usage-and-cost-records.md",
@@ -39,12 +39,17 @@
       {
         "path": "docs/policies/project/data-model/local-context-corpus.md",
         "role": "semantic-truth",
-        "sha256": "4778edffeb5e029f1a4b012e7b615e92d810a50f6efa558113edeef1f559d5f6"
+        "sha256": "44664ec871b35bc69b53882a2656f0752134ca7e9af56ae4880e2d30974eb418"
       },
       {
         "path": "docs/policies/project/data-model/work-organization-and-resources.md",
         "role": "semantic-truth",
-        "sha256": "ef139e4b8d5ef360d077a5f5f753f2b16c7a6ccee3ae6f6e551ff61dd651b088"
+        "sha256": "5f067c8f43053a0bea18404600a341dd8122bc926c4cd2cae9d9dba0defc9803"
+      },
+      {
+        "path": "docs/policies/project/data-model/atlassian-source-memory.md",
+        "role": "semantic-truth",
+        "sha256": "cc20462217f1bd885547ea7ea3c3ac992e32d62f621dbb74f059cd774ef42ade"
       },
       {
         "path": "docs/policies/project/data-model/review-and-resume-continuity.md",
@@ -54,19 +59,19 @@
       {
         "path": "docs/policies/project/data-model/maintenance-execution.md",
         "role": "semantic-truth",
-        "sha256": "1314f35a4937386b5760ec0c5501b719a810231a693fa2def4744148c77ea31d"
+        "sha256": "555da757567978feba1ca17ce2c7956ab1018b6eeb4b8e4d0bbbbdb761d03c74"
       },
       {
         "path": "docs/policies/project/data-model/derived-retrieval-index.md",
         "role": "semantic-truth",
-        "sha256": "62ad1fa22ba112b295ecc38a2b4445629a118a1090477c14d9067773d30e67d0"
+        "sha256": "6d01209828ae7730648f9ce553c0691fd156d500d01eee9e6de7fbe0e7ebab88"
       }
     ],
-    "subject_count": 8
+    "subject_count": 9
   },
   "derived": true,
   "global": {
-    "mermaid": "erDiagram\n    SOURCES { integer id PK }\n    SOURCE_FILES { integer id PK }\n    WORKSPACES { integer id PK }\n    SESSIONS { integer id PK }\n    ACTIVITY_EVENTS { string id PK }\n    USAGE_PRICE_SNAPSHOTS { string id PK }\n    USAGE_MODEL_PRICES { string snapshot_model PK }\n    USAGE_RECORDS { string id PK }\n    CONTEXT_ROOTS { integer id PK }\n    CONTEXT_DOCUMENTS { integer id PK }\n    WORKSTREAMS { integer id PK }\n    THREADS { integer id PK }\n    WORKSTREAM_LINKS { integer id PK }\n    THREAD_LINKS { integer id PK }\n    LOCAL_RESOURCES { integer id PK }\n    EXTERNAL_RESOURCES { integer id PK }\n    SUGGESTIONS { integer id PK }\n    CHECKPOINTS { integer id PK }\n    CHECKPOINT_RESOURCE_REFS { integer id PK }\n    MAINTENANCE_RUNS { string id PK }\n    SEARCH_INDEX { string entity_key \"derived\" }\n\n    SOURCES ||--o{ SOURCE_FILES : \"physical CASCADE\"\n    SOURCES ||--o{ SESSIONS : \"physical CASCADE\"\n    SOURCES ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    SOURCES ||--o{ CONTEXT_DOCUMENTS : \"physical CASCADE\"\n    WORKSPACES o|--o{ SESSIONS : \"physical SET_NULL\"\n    WORKSPACES o|--o{ CONTEXT_DOCUMENTS : \"physical SET_NULL\"\n    MAINTENANCE_RUNS o|--o| SESSIONS : \"physical SET_NULL unique\"\n    SESSIONS o|--o{ SESSIONS : \"physical parent SET_NULL\"\n    SESSIONS ||--o{ ACTIVITY_EVENTS : \"physical CASCADE\"\n    SESSIONS ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    USAGE_PRICE_SNAPSHOTS ||--o{ USAGE_MODEL_PRICES : \"physical RESTRICT\"\n    USAGE_PRICE_SNAPSHOTS ||--o{ USAGE_RECORDS : \"physical RESTRICT\"\n    CONTEXT_ROOTS o|--o{ CONTEXT_DOCUMENTS : \"physical SET_NULL\"\n    WORKSTREAMS ||--o{ THREADS : \"physical CASCADE\"\n    WORKSTREAMS ||--o{ WORKSTREAM_LINKS : \"physical CASCADE\"\n    WORKSTREAMS ||--o{ CHECKPOINTS : \"physical CASCADE\"\n    WORKSTREAMS o|--o{ MAINTENANCE_RUNS : \"physical SET_NULL\"\n    THREADS ||--o{ THREAD_LINKS : \"physical CASCADE\"\n    THREADS o|--o{ CHECKPOINT_RESOURCE_REFS : \"physical SET_NULL\"\n    CHECKPOINTS ||--o{ CHECKPOINT_RESOURCE_REFS : \"physical CASCADE\"\n\n    SOURCE_FILES ||..o| SESSIONS : \"app source_path\"\n    SOURCE_FILES ||..o| CONTEXT_DOCUMENTS : \"app path\"\n    WORKSPACES o|..o{ USAGE_RECORDS : \"app frozen snapshot\"\n    WORKSTREAM_LINKS }o..o| SESSIONS : \"app session target\"\n    WORKSTREAM_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document target\"\n    WORKSTREAM_LINKS }o..o| WORKSPACES : \"app project target\"\n    WORKSTREAM_LINKS }o..o| EXTERNAL_RESOURCES : \"app external target\"\n    WORKSTREAM_LINKS }o..o| LOCAL_RESOURCES : \"app local target\"\n    THREAD_LINKS }o..o| SESSIONS : \"app session target\"\n    THREAD_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document target\"\n    THREAD_LINKS }o..o| WORKSPACES : \"app project target\"\n    THREAD_LINKS }o..o| EXTERNAL_RESOURCES : \"app external target\"\n    THREAD_LINKS }o..o| LOCAL_RESOURCES : \"app local target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| SESSIONS : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| CONTEXT_DOCUMENTS : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| WORKSPACES : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| EXTERNAL_RESOURCES : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| LOCAL_RESOURCES : \"app snapshot target\"\n    SUGGESTIONS }o..o| WORKSTREAMS : \"app target\"\n    SUGGESTIONS }o..o| THREADS : \"app target\"\n    SUGGESTIONS }o..o| MAINTENANCE_RUNS : \"app origin\"\n    SEARCH_INDEX }o..o| SESSIONS : \"app projection\"\n    SEARCH_INDEX }o..o| CONTEXT_DOCUMENTS : \"app projection\"\n"
+    "mermaid": "erDiagram\n    SOURCES { integer id PK }\n    SOURCE_FILES { integer id PK }\n    EXTERNAL_SOURCE_INSTANCES { integer id PK }\n    EXTERNAL_SOURCE_CAPABILITIES { integer source_instance_id PK }\n    WORKSPACES { integer id PK }\n    SESSIONS { integer id PK }\n    ACTIVITY_EVENTS { string id PK }\n    USAGE_PRICE_SNAPSHOTS { string id PK }\n    USAGE_MODEL_PRICES { string snapshot_model PK }\n    USAGE_RECORDS { string id PK }\n    CONTEXT_ROOTS { integer id PK }\n    CONTEXT_DOCUMENTS { integer id PK }\n    WORKSTREAMS { integer id PK }\n    THREADS { integer id PK }\n    WORKSTREAM_LINKS { integer id PK }\n    THREAD_LINKS { integer id PK }\n    LOCAL_RESOURCES { integer id PK }\n    EXTERNAL_RESOURCES { integer id PK }\n    ATLASSIAN_SITES { integer id PK }\n    ATLASSIAN_SPACES { integer id PK }\n    ATLASSIAN_ITEMS { integer external_resource_id PK }\n    ATLASSIAN_ITEM_URLS { integer id PK }\n    ATLASSIAN_ITEM_REMOTE_STATE { integer external_resource_id PK }\n    ATLASSIAN_ITEM_CONTENT { integer external_resource_id PK }\n    ATLASSIAN_ITEM_LOCAL_STATE { integer external_resource_id PK }\n    ATLASSIAN_CLASSIFICATIONS { integer id PK }\n    ATLASSIAN_ITEM_CLASSIFICATIONS { integer external_resource_id PK integer classification_id PK }\n    ATLASSIAN_EVIDENCE_SCANS { integer id PK }\n    ATLASSIAN_ITEM_EVIDENCE { integer id PK }\n    SUGGESTIONS { integer id PK }\n    CHECKPOINTS { integer id PK }\n    CHECKPOINT_RESOURCE_REFS { integer id PK }\n    MAINTENANCE_RUNS { string id PK }\n    EXTERNAL_SYNC_RUNS { string maintenance_run_id PK }\n    SEARCH_INDEX { string entity_key \"derived\" }\n\n    SOURCES ||--o{ SOURCE_FILES : \"physical CASCADE\"\n    SOURCES ||--o{ SESSIONS : \"physical CASCADE\"\n    SOURCES ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    SOURCES ||--o{ CONTEXT_DOCUMENTS : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES ||--o| EXTERNAL_SOURCE_CAPABILITIES : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES ||--o{ ATLASSIAN_SITES : \"physical RESTRICT\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ EXTERNAL_SYNC_RUNS : \"physical SET_NULL\"\n    WORKSPACES o|--o{ SESSIONS : \"physical SET_NULL\"\n    WORKSPACES o|--o{ CONTEXT_DOCUMENTS : \"physical SET_NULL\"\n    MAINTENANCE_RUNS o|--o| SESSIONS : \"physical SET_NULL unique\"\n    SESSIONS o|--o{ SESSIONS : \"physical parent SET_NULL\"\n    SESSIONS ||--o{ ACTIVITY_EVENTS : \"physical CASCADE\"\n    SESSIONS ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    USAGE_PRICE_SNAPSHOTS ||--o{ USAGE_MODEL_PRICES : \"physical RESTRICT\"\n    USAGE_PRICE_SNAPSHOTS ||--o{ USAGE_RECORDS : \"physical RESTRICT\"\n    CONTEXT_ROOTS o|--o{ CONTEXT_DOCUMENTS : \"physical SET_NULL\"\n    WORKSTREAMS ||--o{ THREADS : \"physical CASCADE\"\n    WORKSTREAMS ||--o{ WORKSTREAM_LINKS : \"physical CASCADE\"\n    WORKSTREAMS ||--o{ CHECKPOINTS : \"physical CASCADE\"\n    WORKSTREAMS o|--o{ MAINTENANCE_RUNS : \"physical SET_NULL\"\n    MAINTENANCE_RUNS ||--o| EXTERNAL_SYNC_RUNS : \"physical CASCADE\"\n    EXTERNAL_RESOURCES ||--o| ATLASSIAN_ITEMS : \"physical CASCADE 1:1\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_SPACES : \"physical RESTRICT\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_ITEMS : \"physical RESTRICT\"\n    ATLASSIAN_SPACES o|--o{ ATLASSIAN_ITEMS : \"physical SET_NULL\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_URLS : \"physical composite CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_REMOTE_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_CONTENT : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_LOCAL_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_CLASSIFICATIONS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    SESSIONS ||--o{ ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE composite unique\"\n    CONTEXT_DOCUMENTS ||--o| ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE unique\"\n    SESSIONS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    CONTEXT_DOCUMENTS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    THREADS ||--o{ THREAD_LINKS : \"physical CASCADE\"\n    THREADS o|--o{ CHECKPOINT_RESOURCE_REFS : \"physical SET_NULL\"\n    CHECKPOINTS ||--o{ CHECKPOINT_RESOURCE_REFS : \"physical CASCADE\"\n\n    SOURCE_FILES ||..o| SESSIONS : \"app source_path\"\n    SOURCE_FILES ||..o| CONTEXT_DOCUMENTS : \"app path\"\n    WORKSPACES o|..o{ USAGE_RECORDS : \"app frozen snapshot\"\n    WORKSTREAM_LINKS }o..o| SESSIONS : \"app session target\"\n    WORKSTREAM_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document target\"\n    WORKSTREAM_LINKS }o..o| WORKSPACES : \"app project target\"\n    WORKSTREAM_LINKS }o..o| EXTERNAL_RESOURCES : \"app external target\"\n    WORKSTREAM_LINKS }o..o| LOCAL_RESOURCES : \"app local target\"\n    THREAD_LINKS }o..o| SESSIONS : \"app session target\"\n    THREAD_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document target\"\n    THREAD_LINKS }o..o| WORKSPACES : \"app project target\"\n    THREAD_LINKS }o..o| EXTERNAL_RESOURCES : \"app external target\"\n    THREAD_LINKS }o..o| LOCAL_RESOURCES : \"app local target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| SESSIONS : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| CONTEXT_DOCUMENTS : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| WORKSPACES : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| EXTERNAL_RESOURCES : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| LOCAL_RESOURCES : \"app snapshot target\"\n    SUGGESTIONS }o..o| WORKSTREAMS : \"app target\"\n    SUGGESTIONS }o..o| THREADS : \"app target\"\n    SUGGESTIONS }o..o| MAINTENANCE_RUNS : \"app origin\"\n    SEARCH_INDEX }o..o| SESSIONS : \"app projection\"\n    SEARCH_INDEX }o..o| CONTEXT_DOCUMENTS : \"app projection\"\n    SEARCH_INDEX }o..o| ATLASSIAN_ITEMS : \"app indexed projection\"\n"
   },
   "relationships": {
     "application": [
@@ -109,6 +114,14 @@
         "source_table": "checkpoint_resource_refs",
         "target_cardinality": "o|",
         "target_table": "workspaces"
+      },
+      {
+        "enforcement": "application",
+        "label": "app indexed projection",
+        "source_cardinality": "}o",
+        "source_table": "search_index",
+        "target_cardinality": "o|",
+        "target_table": "atlassian_items"
       },
       {
         "enforcement": "application",
@@ -274,6 +287,216 @@
         "on_delete": "CASCADE",
         "on_update": "NO ACTION",
         "source_columns": [
+          "document_id"
+        ],
+        "source_table": "atlassian_evidence_scans",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "context_documents"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "session_id"
+        ],
+        "source_table": "atlassian_evidence_scans",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "sessions"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "classification_id"
+        ],
+        "source_table": "atlassian_item_classifications",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "atlassian_classifications"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "external_resource_id"
+        ],
+        "source_table": "atlassian_item_classifications",
+        "target_columns": [
+          "external_resource_id"
+        ],
+        "target_table": "atlassian_items"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "external_resource_id"
+        ],
+        "source_table": "atlassian_item_content",
+        "target_columns": [
+          "external_resource_id"
+        ],
+        "target_table": "atlassian_items"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "external_resource_id"
+        ],
+        "source_table": "atlassian_item_evidence",
+        "target_columns": [
+          "external_resource_id"
+        ],
+        "target_table": "atlassian_items"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "document_id"
+        ],
+        "source_table": "atlassian_item_evidence",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "context_documents"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "session_id"
+        ],
+        "source_table": "atlassian_item_evidence",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "sessions"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "external_resource_id"
+        ],
+        "source_table": "atlassian_item_local_state",
+        "target_columns": [
+          "external_resource_id"
+        ],
+        "target_table": "atlassian_items"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "external_resource_id"
+        ],
+        "source_table": "atlassian_item_remote_state",
+        "target_columns": [
+          "external_resource_id"
+        ],
+        "target_table": "atlassian_items"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "external_resource_id",
+          "site_id"
+        ],
+        "source_table": "atlassian_item_urls",
+        "target_columns": [
+          "external_resource_id",
+          "site_id"
+        ],
+        "target_table": "atlassian_items"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "RESTRICT",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "site_id"
+        ],
+        "source_table": "atlassian_items",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "atlassian_sites"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "SET NULL",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "space_id"
+        ],
+        "source_table": "atlassian_items",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "atlassian_spaces"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "external_resource_id"
+        ],
+        "source_table": "atlassian_items",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "external_resources"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "RESTRICT",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "source_instance_id"
+        ],
+        "source_table": "atlassian_sites",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "external_source_instances"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "RESTRICT",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "site_id"
+        ],
+        "source_table": "atlassian_spaces",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "atlassian_sites"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
           "checkpoint_id"
         ],
         "source_table": "checkpoint_resource_refs",
@@ -346,6 +569,45 @@
           "id"
         ],
         "target_table": "workspaces"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "source_instance_id"
+        ],
+        "source_table": "external_source_capabilities",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "external_source_instances"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "SET NULL",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "source_instance_id"
+        ],
+        "source_table": "external_sync_runs",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "external_source_instances"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "maintenance_run_id"
+        ],
+        "source_table": "external_sync_runs",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "maintenance_runs"
       },
       {
         "enforcement": "sqlite-foreign-key",
@@ -524,10 +786,12 @@
       "document": "docs/policies/project/data-model/source-registry-and-scans.md",
       "id": "source-registry-and-scans",
       "label": "Source registry and scans",
-      "mermaid": "erDiagram\n    SOURCES {\n        integer id PK\n        string kind UK\n        string root_path\n        integer enabled\n    }\n    SOURCE_FILES {\n        integer id PK\n        integer source_id FK\n        string path\n        string status\n        string usage_contract_version\n    }\n    SESSIONS { integer id PK string source_path }\n    USAGE_RECORDS { string id PK integer source_id FK }\n    CONTEXT_DOCUMENTS { integer id PK string path }\n\n    SOURCES ||--o{ SOURCE_FILES : \"physical CASCADE\"\n    SOURCES ||--o{ SESSIONS : \"physical CASCADE\"\n    SOURCES ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    SOURCES ||--o{ CONTEXT_DOCUMENTS : \"physical CASCADE\"\n    SOURCE_FILES ||..o| SESSIONS : \"app source_path\"\n    SOURCE_FILES ||..o| CONTEXT_DOCUMENTS : \"app path\"\n",
+      "mermaid": "erDiagram\n    SOURCES {\n        integer id PK\n        string kind UK\n        string root_path\n        integer enabled\n    }\n    SOURCE_FILES {\n        integer id PK\n        integer source_id FK\n        string path\n        string status\n        string usage_contract_version\n    }\n    EXTERNAL_SOURCE_INSTANCES {\n        integer id PK\n        string instance_key UK\n        string provider_kind\n        string service\n        integer enabled\n    }\n    EXTERNAL_SOURCE_CAPABILITIES {\n        integer source_instance_id PK, FK\n        string policy_version\n        string availability\n        string schema_fingerprint\n        string checked_at\n    }\n    SESSIONS { integer id PK string source_path }\n    USAGE_RECORDS { string id PK integer source_id FK }\n    CONTEXT_DOCUMENTS { integer id PK string path }\n\n    SOURCES ||--o{ SOURCE_FILES : \"physical CASCADE\"\n    SOURCES ||--o{ SESSIONS : \"physical CASCADE\"\n    SOURCES ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    SOURCES ||--o{ CONTEXT_DOCUMENTS : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES ||--o| EXTERNAL_SOURCE_CAPABILITIES : \"physical CASCADE\"\n    SOURCE_FILES ||..o| SESSIONS : \"app source_path\"\n    SOURCE_FILES ||..o| CONTEXT_DOCUMENTS : \"app path\"\n",
       "table_ids": [
         "sources",
-        "source_files"
+        "source_files",
+        "external_source_instances",
+        "external_source_capabilities"
       ]
     },
     {
@@ -566,7 +830,7 @@
       "document": "docs/policies/project/data-model/work-organization-and-resources.md",
       "id": "work-organization-and-resources",
       "label": "Work organization and resources",
-      "mermaid": "erDiagram\n    WORKSTREAMS {\n        integer id PK\n        string name UK\n        string status\n    }\n    THREADS {\n        integer id PK\n        integer workstream_id FK\n        string title UK\n        integer position\n    }\n    WORKSTREAM_LINKS {\n        integer id PK\n        integer workstream_id FK\n        string entity_type UK\n        string entity_id UK\n    }\n    THREAD_LINKS {\n        integer id PK\n        integer thread_id FK\n        string entity_type UK\n        string entity_id UK\n    }\n    LOCAL_RESOURCES { integer id PK string path UK }\n    EXTERNAL_RESOURCES { integer id PK string url UK }\n    SESSIONS { integer id PK }\n    CONTEXT_DOCUMENTS { integer id PK }\n    WORKSPACES { integer id PK }\n\n    WORKSTREAMS ||--o{ THREADS : \"physical CASCADE\"\n    WORKSTREAMS ||--o{ WORKSTREAM_LINKS : \"physical CASCADE\"\n    THREADS ||--o{ THREAD_LINKS : \"physical CASCADE\"\n    WORKSTREAM_LINKS }o..o| SESSIONS : \"app session\"\n    WORKSTREAM_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document\"\n    WORKSTREAM_LINKS }o..o| WORKSPACES : \"app project\"\n    WORKSTREAM_LINKS }o..o| EXTERNAL_RESOURCES : \"app external\"\n    WORKSTREAM_LINKS }o..o| LOCAL_RESOURCES : \"app local\"\n    THREAD_LINKS }o..o| SESSIONS : \"app session\"\n    THREAD_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document\"\n    THREAD_LINKS }o..o| WORKSPACES : \"app project\"\n    THREAD_LINKS }o..o| EXTERNAL_RESOURCES : \"app external\"\n    THREAD_LINKS }o..o| LOCAL_RESOURCES : \"app local\"\n",
+      "mermaid": "erDiagram\n    WORKSTREAMS {\n        integer id PK\n        string name UK\n        string status\n    }\n    THREADS {\n        integer id PK\n        integer workstream_id FK\n        string title UK\n        integer position\n    }\n    WORKSTREAM_LINKS {\n        integer id PK\n        integer workstream_id FK\n        string entity_type UK\n        string entity_id UK\n    }\n    THREAD_LINKS {\n        integer id PK\n        integer thread_id FK\n        string entity_type UK\n        string entity_id UK\n    }\n    LOCAL_RESOURCES { integer id PK string path UK }\n    EXTERNAL_RESOURCES { integer id PK string url }\n    SESSIONS { integer id PK }\n    CONTEXT_DOCUMENTS { integer id PK }\n    WORKSPACES { integer id PK }\n\n    WORKSTREAMS ||--o{ THREADS : \"physical CASCADE\"\n    WORKSTREAMS ||--o{ WORKSTREAM_LINKS : \"physical CASCADE\"\n    THREADS ||--o{ THREAD_LINKS : \"physical CASCADE\"\n    WORKSTREAM_LINKS }o..o| SESSIONS : \"app session\"\n    WORKSTREAM_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document\"\n    WORKSTREAM_LINKS }o..o| WORKSPACES : \"app project\"\n    WORKSTREAM_LINKS }o..o| EXTERNAL_RESOURCES : \"app external\"\n    WORKSTREAM_LINKS }o..o| LOCAL_RESOURCES : \"app local\"\n    THREAD_LINKS }o..o| SESSIONS : \"app session\"\n    THREAD_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document\"\n    THREAD_LINKS }o..o| WORKSPACES : \"app project\"\n    THREAD_LINKS }o..o| EXTERNAL_RESOURCES : \"app external\"\n    THREAD_LINKS }o..o| LOCAL_RESOURCES : \"app local\"\n",
       "table_ids": [
         "workstreams",
         "threads",
@@ -574,6 +838,25 @@
         "thread_links",
         "local_resources",
         "external_resources"
+      ]
+    },
+    {
+      "document": "docs/policies/project/data-model/atlassian-source-memory.md",
+      "id": "atlassian-source-memory",
+      "label": "Atlassian source memory",
+      "mermaid": "erDiagram\n    EXTERNAL_SOURCE_INSTANCES { integer id PK string service }\n    EXTERNAL_RESOURCES { integer id PK string url }\n    ATLASSIAN_SITES { integer id PK integer source_instance_id FK string normalized_domain UK }\n    ATLASSIAN_SPACES { integer id PK integer site_id FK string space_key UK string canonical_url string coverage }\n    ATLASSIAN_ITEMS { integer external_resource_id PK integer site_id FK integer space_id FK string remote_id UK }\n    ATLASSIAN_ITEM_URLS { integer id PK integer external_resource_id FK integer site_id FK string normalized_url UK }\n    ATLASSIAN_ITEM_REMOTE_STATE { integer external_resource_id PK string last_outcome string last_successful_at }\n    ATLASSIAN_ITEM_CONTENT { integer external_resource_id PK string source_hash string normalizer_version }\n    ATLASSIAN_ITEM_LOCAL_STATE { integer external_resource_id PK string note }\n    ATLASSIAN_CLASSIFICATIONS { integer id PK string kind string normalized_name UK }\n    ATLASSIAN_ITEM_CLASSIFICATIONS { integer external_resource_id PK integer classification_id PK }\n    ATLASSIAN_EVIDENCE_SCANS { integer id PK integer session_id FK integer document_id FK string source_fingerprint }\n    ATLASSIAN_ITEM_EVIDENCE { integer id PK integer external_resource_id FK integer session_id FK integer document_id FK }\n    SESSIONS { integer id PK }\n    CONTEXT_DOCUMENTS { integer id PK }\n    SEARCH_INDEX { string entity_key \"derived\" }\n\n    EXTERNAL_SOURCE_INSTANCES ||--o{ ATLASSIAN_SITES : \"physical RESTRICT\"\n    EXTERNAL_RESOURCES ||--o| ATLASSIAN_ITEMS : \"physical CASCADE 1:1\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_SPACES : \"physical RESTRICT\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_ITEMS : \"physical RESTRICT\"\n    ATLASSIAN_SPACES o|--o{ ATLASSIAN_ITEMS : \"physical SET_NULL\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_URLS : \"physical composite CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_REMOTE_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_CONTENT : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_LOCAL_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_CLASSIFICATIONS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    SESSIONS ||--o{ ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE composite unique\"\n    CONTEXT_DOCUMENTS ||--o| ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE unique\"\n    SESSIONS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    CONTEXT_DOCUMENTS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS o|..o{ SEARCH_INDEX : \"app indexed projection\"\n",
+      "table_ids": [
+        "atlassian_sites",
+        "atlassian_spaces",
+        "atlassian_items",
+        "atlassian_item_urls",
+        "atlassian_item_remote_state",
+        "atlassian_item_content",
+        "atlassian_item_local_state",
+        "atlassian_classifications",
+        "atlassian_item_classifications",
+        "atlassian_evidence_scans",
+        "atlassian_item_evidence"
       ]
     },
     {
@@ -591,16 +874,17 @@
       "document": "docs/policies/project/data-model/maintenance-execution.md",
       "id": "maintenance-execution",
       "label": "Maintenance execution",
-      "mermaid": "erDiagram\n    WORKSTREAMS { integer id PK }\n    MAINTENANCE_RUNS {\n        string id PK\n        integer workstream_id FK\n        string status\n        integer pid\n        integer mcp_call_budget\n        integer mcp_calls_used\n    }\n    SESSIONS { integer id PK string maintenance_run_id }\n    SUGGESTIONS { integer id PK string origin_run_id }\n\n    WORKSTREAMS o|--o{ MAINTENANCE_RUNS : \"physical SET_NULL\"\n    MAINTENANCE_RUNS o|--o| SESSIONS : \"physical SET_NULL unique\"\n    MAINTENANCE_RUNS o|..o{ SUGGESTIONS : \"app origin\"\n",
+      "mermaid": "erDiagram\n    WORKSTREAMS { integer id PK }\n    MAINTENANCE_RUNS {\n        string id PK\n        integer workstream_id FK\n        string status\n        integer pid\n        integer mcp_call_budget\n        integer mcp_calls_used\n    }\n    EXTERNAL_SYNC_RUNS {\n        string maintenance_run_id PK\n        integer source_instance_id FK\n        string source_kind\n        string service\n        string requested_scope_kind\n        integer selected_target_count\n    }\n    EXTERNAL_SOURCE_INSTANCES { integer id PK }\n    SESSIONS { integer id PK string maintenance_run_id }\n    SUGGESTIONS { integer id PK string origin_run_id }\n\n    WORKSTREAMS o|--o{ MAINTENANCE_RUNS : \"physical SET_NULL\"\n    MAINTENANCE_RUNS ||--o| EXTERNAL_SYNC_RUNS : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ EXTERNAL_SYNC_RUNS : \"physical SET_NULL\"\n    MAINTENANCE_RUNS o|--o| SESSIONS : \"physical SET_NULL unique\"\n    MAINTENANCE_RUNS o|..o{ SUGGESTIONS : \"app origin\"\n",
       "table_ids": [
-        "maintenance_runs"
+        "maintenance_runs",
+        "external_sync_runs"
       ]
     },
     {
       "document": "docs/policies/project/data-model/derived-retrieval-index.md",
       "id": "derived-retrieval-index",
       "label": "Derived retrieval index",
-      "mermaid": "erDiagram\n    SESSIONS { integer id PK string index_policy }\n    CONTEXT_DOCUMENTS { integer id PK }\n    SEARCH_INDEX {\n        string entity_type\n        string entity_id\n        string source_kind\n        string title\n        string body\n        string path\n    }\n\n    SESSIONS o|..o| SEARCH_INDEX : \"app projection\"\n    CONTEXT_DOCUMENTS o|..o| SEARCH_INDEX : \"app projection\"\n",
+      "mermaid": "erDiagram\n    SESSIONS { integer id PK string index_policy }\n    CONTEXT_DOCUMENTS { integer id PK }\n    ATLASSIAN_ITEMS { integer external_resource_id PK string coverage }\n    ATLASSIAN_ITEM_LOCAL_STATE { integer external_resource_id PK }\n    ATLASSIAN_CLASSIFICATIONS { integer id PK string kind }\n    SEARCH_INDEX {\n        string entity_type\n        string entity_id\n        string source_kind\n        string title\n        string body\n        string path\n    }\n\n    SESSIONS o|..o| SEARCH_INDEX : \"app projection\"\n    CONTEXT_DOCUMENTS o|..o| SEARCH_INDEX : \"app projection\"\n    ATLASSIAN_ITEMS o|..o{ SEARCH_INDEX : \"app indexed projection\"\n    ATLASSIAN_ITEM_LOCAL_STATE o|..o| SEARCH_INDEX : \"app local role input\"\n    ATLASSIAN_CLASSIFICATIONS }o..o{ SEARCH_INDEX : \"app local role input\"\n",
       "table_ids": [
         "search_index"
       ]
@@ -806,7 +1090,7 @@
       "semantics": {
         "class": "Source-derived and rebuildable",
         "class_contract": "Normalized from still-available local sources; rescans can recreate content, though stable relational IDs must be preserved during ordinary refreshes.",
-        "consumers": "`ingest/scanner.py` skip/retry logic, `queries.py` source status, `usage_queries.py` freshness/trust, and `contexts.py` root lifecycle.",
+        "consumers": "`ingest/scanner.py` generic skip/retry logic, `queries.py` source status, `usage_queries.py` freshness/trust, and `contexts.py` root lifecycle. Atlassian evidence adds an independent extractor/Site fingerprint check before an otherwise-current file is skipped.",
         "deletion_effect": "`source_id` physically cascades from `sources`. The correlation from `path` to `sessions.source_path` or `context_documents.path` is application-managed; removing a file row alone does not cascade those objects. Scanner reconciliation explicitly removes disappeared normalized rows and their search entries.",
         "documented_constraints": "`UNIQUE(source_id, path)`. Explicit indexes: none; SQLite owns the composite uniqueness autoindex.",
         "lifecycle_contract": "source-derived and rebuildable. Healthy unchanged rows are freshness inputs; failed rows retain the latest error rather than masquerading as absent.",
@@ -815,6 +1099,243 @@
         "rebuildability": "source-rebuildable",
         "recovery_path": "rescan the owning source. Errors and exact prior attempt times are operational history and are not reproduced exactly.",
         "schema_ownership": "fresh definition in `schema.sql`; `db.py` compatibly adds `usage_contract_version` and uses it to trigger staleness. No explicit named index."
+      },
+      "subject_id": "source-registry-and-scans"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY`; stable local Source Instance identity.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "instance_key",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL UNIQUE`; stable user-managed local key, independent from a provider display label.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "provider_kind",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; versioned policy family, currently `mcp_gateway` or `atlassian_cloud`.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "service",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; source service, currently `jira` or `confluence`.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "display_name",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; local presentation label that may change without changing identity.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "config_ref",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; validated Gateway configuration alias or canonical lowercase Atlassian Cloud ID. Arbitrary opaque values, site URLs, query strings, user-info URLs, and credentials are not accepted.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "1",
+          "name": "enabled",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL DEFAULT 1`; `0` disables inspection and content authorization without deleting identity or observations.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "created_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; registration time.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "updated_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; latest local registration-state update.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [
+          "provider_kind IN ('mcp_gateway', 'atlassian_cloud')",
+          "service IN ('jira', 'confluence')",
+          "enabled IN (0, 1)"
+        ],
+        "documented": "unique `instance_key`; provider kind limited to `mcp_gateway` and `atlassian_cloud`; service limited to `jira` and `confluence`; enabled limited to `0` or `1`. Explicit indexes: none; SQLite owns the uniqueness autoindex.",
+        "primary_key": [
+          "id"
+        ],
+        "unique": [
+          [
+            "instance_key"
+          ]
+        ]
+      },
+      "foreign_keys": [],
+      "id": "external_source_instances",
+      "indexes": [],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/source-registry-and-scans.md",
+      "semantics": {
+        "class": "User-curated and non-rebuildable",
+        "class_contract": "User intent or registration is authoritative and requires database backup for full recovery.",
+        "consumers": "`external_access.py` resolves policy and capability state; source-neutral external synchronization and Atlassian registration, refresh, browse, and evidence services consume the stable ID.",
+        "deletion_effect": "physical parent of at most one current `external_source_capabilities` row with `ON DELETE CASCADE` and any number of `atlassian_sites` rows with `ON DELETE RESTRICT`. A Source Instance therefore cannot be deleted while a registered Site still depends on it. Deletion remains an explicit destructive local action and is not part of capability refresh.",
+        "documented_constraints": "unique `instance_key`; provider kind limited to `mcp_gateway` and `atlassian_cloud`; service limited to `jira` and `confluence`; enabled limited to `0` or `1`. Explicit indexes: none; SQLite owns the uniqueness autoindex.",
+        "lifecycle_contract": "user-curated and non-rebuildable. URL-first Atlassian setup may create an unbound Instance after an explicit local access-path choice. Idempotent registration and connection editing may update presentation and enabled state, but changing provider, service, or a bound configuration reference under an existing key is an identity conflict. An unbound Instance may bind one validated configuration reference without changing its stable local ID; binding invalidates any prior capability observation so site-scoped reads require an explicit recheck.",
+        "producers": "`external_access.py` identity services and approved URL-first composition in `atlassian_registration.py`.",
+        "purpose_and_authority": "one stable local registration per independently configured external access boundary. The user-managed `instance_key`, provider kind, service, display name, shape-validated configuration reference, and enabled state identify the boundary without storing credentials or remote content.",
+        "rebuildability": "non-rebuildable",
+        "recovery_path": "restore from the LocalBrain database backup or re-register through an explicit user action. External connector configuration alone is not equivalent because local identity and later user-managed relationships depend on the stable ID.",
+        "schema_ownership": "complete fresh definition in `schema.sql`; normal startup creates the absent table on an older database through the same idempotent schema application. No explicit named index."
+      },
+      "subject_id": "source-registry-and-scans"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "source_instance_id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY` and FK to `external_source_instances.id`, `ON DELETE CASCADE`; one latest observation per Instance.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "policy_version",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; static application policy version used to interpret the observation. A mismatch is stale.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "schema_fingerprint",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; bounded fingerprint of the inspected provider schema; available observations require a validated SHA-256 value at the producer boundary.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "availability",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; `available`, `unavailable`, `unauthorized`, or `error`.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "capability_json",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; canonical minimal JSON containing only schema identity and sorted logical operation names.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "error_code",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; bounded operational failure category.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "error_message",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; application-generated failure explanation with a database limit of 500 characters. Raw provider errors, credentials, content, and connector payloads are never accepted by the producer.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "checked_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; time of the explicit observation supplied by the producer.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "invalidated_at",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; time the observation became stale after an authorization or schema mismatch.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "updated_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; latest replacement or invalidation time.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [
+          "availability IN ( 'available', 'unavailable', 'unauthorized', 'error' )",
+          "error_message IS NULL OR length(error_message) <= 500"
+        ],
+        "documented": "one row per Source Instance; physical cascade FK; availability vocabulary; `error_message` length at most 500. Explicit indexes: none; the primary-key index owns lookup.",
+        "primary_key": [
+          "source_instance_id"
+        ],
+        "unique": []
+      },
+      "foreign_keys": [
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "source_instance_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "external_source_instances"
+        }
+      ],
+      "id": "external_source_capabilities",
+      "indexes": [],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/source-registry-and-scans.md",
+      "semantics": {
+        "class": "Rebuildable operational observation",
+        "class_contract": "Explicit inspection can recreate the latest bounded operational state; absence must fail closed rather than imply availability.",
+        "consumers": "`external_access.py` intersects the row with static policy before producing a read dispatch; external maintenance execution consumes that validated dispatch.",
+        "deletion_effect": "`source_instance_id` is both the primary key and an FK to `external_source_instances.id`, `ON DELETE CASCADE`, enforcing zero-or-one current observation per registration. The row cannot change Source Instance identity.",
+        "documented_constraints": "one row per Source Instance; physical cascade FK; availability vocabulary; `error_message` length at most 500. Explicit indexes: none; the primary-key index owns lookup.",
+        "lifecycle_contract": "rebuildable operational state. An explicit successful or failed capability check replaces the prior row; invalidation retains the last observation as stale. Startup, page load, search, and ordinary preview do not poll or rewrite it.",
+        "producers": "`external_access.py` validates and stores canonical observations supplied by an explicit approved capability inspection. Ordinary application flows perform no implicit external call.",
+        "purpose_and_authority": "the latest rebuildable capability observation for one Source Instance, including policy version, schema fingerprint, availability, canonical logical operations, check time, invalidation, and bounded failure evidence. It is operational evidence and never grants a target absent from version-controlled policy.",
+        "rebuildability": "operational-rebuildable",
+        "recovery_path": "discard and rebuild through an explicit capability inspection. Losing the row returns the Instance to `unknown` and authorizes no source-content operation.",
+        "schema_ownership": "complete fresh definition in `schema.sql`; normal startup creates the absent table on an older database through the same idempotent schema application. No explicit named index."
       },
       "subject_id": "source-registry-and-scans"
     },
@@ -1238,10 +1759,10 @@
         "deletion_effect": "physical `source_id` cascades; optional `workspace_id`, `parent_session_id`, and unique `maintenance_run_id` set null. Deleting a Session cascades `activity_events` and `usage_records`; scanner also removes its search row. Polymorphic links and checkpoint refs are application edges and can retain an unresolved historical ID.",
         "documented_constraints": "`UNIQUE(source_id, external_id)`, unique nullable `maintenance_run_id`, checks for the two-value class, role, and index-policy vocabularies, and a linked-Session shape check requiring `maintenance`, `primary`, and `metadata_only`. Explicit indexes: `idx_sessions_last_event`, `idx_sessions_workspace`, `idx_sessions_class`, `idx_sessions_role`, `idx_sessions_parent`.",
         "lifecycle_contract": "all Sessions are source-derived from retained native JSONL. Stable IDs are preserved so curated links and Usage Records remain valid. A Run-linked primary and its resolved child Sessions keep metadata while maintenance index/event policy is restricted; the private Runner stream is an operational artifact only.",
-        "producers": "`ingest/scanner.py` plus Claude/Codex parsers create Sessions and Usage Records; parent reconciliation updates self-references and propagates maintenance policy to Claude children. `runner.py` triggers Claude-only synchronization after terminal and recovered Runs. `db.py` owns the classification/Run-link constraint repair and stales source files when parser contracts change.",
-        "purpose_and_authority": "one normalized Claude or Codex Session/subsession per native source external identity. An in-app Task Runner Run is represented by its persisted native Claude primary Session, linked to the Run ledger rather than duplicated by LocalBrain.",
+        "producers": "`ingest/scanner.py` plus Claude/Codex parsers create Sessions and Usage Records; parent reconciliation updates self-references and propagates maintenance policy to Claude or Codex children. `runner.py` synchronizes the selected native source after terminal and recovered Runs. `db.py` owns the classification/Run-link constraint repair and stales source files when parser contracts change.",
+        "purpose_and_authority": "one normalized Claude or Codex Session/subsession per native source external identity. An in-app Task Runner Run is represented by the selected runner's persisted native primary Session, linked to the Run ledger rather than duplicated by LocalBrain.",
         "rebuildability": "source-rebuildable",
-        "recovery_path": "rescan the authoritative native source file and reconcile parents. Restoring only a Task Runner stream cannot rebuild a Session or Usage Record; restore native Claude JSONL and the Run ledger together. A full database rebuild cannot restore user-curated links, exact operational history, or confirmed review state without backup.",
+        "recovery_path": "rescan the authoritative native source file and reconcile parents. Restoring only a Task Runner stream cannot rebuild a Session or Usage Record; restore the selected runner's native Claude or Codex JSONL and the Run ledger together. A full database rebuild cannot restore user-curated links, exact operational history, or confirmed review state without backup.",
         "schema_ownership": "fresh definition and `idx_sessions_last_event`, `idx_sessions_workspace` in `schema.sql`; compatible columns, backup-backed classification/Run-link table repair, and runtime-only `idx_sessions_class`, `idx_sessions_role`, `idx_sessions_parent` in `db.py`. Before that structural repair, startup preserves `localbrain.db-pre-maintenance-session-contract-v1.bak` and validates it with SQLite `quick_check`. An older additive layout may have the same approved columns in a different physical order; migration validates every name/type/null/default/key contract, copies values by canonical column name, and converges only the physical order."
       },
       "subject_id": "workspace-and-session-activity"
@@ -2305,7 +2826,7 @@
         "class": "Source-derived and rebuildable",
         "class_contract": "Normalized from still-available local sources; rescans can recreate content, though stable relational IDs must be preserved during ordinary refreshes.",
         "consumers": "Context browse/detail in `queries.py` and `main.py`, retrieval evidence, Runner context manifests, Workstream links/suggestions, source summaries, and `search_index` projection.",
-        "deletion_effect": "source deletion cascades. Context root and workspace deletion set their keys null, retaining the document until scanner/root lifecycle removes it. Scanner and `contexts.py` explicitly remove matching FTS rows. It is an application target for Workstream, Thread, and checkpoint references.",
+        "deletion_effect": "source deletion cascades. Context root and workspace deletion set their keys null, retaining the document until scanner/root lifecycle removes it. Scanner and `contexts.py` explicitly remove matching FTS rows; disabling a Context root also clears its derived Atlassian evidence without deleting any Item. It is an application target for Workstream, Thread, and checkpoint references.",
         "documented_constraints": "uniqueness of `path`. Explicit indexes: `idx_documents_mtime`, `idx_documents_context_root`, `idx_documents_source`, and `idx_documents_workspace`; the workspace index orders `mtime_ns DESC` after `workspace_id`.",
         "lifecycle_contract": "source-derived and rebuildable while the external source remains available. The stored body is local indexed content and is never copied into tracked schema evidence.",
         "producers": "`ingest/scanner.py` upserts documents and removes disappeared rows; `db.py` migrates older root associations and relative paths.",
@@ -2680,7 +3201,7 @@
       "semantics": {
         "class": "User-curated and non-rebuildable",
         "class_contract": "User intent or registration is authoritative and requires database backup for full recovery.",
-        "consumers": "Workstream detail, latest activity, memberships, retrieval exclusions/scope, Runner manifests, checkpoint snapshots, and suggestion deduplication.",
+        "consumers": "Workstream detail, latest activity, memberships, Atlassian Item detail, retrieval exclusions/scope, Runner manifests, checkpoint snapshots, and suggestion deduplication.",
         "deletion_effect": "Workstream deletion cascades. Target edges are application-enforced and do not cascade; target removal can leave historical/unresolved identity.",
         "documented_constraints": "`UNIQUE(workstream_id, entity_type, entity_id)`. Explicit index: `idx_workstream_links_entity`.",
         "lifecycle_contract": "user-curated and non-rebuildable; `linked_by` and `confidence` retain origin context.",
@@ -2809,7 +3330,7 @@
       "semantics": {
         "class": "User-curated and non-rebuildable",
         "class_contract": "User intent or registration is authoritative and requires database backup for full recovery.",
-        "consumers": "Workstream/Thread detail, activity, memberships, retrieval scope, Runner manifests, checkpoint snapshots, and suggestion deduplication.",
+        "consumers": "Workstream/Thread detail, activity, memberships, Atlassian Item detail, retrieval scope, Runner manifests, checkpoint snapshots, and suggestion deduplication.",
         "deletion_effect": "Thread deletion cascades. Target relations are application-enforced and have no SQLite cascade.",
         "documented_constraints": "`UNIQUE(thread_id, entity_type, entity_id)`. Explicit index: `idx_thread_links_entity`.",
         "lifecycle_contract": "user-curated and non-rebuildable.",
@@ -2959,7 +3480,7 @@
           "name": "url",
           "not_null": true,
           "primary_key_position": 0,
-          "semantic_contract": "`TEXT NOT NULL UNIQUE`; canonical external locator.",
+          "semantic_contract": "`TEXT NOT NULL`; user-visible external locator. Generic registration reuses an existing exact URL by application policy, while source-specific integrations own scoped identity separately.",
           "type": "TEXT"
         },
         {
@@ -2997,15 +3518,11 @@
       ],
       "constraints": {
         "checks": [],
-        "documented": "uniqueness of `url`; resource type is application-enforced. Explicit indexes: none.",
+        "documented": "resource type and generic exact-URL reuse are application-enforced. URL is deliberately not globally unique because different Source Instances and future source-specific extensions can observe the same locator independently. Explicit indexes: none.",
         "primary_key": [
           "id"
         ],
-        "unique": [
-          [
-            "url"
-          ]
-        ]
+        "unique": []
       },
       "foreign_keys": [],
       "id": "external_resources",
@@ -3015,17 +3532,1720 @@
       "semantics": {
         "class": "User-curated and non-rebuildable",
         "class_contract": "User intent or registration is authoritative and requires database backup for full recovery.",
-        "consumers": "resource picker/detail, link resolution, retrieval context, and Runner manifests.",
+        "consumers": "resource picker/detail, Atlassian browse/search/detail, link resolution, retrieval context, and Runner manifests.",
         "deletion_effect": "application target of link and checkpoint tables only; no SQLite cascade. Approved integrations remain read-only unless separately planned.",
-        "documented_constraints": "uniqueness of `url`; resource type is application-enforced. Explicit indexes: none.",
+        "documented_constraints": "resource type and generic exact-URL reuse are application-enforced. URL is deliberately not globally unique because different Source Instances and future source-specific extensions can observe the same locator independently. Explicit indexes: none.",
         "lifecycle_contract": "user-curated and non-rebuildable.",
-        "producers": "`workstreams.py` registration/update and reviewed Runner structured output.",
+        "producers": "`workstreams.py` registration/update and reviewed Runner structured output; Atlassian registration owns its strict one-to-one source-specific extension.",
         "purpose_and_authority": "canonical user-visible external reference such as Jira, Wiki, Slack, Git, document, or generic URL; storage does not imply external ingestion or writes.",
         "rebuildability": "non-rebuildable",
         "recovery_path": "database backup or manual re-entry from the original reference system.",
-        "schema_ownership": "fresh definition in `schema.sql`; no compatible migration or explicit named index."
+        "schema_ownership": "fresh definition in `schema.sql`; `db.py` performs the approved backup-backed compatible rebuild that removes only the former global URL uniqueness constraint while preserving every row, ID, and polymorphic relation. No explicit named index remains."
       },
       "subject_id": "work-organization-and-resources"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY`; stable local Site identity.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "source_instance_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL` FK to `external_source_instances.id`, `ON DELETE RESTRICT`; access/policy boundary.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "normalized_domain",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; lower-cased IDNA host plus non-default port, unique within one Source Instance.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "display_name",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; optional remote/display label, not identity.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "remote_site_id",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; confirmed provider Site identity, unique within one Source Instance.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "canonical_base_url",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; normalized HTTP(S) scheme and domain used for navigation and URL validation.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "created_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; local registration time.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "updated_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; latest identity/label confirmation time.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [
+          "length(normalized_domain) > 0",
+          "remote_site_id IS NULL OR length(remote_site_id) > 0"
+        ],
+        "documented": "`UNIQUE(source_instance_id, normalized_domain)`, `UNIQUE(source_instance_id, remote_site_id)`, non-empty domain, and non-empty optional remote ID. Explicit index: `idx_atlassian_sites_source`.",
+        "primary_key": [
+          "id"
+        ],
+        "unique": [
+          [
+            "source_instance_id",
+            "normalized_domain"
+          ],
+          [
+            "source_instance_id",
+            "remote_site_id"
+          ]
+        ]
+      },
+      "foreign_keys": [
+        {
+          "on_delete": "RESTRICT",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "source_instance_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "external_source_instances"
+        }
+      ],
+      "id": "atlassian_sites",
+      "indexes": [
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "source_instance_id"
+            },
+            {
+              "descending": false,
+              "name": "normalized_domain"
+            }
+          ],
+          "name": "idx_atlassian_sites_source",
+          "partial": false,
+          "unique": false
+        }
+      ],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/atlassian-source-memory.md",
+      "semantics": {
+        "class": "User-curated and non-rebuildable",
+        "class_contract": "User intent or registration is authoritative and requires database backup for full recovery.",
+        "consumers": "Space and Item identity, Source Instance-scoped inventory, URL collision checks, and registration or refresh previews.",
+        "deletion_effect": "required FK to `external_source_instances.id` with `ON DELETE RESTRICT`; parent of Spaces and Items with `RESTRICT`. A Source Instance or Site cannot be removed while known descendants exist.",
+        "documented_constraints": "`UNIQUE(source_instance_id, normalized_domain)`, `UNIQUE(source_instance_id, remote_site_id)`, non-empty domain, and non-empty optional remote ID. Explicit index: `idx_atlassian_sites_source`.",
+        "lifecycle_contract": "user-registered and non-rebuildable as local identity, even when remote Site ID and display metadata can be confirmed again.",
+        "producers": "`atlassian.py` explicit Site registration and URL-backed stub registration; `atlassian_registration.py` composes first Source/Site/reference onboarding and bounded display or one-time binding edits.",
+        "purpose_and_authority": "stable domain or tenant identity below one approved Atlassian Source Instance.",
+        "rebuildability": "non-rebuildable",
+        "recovery_path": "LocalBrain database backup plus the configured external access boundary. Reconnecting a domain does not recreate the same local Site ID automatically.",
+        "schema_ownership": "fresh definition plus `idx_atlassian_sites_source` in `schema.sql`; the compatible path repeats the index idempotently."
+      },
+      "subject_id": "atlassian-source-memory"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY`; stable local Space identity.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "site_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL` FK to `atlassian_sites.id`, `ON DELETE RESTRICT`.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "service",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; constrained to Jira or Confluence and checked against the Site's Source Instance by the producer.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "remote_id",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; provider Space/project identity, unique within Site and service.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "space_key",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; Jira project key or Confluence Space key, unique within Site and service.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "name",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; last-confirmed remote/display name.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "canonical_url",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; normalized navigation URL retained for local inventory and later explicit refresh scope. It is not a proof that a remote read succeeded.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "coverage",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; `selected-content` for Jira projects by default or `full-content` for regular Confluence Pages by default. Existing explicit coverage survives duplicate registration.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "created_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; first local registration time.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "updated_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; latest confirmation time.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [
+          "service IN ('jira', 'confluence')",
+          "coverage IN ('selected-content', 'full-content')",
+          "remote_id IS NOT NULL OR space_key IS NOT NULL",
+          "remote_id IS NULL OR length(remote_id) > 0",
+          "space_key IS NULL OR length(space_key) > 0",
+          "length(canonical_url) > 0"
+        ],
+        "documented": "service and coverage vocabularies; at least one of `remote_id` or `space_key`; non-empty optional identifiers and canonical URL; `UNIQUE(site_id, service, remote_id)` and `UNIQUE(site_id, service, space_key)`. Explicit index: `idx_atlassian_spaces_site`.",
+        "primary_key": [
+          "id"
+        ],
+        "unique": [
+          [
+            "site_id",
+            "service",
+            "remote_id"
+          ],
+          [
+            "site_id",
+            "service",
+            "space_key"
+          ]
+        ]
+      },
+      "foreign_keys": [
+        {
+          "on_delete": "RESTRICT",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "site_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "atlassian_sites"
+        }
+      ],
+      "id": "atlassian_spaces",
+      "indexes": [
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "site_id"
+            },
+            {
+              "descending": false,
+              "name": "service"
+            },
+            {
+              "descending": false,
+              "name": "name"
+            }
+          ],
+          "name": "idx_atlassian_spaces_site",
+          "partial": false,
+          "unique": false
+        }
+      ],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/atlassian-source-memory.md",
+      "semantics": {
+        "class": "External last-known memory",
+        "class_contract": "Approved external reads may refresh the row, but inaccessible prior facts, aliases, and bodies are retained and are recoverable completely only from database backup.",
+        "consumers": "Item containment, registration inventory, hierarchy, explicit coverage display, and refresh scope.",
+        "deletion_effect": "required Site FK with `ON DELETE RESTRICT`; referenced by Items with `ON DELETE SET NULL`, so explicit Space removal keeps Item identity.",
+        "documented_constraints": "service and coverage vocabularies; at least one of `remote_id` or `space_key`; non-empty optional identifiers and canonical URL; `UNIQUE(site_id, service, remote_id)` and `UNIQUE(site_id, service, space_key)`. Explicit index: `idx_atlassian_spaces_site`.",
+        "lifecycle_contract": "external last-known identity. It can be re-read when access survives, but stable local containment and unavailable historical labels are not assumed recoverable.",
+        "producers": "`atlassian.py` validated Space registration and `atlassian_registration.py` direct-URL or explicitly confirmed partial-catalog registration.",
+        "purpose_and_authority": "optional Jira project or Confluence Space containment within one Site and service.",
+        "rebuildability": "external-last-known",
+        "recovery_path": "database backup or a later explicit external read when the Space remains accessible.",
+        "schema_ownership": "fresh definition plus `idx_atlassian_spaces_site` in `schema.sql`; the compatible path repeats the index idempotently."
+      },
+      "subject_id": "atlassian-source-memory"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "external_resource_id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY` and FK to `external_resources.id`, `ON DELETE CASCADE`; sole local Item identity.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "site_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL` FK to `atlassian_sites.id`, `ON DELETE RESTRICT`.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "space_id",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `INTEGER` FK to `atlassian_spaces.id`, `ON DELETE SET NULL`.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "service",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; Jira or Confluence, matched to Source Instance by the producer.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "item_type",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; paired Jira issue or Confluence Page type.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "remote_id",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; confirmed provider identity, unique within Site and service.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "remote_key",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; Jira key or readable Page identity, unique within Site and service when present.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "'reference'",
+          "name": "coverage",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT 'reference'`; independent reference, metadata, or indexed persistence intent.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "'normal'",
+          "name": "attention",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT 'normal'`; independent normal, pinned, ignored, or archived local attention.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "confirmed_at",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; first successful remote identity confirmation time.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "created_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; stub or binding creation time.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "updated_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; latest identity or local-axis change.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [
+          "service IN ('jira', 'confluence')",
+          "item_type IN ('jira_issue', 'confluence_page')",
+          "coverage IN ('reference', 'metadata', 'indexed')",
+          "attention IN ('normal', 'pinned', 'ignored', 'archived')",
+          "(service = 'jira' AND item_type = 'jira_issue') OR (service = 'confluence' AND item_type = 'confluence_page')",
+          "remote_id IS NULL OR length(remote_id) > 0",
+          "remote_key IS NULL OR length(remote_key) > 0"
+        ],
+        "documented": "strict service/item-type pairing; coverage and attention vocabularies; non-empty optional identifiers; `UNIQUE(external_resource_id, site_id)` for composite URL ownership; `UNIQUE(site_id, service, remote_id)` and `UNIQUE(site_id, service, remote_key)`. Explicit indexes: `idx_atlassian_items_site`, `idx_atlassian_items_space`.",
+        "primary_key": [
+          "external_resource_id"
+        ],
+        "unique": [
+          [
+            "external_resource_id",
+            "site_id"
+          ],
+          [
+            "site_id",
+            "service",
+            "remote_id"
+          ],
+          [
+            "site_id",
+            "service",
+            "remote_key"
+          ]
+        ]
+      },
+      "foreign_keys": [
+        {
+          "on_delete": "SET NULL",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "space_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "atlassian_spaces"
+        },
+        {
+          "on_delete": "RESTRICT",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "site_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "atlassian_sites"
+        },
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "external_resource_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "external_resources"
+        }
+      ],
+      "id": "atlassian_items",
+      "indexes": [
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "site_id"
+            },
+            {
+              "descending": false,
+              "name": "service"
+            },
+            {
+              "descending": false,
+              "name": "coverage"
+            }
+          ],
+          "name": "idx_atlassian_items_site",
+          "partial": false,
+          "unique": false
+        },
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "space_id"
+            },
+            {
+              "descending": false,
+              "name": "service"
+            }
+          ],
+          "name": "idx_atlassian_items_space",
+          "partial": false,
+          "unique": false
+        }
+      ],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/atlassian-source-memory.md",
+      "semantics": {
+        "class": "User-curated and non-rebuildable",
+        "class_contract": "User intent or registration is authoritative and requires database backup for full recovery.",
+        "consumers": "Workstream/Thread/checkpoint links through `external_resources.id`, registration inventory, refresh target resolution, freshness/content state, FTS projection, and Atlassian browse/detail.",
+        "deletion_effect": "primary key is an FK to `external_resources.id` with `ON DELETE CASCADE`; Site deletion is `RESTRICT`; Space deletion is `SET NULL`. The explicit purge API first removes the Item's FTS row and polymorphic Workstream, Thread, and checkpoint references, then removes the External Resource and all source-specific extension rows. Ordinary refresh never deletes the Resource.",
+        "documented_constraints": "strict service/item-type pairing; coverage and attention vocabularies; non-empty optional identifiers; `UNIQUE(external_resource_id, site_id)` for composite URL ownership; `UNIQUE(site_id, service, remote_id)` and `UNIQUE(site_id, service, remote_key)`. Explicit indexes: `idx_atlassian_items_site`, `idx_atlassian_items_space`.",
+        "lifecycle_contract": "non-rebuildable local identity and organization. Remote identifiers can be re-read, but the stable External Resource binding, coverage, attention, and existing relations must survive.",
+        "producers": "`atlassian.py` URL stub registration, in-place remote binding, explicit axis changes, and explicit destructive purge; `atlassian_registration.py` recognizes strict service-specific URLs before invoking the stub contract.",
+        "purpose_and_authority": "strict one-to-one Atlassian extension of one stable External Resource, with source containment and independent coverage/attention axes.",
+        "rebuildability": "non-rebuildable",
+        "recovery_path": "database backup. Remote re-discovery cannot recreate the same local Resource ID or user-managed axes.",
+        "schema_ownership": "fresh definition plus `idx_atlassian_items_site` and `idx_atlassian_items_space` in `schema.sql`; compatible startup creates them additively."
+      },
+      "subject_id": "atlassian-source-memory"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY`; URL observation identity.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "external_resource_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL`; composite FK member identifying the Item.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "site_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL`; composite FK member and URL uniqueness boundary.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "url_role",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; canonical or alias.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "observed_url",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; latest exact HTTP(S) spelling seen or entered.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "normalized_url",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; fragment-free normalized URL used for Site-scoped identity.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "first_observed_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; first local observation.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "last_observed_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; latest repeated observation.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [
+          "url_role IN ('canonical', 'alias')",
+          "length(observed_url) > 0",
+          "length(normalized_url) > 0"
+        ],
+        "documented": "canonical/alias vocabulary; non-empty URL values; `UNIQUE(site_id, normalized_url)`; composite cascading Item FK. Explicit indexes: `idx_atlassian_item_urls_item`; partial unique `idx_atlassian_item_urls_canonical` enforces at most one canonical URL per Item.",
+        "primary_key": [
+          "id"
+        ],
+        "unique": [
+          [
+            "site_id",
+            "normalized_url"
+          ]
+        ]
+      },
+      "foreign_keys": [
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "external_resource_id",
+            "site_id"
+          ],
+          "target_columns": [
+            "external_resource_id",
+            "site_id"
+          ],
+          "target_table": "atlassian_items"
+        }
+      ],
+      "id": "atlassian_item_urls",
+      "indexes": [
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "external_resource_id"
+            }
+          ],
+          "name": "idx_atlassian_item_urls_canonical",
+          "partial": true,
+          "unique": true
+        },
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "external_resource_id"
+            },
+            {
+              "descending": false,
+              "name": "url_role"
+            }
+          ],
+          "name": "idx_atlassian_item_urls_item",
+          "partial": false,
+          "unique": false
+        }
+      ],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/atlassian-source-memory.md",
+      "semantics": {
+        "class": "External last-known memory",
+        "class_contract": "Approved external reads may refresh the row, but inaccessible prior facts, aliases, and bodies are retained and are recoverable completely only from database backup.",
+        "consumers": "deduplication, safe navigation, alias resolution, FTS path projection, and Session/Local Context evidence attachment.",
+        "deletion_effect": "composite FK `(external_resource_id, site_id)` to `atlassian_items` with `ON DELETE CASCADE`; Site and Item cannot be mixed. URL collision aborts before mutation.",
+        "documented_constraints": "canonical/alias vocabulary; non-empty URL values; `UNIQUE(site_id, normalized_url)`; composite cascading Item FK. Explicit indexes: `idx_atlassian_item_urls_item`; partial unique `idx_atlassian_item_urls_canonical` enforces at most one canonical URL per Item.",
+        "lifecycle_contract": "external last-known URL evidence. Observed spellings are retained even when canonical navigation changes.",
+        "producers": "`atlassian.py` stub registration and atomic canonical URL transition during remote binding.",
+        "purpose_and_authority": "exact observed Atlassian links and normalized Site-scoped canonical/alias identity for one Item.",
+        "rebuildability": "external-last-known",
+        "recovery_path": "database backup or rediscovery from eligible local evidence and remote identity; rediscovery is not assumed complete.",
+        "schema_ownership": "fresh definition, `idx_atlassian_item_urls_item`, and partial unique `idx_atlassian_item_urls_canonical` in `schema.sql`; compatible startup repeats indexes."
+      },
+      "subject_id": "atlassian-source-memory"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "external_resource_id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY` and cascading FK to `atlassian_items`; one remote-state row per Item.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": "'localbrain.atlassian-metadata.v1'",
+          "name": "metadata_schema_version",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT 'localbrain.atlassian-metadata.v1'`; local bounded metadata contract version.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "'{}'",
+          "name": "metadata_json",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT '{}'`; canonical incrementally merged remote metadata excluding Jira description and Confluence body at every nesting level. Unobserved fields survive partial refreshes; explicit returned nulls can clear a field value.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "remote_version",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; latest successfully confirmed remote version evidence.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "remote_updated_at",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; latest successfully confirmed provider update time.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "last_attempted_at",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; latest explicit check attempt, successful or not.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "last_successful_at",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; latest successful resolved, unchanged, or changed check.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "last_confirmed_at",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; latest successful confirmation of remote state.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "last_outcome",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; `resolved`, `unchanged`, `changed`, `unavailable`, `not_found`, or `error`.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "last_error_code",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; bounded safe failure code only for unsuccessful outcomes.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "0",
+          "name": "known_changed",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL DEFAULT 0`; explicit remote change exists without an applied eligible body.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": "0",
+          "name": "projection_stale",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL DEFAULT 0`; the requested local projection is absent or mismatched.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "updated_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; latest state application time.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [
+          "last_outcome IS NULL OR last_outcome IN ( 'resolved', 'unchanged', 'changed', 'unavailable', 'not_found', 'error' )",
+          "known_changed IN (0, 1)",
+          "projection_stale IN (0, 1)",
+          "( last_outcome IN ('unavailable', 'not_found', 'error') AND last_error_code IS NOT NULL ) OR ( ( last_outcome IS NULL OR last_outcome IN ('resolved', 'unchanged', 'changed') ) AND last_error_code IS NULL )",
+          "last_error_code IS NULL OR (length(last_error_code) > 0 AND length(last_error_code) <= 80)"
+        ],
+        "documented": "outcome vocabulary; boolean flags; unsuccessful outcomes require a non-empty application-supplied error code no longer than 80 characters, while successful or absent outcomes forbid one. Freshness is derived as unavailable for a latest failure, stale for either change/projection flag, unknown without success, due at Jira seven days or Confluence 30 days, and current otherwise. Explicit index: `idx_atlassian_remote_state_check`.",
+        "primary_key": [
+          "external_resource_id"
+        ],
+        "unique": []
+      },
+      "foreign_keys": [
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "external_resource_id"
+          ],
+          "target_columns": [
+            "external_resource_id"
+          ],
+          "target_table": "atlassian_items"
+        }
+      ],
+      "id": "atlassian_item_remote_state",
+      "indexes": [
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "last_successful_at"
+            },
+            {
+              "descending": false,
+              "name": "last_outcome"
+            }
+          ],
+          "name": "idx_atlassian_remote_state_check",
+          "partial": false,
+          "unique": false
+        }
+      ],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/atlassian-source-memory.md",
+      "semantics": {
+        "class": "External last-known memory",
+        "class_contract": "Approved external reads may refresh the row, but inaccessible prior facts, aliases, and bodies are retained and are recoverable completely only from database backup.",
+        "consumers": "freshness derivation, refresh preview, Item detail, change gating, and diagnostics.",
+        "deletion_effect": "primary key is an FK to `atlassian_items.external_resource_id` with `ON DELETE CASCADE`, enforcing zero-or-one state row per Item.",
+        "documented_constraints": "outcome vocabulary; boolean flags; unsuccessful outcomes require a non-empty application-supplied error code no longer than 80 characters, while successful or absent outcomes forbid one. Freshness is derived as unavailable for a latest failure, stale for either change/projection flag, unknown without success, due at Jira seven days or Confluence 30 days, and current otherwise. Explicit index: `idx_atlassian_remote_state_check`.",
+        "lifecycle_contract": "external last-known state. Successful reads can replace it, but failures retain the prior metadata/version and only append current availability evidence.",
+        "producers": "`atlassian.py` application of host-validated FEAT-0045 target results, coordinated atomically for explicit refresh by `atlassian_refresh.py`.",
+        "purpose_and_authority": "bounded remote metadata and explicit check/version/failure evidence, separate from body content and local Resource fields.",
+        "rebuildability": "external-last-known",
+        "recovery_path": "explicit approved external read when still accessible; otherwise database backup is the only source for unavailable last-known facts.",
+        "schema_ownership": "fresh definition and `idx_atlassian_remote_state_check` in `schema.sql`; compatible startup creates them additively."
+      },
+      "subject_id": "atlassian-source-memory"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "external_resource_id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY` and cascading FK to `atlassian_items`; one current body per Item.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "source_format",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; Jira ADF, Confluence ADF/HTML/Markdown, or plain text.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "source_body",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; exact text or canonical JSON source body, never rendered authority.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "source_hash",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; 64-character SHA-256 of `source_body`.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "normalized_document_json",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; versioned deterministic block and warning representation.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "normalized_text",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; inert text eligible for local FTS.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "normalizer_version",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; code contract that produced the normalized document.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "normalization_warning",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; bounded unsupported-node or ignored-active-content evidence.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "remote_version",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; version associated with the applied body.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "remote_updated_at",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; provider update time associated with the applied body.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "applied_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; time the changed source hash was applied.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "search_projection_hash",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; 64-character fingerprint of the complete current role-separated FTS row set when indexed body content exists.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "updated_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; latest content or projection update time.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [
+          "source_format IN ( 'jira_adf', 'confluence_adf', 'confluence_html', 'confluence_markdown', 'plain_text' )",
+          "length(source_hash) = 64",
+          "search_projection_hash IS NULL OR length(search_projection_hash) = 64"
+        ],
+        "documented": "source-format vocabulary; 64-character source hash and optional projection hash. Explicit indexes: none.",
+        "primary_key": [
+          "external_resource_id"
+        ],
+        "unique": []
+      },
+      "foreign_keys": [
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "external_resource_id"
+          ],
+          "target_columns": [
+            "external_resource_id"
+          ],
+          "target_table": "atlassian_items"
+        }
+      ],
+      "id": "atlassian_item_content",
+      "indexes": [],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/atlassian-source-memory.md",
+      "semantics": {
+        "class": "External last-known memory",
+        "class_contract": "Approved external reads may refresh the row, but inaccessible prior facts, aliases, and bodies are retained and are recoverable completely only from database backup.",
+        "consumers": "indexed-only `search_index` projection, Item detail, no-change detection, and deterministic FTS rebuild.",
+        "deletion_effect": "primary key is an FK to `atlassian_items.external_resource_id` with `ON DELETE CASCADE`, enforcing zero-or-one current body per Item.",
+        "documented_constraints": "source-format vocabulary; 64-character source hash and optional projection hash. Explicit indexes: none.",
+        "lifecycle_contract": "external last-known content. Changed source replaces it only after validation; failure and `not_found` outcomes retain it.",
+        "producers": "`atlassian.py` deterministic Jira ADF and Confluence ADF/HTML/Markdown/plain normalization and hash-gated result application, coordinated atomically for explicit refresh by `atlassian_refresh.py`.",
+        "purpose_and_authority": "source-preserving remote body plus deterministic normalized document/text, hashes, version evidence, and FTS projection fingerprint.",
+        "rebuildability": "external-last-known",
+        "recovery_path": "explicit approved external read when accessible or database backup. The normalized projection can be rebuilt from `source_body`; FTS can be rebuilt from the normalized row.",
+        "schema_ownership": "fresh definition in `schema.sql`; no separate explicit named index because primary-key lookup owns all current access."
+      },
+      "subject_id": "atlassian-source-memory"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "external_resource_id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY` and cascading FK to `atlassian_items`; one local-state row per Item.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": "''",
+          "name": "note",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT ''`; user-authored local note up to 50,000 characters.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "created_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; first local-state creation time.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "updated_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; latest local note or classification-save time.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [
+          "length(note) <= 50000"
+        ],
+        "documented": "note length at most 50,000 characters. Explicit indexes: none.",
+        "primary_key": [
+          "external_resource_id"
+        ],
+        "unique": []
+      },
+      "foreign_keys": [
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "external_resource_id"
+          ],
+          "target_columns": [
+            "external_resource_id"
+          ],
+          "target_table": "atlassian_items"
+        }
+      ],
+      "id": "atlassian_item_local_state",
+      "indexes": [],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/atlassian-source-memory.md",
+      "semantics": {
+        "class": "User-curated and non-rebuildable",
+        "class_contract": "User intent or registration is authoritative and requires database backup for full recovery.",
+        "consumers": "Atlassian browse/detail, local-role FTS projection, and grouped Atlassian search results.",
+        "deletion_effect": "primary key is an FK to `atlassian_items.external_resource_id` with `ON DELETE CASCADE`, enforcing zero-or-one note row per Item. Only explicit Item purge removes it.",
+        "documented_constraints": "note length at most 50,000 characters. Explicit indexes: none.",
+        "lifecycle_contract": "non-rebuildable local memory. Remote refresh, unavailable results, coverage changes, and evidence reconciliation cannot replace or clear it.",
+        "producers": "`atlassian_browse.py` local-only Item detail update.",
+        "purpose_and_authority": "user-authored local note state for one stable Atlassian Item, separate from every remotely replaceable field.",
+        "rebuildability": "non-rebuildable",
+        "recovery_path": "LocalBrain database backup. Neither provider access nor local evidence rescans can reconstruct user-authored text.",
+        "schema_ownership": "fresh definition in `schema.sql`; normal idempotent startup creates it additively on older databases."
+      },
+      "subject_id": "atlassian-source-memory"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY`; stable local classification identity.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "kind",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; `topic` or `tag`.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "name",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; user-visible spelling, one to 160 characters.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "normalized_name",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; case-folded reuse key, one to 320 characters and unique within kind.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "description",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; Topic-only local description up to 4,000 characters.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "created_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; first local definition time.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "updated_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; latest local definition update.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [
+          "kind IN ('topic', 'tag')",
+          "length(name) > 0 AND length(name) <= 160",
+          "length(normalized_name) > 0 AND length(normalized_name) <= 320",
+          "description IS NULL OR length(description) <= 4000",
+          "kind = 'topic' OR description IS NULL"
+        ],
+        "documented": "kind vocabulary; bounded non-empty names and normalized names; optional bounded description allowed only for Topics; `UNIQUE(kind, normalized_name)`. Explicit indexes: none.",
+        "primary_key": [
+          "id"
+        ],
+        "unique": [
+          [
+            "kind",
+            "normalized_name"
+          ]
+        ]
+      },
+      "foreign_keys": [],
+      "id": "atlassian_classifications",
+      "indexes": [],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/atlassian-source-memory.md",
+      "semantics": {
+        "class": "User-curated and non-rebuildable",
+        "class_contract": "User intent or registration is authoritative and requires database backup for full recovery.",
+        "consumers": "browse filters, Item detail editing, local-role FTS projection, and grouped Atlassian search results.",
+        "deletion_effect": "parent of membership rows with `ON DELETE CASCADE`; deleting a definition removes only its local Item assignments and never deletes an Item or alters remote state.",
+        "documented_constraints": "kind vocabulary; bounded non-empty names and normalized names; optional bounded description allowed only for Topics; `UNIQUE(kind, normalized_name)`. Explicit indexes: none.",
+        "lifecycle_contract": "non-rebuildable local vocabulary. Case-insensitive reuse preserves one normalized Topic/Tag identity, while display spelling and Topic description remain locally editable.",
+        "producers": "`atlassian_browse.py` local-only Item detail update.",
+        "purpose_and_authority": "reusable user-managed Topic or Tag definition for local Atlassian organization; it is independent from Workstream membership and remote labels.",
+        "rebuildability": "non-rebuildable",
+        "recovery_path": "LocalBrain database backup. Remote labels and provider metadata are not substitutes for local Topic/Tag intent.",
+        "schema_ownership": "fresh definition in `schema.sql`; normal idempotent startup creates it additively on older databases."
+      },
+      "subject_id": "atlassian-source-memory"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "external_resource_id",
+          "not_null": true,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER NOT NULL` cascading FK to `atlassian_items`; first composite-primary-key column.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "classification_id",
+          "not_null": true,
+          "primary_key_position": 2,
+          "semantic_contract": "`INTEGER NOT NULL` cascading FK to `atlassian_classifications`; second composite-primary-key column.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "created_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; assignment creation time.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [],
+        "documented": "composite primary key `(external_resource_id, classification_id)`. Explicit index: `idx_atlassian_item_classifications_classification` for classification-first browse filters.",
+        "primary_key": [
+          "external_resource_id",
+          "classification_id"
+        ],
+        "unique": []
+      },
+      "foreign_keys": [
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "classification_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "atlassian_classifications"
+        },
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "external_resource_id"
+          ],
+          "target_columns": [
+            "external_resource_id"
+          ],
+          "target_table": "atlassian_items"
+        }
+      ],
+      "id": "atlassian_item_classifications",
+      "indexes": [
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "classification_id"
+            },
+            {
+              "descending": false,
+              "name": "external_resource_id"
+            }
+          ],
+          "name": "idx_atlassian_item_classifications_classification",
+          "partial": false,
+          "unique": false
+        }
+      ],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/atlassian-source-memory.md",
+      "semantics": {
+        "class": "User-curated and non-rebuildable",
+        "class_contract": "User intent or registration is authoritative and requires database backup for full recovery.",
+        "consumers": "browse Topic/Tag filters, Item detail, local-role FTS projection, and grouped Atlassian search.",
+        "deletion_effect": "cascading FKs to `atlassian_items.external_resource_id` and `atlassian_classifications.id`; deletion of either owner removes only the membership row.",
+        "documented_constraints": "composite primary key `(external_resource_id, classification_id)`. Explicit index: `idx_atlassian_item_classifications_classification` for classification-first browse filters.",
+        "lifecycle_contract": "non-rebuildable local organization. Saving an Item replaces only that Item's assignment set; remote refresh and evidence scans do not mutate it.",
+        "producers": "`atlassian_browse.py` atomic local-only Item detail update.",
+        "purpose_and_authority": "user-confirmed many-to-many Topic/Tag assignment for one stable Atlassian Item.",
+        "rebuildability": "non-rebuildable",
+        "recovery_path": "LocalBrain database backup. Assignments cannot be inferred authoritatively from remote labels, Workstream links, or search text.",
+        "schema_ownership": "fresh definition and `idx_atlassian_item_classifications_classification` in `schema.sql`; compatible startup creates them additively."
+      },
+      "subject_id": "atlassian-source-memory"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY`; local scan-state identity.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "session_id",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable FK to `sessions.id`, `ON DELETE CASCADE`; mutually exclusive with `document_id`.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "source_path",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT` up to 8,000 characters; required only for Session scan state and part of its unique source-file identity.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "document_id",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable unique FK to `context_documents.id`, `ON DELETE CASCADE`; mutually exclusive with `session_id`.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "source_fingerprint",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; 64-character fingerprint of Session file size/mtime identity or Document content hash identity.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "site_fingerprint",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; 64-character fingerprint of enabled configured Source Instance/Site/service mappings.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "extractor_version",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; bounded extraction contract version.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "status",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; `ok` or `error`.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "error_code",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; required non-empty code no longer than 80 characters only for error state.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "error_message",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; application-generated message no longer than 500 characters.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "scanned_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; latest completed reconciliation attempt.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "updated_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; latest row update.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [
+          "status IN ('ok', 'error')",
+          "error_message IS NULL OR length(error_message) <= 500",
+          "length(source_fingerprint) = 64",
+          "length(site_fingerprint) = 64",
+          "( session_id IS NOT NULL AND source_path IS NOT NULL AND document_id IS NULL ) OR ( session_id IS NULL AND source_path IS NULL AND document_id IS NOT NULL )",
+          "source_path IS NULL OR length(source_path) <= 8000",
+          "(status = 'error' AND error_code IS NOT NULL) OR (status = 'ok' AND error_code IS NULL AND error_message IS NULL)",
+          "error_code IS NULL OR (length(error_code) > 0 AND length(error_code) <= 80)"
+        ],
+        "documented": "exactly one source FK; `UNIQUE(session_id, source_path)` and unique Document identity; bounded Session path; 64-character fingerprints; status/error parity and bounded errors. Explicit indexes: none; source uniqueness owns current lookup.",
+        "primary_key": [
+          "id"
+        ],
+        "unique": [
+          [
+            "document_id"
+          ],
+          [
+            "session_id",
+            "source_path"
+          ]
+        ]
+      },
+      "foreign_keys": [
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "document_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "context_documents"
+        },
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "session_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "sessions"
+        }
+      ],
+      "id": "atlassian_evidence_scans",
+      "indexes": [],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/atlassian-source-memory.md",
+      "semantics": {
+        "class": "Fully derived projection",
+        "class_contract": "Safe to clear and rebuild from current eligible source objects.",
+        "consumers": "scanner skip/retry logic and evidence diagnostics.",
+        "deletion_effect": "nullable FKs to Session and Document, each `ON DELETE CASCADE`, with an exactly-one-source check. Session scan identity is unique by Session plus source path because one normalized Session may span several JSONL files; Document scan identity remains one-to-one. Source deletion therefore removes its scan state without affecting the Atlassian Item.",
+        "documented_constraints": "exactly one source FK; `UNIQUE(session_id, source_path)` and unique Document identity; bounded Session path; 64-character fingerprints; status/error parity and bounded errors. Explicit indexes: none; source uniqueness owns current lookup.",
+        "lifecycle_contract": "fully derived and replaceable. It advances after a successful bounded reconciliation; an error retains prior Item evidence while recording only a bounded code/message.",
+        "producers": "`atlassian_evidence.py` through Session and Local Context scanner hooks.",
+        "purpose_and_authority": "versioned local extraction freshness for exactly one eligible Session or Context Document.",
+        "rebuildability": "fully-derived",
+        "recovery_path": "re-run the local scanner while the source remains available. No external access is required.",
+        "schema_ownership": "fresh definition in `schema.sql`; normal idempotent startup creates it additively on older databases."
+      },
+      "subject_id": "atlassian-source-memory"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY`; stable row identity while one evidence key remains present.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "external_resource_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL` FK to `atlassian_items.external_resource_id`, `ON DELETE CASCADE`.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "session_id",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable FK to `sessions.id`, `ON DELETE CASCADE`; mutually exclusive with `document_id`.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "source_path",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT` up to 8,000 characters; required only for Session evidence so multiple source files contributing to one Session remain independently reconcilable.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "document_id",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable FK to `context_documents.id`, `ON DELETE CASCADE`; mutually exclusive with `session_id`.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "source_channel",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; visible text or approved-tool-result bounded projection.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "source_event_id",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; required stable parser event/location identity only for Session evidence.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "source_line",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "positive `INTEGER`; JSONL source line or Document line.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "url_ordinal",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "positive `INTEGER`; URL occurrence within the source location.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "observed_url",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "non-empty `TEXT` up to 8,000 characters; exact bounded spelling.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "normalized_url",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "non-empty `TEXT` up to 8,000 characters; FEAT-0046 normalization result.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "observed_remote_id",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT` up to 300 characters; unconfirmed bounded observation only.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "observed_title",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT` up to 500 characters; unconfirmed bounded observation only.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "observed_at",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; source event time when available.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "extractor_version",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; extraction contract that created the sighting.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "evidence_key",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "unique 64-character fingerprint of Item, source, location, URL, and extractor identity.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "first_observed_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; first local reconciliation of this evidence key.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "last_observed_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; latest successful reconciliation.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "updated_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; latest row update.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [
+          "source_channel IN ('visible_text', 'approved_tool_result')",
+          "source_line > 0",
+          "url_ordinal > 0",
+          "( session_id IS NOT NULL AND source_path IS NOT NULL AND document_id IS NULL AND source_event_id IS NOT NULL ) OR ( session_id IS NULL AND source_path IS NULL AND document_id IS NOT NULL AND source_event_id IS NULL )",
+          "source_path IS NULL OR length(source_path) <= 8000",
+          "length(observed_url) > 0 AND length(observed_url) <= 8000",
+          "length(normalized_url) > 0 AND length(normalized_url) <= 8000",
+          "observed_remote_id IS NULL OR length(observed_remote_id) <= 300",
+          "observed_title IS NULL OR length(observed_title) <= 500",
+          "length(evidence_key) = 64"
+        ],
+        "documented": "exactly one source FK; Session location parity; source-channel vocabulary; positive location values; bounded URLs/observations; unique evidence key. Explicit indexes: `idx_atlassian_evidence_item`, `idx_atlassian_evidence_session`, and `idx_atlassian_evidence_document`.",
+        "primary_key": [
+          "id"
+        ],
+        "unique": [
+          [
+            "evidence_key"
+          ]
+        ]
+      },
+      "foreign_keys": [
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "document_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "context_documents"
+        },
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "session_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "sessions"
+        },
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "external_resource_id"
+          ],
+          "target_columns": [
+            "external_resource_id"
+          ],
+          "target_table": "atlassian_items"
+        }
+      ],
+      "id": "atlassian_item_evidence",
+      "indexes": [
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "document_id"
+            },
+            {
+              "descending": false,
+              "name": "source_line"
+            },
+            {
+              "descending": false,
+              "name": "url_ordinal"
+            }
+          ],
+          "name": "idx_atlassian_evidence_document",
+          "partial": false,
+          "unique": false
+        },
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "external_resource_id"
+            },
+            {
+              "descending": true,
+              "name": "last_observed_at"
+            }
+          ],
+          "name": "idx_atlassian_evidence_item",
+          "partial": false,
+          "unique": false
+        },
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "session_id"
+            },
+            {
+              "descending": false,
+              "name": "source_line"
+            },
+            {
+              "descending": false,
+              "name": "url_ordinal"
+            }
+          ],
+          "name": "idx_atlassian_evidence_session",
+          "partial": false,
+          "unique": false
+        }
+      ],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/atlassian-source-memory.md",
+      "semantics": {
+        "class": "Fully derived projection",
+        "class_contract": "Safe to clear and rebuild from current eligible source objects.",
+        "consumers": "Item detail and evidence navigation; no refresh or remote-identity path may treat a sighting as successful remote confirmation.",
+        "deletion_effect": "required cascading Item FK plus exactly one cascading Session or Document FK. Session evidence requires a stable event/location identifier; Document evidence uses line and URL occurrence without an excerpt.",
+        "documented_constraints": "exactly one source FK; Session location parity; source-channel vocabulary; positive location values; bounded URLs/observations; unique evidence key. Explicit indexes: `idx_atlassian_evidence_item`, `idx_atlassian_evidence_session`, and `idx_atlassian_evidence_document`.",
+        "lifecycle_contract": "fully derived per owning source. A successful changed scan upserts current sightings and removes obsolete sightings from that source, but never deletes the stable Item, remote state/content, or local organization.",
+        "producers": "`atlassian_evidence.py` after URL recognition and FEAT-0046 stable stub reuse.",
+        "purpose_and_authority": "a derived, source-separated sighting of one recognized configured Atlassian Item URL.",
+        "rebuildability": "fully-derived",
+        "recovery_path": "rescan the owning local source. If the source is gone, the evidence is intentionally unavailable; Item identity and user state remain in their own tables.",
+        "schema_ownership": "fresh definition plus `idx_atlassian_evidence_item`, `idx_atlassian_evidence_session`, and `idx_atlassian_evidence_document` in `schema.sql`."
+      },
+      "subject_id": "atlassian-source-memory"
     },
     {
       "columns": [
@@ -3644,7 +5864,7 @@
           "name": "mcp_call_budget",
           "not_null": true,
           "primary_key_position": 0,
-          "semantic_contract": "`INTEGER NOT NULL DEFAULT 20`; advisory call ceiling for the Run.",
+          "semantic_contract": "`INTEGER NOT NULL DEFAULT 20`; advisory ceiling for legacy gap-fill tasks and hard selected-request ceiling for external synchronization.",
           "type": "INTEGER"
         },
         {
@@ -3762,16 +5982,176 @@
       "semantic_document": "docs/policies/project/data-model/maintenance-execution.md",
       "semantics": {
         "class": "Operational history",
-        "class_contract": "Execution state and artifact references describe what happened; files outside SQLite may be required for complete recovery.",
-        "consumers": "Runner list/detail/polling, Workstream detail, restart reconciliation, structured Suggestion creation, the linked Maintenance Session, and its Usage Records.",
-        "deletion_effect": "`workstream_id` is an optional physical FK to `workstreams.id` with `ON DELETE SET NULL` in both fresh and upgraded databases. Deleting the Workstream removes only that current association and retains the Run. `sessions.maintenance_run_id` is a nullable unique physical FK with `ON DELETE SET NULL`; `suggestions.origin_run_id` remains an application edge without cascade.",
+        "class_contract": "Execution state, bounded query projections, and artifact references describe what happened; files outside SQLite may be required for complete recovery.",
+        "consumers": "Runner list/detail/polling, Workstream detail, Atlassian refresh preview/outcome, restart reconciliation, structured Suggestion creation for existing tasks, the optional external-sync extension, the linked Maintenance Session, and its Usage Records.",
+        "deletion_effect": "`workstream_id` is an optional physical FK to `workstreams.id` with `ON DELETE SET NULL` in both fresh and upgraded databases. Deleting the Workstream removes only that current association and retains the Run. `external_sync_runs.maintenance_run_id` is a primary-key FK with `ON DELETE CASCADE`; `sessions.maintenance_run_id` is a nullable unique physical FK with `ON DELETE SET NULL`; `suggestions.origin_run_id` remains an application edge without cascade.",
         "documented_constraints": "fresh and upgraded databases include the optional Workstream foreign key. The reverse Session relation is physically unique and optional. Lifecycle, counters, and runner/task vocabularies are application-enforced. Explicit indexes: `idx_maintenance_runs_workstream`, `idx_maintenance_runs_status`.",
         "lifecycle_contract": "operational history. Database state is durable, while referenced manifest/prompt/stream/result/stderr files live under the private runtime data directory and are required for complete evidence recovery.",
-        "producers": "`runner.py` prepares, starts, streams, reconciles, cancels, parses, and completes Runs. Task Runner preparation writes private artifacts and inserts a `queued` ledger row; terminal and recovered paths trigger native Claude-source synchronization. `POST /api/workstreams/{workstream_id}/runs` is the only in-app Run creation boundary.",
+        "producers": "`runner.py` prepares, starts, streams, reconciles, cancels, parses, and completes Runs. Existing Workstream task preparation writes private artifacts and one `queued` ledger row; `external_sync.py` atomically prepares the common row plus one external-sync projection. `atlassian_refresh.py` composes explicit Item/Space/Thread/Workstream/all-known selections through that same source-neutral boundary. Terminal and recovered paths synchronize the selected native Claude or Codex source. `POST /api/workstreams/{workstream_id}/runs` remains the in-app creation boundary for existing Workstream tasks; `POST /atlassian/refresh` creates only an explicitly previewed external synchronization Run.",
         "purpose_and_authority": "durable state machine for prepared/running/terminal maintenance execution, with local process, bounded MCP budget, artifact paths, structured output, summary, and error evidence.",
         "rebuildability": "database-plus-artifacts",
-        "recovery_path": "restore the SQLite database, native Claude source history, and runtime artifact directory according to the evidence required. The native JSONL can rebuild its Session and Usage Records; a retained Runner stream can recover console/result evidence but cannot create them. A failed Run must not clear an existing review queue.",
+        "recovery_path": "restore the SQLite database, selected runner's native source history, and runtime artifact directory according to the evidence required. Native JSONL can rebuild its Session and Usage Records; a retained Runner stream can recover console/result evidence but cannot create them. A failed Run must not clear an existing review queue or prior external content.",
         "schema_ownership": "fresh definition in `schema.sql`; numerous compatible fields, `updated_at` value backfill, runtime-only `idx_maintenance_runs_workstream` and `idx_maintenance_runs_status`, and the backup-backed Workstream FK repair in `db.py`. Before the first repair, startup preserves `localbrain.db-pre-maintenance-workstream-fk-v1.bak`, rejects orphan or unexpected shapes, copies every Run value by column name, and verifies dependent Session/Suggestion links plus `foreign_key_check`. Compatible `updated_at` remains nullable without a database default after backfill."
+      },
+      "subject_id": "maintenance-execution"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "maintenance_run_id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`TEXT PRIMARY KEY` and FK to `maintenance_runs.id`, `ON DELETE CASCADE`; one extension per external synchronization Run.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "source_instance_id",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `INTEGER` FK to `external_source_instances.id`, `ON DELETE SET NULL`; aggregate access boundary for a single-source Run and intentionally null for a mixed-source Run whose private manifest authorizes each target separately.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "source_kind",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; source-neutral family such as `atlassian`, without provider-specific columns.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "service",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; aggregate service discriminator such as `jira` or `confluence`, or `mixed` only when selected target services differ.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "requested_scope_kind",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL` constrained to `item`, `space`, `thread`, `workstream`, or `all_known`.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "selected_target_count",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "non-negative `INTEGER`; number of selected manifest targets, derived at preparation.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "manifest_schema_version",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; exact version used to validate detailed private input.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "read_policy_version",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; FEAT-0044 policy identity used to authorize every request.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "created_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; projection creation time.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [
+          "requested_scope_kind IN ( 'item', 'space', 'thread', 'workstream', 'all_known' )",
+          "selected_target_count >= 0"
+        ],
+        "documented": "the database enforces one-to-one parent ownership, both physical relations, non-negative selected count, and the scope vocabulary. The producer additionally enforces that only `external_source_sync` parents receive this row and that every projected value equals the validated manifest. Explicit indexes: `idx_external_sync_runs_source_instance`, `idx_external_sync_runs_scope`.",
+        "primary_key": [
+          "maintenance_run_id"
+        ],
+        "unique": []
+      },
+      "foreign_keys": [
+        {
+          "on_delete": "SET NULL",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "source_instance_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "external_source_instances"
+        },
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "maintenance_run_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "maintenance_runs"
+        }
+      ],
+      "id": "external_sync_runs",
+      "indexes": [
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "requested_scope_kind"
+            },
+            {
+              "descending": false,
+              "name": "maintenance_run_id"
+            }
+          ],
+          "name": "idx_external_sync_runs_scope",
+          "partial": false,
+          "unique": false
+        },
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "source_instance_id"
+            },
+            {
+              "descending": false,
+              "name": "maintenance_run_id"
+            }
+          ],
+          "name": "idx_external_sync_runs_source_instance",
+          "partial": false,
+          "unique": false
+        }
+      ],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/maintenance-execution.md",
+      "semantics": {
+        "class": "Operational history",
+        "class_contract": "Execution state, bounded query projections, and artifact references describe what happened; files outside SQLite may be required for complete recovery.",
+        "consumers": "external-sync execution validates this projection against the retained manifest before every Run; refresh/history consumers may query its bounded fields. FEAT-0046 consumes the validated result, not this query projection, for source Item application.",
+        "deletion_effect": "`maintenance_run_id` is both primary key and physical FK to `maintenance_runs.id` with `ON DELETE CASCADE`, enforcing zero-or-one extension per Run. `source_instance_id` is a nullable FK to `external_source_instances.id` with `ON DELETE SET NULL`; removing a registration retains historical source kind, service, scope, count, and policy evidence.",
+        "documented_constraints": "the database enforces one-to-one parent ownership, both physical relations, non-negative selected count, and the scope vocabulary. The producer additionally enforces that only `external_source_sync` parents receive this row and that every projected value equals the validated manifest. Explicit indexes: `idx_external_sync_runs_source_instance`, `idx_external_sync_runs_scope`.",
+        "lifecycle_contract": "operational history owned one-to-one by a common maintenance Run. The row is not an authoring surface; preparation derives it from the same validated manifest that creates its parent.",
+        "producers": "`external_sync.prepare_external_sync_run` validates the complete manifest and every FEAT-0044 logical read, writes private artifacts, and inserts the parent plus extension under one savepoint. No ordinary maintenance producer creates this row.",
+        "purpose_and_authority": "source-neutral, bounded query projection for Runs whose common parent has `task_type = external_source_sync`. It supports aggregate Source Instance, source/service, scope, target-count, manifest-version, and policy-version lookup without parsing a detailed private manifest.",
+        "rebuildability": "database-plus-artifacts",
+        "recovery_path": "restore with the parent ledger and private Run manifest. The row alone cannot recreate selected locators, field allowlists, freshness hints, provider evidence, or results. A missing or mismatched row fails closed before external execution.",
+        "schema_ownership": "fresh definition and two query indexes in `schema.sql`; idempotent schema application plus `db.py` index convergence create the same table and indexes on compatible databases without rewriting existing Run rows."
       },
       "subject_id": "maintenance-execution"
     },
@@ -3782,7 +6162,7 @@
           "name": "entity_type",
           "not_null": false,
           "primary_key_position": 0,
-          "semantic_contract": "FTS5 `UNINDEXED`; application discriminator for `session` or `document`.",
+          "semantic_contract": "FTS5 `UNINDEXED`; application discriminator for `session`, `document`, or `atlassian_item`.",
           "type": null
         },
         {
@@ -3828,7 +6208,7 @@
       ],
       "constraints": {
         "checks": [],
-        "documented": "`fts5(..., tokenize = 'unicode61')`; entity uniqueness is maintained by delete-before-insert application logic, not a SQL unique constraint. Explicit named indexes: none.",
+        "documented": "`fts5(..., tokenize = 'unicode61')`; Session and Document projections use one row per entity, while Atlassian Items use deterministic source-kind role rows (`identity`, optional `metadata`, optional `content`, and optional `local`). Row-set uniqueness is maintained by compare-and-replace application logic, not a SQL unique constraint. Explicit named indexes: none.",
         "primary_key": [],
         "unique": []
       },
@@ -3840,14 +6220,14 @@
       "semantics": {
         "class": "Fully derived projection",
         "class_contract": "Safe to clear and rebuild from current eligible source objects.",
-        "consumers": "`queries.py` search results and `retrieval.py` ranked FTS candidates. Retrieval adds current relational evidence after candidate selection.",
-        "deletion_effect": "no physical FK. `entity_type` plus `entity_id` application-addresses `sessions` or `context_documents`; scanner/context lifecycle explicitly removes projections. Maintenance Sessions, subsessions, and policy-excluded content do not enter the projection.",
-        "documented_constraints": "`fts5(..., tokenize = 'unicode61')`; entity uniqueness is maintained by delete-before-insert application logic, not a SQL unique constraint. Explicit named indexes: none.",
+        "consumers": "`queries.py` returns Session/Document results and groups matching Atlassian roles back to one stable Item with current relational context; `retrieval.py` ranked work-context candidates explicitly filter their supported types. Retrieval adds current relational evidence after candidate selection.",
+        "deletion_effect": "no physical FK. `entity_type` plus `entity_id` application-addresses `sessions`, `context_documents`, or `atlassian_items.external_resource_id`; each source lifecycle explicitly removes projections. Maintenance Sessions, subsessions, policy-excluded content, and ineligible Atlassian role text do not enter the projection.",
+        "documented_constraints": "`fts5(..., tokenize = 'unicode61')`; Session and Document projections use one row per entity, while Atlassian Items use deterministic source-kind role rows (`identity`, optional `metadata`, optional `content`, and optional `local`). Row-set uniqueness is maintained by compare-and-replace application logic, not a SQL unique constraint. Explicit named indexes: none.",
         "lifecycle_contract": "fully derived projection. It is safe to clear and rebuild from current eligible source objects.",
-        "producers": "`ingest/scanner.py` replaces Session and document rows during scan; `contexts.py` deletes root-owned document projections on disable; source cleanup deletes projections before normalized objects.",
-        "purpose_and_authority": "FTS5 search projection for eligible primary work Sessions and enabled Context Documents, retaining unindexed target/provenance fields beside indexed title/body/path text.",
+        "producers": "`ingest/scanner.py` replaces Session and document rows during scan; `contexts.py` deletes root-owned document projections on disable; `atlassian.py` compares and rebuilds each Item's eligible role rows from current relational identity, remote state/content, and local memory; source cleanup deletes projections before normalized objects.",
+        "purpose_and_authority": "FTS5 search projection for eligible primary work Sessions, enabled Context Documents, and role-separated Atlassian Item identity/metadata/content/local text, retaining unindexed target/provenance fields beside indexed title/body/path text.",
         "rebuildability": "fully-derived",
-        "recovery_path": "rescan all enabled Session and Context sources. No backup is required for this table itself, though authoritative sources and user registration must exist.",
+        "recovery_path": "rescan enabled Session and Context sources and rebuild Atlassian role rows from stable External Resource identity, bounded eligible remote state/content, and local note/classification tables. No backup is required for this table itself, though its authoritative local/last-known inputs must exist.",
         "schema_ownership": "FTS5 virtual-table declaration in `schema.sql`; no compatible migration or separate explicit named index. FTS5 shadow tables are SQLite internals."
       },
       "subject_id": "derived-retrieval-index"

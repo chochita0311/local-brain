@@ -1,12 +1,12 @@
 # Project Roadmap
 
-Status: Phase 1 complete; Phase 2 core vertical slice implemented
+Status: Phase 1 complete; Phase 2 core vertical slice and Phase 4 Atlassian local vertical slice implemented
 
-Last reviewed: 2026-07-20
+Last reviewed: 2026-07-24
 
 ## Current Direction
 
-LocalBrain is validating the Workstream and Thread workflow as a local web application before expanding external connectors or desktop packaging.
+LocalBrain is validating the Workstream and Thread workflow as a local web application while expanding approved external connectors one bounded read-only source at a time. Desktop packaging remains later.
 
 The design-system realignment of the current screen families is complete and accepted. Near-term work remains focused on validating and extending the product workflow rather than starting another broad visual redesign.
 
@@ -15,7 +15,7 @@ Near-term priorities:
 1. Use several real Workstreams through repeated daily context switches and evaluate whether Thread and checkpoint fields are sufficient.
 2. Add the unified cross-source Workstream timeline and historical path reconciliation.
 3. Improve source-aware matching, review ergonomics, and source controls.
-4. Define approved external persistence behavior before implementing MCP Gateway ingestion.
+4. Review draft PRD-0008, then validate the connected Atlassian executor and evaluate official Mermaid ELK routing without reopening passed boundaries.
 
 Detailed implementation tasks and unresolved decisions live in the [Project Backlog](backlog.md). Durable product and technical contracts live under [Policies](../../README.md#policies).
 
@@ -27,7 +27,7 @@ Detailed implementation tasks and unresolved decisions live in the [Project Back
 | 1. Local activity foundation | Reliably collect and inspect local activity | Complete |
 | 2. Workstream and resume MVP | Find and resume interrupted work | Core vertical slice implemented |
 | 3. Activity insights | Add reproducible usage, cost, workflow, and skill intelligence | Usage and cost dashboard implemented; workflow intelligence planned |
-| 4. External read-only sources | Connect approved ticket, conversation, Git, and document systems | Planned |
+| 4. External read-only sources | Connect approved ticket, conversation, Git, and document systems | Atlassian local vertical slice implemented; connected validation and other sources planned |
 | 5. Context reconciliation | Produce reviewable current context while preserving uncertainty | Planned |
 | 6. Handoff and controlled actions | Support low-friction AI handoff and explicitly approved actions | Planned |
 | 7. macOS packaging | Package the validated workflow as a native-feeling application | Planned |
@@ -151,15 +151,34 @@ Exit criteria:
 
 **Goal:** connect approved company context without creating an uncontrolled second data store.
 
-Work:
+Planning tracks:
 
-- introduce a generic approved MCP Gateway client boundary
-- discover available ticket, conversation, hosted Git, and document tools
-- normalize source-specific results behind adapters
-- support explicit reference, cache, and index persistence modes
-- connect external resources to Workstreams and Threads
-- add freshness, deep links, refresh, and unavailable-source states
-- combine local and federated search results without hiding their storage boundaries
+- [PRD-0007: Atlassian Source Memory And Explicit Refresh](../prd/prd-0007-atlassian-source-memory-and-refresh.md) (`passed`)
+- [PRD-0008: Connected Atlassian Validation And Schema ERD Routing](../prd/prd-0008-connected-atlassian-validation-and-schema-erd-routing.md) (`draft`, follow-up)
+
+Executed PRD-0007 Features:
+
+- [FEAT-0044: MCP Capability And Read-Only Policy](../feature/feat-0044-mcp-capability-and-read-only-policy.md) (`passed`)
+- [FEAT-0045: Provider-Neutral External Sync Run Contract](../feature/feat-0045-provider-neutral-external-sync-run-contract.md) (`passed`)
+- [FEAT-0046: Atlassian Source Item Identity And Freshness Contract](../feature/feat-0046-atlassian-source-item-identity-and-freshness-contract.md) (`passed`)
+- [FEAT-0047: Bounded Atlassian URL Evidence Extraction](../feature/feat-0047-bounded-atlassian-url-evidence-extraction.md) (`passed`)
+- [FEAT-0048: Atlassian Item And Space Registration](../feature/feat-0048-atlassian-item-and-space-registration.md) (`passed`)
+- [FEAT-0049: Explicit Atlassian Refresh And Preview](../feature/feat-0049-explicit-atlassian-refresh-and-preview.md) (`passed`)
+- [FEAT-0050: Atlassian Browse, Search, And Local Classification](../feature/feat-0050-atlassian-browse-search-and-local-classification.md) (`passed`)
+- [FEAT-0051: Atlassian URL-First Connection Onboarding](../feature/feat-0051-atlassian-url-first-connection-onboarding.md) (`passed`)
+
+Delivered for Atlassian:
+
+- approved read-only capability policy and a source-neutral Claude/Codex maintenance Run boundary
+- stable Source Instance, Site, Space, Item, URL, remote-state/content, local-memory, and evidence ownership
+- URL-first local setup, reference/metadata/indexed coverage, Workstream and Thread links, freshness, explicit refresh preview, and local search
+
+Remaining work:
+
+- review and execute PRD-0008's bounded connected Atlassian validation before claiming live end-to-end evidence
+- classify any connected findings before changing the passed Atlassian contract
+- discover and normalize approved conversation, hosted Git, email, and other document sources behind source-specific adapters
+- combine local and federated results only where storage and freshness boundaries remain visible
 
 Exit criteria:
 

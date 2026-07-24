@@ -4,6 +4,11 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import {
+  clampSchemaZoom,
+  schemaAnchoredScroll,
+  schemaZoomFromWheel,
+} from "../src/localbrain/static/schema-explorer.js";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const BUILDER = join(ROOT, "scripts/build-mermaid-assets.mjs");
@@ -39,6 +44,12 @@ try {
   assert.match(adapter, /suppressErrorRendering:\s*true/);
   assert.match(adapter, /data-localbrain-mermaid="owned"/);
   assert.doesNotMatch(adapter, /mermaid\.run\s*\(/);
+
+  assert.equal(clampSchemaZoom(0), 0.1);
+  assert.equal(clampSchemaZoom(4), 3);
+  assert.ok(schemaZoomFromWheel(1, -100) > 1);
+  assert.ok(schemaZoomFromWheel(1, 100) < 1);
+  assert.equal(schemaAnchoredScroll(200, 100, 1, 2), 500);
 
   console.log("LocalBrain Mermaid asset contract tests passed.");
 } finally {

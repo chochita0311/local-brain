@@ -186,6 +186,135 @@ class ParserTests(unittest.TestCase):
         parsed = parse_codex_session(path)
         self.assertEqual(parsed.session_class, "work")
 
+    def test_claude_parser_keeps_only_visible_and_approved_result_url_evidence(self):
+        path = self._write_jsonl(
+            [
+                {
+                    "type": "user",
+                    "sessionId": "claude-evidence",
+                    "message": {
+                        "content": "See https://jira.example.test/browse/SYN-7 and SYN-8"
+                    },
+                },
+                {
+                    "type": "assistant",
+                    "sessionId": "claude-evidence",
+                    "message": {
+                        "content": [
+                            {
+                                "type": "tool_use",
+                                "id": "approved-call",
+                                "name": "atlassian.searchJiraIssuesUsingJql",
+                                "input": {"jql": "key = SYN-9"},
+                            },
+                            {
+                                "type": "tool_use",
+                                "id": "unapproved-call",
+                                "name": "Read",
+                                "input": {},
+                            },
+                        ]
+                    },
+                },
+                {
+                    "type": "user",
+                    "sessionId": "claude-evidence",
+                    "sourceToolAssistantUUID": "assistant-1",
+                    "message": {
+                        "content": [
+                            {
+                                "type": "tool_result",
+                                "tool_use_id": "approved-call",
+                                "content": json.dumps(
+                                    {
+                                        "issues": [
+                                            {
+                                                "url": "https://jira.example.test/browse/SYN-9",
+                                                "id": "9009",
+                                                "summary": "Synthetic issue",
+                                                "description": "must not be retained",
+                                            }
+                                        ]
+                                    }
+                                ),
+                            },
+                            {
+                                "type": "tool_result",
+                                "tool_use_id": "unapproved-call",
+                                "content": json.dumps(
+                                    {
+                                        "url": "https://jira.example.test/browse/NOPE-1"
+                                    }
+                                ),
+                            },
+                        ]
+                    },
+                },
+            ]
+        )
+
+        parsed = parse_claude_session(path)
+
+        self.assertEqual(
+            [item.observed_url for item in parsed.url_evidence],
+            [
+                "https://jira.example.test/browse/SYN-7",
+                "https://jira.example.test/browse/SYN-9",
+            ],
+        )
+        self.assertEqual(parsed.url_evidence[1].source_channel, "approved_tool_result")
+        self.assertEqual(parsed.url_evidence[1].observed_remote_id, "9009")
+        self.assertEqual(parsed.url_evidence[1].observed_title, "Synthetic issue")
+        self.assertNotIn("description", parsed.url_evidence[1].__dict__)
+
+    def test_codex_parser_associates_result_with_approved_call_id(self):
+        path = self._write_jsonl(
+            [
+                {
+                    "type": "session_meta",
+                    "payload": {"id": "codex-evidence", "cwd": "/tmp"},
+                },
+                {
+                    "type": "response_item",
+                    "payload": {
+                        "type": "function_call",
+                        "call_id": "call-1",
+                        "name": "mcp_gateway.gateway_dispatch",
+                        "arguments": json.dumps(
+                            {"capability": "wiki__getPageById"}
+                        ),
+                    },
+                },
+                {
+                    "type": "response_item",
+                    "payload": {
+                        "type": "function_call_output",
+                        "call_id": "call-1",
+                        "output": json.dumps(
+                            {
+                                "page": {
+                                    "webUrl": "https://wiki.example.test/wiki/spaces/SYN/pages/12/Page",
+                                    "pageId": "12",
+                                    "title": "Synthetic page",
+                                    "body": "must not be retained",
+                                }
+                            }
+                        ),
+                    },
+                },
+            ]
+        )
+
+        parsed = parse_codex_session(path)
+
+        self.assertEqual(len(parsed.url_evidence), 1)
+        self.assertEqual(
+            parsed.url_evidence[0].observed_url,
+            "https://wiki.example.test/wiki/spaces/SYN/pages/12/Page",
+        )
+        self.assertEqual(parsed.url_evidence[0].observed_remote_id, "12")
+        self.assertEqual(parsed.url_evidence[0].observed_title, "Synthetic page")
+
 
 if __name__ == "__main__":
     unittest.main()

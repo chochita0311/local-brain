@@ -2,7 +2,7 @@
 
 <!-- schema-objects: workspaces, sessions, activity_events -->
 
-This subject owns current workspace identity, source-backed Session identity and hierarchy, historical working context, normalized activity events, and Session classification. Usage observations are owned separately.
+This subject owns current workspace identity, source-backed Session identity and hierarchy, historical working context, normalized activity events, and Session classification. Usage observations are owned separately. Atlassian URL sightings may point back to eligible primary work Sessions but remain derived rows owned by Atlassian Source Memory.
 
 ## Focused ERD
 
@@ -68,12 +68,12 @@ Constraints: uniqueness of `canonical_path`. Explicit indexes: none.
 
 ### `sessions`
 
-- Purpose and authority: one normalized Claude or Codex Session/subsession per native source external identity. An in-app Task Runner Run is represented by its persisted native Claude primary Session, linked to the Run ledger rather than duplicated by LocalBrain.
+- Purpose and authority: one normalized Claude or Codex Session/subsession per native source external identity. An in-app Task Runner Run is represented by the selected runner's persisted native primary Session, linked to the Run ledger rather than duplicated by LocalBrain.
 - Lifecycle: all Sessions are source-derived from retained native JSONL. Stable IDs are preserved so curated links and Usage Records remain valid. A Run-linked primary and its resolved child Sessions keep metadata while maintenance index/event policy is restricted; the private Runner stream is an operational artifact only.
-- Producers: `ingest/scanner.py` plus Claude/Codex parsers create Sessions and Usage Records; parent reconciliation updates self-references and propagates maintenance policy to Claude children. `runner.py` triggers Claude-only synchronization after terminal and recovered Runs. `db.py` owns the classification/Run-link constraint repair and stales source files when parser contracts change.
+- Producers: `ingest/scanner.py` plus Claude/Codex parsers create Sessions and Usage Records; parent reconciliation updates self-references and propagates maintenance policy to Claude or Codex children. `runner.py` synchronizes the selected native source after terminal and recovered Runs. `db.py` owns the classification/Run-link constraint repair and stales source files when parser contracts change.
 - Consumers: Session inventory/detail, dashboard counts, normalized activity, retrieval, Workstream linking/suggestions, Runner context, search projection, Usage Records, and Usage Dashboard denominators.
 - Relations and deletion: physical `source_id` cascades; optional `workspace_id`, `parent_session_id`, and unique `maintenance_run_id` set null. Deleting a Session cascades `activity_events` and `usage_records`; scanner also removes its search row. Polymorphic links and checkpoint refs are application edges and can retain an unresolved historical ID.
-- Recovery: rescan the authoritative native source file and reconcile parents. Restoring only a Task Runner stream cannot rebuild a Session or Usage Record; restore native Claude JSONL and the Run ledger together. A full database rebuild cannot restore user-curated links, exact operational history, or confirmed review state without backup.
+- Recovery: rescan the authoritative native source file and reconcile parents. Restoring only a Task Runner stream cannot rebuild a Session or Usage Record; restore the selected runner's native Claude or Codex JSONL and the Run ledger together. A full database rebuild cannot restore user-curated links, exact operational history, or confirmed review state without backup.
 - DDL ownership: fresh definition and `idx_sessions_last_event`, `idx_sessions_workspace` in `schema.sql`; compatible columns, backup-backed classification/Run-link table repair, and runtime-only `idx_sessions_class`, `idx_sessions_role`, `idx_sessions_parent` in `db.py`. Before that structural repair, startup preserves `localbrain.db-pre-maintenance-session-contract-v1.bak` and validates it with SQLite `quick_check`. An older additive layout may have the same approved columns in a different physical order; migration validates every name/type/null/default/key contract, copies values by canonical column name, and converges only the physical order.
 
 | Column | Contract |

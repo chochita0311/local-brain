@@ -6,14 +6,15 @@
 - Status: `passed`
 - Owner role: `human`
 - Created: `2026-07-17`
-- Updated: `2026-07-19`
+- Updated: `2026-07-24`
 
 ## Completion State
 
-- FEAT-0025 through FEAT-0032 and the separately approved FEAT-0035, FEAT-0036, and FEAT-0037 passed their execution loops.
-- LocalBrain now owns a pinned offline Mermaid asset, complete 20-table plus FTS5 Data Model baseline, deterministic package presentation contract, and read-only `System > Schema` Explorer across the global model and eight subject areas.
-- The current integrity ledger resolves all 328 schema objects to `keep 273`, `change 0`, `remove 0`, or `defer 55`, with evidence, risk, recovery, and automated stale checks. The count no longer duplicates the enforced Run-to-Session FK as a separate application relation.
+- FEAT-0025 through FEAT-0032, the separately approved FEAT-0035 through FEAT-0037, and follow-up FEAT-0052 passed their execution loops.
+- LocalBrain owns a pinned offline Mermaid asset, the original complete 20-table plus FTS5/eight-subject baseline, a baseline-then-delta maintenance contract, deterministic package presentation, and the read-only `System > Schema` Explorer. Approved deltas now extend current truth to 34 ordinary tables plus FTS5 across nine subject areas.
+- The current integrity ledger resolves all 512 schema objects to `keep 423`, `change 0`, `remove 0`, or `defer 89`, with evidence, risk, recovery, and automated stale checks.
 - On `2026-07-19`, the human owner approved and passed all four migration boundaries. Boundary 4 became FEAT-0037 and now preserves which Workstream started a Maintenance Run through the compatible optional FK.
+- On `2026-07-24`, FEAT-0052 added bounded diagram zoom without changing schema or Mermaid source; official ELK routing evaluation moved to draft PRD-0008.
 
 ## Request Summary
 
@@ -231,6 +232,7 @@ Every current schema object has exactly one primary subject-area owner while cro
 - [FEAT-0035: Maintenance Session Usage Bridge](../feature/feat-0035-maintenance-session-usage-bridge.md) (`superseded`): retain its valid Session classification and Run relation constraint repair, but replace its rejected synthetic stream-backed producer.
 - [FEAT-0036: Native Maintenance Session And Runner UI Consolidation](../feature/feat-0036-native-maintenance-session-and-runner-ui-consolidation.md) (`product`, `fullstack`, `fullstack-product`): link the persisted native Claude Session, propagate maintenance policy to its children, remove marker creation surfaces, and show the exact shared Runner command.
 - [FEAT-0037: Maintenance Run Workstream FK Parity](../feature/feat-0037-maintenance-run-workstream-fk-parity.md) (`foundation`, `data`, `foundation-contract`): restore the compatible optional Workstream-to-Run FK through backup-backed, orphan-refusing, exact-value-preserving migration.
+- [FEAT-0052: Schema Diagram Zoom Navigation](../feature/feat-0052-schema-diagram-zoom-navigation.md) (`product`, `frontend`, `frontend-product`, `passed`): add bounded visible controls and modifier-wheel/pinch zoom to the existing local Mermaid Schema panels without changing diagram source or ordinary scrolling.
 
 The human owner approved step-by-step execution in Feature ID order. FEAT-0025 through FEAT-0032 passed. Human review returned FEAT-0035's producer contract and approved FEAT-0036 as its correction, then approved FEAT-0037 to close the final Workstream ownership compatibility boundary.
 
@@ -266,3 +268,6 @@ The human owner approved step-by-step execution in Feature ID order. FEAT-0025 t
 - `2026-07-19`: final owner review rejected FEAT-0035's `--no-session-persistence` and synthetic stream-backed producer. FEAT-0036 supersedes that part with the persisted native Claude Session, keeps the valid schema repair, removes the redundant marker UI/API, and exposes the exact Runner command plus stdin boundary.
 - `2026-07-19`: FEAT-0036 passed with native Claude Session ownership, maintenance child propagation, marker-surface removal, exact command visibility, and complete contract/design/functional/interaction evidence.
 - `2026-07-19`: the owner approved boundary 4 after confirming that `maintenance_runs.workstream_id` records the Workstream from which the maintenance execution was started. FEAT-0037 passed with exact preservation of six actual Run rows and 15 Suggestion origin links, zero orphans, validated backup, FK/integrity checks, and idempotent startup.
+- `2026-07-24`: growing ERDs exposed a readability gap in the passed Schema Explorer. The owner approved follow-up FEAT-0052 for modifier-wheel/pinch zoom and visible controls; straight ER edge routing remains outside the Feature because Mermaid 11.16.0 does not expose an ER curve option.
+- `2026-07-24`: FEAT-0052 passed with bounded `10%–300%` controls, pointer-anchored modifier zoom, unchanged ordinary scrolling, replacement binding, package/schema/privacy guards, and 260 passing tests. Direct rendered input replay remains a non-blocking first-use check because the required browser control was unavailable.
+- `2026-07-24`: the owner moved official ELK companion-layout evaluation and possible orthogonal ER routing into draft [PRD-0008](prd-0008-connected-atlassian-validation-and-schema-erd-routing.md). PRD-0003 and FEAT-0052 remain passed; no renderer dependency or routing behavior changed here.

@@ -14,7 +14,12 @@ SCHEMA_PATH = ROOT / "src/localbrain/schema.sql"
 DB_PATH = ROOT / "src/localbrain/db.py"
 
 SUBJECTS = {
-    "source-registry-and-scans.md": ("sources", "source_files"),
+    "source-registry-and-scans.md": (
+        "sources",
+        "source_files",
+        "external_source_instances",
+        "external_source_capabilities",
+    ),
     "workspace-and-session-activity.md": (
         "workspaces",
         "sessions",
@@ -34,12 +39,25 @@ SUBJECTS = {
         "local_resources",
         "external_resources",
     ),
+    "atlassian-source-memory.md": (
+        "atlassian_sites",
+        "atlassian_spaces",
+        "atlassian_items",
+        "atlassian_item_urls",
+        "atlassian_item_remote_state",
+        "atlassian_item_content",
+        "atlassian_item_local_state",
+        "atlassian_classifications",
+        "atlassian_item_classifications",
+        "atlassian_evidence_scans",
+        "atlassian_item_evidence",
+    ),
     "review-and-resume-continuity.md": (
         "suggestions",
         "checkpoints",
         "checkpoint_resource_refs",
     ),
-    "maintenance-execution.md": ("maintenance_runs",),
+    "maintenance-execution.md": ("maintenance_runs", "external_sync_runs"),
     "derived-retrieval-index.md": ("search_index",),
 }
 
@@ -51,6 +69,21 @@ REQUIRED_TABLE_LABELS = (
     "Recovery:",
     "DDL ownership:",
 )
+
+REQUIRED_SEMANTIC_SNIPPETS = {
+    "data-model.md": (
+        'SESSIONS ||--o{ ATLASSIAN_EVIDENCE_SCANS : "physical CASCADE composite unique"',
+    ),
+    "atlassian-source-memory.md": (
+        'SESSIONS ||--o{ ATLASSIAN_EVIDENCE_SCANS : "physical CASCADE composite unique"',
+        'ATLASSIAN_ITEMS o|..o{ SEARCH_INDEX : "app indexed projection"',
+        "`not_found`",
+    ),
+    "derived-retrieval-index.md": (
+        'ATLASSIAN_ITEMS o|..o{ SEARCH_INDEX : "app indexed projection"',
+        'ATLASSIAN_CLASSIFICATIONS }o..o{ SEARCH_INDEX : "app local role input"',
+    ),
+}
 
 
 def sha256(path: Path) -> str:
@@ -113,15 +146,22 @@ def main() -> int:
         )
     if not search_exists:
         errors.append("search_index is missing or is not an FTS5 table")
-    if len(ordinary_tables) != 20:
-        errors.append(f"expected 20 ordinary tables, found {len(ordinary_tables)}")
+    if len(ordinary_tables) != 34:
+        errors.append(f"expected 34 ordinary tables, found {len(ordinary_tables)}")
 
     physical_fk_count = sum(
-        len(connection.execute(f'PRAGMA foreign_key_list("{table}")').fetchall())
+        len(
+            {
+                row[0]
+                for row in connection.execute(
+                    f'PRAGMA foreign_key_list("{table}")'
+                ).fetchall()
+            }
+        )
         for table in ordinary_tables
     )
-    if physical_fk_count != 20:
-        errors.append(f"expected 20 physical foreign keys, found {physical_fk_count}")
+    if physical_fk_count != 39:
+        errors.append(f"expected 39 physical foreign keys, found {physical_fk_count}")
 
     fresh_indexes = {
         row[0]: row[1]
@@ -138,10 +178,10 @@ def main() -> int:
         )
     }
     effective_indexes = {**fresh_indexes, **runtime_indexes}
-    if len(fresh_indexes) != 13:
-        errors.append(f"expected 13 fresh explicit indexes, found {len(fresh_indexes)}")
-    if len(effective_indexes) != 20:
-        errors.append(f"expected 20 effective explicit indexes, found {len(effective_indexes)}")
+    if len(fresh_indexes) != 26:
+        errors.append(f"expected 26 fresh explicit indexes, found {len(fresh_indexes)}")
+    if len(effective_indexes) != 33:
+        errors.append(f"expected 33 effective explicit indexes, found {len(effective_indexes)}")
 
     documented_objects: list[str] = []
     documents: list[tuple[Path, str]] = [(ENTRY, entry)]
@@ -201,10 +241,24 @@ def main() -> int:
     if f"`db.py` SHA-256: `{db_digest}`" not in entry:
         errors.append("db.py baseline digest is stale")
 
-    if "Ordinary tables: `20`" not in entry or "Physical foreign keys: `20`" not in entry:
+    if "Ordinary tables: `34`" not in entry or "Physical foreign keys: `39`" not in entry:
         errors.append("global baseline counts are stale")
-    if "Effective explicitly named indexes: `20`" not in entry:
+    if "Effective explicitly named indexes: `33`" not in entry:
         errors.append("global effective-index count is stale")
+
+    semantic_documents = {
+        "data-model.md": entry,
+        **{
+            filename: (SUBJECT_ROOT / filename).read_text(encoding="utf-8")
+            for filename in SUBJECTS
+        },
+    }
+    for filename, snippets in REQUIRED_SEMANTIC_SNIPPETS.items():
+        for snippet in snippets:
+            if snippet not in semantic_documents[filename]:
+                errors.append(
+                    f"{filename} is missing required semantic contract: {snippet}"
+                )
 
     architecture = (ROOT / "docs/policies/project/architecture.md").read_text(encoding="utf-8")
     docs_map = (ROOT / "docs/README.md").read_text(encoding="utf-8")
@@ -232,8 +286,8 @@ def main() -> int:
             print(f"ERROR: {error}", file=sys.stderr)
         return 1
     print(
-        "Data-model docs match 20 ordinary tables, 1 FTS5 object, "
-        "20 physical foreign keys, 20 explicit indexes, and 8 subject owners."
+        "Data-model docs match 34 ordinary tables, 1 FTS5 object, "
+        "39 physical foreign keys, 33 explicit indexes, and 9 subject owners."
     )
     return 0
 

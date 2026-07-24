@@ -4,7 +4,7 @@
 
 This document owns LocalBrain's durable implementation shape: runtime layers, package responsibilities, source adapters, persistence, ingestion behavior, and the current implementation baseline.
 
-Product terminology and organization rules are defined in [Product Model](product.md). In-app Claude maintenance execution is defined in [Claude Task Runner](../operations/claude-task-runner.md).
+Product terminology and organization rules are defined in [Product Model](product.md). In-app maintenance execution is defined in [Maintenance Task Runner](../operations/claude-task-runner.md).
 
 ## Runtime Shape
 
@@ -47,6 +47,12 @@ Approved external sources through MCP Gateway
 - `src/localbrain/workstreams.py`: Workstreams, Threads, checkpoints, resources, links, Suggestions, and retrieval mappings
 - `src/localbrain/retrieval.py`: deterministic candidate selection and evidence preparation
 - `src/localbrain/runner.py`: maintenance Run preparation, execution, streaming, and structured result processing
+- `src/localbrain/external_access.py`: stable external Source Instance registration, rebuildable capability observations, version-controlled Atlassian read policy, and fail-closed dispatch construction; it performs no external call
+- `src/localbrain/external_sync.py`: source-neutral external-sync manifest/result validation, atomic query-envelope preparation, approved host-dispatch evidence validation, and source-fact authority separation
+- `src/localbrain/atlassian.py`: stable External Resource-backed Site/Space/Item identity, scoped URL aliases, remote/local ownership, derived freshness, deterministic body normalization, and hash-gated FTS projection; it performs no external call
+- `src/localbrain/atlassian_browse.py`: local Atlassian inventory filters, grouped search, Item detail, user note/Topic/Tag mutation, and existing Workstream/Thread link projection; it performs no external or model call
+- `src/localbrain/atlassian_registration.py`: strict Jira/Confluence URL recognition, configured Site resolution, local-only Item/Space registration, inventory projection, and explicit one-call partial Space-candidate maintenance composition
+- `src/localbrain/atlassian_refresh.py`: local Item/Space/Thread/Workstream/all-known scope resolution, freshness-aware preview, mixed-instance bounded Run preparation, and atomic validated result application
 - `src/localbrain/subagents.py`: lazy Claude Subsession compatibility discovery over the source-native `subagents/` directory
 - `src/localbrain/schema_explorer.py`: manifest-only Schema query normalization and read model; it never opens the runtime database
 - `src/localbrain/templates/`: server-rendered UI views
@@ -65,28 +71,39 @@ Current adapters:
 - Apple Notes through local macOS Automation
 - local project and Git metadata discovered during scans
 
+Current external-access foundation:
+
+- registered MCP Gateway Jira and Confluence Source Instance contracts
+- registered official Atlassian Cloud Jira and Confluence Source Instance contracts
+- explicit capability inspection operations
+- bounded logical Jira and Confluence reads mapped to exact provider targets
+- source-neutral external-sync maintenance contract for Claude or Codex, with a required injected read executor and no direct model access to broad Gateway tools
+- local-only Jira ticket/project and Confluence Page/Space URL registration, plus explicit one-call partial Space-candidate discovery when a current capability and injected host executor are available
+- local Atlassian browse/search/detail and user-owned Topic/Tag/note classification, plus explicit refresh previews and one bounded mixed-instance maintenance Run for known Items, with no live browse retrieval or implicit external call
+
 ### Adapter Extension Boundary
 
 The [Project Roadmap](../../plans/project/roadmap.md) and [Project Backlog](../../plans/project/backlog.md) own adapter sequencing and named future targets. Any new external adapter must sit behind an approved connector boundary and follow the persistence modes in [Privacy And Data Handling](privacy-and-data.md).
 
 ## Persistence Model
 
-The complete effective-schema map, physical and application relationships, lifecycle/recovery classifications, and eight subject catalogs are owned by [Data Model](data-model.md). This section keeps only the architectural grouping and cross-layer behavior.
+The complete effective-schema map, physical and application relationships, lifecycle/recovery classifications, and nine subject catalogs are owned by [Data Model](data-model.md). This section keeps only the architectural grouping and cross-layer behavior.
 
 The packaged consumer form is owned by [Schema Presentation](schema-presentation.md). Its generator applies fresh DDL and the compatible structural/index path only to SQLite `:memory:`, combines those facts with Data Model semantics, and emits derived JSON. Application consumers load that package data; they do not inspect a user database or repository Markdown.
 
-`System > Schema` serves the read-only `/schema` Explorer from that package data. Optional `area` and `table` query values select one of the eight owner areas and one owned table; invalid state normalizes to the nearest valid overview. Server-rendered links and catalogs remain complete without JavaScript, while the route-scoped module preserves shell continuity, history, focus, and strict locally packaged Mermaid rendering. The route has no SQLite connection, row preview, external asset, SQL, edit, or cleanup action.
+`System > Schema` serves the read-only `/schema` Explorer from that package data. Optional `area` and `table` query values select one of the nine owner areas and one owned table; invalid state normalizes to the nearest valid overview. Server-rendered links and catalogs remain complete without JavaScript, while the route-scoped module preserves shell continuity, history, focus, strict locally packaged Mermaid rendering, and bounded presentation-only diagram zoom. The route has no SQLite connection, row preview, external asset, SQL, edit, or cleanup action.
 
 The current schema groups data into these responsibilities:
 
 | Responsibility | Current entities |
 | --- | --- |
-| Source inventory | `sources`, `source_files`, `context_roots`, `workspaces` |
+| Source inventory | `sources`, `source_files`, `external_source_instances`, `external_source_capabilities`, `context_roots`, `workspaces` |
 | Indexed activity | `sessions`, `activity_events`, `usage_records`, immutable usage price snapshots, `context_documents`, FTS5 search tables |
 | User organization | `workstreams`, `threads`, `checkpoints` |
 | Linkable resources | `local_resources`, `external_resources`, Workstream and Thread links |
+| Atlassian source memory | `atlassian_sites`, `atlassian_spaces`, strict one-to-one `atlassian_items`, URL aliases, remote state, normalized content, local notes, reusable Topic/Tag assignments, source-backed evidence scans/sightings, and role-separated FTS rows |
 | Review workflow | `suggestions`, checkpoint resource snapshots, Thread resource matches |
-| Maintenance execution | `maintenance_runs` plus artifacts under the runtime data directory |
+| Maintenance execution | `maintenance_runs`, source-neutral `external_sync_runs`, and artifacts under the runtime data directory |
 
 Resources are canonical entities. A Session or Document is stored once and may relate to any number of Threads. Relationship-specific evidence is stored separately so the resource payload is not duplicated.
 
@@ -102,6 +119,7 @@ Checkpoint records are versioned, user-confirmed resume states. Confirmation cap
 - Record source check time, status, failures, and refresh requirements.
 - Do not re-import maintenance Run artifacts as ordinary Sessions or Local Context documents.
 - Treat generated titles and summaries as presentation, never as stable identifiers.
+- Treat Atlassian URL evidence as a derived locator: retain the owning source identity, event/line/occurrence, observed URL, and only allowlisted bounded result fields, never a copied excerpt or opaque tool payload.
 
 Original Claude and Codex JSONL remains the authoritative Session source. LocalBrain stores normalized searchable text, selected metadata, source paths, source line numbers, and deterministic IDs so the index can be rebuilt.
 
@@ -123,27 +141,27 @@ The same read model normalizes `breakdown=source|model|project`. It groups by so
 
 Current-month projection remains a non-persisted compatibility calculation in the read model but is not rendered by the Sessions Dashboard. `calendar-elapsed-v1` divides source-scoped compatible MTD estimated cost by the timezone-aware fraction elapsed between local month start and next local month start. It requires three complete local days, a Cost view whose range contains today, and at least one priced Usage Record. Calculation time, source scope, input total, elapsed fraction, formula version, coverage, and freshness state travel with the internal value. It never updates Usage Records or their price snapshots and never runs for a historical-only range.
 
-The Sessions inventory owns a Session-only incremental synchronization action. It scans the configured Claude and Codex roots, reconciles normalized Sessions and parent relations, and does not scan Local Context sources. The Sources inventory owns the wider scan that includes those Session sources plus every enabled Local Context root. Both web actions retain the source-file freshness check and skip unchanged healthy Session files.
+The Sessions inventory owns a Session-only incremental synchronization action. It scans the configured Claude and Codex roots, reconciles normalized Sessions and parent relations, and does not scan Local Context sources. The Sources inventory owns the wider scan that includes those Session sources plus every enabled Local Context root. Both web actions retain the source-file freshness check. An otherwise-current source is reparsed only when its versioned Atlassian evidence scan or enabled configured-Site fingerprint is missing or changed; once both generic and evidence contracts are current, the source is skipped.
 
 ### Adapter-specific Rules
 
 - Import Claude primary and nested `subagents/` files with distinct Session roles and a source-backed parent relation. Use the nested `agent-*.jsonl` filename stem as child identity; its record-level `sessionId` may denote the owning parent.
 - Use the first Codex `session_meta` record as the file identity because a rollout file may contain older embedded metadata.
 - Read Codex parent and Git context from that same primary metadata record; later embedded metadata never replaces the file identity.
-- Index human and assistant message text plus tool names; do not index opaque tool arguments or result payloads by default.
+- Index human and assistant message text plus tool names; do not index opaque tool arguments or result payloads. Approved Atlassian read results may be inspected ephemerally only through bounded URL, remote-ID, and title field/container allowlists, and only the resulting locator evidence is persisted.
 - Preserve historical `cwd_raw` independently from an optional resolved current Project relation.
 - Handle a Session file that is still growing or partially written without discarding previously valid records.
 
 ### Session Policies
 
-Claude and Codex histories are parsed into normalized Sessions and Activity Events. An in-app Task Runner Run persists its normal native Claude Session; the internal Run header classifies that source-backed primary as maintenance and links it uniquely to the Run ledger. Its child Sessions inherit maintenance and metadata-only policy through the resolved parent relation without taking the Run FK. Maintenance Sessions stay excluded from events, search, workflow statistics, and the Sessions Dashboard primary-work Session denominator, while their direct Usage Records remain eligible for token and estimated-cost totals:
+Claude and Codex histories are parsed into normalized Sessions and Activity Events. An in-app Task Runner Run persists the selected runner's normal native Session; the internal Run header classifies that source-backed primary as maintenance and links it uniquely to the Run ledger. Its child Sessions inherit maintenance and metadata-only policy through the resolved parent relation without taking the Run FK. Maintenance Sessions stay excluded from events, search, workflow statistics, and the Sessions Dashboard primary-work Session denominator, while their direct Usage Records remain eligible for token and estimated-cost totals:
 
 ```text
 [LOCALBRAIN_RUN: lb-<12 hex characters>]
 [MODE: maintenance]
 ```
 
-Claude and Codex subsessions are normalized as source-backed Session rows with a retained source parent identity and a nullable resolved parent self-reference. Unresolved, unsafe, and deeper child relations remain stored but do not fall back to top-level presentation. Only primary work Sessions contribute to global Search, Session-derived statistics, Workstream organization candidates, or Workstream maintenance retrieval.
+Claude and Codex subsessions are normalized as source-backed Session rows with a retained source parent identity and a nullable resolved parent self-reference. Unresolved, unsafe, and deeper child relations remain stored but do not fall back to top-level presentation. Only primary work Sessions contribute to global Search, Session-derived statistics, Workstream organization candidates, Workstream maintenance retrieval, or Atlassian URL evidence. Maintenance and subsession output can never rediscover its own external-sync targets.
 
 Session detail presentation selects normalized `message` events in source sequence for primary Sessions and eligible direct children. A copied presentation view renders only user and assistant text through the shared Markdown contract without an owning Local Context source; raw event text, source-relative unresolved references, `tool_call` rows, tool names, source JSONL, and the Session's complete event count remain unchanged. Parent details list same-source direct children as Subsessions; child details resolve only to a same-source primary parent. `/sessions/{id}/subsessions/{file}` is the canonical lazy compatibility route. Existing Claude `/subagents/` links redirect to that route, which still reads the source-native `subagents/` directory and uses the same message-only Markdown presentation.
 
@@ -156,7 +174,7 @@ The `context_roots` registry owns folders, individual files, and Apple Notes sou
 - Folder registration scans supported content recursively.
 - Overlapping parent and child folder roots are rejected to keep document ownership unambiguous.
 - Hidden and generated directories such as `.git`, `node_modules`, `dist`, and `build` are excluded.
-- Removing a source disables browsing and search without deleting original local files.
+- Removing a source disables browsing and search and clears its derived Atlassian URL sightings without deleting original local files or stable Atlassian Items.
 - Re-adding a previously removed path restores and refreshes that source.
 - Individual text files are registered independently from folder roots.
 - PDF text is currently indexed only when macOS Spotlight exposes readable content.
@@ -178,13 +196,13 @@ Implemented in the current vertical slice:
 - maintenance Session exclusion and source-neutral Claude/Codex subsession normalization
 - source-neutral Claude/Codex Usage Records with immutable local trend-cost snapshots
 - reproducible Sessions Dashboard usage summary, MTD context, GET scope, and Daily, Weekly, or Cumulative token/cost history
-- durable Claude Task Runner history, streaming result display, cancellation, and reviewable structured output
+- durable Maintenance Task Runner history, Claude/Codex external-sync parity, streaming result handling, cancellation, and reviewable structured output
 - deterministic SQLite/FTS5 retrieval without hard candidate or evidence-count caps
 - normalized many-to-many Thread resource matches with reusable fingerprints and deduplicated evidence
 - source browsing for folders, files, and Apple Notes
 - context-aware full Document reading with an owning FOLDERS tree, bounded non-FOLDERS fallback, and source-preserving Markdown presentation
 - safe Markdown conversation reading for visible Session and Subsession user and assistant messages without Local Context source guessing
-- Atlassian navigation shell without external ingestion
+- Atlassian stable source memory, bounded Session/Local Context URL evidence, default local browse plus explicit setup, grouped local search, Item detail, notes, Topic/Tag classification, exact Workstream/Thread links, explicit partial Space discovery, and explicit known-Item refresh previews without implicit remote ingestion or model calls
 
 Open implementation work is tracked in the [Project Backlog](../../plans/project/backlog.md).
 
@@ -192,6 +210,15 @@ Open implementation work is tracked in the [Project Backlog](../../plans/project
 
 - LocalBrain remains local-first and single-user during the MVP.
 - External integration starts read-only.
+- External Source Instance registration is durable local state, while its latest capability observation is rebuildable operational state. Only version-controlled policy may map a logical operation to an external target.
+- Capability inspection is explicit. Application startup, browse, search, and ordinary local preview do not inspect or refresh external capabilities.
+- Atlassian page load, service switching, local URL preview, connection editing, local inventory filtering, grouped search, detail reading, note/Topic/Tag edits, and Workstream/Thread link edits perform no external or model call. A valid URL auto-selects a Site only when service and normalized domain resolve to exactly one enabled registration. A first domain can instead create an unbound or shape-validated Source Instance, Site, and reference atomically after an explicit local access-path choice; URL shape never selects provider, ambiguous existing mappings still require an explicit Site, and failed setup rolls back every new row.
+- Atlassian FTS uses deterministic role rows under one stable Item ID: identity is always eligible, bounded metadata follows metadata/indexed coverage, normalized remote body follows indexed coverage, and local note/Topic/Tag text remains a separate local role. Search groups matching roles and resolves current relational Source, Site, coverage, freshness, and classification state before display.
+- Accessible-Space discovery is a separately submitted maintenance Run, uses the selected Source Instance and Site, consumes at most one policy-authorized metadata search call, labels results as partial, and registers no candidate until explicit confirmation.
+- Atlassian refresh scope resolution and preview are local-only. Item, Space, Thread, Workstream, and all-known selections are bounded to already-known Items, default by derived freshness, show calculated reads, and cannot queue more than 20 reads. A mixed-instance selection remains one Run whose targets each carry their own pre-authorized Source Instance; single-instance manifests retain the original envelope shape.
+- Jira Space refresh reads only selected known Items. Confluence may explicitly enumerate one 200-Page catalog page for a registered Space; new Page identities become stale indexed-intent stubs, while body retrieval remains a later explicit selected batch.
+- External read authorization intersects enabled registration, current observation, and static policy. Unknown, stale, unavailable, unauthorized, error, disabled, arbitrary-tool, and write-shaped requests fail before dispatch.
+- External synchronization persists a generic maintenance parent plus one source-neutral query envelope. Its model process receives only host-validated local evidence; source facts come from the approved executor and cannot be authored by model output. A validated Atlassian refresh result is applied in the same database transaction as the terminal Run state, so invalid target/source/locator mappings cannot partially mutate Items.
 - User review state and source provenance must survive rescans and suggestion refreshes.
 - A failed maintenance Run must not clear the existing review queue.
 - Historical source paths must remain visible when their current Project relation is missing or changes.

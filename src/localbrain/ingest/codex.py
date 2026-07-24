@@ -5,11 +5,14 @@ from .common import (
     ParsedEvent,
     ParsedSession,
     ParsedUsageRecord,
+    approved_atlassian_tool_call,
+    approved_tool_result_evidence,
     compact_title,
     read_json_lines,
     session_policy,
     stable_id,
     token_value,
+    visible_url_evidence,
 )
 from ..usage import CODEX_FAST_TIERED_PRICE_SNAPSHOT_ID
 
@@ -256,6 +259,8 @@ def parse_codex_session(path: Path) -> ParsedSession:
     timestamps: List[str] = []
     events: List[ParsedEvent] = []
     usage_by_record: Dict[str, ParsedUsageRecord] = {}
+    url_evidence = []
+    approved_tool_calls: Dict[str, bool] = {}
     skipped_lines = 0
     session_meta_seen = False
     primary_started_at: Optional[str] = None
@@ -370,15 +375,45 @@ def parse_codex_session(path: Path) -> ParsedSession:
                 text = text.strip()
                 if role == "user" and not first_user_text:
                     first_user_text = text
+                event_id = stable_id("codex", external_id, line_number, role)
                 events.append(
                     ParsedEvent(
-                        event_id=stable_id("codex", external_id, line_number, role),
+                        event_id=event_id,
                         sequence=line_number * 10,
                         source_line=line_number,
                         event_type="message",
                         occurred_at=timestamp if isinstance(timestamp, str) else None,
                         role=role,
                         text=text,
+                    )
+                )
+                url_evidence.extend(
+                    visible_url_evidence(
+                        text,
+                        source_line=line_number,
+                        source_event_id=event_id,
+                        observed_at=timestamp if isinstance(timestamp, str) else None,
+                    )
+                )
+            continue
+
+        if record_type == "response_item" and payload.get("type") in {
+            "function_call_output",
+            "custom_tool_call_output",
+        }:
+            call_id = payload.get("call_id") or payload.get("id")
+            if isinstance(call_id, str) and approved_tool_calls.get(call_id):
+                url_evidence.extend(
+                    approved_tool_result_evidence(
+                        payload.get("output"),
+                        source_line=line_number,
+                        source_event_id=stable_id(
+                            "codex",
+                            external_id,
+                            line_number,
+                            "approved-tool-result",
+                        ),
+                        observed_at=timestamp if isinstance(timestamp, str) else None,
                     )
                 )
             continue
@@ -389,6 +424,12 @@ def parse_codex_session(path: Path) -> ParsedSession:
         }:
             tool_name = payload.get("name")
             if isinstance(tool_name, str):
+                call_id = payload.get("call_id") or payload.get("id")
+                if isinstance(call_id, str):
+                    approved_tool_calls[call_id] = approved_atlassian_tool_call(
+                        tool_name,
+                        payload.get("arguments") or payload.get("input"),
+                    )
                 events.append(
                     ParsedEvent(
                         event_id=stable_id("codex", external_id, line_number, "tool"),
@@ -424,4 +465,5 @@ def parse_codex_session(path: Path) -> ParsedSession:
         session_role=session_role,
         parent_external_id=parent_external_id,
         usage_records=list(usage_by_record.values()),
+        url_evidence=url_evidence,
     )

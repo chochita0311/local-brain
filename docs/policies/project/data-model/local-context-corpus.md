@@ -2,7 +2,7 @@
 
 <!-- schema-objects: context_roots, context_documents -->
 
-This subject owns user-managed Context source registration and the locally indexed document corpus. Generic source/scan rows remain owned by Source Registry And Scans.
+This subject owns user-managed Context source registration and the locally indexed document corpus. Generic source/scan rows remain owned by Source Registry And Scans. Atlassian URL sightings may point back to enabled Documents but remain derived rows owned by Atlassian Source Memory.
 
 ## Focused ERD
 
@@ -68,7 +68,7 @@ Constraints: uniqueness of `path`. Explicit indexes: none.
 - Lifecycle: source-derived and rebuildable while the external source remains available. The stored body is local indexed content and is never copied into tracked schema evidence.
 - Producers: `ingest/scanner.py` upserts documents and removes disappeared rows; `db.py` migrates older root associations and relative paths.
 - Consumers: Context browse/detail in `queries.py` and `main.py`, retrieval evidence, Runner context manifests, Workstream links/suggestions, source summaries, and `search_index` projection.
-- Relations and deletion: source deletion cascades. Context root and workspace deletion set their keys null, retaining the document until scanner/root lifecycle removes it. Scanner and `contexts.py` explicitly remove matching FTS rows. It is an application target for Workstream, Thread, and checkpoint references.
+- Relations and deletion: source deletion cascades. Context root and workspace deletion set their keys null, retaining the document until scanner/root lifecycle removes it. Scanner and `contexts.py` explicitly remove matching FTS rows; disabling a Context root also clears its derived Atlassian evidence without deleting any Item. It is an application target for Workstream, Thread, and checkpoint references.
 - Recovery: rescan external sources. If the original content is gone, only a database/host backup can recover the indexed body; LocalBrain is not the authority for the original file.
 - DDL ownership: fresh definition plus `idx_documents_mtime` in `schema.sql`; compatible `context_root_id` and `content_type`, migration assignment, and runtime-only `idx_documents_context_root` in `db.py`.
 

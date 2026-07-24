@@ -5,7 +5,8 @@
 - macOS for the current Apple Notes integration and default data location
 - Python 3.9 or later
 - `uv` for dependency and virtual environment management
-- Claude CLI only when exercising the Claude Task Runner
+- Claude CLI only for Claude-backed maintenance Runs
+- Codex CLI only when selecting Codex for external synchronization
 
 ## Setup And Run
 
@@ -58,7 +59,8 @@ LocalBrain reads these environment variables at process startup:
 | `LOCALBRAIN_CLAUDE_ROOT` | `~/.claude/projects` | Claude session history root |
 | `LOCALBRAIN_CODEX_ROOT` | `~/.codex/sessions` | Codex session history root |
 | `LOCALBRAIN_CLAUDE_BIN` | resolved from `PATH` | Claude CLI executable used by the Task Runner |
-| `LOCALBRAIN_MCP_CALL_BUDGET` | `20` | Advisory MCP call budget per maintenance Run |
+| `LOCALBRAIN_CODEX_BIN` | resolved from `PATH` | Codex CLI executable available to source-neutral external synchronization |
+| `LOCALBRAIN_MCP_CALL_BUDGET` | `20` | Advisory legacy-task budget and hard selected-request ceiling for external synchronization |
 | `LOCALBRAIN_TIMEZONE` | system IANA timezone, then `UTC` | Local calendar boundaries for usage and activity reports |
 
 Do not place secrets in tracked environment files. See [Privacy And Data Handling](privacy-and-data.md) before changing data locations or persistence behavior.
@@ -158,5 +160,5 @@ Do not claim full verification when a required local source, macOS permission, C
 - Update [Product Model](product.md) for durable product and organization rules.
 - Update [Project Architecture](architecture.md) for runtime ownership, source adapters, data model, or ingestion behavior.
 - After the PRD-0003 baseline exists, update only the affected data-model subject documents for ordinary schema deltas; update their entry map when subject files or cross-domain ownership changes.
-- Update [Claude Task Runner](../operations/claude-task-runner.md) for in-app maintenance execution or review semantics.
+- Update [Maintenance Task Runner](../operations/claude-task-runner.md) for in-app maintenance execution or review semantics.
 - Update [Project Roadmap](../../plans/project/roadmap.md) for sequencing and [Project Backlog](../../plans/project/backlog.md) for unresolved work.

@@ -29,9 +29,9 @@ class SchemaExplorerViewModelTests(unittest.TestCase):
 
         self.assertTrue(view["available"])
         self.assertEqual(view["mode"], "global")
-        self.assertEqual(view["baseline"]["object_count"], 21)
-        self.assertEqual(view["baseline"]["physical_foreign_key_count"], 20)
-        self.assertEqual(len(view["subjects"]), 8)
+        self.assertEqual(view["baseline"]["object_count"], 35)
+        self.assertEqual(view["baseline"]["physical_foreign_key_count"], 39)
+        self.assertEqual(len(view["subjects"]), 9)
         self.assertEqual(
             [subject["id"] for subject in view["subjects"]],
             [subject["id"] for subject in self.manifest["subjects"]],
@@ -134,6 +134,13 @@ class SchemaExplorerRouteTests(unittest.TestCase):
         self.assertIn('data-localbrain-mermaid="owned"', html)
         self.assertIn('data-localbrain-mermaid-source', html)
         self.assertIn('data-schema-link', html)
+        self.assertIn('data-schema-diagram-viewport', html)
+        self.assertIn('data-schema-zoom-controls', html)
+        self.assertIn('data-schema-zoom-out', html)
+        self.assertIn('data-schema-zoom-reset', html)
+        self.assertIn('data-schema-zoom-in', html)
+        self.assertIn('data-schema-zoom-fit', html)
+        self.assertIn('Ctrl/Cmd + 휠', html)
 
     def test_route_renders_canonical_table_detail_and_bounded_invalid_state(self):
         response = schema_page(

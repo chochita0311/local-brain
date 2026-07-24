@@ -2,6 +2,7 @@ import sqlite3
 from pathlib import Path, PurePosixPath
 from typing import Optional
 
+from .atlassian_evidence import clear_context_root_evidence
 from .markdown import render_markdown
 from .markdown_references import MarkdownDocumentReference, MarkdownReferenceContext
 from .workstreams import utc_now
@@ -141,6 +142,7 @@ def remove_context_root(connection: sqlite3.Connection, root_id: int) -> None:
     ).fetchone()
     if not row:
         raise LookupError("Local Context root not found")
+    clear_context_root_evidence(connection, root_id)
     connection.execute(
         """
         DELETE FROM search_index

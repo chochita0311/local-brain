@@ -514,32 +514,51 @@ def create_external_resource(
     if resource_type not in RESOURCE_TYPES:
         raise ValueError("Unsupported resource type")
     now = utc_now()
-    connection.execute(
+    normalized_url = url.strip()
+    existing = connection.execute(
+        """
+        SELECT id FROM external_resources
+        WHERE url = ?
+        ORDER BY id
+        LIMIT 1
+        """,
+        (normalized_url,),
+    ).fetchone()
+    if existing:
+        resource_id = int(existing["id"])
+        connection.execute(
+            """
+            UPDATE external_resources
+            SET resource_type = ?, title = ?, summary = ?, source_role = ?,
+                updated_at = ?
+            WHERE id = ?
+            """,
+            (
+                resource_type,
+                title.strip(),
+                _clean(summary),
+                _clean(source_role),
+                now,
+                resource_id,
+            ),
+        )
+        return resource_id
+    cursor = connection.execute(
         """
         INSERT INTO external_resources(
             resource_type, title, url, summary, source_role, updated_at
         ) VALUES (?, ?, ?, ?, ?, ?)
-        ON CONFLICT(url) DO UPDATE SET
-            resource_type = excluded.resource_type,
-            title = excluded.title,
-            summary = excluded.summary,
-            source_role = excluded.source_role,
-            updated_at = excluded.updated_at
         """,
         (
             resource_type,
             title.strip(),
-            url.strip(),
+            normalized_url,
             _clean(summary),
             _clean(source_role),
             now,
         ),
     )
-    return int(
-        connection.execute(
-            "SELECT id FROM external_resources WHERE url = ?", (url.strip(),)
-        ).fetchone()["id"]
-    )
+    return int(cursor.lastrowid)
 
 
 def create_local_resource(
