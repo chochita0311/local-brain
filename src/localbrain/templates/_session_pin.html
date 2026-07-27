@@ -1,0 +1,32 @@
+{% macro session_pin_control(session, return_to, variant='inventory') -%}
+  {% set pinned = session.pinned_at is not none %}
+  {% set action_label = '핀 해제' if pinned else '핀 고정' %}
+  {% set inline_error = request.query_params.get('pin_error') == 'storage-unavailable' and request.query_params.get('pin_session') == (session.id ~ '') if request is defined else false %}
+  <form
+    class="session-pin-form {{ variant }}"
+    action="/sessions/{{ session.id }}/{{ 'unpin' if pinned else 'pin' }}"
+    method="post"
+    data-session-pin-form
+  >
+    <input type="hidden" name="return_to" value="{{ return_to }}" data-session-pin-return>
+    <button
+      id="session-pin-{{ session.id }}"
+      class="session-pin-button"
+      type="submit"
+      aria-label="{{ action_label }}"
+      aria-pressed="{{ 'true' if pinned else 'false' }}"
+      {% if inline_error %}aria-describedby="session-pin-error-{{ session.id }}"{% endif %}
+      title="{{ action_label }}"
+      data-session-pin-control
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path class="session-pin-shape" d="M8 3h8l-1 6 3 3v2H6v-2l3-3-1-6Z"></path>
+        <path class="session-pin-stem" d="M12 14v7"></path>
+      </svg>
+      <span class="sr-only">{{ action_label }}</span>
+    </button>
+    {% if inline_error %}
+      <span id="session-pin-error-{{ session.id }}" class="session-pin-inline-error" role="alert">핀 상태를 저장하지 못했습니다. 현재 상태는 변경되지 않았습니다.</span>
+    {% endif %}
+  </form>
+{%- endmacro %}

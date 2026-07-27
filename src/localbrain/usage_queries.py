@@ -231,8 +231,14 @@ def _aggregate_rows(rows: Iterable[Tuple[sqlite3.Row, datetime]], zone: ZoneInfo
     }
     active_days = {occurred_at.astimezone(zone).date() for _, occurred_at in rows}
     states: DefaultDict[str, int] = defaultdict(int)
+    aggregation_scopes: DefaultDict[str, int] = defaultdict(int)
+    capability_states: DefaultDict[str, int] = defaultdict(int)
+    attribution_bases: DefaultDict[str, int] = defaultdict(int)
     for row, _ in rows:
         states[row["calculation_state"]] += 1
+        aggregation_scopes[row["aggregation_scope"]] += 1
+        capability_states[row["capability_state"]] += 1
+        attribution_bases[row["attribution_basis"]] += 1
     state_counts = dict(states)
     return {
         "usage_record_count": len(rows),
@@ -243,11 +249,9 @@ def _aggregate_rows(rows: Iterable[Tuple[sqlite3.Row, datetime]], zone: ZoneInfo
         "session_count": len(primary_sessions),
         "active_days": len(active_days),
         "calculation_states": state_counts,
-        "calculation_state_label": " · ".join(
-            "{} {}".format(state, count)
-            for state, count in sorted(state_counts.items())
-        )
-        or "No calculations",
+        "aggregation_scopes": dict(aggregation_scopes),
+        "capability_states": dict(capability_states),
+        "attribution_bases": dict(attribution_bases),
     }
 
 

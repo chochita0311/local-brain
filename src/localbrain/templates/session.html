@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 {% from "_conversation.html" import conversation_message %}
+{% from "_session_pin.html" import session_pin_control with context %}
+{% set session_return_to = (request.url.path ~ (('?' ~ request.url.query) if request.url.query else '')) if request is defined else '/sessions/' ~ session.id %}
+{% set session_pin_error = request.query_params.get('pin_error') if request is defined else none %}
 {% block title %}{{ session.title }} · LocalBrain{% endblock %}
 {% block page_location %}Session detail{% endblock %}
 {% block content %}
@@ -7,57 +10,84 @@
     {% if parent %}<a class="back-link" href="/sessions/{{ parent.id }}">상위 Session으로 돌아가기</a>{% endif %}
     <a class="back-link" href="/sessions">Sessions 목록</a>
   </nav>
+  {% if session_pin_error and session_pin_error != 'storage-unavailable' %}
+    <div class="session-pin-notice" role="alert">
+      {% if session_pin_error == 'missing' %}
+        세션을 찾을 수 없어 핀 상태를 바꾸지 못했습니다.
+      {% elif session_pin_error == 'ineligible' %}
+        기본 작업 Session만 핀으로 고정할 수 있습니다.
+      {% endif %}
+    </div>
+  {% endif %}
   <section class="session-heading">
-    <div class="session-source large {{ session.source_kind }}"><span aria-hidden="true">{{ 'CL' if session.source_kind == 'claude' else 'CX' }}</span><span class="sr-only">{{ session.source_name }}</span></div>
-    <div>
-      <p class="eyebrow">{{ session.source_name }}{% if parent %} · SUBSESSION{% endif %}</p>
+    <div class="session-source large {{ session.source_kind }}"><span aria-hidden="true">{{ 'CL' if session.source_kind == 'claude' else 'CX' }}</span><span class="sr-only">{{ value_label("source.kind", session.source_kind) }} · {{ value_label("session.role", session.session_role) }}</span></div>
+    <div class="session-heading-copy">
+      {% if parent %}<p class="eyebrow">SUBSESSION</p>{% endif %}
       <h1>{{ session.title }}</h1>
       <p class="heading-copy path-copy">{{ session.workspace_path or session.cwd_raw or session.source_path }}</p>
     </div>
+    {% if not parent and session.session_role == 'primary' %}
+      <div class="session-heading-action">{{ session_pin_control(session, session_return_to, 'detail') }}</div>
+    {% endif %}
   </section>
 
-  <section class="detail-strip">
-    <div><span>마지막 활동</span><strong><time datetime="{{ session.last_event_at }}" data-local-time>{{ session.last_event_at or '-' }}</time></strong></div>
-    <div><span>질문</span><strong>{{ session.user_message_count }}</strong></div>
-    <div><span>원본 이벤트</span><strong>{{ session.event_count }}</strong></div>
-    <div><span>브랜치</span><strong>{{ session.git_branch or '-' }}</strong></div>
-    <div><span>현재 경로</span><strong class="{{ 'available' if session.exists_now else 'missing' }}">{{ '사용 가능' if session.exists_now else '경로 없음' }}</strong></div>
-  </section>
+  <div class="session-detail-layout{% if related_context %} has-related-context{% endif %}">
+    <div class="session-detail-orientation">
+      <section class="detail-strip">
+        <div><span>마지막 활동</span><strong><time datetime="{{ session.last_event_at }}" data-local-time>{{ session.last_event_at or '-' }}</time></strong></div>
+        <div><span>질문</span><strong>{{ session.user_message_count }}</strong></div>
+        <div><span>원본 이벤트</span><strong>{{ session.event_count }}</strong></div>
+        <div><span>브랜치</span><strong>{{ session.git_branch or '-' }}</strong></div>
+        <div><span>현재 경로</span><strong class="{{ 'available' if session.exists_now else 'missing' }}">{{ value_label("workspace.exists-now", 1 if session.exists_now else 0) }}</strong></div>
+      </section>
 
-  {% if parent %}
-    <section class="scope-notice parent-session-notice"><span>상위 Session</span><a href="/sessions/{{ parent.id }}">{{ parent.title }}</a></section>
-  {% endif %}
+      {% if parent %}
+        <section class="scope-notice parent-session-notice"><span>상위 Session</span><a href="/sessions/{{ parent.id }}">{{ parent.title }}</a></section>
+      {% endif %}
 
-  {% if memberships %}
-    <section class="membership-strip">
-      <span>연결된 작업</span>
-      {% for membership in memberships %}<a href="/workstreams/{{ membership.workstream_id }}"><strong>{{ membership.workstream_name }}</strong>{% if membership.thread_title %}<small>{{ membership.thread_title }}</small>{% endif %}</a>{% endfor %}
-    </section>
-  {% endif %}
+      {% if memberships %}
+        <section class="membership-strip">
+          <span>연결된 작업</span>
+          {% for membership in memberships %}<a href="/workstreams/{{ membership.workstream_id }}"><strong>{{ membership.workstream_name }}</strong>{% if membership.thread_title %}<small>{{ membership.thread_title }}</small>{% endif %}</a>{% endfor %}
+        </section>
+      {% endif %}
 
-  {% if subsessions %}
-    <section class="subsession-section">
-      <div class="section-toolbar"><div><h2>Subsessions</h2><p>이 Session의 직접 하위 Session</p></div><span class="table-count">{{ subsessions | length }}</span></div>
-      <div class="subsession-list">
-        {% for subsession in subsessions %}<a href="{{ subsession.url }}"><span class="session-source {{ subsession.source_kind }}"><span aria-hidden="true">{{ 'CL' if subsession.source_kind == 'claude' else 'CX' }}</span><span class="sr-only">{{ subsession.source_kind | capitalize }} Subsession</span></span><div><strong>{{ subsession.title }}</strong><small>{{ subsession.external_id }} · 원본 이벤트 {{ subsession.event_count }}</small></div><time datetime="{{ subsession.last_event_at }}" data-local-time>{{ subsession.last_event_at or '-' }}</time></a>{% endfor %}
+      {% if subsessions %}
+        <section class="subsession-section">
+          <div class="section-toolbar"><div><h2>Subsessions</h2></div><span class="table-count">{{ subsessions | length }}</span></div>
+          <div class="subsession-list">
+            {% for subsession in subsessions %}
+              <a href="{{ subsession.url }}">
+                <span class="session-source {{ subsession.source_kind }}"><span aria-hidden="true">{{ 'CL' if subsession.source_kind == 'claude' else 'CX' }}</span><span class="sr-only">{{ value_label("source.kind", subsession.source_kind) }} · {{ value_label("session.role", "subsession") }}</span></span>
+                <div><strong>{{ subsession.title }}</strong><small>{{ subsession.external_id }}</small></div>
+                <span class="subsession-event-count">이벤트 {{ subsession.event_count }}</span>
+                <time datetime="{{ subsession.last_event_at }}" data-local-time>{{ subsession.last_event_at or '-' }}</time>
+              </a>
+            {% endfor %}
+          </div>
+        </section>
+      {% endif %}
+    </div>
+
+    {% if related_context %}
+      {% include "_session_related_context.html" %}
+    {% endif %}
+
+    <section class="timeline-section">
+      <div class="section-toolbar">
+        <div><h2>대화</h2><p>{{ events | length }}개 메시지 · 도구 활동은 원본 이벤트에 남아 있지만 이 화면에서는 숨깁니다.</p></div>
+      </div>
+      <div class="event-timeline">
+        {% for event in events %}
+          {{ conversation_message(
+            event,
+            '상위 Session' if parent else '나',
+            session.source_name ~ ' Subsession' if parent else session.source_name
+          ) }}
+        {% else %}
+          <div class="empty-state conversation-empty"><p>표시할 대화 메시지가 없습니다.</p><small>도구 활동은 원본 이벤트 수에 포함되지만 대화 화면에는 표시하지 않습니다.</small></div>
+        {% endfor %}
       </div>
     </section>
-  {% endif %}
-
-  <section class="timeline-section">
-    <div class="section-toolbar">
-      <div><h2>대화</h2><p>{{ events | length }}개 메시지 · 도구 활동은 원본 이벤트에 남아 있지만 이 화면에서는 숨깁니다.</p></div>
-    </div>
-    <div class="event-timeline">
-      {% for event in events %}
-        {{ conversation_message(
-          event,
-          '상위 Session' if parent else '나',
-          session.source_name ~ ' Subsession' if parent else session.source_name
-        ) }}
-      {% else %}
-        <div class="empty-state conversation-empty"><p>표시할 대화 메시지가 없습니다.</p><small>도구 활동은 원본 이벤트 수에 포함되지만 대화 화면에는 표시하지 않습니다.</small></div>
-      {% endfor %}
-    </div>
-  </section>
+  </div>
 {% endblock %}

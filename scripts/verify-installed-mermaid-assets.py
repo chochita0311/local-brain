@@ -1,4 +1,5 @@
 import asyncio
+import json
 from pathlib import Path
 
 import localbrain
@@ -38,17 +39,29 @@ async def fetch(static: StaticFiles, path: str) -> bytes:
 async def main() -> None:
     package_root = Path(localbrain.__file__).resolve().parent
     static = StaticFiles(directory=package_root / "static")
-    bundle, manifest, adapter = await asyncio.gather(
+    bundle, manifest_bytes, adapter, layout_license, elkjs_license = await asyncio.gather(
         fetch(static, "vendor/mermaid/mermaid.esm.min.js"),
         fetch(static, "vendor/mermaid/asset-manifest.json"),
         fetch(static, "mermaid-adapter.js"),
+        fetch(static, "vendor/mermaid/layout-elk-LICENSE.txt"),
+        fetch(static, "vendor/mermaid/elkjs-LICENSE.txt"),
     )
     if len(bundle) <= 3_000_000:
         raise AssertionError("Installed Mermaid bundle is unexpectedly small.")
-    if b'"schema": "localbrain.mermaid-assets.v1"' not in manifest:
+    manifest = json.loads(manifest_bytes)
+    if manifest.get("schema") != "localbrain.mermaid-assets.v1":
         raise AssertionError("Installed Mermaid asset manifest has the wrong schema.")
+    dependencies = manifest.get("dependencies", {})
+    if dependencies.get("layoutElk") != {"license": "MIT", "version": "0.2.2"}:
+        raise AssertionError("Installed Mermaid ELK loader metadata is invalid.")
+    if dependencies.get("elkjs") != {"license": "EPL-2.0", "version": "0.9.3"}:
+        raise AssertionError("Installed ELK engine metadata is invalid.")
+    if b"MIT License" not in layout_license or b"Eclipse Public License" not in elkjs_license:
+        raise AssertionError("Installed Mermaid ELK licenses are missing.")
     if b'securityLevel: "strict"' not in adapter:
         raise AssertionError("Installed Mermaid adapter is missing strict security.")
+    if b"registerLayoutLoaders(elkLayouts)" not in adapter:
+        raise AssertionError("Installed Mermaid adapter is missing ELK registration.")
     print(f"Installed Mermaid assets verified from {package_root}.")
 
 

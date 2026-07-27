@@ -4,6 +4,8 @@
 
 This subject owns the Atlassian-specific extension of a stable user-linkable External Resource. It separates access boundaries, Site domains, optional Spaces, remote identity, URL observations, remote metadata, source bodies, user-authored notes and classifications, freshness evidence, source-backed Session/Local Context sightings, and FTS projection state. Evidence points to Session and Document owners without copying their excerpts or opaque provider payloads. Browse, search, local classification, and extraction perform no external or model call.
 
+[Value Dictionary](value-dictionaries/atlassian-source-memory.md) owns this subject's bounded physical/logical/presentation mappings.
+
 ## Focused ERD
 
 ```mermaid
@@ -54,6 +56,7 @@ erDiagram
 - `atlassian_evidence_scans` owns extractor freshness independently from generic source-file and remote freshness. Source, extractor, or configured-Site fingerprint changes trigger local re-evaluation; unchanged triples skip parsing.
 - Coverage, attention, and freshness are independent. Freshness is derived rather than persisted as a label.
 - Direct preview and registration are local-only. An HTTP(S) Jira issue/project or Confluence Page/Space URL selects a Site automatically only when service plus normalized domain matches exactly one enabled configured Site; ambiguous configured domains require an explicit Site. For a first domain, URL-first setup requires an explicit local access-path choice and creates the Source Instance, Site, and reference atomically. Provider is not derived from URL shape. The new Source Instance may remain unbound for local-only reference use, while remote discovery and refresh continue to require current capability. Key-only text is never registration evidence.
+- The Add orientation is a read-only projection of persisted Site, Space, and Item rows. It groups Source Instance-specific Site rows by service plus normalized domain, deduplicates repeated Space and Item remote identities for orientation, and retains the distinct MCP connections below each target. Evidence rows, unregistered URL sightings, and unconfirmed discovery candidates are not inputs to this projection. Connected discovery posts the target domain and chosen Site row separately; the producer rejects a pair whose domains differ before creating a maintenance Run.
 - Accessible-Space discovery is an explicit maintenance Run. The current provider catalog has no complete project/Space-list operation, so LocalBrain performs at most one bounded metadata search call, labels its deduplicated results as partial, and registers nothing until the user confirms one candidate.
 - Refresh preview is local-only and resolves exact existing Item membership for Item, Space, Thread, Workstream, or all-known scope. It derives default selection from freshness, displays last-check/content times and calculated reads, and performs no capability inspection, provider call, or model call.
 - One submitted refresh contains at most 20 pre-authorized reads. Workstream includes its direct and Thread-linked Items with stable-ID deduplication; Thread includes direct mappings only; all-known never expands beyond existing local Items. A mixed Source Instance selection remains one maintenance Run with per-target source authorization.
@@ -306,7 +309,7 @@ Constraints: exactly one source FK; `UNIQUE(session_id, source_path)` and unique
 - Purpose and authority: a derived, source-separated sighting of one recognized configured Atlassian Item URL.
 - Lifecycle: fully derived per owning source. A successful changed scan upserts current sightings and removes obsolete sightings from that source, but never deletes the stable Item, remote state/content, or local organization.
 - Producers: `atlassian_evidence.py` after URL recognition and FEAT-0046 stable stub reuse.
-- Consumers: Item detail and evidence navigation; no refresh or remote-identity path may treat a sighting as successful remote confirmation.
+- Consumers: Item detail, evidence navigation, and the local Session `Related Context` projection when `session_id` points to the viewed primary Session; no refresh or remote-identity path may treat a sighting as successful remote confirmation.
 - Relations and deletion: required cascading Item FK plus exactly one cascading Session or Document FK. Session evidence requires a stable event/location identifier; Document evidence uses line and URL occurrence without an excerpt.
 - Recovery: rescan the owning local source. If the source is gone, the evidence is intentionally unavailable; Item identity and user state remain in their own tables.
 - DDL ownership: fresh definition plus `idx_atlassian_evidence_item`, `idx_atlassian_evidence_session`, and `idx_atlassian_evidence_document` in `schema.sql`.

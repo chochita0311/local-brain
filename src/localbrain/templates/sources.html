@@ -22,7 +22,7 @@
         <article class="source-card">
           <div class="source-card-heading">
             <span class="session-source {{ source.kind }}">{{ 'CL' if source.kind == 'claude' else ('CX' if source.kind == 'codex' else 'MD') }}</span>
-            <div><h3>{{ source.name }}</h3><span>{{ 'Operational signal' if source.kind in ['claude', 'codex'] else 'Historical note' }}</span></div>
+            <div><h3>{{ source.name }}</h3><span>{{ value_label("source.kind", source.kind) }} · {{ 'Operational signal' if source.kind in ['claude', 'codex'] else 'Historical note' }}</span></div>
             <span class="health-label {{ 'error' if source.error_count else 'healthy' }}">{{ 'Error' if source.error_count else 'Healthy' }}</span>
           </div>
           <p class="source-path">{{ source.root_path }}</p>

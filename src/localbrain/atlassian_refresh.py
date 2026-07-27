@@ -929,7 +929,8 @@ def refresh_run_result(
         """
         SELECT maintenance_runs.status,
                maintenance_runs.structured_result_json,
-               external_sync_runs.requested_scope_kind
+               external_sync_runs.requested_scope_kind,
+               external_sync_runs.service
         FROM maintenance_runs
         JOIN external_sync_runs
           ON external_sync_runs.maintenance_run_id = maintenance_runs.id
@@ -964,6 +965,7 @@ def refresh_run_result(
         "run_id": run_id,
         "status": row["status"],
         "scope_kind": row["requested_scope_kind"],
+        "service": row["service"],
         "targets": targets,
         "retry_item_ids": [
             target["item_id"]

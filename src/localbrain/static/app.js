@@ -293,6 +293,80 @@ if (subsessionMenus.length) {
   });
 }
 
+document.addEventListener("submit", async (event) => {
+  const form = event.target.closest?.("[data-session-pin-form]");
+  if (!form) return;
+
+  const returnInput = form.querySelector("[data-session-pin-return]");
+  if (returnInput) returnInput.value = `${window.location.pathname}${window.location.search}`;
+  if (!window.fetch || !window.DOMParser) return;
+
+  event.preventDefault();
+  const control = form.querySelector("[data-session-pin-control]");
+  const controlId = control?.id;
+  const windowScrollY = window.scrollY;
+  const pinnedListScrollTop = document.querySelector(".pinned-session-list")?.scrollTop || 0;
+  if (!controlId) {
+    HTMLFormElement.prototype.submit.call(form);
+    return;
+  }
+  control.disabled = true;
+
+  try {
+    const response = await fetch(form.action, {
+      method: "POST",
+      body: new FormData(form),
+      credentials: "same-origin",
+      headers: { "X-Requested-With": "LocalBrain-Session-Pin" },
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    const parsed = new DOMParser().parseFromString(await response.text(), "text/html");
+    const incomingControl = parsed.getElementById(controlId);
+    const incomingForm = incomingControl?.closest("[data-session-pin-form]");
+    if (!incomingForm) throw new Error("핀 상태를 갱신할 수 없습니다.");
+
+    const currentPanel = document.querySelector("[data-pinned-sessions-panel]");
+    const incomingPanel = parsed.querySelector("[data-pinned-sessions-panel]");
+    if (currentPanel && incomingPanel) {
+      const adoptedPanel = document.importNode(incomingPanel, true);
+      formatLocalTimes(adoptedPanel);
+      currentPanel.replaceWith(adoptedPanel);
+      const adoptedList = adoptedPanel.querySelector(".pinned-session-list");
+      if (adoptedList) adoptedList.scrollTop = pinnedListScrollTop;
+    }
+
+    const adoptedForm = document.importNode(incomingForm, true);
+    form.replaceWith(adoptedForm);
+    const adoptedControl = adoptedForm.querySelector("[data-session-pin-control]");
+    const restoreScroll = () => {
+      window.scrollTo(0, windowScrollY);
+      const pinnedList = document.querySelector(".pinned-session-list");
+      if (pinnedList) pinnedList.scrollTop = pinnedListScrollTop;
+    };
+    restoreScroll();
+    adoptedControl?.focus({ preventScroll: true });
+    window.requestAnimationFrame(restoreScroll);
+
+    const inventoryStatus = document.querySelector("[data-inventory-status]");
+    if (inventoryStatus && adoptedControl) {
+      inventoryStatus.textContent = adoptedControl.getAttribute("aria-pressed") === "true"
+        ? "Session을 핀으로 고정했습니다."
+        : "Session 핀을 해제했습니다.";
+    }
+  } catch (error) {
+    control.disabled = false;
+    HTMLFormElement.prototype.submit.call(form);
+  }
+});
+
+if (/^#session-pin-\d+$/.test(window.location.hash)) {
+  const pinControl = document.querySelector(window.location.hash);
+  if (pinControl) {
+    window.requestAnimationFrame(() => pinControl.focus({ preventScroll: true }));
+  }
+}
+
 function showNotice(message, tone = "error") {
   const region = document.querySelector("[data-toast-region]");
   if (!region) return;
@@ -1086,7 +1160,7 @@ if (runConsole) {
     try {
       const data = await requestJson(`/api/runs/${runId}`);
       const current = data.run;
-      status.textContent = current.status;
+      status.textContent = current.status_label;
       status.className = `run-status large ${current.status}`;
       pid.textContent = current.pid || "-";
       if (suggestions) suggestions.textContent = current.suggestions_created || 0;
@@ -1110,7 +1184,7 @@ if (runConsole) {
     }
   };
 
-  if (activeStatuses.has(status.textContent.trim())) {
+  if (activeStatuses.has(runConsole.dataset.runStatus)) {
     window.setTimeout(refreshRun, 500);
   }
 

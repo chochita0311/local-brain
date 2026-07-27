@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% from "_conversation.html" import conversation_message %}
-{% block title %}Subsession · {{ session.title }} · LocalBrain{% endblock %}
+{% block title %}{{ value_label("session.role", "subsession") }} · {{ session.title }} · LocalBrain{% endblock %}
 {% block page_location %}Subsession detail{% endblock %}
 {% block content %}
   <nav class="detail-backlinks" aria-label="Subsession 상세 탐색"><a class="back-link" href="/sessions/{{ session.id }}">상위 Session으로 돌아가기</a><a class="back-link" href="/sessions">Sessions 목록</a></nav>
-  <section class="session-heading"><div class="session-source large claude"><span aria-hidden="true">CL</span><span class="sr-only">Claude Subsession</span></div><div><p class="eyebrow">CLAUDE SUBSESSION · LAZY VIEW</p><h1>{{ subsession.title }}</h1><p class="heading-copy path-copy">{{ file_name }}</p></div></section>
+  <section class="session-heading"><div class="session-source large claude"><span aria-hidden="true">CL</span><span class="sr-only">Claude {{ value_label("session.role", "subsession") }}</span></div><div><p class="eyebrow">CLAUDE {{ value_label("session.role", "subsession") | upper }} · LAZY VIEW</p><h1>{{ subsession.title }}</h1><p class="heading-copy path-copy">{{ file_name }}</p></div></section>
   <div class="scope-notice">이 대화는 요청 시 원본에서 읽었으며 LocalBrain 세션 수, 검색, 활동 통계에는 포함되지 않습니다. 도구 활동은 원본 이벤트에 남아 있지만 이 화면에서는 숨깁니다.</div>
   <section class="timeline-section">
     <div class="section-toolbar"><div><h2>대화</h2><p>{{ events | length }}개 메시지 · 원본 이벤트 {{ event_count }}개</p></div></div>

@@ -17,6 +17,7 @@ from localbrain.atlassian_registration import (
     register_atlassian_url_with_connection,
     register_atlassian_url,
     register_space_candidate,
+    registered_scope_overview,
     registration_inventory,
     registration_preview,
     space_catalog_candidates,
@@ -204,6 +205,63 @@ class AtlassianRegistrationTests(unittest.TestCase):
         self.assertEqual(
             spaces[jira_space["id"]]["canonical_url"],
             "https://jira.example.test/projects/SYN",
+        )
+
+    def test_registered_scope_groups_connections_by_domain_and_deduplicates_spaces(self):
+        official_source = register_source_instance(
+            self.connection,
+            instance_key="synthetic-jira-official",
+            provider_kind="atlassian_cloud",
+            service="jira",
+            display_name="Synthetic Jira Official",
+            config_ref="00000000-0000-4000-8000-000000000001",
+        )
+        official_site = register_atlassian_site(
+            self.connection,
+            source_instance_id=official_source["id"],
+            base_url="https://jira.example.test",
+        )
+        first = register_atlassian_url(
+            self.connection,
+            url="https://jira.example.test/projects/SYN",
+            service="jira",
+            site_id=self.jira_site["id"],
+        )
+        second = register_atlassian_url(
+            self.connection,
+            url="https://jira.example.test/projects/SYN",
+            service="jira",
+            site_id=official_site["id"],
+        )
+        self.assertNotEqual(first["id"], second["id"])
+
+        overview = registered_scope_overview(self.connection, "jira")
+
+        self.assertEqual(len(overview), 1)
+        self.assertEqual(
+            overview[0]["normalized_domain"], "jira.example.test"
+        )
+        self.assertEqual(len(overview[0]["connections"]), 2)
+        self.assertEqual(len(overview[0]["spaces"]), 1)
+        self.assertEqual(overview[0]["spaces"][0]["space_key"], "SYN")
+        self.assertNotIn("candidates", overview[0])
+        self.assertNotIn("evidence", overview[0])
+
+    def test_catalog_target_and_connection_domain_must_match(self):
+        with self.assertRaises(AtlassianRegistrationError) as mismatch:
+            prepare_space_catalog_run(
+                self.connection,
+                site_id=self.jira_site["id"],
+                target_domain="other.example.test",
+            )
+        self.assertEqual(
+            mismatch.exception.code, "target-connection-mismatch"
+        )
+        self.assertEqual(
+            self.connection.execute(
+                "SELECT COUNT(*) FROM maintenance_runs"
+            ).fetchone()[0],
+            0,
         )
 
     def test_url_first_onboarding_creates_unbound_connection_and_reuses_it(self):
@@ -511,7 +569,7 @@ class AtlassianRegistrationTests(unittest.TestCase):
             )
         self.assertEqual(success.status_code, 303)
         self.assertIn(
-            "/atlassian?view=jira&mode=setup&notice=item-created",
+            "/atlassian?view=jira&mode=setup&method=url&notice=item-created",
             success.headers["location"],
         )
         self.assertIn("#atlassian-item-", success.headers["location"])

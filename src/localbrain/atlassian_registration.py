@@ -228,6 +228,7 @@ def registration_sites(
         except ExternalAccessError:
             state = {"state": "error", "checked_at": None}
         item["capability_state"] = state["state"]
+        item["capability_availability"] = state.get("availability")
         item["capability_checked_at"] = state.get("checked_at")
         item["provider_label"] = PROVIDER_LABELS.get(
             item["provider_kind"], item["provider_kind"]
@@ -769,10 +770,78 @@ def registration_inventory(
     return {"items": items, "spaces": spaces}
 
 
+def registered_scope_overview(
+    connection: sqlite3.Connection, service: str
+) -> list[dict]:
+    """Return only persisted Atlassian scope, grouped by service and domain."""
+    sites = registration_sites(connection, service)
+    inventory = registration_inventory(connection, service)
+    domains: dict[str, dict] = {}
+
+    for site in sites:
+        domain = site["normalized_domain"]
+        group = domains.setdefault(
+            domain,
+            {
+                "normalized_domain": domain,
+                "display_name": site["site_display_name"] or domain,
+                "connections": [],
+                "spaces": [],
+                "item_count": 0,
+            },
+        )
+        group["connections"].append(site)
+
+    seen_spaces: dict[str, set[tuple]] = {
+        domain: set() for domain in domains
+    }
+    for space in inventory["spaces"]:
+        domain = space["normalized_domain"]
+        group = domains.get(domain)
+        if group is None:
+            continue
+        identity = (
+            space.get("remote_id") or "",
+            space.get("space_key") or "",
+            space.get("canonical_url") or "",
+        )
+        if identity in seen_spaces[domain]:
+            continue
+        seen_spaces[domain].add(identity)
+        group["spaces"].append(space)
+
+    seen_items: dict[str, set[tuple]] = {
+        domain: set() for domain in domains
+    }
+    for item in inventory["items"]:
+        domain = item["normalized_domain"]
+        group = domains.get(domain)
+        if group is None:
+            continue
+        identity = (
+            item.get("remote_id") or "",
+            item.get("remote_key") or "",
+            item.get("canonical_url") or "",
+        )
+        if identity in seen_items[domain]:
+            continue
+        seen_items[domain].add(identity)
+        group["item_count"] += 1
+
+    return sorted(
+        domains.values(),
+        key=lambda item: (
+            str(item["display_name"]).lower(),
+            item["normalized_domain"],
+        ),
+    )
+
+
 def prepare_space_catalog_run(
     connection: sqlite3.Connection,
     *,
     site_id: int,
+    target_domain: Optional[str] = None,
     runner: str = "claude",
     run_root=None,
 ) -> str:
@@ -789,6 +858,14 @@ def prepare_space_catalog_run(
     ).fetchone()
     if not site:
         _fail("site-not-found", "The selected Atlassian Site is unavailable")
+    if (
+        target_domain is not None
+        and target_domain.strip().lower() != site["normalized_domain"]
+    ):
+        _fail(
+            "target-connection-mismatch",
+            "선택한 MCP 연결은 조회 대상 Site에 속하지 않습니다.",
+        )
     try:
         state = capability_state(
             connection, int(site["source_instance_id"])

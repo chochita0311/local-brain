@@ -173,12 +173,14 @@ async function main() {
       innerWidth,
       clientWidth: document.documentElement.clientWidth,
       documentWidth: document.documentElement.scrollWidth,
-      subjectCount: document.querySelectorAll('.schema-subject-link').length,
+      subjectCount: document.querySelectorAll('.schema-subject-link:not([href="/schema"])').length,
       tableCount: document.querySelectorAll('.schema-table-link').length,
       currentArea: document.querySelector('.schema-subject-link[aria-current="page"] strong')?.textContent.trim() || null,
       currentTable: document.querySelector('.schema-table-link[aria-current="page"] code')?.textContent.trim() || null,
       detailTable: document.querySelector('#schema-table-title code')?.textContent.trim() || null,
       diagramState: document.querySelector('[data-schema-mermaid-state]')?.dataset.schemaMermaidState || null,
+      layoutState: document.querySelector('[data-schema-layout-state]')?.dataset.schemaLayoutState || null,
+      layoutStatus: document.querySelector('[data-schema-layout-status]')?.textContent.trim() || null,
       diagramScrolls: diagramScroll ? diagramScroll.scrollWidth > diagramScroll.clientWidth : false,
       focusedHeading: document.activeElement?.hasAttribute('data-schema-focus') || false,
       focusTarget: document.activeElement?.dataset.schemaFocus || null,
@@ -246,6 +248,8 @@ async function main() {
     );
     assert(current.subjectCount === 9, `Incomplete subject navigation at ${viewport.width}`);
     assert(current.diagramState === "rendered", `Diagram unavailable at ${viewport.width}`);
+    assert(current.layoutState === "elk", `ELK layout missing at ${viewport.width}`);
+    assert(current.layoutStatus === "직각 관계 배치", `ELK label mismatch at ${viewport.width}`);
     if (viewport.path.includes("table=")) {
       assert(current.currentTable === "usage_records", `Table selection mismatch at ${viewport.width}`);
       assert(current.detailTable === "usage_records", `Table detail mismatch at ${viewport.width}`);
@@ -340,7 +344,7 @@ async function main() {
     "Warm-cache revisit left Schema markup inert",
   );
   const warmCacheState = await state();
-  assert(warmCacheState.tableCount === 1, "Warm-cache revisit lost area content");
+  assert(warmCacheState.tableCount === 2, "Warm-cache revisit lost area content");
   await cdp.send("Network.setCacheDisabled", { cacheDisabled: true });
 
   await cdp.send("Network.setBlockedURLs", { urls: ["*mermaid-adapter.js*"] });

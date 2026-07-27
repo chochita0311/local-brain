@@ -10,7 +10,7 @@
 - Required Evaluators: `contract`, `design`, `functional`, `ux-heuristic`
 - Parent PRD: [prd-0002-session-browsing-and-subsession-organization](../prd/prd-0002-session-browsing-and-subsession-organization.md)
 - Created: `2026-07-17`
-- Updated: `2026-07-19`
+- Updated: `2026-07-27`
 
 ## Goal
 
@@ -167,3 +167,4 @@
 - `2026-07-17`: Attempt 3 passed after human runtime feedback added compact numbered page reach, preserved scroll-overlay boundaries, unified row hover feedback, symmetric 320px pagination, actual route verification, and a complete 40-test regression.
 - `2026-07-17`: Attempt 4 passed after the default slice changed to 15 and viewport-specific page models limited desktop to seven and narrow screens to five tokens.
 - `2026-07-19`: post-run human review aligned the preserved parent-detail child label with the source-neutral `Subsession` product term.
+- `2026-07-27`: owner follow-up kept hover shading only for unselected page destinations and reduced the current-page treatment to the bold number without a square background.

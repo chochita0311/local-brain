@@ -13,7 +13,9 @@ const OUTPUT_DIR = resolve(
 );
 const OUTPUT_FILES = [
   "asset-manifest.json",
+  "elkjs-LICENSE.txt",
   "esbuild-LICENSE.txt",
+  "layout-elk-LICENSE.txt",
   "mermaid-LICENSE.txt",
   "mermaid.esm.min.js",
 ];
@@ -45,29 +47,61 @@ async function generate(destination) {
     absWorkingDir: ROOT,
     bundle: true,
     charset: "utf8",
-    entryPoints: ["mermaid"],
     format: "esm",
     legalComments: "none",
     minify: true,
     outfile: bundlePath,
     platform: "browser",
     sourcemap: false,
+    stdin: {
+      contents: [
+        'import mermaid from "mermaid";',
+        'import elkLayouts from "@mermaid-js/layout-elk";',
+        "export { elkLayouts };",
+        "export default mermaid;",
+      ].join("\n"),
+      loader: "js",
+      resolveDir: ROOT,
+      sourcefile: "localbrain-mermaid-entry.js",
+    },
     target: ["es2020"],
   });
 
-  const [lockfile, mermaidMetadata, esbuildMetadata, mermaidLicense, esbuildLicense] = await Promise.all([
+  const [
+    lockfile,
+    mermaidMetadata,
+    layoutElkMetadata,
+    elkjsMetadata,
+    esbuildMetadata,
+    mermaidLicense,
+    layoutElkLicense,
+    elkjsLicense,
+    esbuildLicense,
+  ] = await Promise.all([
     readFile(join(ROOT, "package-lock.json")),
     packageMetadata("mermaid"),
+    packageMetadata("@mermaid-js/layout-elk"),
+    packageMetadata("elkjs"),
     packageMetadata("esbuild"),
     packageLicense("mermaid", ["LICENSE", "LICENSE.md"]),
+    packageLicense("@mermaid-js/layout-elk", ["LICENSE", "LICENSE.md"]),
+    packageLicense("elkjs", ["LICENSE.md", "LICENSE"]),
     packageLicense("esbuild", ["LICENSE.md", "LICENSE"]),
   ]);
 
   await writeFile(join(destination, "mermaid-LICENSE.txt"), mermaidLicense);
+  await writeFile(join(destination, "layout-elk-LICENSE.txt"), layoutElkLicense);
+  await writeFile(join(destination, "elkjs-LICENSE.txt"), elkjsLicense);
   await writeFile(join(destination, "esbuild-LICENSE.txt"), esbuildLicense);
 
   const outputs = {};
-  for (const name of ["mermaid.esm.min.js", "mermaid-LICENSE.txt", "esbuild-LICENSE.txt"]) {
+  for (const name of [
+    "mermaid.esm.min.js",
+    "mermaid-LICENSE.txt",
+    "layout-elk-LICENSE.txt",
+    "elkjs-LICENSE.txt",
+    "esbuild-LICENSE.txt",
+  ]) {
     outputs[name] = sha256(await readFile(join(destination, name)));
   }
 
@@ -80,6 +114,11 @@ async function generate(destination) {
     },
     dependencies: {
       esbuild: { license: esbuildMetadata.license, version: esbuildMetadata.version },
+      elkjs: { license: elkjsMetadata.license, version: elkjsMetadata.version },
+      layoutElk: {
+        license: layoutElkMetadata.license,
+        version: layoutElkMetadata.version,
+      },
       mermaid: { license: mermaidMetadata.license, version: mermaidMetadata.version },
     },
     outputs,

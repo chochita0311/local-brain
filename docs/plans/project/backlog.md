@@ -48,11 +48,11 @@ Priority meaning:
 - [ ] Keep shared Workstream Resources distinct from Thread-specific Resources in the model and review UI.
 - [ ] Define checkpoint supersession and comparison semantics.
 - <a id="schema-audit-timestamp-contract"></a>[ ] Define one canonical UTC timestamp storage, parsing, precision, comparison, and legacy-preservation contract before normalizing mixed source, Python ISO, and SQLite timestamp text identified by FEAT-0029.
-- <a id="schema-audit-closed-vocabularies"></a>[ ] Approve extensibility and legacy-row handling for closed schema vocabularies before adding CHECK enforcement to Session policy, Context state, organization state, polymorphic target, Suggestion review, Maintenance Run, or FTS projection fields identified by FEAT-0029. FEAT-0031 separately resolved the narrow three-value Usage attribution basis; this item owns the remaining fourteen fields.
+- <a id="schema-audit-closed-vocabularies"></a>[x] Use passed PRD-0009 and FEAT-0057/FEAT-0061 to define executable physical, logical, fallback, presentation, and consumer ownership for bounded schema vocabularies. Later physical `CHECK` additions remain separate schema changes and must preserve the registry contract.
 
 ## P1 - Local Contexts
 
-- [ ] Clarify or rename the Sessions `최근 Context` summary so it cannot be mistaken for files changed by the latest Session; it currently represents recently indexed Local Context documents.
+- [x] Execute FEAT-0058 and FEAT-0059: persist row-presence Session pins and replace the Sessions `최근 Context` summary with explicit Pinned Sessions recall.
 - [ ] Add lazy directory expansion, pagination, and incremental scanning for large source trees.
 - [ ] Show source health, last scan, changed files, extraction failures, and re-scan controls per source.
 - [ ] Improve PDF extraction beyond Spotlight and support common readable document formats and attachments.
@@ -64,6 +64,8 @@ Priority meaning:
 ## P1 - Sessions And Retrieval
 
 - [ ] Validate Claude and Codex parsers against format changes and malformed or partially written JSONL.
+- [x] Pass FEAT-0058 and FEAT-0059 for row-presence Session pin persistence, stable inventory controls, and Pinned Sessions recall.
+- [x] Pass FEAT-0060 for deterministic Session-related context based only on existing local relationships.
 - [x] Expose lazy subagent exploration under the parent Session without counting it as ordinary activity.
 - [ ] Decide which additional subagent metadata is useful without importing nested events.
 - [ ] Decide which tool-result fields are valuable enough to index without adding opaque payload noise or excessive volume.
@@ -76,7 +78,7 @@ Priority meaning:
 
 - [x] Design Atlassian navigation and ownership for tickets, Pages, projects, Spaces, freshness, local Topics/Tags, and explicit refresh.
 - [x] Implement local Jira and Confluence source memory, durable provenance, URL-first setup, bounded refresh preparation, and source-neutral result application.
-- [ ] Review and complete PRD-0008's connected read-only executor validation against the owner's approved Atlassian MCP paths before claiming live end-to-end ingestion.
+- [x] Complete FEAT-0053's bounded connected validation: official Jira metadata read passed; official Confluence and company Gateway were classified as current host environment limitations without fabricating end-to-end evidence.
 - [ ] Add conversation message and thread references with permalink, participants, location, timestamp, and bounded excerpts.
 - [ ] Add Git commits, branches, pull requests, changed files, and repository identity as first-class Resources.
 - [ ] Define remaining connector-specific refresh, authentication failure, caching, and content deletion behavior beyond the passed Atlassian contract.
@@ -114,7 +116,8 @@ Priority meaning:
 
 ## P2 - Quality And Distribution
 
-- [ ] Review and complete draft [PRD-0008](../prd/prd-0008-connected-atlassian-validation-and-schema-erd-routing.md): define the connected read-only Atlassian validation inventory and evidence matrix, compare current Dagre Schema ERDs with Mermaid's official ELK orthogonal-routing candidate, and decompose only the owner-approved findings and adoption boundary.
+- [x] Pass [PRD-0008](../prd/prd-0008-connected-atlassian-validation-and-schema-erd-routing.md) child Features: FEAT-0053 connected validation, FEAT-0054 Add flow, FEAT-0055 ELK routing contract, and FEAT-0056 adoption.
+- [x] Pass [PRD-0009](../prd/prd-0009-data-model-value-dictionaries-and-pinned-session-recall.md) child Features: FEAT-0057 value dictionaries, FEAT-0058 pin persistence, FEAT-0059 pinned recall, FEAT-0060 related context, and FEAT-0061 visible-consumer normalization.
 - [x] Close PRD-0004's combined Sessions Dashboard rendered evidence gap at `1440`, `920`, `700`, and exact mobile-emulated `320`, covering scope controls, four-metric band, 30-day chart scrolling, long Model/Project labels, native disclosures, trust states, and in-place scroll continuity with synthetic data.
 - [ ] Close FEAT-0019's direct rendered evidence gap at `1440`, `700`, and `320`, including selector geometry, same-row containment, and the Session-only source summary.
 - [ ] Capture the Sessions `동기화` working, success, failure, focus, and scope-preservation states from a browser after a warm-cache revisit; versioned assets, local HTTP synchronization, and human PRD-0002 acceptance are complete, so this is non-blocking regression evidence.

@@ -7,6 +7,7 @@ from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
 
 from localbrain.usage_queries import usage_dashboard_data
+from localbrain.value_registry import display_value_label, visible_value_help
 
 
 ROOT = Path(__file__).parents[1]
@@ -39,6 +40,16 @@ ATLASSIAN_ITEM = (
     ROOT / "src" / "localbrain" / "templates" / "atlassian-item.html"
 )
 SEARCH = ROOT / "src" / "localbrain" / "templates" / "search.html"
+
+
+def template_environment(path=ROOT / "src/localbrain/templates"):
+    environment = Environment(loader=FileSystemLoader(path))
+    environment.globals["url_for"] = (
+        lambda name, path: "/static{}".format(path)
+    )
+    environment.globals["value_label"] = display_value_label
+    environment.globals["value_help"] = visible_value_help
+    return environment
 
 
 class UiContractTests(unittest.TestCase):
@@ -167,7 +178,7 @@ class UiContractTests(unittest.TestCase):
             self.assertIn("active_page == '{}'".format(active_page), self.base)
         self.assertEqual(positions, sorted(positions))
 
-        environment = Environment(loader=FileSystemLoader(BASE.parent))
+        environment = template_environment(BASE.parent)
         environment.globals["url_for"] = lambda name, path: path
         template = environment.get_template("base.html")
         for _, label, href, active_page in destinations:
@@ -202,7 +213,7 @@ class UiContractTests(unittest.TestCase):
             "실제 명령",
             "{{ runner_command }}",
             "stdin으로 전달됩니다",
-            "sessions · work/primary only",
+            "기본 작업 Session만",
         ):
             self.assertIn(marker, self.workstream)
         for behavior in (
@@ -235,18 +246,33 @@ class UiContractTests(unittest.TestCase):
             "원격 조회 없음",
             "원격 read 1회",
             "일부 후보",
-            "Source Instance / Site",
+            ">Browser</a>",
+            ">Add</a>",
+            "등록된 Atlassian 범위",
+            "LocalBrain DB에 확정 저장된 Site와 Space만",
+            "URL로 추가",
+            "연결해서 찾기",
+            'name="target_domain"',
+            "조회할 Site",
+            "사용할 MCP 연결",
+            "실행 주체",
+            "MCP 연결 관리",
             "selected-content",
             "full-content",
             "data-atlassian-url-preview",
             "data-atlassian-new-connection",
-            "공식 Atlassian MCP",
-            "회사 MCP Gateway",
+            'value_label("external-source.provider"',
+            'value_label("atlassian-space.coverage"',
             "MCP 연결 (Provider)",
-            "Source Instance는 LocalBrain이 사용할 MCP 연결",
             "atlassian.js",
         ):
             self.assertIn(marker, self.atlassian)
+        for retired_copy in (
+            "Source Instance / Site",
+            "Source Instance는 LocalBrain이 사용할 MCP 연결",
+            "Add / discover",
+        ):
+            self.assertNotIn(retired_copy, self.atlassian)
         for selected_toggle in (
             """class="{% if selected_view == 'jira' %}selected{% endif %}" """,
             """class="{% if selected_view == 'confluence' %}selected{% endif %}" """,
@@ -277,10 +303,15 @@ class UiContractTests(unittest.TestCase):
             "/api/atlassian/registration-preview",
             'siteSelect.value = "new"',
             "syncConnectionMode()",
+            "syncDiscoveryConnections()",
+            "option.dataset.domain !== targetDomain",
         ):
             self.assertIn(preview_behavior, self.atlassian_script)
         for connection_style in (
-            ".atlassian-connections-panel {",
+            ".atlassian-scope-overview, .atlassian-add-flow, .atlassian-connection-management {",
+            ".atlassian-add-header {",
+            ".atlassian-scope-domain {",
+            ".atlassian-connection-management > summary {",
             ".atlassian-connection-row > summary {",
             ".atlassian-url-preview.warning {",
             ".atlassian-new-connection-fields {",
@@ -308,7 +339,9 @@ class UiContractTests(unittest.TestCase):
             "data-schema-link",
             'aria-current="page"',
             'data-localbrain-mermaid="owned"',
+            'data-localbrain-mermaid-layout="elk"',
             "data-localbrain-mermaid-source",
+            "data-schema-layout-status",
             "data-schema-source-json",
             "data-schema-diagram-fallback",
             "data-schema-diagram-viewport",
@@ -341,6 +374,8 @@ class UiContractTests(unittest.TestCase):
             "await import(adapterUrl)",
             "JSON.parse(source.textContent)",
             "renderLocalBrainMermaid",
+            "data-schema-layout-state",
+            'result.layout === "dagre"',
             "setupSchemaDiagramZoom",
             "schemaZoomFromWheel",
             "schemaAnchoredScroll",
@@ -413,8 +448,7 @@ class UiContractTests(unittest.TestCase):
             timezone_name="UTC",
             today=date(2026, 7, 18),
         )
-        environment = Environment(loader=FileSystemLoader(ROOT / "src/localbrain/templates"))
-        environment.globals["url_for"] = lambda name, path: "/static{}".format(path)
+        environment = template_environment()
         html = environment.get_template("sessions_dashboard.html").render(
             active_page="sessions-dashboard",
             usage=usage,
@@ -432,8 +466,7 @@ class UiContractTests(unittest.TestCase):
         usage = usage_dashboard_data(
             connection, timezone_name="UTC", today=date(2026, 7, 18)
         )
-        environment = Environment(loader=FileSystemLoader(ROOT / "src/localbrain/templates"))
-        environment.globals["url_for"] = lambda name, path: "/static{}".format(path)
+        environment = template_environment()
         html = environment.get_template("sessions_dashboard.html").render(
             active_page="sessions-dashboard",
             usage=usage,
@@ -543,6 +576,19 @@ class UiContractTests(unittest.TestCase):
         self.assertNotIn("sessionStorage", splitter_script)
         self.assertNotIn("localStorage", splitter_script)
         self.assertIn("data-context-folder-source-link", self.context)
+        for redundant_family in (
+            "context-root.source-type",
+            "context-root.readable",
+            "context-root.enabled",
+        ):
+            self.assertNotIn(
+                'value_label("{}"'.format(redundant_family),
+                self.context,
+            )
+        self.assertEqual(
+            self.context.count('value_label("context-root.status"'),
+            1,
+        )
         self.assertNotIn("depth == 0 or node.contains_selected", self.context_tree)
         self.assertIn("if node.contains_selected", self.context_tree)
         self.assertIn(
@@ -661,10 +707,7 @@ class UiContractTests(unittest.TestCase):
         self.assertIn('eventTarget.addEventListener(eventName', self.script)
 
     def test_sessions_sidebar_shows_only_session_sources_without_database_path(self):
-        environment = Environment(loader=FileSystemLoader(ROOT / "src/localbrain/templates"))
-        environment.globals["url_for"] = (
-            lambda name, path: "/static{}".format(path)
-        )
+        environment = template_environment()
         html = environment.get_template("sessions.html").render(
             active_page="sessions",
             selected_source="all",
@@ -708,10 +751,7 @@ class UiContractTests(unittest.TestCase):
         self.assertEqual(self.base.count("asset_version | default('dev')"), 3)
 
     def test_sessions_template_tolerates_a_pre_restart_route_context(self):
-        environment = Environment(loader=FileSystemLoader(ROOT / "src/localbrain/templates"))
-        environment.globals["url_for"] = (
-            lambda name, path: "/static{}".format(path)
-        )
+        environment = template_environment()
         html = environment.get_template("sessions.html").render(
             active_page="sessions",
             selected_source="all",
@@ -735,10 +775,7 @@ class UiContractTests(unittest.TestCase):
         self.assertNotIn('class="session-pagination"', html)
 
     def test_session_pagination_renders_number_links_and_ellipses(self):
-        environment = Environment(loader=FileSystemLoader(ROOT / "src/localbrain/templates"))
-        environment.globals["url_for"] = (
-            lambda name, path: "/static{}".format(path)
-        )
+        environment = template_environment()
         html = environment.get_template("sessions.html").render(
             active_page="sessions",
             selected_source="all",
@@ -770,12 +807,19 @@ class UiContractTests(unittest.TestCase):
         self.assertIn('aria-label="10페이지"', html)
         self.assertIn('class="session-page-numbers wide"', html)
         self.assertIn('class="session-page-numbers compact"', html)
+        self.assertIn(
+            ".session-page-number:not(.current):hover { color: var(--text-primary); background: var(--surface-subtle); }",
+            self.styles,
+        )
+        current_page_rule = self.styles[
+            self.styles.index(".session-page-number.current {"):
+            self.styles.index(".session-page-separator {")
+        ]
+        self.assertIn("font-weight: var(--type-bold);", current_page_rule)
+        self.assertNotIn("background:", current_page_rule)
 
     def test_session_pagination_tolerates_a_pre_restart_page_model(self):
-        environment = Environment(loader=FileSystemLoader(ROOT / "src/localbrain/templates"))
-        environment.globals["url_for"] = (
-            lambda name, path: "/static{}".format(path)
-        )
+        environment = template_environment()
         html = environment.get_template("sessions.html").render(
             active_page="sessions",
             selected_source="all",
@@ -854,10 +898,41 @@ class UiContractTests(unittest.TestCase):
             "parent",
             "상위 Session으로 돌아가기",
             "subsession.url",
-            "이 Session의 직접 하위 Session",
             "원본 이벤트",
         ):
             self.assertIn(marker, self.session_detail)
+
+        self.assertNotIn(
+            '<p class="eyebrow">{{ session.source_name }}',
+            self.session_detail,
+        )
+        self.assertIn(
+            '{% if parent %}<p class="eyebrow">SUBSESSION</p>{% endif %}',
+            self.session_detail,
+        )
+        self.assertNotIn(
+            "이 Session의 직접 하위 Session",
+            self.session_detail,
+        )
+        self.assertNotIn(
+            "{{ subsession.external_id }} · 원본 이벤트",
+            self.session_detail,
+        )
+        event_count = self.session_detail.index(
+            'class="subsession-event-count"'
+        )
+        event_time = self.session_detail.index(
+            '<time datetime="{{ subsession.last_event_at }}"'
+        )
+        self.assertLess(event_count, event_time)
+        self.assertIn(
+            ".subsession-event-count { justify-self: start; text-align: left; white-space: nowrap; }",
+            self.styles,
+        )
+        self.assertIn(
+            "grid-template-columns: 38px minmax(0, 1fr) calc(var(--control-min-height) + var(--space-card) + var(--space-card)) 100px;",
+            self.styles,
+        )
 
         for template in (self.session_detail, self.subsession_detail):
             self.assertNotIn("Subagent", template)

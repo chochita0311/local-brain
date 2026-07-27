@@ -4,6 +4,8 @@
 
 This subject owns user-created Workstreams and Threads, their current planning state, canonical local/external resources, and user-reviewed links to source-derived entities. None of these tables is safely recreated by a source rescan.
 
+[Value Dictionary](value-dictionaries/work-organization-and-resources.md) owns this subject's bounded physical/logical/presentation mappings.
+
 ## Focused ERD
 
 Solid lines are physical ownership. Dotted lines represent the five validated polymorphic target types.
@@ -56,7 +58,7 @@ erDiagram
 
 ## Polymorphic Target Contract
 
-`entity_type` is restricted by application code to `session`, `document`, `project`, `external`, or `local`, resolving respectively to `sessions`, `context_documents`, `workspaces`, `external_resources`, or `local_resources`. `_validate_entity` confirms the target exists; Session targets must also be primary work Sessions. `entity_id` remains text so the shared link shape can address heterogeneous integer identities. SQLite provides no target FK, cascade, or orphan cleanup.
+`entity_type` is restricted by application code to `session`, `document`, `project`, `external`, or `local`, resolving respectively to `sessions`, `context_documents`, `workspaces`, `external_resources`, or `local_resources`. `_validate_entity` confirms the target exists; Session targets must also be primary work Sessions. `entity_id` remains text so the shared link shape can address heterogeneous integer identities. SQLite provides no target FK, cascade, or orphan cleanup. Session `Related Context` may read shared Thread and Workstream memberships as a deterministic projection, but it creates no new ownership edge; unresolved targets are omitted and reported only as a bounded unavailable count.
 
 ## Catalog
 

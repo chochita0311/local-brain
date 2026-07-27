@@ -29,8 +29,8 @@ class SchemaExplorerViewModelTests(unittest.TestCase):
 
         self.assertTrue(view["available"])
         self.assertEqual(view["mode"], "global")
-        self.assertEqual(view["baseline"]["object_count"], 35)
-        self.assertEqual(view["baseline"]["physical_foreign_key_count"], 39)
+        self.assertEqual(view["baseline"]["object_count"], 36)
+        self.assertEqual(view["baseline"]["physical_foreign_key_count"], 40)
         self.assertEqual(len(view["subjects"]), 9)
         self.assertEqual(
             [subject["id"] for subject in view["subjects"]],
@@ -132,7 +132,9 @@ class SchemaExplorerRouteTests(unittest.TestCase):
         self.assertNotIn("/Users/", html)
         self.assertIn('href="/schema" aria-current="page"', html)
         self.assertIn('data-localbrain-mermaid="owned"', html)
+        self.assertIn('data-localbrain-mermaid-layout="elk"', html)
         self.assertIn('data-localbrain-mermaid-source', html)
+        self.assertIn('data-schema-layout-status', html)
         self.assertIn('data-schema-link', html)
         self.assertIn('data-schema-diagram-viewport', html)
         self.assertIn('data-schema-zoom-controls', html)

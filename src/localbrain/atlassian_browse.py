@@ -813,6 +813,7 @@ def atlassian_search_results(
                 "score": row["score"],
                 "match_roles": [],
                 "service": item["service"],
+                "item_type": item["item_type"],
                 "source_name": item["source_name"],
                 "normalized_domain": item["normalized_domain"],
                 "space_name": item["space_name"],

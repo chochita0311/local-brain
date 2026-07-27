@@ -13,7 +13,7 @@
         {% for workstream in workstreams %}
           <a class="workstream-index-row" href="/workstreams/{{ workstream.id }}">
             <span class="thread-state {{ workstream.status }}"></span>
-            <div><div class="thread-title-line"><strong>{{ workstream.name }}</strong><span>{{ workstream.status }}</span></div><p>{{ workstream.summary or '요약 없음' }}</p></div>
+            <div><div class="thread-title-line"><strong>{{ workstream.name }}</strong><span>{{ value_label("workstream.status", workstream.status) }}</span></div><p>{{ workstream.summary or '요약 없음' }}</p></div>
             <div class="workstream-index-stats"><strong>{{ workstream.thread_count }}</strong><span>threads</span></div>
             <div class="workstream-index-stats"><strong>{{ workstream.link_count }}</strong><span>resources</span></div>
             <time datetime="{{ workstream.latest_activity_at }}" data-local-time>{{ workstream.latest_activity_at or '-' }}</time>

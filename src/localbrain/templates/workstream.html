@@ -5,7 +5,7 @@
   <a class="back-link" href="/workstreams">Workstreams로 돌아가기</a>
   <section class="page-heading workstream-detail-heading">
     <div>
-      <div class="status-line"><span class="status-badge {{ workstream.status }}">{{ workstream.status }}</span>{% if workstream.needs_review %}<span class="review-badge">checkpoint 확인</span>{% endif %}</div>
+      <div class="status-line"><span class="status-badge {{ workstream.status }}">{{ value_label("workstream.status", workstream.status) }}</span>{% if workstream.needs_review %}<span class="review-badge">checkpoint 확인</span>{% endif %}</div>
       <h1>{{ workstream.name }}</h1>
       <p class="heading-copy">{{ workstream.summary or 'Workstream의 범위와 목적을 입력하세요.' }}</p>
     </div>
@@ -66,11 +66,11 @@
           <label class="runner-refresh-toggle"><input type="checkbox" name="refresh_suggestions" value="true"><span><strong>기존 Claude 제안 교체</strong><small>성공한 실행 결과로 대기 중인 Claude 제안을 갱신합니다.</small></span></label>
           <p class="form-result" data-form-result role="status" aria-live="polite" hidden></p>
         </form>
-        <div class="runner-policy-strip"><span>local candidates first</span><span>sessions · work/primary only</span><span>read-only plan</span><span>MCP soft budget · {{ runner_mcp_budget }}/run</span><span>cwd · {{ runner_cwd }}</span></div>
+        <div class="runner-policy-strip"><span>local candidates first</span><span>기본 작업 Session만</span><span>read-only plan</span><span>MCP soft budget · {{ runner_mcp_budget }}/run</span><span>cwd · {{ runner_cwd }}</span></div>
 
         <div class="run-history">
           {% for run in runs %}
-            <a class="run-history-row" href="/runs/{{ run.id }}"><span class="run-status {{ run.status }}">{{ run.status }}</span><div><strong>{{ run.task_type.replace('_', ' ') }}</strong><small>{{ run.id }}</small></div><time datetime="{{ run.created_at }}" data-local-time>{{ run.created_at }}</time></a>
+            <a class="run-history-row" href="/runs/{{ run.id }}"><span class="run-status {{ run.status }}">{{ value_label("maintenance.status", run.status) }}</span><div><strong>{{ value_label("maintenance.task-type", run.task_type) }}</strong><small>{{ run.id }}</small></div><time datetime="{{ run.created_at }}" data-local-time>{{ run.created_at }}</time></a>
           {% else %}<p class="inline-empty">아직 실행 기록이 없습니다.</p>{% endfor %}
         </div>
       </section>
@@ -82,20 +82,20 @@
             <details class="thread-editor" {% if thread.status in ['active', 'blocked'] %}open{% endif %}>
               <summary>
                 <span class="thread-state {{ thread.status }}"></span>
-                <div><div class="thread-title-line"><strong>{{ thread.title }}</strong><span>{{ thread.status }}</span></div><p>{{ thread.current_goal or thread.summary or '현재 목표 없음' }}</p></div>
+                <div><div class="thread-title-line"><strong>{{ thread.title }}</strong><span>{{ value_label("thread.status", thread.status) }}</span></div><p>{{ thread.current_goal or thread.summary or '현재 목표 없음' }}</p></div>
                 <span class="link-count">{{ thread.link_count }} links</span>
               </summary>
               <div class="thread-editor-body">
                 <a class="text-link thread-refresh-link" href="/atlassian/refresh?scope=thread&id={{ thread.id }}">이 Thread의 Atlassian refresh preview</a>
                 <form class="stack-form compact-form" data-api-form data-endpoint="/api/threads/{{ thread.id }}" data-method="PUT">
-                  <div class="form-grid two"><label><span>제목</span><input name="title" required value="{{ thread.title }}"></label><label><span>상태</span><select name="status"><option value="active" {% if thread.status == 'active' %}selected{% endif %}>active</option><option value="blocked" {% if thread.status == 'blocked' %}selected{% endif %}>blocked</option><option value="paused" {% if thread.status == 'paused' %}selected{% endif %}>paused</option><option value="done" {% if thread.status == 'done' %}selected{% endif %}>done</option></select></label></div>
+                  <div class="form-grid two"><label><span>제목</span><input name="title" required value="{{ thread.title }}"></label><label><span>상태</span><select name="status">{% for value in ['active', 'blocked', 'paused', 'done'] %}<option value="{{ value }}" {% if thread.status == value %}selected{% endif %}>{{ value_label("thread.status", value) }}</option>{% endfor %}</select></label></div>
                   <label><span>요약</span><textarea name="summary" rows="2">{{ thread.summary or '' }}</textarea></label>
                   <div class="form-grid two"><label><span>현재 목표</span><textarea name="current_goal" rows="3">{{ thread.current_goal or '' }}</textarea></label><label><span>다음 행동</span><textarea name="next_action" rows="3">{{ thread.next_action or '' }}</textarea></label></div>
                   <div class="form-actions"><button class="secondary-button" type="submit">Thread 저장</button><p class="form-result" data-form-result role="status" aria-live="polite" hidden></p></div>
                 </form>
                 <div class="linked-resource-list compact-resources">
                   {% for link in thread.links %}
-                    <div class="linked-resource-row"><span class="resource-kind {{ link.entity_type }}">{{ link.resource_label }}</span><a href="{{ link.href }}" {% if link.external %}target="_blank" rel="noreferrer"{% endif %}><strong>{{ link.title }}</strong><small>{{ link.detail or link.relation_type }}</small></a><button class="icon-text-button" type="button" title="연결 제거" data-delete-link="/api/links/thread/{{ thread.id }}/{{ link.link_id }}">제거</button></div>
+                    <div class="linked-resource-row"><span class="resource-kind {{ link.entity_type }}">{% if link.entity_type == 'external' and link.resource_type %}{{ value_label("external-resource.type", link.resource_type) }}{% elif link.entity_type == 'local' and link.resource_type %}{{ value_label("local-resource.type", link.resource_type) }}{% else %}{{ value_label("organization-link.entity-type", link.entity_type) }}{% endif %}</span><a href="{{ link.href }}" {% if link.external %}target="_blank" rel="noreferrer"{% endif %}><strong>{{ link.title }}</strong><small>{{ link.detail or link.relation_type }}</small></a><button class="icon-text-button" type="button" title="연결 제거" data-delete-link="/api/links/thread/{{ thread.id }}/{{ link.link_id }}">제거</button></div>
                   {% else %}<p class="inline-empty">연결된 자원이 없습니다.</p>{% endfor %}
                 </div>
               </div>
@@ -118,23 +118,23 @@
         <div class="section-toolbar"><div><h2>공통 자원</h2><p>여러 Thread가 공동으로 사용하는 Workstream 수준의 근거</p></div></div>
         <div class="linked-resource-list">
           {% for link in workstream.links %}
-            <div class="linked-resource-row"><span class="resource-kind {{ link.entity_type }}">{{ link.resource_label }}</span><a href="{{ link.href }}" {% if link.external %}target="_blank" rel="noreferrer"{% endif %}><strong>{{ link.title }}</strong><small>{{ link.detail or link.relation_type }}</small></a><span class="relation-label">{{ link.relation_type }}</span><button class="icon-text-button" type="button" title="연결 제거" data-delete-link="/api/links/workstream/{{ workstream.id }}/{{ link.link_id }}">제거</button></div>
+            <div class="linked-resource-row"><span class="resource-kind {{ link.entity_type }}">{% if link.entity_type == 'external' and link.resource_type %}{{ value_label("external-resource.type", link.resource_type) }}{% elif link.entity_type == 'local' and link.resource_type %}{{ value_label("local-resource.type", link.resource_type) }}{% else %}{{ value_label("organization-link.entity-type", link.entity_type) }}{% endif %}</span><a href="{{ link.href }}" {% if link.external %}target="_blank" rel="noreferrer"{% endif %}><strong>{{ link.title }}</strong><small>{{ link.detail or link.relation_type }}</small></a><span class="relation-label">{{ link.relation_type }}</span><button class="icon-text-button" type="button" title="연결 제거" data-delete-link="/api/links/workstream/{{ workstream.id }}/{{ link.link_id }}">제거</button></div>
           {% else %}<div class="inline-empty padded">공통으로 연결된 자원이 없습니다.</div>{% endfor %}
         </div>
       </section>
 
       <section class="suggestion-section">
-        <div class="section-toolbar"><div><h2>Suggestions</h2><p>수락 전에는 구조를 바꾸지 않는 연결 후보</p></div><span class="table-count">{{ workstream.suggestions | length }} pending</span></div>
+        <div class="section-toolbar"><div><h2>Suggestions</h2><p>수락 전에는 구조를 바꾸지 않는 연결 후보</p></div><span class="table-count">{{ workstream.suggestions | length }} {{ value_label("suggestion.status", "pending") }}</span></div>
         <div class="suggestion-list">
           {% for suggestion in workstream.suggestions %}
-            <div class="suggestion-row"><div><span>{{ suggestion.target_name }} · {{ suggestion.resource_label }} · {{ suggestion.origin_label }}</span><strong>{{ suggestion.title }}</strong><p>{{ suggestion.rationale }}{% if suggestion.description %} · {{ suggestion.description }}{% endif %}</p></div><div class="suggestion-score">{{ ((suggestion.confidence or 0) * 100) | round | int }}%</div><div class="suggestion-actions"><button class="secondary-button" type="button" data-suggestion-action="/api/suggestions/{{ suggestion.id }}/accept">수락</button><button class="text-button" type="button" data-suggestion-action="/api/suggestions/{{ suggestion.id }}/reject">제외</button></div></div>
+            <div class="suggestion-row"><div><span>{{ suggestion.target_name }} · {{ suggestion.resource_label }} · {{ suggestion.origin_label }} · {{ value_label("suggestion.status", suggestion.status) }}</span><strong>{{ suggestion.title }}</strong><p>{{ suggestion.rationale }}{% if suggestion.description %} · {{ suggestion.description }}{% endif %}</p></div><div class="suggestion-score">{{ ((suggestion.confidence or 0) * 100) | round | int }}%</div><div class="suggestion-actions"><button class="secondary-button" type="button" data-suggestion-action="/api/suggestions/{{ suggestion.id }}/accept">수락</button><button class="text-button" type="button" data-suggestion-action="/api/suggestions/{{ suggestion.id }}/reject">제외</button></div></div>
           {% else %}<div class="inline-empty padded">대기 중인 제안이 없습니다. 위의 “연결 제안 찾기”를 실행할 수 있습니다.</div>{% endfor %}
         </div>
         <details class="excluded-suggestions">
           <summary><span>제외된 제안</span><strong>{{ workstream.excluded_suggestions | length }}개</strong></summary>
           <div class="suggestion-list excluded-suggestion-list">
             {% for suggestion in workstream.excluded_suggestions %}
-              <div class="suggestion-row excluded-suggestion-row"><div><span>{{ suggestion.target_name }} · {{ suggestion.resource_label }} · {{ suggestion.origin_label }}</span><strong>{{ suggestion.title }}</strong><p>{{ suggestion.rationale }}{% if suggestion.description %} · {{ suggestion.description }}{% endif %}</p></div><div class="suggestion-score">excluded</div><div class="suggestion-actions"><button class="secondary-button" type="button" data-suggestion-action="/api/suggestions/{{ suggestion.id }}/restore">제외 해제</button></div></div>
+              <div class="suggestion-row excluded-suggestion-row"><div><span>{{ suggestion.target_name }} · {{ suggestion.resource_label }} · {{ suggestion.origin_label }} · {{ value_label("suggestion.status", suggestion.status) }}</span><strong>{{ suggestion.title }}</strong><p>{{ suggestion.rationale }}{% if suggestion.description %} · {{ suggestion.description }}{% endif %}</p></div><div class="suggestion-score">{{ value_label("suggestion.status", suggestion.status) }}</div><div class="suggestion-actions"><button class="secondary-button" type="button" data-suggestion-action="/api/suggestions/{{ suggestion.id }}/restore">제외 해제</button></div></div>
             {% else %}<div class="inline-empty padded">제외한 제안이 없습니다.</div>{% endfor %}
           </div>
         </details>
@@ -146,7 +146,7 @@
         <summary>Workstream 편집</summary>
         <form class="stack-form" data-api-form data-endpoint="/api/workstreams/{{ workstream.id }}" data-method="PUT">
           <label><span>이름</span><input name="name" required value="{{ workstream.name }}"></label>
-          <label><span>상태</span><select name="status"><option value="active" {% if workstream.status == 'active' %}selected{% endif %}>active</option><option value="paused" {% if workstream.status == 'paused' %}selected{% endif %}>paused</option><option value="done" {% if workstream.status == 'done' %}selected{% endif %}>done</option><option value="archived" {% if workstream.status == 'archived' %}selected{% endif %}>archived</option></select></label>
+          <label><span>상태</span><select name="status">{% for value in ['active', 'paused', 'done', 'archived'] %}<option value="{{ value }}" {% if workstream.status == value %}selected{% endif %}>{{ value_label("workstream.status", value) }}</option>{% endfor %}</select></label>
           <label><span>요약</span><textarea name="summary" rows="4">{{ workstream.summary or '' }}</textarea></label>
           <button class="secondary-button" type="submit">저장</button><p class="form-result" data-form-result role="status" aria-live="polite" hidden></p>
         </form>
@@ -169,7 +169,7 @@
         <summary>기존 자원 연결</summary>
         <form class="stack-form" data-api-form data-endpoint="/api/links" data-method="POST" data-split-entity>
           <label><span>연결 위치</span><select name="scope_ref">{% for thread in workstream.threads %}<option value="thread:{{ thread.id }}">Thread · {{ thread.title }}</option>{% endfor %}<option value="workstream:{{ workstream.id }}">공통 자원 · {{ workstream.name }}</option></select></label>
-          <label><span>자원</span><select name="entity_ref" required><option value="">선택</option><optgroup label="최근 Sessions">{% for item in resources.sessions %}<option value="session:{{ item.id }}">{{ item.source_kind }} · {{ item.title }}</option>{% endfor %}</optgroup><optgroup label="Local Contexts">{% for item in resources.documents %}<option value="document:{{ item.id }}">{{ item.title }} · {{ item.relative_path }}</option>{% endfor %}</optgroup><optgroup label="Projects">{% for item in resources.projects %}<option value="project:{{ item.id }}">{{ item.display_name }}</option>{% endfor %}</optgroup><optgroup label="Local paths">{% for item in resources.local %}<option value="local:{{ item.id }}">{{ item.resource_type }} · {{ item.title }}</option>{% endfor %}</optgroup><optgroup label="External">{% for item in resources.external %}<option value="external:{{ item.id }}">{{ item.resource_type }} · {{ item.title }}</option>{% endfor %}</optgroup></select></label>
+          <label><span>자원</span><select name="entity_ref" required><option value="">선택</option><optgroup label="최근 Sessions">{% for item in resources.sessions %}<option value="session:{{ item.id }}">{{ value_label("organization-link.entity-type", "session") }} · {{ item.title }}</option>{% endfor %}</optgroup><optgroup label="Local Contexts">{% for item in resources.documents %}<option value="document:{{ item.id }}">{{ value_label("organization-link.entity-type", "document") }} · {{ item.title }} · {{ item.relative_path }}</option>{% endfor %}</optgroup><optgroup label="Projects">{% for item in resources.projects %}<option value="project:{{ item.id }}">{{ value_label("organization-link.entity-type", "project") }} · {{ item.display_name }}</option>{% endfor %}</optgroup><optgroup label="Local paths">{% for item in resources.local %}<option value="local:{{ item.id }}">{{ value_label("local-resource.type", item.resource_type) }} · {{ item.title }}</option>{% endfor %}</optgroup><optgroup label="External">{% for item in resources.external %}<option value="external:{{ item.id }}">{{ value_label("external-resource.type", item.resource_type) }} · {{ item.title }}</option>{% endfor %}</optgroup></select></label>
           <label><span>관계</span><input name="relation_type" value="related-to"></label>
           <button class="secondary-button" type="submit">연결</button><p class="form-result" data-form-result role="status" aria-live="polite" hidden></p>
         </form>
@@ -191,7 +191,7 @@
         <summary>외부 참조 추가</summary>
         <form class="stack-form" data-api-form data-endpoint="/api/external-resources" data-method="POST" data-split-scope>
           <label><span>연결 위치</span><select name="scope_ref">{% for thread in workstream.threads %}<option value="thread:{{ thread.id }}">Thread · {{ thread.title }}</option>{% endfor %}<option value="workstream:{{ workstream.id }}">공통 자원 · {{ workstream.name }}</option></select></label>
-          <label><span>종류</span><select name="resource_type"><option value="jira">Jira</option><option value="wiki">Wiki</option><option value="slack">Slack</option><option value="git">Git</option><option value="document">Document</option><option value="url">URL</option></select></label>
+          <label><span>종류</span><select name="resource_type">{% for value in ['jira', 'wiki', 'slack', 'git', 'document', 'url'] %}<option value="{{ value }}">{{ value_label("external-resource.type", value) }}</option>{% endfor %}</select></label>
           <label><span>제목</span><input name="title" required></label>
           <label><span>주소</span><input name="url" type="url" required placeholder="https://"></label>
           <label><span>요약</span><textarea name="summary" rows="3"></textarea></label>

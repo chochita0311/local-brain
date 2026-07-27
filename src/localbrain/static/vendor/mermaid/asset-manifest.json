@@ -3,12 +3,20 @@
   "build": {
     "command": "npm run build:mermaid",
     "node": ">=20",
-    "packageLockSha256": "70a3239f8eb058021816c3e4730b1013724b03d60a6979ec3634488ad4ba7d9f"
+    "packageLockSha256": "9bc68c551ac2f09c3e03cdc525e797f7f6d7bed1f02acb8b09bb59d554b8b51e"
   },
   "dependencies": {
     "esbuild": {
       "license": "MIT",
       "version": "0.28.1"
+    },
+    "elkjs": {
+      "license": "EPL-2.0",
+      "version": "0.9.3"
+    },
+    "layoutElk": {
+      "license": "MIT",
+      "version": "0.2.2"
     },
     "mermaid": {
       "license": "MIT",
@@ -16,8 +24,10 @@
     }
   },
   "outputs": {
-    "mermaid.esm.min.js": "73dfaa6b847ae12e7262ad50dbbc92783fd6b74785932637bf5624ae5d82439b",
+    "mermaid.esm.min.js": "34160e7d1116983eaf678130241695ff754dc2a45ea7c221231273c2456e32ed",
     "mermaid-LICENSE.txt": "ec9fb67dcb25eccc416ed56e1aab819222c805a2a4bfe4cb19e7556bf2ffde80",
+    "layout-elk-LICENSE.txt": "ec9fb67dcb25eccc416ed56e1aab819222c805a2a4bfe4cb19e7556bf2ffde80",
+    "elkjs-LICENSE.txt": "89591d4578fb1ebd91501312a3d25f021bd865a2e436641c1cf7b1bc7e3c1617",
     "esbuild-LICENSE.txt": "b40ec5baec7bb34fa5b1c09521fa3cd52d5fad7adafed74932a2010d3612a681"
   }
 }

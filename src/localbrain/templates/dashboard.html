@@ -13,7 +13,7 @@
 
   <section class="overview-metrics" aria-label="작업 정리 현황">
     <div class="overview-metric"><span>활성 Workstream</span><strong>{{ metrics.active_workstreams }}</strong><small>사용자가 확정한 대주제</small></div>
-    <div class="overview-metric"><span>진행 Thread</span><strong>{{ metrics.active_threads }}</strong><small>active · blocked</small></div>
+    <div class="overview-metric"><span>진행 Thread</span><strong>{{ metrics.active_threads }}</strong><small>{{ value_label("thread.status", "active") }} · {{ value_label("thread.status", "blocked") }}</small></div>
     <div class="overview-metric attention"><span>Checkpoint 확인</span><strong>{{ metrics.needs_review }}</strong><small>새 활동 또는 미작성</small></div>
     <div class="overview-metric"><span>미분류 세션</span><strong>{{ metrics.unlinked_sessions }}</strong><small>Workstream 연결 전</small></div>
   </section>
@@ -29,7 +29,7 @@
           <article class="workstream-card">
             <header class="workstream-card-header">
               <div class="workstream-title-wrap">
-                <div class="status-line"><span class="status-badge {{ workstream.status }}">{{ workstream.status }}</span>{% if workstream.needs_review %}<span class="review-badge">checkpoint 확인</span>{% endif %}</div>
+                <div class="status-line"><span class="status-badge {{ workstream.status }}">{{ value_label("workstream.status", workstream.status) }}</span>{% if workstream.needs_review %}<span class="review-badge">checkpoint 확인</span>{% endif %}</div>
                 <h2><a href="/workstreams/{{ workstream.id }}">{{ workstream.name }}</a></h2>
                 {% if workstream.summary %}<p>{{ workstream.summary }}</p>{% endif %}
               </div>
@@ -48,7 +48,7 @@
                 <div class="thread-row">
                   <span class="thread-state {{ thread.status }}"></span>
                   <div>
-                    <div class="thread-title-line"><strong>{{ thread.title }}</strong><span>{{ thread.status }}</span></div>
+                    <div class="thread-title-line"><strong>{{ thread.title }}</strong><span>{{ value_label("thread.status", thread.status) }}</span></div>
                     <p>{{ thread.current_goal or thread.summary or '현재 목표가 아직 없습니다.' }}</p>
                     {% if thread.next_action %}<small>Next · {{ thread.next_action }}</small>{% endif %}
                   </div>

@@ -46,13 +46,21 @@
 
 - A repeated record split into sibling interactive regions may use one continuous hover or focus-within surface so the regions still read as one record.
 - Shared visual feedback must not merge distinct destinations or make non-clickable space advertise the wrong action.
-- Evaluators should compare the full row tone, individual focus targets, pointer cursor, and click boundaries together.
+- Optional child actions or disclosures should use a reserved or separately anchored utility layer so common metadata does not shift between otherwise equivalent records.
+- A pressed or selected utility action may change its glyph, accessible state, or approved emphasis, but it should not resize its hit area, recolor an unrelated parent surface, or move sibling metadata.
+- Evaluators should compare the full row tone, individual focus targets, pointer cursor, click boundaries, rows with and without optional children, and idle, hover, focus, and pressed states together.
 
 #### Readability Before Density
 
 - Browse surfaces must stay readable under realistic content length.
 - When density rises, the system should preserve hierarchy and containment before adding more visible information.
 - A visually compact layout that causes clipping, overlap, or scan breakdown is a failure, not a stylistic preference.
+
+#### Technical Canvas Control And Fallback Legibility
+
+- Dense diagrams, maps, and other technical canvases should expose visible controls for supported navigation such as zoom, reset, or fit; a modifier gesture may accelerate the task but should not be the only discoverable path.
+- Keep the control group, current scale or state, diagram legend, and canvas visually related without collapsing them into one ambiguous action cluster. Controls that depend on successful rendering should remain truthfully unavailable until the canvas is ready.
+- Evaluators should compare wide and narrow layouts, long labels, disabled and bounded states, render failure, keyboard and touch reachability, and the non-interactive or textual fallback. Canvas navigation must not widen the outer document or make the fallback feel like error residue.
 
 #### Shared Markdown Consumer Coverage
 
@@ -79,6 +87,25 @@
 - Adjacent totals, costs, counts, and activity metrics may legitimately use different eligible populations, but the layout and labels must not imply that they reconcile one-to-one.
 - When one metric includes background or child activity while another counts only primary work, the distinction should be visible at the point of comparison or in a bounded trust explanation.
 - Evaluators should inspect denominator definitions together with hierarchy and supporting copy rather than assuming shared placement means shared scope.
+
+#### User-Facing Terminology Boundary And Consistency
+
+- Internal storage, schema, or type names do not automatically own the user-facing vocabulary; visible labels should express the user's concept without requiring the internal contract to be renamed.
+- Once a user-facing term is chosen, apply it consistently across summaries, details, empty or unavailable states, errors, trust or calculation explanations, and accessibility text, including singular, plural, and number formatting.
+- Evaluators should confirm that nearby labels still distinguish the concept from adjacent records or events and that internal aliases do not leak through secondary presentation consumers.
+
+#### Authority Region Separation
+
+- A detail or inventory surface may combine externally observed facts, user-authored local memory, source evidence, organization state, execution history, and related context, but those authorities should not read as one interchangeable content block.
+- Cached or last-known external facts must not visually imply a live read. Local notes or classifications must not look provider-owned, and evidence or execution status must not compete with the primary record as if it were current source content.
+- A related or contextual item should state why it appears and where it came from; global proximity or recency alone should not look like an explained relationship.
+- Evaluators should inspect fully populated, partially available, stale, failed, and secondary-panel error states together. Headings, provenance, timestamps, relationship reasons, status copy, and explicit external-navigation or refresh actions should make each authority and its update path understandable without relying on color alone.
+
+#### Independent State-Axis Legibility
+
+- Content coverage, freshness, availability, attention, classification, and work organization are independent when the product contract says they can change separately. Do not compress them into one vague tracked, active, or synchronized treatment.
+- Labels, badges, filters, and metadata order should let users distinguish meaningful combinations such as current reference-only content, stale indexed content, archived but recoverable content, or locally classified content with no work grouping.
+- Evaluators should exercise cross-axis combinations and repeated visible identifiers from different source or tenant boundaries. Source identity and text labels must keep records distinguishable without assuming that one key, color, or status owns the whole record.
 
 ### Boundary And Scope Discipline
 
@@ -213,6 +240,12 @@
 - Broad screen-family work should sample LocalBrain's supported viewport boundaries and representative long-content, empty, unavailable, error, and active-interaction states. Exact widths and required states belong to the approved Feature, active Spec, or selected profile.
 - Use synthetic or explicitly approved content when captures, fixtures, or audit artifacts could otherwise expose private runtime data.
 - If the required rendered evidence cannot be collected, record the evidence gap explicitly and do not describe unobserved runtime behavior as a verified pass. The owning Feature, active Spec, or selected profile decides whether that gap blocks acceptance.
+
+#### Shared Owner And Propagation Evidence
+
+- A mismatch first observed in one record, route, or fixture may belong to a shared renderer, component, token, control, or layout primitive. Evaluators should identify that owning layer before describing the finding as instance-specific.
+- When the owner is shared, evidence should include the reported exemplar plus representative peer content or consumer surfaces, including narrow and wide states when geometry is involved. A one-record patch is not sufficient evidence for a shared-owner defect.
+- Record the propagation boundary explicitly: which consumers receive the correction, which remain intentionally outside it, and whether already mounted pages require reload or asset refresh before comparison.
 
 #### Positive-State Suppression Evidence
 

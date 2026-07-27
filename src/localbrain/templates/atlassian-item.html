@@ -3,20 +3,20 @@
 {% block page_location %}Atlassian Item{% endblock %}
 {% block content %}
   <div class="atlassian-item-page">
-    <a class="context-back-link" href="/atlassian?view={{ item.service }}&amp;mode=browse">← {{ 'Jira' if item.service == 'jira' else 'Confluence' }} inventory</a>
+    <a class="context-back-link" href="/atlassian?view={{ item.service }}&amp;mode=browse">← {{ value_label("atlassian-space.service", item.service) }} inventory</a>
 
     <section class="page-heading atlassian-item-heading">
       <div>
-        <p class="eyebrow">LOCAL SOURCE ITEM · {{ item.service | upper }}</p>
+        <p class="eyebrow">LOCAL SOURCE ITEM · {{ value_label("atlassian-item.type", item.item_type) | upper }}</p>
         <h1>{{ item.remote_key or item.display_title }}</h1>
         {% if item.remote_key %}<p class="heading-copy">{{ item.display_title }}</p>{% endif %}
         <p class="atlassian-item-origin">{{ item.source_name }} · {{ item.normalized_domain }}{% if item.space_name %} · {{ item.space_name }}{% endif %}</p>
         <div class="atlassian-classification-strip">
-          <span class="status-badge neutral">{{ item.coverage }}</span>
-          <span class="status-badge {{ 'warning' if item.freshness in ['due', 'stale'] else ('danger' if item.freshness == 'unavailable' else ('success' if item.freshness == 'current' else 'neutral')) }}">{{ item.freshness }}</span>
-          <span class="status-badge info">{{ item.attention }}</span>
-          {% for topic in item.topics %}<span class="status-badge info">Topic · {{ topic.name }}</span>{% endfor %}
-          {% for tag in item.tags %}<span class="status-badge neutral">#{{ tag.name }}</span>{% endfor %}
+          <span class="status-badge neutral">{{ value_label("atlassian-item.coverage", item.coverage) }}</span>
+          <span class="status-badge {{ 'warning' if item.freshness in ['due', 'stale'] else ('danger' if item.freshness == 'unavailable' else ('success' if item.freshness == 'current' else 'neutral')) }}">{{ value_label("atlassian-item.freshness", item.freshness) }}</span>
+          <span class="status-badge info">{{ value_label("atlassian-item.attention", item.attention) }}</span>
+          {% for topic in item.topics %}<span class="status-badge info">{{ value_label("atlassian-classification.kind", "topic") }} · {{ topic.name }}</span>{% endfor %}
+          {% for tag in item.tags %}<span class="status-badge neutral">{{ value_label("atlassian-classification.kind", "tag") }} · {{ tag.name }}</span>{% endfor %}
         </div>
       </div>
       <div class="atlassian-item-heading-actions">
@@ -28,14 +28,14 @@
     {% if notice %}<div class="atlassian-feedback success" role="status" tabindex="-1">{{ notice }}</div>{% endif %}
     {% if form_error %}<div class="atlassian-feedback error" role="alert">{{ form_error }}</div>{% endif %}
     {% if item.attention == 'archived' %}
-      <div class="atlassian-inline-state warning">이 Item은 archived 상태입니다. 직접 링크와 archived 필터에서는 계속 접근할 수 있습니다.</div>
+      <div class="atlassian-inline-state warning">이 Item은 {{ value_label("atlassian-item.attention", item.attention) }} 상태입니다. 직접 링크와 보관됨 필터에서는 계속 접근할 수 있습니다.</div>
     {% endif %}
 
     <div class="atlassian-detail-grid">
       <section class="atlassian-detail-card remote-facts" aria-labelledby="remote-facts-title">
         <div class="atlassian-section-heading">
           <div><p class="eyebrow">REMOTE FACTS · LAST KNOWN</p><h2 id="remote-facts-title">Atlassian 정보</h2></div>
-          <span class="status-badge {{ 'danger' if item.freshness == 'unavailable' else ('warning' if item.freshness in ['due', 'stale'] else 'neutral') }}">{{ item.freshness }}</span>
+          <span class="status-badge {{ 'danger' if item.freshness == 'unavailable' else ('warning' if item.freshness in ['due', 'stale'] else 'neutral') }}">{{ value_label("atlassian-item.freshness", item.freshness) }}</span>
         </div>
         <dl class="atlassian-fact-grid">
           <div><dt>Source Instance</dt><dd>{{ item.source_name }}</dd></div>
@@ -45,7 +45,7 @@
           <div><dt>Remote version</dt><dd>{{ item.remote_version or '확인되지 않음' }}</dd></div>
           <div><dt>Remote updated</dt><dd><time datetime="{{ item.remote_updated_at or '' }}" data-local-time>{{ item.remote_updated_at or '확인되지 않음' }}</time></dd></div>
           <div><dt>Last successful check</dt><dd><time datetime="{{ item.last_successful_at or '' }}" data-local-time>{{ item.last_successful_at or '아직 없음' }}</time></dd></div>
-          <div><dt>Latest outcome</dt><dd>{{ item.last_outcome or '아직 없음' }}</dd></div>
+          <div><dt>Latest outcome</dt><dd>{{ value_label("atlassian-item.remote-outcome", item.last_outcome) }}</dd></div>
         </dl>
         {% if item.metadata %}
           <details class="atlassian-remote-document" open>
@@ -53,7 +53,7 @@
             <pre>{{ item.metadata | tojson(indent=2) }}</pre>
           </details>
         {% else %}
-          <p class="atlassian-inline-state neutral">저장된 remote metadata가 없습니다. reference Item은 로컬 identity만 유지합니다.</p>
+          <p class="atlassian-inline-state neutral">저장된 remote 기본 정보가 없습니다. {{ value_label("atlassian-item.coverage", "reference") }} Item은 로컬 identity만 유지합니다.</p>
         {% endif %}
         {% if item.coverage == 'indexed' and item.normalized_text %}
           <div class="atlassian-source-content">
@@ -62,9 +62,9 @@
             {% if item.normalization_warning %}<p class="atlassian-inline-state warning">{{ item.normalization_warning }}</p>{% endif %}
           </div>
         {% elif item.coverage == 'indexed' %}
-          <p class="atlassian-inline-state warning">indexed coverage가 선택되었지만 적용된 본문이 없어 projection이 stale할 수 있습니다.</p>
+          <p class="atlassian-inline-state warning">{{ value_label("atlassian-item.coverage", "indexed") }} 범위가 선택되었지만 적용된 본문이 없어 검색 projection을 다시 갱신해야 할 수 있습니다.</p>
         {% else %}
-          <p class="atlassian-inline-state neutral">{{ item.coverage }} coverage는 remote body를 로컬에 저장하지 않습니다.</p>
+          <p class="atlassian-inline-state neutral">{{ value_label("atlassian-item.coverage", item.coverage) }} 범위는 remote body를 로컬에 저장하지 않습니다.</p>
         {% endif %}
       </section>
 
@@ -77,7 +77,7 @@
           <label for="item-attention">Attention</label>
           <select id="item-attention" name="attention">
             {% for value in ['normal', 'pinned', 'ignored', 'archived'] %}
-              <option value="{{ value }}" {% if item.attention == value %}selected{% endif %}>{{ value }}</option>
+              <option value="{{ value }}" {% if item.attention == value %}selected{% endif %}>{{ value_label("atlassian-item.attention", value) }}</option>
             {% endfor %}
           </select>
           <label for="item-note">Local note</label>
@@ -169,8 +169,8 @@
       </div>
       {% if item.latest_refresh_run %}
         <a class="atlassian-run-summary" href="/runs/{{ item.latest_refresh_run.id }}">
-          <span class="run-status {{ item.latest_refresh_run.status }}">{{ item.latest_refresh_run.status }}</span>
-          <span><strong>{{ item.latest_refresh_run.id }}</strong><small>{{ item.latest_refresh_run.runner }} · {{ item.latest_refresh_run.summary or item.latest_refresh_run.error or '요약 없음' }}</small></span>
+          <span class="run-status {{ item.latest_refresh_run.status }}">{{ value_label("maintenance.status", item.latest_refresh_run.status) }}</span>
+          <span><strong>{{ item.latest_refresh_run.id }}</strong><small>{{ value_label("maintenance.runner", item.latest_refresh_run.runner) }} · {{ item.latest_refresh_run.summary or item.latest_refresh_run.error or '요약 없음' }}</small></span>
           <time datetime="{{ item.latest_refresh_run.completed_at or item.latest_refresh_run.created_at }}" data-local-time>{{ item.latest_refresh_run.completed_at or item.latest_refresh_run.created_at }}</time>
         </a>
       {% else %}

@@ -73,7 +73,7 @@
   - Claude and Codex maintenance marker and structured-result parity
   - Atlassian URL forms and redirect behavior
   - large-Space pagination limits
-- Next handoff: FEAT-0044 through FEAT-0051 are passed. Draft [PRD-0008](prd-0008-connected-atlassian-validation-and-schema-erd-routing.md) owns connected first-use validation and any classified follow-up.
+- Next handoff: FEAT-0044 through FEAT-0051 are passed. Passed [PRD-0008](prd-0008-connected-atlassian-validation-and-schema-erd-routing.md) completed connected first-use validation through FEAT-0053 and the registered-scope-led Add-flow correction through FEAT-0054.
 
 ## Product Intent
 

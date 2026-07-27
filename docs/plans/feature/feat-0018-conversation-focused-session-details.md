@@ -10,7 +10,7 @@
 - Required Evaluators: `contract`, `design`, `functional`, `ux-heuristic`
 - Parent PRD: [prd-0002-session-browsing-and-subsession-organization](../prd/prd-0002-session-browsing-and-subsession-organization.md)
 - Created: `2026-07-17`
-- Updated: `2026-07-19`
+- Updated: `2026-07-27`
 
 ## Goal
 
@@ -156,3 +156,4 @@
 - `2026-07-17`: entered sequential fullstack execution after FEAT-0017 passed; screen-alignment mode is `extend`.
 - `2026-07-17`: passed after message-only presentation, unified direct-child orientation, retained Subagents access, legacy Claude compatibility, tool-only empty state, responsive and actual-runtime browser checks, and the full 38-test suite completed without a blocking finding.
 - `2026-07-19`: post-run human review resolved the product term as `Subsession`; the parent detail label, canonical lazy route, template, and implementation-facing names were aligned while preserving source-native Claude compatibility.
+- `2026-07-27`: owner follow-up removed the redundant visible Claude/Codex name from the Session detail heading while retaining accessible icon provenance, removed the explanatory sentence below the Subsessions heading, and aligned each child row as title/ID, event count, then activity date with a stable left-starting event column.

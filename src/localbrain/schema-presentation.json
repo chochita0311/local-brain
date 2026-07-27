@@ -3,13 +3,13 @@
     "explicit_index_count": 33,
     "fts5_table_count": 1,
     "id": "localbrain-data-model-2026-07-23",
-    "ordinary_table_count": 34,
-    "physical_foreign_key_count": 39,
+    "ordinary_table_count": 35,
+    "physical_foreign_key_count": 40,
     "sources": [
       {
         "path": "src/localbrain/schema.sql",
         "role": "fresh-schema-truth",
-        "sha256": "30398c7f06a99cefc3808f845cb58421783923c5134c111d5a75ec54e3ac5269"
+        "sha256": "941c6ad7f75d470eee0112051ae9c0db0a4e48a4a87e6df9c87d78bf563639b0"
       },
       {
         "path": "src/localbrain/db.py",
@@ -19,59 +19,59 @@
       {
         "path": "docs/policies/project/data-model.md",
         "role": "semantic-truth",
-        "sha256": "7945343f5d2fff0ce9ece77ca4288a2f55ebf23e3be13df5ce37f24e86126df1"
+        "sha256": "4ebbabba31ddd45925b4b4d0544316d7900962254022026309ec8f65506226c3"
       },
       {
         "path": "docs/policies/project/data-model/source-registry-and-scans.md",
         "role": "semantic-truth",
-        "sha256": "130663fc75f102bb3e8eeeddcb148247fc753fe8a96deb2a175ce1655e90f5bd"
+        "sha256": "c52d25efc0d6f649446fa0270a0e9317dbb54205ba84ec856109040249769596"
       },
       {
         "path": "docs/policies/project/data-model/workspace-and-session-activity.md",
         "role": "semantic-truth",
-        "sha256": "e4e156d9dec67188b8f12716f75db9504e81aaa6d50a023be960255340d0cc7e"
+        "sha256": "2e558665242518faa19f6848b2d0ada00fb015f8a10d8b8b0295eff77a0a138a"
       },
       {
         "path": "docs/policies/project/data-model/usage-and-cost-records.md",
         "role": "semantic-truth",
-        "sha256": "39d74160b72c0daf6c286eb1af6250c592b605a5edbc37ffa37f998ea9cada73"
+        "sha256": "52971ec348281b33b1988cdc2d93139b7a73a9817e328ff7bf5f103072a228d2"
       },
       {
         "path": "docs/policies/project/data-model/local-context-corpus.md",
         "role": "semantic-truth",
-        "sha256": "44664ec871b35bc69b53882a2656f0752134ca7e9af56ae4880e2d30974eb418"
+        "sha256": "8f3f48cbdfdb2dbad6857c914fb1d990b77e3ecee6553d81e1e9df2bbffd6d16"
       },
       {
         "path": "docs/policies/project/data-model/work-organization-and-resources.md",
         "role": "semantic-truth",
-        "sha256": "5f067c8f43053a0bea18404600a341dd8122bc926c4cd2cae9d9dba0defc9803"
+        "sha256": "cf11bf0274387987add0c14ed76df2eeb648dcdc244e3b9394fdc57e04e9ee07"
       },
       {
         "path": "docs/policies/project/data-model/atlassian-source-memory.md",
         "role": "semantic-truth",
-        "sha256": "cc20462217f1bd885547ea7ea3c3ac992e32d62f621dbb74f059cd774ef42ade"
+        "sha256": "75633c500af4da73d945cee5ee5e6ffcd13c88a7033a301a9d49de028fc9763e"
       },
       {
         "path": "docs/policies/project/data-model/review-and-resume-continuity.md",
         "role": "semantic-truth",
-        "sha256": "b7a4d67ff202219f5901dd9ee73e4e87c214c811cf917b3c007506b4e288795f"
+        "sha256": "b09a4def73cb3ab6ae6ce70bc5eea7ebc28d7afc240e5c34e808369cc48069ae"
       },
       {
         "path": "docs/policies/project/data-model/maintenance-execution.md",
         "role": "semantic-truth",
-        "sha256": "555da757567978feba1ca17ce2c7956ab1018b6eeb4b8e4d0bbbbdb761d03c74"
+        "sha256": "ae8b6639e05e0815537a2cf28c29fb217e5b7a355dc2f3a0557a4d464c0a0d0f"
       },
       {
         "path": "docs/policies/project/data-model/derived-retrieval-index.md",
         "role": "semantic-truth",
-        "sha256": "6d01209828ae7730648f9ce553c0691fd156d500d01eee9e6de7fbe0e7ebab88"
+        "sha256": "08e9a7b53042d3dea708a4b6f87e676fa9098941ed8c192a4fc2aef0d1cbfd98"
       }
     ],
     "subject_count": 9
   },
   "derived": true,
   "global": {
-    "mermaid": "erDiagram\n    SOURCES { integer id PK }\n    SOURCE_FILES { integer id PK }\n    EXTERNAL_SOURCE_INSTANCES { integer id PK }\n    EXTERNAL_SOURCE_CAPABILITIES { integer source_instance_id PK }\n    WORKSPACES { integer id PK }\n    SESSIONS { integer id PK }\n    ACTIVITY_EVENTS { string id PK }\n    USAGE_PRICE_SNAPSHOTS { string id PK }\n    USAGE_MODEL_PRICES { string snapshot_model PK }\n    USAGE_RECORDS { string id PK }\n    CONTEXT_ROOTS { integer id PK }\n    CONTEXT_DOCUMENTS { integer id PK }\n    WORKSTREAMS { integer id PK }\n    THREADS { integer id PK }\n    WORKSTREAM_LINKS { integer id PK }\n    THREAD_LINKS { integer id PK }\n    LOCAL_RESOURCES { integer id PK }\n    EXTERNAL_RESOURCES { integer id PK }\n    ATLASSIAN_SITES { integer id PK }\n    ATLASSIAN_SPACES { integer id PK }\n    ATLASSIAN_ITEMS { integer external_resource_id PK }\n    ATLASSIAN_ITEM_URLS { integer id PK }\n    ATLASSIAN_ITEM_REMOTE_STATE { integer external_resource_id PK }\n    ATLASSIAN_ITEM_CONTENT { integer external_resource_id PK }\n    ATLASSIAN_ITEM_LOCAL_STATE { integer external_resource_id PK }\n    ATLASSIAN_CLASSIFICATIONS { integer id PK }\n    ATLASSIAN_ITEM_CLASSIFICATIONS { integer external_resource_id PK integer classification_id PK }\n    ATLASSIAN_EVIDENCE_SCANS { integer id PK }\n    ATLASSIAN_ITEM_EVIDENCE { integer id PK }\n    SUGGESTIONS { integer id PK }\n    CHECKPOINTS { integer id PK }\n    CHECKPOINT_RESOURCE_REFS { integer id PK }\n    MAINTENANCE_RUNS { string id PK }\n    EXTERNAL_SYNC_RUNS { string maintenance_run_id PK }\n    SEARCH_INDEX { string entity_key \"derived\" }\n\n    SOURCES ||--o{ SOURCE_FILES : \"physical CASCADE\"\n    SOURCES ||--o{ SESSIONS : \"physical CASCADE\"\n    SOURCES ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    SOURCES ||--o{ CONTEXT_DOCUMENTS : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES ||--o| EXTERNAL_SOURCE_CAPABILITIES : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES ||--o{ ATLASSIAN_SITES : \"physical RESTRICT\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ EXTERNAL_SYNC_RUNS : \"physical SET_NULL\"\n    WORKSPACES o|--o{ SESSIONS : \"physical SET_NULL\"\n    WORKSPACES o|--o{ CONTEXT_DOCUMENTS : \"physical SET_NULL\"\n    MAINTENANCE_RUNS o|--o| SESSIONS : \"physical SET_NULL unique\"\n    SESSIONS o|--o{ SESSIONS : \"physical parent SET_NULL\"\n    SESSIONS ||--o{ ACTIVITY_EVENTS : \"physical CASCADE\"\n    SESSIONS ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    USAGE_PRICE_SNAPSHOTS ||--o{ USAGE_MODEL_PRICES : \"physical RESTRICT\"\n    USAGE_PRICE_SNAPSHOTS ||--o{ USAGE_RECORDS : \"physical RESTRICT\"\n    CONTEXT_ROOTS o|--o{ CONTEXT_DOCUMENTS : \"physical SET_NULL\"\n    WORKSTREAMS ||--o{ THREADS : \"physical CASCADE\"\n    WORKSTREAMS ||--o{ WORKSTREAM_LINKS : \"physical CASCADE\"\n    WORKSTREAMS ||--o{ CHECKPOINTS : \"physical CASCADE\"\n    WORKSTREAMS o|--o{ MAINTENANCE_RUNS : \"physical SET_NULL\"\n    MAINTENANCE_RUNS ||--o| EXTERNAL_SYNC_RUNS : \"physical CASCADE\"\n    EXTERNAL_RESOURCES ||--o| ATLASSIAN_ITEMS : \"physical CASCADE 1:1\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_SPACES : \"physical RESTRICT\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_ITEMS : \"physical RESTRICT\"\n    ATLASSIAN_SPACES o|--o{ ATLASSIAN_ITEMS : \"physical SET_NULL\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_URLS : \"physical composite CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_REMOTE_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_CONTENT : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_LOCAL_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_CLASSIFICATIONS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    SESSIONS ||--o{ ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE composite unique\"\n    CONTEXT_DOCUMENTS ||--o| ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE unique\"\n    SESSIONS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    CONTEXT_DOCUMENTS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    THREADS ||--o{ THREAD_LINKS : \"physical CASCADE\"\n    THREADS o|--o{ CHECKPOINT_RESOURCE_REFS : \"physical SET_NULL\"\n    CHECKPOINTS ||--o{ CHECKPOINT_RESOURCE_REFS : \"physical CASCADE\"\n\n    SOURCE_FILES ||..o| SESSIONS : \"app source_path\"\n    SOURCE_FILES ||..o| CONTEXT_DOCUMENTS : \"app path\"\n    WORKSPACES o|..o{ USAGE_RECORDS : \"app frozen snapshot\"\n    WORKSTREAM_LINKS }o..o| SESSIONS : \"app session target\"\n    WORKSTREAM_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document target\"\n    WORKSTREAM_LINKS }o..o| WORKSPACES : \"app project target\"\n    WORKSTREAM_LINKS }o..o| EXTERNAL_RESOURCES : \"app external target\"\n    WORKSTREAM_LINKS }o..o| LOCAL_RESOURCES : \"app local target\"\n    THREAD_LINKS }o..o| SESSIONS : \"app session target\"\n    THREAD_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document target\"\n    THREAD_LINKS }o..o| WORKSPACES : \"app project target\"\n    THREAD_LINKS }o..o| EXTERNAL_RESOURCES : \"app external target\"\n    THREAD_LINKS }o..o| LOCAL_RESOURCES : \"app local target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| SESSIONS : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| CONTEXT_DOCUMENTS : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| WORKSPACES : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| EXTERNAL_RESOURCES : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| LOCAL_RESOURCES : \"app snapshot target\"\n    SUGGESTIONS }o..o| WORKSTREAMS : \"app target\"\n    SUGGESTIONS }o..o| THREADS : \"app target\"\n    SUGGESTIONS }o..o| MAINTENANCE_RUNS : \"app origin\"\n    SEARCH_INDEX }o..o| SESSIONS : \"app projection\"\n    SEARCH_INDEX }o..o| CONTEXT_DOCUMENTS : \"app projection\"\n    SEARCH_INDEX }o..o| ATLASSIAN_ITEMS : \"app indexed projection\"\n"
+    "mermaid": "erDiagram\n    SOURCES { integer id PK }\n    SOURCE_FILES { integer id PK }\n    EXTERNAL_SOURCE_INSTANCES { integer id PK }\n    EXTERNAL_SOURCE_CAPABILITIES { integer source_instance_id PK }\n    WORKSPACES { integer id PK }\n    SESSIONS { integer id PK }\n    ACTIVITY_EVENTS { string id PK }\n    SESSION_PINS { integer session_id PK }\n    USAGE_PRICE_SNAPSHOTS { string id PK }\n    USAGE_MODEL_PRICES { string snapshot_model PK }\n    USAGE_RECORDS { string id PK }\n    CONTEXT_ROOTS { integer id PK }\n    CONTEXT_DOCUMENTS { integer id PK }\n    WORKSTREAMS { integer id PK }\n    THREADS { integer id PK }\n    WORKSTREAM_LINKS { integer id PK }\n    THREAD_LINKS { integer id PK }\n    LOCAL_RESOURCES { integer id PK }\n    EXTERNAL_RESOURCES { integer id PK }\n    ATLASSIAN_SITES { integer id PK }\n    ATLASSIAN_SPACES { integer id PK }\n    ATLASSIAN_ITEMS { integer external_resource_id PK }\n    ATLASSIAN_ITEM_URLS { integer id PK }\n    ATLASSIAN_ITEM_REMOTE_STATE { integer external_resource_id PK }\n    ATLASSIAN_ITEM_CONTENT { integer external_resource_id PK }\n    ATLASSIAN_ITEM_LOCAL_STATE { integer external_resource_id PK }\n    ATLASSIAN_CLASSIFICATIONS { integer id PK }\n    ATLASSIAN_ITEM_CLASSIFICATIONS { integer external_resource_id PK integer classification_id PK }\n    ATLASSIAN_EVIDENCE_SCANS { integer id PK }\n    ATLASSIAN_ITEM_EVIDENCE { integer id PK }\n    SUGGESTIONS { integer id PK }\n    CHECKPOINTS { integer id PK }\n    CHECKPOINT_RESOURCE_REFS { integer id PK }\n    MAINTENANCE_RUNS { string id PK }\n    EXTERNAL_SYNC_RUNS { string maintenance_run_id PK }\n    SEARCH_INDEX { string entity_key \"derived\" }\n\n    SOURCES ||--o{ SOURCE_FILES : \"physical CASCADE\"\n    SOURCES ||--o{ SESSIONS : \"physical CASCADE\"\n    SOURCES ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    SOURCES ||--o{ CONTEXT_DOCUMENTS : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES ||--o| EXTERNAL_SOURCE_CAPABILITIES : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES ||--o{ ATLASSIAN_SITES : \"physical RESTRICT\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ EXTERNAL_SYNC_RUNS : \"physical SET_NULL\"\n    WORKSPACES o|--o{ SESSIONS : \"physical SET_NULL\"\n    WORKSPACES o|--o{ CONTEXT_DOCUMENTS : \"physical SET_NULL\"\n    MAINTENANCE_RUNS o|--o| SESSIONS : \"physical SET_NULL unique\"\n    SESSIONS o|--o{ SESSIONS : \"physical parent SET_NULL\"\n    SESSIONS ||--o{ ACTIVITY_EVENTS : \"physical CASCADE\"\n    SESSIONS ||--o| SESSION_PINS : \"physical CASCADE\"\n    SESSIONS ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    USAGE_PRICE_SNAPSHOTS ||--o{ USAGE_MODEL_PRICES : \"physical RESTRICT\"\n    USAGE_PRICE_SNAPSHOTS ||--o{ USAGE_RECORDS : \"physical RESTRICT\"\n    CONTEXT_ROOTS o|--o{ CONTEXT_DOCUMENTS : \"physical SET_NULL\"\n    WORKSTREAMS ||--o{ THREADS : \"physical CASCADE\"\n    WORKSTREAMS ||--o{ WORKSTREAM_LINKS : \"physical CASCADE\"\n    WORKSTREAMS ||--o{ CHECKPOINTS : \"physical CASCADE\"\n    WORKSTREAMS o|--o{ MAINTENANCE_RUNS : \"physical SET_NULL\"\n    MAINTENANCE_RUNS ||--o| EXTERNAL_SYNC_RUNS : \"physical CASCADE\"\n    EXTERNAL_RESOURCES ||--o| ATLASSIAN_ITEMS : \"physical CASCADE 1:1\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_SPACES : \"physical RESTRICT\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_ITEMS : \"physical RESTRICT\"\n    ATLASSIAN_SPACES o|--o{ ATLASSIAN_ITEMS : \"physical SET_NULL\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_URLS : \"physical composite CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_REMOTE_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_CONTENT : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_LOCAL_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_CLASSIFICATIONS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    SESSIONS ||--o{ ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE composite unique\"\n    CONTEXT_DOCUMENTS ||--o| ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE unique\"\n    SESSIONS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    CONTEXT_DOCUMENTS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    THREADS ||--o{ THREAD_LINKS : \"physical CASCADE\"\n    THREADS o|--o{ CHECKPOINT_RESOURCE_REFS : \"physical SET_NULL\"\n    CHECKPOINTS ||--o{ CHECKPOINT_RESOURCE_REFS : \"physical CASCADE\"\n\n    SOURCE_FILES ||..o| SESSIONS : \"app source_path\"\n    SOURCE_FILES ||..o| CONTEXT_DOCUMENTS : \"app path\"\n    WORKSPACES o|..o{ USAGE_RECORDS : \"app frozen snapshot\"\n    WORKSTREAM_LINKS }o..o| SESSIONS : \"app session target\"\n    WORKSTREAM_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document target\"\n    WORKSTREAM_LINKS }o..o| WORKSPACES : \"app project target\"\n    WORKSTREAM_LINKS }o..o| EXTERNAL_RESOURCES : \"app external target\"\n    WORKSTREAM_LINKS }o..o| LOCAL_RESOURCES : \"app local target\"\n    THREAD_LINKS }o..o| SESSIONS : \"app session target\"\n    THREAD_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document target\"\n    THREAD_LINKS }o..o| WORKSPACES : \"app project target\"\n    THREAD_LINKS }o..o| EXTERNAL_RESOURCES : \"app external target\"\n    THREAD_LINKS }o..o| LOCAL_RESOURCES : \"app local target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| SESSIONS : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| CONTEXT_DOCUMENTS : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| WORKSPACES : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| EXTERNAL_RESOURCES : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| LOCAL_RESOURCES : \"app snapshot target\"\n    SUGGESTIONS }o..o| WORKSTREAMS : \"app target\"\n    SUGGESTIONS }o..o| THREADS : \"app target\"\n    SUGGESTIONS }o..o| MAINTENANCE_RUNS : \"app origin\"\n    SEARCH_INDEX }o..o| SESSIONS : \"app projection\"\n    SEARCH_INDEX }o..o| CONTEXT_DOCUMENTS : \"app projection\"\n    SEARCH_INDEX }o..o| ATLASSIAN_ITEMS : \"app indexed projection\"\n"
   },
   "relationships": {
     "application": [
@@ -624,6 +624,19 @@
       },
       {
         "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "session_id"
+        ],
+        "source_table": "session_pins",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "sessions"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
         "on_delete": "SET NULL",
         "on_update": "NO ACTION",
         "source_columns": [
@@ -798,11 +811,12 @@
       "document": "docs/policies/project/data-model/workspace-and-session-activity.md",
       "id": "workspace-and-session-activity",
       "label": "Workspace and Session activity",
-      "mermaid": "erDiagram\n    SOURCES { integer id PK }\n    WORKSPACES {\n        integer id PK\n        string canonical_path UK\n        string git_root\n    }\n    SESSIONS {\n        integer id PK\n        integer source_id FK\n        integer workspace_id FK\n        string external_id UK\n        string git_branch\n        string session_role\n        integer parent_session_id FK\n        string maintenance_run_id\n    }\n    ACTIVITY_EVENTS {\n        string id PK\n        integer session_id FK\n        integer sequence UK\n        string event_type\n    }\n    MAINTENANCE_RUNS { string id PK }\n    USAGE_RECORDS { string id PK integer session_id FK }\n\n    SOURCES ||--o{ SESSIONS : \"physical CASCADE\"\n    WORKSPACES o|--o{ SESSIONS : \"physical SET_NULL\"\n    SESSIONS o|--o{ SESSIONS : \"physical parent SET_NULL\"\n    SESSIONS ||--o{ ACTIVITY_EVENTS : \"physical CASCADE\"\n    SESSIONS ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    MAINTENANCE_RUNS o|--o| SESSIONS : \"physical SET_NULL unique\"\n",
+      "mermaid": "erDiagram\n    SOURCES { integer id PK }\n    WORKSPACES {\n        integer id PK\n        string canonical_path UK\n        string git_root\n    }\n    SESSIONS {\n        integer id PK\n        integer source_id FK\n        integer workspace_id FK\n        string external_id UK\n        string git_branch\n        string session_role\n        integer parent_session_id FK\n        string maintenance_run_id\n    }\n    ACTIVITY_EVENTS {\n        string id PK\n        integer session_id FK\n        integer sequence UK\n        string event_type\n    }\n    SESSION_PINS {\n        integer session_id PK\n        string pinned_at\n    }\n    MAINTENANCE_RUNS { string id PK }\n    USAGE_RECORDS { string id PK integer session_id FK }\n\n    SOURCES ||--o{ SESSIONS : \"physical CASCADE\"\n    WORKSPACES o|--o{ SESSIONS : \"physical SET_NULL\"\n    SESSIONS o|--o{ SESSIONS : \"physical parent SET_NULL\"\n    SESSIONS ||--o{ ACTIVITY_EVENTS : \"physical CASCADE\"\n    SESSIONS ||--o| SESSION_PINS : \"physical CASCADE\"\n    SESSIONS ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    MAINTENANCE_RUNS o|--o| SESSIONS : \"physical SET_NULL unique\"\n",
       "table_ids": [
         "workspaces",
         "sessions",
-        "activity_events"
+        "activity_events",
+        "session_pins"
       ]
     },
     {
@@ -1756,7 +1770,7 @@
         "class": "Source-derived and rebuildable",
         "class_contract": "Normalized from still-available local sources; rescans can recreate content, though stable relational IDs must be preserved during ordinary refreshes.",
         "consumers": "Session inventory/detail, dashboard counts, normalized activity, retrieval, Workstream linking/suggestions, Runner context, search projection, Usage Records, and Usage Dashboard denominators.",
-        "deletion_effect": "physical `source_id` cascades; optional `workspace_id`, `parent_session_id`, and unique `maintenance_run_id` set null. Deleting a Session cascades `activity_events` and `usage_records`; scanner also removes its search row. Polymorphic links and checkpoint refs are application edges and can retain an unresolved historical ID.",
+        "deletion_effect": "physical `source_id` cascades; optional `workspace_id`, `parent_session_id`, and unique `maintenance_run_id` set null. Deleting a Session cascades `activity_events`, `usage_records`, and the optional user-owned `session_pins` row; scanner also removes its search row. Polymorphic links and checkpoint refs are application edges and can retain an unresolved historical ID.",
         "documented_constraints": "`UNIQUE(source_id, external_id)`, unique nullable `maintenance_run_id`, checks for the two-value class, role, and index-policy vocabularies, and a linked-Session shape check requiring `maintenance`, `primary`, and `metadata_only`. Explicit indexes: `idx_sessions_last_event`, `idx_sessions_workspace`, `idx_sessions_class`, `idx_sessions_role`, `idx_sessions_parent`.",
         "lifecycle_contract": "all Sessions are source-derived from retained native JSONL. Stable IDs are preserved so curated links and Usage Records remain valid. A Run-linked primary and its resolved child Sessions keep metadata while maintenance index/event policy is restricted; the private Runner stream is an operational artifact only.",
         "producers": "`ingest/scanner.py` plus Claude/Codex parsers create Sessions and Usage Records; parent reconciliation updates self-references and propagates maintenance policy to Claude or Codex children. `runner.py` synchronizes the selected native source after terminal and recovered Runs. `db.py` owns the classification/Run-link constraint repair and stales source files when parser contracts change.",
@@ -1877,7 +1891,7 @@
       "semantics": {
         "class": "Source-derived and rebuildable",
         "class_contract": "Normalized from still-available local sources; rescans can recreate content, though stable relational IDs must be preserved during ordinary refreshes.",
-        "consumers": "`queries.py` Session detail and counts, `activity.py` active-time attribution, and `retrieval.py` evidence loading.",
+        "consumers": "`queries.py` Session detail and counts, `activity.py` active-time attribution, `retrieval.py` evidence loading, and primary Session `Related Context` orientation through the owning Session ID and workspace. The related-context projection adds no Session column or relationship row.",
         "deletion_effect": "`session_id` cascades from `sessions`; replacement deletes prior rows before inserting the new normalized sequence.",
         "documented_constraints": "`UNIQUE(session_id, sequence, event_type, source_line)`. Explicit indexes: none; SQLite owns the composite uniqueness autoindex used for Session event ordering.",
         "lifecycle_contract": "source-derived and rebuildable. Scanner replaces the Session's event set atomically during re-import.",
@@ -1886,6 +1900,65 @@
         "rebuildability": "source-rebuildable",
         "recovery_path": "rescan the Session source. Opaque tool arguments/results are not indexed by default; a later concrete metadata requirement must introduce an explicit bounded contract rather than relying on an unused generic JSON slot.",
         "schema_ownership": "fresh definition in `schema.sql`; event ordering uses the leading `session_id, sequence` keys of the table's UNIQUE autoindex. Compatible migration removes the former redundant named index only after verifying that coverage and removes the legacy metadata column only when every value is `NULL`."
+      },
+      "subject_id": "workspace-and-session-activity"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "session_id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY` and FK to `sessions.id`, `ON DELETE CASCADE`; the one row is the complete pin state.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "pinned_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; first time of the current pin interval, preserved by repeated pin and replaced only after unpin plus re-pin.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [],
+        "documented": "one row per Session, required pin time, and cascading physical ownership. Application eligibility admits only persisted `work` plus `primary` Sessions. Explicit indexes: none; the primary-key index owns membership and join lookup.",
+        "primary_key": [
+          "session_id"
+        ],
+        "unique": []
+      },
+      "foreign_keys": [
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "session_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "sessions"
+        }
+      ],
+      "id": "session_pins",
+      "indexes": [],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/workspace-and-session-activity.md",
+      "semantics": {
+        "class": "User-curated and non-rebuildable",
+        "class_contract": "User intent or registration is authoritative and requires database backup for full recovery.",
+        "consumers": "pinned Session membership, bounded internal queries, and the uncapped product recall projection in `session_pins.py`; Sessions inventory/detail controls and the global `Pinned Sessions` panel are downstream consumers.",
+        "deletion_effect": "`session_id` is both primary key and FK to `sessions.id`, `ON DELETE CASCADE`. Explicit Session or source deletion removes the pin because no reopenable Session remains. Ordinary Session upserts preserve the stable Session row and its pin.",
+        "documented_constraints": "one row per Session, required pin time, and cascading physical ownership. Application eligibility admits only persisted `work` plus `primary` Sessions. Explicit indexes: none; the primary-key index owns membership and join lookup.",
+        "lifecycle_contract": "user-curated and non-rebuildable. Pinning inserts one row, repeated pin is idempotent and preserves `pinned_at`, unpinning deletes only that row, and pinning again creates a new timestamp.",
+        "producers": "trusted local pin/unpin operations in `session_pins.py`. Session scanners and source adapters never write this table.",
+        "purpose_and_authority": "current owner-selected recall state for an eligible persisted primary work Session. Row presence means pinned; absence means unpinned. The table has no status, active, or soft-delete value.",
+        "rebuildability": "non-rebuildable",
+        "recovery_path": "restore the LocalBrain database backup. Native Claude or Codex Session files can rebuild the Session but cannot reconstruct owner pin intent or its pin time.",
+        "schema_ownership": "complete fresh definition in `schema.sql`; normal startup creates the absent table on a compatible older database through the same idempotent schema application. No explicit named index."
       },
       "subject_id": "workspace-and-session-activity"
     },
@@ -2825,7 +2898,7 @@
       "semantics": {
         "class": "Source-derived and rebuildable",
         "class_contract": "Normalized from still-available local sources; rescans can recreate content, though stable relational IDs must be preserved during ordinary refreshes.",
-        "consumers": "Context browse/detail in `queries.py` and `main.py`, retrieval evidence, Runner context manifests, Workstream links/suggestions, source summaries, and `search_index` projection.",
+        "consumers": "Context browse/detail in `queries.py` and `main.py`, retrieval evidence, Runner context manifests, Workstream links/suggestions, source summaries, `search_index` projection, and the Session `Related Context` read projection for enabled same-workspace or explicitly linked Documents. The projection reads identity and metadata only and never copies the stored body into Session ownership.",
         "deletion_effect": "source deletion cascades. Context root and workspace deletion set their keys null, retaining the document until scanner/root lifecycle removes it. Scanner and `contexts.py` explicitly remove matching FTS rows; disabling a Context root also clears its derived Atlassian evidence without deleting any Item. It is an application target for Workstream, Thread, and checkpoint references.",
         "documented_constraints": "uniqueness of `path`. Explicit indexes: `idx_documents_mtime`, `idx_documents_context_root`, `idx_documents_source`, and `idx_documents_workspace`; the workspace index orders `mtime_ns DESC` after `workspace_id`.",
         "lifecycle_contract": "source-derived and rebuildable while the external source remains available. The stored body is local indexed content and is never copied into tracked schema evidence.",
@@ -5235,7 +5308,7 @@
       "semantics": {
         "class": "Fully derived projection",
         "class_contract": "Safe to clear and rebuild from current eligible source objects.",
-        "consumers": "Item detail and evidence navigation; no refresh or remote-identity path may treat a sighting as successful remote confirmation.",
+        "consumers": "Item detail, evidence navigation, and the local Session `Related Context` projection when `session_id` points to the viewed primary Session; no refresh or remote-identity path may treat a sighting as successful remote confirmation.",
         "deletion_effect": "required cascading Item FK plus exactly one cascading Session or Document FK. Session evidence requires a stable event/location identifier; Document evidence uses line and URL occurrence without an excerpt.",
         "documented_constraints": "exactly one source FK; Session location parity; source-channel vocabulary; positive location values; bounded URLs/observations; unique evidence key. Explicit indexes: `idx_atlassian_evidence_item`, `idx_atlassian_evidence_session`, and `idx_atlassian_evidence_document`.",
         "lifecycle_contract": "fully derived per owning source. A successful changed scan upserts current sightings and removes obsolete sightings from that source, but never deletes the stable Item, remote state/content, or local organization.",

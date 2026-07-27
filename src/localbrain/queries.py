@@ -268,10 +268,12 @@ def session_inventory_page(
             workspaces.display_name AS workspace_name,
             workspaces.canonical_path AS workspace_path,
             workspaces.git_root,
-            workspaces.exists_now
+            workspaces.exists_now,
+            session_pins.pinned_at
         FROM sessions
         JOIN sources ON sources.id = sessions.source_id
         LEFT JOIN workspaces ON workspaces.id = sessions.workspace_id
+        LEFT JOIN session_pins ON session_pins.session_id = sessions.id
         WHERE {where}
         ORDER BY COALESCE(sessions.last_event_at, sessions.started_at) DESC,
                  sessions.id DESC
@@ -448,10 +450,12 @@ def session_detail(connection: sqlite3.Connection, session_id: int):
         SELECT sessions.*, sources.kind AS source_kind, sources.name AS source_name,
                workspaces.display_name AS workspace_name,
                workspaces.canonical_path AS workspace_path,
-               workspaces.git_root, workspaces.exists_now
+               workspaces.git_root, workspaces.exists_now,
+               session_pins.pinned_at
         FROM sessions
         JOIN sources ON sources.id = sessions.source_id
         LEFT JOIN workspaces ON workspaces.id = sessions.workspace_id
+        LEFT JOIN session_pins ON session_pins.session_id = sessions.id
         LEFT JOIN sessions AS parent_sessions
           ON parent_sessions.id = sessions.parent_session_id
         WHERE sessions.id = ?

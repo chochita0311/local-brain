@@ -1,9 +1,13 @@
 {% extends "base.html" %}
+{% from "_session_pin.html" import session_pin_control with context %}
 {% set inventory_mode = selected_inventory | default('sessions') %}
 {% set inventory_page_title = page_title | default('Sessions') %}
 {% set project_items = projects | default([]) %}
 {% set project_total = project_count | default(project_items | length) %}
 {% set unavailable_project_total = missing_count | default(0) %}
+{% set pinned_items = pinned_sessions | default([]) %}
+{% set session_return_to = (request.url.path ~ (('?' ~ request.url.query) if request.url.query else '')) if request is defined else '/sessions' %}
+{% set session_pin_error = request.query_params.get('pin_error') if request is defined else none %}
 {% macro session_page_url(target_page) -%}
   /sessions?page={{ target_page }}{% if selected_source != 'all' %}&source={{ selected_source }}{% endif %}{% if selected_workspace is not none %}&workspace={{ selected_workspace }}{% endif %}
 {%- endmacro %}
@@ -46,6 +50,15 @@
     </form>
   </section>
   <div id="session-sync-result" class="scan-result" role="status" hidden></div>
+  {% if session_pin_error and session_pin_error != 'storage-unavailable' %}
+    <div class="session-pin-notice" role="alert">
+      {% if session_pin_error == 'missing' %}
+        세션을 찾을 수 없어 핀 상태를 바꾸지 못했습니다.
+      {% elif session_pin_error == 'ineligible' %}
+        기본 작업 Session만 핀으로 고정할 수 있습니다.
+      {% endif %}
+    </div>
+  {% endif %}
 
   <div data-inventory-content>
     <section data-inventory-panel="sessions" {% if inventory_mode != 'sessions' %}hidden{% endif %}>
@@ -65,8 +78,8 @@
             </div>
             <div class="segmented-control" aria-label="AI 도구 필터">
               <a class="{% if selected_source == 'all' %}selected{% endif %}" href="/sessions{% if selected_workspace %}?workspace={{ selected_workspace }}{% endif %}">전체</a>
-              <a class="{% if selected_source == 'claude' %}selected{% endif %}" href="/sessions?source=claude{% if selected_workspace %}&workspace={{ selected_workspace }}{% endif %}">Claude</a>
-              <a class="{% if selected_source == 'codex' %}selected{% endif %}" href="/sessions?source=codex{% if selected_workspace %}&workspace={{ selected_workspace }}{% endif %}">Codex</a>
+              <a class="{% if selected_source == 'claude' %}selected{% endif %}" href="/sessions?source=claude{% if selected_workspace %}&workspace={{ selected_workspace }}{% endif %}">{{ value_label("source.kind", "claude") }}</a>
+              <a class="{% if selected_source == 'codex' %}selected{% endif %}" href="/sessions?source=codex{% if selected_workspace %}&workspace={{ selected_workspace }}{% endif %}">{{ value_label("source.kind", "codex") }}</a>
             </div>
           </div>
 
@@ -77,7 +90,7 @@
                   <a class="session-row-link" href="/sessions/{{ session.id }}">
                     <div class="session-source {{ session.source_kind }}">
                       <span aria-hidden="true">{{ 'CL' if session.source_kind == 'claude' else 'CX' }}</span>
-                      <span class="sr-only">{{ 'Claude' if session.source_kind == 'claude' else 'Codex' }}</span>
+                      <span class="sr-only">{{ value_label("source.kind", session.source_kind) }} · {{ value_label("session.role", session.session_role) }}</span>
                     </div>
                     <div class="session-main">
                       <div class="session-title-line">
@@ -87,32 +100,37 @@
                       <p class="path-line" title="{{ session.workspace_path or session.cwd_raw or '작업 경로 없음' }}">{{ session.workspace_path or session.cwd_raw or '작업 경로 없음' }}</p>
                       <div class="session-meta">
                         {% if session.git_branch %}<span>{{ session.git_branch }}</span>{% endif %}
-                        <span>질문 {{ session.user_message_count }}</span>
-                        <span>이벤트 {{ session.event_count }}</span>
                       </div>
                     </div>
-                    <time class="session-time" datetime="{{ session.last_event_at or session.started_at }}" data-local-time>{{ session.last_event_at or session.started_at or '-' }}</time>
                   </a>
-                  {% if session.subsessions %}
-                    <div class="subsession-menu" data-subsession-menu>
-                      <button class="subsession-trigger" type="button" aria-expanded="false" aria-controls="subsessions-{{ session.id }}" data-subsession-trigger>
-                        <span class="sr-only">{{ session.title }}의 Subsessions {{ session.subsessions | length }}개 보기</span>
-                        <span aria-hidden="true">{{ session.subsessions | length }} ▾</span>
-                      </button>
-                      <div class="subsession-dropdown" id="subsessions-{{ session.id }}" data-subsession-dropdown hidden>
-                        <div class="subsession-dropdown-heading"><strong>Subsessions</strong><span>{{ session.subsessions | length }}</span></div>
-                        <div class="subsession-dropdown-list">
-                          {% for child in session.subsessions %}
-                            <a href="/sessions/{{ child.id }}" data-subsession-link>
-                              <strong>{{ child.title }}</strong>
-                              <span>질문 {{ child.user_message_count }} · 이벤트 {{ child.event_count }}</span>
-                              <time datetime="{{ child.last_event_at or child.started_at }}" data-local-time>{{ child.last_event_at or child.started_at or '-' }}</time>
-                            </a>
-                          {% endfor %}
+                  <div class="session-utility-layer">
+                    <div class="session-utility-upper">
+                      <span>질문 {{ session.user_message_count }}</span>
+                      <span>이벤트 {{ session.event_count }}</span>
+                      <time class="session-time" datetime="{{ session.last_event_at or session.started_at }}" data-local-time>{{ session.last_event_at or session.started_at or '-' }}</time>
+                      {{ session_pin_control(session, session_return_to) }}
+                    </div>
+                    {% if session.subsessions %}
+                      <div class="subsession-menu" data-subsession-menu>
+                        <button class="subsession-trigger" type="button" aria-expanded="false" aria-controls="subsessions-{{ session.id }}" data-subsession-trigger>
+                          <span class="sr-only">{{ session.title }}의 Subsessions {{ session.subsessions | length }}개 보기</span>
+                          <span aria-hidden="true">{{ session.subsessions | length }} ▾</span>
+                        </button>
+                        <div class="subsession-dropdown" id="subsessions-{{ session.id }}" data-subsession-dropdown hidden>
+                          <div class="subsession-dropdown-heading"><strong>Subsessions</strong><span>{{ session.subsessions | length }}</span></div>
+                          <div class="subsession-dropdown-list">
+                            {% for child in session.subsessions %}
+                              <a href="/sessions/{{ child.id }}" data-subsession-link>
+                                <strong>{{ child.title }}</strong>
+                                <span>질문 {{ child.user_message_count }} · 이벤트 {{ child.event_count }}</span>
+                                <time datetime="{{ child.last_event_at or child.started_at }}" data-local-time>{{ child.last_event_at or child.started_at or '-' }}</time>
+                              </a>
+                            {% endfor %}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  {% endif %}
+                    {% endif %}
+                  </div>
                 </div>
               {% endfor %}
             </div>
@@ -150,19 +168,32 @@
         </div>
 
         <aside class="secondary-column">
-          <section class="side-section">
+          <section class="side-section" data-pinned-sessions-panel>
             <div class="side-heading">
-              <h2>최근 컨텍스트</h2>
-              <a href="/context">전체 보기</a>
+              <h2>Pinned Sessions</h2>
+              <span>{{ pinned_items | length }}</span>
             </div>
-            <div class="document-list">
-              {% for document in documents %}
-                <a href="/documents/{{ document.id }}">
-                  <strong>{{ document.title }}</strong>
-                  <span>{{ document.relative_path }}</span>
-                </a>
-              {% endfor %}
-            </div>
+            {% if pinned_items %}
+              <div class="pinned-session-list">
+                {% for pinned_session in pinned_items %}
+                  <a href="/sessions/{{ pinned_session.id }}">
+                    <span class="pinned-session-source {{ pinned_session.source_kind }}" aria-hidden="true">{{ 'CL' if pinned_session.source_kind == 'claude' else 'CX' }}</span>
+                    <span class="pinned-session-copy">
+                      <strong>{{ pinned_session.title }}</strong>
+                      <span>{{ pinned_session.workspace_name or pinned_session.workspace_path or pinned_session.cwd_raw or '작업 경로 없음' }}</span>
+                      <small>
+                        <time datetime="{{ pinned_session.last_event_at or pinned_session.started_at }}" data-local-time>{{ pinned_session.last_event_at or pinned_session.started_at or '-' }}</time>
+                      </small>
+                    </span>
+                  </a>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="pinned-session-empty">
+                <strong>고정한 Session이 없습니다</strong>
+                <span>목록이나 상세 화면의 핀 버튼으로 다시 찾을 Session을 고정하세요.</span>
+              </div>
+            {% endif %}
           </section>
 
           <section class="side-section source-status-section">
@@ -192,7 +223,7 @@
         <div class="project-list">
           {% for project in project_items %}
             <a class="project-row" href="/sessions?workspace={{ project.id }}">
-              <div class="project-state {{ 'available' if project.exists_now else 'missing' }}"></div>
+              <div class="project-state {{ 'available' if project.exists_now else 'missing' }}" title="{{ value_label("workspace.exists-now", 1 if project.exists_now else 0) }}"></div>
               <div class="project-main">
                 <div class="project-title-line">
                   <h2>{{ project.display_name }}</h2>

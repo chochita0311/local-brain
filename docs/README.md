@@ -16,6 +16,7 @@ Durable rules and current contracts live under `docs/policies/`.
 - [Product Model](policies/project/product.md): product purpose, scope, terminology, source roles, and user-facing organization rules
 - [Project Architecture](policies/project/architecture.md): stack, runtime boundaries, source adapters, storage model, and current implementation baseline
 - [Data Model](policies/project/data-model.md): complete effective SQLite map, global and subject ERDs, table/column catalogs, relationships, lifecycle, recovery, and delta maintenance ownership
+- [Value Dictionaries](policies/project/data-model/value-dictionaries.md): generated nine-subject map from physical and derived bounded values to complete presentation modes, labels, fallbacks, and consumer ownership
 - [Schema Presentation](policies/project/schema-presentation.md): deterministic package manifest, source ownership, loader/failure behavior, and downstream Schema consumer contract
 - [Privacy And Data Handling](policies/project/privacy-and-data.md): repository boundary, local persistence, external access, and disclosure constraints
 - [Developer Guide](policies/project/developer-guide.md): setup, configuration, development workflow, and verification
@@ -51,7 +52,8 @@ Sequencing and unresolved work live under `docs/plans/`.
 - [Workflow And Skill Intelligence PRD](plans/prd/prd-0005-workflow-and-skill-intelligence.md): draft boundary for evidence-backed personal workflow patterns, repeated-process analysis, skill use, and reviewable skill suggestions
 - [Markdown Reading And Context Continuity PRD](plans/prd/prd-0006-markdown-reading-and-context-continuity.md): passed boundary for shared safe Markdown, source-local references, Local Context preview and full reading, Session conversation rendering, and navigation continuity; image and attachment rendering remains deferred
 - [Atlassian Source Memory And Explicit Refresh PRD](plans/prd/prd-0007-atlassian-source-memory-and-refresh.md): passed boundary for read-only MCP capability policy, source-neutral maintenance synchronization, stable Atlassian identity and freshness, URL evidence, registration, explicit refresh, local browse/search/classification, and URL-first connection onboarding
-- [Connected Atlassian Validation And Schema ERD Routing PRD](plans/prd/prd-0008-connected-atlassian-validation-and-schema-erd-routing.md): draft next-session boundary for connected Atlassian first-use validation and official Mermaid ELK orthogonal-routing evaluation
+- [Connected Atlassian Validation And Schema ERD Routing PRD](plans/prd/prd-0008-connected-atlassian-validation-and-schema-erd-routing.md): passed boundary for bounded connected Atlassian evidence, registered-scope-led Add flow, official Mermaid ELK evaluation, and locally packaged orthogonal Schema routing
+- [Data Model Value Dictionaries And Pinned Session Recall PRD](plans/prd/prd-0009-data-model-value-dictionaries-and-pinned-session-recall.md): passed boundary for nine subject-owned bounded-value dictionaries, durable pinned Session recall, stable Session-row utilities, Session-scoped related context, and complete visible-consumer normalization
 - `docs/plans/prd/`, `feature/`, and `spec/`: planning and implementation boundaries across their lifecycle
 - `docs/plans/run/`, `evaluation/`, `fix/`, and `heuristic/`: execution and review artifacts
 

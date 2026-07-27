@@ -40,7 +40,7 @@
         <span>Source</span>
         <nav class="segmented-control" aria-label="Source filter">
           {% for control in usage.controls.sources %}
-            <a class="{% if usage.scope.source == control.value %}selected{% endif %}" href="{{ control.url }}" data-usage-scope-link data-usage-control="source" data-usage-value="{{ control.value }}" {% if usage.scope.source == control.value %}aria-current="page"{% endif %}>{{ control.label }}</a>
+            <a class="{% if usage.scope.source == control.value %}selected{% endif %}" href="{{ control.url }}" data-usage-scope-link data-usage-control="source" data-usage-value="{{ control.value }}" {% if usage.scope.source == control.value %}aria-current="page"{% endif %}>{{ control.label if control.value == 'all' else value_label("source.kind", control.value) }}</a>
           {% endfor %}
         </nav>
       </div>
@@ -91,7 +91,7 @@
     <div><span>Selected period</span><strong>{{ usage.scope.from_iso }} – {{ usage.scope.to_iso }}</strong><small>{{ usage.scope.timezone }}</small></div>
     <div>
       <span>Data freshness</span>
-      <strong class="usage-freshness {{ usage.freshness.status }}">{{ usage.freshness.status | replace('_', ' ') }}</strong>
+      <strong class="usage-freshness {{ usage.freshness.status }}">{{ value_label("usage.freshness", usage.freshness.status) }}</strong>
       {% if usage.freshness.last_synchronized_at %}<time datetime="{{ usage.freshness.last_synchronized_at }}" data-local-time>{{ usage.freshness.last_synchronized_at }}</time>{% else %}<small>Not synchronized yet</small>{% endif %}
     </div>
   </section>
@@ -181,7 +181,7 @@
         <h2>Coverage &amp; freshness</h2>
         <p>선택한 숫자가 어디까지 계산되고 언제 갱신됐는지 확인합니다.</p>
       </div>
-      <span class="usage-trust-state {{ usage.freshness.status }}">{{ usage.freshness.status | replace('_', ' ') }}</span>
+      <span class="usage-trust-state {{ usage.freshness.status }}">{{ value_label("usage.freshness", usage.freshness.status) }}</span>
     </header>
     {% if usage.has_usage and usage.freshness.status in ['stale', 'error'] %}
       <p class="usage-retained-notice" role="status">Previously calculated usage remains visible. Source synchronization needs attention.</p>
@@ -193,11 +193,11 @@
           <div class="usage-trust-list">
             {% for source in usage.freshness.sources %}
               <div class="usage-source-trust-row">
-                <strong><i class="source-indicator {{ source.kind }}" aria-hidden="true"></i>{{ source.name }}</strong>
-                <span class="usage-freshness {{ source.status }}">{{ source.status | replace('_', ' ') }}</span>
+                <strong><i class="source-indicator {{ source.kind }}" aria-hidden="true"></i>{{ value_label("source.kind", source.kind) }} · {{ source.name }}</strong>
+                <span class="usage-freshness {{ source.status }}">{{ value_label("usage.freshness", source.status) }}</span>
                 <small>Last successful {% if source.last_successful_at %}<time datetime="{{ source.last_successful_at }}" data-local-time>{{ source.last_successful_at }}</time>{% else %}unavailable{% endif %}</small>
                 <small>{{ source.selected_usage_record_count }} selected usage record{% if source.selected_usage_record_count != 1 %}s{% endif %}</small>
-                {% if source.error_count or source.stale_count %}<small>{{ source.error_count }} errors · {{ source.stale_count }} stale files</small>{% endif %}
+                {% if source.error_count or source.stale_count %}<small>{{ value_label("source-file.status", "error") }} {{ source.error_count }} · {{ value_label("source-file.status", "stale") }} {{ source.stale_count }}</small>{% endif %}
               </div>
             {% endfor %}
           </div>
@@ -211,7 +211,10 @@
           <div><dt>Selected usage records</dt><dd>{{ usage.aggregate.usage_record_count }}</dd></div>
           <div><dt>Token coverage</dt><dd>{{ usage.aggregate.token_covered_record_count }} / {{ usage.aggregate.usage_record_count }}</dd></div>
           <div><dt>Estimated-price coverage</dt><dd>{{ usage.aggregate.priced_record_count }} / {{ usage.aggregate.usage_record_count }}</dd></div>
-          <div><dt>Price states</dt><dd>{{ usage.aggregate.calculation_state_label }}</dd></div>
+          <div title="{{ value_help("usage.calculation-state") }}"><dt>Price states</dt><dd>{% for value, count in usage.aggregate.calculation_states | dictsort %}{% if not loop.first %} · {% endif %}{{ value_label("usage.calculation-state", value) }} {{ count }}{% else %}계산 기록 없음{% endfor %}</dd></div>
+          <div title="{{ value_help("usage.capability-state") }}"><dt>Source field coverage</dt><dd>{% for value, count in usage.aggregate.capability_states | dictsort %}{% if not loop.first %} · {% endif %}{{ value_label("usage.capability-state", value) }} {{ count }}{% else %}확인할 기록 없음{% endfor %}</dd></div>
+          <div title="{{ value_help("usage.aggregation-scope") }}"><dt>Aggregation scope</dt><dd>{% for value, count in usage.aggregate.aggregation_scopes | dictsort %}{% if not loop.first %} · {% endif %}{{ value_label("usage.aggregation-scope", value) }} {{ count }}{% else %}확인할 기록 없음{% endfor %}</dd></div>
+          <div title="{{ value_help("usage.attribution-basis") }}"><dt>Project attribution</dt><dd>{% for value, count in usage.aggregate.attribution_bases | dictsort %}{% if not loop.first %} · {% endif %}{{ value_label("usage.attribution-basis", value) }} {{ count }}{% else %}확인할 기록 없음{% endfor %}</dd></div>
           <div><dt>Last calculation</dt><dd>{% if usage.last_calculated_at %}<time datetime="{{ usage.last_calculated_at }}" data-local-time>{{ usage.last_calculated_at }}</time>{% else %}Unavailable{% endif %}</dd></div>
         </dl>
       </section>

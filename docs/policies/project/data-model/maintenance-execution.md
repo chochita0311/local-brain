@@ -4,6 +4,8 @@
 
 This subject owns the Task Runner's durable lifecycle, budgets, process metadata, artifact references, structured result, summary, and failure evidence. It does not own the artifact file contents or accepted organization changes.
 
+[Value Dictionary](value-dictionaries/maintenance-execution.md) owns this subject's bounded physical/logical/presentation mappings.
+
 ## Focused ERD
 
 ```mermaid

@@ -71,7 +71,7 @@
     <div class="context-explorer" data-context-explorer data-context-source-id="{{ selected_source.id if selected_source else '' }}">
       <div class="context-explorer-toolbar">
         <div><h2>{{ selected_source.label if selected_source else 'Source 없음' }}</h2><p>{{ selected_source.display_path if selected_source else '-' }}</p></div>
-        {% if selected_source %}<span class="source-status {{ selected_source.status }}">{{ selected_source.status }}</span>{% endif %}
+        {% if selected_source %}<span class="source-status {{ selected_source.status }}">{{ value_label("context-root.status", selected_source.status) }}</span>{% endif %}
       </div>
       <div class="context-explorer-body" data-context-split>
         <aside class="source-tree-pane" id="context-source-tree">

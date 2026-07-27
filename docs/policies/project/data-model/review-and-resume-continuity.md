@@ -4,6 +4,8 @@
 
 This subject owns reversible generated Suggestions, their review state, human-confirmed resume checkpoints, and the exact resource identities captured with a checkpoint.
 
+[Value Dictionary](value-dictionaries/review-and-resume-continuity.md) owns this subject's bounded physical/logical/presentation mappings.
+
 ## Focused ERD
 
 ```mermaid

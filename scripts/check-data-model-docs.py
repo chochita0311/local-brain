@@ -6,6 +6,8 @@ import sqlite3
 import sys
 from pathlib import Path
 
+from data_model_value_registry import check_documents
+
 
 ROOT = Path(__file__).resolve().parents[1]
 ENTRY = ROOT / "docs/policies/project/data-model.md"
@@ -24,6 +26,7 @@ SUBJECTS = {
         "workspaces",
         "sessions",
         "activity_events",
+        "session_pins",
     ),
     "usage-and-cost-records.md": (
         "usage_price_snapshots",
@@ -73,6 +76,10 @@ REQUIRED_TABLE_LABELS = (
 REQUIRED_SEMANTIC_SNIPPETS = {
     "data-model.md": (
         'SESSIONS ||--o{ ATLASSIAN_EVIDENCE_SCANS : "physical CASCADE composite unique"',
+        'SESSIONS ||--o| SESSION_PINS : "physical CASCADE"',
+    ),
+    "workspace-and-session-activity.md": (
+        'SESSIONS ||--o| SESSION_PINS : "physical CASCADE"',
     ),
     "atlassian-source-memory.md": (
         'SESSIONS ||--o{ ATLASSIAN_EVIDENCE_SCANS : "physical CASCADE composite unique"',
@@ -146,8 +153,8 @@ def main() -> int:
         )
     if not search_exists:
         errors.append("search_index is missing or is not an FTS5 table")
-    if len(ordinary_tables) != 34:
-        errors.append(f"expected 34 ordinary tables, found {len(ordinary_tables)}")
+    if len(ordinary_tables) != 35:
+        errors.append(f"expected 35 ordinary tables, found {len(ordinary_tables)}")
 
     physical_fk_count = sum(
         len(
@@ -160,8 +167,8 @@ def main() -> int:
         )
         for table in ordinary_tables
     )
-    if physical_fk_count != 39:
-        errors.append(f"expected 39 physical foreign keys, found {physical_fk_count}")
+    if physical_fk_count != 40:
+        errors.append(f"expected 40 physical foreign keys, found {physical_fk_count}")
 
     fresh_indexes = {
         row[0]: row[1]
@@ -241,7 +248,7 @@ def main() -> int:
     if f"`db.py` SHA-256: `{db_digest}`" not in entry:
         errors.append("db.py baseline digest is stale")
 
-    if "Ordinary tables: `34`" not in entry or "Physical foreign keys: `39`" not in entry:
+    if "Ordinary tables: `35`" not in entry or "Physical foreign keys: `40`" not in entry:
         errors.append("global baseline counts are stale")
     if "Effective explicitly named indexes: `33`" not in entry:
         errors.append("global effective-index count is stale")
@@ -266,13 +273,39 @@ def main() -> int:
         errors.append("Project Architecture does not link to Data Model")
     if "[Data Model](policies/project/data-model.md)" not in docs_map:
         errors.append("Documentation Map does not link to Data Model")
+    if "[Value Dictionaries](policies/project/data-model/value-dictionaries.md)" not in docs_map:
+        errors.append("Documentation Map does not link to Value Dictionaries")
+    if "[Value Dictionaries](data-model/value-dictionaries.md)" not in entry:
+        errors.append("Data Model does not link to Value Dictionaries")
+    for filename in SUBJECTS:
+        subject_id = filename.removesuffix(".md")
+        expected_link = f"[Value Dictionary](value-dictionaries/{subject_id}.md)"
+        if expected_link not in semantic_documents[filename]:
+            errors.append(f"{filename} does not link to its Value Dictionary")
 
     documents.extend(
         [
             (ROOT / "docs/policies/project/architecture.md", architecture),
             (ROOT / "docs/README.md", docs_map),
+            (
+                ROOT / "docs/policies/project/data-model/value-dictionaries.md",
+                (
+                    ROOT / "docs/policies/project/data-model/value-dictionaries.md"
+                ).read_text(encoding="utf-8"),
+            ),
         ]
     )
+    for filename in SUBJECTS:
+        subject_id = filename.removesuffix(".md")
+        path = (
+            ROOT
+            / "docs/policies/project/data-model/value-dictionaries"
+            / f"{subject_id}.md"
+        )
+        if path.is_file():
+            documents.append((path, path.read_text(encoding="utf-8")))
+
+    errors.extend(check_documents(ROOT))
     for path, document in documents:
         for target in markdown_targets(path, document):
             if not target.exists():
@@ -286,8 +319,8 @@ def main() -> int:
             print(f"ERROR: {error}", file=sys.stderr)
         return 1
     print(
-        "Data-model docs match 34 ordinary tables, 1 FTS5 object, "
-        "39 physical foreign keys, 33 explicit indexes, and 9 subject owners."
+        "Data-model docs match 35 ordinary tables, 1 FTS5 object, "
+        "40 physical foreign keys, 33 explicit indexes, and 9 subject owners."
     )
     return 0
 

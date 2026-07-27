@@ -5,11 +5,11 @@
   <a class="back-link" href="/workstreams">Workstreams로 돌아가기</a>
   <section class="page-heading">
     <div>
-      <p class="eyebrow">{{ resource.resource_type }}</p>
+      <p class="eyebrow">{{ value_label("local-resource.type", resource.resource_type) }}</p>
       <h1>{{ resource.title }}</h1>
       <p class="heading-copy mono">{{ resource.path }}</p>
     </div>
-    <span class="status-badge {{ 'active' if resource.exists_now else 'paused' }}">{{ 'available' if resource.exists_now else 'missing' }}</span>
+    <span class="status-badge {{ 'active' if resource.exists_now else 'paused' }}">{{ value_label("local-resource.exists-now", 1 if resource.exists_now else 0) }}</span>
   </section>
 
   <section class="detail-grid">

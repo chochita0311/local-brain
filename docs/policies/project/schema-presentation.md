@@ -37,7 +37,7 @@ Each table contains:
 | `foreign_keys` | Table-local physical target, columns, and update/delete behavior. |
 | `semantics` | Purpose/authority, lifecycle contract and class, rebuildability code, producers, consumers, deletion effect, recovery path, DDL/migration ownership, and documented constraints. |
 
-The current baseline has nine subjects, 34 ordinary tables plus one FTS5 object, 381 effective columns, 33 explicit indexes, 39 physical relations, and 24 application relations. Count changes are accepted only with the implementation and semantic owners updated together.
+The current baseline has nine subjects, 35 ordinary tables plus one FTS5 object, 383 effective columns, 33 explicit indexes, 40 physical relations, and 24 application relations. Count changes are accepted only with the implementation and semantic owners updated together.
 
 ## Determinism And Failure
 
@@ -64,7 +64,9 @@ The loader never exposes parser internals to a screen and never falls back to do
 
 The route never opens the configured database or reads repository Markdown. Missing or invalid package data produces the loader's intentional unavailable state. JavaScript progressively replaces only the Schema region for history and focus continuity, but it is not a data producer and the complete selected table catalog remains executable HTML without it.
 
-Successfully rendered diagrams start at their existing `100%` width and expose bounded `10%–300%` local presentation controls. `Ctrl`/`Cmd` plus wheel, including browser-normalized trackpad pinch, zooms around the pointer; an unmodified wheel remains ordinary scroll input. Reset restores `100%`, and width fit only reduces diagrams that exceed the current viewport. Zoom changes the rendered wrapper and local scroll position only: it never reruns Mermaid, alters presentation data, enters URL state, or persists user data. Render failure keeps the controls unavailable and the textual fallback authoritative.
+Every global and subject Schema ERD requests the locally bundled official ELK layout through adapter-owned transient configuration; the manifest Mermaid source remains byte-identical to its reviewed Data Model owner. ELK is the single default and has no selector or persisted state. If ELK rendering fails, the adapter retries the unchanged source exactly once with Dagre and labels the bounded fallback; a second failure keeps zoom unavailable and the textual catalog authoritative. Other LocalBrain Mermaid consumers do not opt into ELK.
+
+Successfully rendered diagrams start at their existing `100%` width and expose bounded `10%–300%` local presentation controls. `Ctrl`/`Cmd` plus wheel, including browser-normalized trackpad pinch, zooms around the pointer; an unmodified wheel remains ordinary scroll input. Reset restores `100%`, and width fit only reduces diagrams that exceed the current viewport. Zoom changes the rendered wrapper and local scroll position only: it never reruns Mermaid, alters presentation data, enters URL state, or persists user data.
 
 ## Privacy And Packaging
 

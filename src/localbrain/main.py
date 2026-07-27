@@ -3,7 +3,7 @@ import sqlite3
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional
-from urllib.parse import parse_qs, quote, urlencode
+from urllib.parse import parse_qs, parse_qsl, quote, urlencode, urlsplit
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -29,6 +29,7 @@ from .atlassian_registration import (
     register_atlassian_url,
     register_atlassian_url_with_connection,
     register_space_candidate,
+    registered_scope_overview,
     registration_inventory,
     registration_sites,
     space_catalog_candidates,
@@ -53,7 +54,6 @@ from .queries import (
     dashboard_stats,
     document_detail,
     project_activity,
-    recent_documents,
     search,
     session_conversation_events,
     session_inventory_page,
@@ -61,6 +61,12 @@ from .queries import (
     session_parent,
     session_subsessions,
     source_inventory,
+)
+from .session_pins import (
+    SessionPinError,
+    list_all_pinned_sessions,
+    pin_session as persist_session_pin,
+    unpin_session as persist_session_unpin,
 )
 from .runner import (
     cancel_run,
@@ -76,9 +82,11 @@ from .runner import (
     task_choices,
 )
 from .schema_explorer import schema_explorer_page_data
+from .session_context import RELATED_CONTEXT_LIMIT, session_related_context
 from .session_reading import conversation_event_views
 from .subagents import list_subagents, load_subagent
 from .usage_queries import usage_dashboard_data
+from .value_registry import display_value_label, visible_value_help
 from .workstreams import (
     add_link,
     create_checkpoint,
@@ -193,6 +201,8 @@ templates.env.globals["asset_version"] = max(
     for path in (PACKAGE_ROOT / "static").iterdir()
     if path.is_file()
 )
+templates.env.globals["value_label"] = display_value_label
+templates.env.globals["value_help"] = visible_value_help
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -341,7 +351,7 @@ def sessions_page(
             "stats": dashboard_stats(connection),
             "sessions": pagination["items"],
             "pagination": pagination,
-            "documents": recent_documents(connection),
+            "pinned_sessions": list_all_pinned_sessions(connection),
             "sources": source_inventory(connection),
             "projects": projects,
             "project_count": len(projects),
@@ -424,6 +434,7 @@ def _atlassian_page_context(
     form_error: Optional[str] = None,
     catalog_run: Optional[str] = None,
     selected_mode: str = "browse",
+    selected_add_method: str = "url",
     browse_values: Optional[dict] = None,
 ) -> dict:
     inventory = registration_inventory(connection, selected_view)
@@ -452,12 +463,20 @@ def _atlassian_page_context(
         "space-reused": "이미 등록된 Space를 열었습니다.",
         "catalog-started": "Space 후보 조회 maintenance Run을 시작했습니다.",
     }
+    registered_scopes = registered_scope_overview(
+        connection, selected_view
+    )
     return {
         "request": request,
         "active_page": "atlassian",
         "selected_view": selected_view,
         "selected_mode": selected_mode,
+        "selected_add_method": selected_add_method,
         "sites": registration_sites(connection, selected_view),
+        "registered_scopes": registered_scopes,
+        "registered_scope_space_count": sum(
+            len(scope["spaces"]) for scope in registered_scopes
+        ),
         "inventory": inventory,
         "browse": browse,
         "item_count": browse["known_count"],
@@ -520,6 +539,7 @@ def atlassian_page(
     request: Request,
     view: str = Query(default="jira"),
     mode: str = Query(default="browse"),
+    method: str = Query(default="url"),
     q: str = Query(default="", max_length=300),
     source_instance_id: Optional[int] = Query(default=None, ge=1),
     site_id: Optional[int] = Query(default=None, ge=1),
@@ -536,6 +556,9 @@ def atlassian_page(
 ):
     selected_view = view if view in {"jira", "confluence"} else "jira"
     selected_mode = mode if mode in {"browse", "setup"} else "browse"
+    selected_add_method = (
+        method if method in {"url", "connected"} else "url"
+    )
     browse_values = {
         "q": q,
         "source_instance_id": source_instance_id,
@@ -556,6 +579,7 @@ def atlassian_page(
                 request=request,
                 selected_view=selected_view,
                 selected_mode=selected_mode,
+                selected_add_method=selected_add_method,
                 browse_values=browse_values,
                 notice=notice,
                 catalog_run=catalog_run,
@@ -613,6 +637,7 @@ async def atlassian_register(request: Request):
                 request=request,
                 selected_view=selected_view,
                 selected_mode="setup",
+                selected_add_method="url",
                 form_state=form,
                 form_error=str(exc),
             )
@@ -631,7 +656,12 @@ async def atlassian_register(request: Request):
     return RedirectResponse(
         url="/atlassian?{}#{}".format(
             urlencode(
-                {"view": service, "mode": "setup", "notice": notice}
+                {
+                    "view": service,
+                    "mode": "setup",
+                    "method": "url",
+                    "notice": notice,
+                }
             ),
             fragment,
         ),
@@ -715,6 +745,7 @@ async def atlassian_update_connection(
                 {
                     "view": service,
                     "mode": "setup",
+                    "method": "url",
                     "notice": "connection-updated",
                 }
             ),
@@ -737,7 +768,12 @@ async def atlassian_discover_spaces(request: Request):
         site_id = _optional_form_int(form.get("site_id"), "Site")
         if site_id is None:
             raise AtlassianRegistrationError(
-                "site-required", "Select one Source Instance/Site"
+                "site-required", "조회에 사용할 MCP 연결을 선택하세요."
+            )
+        target_domain = (form.get("target_domain") or "").strip().lower()
+        if not target_domain:
+            raise AtlassianRegistrationError(
+                "target-required", "조회할 Site를 선택하세요."
             )
         runner = form.get("runner", "claude")
         if runner not in {"claude", "codex"}:
@@ -757,7 +793,10 @@ async def atlassian_discover_spaces(request: Request):
             )
         with transaction() as connection:
             run_id = prepare_space_catalog_run(
-                connection, site_id=site_id, runner=runner
+                connection,
+                site_id=site_id,
+                target_domain=target_domain,
+                runner=runner,
             )
         start_run(run_id, executor)
     except AtlassianRegistrationError as exc:
@@ -772,6 +811,7 @@ async def atlassian_discover_spaces(request: Request):
                 request=request,
                 selected_view=selected_view,
                 selected_mode="setup",
+                selected_add_method="connected",
                 form_state=form,
                 form_error=str(exc),
             )
@@ -784,6 +824,7 @@ async def atlassian_discover_spaces(request: Request):
                 {
                     "view": service,
                     "mode": "setup",
+                    "method": "connected",
                     "notice": "catalog-started",
                     "catalog_run": run_id,
                 }
@@ -1211,7 +1252,7 @@ def projects_page(request: Request):
             "stats": dashboard_stats(connection),
             "sessions": pagination["items"],
             "pagination": pagination,
-            "documents": recent_documents(connection),
+            "pinned_sessions": list_all_pinned_sessions(connection),
             "sources": source_inventory(connection),
             "projects": projects,
             "project_count": len(projects),
@@ -1246,6 +1287,96 @@ def sync_sessions_page(
     if params:
         destination += "?{}".format(urlencode(params))
     return RedirectResponse(url=destination, status_code=303)
+
+
+def _session_pin_destination(
+    return_to: str,
+    session_id: int,
+    *,
+    error: Optional[str] = None,
+) -> str:
+    parsed = urlsplit(return_to)
+    path = parsed.path
+    detail_id = None
+    if path.startswith("/sessions/"):
+        suffix = path.removeprefix("/sessions/")
+        detail_id = int(suffix) if suffix.isdigit() else None
+    if path not in {"/sessions", "/projects"} and detail_id is None:
+        path = "/sessions"
+        query_items = []
+    elif parsed.scheme or parsed.netloc:
+        path = "/sessions"
+        query_items = []
+    else:
+        query_items = [
+            (key, value)
+            for key, value in parse_qsl(parsed.query, keep_blank_values=True)
+            if key not in {"pin_error", "pin_session"}
+        ]
+    if error:
+        query_items.extend((("pin_error", error), ("pin_session", str(session_id))))
+    query = urlencode(query_items)
+    return "{}{}#session-pin-{}".format(
+        path,
+        "?{}".format(query) if query else "",
+        session_id,
+    )
+
+
+@app.post("/sessions/{session_id}/pin")
+async def pin_session_page(request: Request, session_id: int):
+    form = parse_qs(
+        (await request.body())[:4096].decode("utf-8", errors="replace"),
+        keep_blank_values=True,
+    )
+    return_to = str(form.get("return_to", ["/sessions"])[0] or "/sessions")
+    try:
+        with transaction() as connection:
+            persist_session_pin(connection, session_id)
+    except SessionPinError as exc:
+        error = (
+            "missing"
+            if exc.code == "session-not-found"
+            else "ineligible"
+        )
+        return RedirectResponse(
+            url=_session_pin_destination(return_to, session_id, error=error),
+            status_code=303,
+        )
+    except sqlite3.Error:
+        return RedirectResponse(
+            url=_session_pin_destination(
+                return_to, session_id, error="storage-unavailable"
+            ),
+            status_code=303,
+        )
+    return RedirectResponse(
+        url=_session_pin_destination(return_to, session_id),
+        status_code=303,
+    )
+
+
+@app.post("/sessions/{session_id}/unpin")
+async def unpin_session_page(request: Request, session_id: int):
+    form = parse_qs(
+        (await request.body())[:4096].decode("utf-8", errors="replace"),
+        keep_blank_values=True,
+    )
+    return_to = str(form.get("return_to", ["/sessions"])[0] or "/sessions")
+    try:
+        with transaction() as connection:
+            persist_session_unpin(connection, session_id)
+    except sqlite3.Error:
+        return RedirectResponse(
+            url=_session_pin_destination(
+                return_to, session_id, error="storage-unavailable"
+            ),
+            status_code=303,
+        )
+    return RedirectResponse(
+        url=_session_pin_destination(return_to, session_id),
+        status_code=303,
+    )
 
 
 @app.get("/sources", response_class=HTMLResponse)
@@ -1291,6 +1422,25 @@ def show_session(request: Request, session_id: int):
         parent = session_parent(connection, session_id)
         direct_children = session_subsessions(connection, session_id)
         memberships = entity_memberships(connection, "session", session_id)
+        related_context = None
+        if session["session_role"] == "primary":
+            try:
+                related_context = session_related_context(
+                    connection,
+                    session_id,
+                    session["workspace_id"],
+                )
+            except sqlite3.Error:
+                related_context = {
+                    "state": "error",
+                    "items": [],
+                    "limit": RELATED_CONTEXT_LIMIT,
+                    "candidate_count": 0,
+                    "overflow_count": 0,
+                    "unavailable_count": 0,
+                    "visible_unavailable_count": 0,
+                    "scan_truncated": False,
+                }
 
     subsessions = [
         {
@@ -1336,6 +1486,7 @@ def show_session(request: Request, session_id: int):
             "parent": parent,
             "memberships": memberships,
             "subsessions": subsessions,
+            "related_context": related_context,
         },
     )
 
@@ -1782,6 +1933,9 @@ def api_run_status(run_id: str):
             raise HTTPException(status_code=404, detail="Run not found")
         data = dict(run)
         data["output"] = read_run_output(run)
+        data["status_label"] = display_value_label(
+            "maintenance.status", data["status"]
+        )
     return {"ok": True, "run": data}
 
 

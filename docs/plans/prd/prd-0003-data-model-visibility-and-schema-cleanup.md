@@ -11,10 +11,10 @@
 ## Completion State
 
 - FEAT-0025 through FEAT-0032, the separately approved FEAT-0035 through FEAT-0037, and follow-up FEAT-0052 passed their execution loops.
-- LocalBrain owns a pinned offline Mermaid asset, the original complete 20-table plus FTS5/eight-subject baseline, a baseline-then-delta maintenance contract, deterministic package presentation, and the read-only `System > Schema` Explorer. Approved deltas now extend current truth to 34 ordinary tables plus FTS5 across nine subject areas.
+- LocalBrain owns a pinned offline Mermaid asset, the original complete 20-table plus FTS5/eight-subject baseline, a baseline-then-delta maintenance contract, deterministic package presentation, and the read-only `System > Schema` Explorer. Approved deltas now extend current truth to 35 ordinary tables plus FTS5 across nine subject areas.
 - The current integrity ledger resolves all 512 schema objects to `keep 423`, `change 0`, `remove 0`, or `defer 89`, with evidence, risk, recovery, and automated stale checks.
 - On `2026-07-19`, the human owner approved and passed all four migration boundaries. Boundary 4 became FEAT-0037 and now preserves which Workstream started a Maintenance Run through the compatible optional FK.
-- On `2026-07-24`, FEAT-0052 added bounded diagram zoom without changing schema or Mermaid source; official ELK routing evaluation moved to draft PRD-0008.
+- On `2026-07-24`, FEAT-0052 added bounded diagram zoom without changing schema or Mermaid source; passed PRD-0008 and FEAT-0055/0056 subsequently accepted and adopted the official locally packaged ELK routing path.
 
 ## Request Summary
 

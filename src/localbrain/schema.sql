@@ -138,6 +138,12 @@ CREATE TABLE IF NOT EXISTS activity_events (
     UNIQUE(session_id, sequence, event_type, source_line)
 );
 
+CREATE TABLE IF NOT EXISTS session_pins (
+    session_id INTEGER PRIMARY KEY
+        REFERENCES sessions(id) ON DELETE CASCADE,
+    pinned_at TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS usage_price_snapshots (
     id TEXT PRIMARY KEY,
     label TEXT NOT NULL,

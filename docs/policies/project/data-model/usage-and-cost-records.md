@@ -4,6 +4,8 @@
 
 This subject owns immutable local pricing evidence, normalized token observations, estimated trend cost, calculation capability, source-record identity, and frozen Project attribution. It does not own Session content or current workspace identity.
 
+[Value Dictionary](value-dictionaries/usage-and-cost-records.md) owns this subject's bounded physical/logical/presentation mappings.
+
 ## Focused ERD
 
 ```mermaid

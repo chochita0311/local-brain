@@ -68,6 +68,7 @@
                 </p>
               </div>
               <div class="schema-panel-actions">
+                <span class="status-badge neutral" data-schema-layout-status>직각 관계 배치</span>
                 <div class="schema-zoom-controls" role="group" aria-label="다이어그램 확대/축소" data-schema-zoom-controls>
                   <button type="button" data-schema-zoom-out aria-label="다이어그램 축소" aria-controls="schema-diagram-viewport" disabled>−</button>
                   <button type="button" class="schema-zoom-value" data-schema-zoom-reset aria-label="현재 배율 100%, 100%로 재설정" aria-controls="schema-diagram-viewport" disabled>100%</button>
@@ -81,7 +82,7 @@
               </div>
             </header>
             <div class="schema-diagram-scroll" id="schema-diagram-viewport" data-schema-diagram-viewport>
-              <div class="schema-diagram" data-localbrain-mermaid="owned">
+              <div class="schema-diagram" data-localbrain-mermaid="owned" data-localbrain-mermaid-layout="elk">
                 <p class="schema-diagram-fallback" data-schema-diagram-fallback>다이어그램을 표시할 수 없습니다. 주제 및 테이블 링크로 같은 구조를 확인할 수 있습니다.</p>
                 <script type="text/plain" data-localbrain-mermaid-source data-schema-source-json>{{ view.diagram | tojson }}</script>
               </div>

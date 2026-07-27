@@ -987,6 +987,7 @@ def capability_state(connection, source_instance_id: int) -> dict:
         "service": value["service"],
         "display_name": value["display_name"],
         "enabled": bool(value["enabled"]),
+        "availability": value["availability"],
         "state": state,
         "policy_version": value["policy_version"],
         "schema_fingerprint": value["schema_fingerprint"],

@@ -9,6 +9,7 @@ import {
   schemaAnchoredScroll,
   schemaZoomFromWheel,
 } from "../src/localbrain/static/schema-explorer.js";
+import { schemaMermaidAttempts } from "../src/localbrain/static/mermaid-adapter.js";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const BUILDER = join(ROOT, "scripts/build-mermaid-assets.mjs");
@@ -43,7 +44,21 @@ try {
   assert.match(adapter, /startOnLoad:\s*false/);
   assert.match(adapter, /suppressErrorRendering:\s*true/);
   assert.match(adapter, /data-localbrain-mermaid="owned"/);
+  assert.match(adapter, /registerLayoutLoaders\(elkLayouts\)/);
+  assert.match(adapter, /data-localbrain-mermaid-layout/);
   assert.doesNotMatch(adapter, /mermaid\.run\s*\(/);
+
+  const elkAttempts = schemaMermaidAttempts("erDiagram\n  A ||--o{ B : owns", "elk");
+  assert.deepEqual(
+    elkAttempts.map((attempt) => attempt.layout),
+    ["elk", "dagre"],
+  );
+  assert.match(elkAttempts[0].source, /layout: elk/);
+  assert.equal(elkAttempts[1].source, "erDiagram\n  A ||--o{ B : owns");
+  assert.deepEqual(
+    schemaMermaidAttempts("flowchart LR\n  A --> B", null),
+    [{ layout: "dagre", source: "flowchart LR\n  A --> B" }],
+  );
 
   assert.equal(clampSchemaZoom(0), 0.1);
   assert.equal(clampSchemaZoom(4), 3);

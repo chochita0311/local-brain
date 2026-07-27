@@ -177,6 +177,15 @@ async function renderSchemaDiagrams(root) {
         result.ok ? "rendered" : "unavailable",
       );
       if (result.ok) {
+        panel?.setAttribute("data-schema-layout-state", result.layout);
+        const layoutStatus = panel?.querySelector(
+          "[data-schema-layout-status]",
+        );
+        if (layoutStatus && result.layout === "dagre") {
+          layoutStatus.textContent = "기본 관계 배치";
+          layoutStatus.classList.remove("neutral");
+          layoutStatus.classList.add("warning");
+        }
         setupSchemaDiagramZoom(panel);
       } else {
         node.querySelector("[data-schema-diagram-fallback]").textContent =

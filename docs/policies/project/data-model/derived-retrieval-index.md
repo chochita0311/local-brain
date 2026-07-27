@@ -4,6 +4,8 @@
 
 This subject owns the FTS5 projection used for deterministic local retrieval. It contains no authoritative object state and is always subordinate to eligible Sessions, Context Documents, and stored Atlassian Item identity, remote, and local-memory owners.
 
+[Value Dictionary](value-dictionaries/derived-retrieval-index.md) owns this subject's bounded physical/logical/presentation mappings.
+
 ## Focused ERD
 
 ```mermaid

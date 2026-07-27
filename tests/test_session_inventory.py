@@ -158,6 +158,24 @@ class SessionInventoryTests(unittest.TestCase):
         self.assertEqual(workspace["total"], 30)
         self.assertEqual(len(workspace["items"]), 15)
 
+    def test_inventory_and_detail_project_current_pin_state(self):
+        session_id = self.parents[-1]
+        self.connection.execute(
+            """
+            INSERT INTO session_pins(session_id, pinned_at)
+            VALUES (?, '2026-07-24T04:00:00+00:00')
+            """,
+            (session_id,),
+        )
+
+        inventory = session_inventory_page(self.connection, page=1)
+        pinned = next(item for item in inventory["items"] if item["id"] == session_id)
+        detail = session_detail(self.connection, session_id)
+
+        self.assertEqual(pinned["pinned_at"], "2026-07-24T04:00:00+00:00")
+        self.assertEqual(detail["pinned_at"], pinned["pinned_at"])
+        self.assertIsNone(inventory["items"][1]["pinned_at"])
+
     def test_non_displayable_children_remain_outside_detail_lookup(self):
         self.assertIsNotNone(session_detail(self.connection, self.direct_child))
         self.assertIsNone(session_detail(self.connection, self.grandchild))

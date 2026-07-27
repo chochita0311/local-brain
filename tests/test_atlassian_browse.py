@@ -253,6 +253,7 @@ class AtlassianBrowseTests(unittest.TestCase):
             local[0]["entity_id"],
             str(self.reference["external_resource_id"]),
         )
+        self.assertEqual(local[0]["item_type"], "jira_issue")
         self.assertIn("local", local[0]["match_roles"])
 
     def test_filters_keep_same_key_sources_distinct_and_recover_archived(self):

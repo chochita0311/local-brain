@@ -6,6 +6,8 @@ if (atlassianRegistration) {
   const newConnection = atlassianRegistration.querySelector("[data-atlassian-new-connection]");
   const preview = atlassianRegistration.querySelector("[data-atlassian-url-preview]");
   const siteName = atlassianRegistration.querySelector("[data-atlassian-site-name]");
+  const targetSelect = atlassianRegistration.querySelector("[data-atlassian-target-select]");
+  const connectionSelect = atlassianRegistration.querySelector("[data-atlassian-connection-select]");
   let previewTimer = null;
   let previewRequest = null;
 
@@ -91,6 +93,23 @@ if (atlassianRegistration) {
   });
   syncConnectionMode();
   if (registrationUrl?.value.trim()) previewUrl();
+
+  const syncDiscoveryConnections = () => {
+    if (!targetSelect || !connectionSelect) return;
+    const targetDomain = targetSelect.value;
+    const current = connectionSelect.selectedOptions[0];
+    for (const option of connectionSelect.options) {
+      if (!option.dataset.domain) continue;
+      option.hidden = Boolean(targetDomain && option.dataset.domain !== targetDomain);
+    }
+    if (current?.dataset.domain && current.dataset.domain !== targetDomain) {
+      connectionSelect.value = "";
+    }
+    connectionSelect.disabled = !targetDomain;
+  };
+
+  targetSelect?.addEventListener("change", syncDiscoveryConnections);
+  syncDiscoveryConnections();
 
   const focusDestination = () => {
     if (!window.location.hash) return;
