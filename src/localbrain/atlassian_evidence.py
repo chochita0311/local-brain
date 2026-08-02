@@ -34,7 +34,7 @@ MAX_SOURCE_EVIDENCE = 500
 
 @dataclass(frozen=True)
 class RecognizedAtlassianItemUrl:
-    source_instance_id: int
+    source_instance_id: Optional[int]
     site_id: int
     service: str
     normalized: NormalizedAtlassianUrl
@@ -92,17 +92,25 @@ def configured_atlassian_site_fingerprint(
 ) -> str:
     rows = connection.execute(
         """
-        SELECT external_source_instances.id AS source_instance_id,
-               external_source_instances.instance_key,
-               external_source_instances.provider_kind,
-               external_source_instances.service,
-               atlassian_sites.id AS site_id,
+        SELECT atlassian_sites.id AS site_id,
+               scoped_sites.service,
                atlassian_sites.normalized_domain
-        FROM external_source_instances
-        JOIN atlassian_sites
-          ON atlassian_sites.source_instance_id = external_source_instances.id
-        WHERE external_source_instances.enabled = 1
-        ORDER BY external_source_instances.id, atlassian_sites.id
+        FROM atlassian_sites
+        JOIN (
+            SELECT atlassian_site_bindings.site_id,
+                   external_source_instances.service
+            FROM atlassian_site_bindings
+            JOIN external_source_instances
+              ON external_source_instances.id =
+                 atlassian_site_bindings.source_instance_id
+            WHERE external_source_instances.enabled = 1
+            UNION
+            SELECT site_id, service FROM atlassian_items
+            UNION
+            SELECT site_id, service FROM atlassian_spaces
+        ) AS scoped_sites
+          ON scoped_sites.site_id = atlassian_sites.id
+        ORDER BY atlassian_sites.id, scoped_sites.service
         """
     ).fetchall()
     return _hash_payload([dict(row) for row in rows])
@@ -155,24 +163,49 @@ def recognize_configured_atlassian_item_url(
     service, remote_id, remote_key = identity
     rows = connection.execute(
         """
-        SELECT atlassian_sites.id AS site_id,
-               external_source_instances.id AS source_instance_id,
-               external_source_instances.service
+        SELECT DISTINCT atlassian_sites.id AS site_id
         FROM atlassian_sites
-        JOIN external_source_instances
-          ON external_source_instances.id = atlassian_sites.source_instance_id
+        JOIN (
+            SELECT atlassian_site_bindings.site_id,
+                   external_source_instances.service
+            FROM atlassian_site_bindings
+            JOIN external_source_instances
+              ON external_source_instances.id =
+                 atlassian_site_bindings.source_instance_id
+            WHERE external_source_instances.enabled = 1
+            UNION
+            SELECT site_id, service FROM atlassian_items
+            UNION
+            SELECT site_id, service FROM atlassian_spaces
+        ) AS scoped_sites
+          ON scoped_sites.site_id = atlassian_sites.id
         WHERE atlassian_sites.normalized_domain = ?
-          AND external_source_instances.service = ?
-          AND external_source_instances.enabled = 1
-        ORDER BY external_source_instances.id, atlassian_sites.id
+          AND scoped_sites.service = ?
+        ORDER BY atlassian_sites.id
         """,
         (normalized.normalized_domain, service),
     ).fetchall()
     if len(rows) != 1:
         return None
     row = rows[0]
+    access_rows = connection.execute(
+        """
+        SELECT external_source_instances.id
+        FROM atlassian_site_bindings
+        JOIN external_source_instances
+          ON external_source_instances.id =
+             atlassian_site_bindings.source_instance_id
+        WHERE atlassian_site_bindings.site_id = ?
+          AND external_source_instances.service = ?
+          AND external_source_instances.enabled = 1
+        ORDER BY external_source_instances.id
+        """,
+        (row["site_id"], service),
+    ).fetchall()
     return RecognizedAtlassianItemUrl(
-        source_instance_id=int(row["source_instance_id"]),
+        source_instance_id=(
+            int(access_rows[0]["id"]) if len(access_rows) == 1 else None
+        ),
         site_id=int(row["site_id"]),
         service=service,
         normalized=normalized,
@@ -364,6 +397,8 @@ def _reconcile_source_evidence(
                 item = create_or_reuse_atlassian_stub(
                     connection,
                     source_instance_id=recognized.source_instance_id,
+                    service=recognized.service,
+                    site_id=recognized.site_id,
                     url=candidate.observed_url,
                     observed_at=candidate.observed_at or now,
                 )

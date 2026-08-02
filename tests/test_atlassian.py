@@ -124,14 +124,25 @@ class AtlassianContractTests(unittest.TestCase):
         )
 
         other_source = self._source("jira-source-two", "jira")
-        separate = create_or_reuse_atlassian_stub(
+        same_domain_item = create_or_reuse_atlassian_stub(
             self.connection,
             source_instance_id=other_source,
             url="https://jira.example.test/browse/SYN-1?a=1&b=2",
             title="Separate source",
         )
-        self.assertNotEqual(
-            first["external_resource_id"], separate["external_resource_id"]
+        self.assertEqual(
+            first["external_resource_id"],
+            same_domain_item["external_resource_id"],
+        )
+        self.assertEqual(
+            self.connection.execute(
+                """
+                SELECT COUNT(*) FROM atlassian_site_bindings
+                WHERE site_id = ?
+                """,
+                (first["site_id"],),
+            ).fetchone()[0],
+            2,
         )
 
     def test_one_source_instance_can_own_multiple_site_domains(self):
@@ -459,6 +470,12 @@ class AtlassianContractTests(unittest.TestCase):
     def test_result_application_is_hash_gated_and_retains_last_known_data(self):
         stub = self._jira_stub(coverage="indexed")
         item_id = stub["external_resource_id"]
+        checked_at = (
+            datetime.now(timezone.utc)
+            .replace(microsecond=0)
+            .isoformat()
+            .replace("+00:00", "Z")
+        )
         adf = {
             "type": "doc",
             "version": 1,
@@ -482,7 +499,7 @@ class AtlassianContractTests(unittest.TestCase):
             self.connection,
             item_id,
             changed,
-            checked_at="2026-07-23T00:00:00Z",
+            checked_at=checked_at,
         )
         self.assertEqual(state["freshness"], "current")
         local = self.connection.execute(
@@ -527,7 +544,7 @@ class AtlassianContractTests(unittest.TestCase):
             self.connection,
             item_id,
             unchanged,
-            checked_at="2026-07-24T00:00:00Z",
+            checked_at=checked_at,
         )
         content_after = dict(
             self.connection.execute(
@@ -564,7 +581,7 @@ class AtlassianContractTests(unittest.TestCase):
             self.connection,
             item_id,
             failure,
-            checked_at="2026-07-25T00:00:00Z",
+            checked_at=checked_at,
         )
         self.assertEqual(unavailable["freshness"], "unavailable")
         self.assertEqual(

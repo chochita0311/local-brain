@@ -70,9 +70,9 @@ class ValueRegistryContractTests(unittest.TestCase):
             display_value_label("workspace.exists-now", "unexpected"),
             "표시할 수 없음",
         )
-        self.assertIn(
-            "등록하거나 선택한",
+        self.assertEqual(
             visible_value_help("atlassian-space.coverage"),
+            "",
         )
 
     def test_schema_value_drift_is_named(self):

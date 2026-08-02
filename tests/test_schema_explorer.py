@@ -29,8 +29,8 @@ class SchemaExplorerViewModelTests(unittest.TestCase):
 
         self.assertTrue(view["available"])
         self.assertEqual(view["mode"], "global")
-        self.assertEqual(view["baseline"]["object_count"], 36)
-        self.assertEqual(view["baseline"]["physical_foreign_key_count"], 40)
+        self.assertEqual(view["baseline"]["object_count"], 37)
+        self.assertEqual(view["baseline"]["physical_foreign_key_count"], 44)
         self.assertEqual(len(view["subjects"]), 9)
         self.assertEqual(
             [subject["id"] for subject in view["subjects"]],

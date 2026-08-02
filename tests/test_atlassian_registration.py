@@ -14,7 +14,7 @@ from localbrain.atlassian_registration import (
     AtlassianRegistrationError,
     prepare_space_catalog_run,
     recognize_registration_url,
-    register_atlassian_url_with_connection,
+    register_atlassian_site_access,
     register_atlassian_url,
     register_space_candidate,
     registered_scope_overview,
@@ -29,7 +29,9 @@ from localbrain.external_access import (
 )
 from localbrain.main import (
     app,
+    atlassian_page,
     atlassian_register,
+    atlassian_register_access,
     atlassian_registration_preview,
     atlassian_update_connection,
 )
@@ -122,6 +124,21 @@ class AtlassianRegistrationTests(unittest.TestCase):
             receive,
         )
 
+    def _get_request(self, path: str = "/atlassian") -> Request:
+        return Request(
+            {
+                "type": "http",
+                "app": app,
+                "method": "GET",
+                "path": path,
+                "headers": [],
+                "query_string": b"",
+                "server": ("test", 80),
+                "client": ("test", 1),
+                "scheme": "http",
+            }
+        )
+
     def test_strict_url_recognition_rejects_key_only_and_service_mismatch(self):
         issue = recognize_registration_url(
             "https://jira.example.test/browse/SYN-12"
@@ -183,12 +200,20 @@ class AtlassianRegistrationTests(unittest.TestCase):
             url="https://wiki.example.test/spaces/TEAM/overview",
             service="confluence",
         )
+        confluence_page = register_atlassian_url(
+            self.connection,
+            url=(
+                "https://wiki.example.test/spaces/TEAM/pages/"
+                "12345/Quarterly-Roadmap"
+            ),
+            service="confluence",
+        )
         self.assertTrue(item["created"])
         self.assertFalse(repeated["created"])
         self.assertEqual(item["id"], repeated["id"])
         self.assertEqual(
             self.connection.execute(
-                "SELECT COUNT(*) FROM atlassian_items"
+                "SELECT COUNT(*) FROM atlassian_items WHERE service = 'jira'"
             ).fetchone()[0],
             1,
         )
@@ -206,6 +231,14 @@ class AtlassianRegistrationTests(unittest.TestCase):
             spaces[jira_space["id"]]["canonical_url"],
             "https://jira.example.test/projects/SYN",
         )
+        titles = {
+            row["id"]: row["title"]
+            for row in self.connection.execute(
+                "SELECT id, title FROM external_resources"
+            )
+        }
+        self.assertEqual(titles[item["id"]], "SYN-12")
+        self.assertEqual(titles[confluence_page["id"]], "Quarterly Roadmap")
 
     def test_registered_scope_groups_connections_by_domain_and_deduplicates_spaces(self):
         official_source = register_source_instance(
@@ -233,7 +266,7 @@ class AtlassianRegistrationTests(unittest.TestCase):
             service="jira",
             site_id=official_site["id"],
         )
-        self.assertNotEqual(first["id"], second["id"])
+        self.assertEqual(first["id"], second["id"])
 
         overview = registered_scope_overview(self.connection, "jira")
 
@@ -264,7 +297,7 @@ class AtlassianRegistrationTests(unittest.TestCase):
             0,
         )
 
-    def test_url_first_onboarding_creates_unbound_connection_and_reuses_it(self):
+    def test_local_registration_and_access_edit_keep_generated_identity(self):
         preview = registration_preview(
             self.connection,
             url="https://new.example.test/browse/NEW-12",
@@ -272,90 +305,59 @@ class AtlassianRegistrationTests(unittest.TestCase):
         )
         self.assertEqual(preview["normalized_domain"], "new.example.test")
         self.assertEqual(preview["identifier"], "NEW-12")
-        self.assertTrue(preview["requires_connection"])
-        self.assertEqual(preview["matches"], [])
+        self.assertNotIn("requires_connection", preview)
+        self.assertNotIn("matches", preview)
+        self.assertNotIn("suggested_site_name", preview)
 
-        first = register_atlassian_url_with_connection(
+        item = register_atlassian_url(
             self.connection,
             url="https://new.example.test/browse/NEW-12",
             service="jira",
-            provider_kind="atlassian_cloud",
         )
-        repeated = register_atlassian_url_with_connection(
+        site = self.connection.execute(
+            """
+            SELECT atlassian_sites.*
+            FROM atlassian_sites
+            JOIN atlassian_items
+              ON atlassian_items.site_id = atlassian_sites.id
+            WHERE atlassian_items.external_resource_id = ?
+            """,
+            (item["id"],),
+        ).fetchone()
+        with self.assertRaises(AtlassianRegistrationError):
+            register_atlassian_site_access(
+                self.connection,
+                site_id=site["id"],
+                service="jira",
+                provider_kind="atlassian_cloud",
+                config_ref="",
+            )
+        created = register_atlassian_site_access(
             self.connection,
-            url="https://new.example.test/browse/NEW-12",
+            site_id=site["id"],
             service="jira",
             provider_kind="atlassian_cloud",
+            config_ref="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1",
         )
-        self.assertTrue(first["source_created"])
-        self.assertTrue(first["site_created"])
-        self.assertFalse(repeated["source_created"])
-        self.assertFalse(repeated["site_created"])
-        self.assertFalse(repeated["created"])
-        self.assertEqual(first["id"], repeated["id"])
         source = self.connection.execute(
             """
             SELECT * FROM external_source_instances
             WHERE id = ?
             """,
-            (first["source_instance_id"],),
+            (created["source_instance_id"],),
         ).fetchone()
         self.assertEqual(source["provider_kind"], "atlassian_cloud")
-        self.assertIsNone(source["config_ref"])
-        configured = registration_preview(
-            self.connection,
-            url="https://new.example.test/browse/NEW-12",
-        )
-        self.assertFalse(configured["requires_connection"])
         self.assertEqual(
-            configured["matches"][0]["provider_label"],
-            "공식 Atlassian MCP",
+            source["config_ref"],
+            "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1",
         )
-        self.assertNotIn("config_ref", configured["matches"][0])
-
-    def test_url_first_onboarding_rolls_back_all_rows_on_late_failure(self):
-        before = {
-            table: self.connection.execute(
-                "SELECT COUNT(*) FROM {}".format(table)
-            ).fetchone()[0]
-            for table in (
-                "external_source_instances",
-                "atlassian_sites",
-                "external_resources",
-                "atlassian_items",
-            )
-        }
-        with self.assertRaises(AtlassianRegistrationError):
-            register_atlassian_url_with_connection(
-                self.connection,
-                url="https://rollback.example.test/browse/RBK-7",
-                service="jira",
-                provider_kind="mcp_gateway",
-                title="x" * 501,
-            )
-        after = {
-            table: self.connection.execute(
-                "SELECT COUNT(*) FROM {}".format(table)
-            ).fetchone()[0]
-            for table in before
-        }
-        self.assertEqual(after, before)
-
-    def test_connection_edit_binds_once_and_preserves_identity(self):
-        created = register_atlassian_url_with_connection(
-            self.connection,
-            url="https://edit.example.test/browse/EDIT-3",
-            service="jira",
-            provider_kind="atlassian_cloud",
-        )
+        generated_source_name = source["display_name"]
+        self.assertIsNone(site["display_name"])
         updated = update_atlassian_connection(
             self.connection,
             source_instance_id=created["source_instance_id"],
-            site_id=created["site_id"],
-            source_name="Edited Source",
-            site_name="Edited Site",
+            site_id=site["id"],
             enabled=False,
-            config_ref="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1",
         )
         self.assertFalse(updated["enabled"])
         self.assertTrue(updated["config_bound"])
@@ -366,12 +368,7 @@ class AtlassianRegistrationTests(unittest.TestCase):
             """,
             (created["source_instance_id"],),
         ).fetchone()
-        site = self.connection.execute(
-            "SELECT * FROM atlassian_sites WHERE id = ?",
-            (created["site_id"],),
-        ).fetchone()
-        self.assertEqual(source["display_name"], "Edited Source")
-        self.assertEqual(site["display_name"], "Edited Site")
+        self.assertEqual(source["display_name"], generated_source_name)
         self.assertEqual(
             source["config_ref"],
             "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1",
@@ -380,9 +377,7 @@ class AtlassianRegistrationTests(unittest.TestCase):
             update_atlassian_connection(
                 self.connection,
                 source_instance_id=created["source_instance_id"],
-                site_id=created["site_id"],
-                source_name="Changed Again",
-                site_name="Changed Again",
+                site_id=site["id"],
                 enabled=True,
                 config_ref="bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb2",
             )
@@ -393,14 +388,14 @@ class AtlassianRegistrationTests(unittest.TestCase):
             """,
             (created["source_instance_id"],),
         ).fetchone()
-        self.assertEqual(preserved["display_name"], "Edited Source")
+        self.assertEqual(preserved["display_name"], generated_source_name)
         self.assertEqual(
             preserved["config_ref"],
             "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1",
         )
         self.assertEqual(preserved["enabled"], 0)
 
-    def test_ambiguous_domain_requires_explicit_site_and_never_cross_merges(self):
+    def test_same_domain_reuses_site_and_item_across_access_bindings(self):
         second_source = register_source_instance(
             self.connection,
             instance_key="synthetic-jira-two",
@@ -414,19 +409,6 @@ class AtlassianRegistrationTests(unittest.TestCase):
             source_instance_id=second_source["id"],
             base_url="https://jira.example.test",
         )
-        with self.assertRaises(AtlassianRegistrationError) as ambiguous:
-            register_atlassian_url(
-                self.connection,
-                url="https://jira.example.test/browse/SYN-15",
-                service="jira",
-            )
-        self.assertEqual(ambiguous.exception.code, "ambiguous-site")
-        self.assertEqual(
-            self.connection.execute(
-                "SELECT COUNT(*) FROM external_resources"
-            ).fetchone()[0],
-            0,
-        )
         first = register_atlassian_url(
             self.connection,
             url="https://jira.example.test/browse/SYN-15",
@@ -439,7 +421,18 @@ class AtlassianRegistrationTests(unittest.TestCase):
             service="jira",
             site_id=second_site["id"],
         )
-        self.assertNotEqual(first["id"], second["id"])
+        self.assertEqual(self.jira_site["id"], second_site["id"])
+        self.assertEqual(first["id"], second["id"])
+        self.assertEqual(
+            self.connection.execute(
+                """
+                SELECT COUNT(*) FROM atlassian_site_bindings
+                WHERE site_id = ?
+                """,
+                (self.jira_site["id"],),
+            ).fetchone()[0],
+            2,
+        )
 
     def test_space_catalog_is_one_call_partial_and_requires_confirmation(self):
         record_capability_observation(
@@ -574,7 +567,7 @@ class AtlassianRegistrationTests(unittest.TestCase):
         )
         self.assertIn("#atlassian-item-", success.headers["location"])
 
-    def test_no_script_url_first_registration_preview_and_edit_routes(self):
+    def test_no_script_local_registration_and_separate_access_routes(self):
         with patch(
             "localbrain.main.transaction", side_effect=self._transaction
         ), patch("localbrain.main.connect", return_value=self.connection):
@@ -582,38 +575,113 @@ class AtlassianRegistrationTests(unittest.TestCase):
                 url="https://first.example.test/browse/FIRST-9",
                 service="jira",
             )
-            self.assertTrue(preview["requires_connection"])
+            self.assertEqual(preview["identifier"], "FIRST-9")
+            self.assertNotIn("requires_connection", preview)
             created = asyncio.run(
                 atlassian_register(
                     self._form_request(
-                        "service=jira&site_id=new&provider_kind=atlassian_cloud"
-                        "&source_name=First+Source&site_name=First+Site"
-                        "&url=https%3A%2F%2Ffirst.example.test%2Fbrowse%2FFIRST-9"
+                        "service=jira&url=https%3A%2F%2Ffirst.example.test"
+                        "%2Fbrowse%2FFIRST-9"
                     )
                 )
             )
             self.assertEqual(created.status_code, 303)
             self.assertIn(
-                "notice=connection-created", created.headers["location"]
+                "notice=item-created", created.headers["location"]
             )
-            source = self.connection.execute(
+            self.assertEqual(
+                self.connection.execute(
+                    "SELECT COUNT(*) FROM external_source_instances"
+                ).fetchone()[0],
+                2,
+            )
+            site = self.connection.execute(
                 """
-                SELECT external_source_instances.id,
-                       atlassian_sites.id AS site_id
-                FROM external_source_instances
-                JOIN atlassian_sites
-                  ON atlassian_sites.source_instance_id =
-                     external_source_instances.id
+                SELECT id
+                FROM atlassian_sites
                 WHERE atlassian_sites.normalized_domain =
                       'first.example.test'
                 """
             ).fetchone()
+            self.assertEqual(
+                self.connection.execute(
+                    """
+                    SELECT external_resources.title
+                    FROM external_resources
+                    JOIN atlassian_items
+                      ON atlassian_items.external_resource_id =
+                         external_resources.id
+                    JOIN atlassian_sites
+                      ON atlassian_sites.id = atlassian_items.site_id
+                    WHERE atlassian_sites.normalized_domain =
+                          'first.example.test'
+                    """
+                ).fetchone()[0],
+                "FIRST-9",
+            )
+            page = atlassian_page(
+                self._get_request(),
+                view="jira",
+                mode="setup",
+                method="url",
+                q="",
+                source_instance_id=None,
+                site_id=None,
+                space_id=None,
+                item_type=None,
+                coverage=None,
+                freshness=None,
+                attention=None,
+                topic_id=None,
+                tag_id=None,
+                workstream_id=None,
+                notice=None,
+                catalog_run=None,
+            )
+            html = page.body.decode("utf-8")
+            self.assertLess(
+                html.index('action="/atlassian/register"'),
+                html.index('action="/atlassian/access"'),
+            )
+            self.assertIn("first.example.test", html)
+            self.assertIn("원격 접근 설정", html)
+            self.assertNotIn('name="source_name"', html)
+            self.assertNotIn('name="site_name"', html)
+            self.assertNotIn('name="title"', html)
+            access = asyncio.run(
+                atlassian_register_access(
+                    self._form_request(
+                        (
+                            "service=jira"
+                            "&site_id={}"
+                            "&provider_kind=atlassian_cloud"
+                            "&config_ref=aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1"
+                        ).format(site["id"])
+                    )
+                )
+            )
+            self.assertEqual(access.status_code, 303)
+            self.assertIn(
+                "notice=connection-created", access.headers["location"]
+            )
+            source = self.connection.execute(
+                """
+                SELECT external_source_instances.id,
+                       atlassian_site_bindings.site_id
+                FROM external_source_instances
+                JOIN atlassian_site_bindings
+                  ON atlassian_site_bindings.source_instance_id =
+                     external_source_instances.id
+                WHERE atlassian_site_bindings.site_id = ?
+                  AND external_source_instances.provider_kind =
+                      'atlassian_cloud'
+                """,
+                (site["id"],),
+            ).fetchone()
             edited = asyncio.run(
                 atlassian_update_connection(
                     self._form_request(
-                        "service=jira&source_name=Renamed+Source"
-                        "&site_name=Renamed+Site&enabled=1"
-                        "&config_ref=aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1"
+                        "service=jira&enabled=1"
                     ),
                     source["id"],
                     source["site_id"],
@@ -623,16 +691,19 @@ class AtlassianRegistrationTests(unittest.TestCase):
         self.assertIn(
             "notice=connection-updated", edited.headers["location"]
         )
-        renamed = self.connection.execute(
+        saved = self.connection.execute(
             """
             SELECT display_name, config_ref
             FROM external_source_instances WHERE id = ?
             """,
             (source["id"],),
         ).fetchone()
-        self.assertEqual(renamed["display_name"], "Renamed Source")
         self.assertEqual(
-            renamed["config_ref"],
+            saved["display_name"],
+            "공식 Atlassian MCP · first.example.test",
+        )
+        self.assertEqual(
+            saved["config_ref"],
             "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1",
         )
 

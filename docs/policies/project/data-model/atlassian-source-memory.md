@@ -1,6 +1,6 @@
 # Atlassian Source Memory
 
-<!-- schema-objects: atlassian_sites, atlassian_spaces, atlassian_items, atlassian_item_urls, atlassian_item_remote_state, atlassian_item_content, atlassian_item_local_state, atlassian_classifications, atlassian_item_classifications, atlassian_evidence_scans, atlassian_item_evidence -->
+<!-- schema-objects: atlassian_sites, atlassian_site_bindings, atlassian_spaces, atlassian_items, atlassian_item_urls, atlassian_item_remote_state, atlassian_item_content, atlassian_item_local_state, atlassian_classifications, atlassian_item_classifications, atlassian_evidence_scans, atlassian_item_evidence -->
 
 This subject owns the Atlassian-specific extension of a stable user-linkable External Resource. It separates access boundaries, Site domains, optional Spaces, remote identity, URL observations, remote metadata, source bodies, user-authored notes and classifications, freshness evidence, source-backed Session/Local Context sightings, and FTS projection state. Evidence points to Session and Document owners without copying their excerpts or opaque provider payloads. Browse, search, local classification, and extraction perform no external or model call.
 
@@ -12,9 +12,10 @@ This subject owns the Atlassian-specific extension of a stable user-linkable Ext
 erDiagram
     EXTERNAL_SOURCE_INSTANCES { integer id PK string service }
     EXTERNAL_RESOURCES { integer id PK string url }
-    ATLASSIAN_SITES { integer id PK integer source_instance_id FK string normalized_domain UK }
-    ATLASSIAN_SPACES { integer id PK integer site_id FK string space_key UK string canonical_url string coverage }
-    ATLASSIAN_ITEMS { integer external_resource_id PK integer site_id FK integer space_id FK string remote_id UK }
+    ATLASSIAN_SITES { integer id PK integer source_instance_id FK string normalized_domain }
+    ATLASSIAN_SITE_BINDINGS { integer id PK integer site_id FK integer source_instance_id FK }
+    ATLASSIAN_SPACES { integer id PK integer site_id FK integer source_instance_id FK string space_key UK string canonical_url string coverage }
+    ATLASSIAN_ITEMS { integer external_resource_id PK integer site_id FK integer source_instance_id FK integer space_id FK string remote_id UK }
     ATLASSIAN_ITEM_URLS { integer id PK integer external_resource_id FK integer site_id FK string normalized_url UK }
     ATLASSIAN_ITEM_REMOTE_STATE { integer external_resource_id PK string last_outcome string last_successful_at }
     ATLASSIAN_ITEM_CONTENT { integer external_resource_id PK string source_hash string normalizer_version }
@@ -27,7 +28,11 @@ erDiagram
     CONTEXT_DOCUMENTS { integer id PK }
     SEARCH_INDEX { string entity_key "derived" }
 
-    EXTERNAL_SOURCE_INSTANCES ||--o{ ATLASSIAN_SITES : "physical RESTRICT"
+    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_SITES : "physical SET_NULL compatibility"
+    EXTERNAL_SOURCE_INSTANCES ||--o{ ATLASSIAN_SITE_BINDINGS : "physical CASCADE"
+    ATLASSIAN_SITES ||--o{ ATLASSIAN_SITE_BINDINGS : "physical CASCADE"
+    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_SPACES : "physical SET_NULL access"
+    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_ITEMS : "physical SET_NULL access"
     EXTERNAL_RESOURCES ||--o| ATLASSIAN_ITEMS : "physical CASCADE 1:1"
     ATLASSIAN_SITES ||--o{ ATLASSIAN_SPACES : "physical RESTRICT"
     ATLASSIAN_SITES ||--o{ ATLASSIAN_ITEMS : "physical RESTRICT"
@@ -49,51 +54,70 @@ erDiagram
 ## Identity And Ownership Contract
 
 - `external_resources.id` is the only linkable local Item identity. `atlassian_items.external_resource_id` is both its primary key and a cascading foreign key, so a second Atlassian Item ID cannot drift from Workstream, Thread, checkpoint, note, or later Topic/Tag relations.
-- Source Instance is an access and policy boundary. Site is a domain or tenant boundary below it. One Source Instance can expose several Sites; identical remote keys or IDs on different Sites remain distinct.
+- Site is the local domain/tenant boundary and is resolved from normalized domain independently of access. Source Instance is an optional access and policy boundary. `atlassian_site_bindings` connects either side without making Provider, service, configuration reference, enabled state, or capability part of Site identity.
 - Before remote confirmation, URL reuse is scoped by Site and normalized URL. After confirmation, Site, service, and remote ID are authoritative while every previously observed alternate URL remains an alias.
 - `external_resources` owns user-visible title, summary, source role, and Workstream/Thread relations. `atlassian_item_remote_state` owns bounded remote metadata and check evidence. `atlassian_item_content` owns the remote body and its deterministic local projection. `atlassian_item_local_state` and the classification tables own user-authored local memory. None can overwrite another owner.
 - `atlassian_item_evidence` owns derived sightings from eligible primary work Session text, bounded approved-tool result fields, and enabled Local Context Documents. It stores only a URL, source location identifiers, and optional bounded title/remote-ID observations; it never owns the Session/Document text or confirms remote identity.
-- `atlassian_evidence_scans` owns extractor freshness independently from generic source-file and remote freshness. Source, extractor, or configured-Site fingerprint changes trigger local re-evaluation; unchanged triples skip parsing.
+- `atlassian_evidence_scans` owns extractor freshness independently from generic source-file and remote freshness. Source, extractor, or registered Site/service fingerprint changes trigger local re-evaluation; unchanged triples skip parsing.
 - Coverage, attention, and freshness are independent. Freshness is derived rather than persisted as a label.
-- Direct preview and registration are local-only. An HTTP(S) Jira issue/project or Confluence Page/Space URL selects a Site automatically only when service plus normalized domain matches exactly one enabled configured Site; ambiguous configured domains require an explicit Site. For a first domain, URL-first setup requires an explicit local access-path choice and creates the Source Instance, Site, and reference atomically. Provider is not derived from URL shape. The new Source Instance may remain unbound for local-only reference use, while remote discovery and refresh continue to require current capability. Key-only text is never registration evidence.
-- The Add orientation is a read-only projection of persisted Site, Space, and Item rows. It groups Source Instance-specific Site rows by service plus normalized domain, deduplicates repeated Space and Item remote identities for orientation, and retains the distinct MCP connections below each target. Evidence rows, unregistered URL sightings, and unconfirmed discovery candidates are not inputs to this projection. Connected discovery posts the target domain and chosen Site row separately; the producer rejects a pair whose domains differ before creating a maintenance Run.
+- Direct preview and registration are local-only. An HTTP(S) Jira issue/project or Confluence Page/Space URL resolves or creates its Site from normalized domain and records an Item or Space without creating a Source Instance, Provider alias, configuration reference, capability observation, or remote read. Bootstrap titles come from the URL key, Space key, decoded Page slug, or Page ID fallback. Key-only text is never registration evidence.
+- The Add orientation is a read-only projection of persisted Site, Space, and Item rows. Evidence rows, unregistered URL sightings, and unconfirmed discovery candidates are not inputs. Optional access setup separately binds a registered Site to an actual Source Instance configuration. Connected discovery posts one explicit binding; the producer resolves both the Site and Source Instance from that binding before creating a maintenance Run.
 - Accessible-Space discovery is an explicit maintenance Run. The current provider catalog has no complete project/Space-list operation, so LocalBrain performs at most one bounded metadata search call, labels its deduplicated results as partial, and registers nothing until the user confirms one candidate.
 - Refresh preview is local-only and resolves exact existing Item membership for Item, Space, Thread, Workstream, or all-known scope. It derives default selection from freshness, displays last-check/content times and calculated reads, and performs no capability inspection, provider call, or model call.
-- One submitted refresh contains at most 20 pre-authorized reads. Workstream includes its direct and Thread-linked Items with stable-ID deduplication; Thread includes direct mappings only; all-known never expands beyond existing local Items. A mixed Source Instance selection remains one maintenance Run with per-target source authorization.
+- One submitted refresh contains at most 20 pre-authorized reads. Workstream includes its direct and Thread-linked Items with stable-ID deduplication; Thread includes direct mappings only; all-known never expands beyond existing local Items. An Item or Space keeps its current Source Instance when one is known; an unbound local record may use exactly one enabled same-service Site binding and otherwise remains unavailable. A mixed Source Instance selection remains one maintenance Run with per-target source authorization.
 - Jira Space refresh checks only selected known Items. A Confluence full-content Space may explicitly request one catalog page of at most 200 regular Pages. New identities are registered as `indexed`-intent Items with `projection_stale = 1`; their bodies are fetched only in later explicit batches.
 
 ## Catalog
 
 ### `atlassian_sites`
 
-- Purpose and authority: stable domain or tenant identity below one approved Atlassian Source Instance.
+- Purpose and authority: stable local domain or tenant identity resolved by normalized domain, independent of Provider and access configuration.
 - Lifecycle: user-registered and non-rebuildable as local identity, even when remote Site ID and display metadata can be confirmed again.
-- Producers: `atlassian.py` explicit Site registration and URL-backed stub registration; `atlassian_registration.py` composes first Source/Site/reference onboarding and bounded display or one-time binding edits.
-- Consumers: Space and Item identity, Source Instance-scoped inventory, URL collision checks, and registration or refresh previews.
-- Relations and deletion: required FK to `external_source_instances.id` with `ON DELETE RESTRICT`; parent of Spaces and Items with `RESTRICT`. A Source Instance or Site cannot be removed while known descendants exist.
-- Recovery: LocalBrain database backup plus the configured external access boundary. Reconnecting a domain does not recreate the same local Site ID automatically.
+- Producers: `atlassian.py` domain-first Site registration and URL-backed stub registration; `atlassian_registration.py` composes URL-only registration and separate access binding.
+- Consumers: Space and Item identity, local inventory, URL collision checks, access binding, and registration or refresh previews.
+- Relations and deletion: nullable compatibility/default FK to `external_source_instances.id` with `ON DELETE SET NULL`; parent of bindings with `CASCADE` and Spaces and Items with `RESTRICT`. Removing access does not remove the Site or its local records.
+- Recovery: LocalBrain database backup. Reconnecting a domain or Provider does not recreate the same local Site ID automatically.
 - DDL ownership: fresh definition plus `idx_atlassian_sites_source` in `schema.sql`; the compatible path repeats the index idempotently.
 
 | Column | Contract |
 | --- | --- |
 | `id` | `INTEGER PRIMARY KEY`; stable local Site identity. |
-| `source_instance_id` | `INTEGER NOT NULL` FK to `external_source_instances.id`, `ON DELETE RESTRICT`; access/policy boundary. |
-| `normalized_domain` | `TEXT NOT NULL`; lower-cased IDNA host plus non-default port, unique within one Source Instance. |
+| `source_instance_id` | nullable `INTEGER` FK to `external_source_instances.id`, `ON DELETE SET NULL`; legacy/default access projection retained for compatible databases, not Site identity. |
+| `normalized_domain` | `TEXT NOT NULL`; lower-cased IDNA host plus non-default port. Domain-first producers reuse one canonical Site before consulting access. |
 | `display_name` | nullable `TEXT`; optional remote/display label, not identity. |
 | `remote_site_id` | nullable `TEXT`; confirmed provider Site identity, unique within one Source Instance. |
 | `canonical_base_url` | `TEXT NOT NULL`; normalized HTTP(S) scheme and domain used for navigation and URL validation. |
 | `created_at` | `TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; local registration time. |
 | `updated_at` | `TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; latest identity/label confirmation time. |
 
-Constraints: `UNIQUE(source_instance_id, normalized_domain)`, `UNIQUE(source_instance_id, remote_site_id)`, non-empty domain, and non-empty optional remote ID. Explicit index: `idx_atlassian_sites_source`.
+Constraints: compatibility uniqueness on `(source_instance_id, normalized_domain)` and `(source_instance_id, remote_site_id)`, non-empty domain, and non-empty optional remote ID. Application producers enforce canonical normalized-domain reuse while retaining legacy rows losslessly. Explicit index: `idx_atlassian_sites_source`.
+
+### `atlassian_site_bindings`
+
+- Purpose and authority: explicit many-to-many access relation between one local Site and one independently configured Source Instance. Provider, Jira/Confluence service, actual configuration reference, enabled state, and capability remain owned by the Source Instance.
+- Lifecycle: user-curated and non-rebuildable access intent. Legacy Site ownership is backfilled as a binding; local-only Sites may have zero rows.
+- Producers: `atlassian.py` idempotent binding and access-resolution services; `atlassian_registration.py` separate access setup.
+- Consumers: connected discovery, refresh authorization, evidence recognition, connection management, and access-scoped inventory filters.
+- Relations and deletion: required cascading FKs to Site and Source Instance. Removing either owner removes only the binding; Site descendants and Source Instance capability follow their own owners.
+- Recovery: LocalBrain database backup or an explicit user rebind using the real approved configuration reference.
+- DDL ownership: fresh definition and `idx_atlassian_site_bindings_source` in `schema.sql`; compatible startup creates the table, index, and legacy bindings idempotently.
+
+| Column | Contract |
+| --- | --- |
+| `id` | `INTEGER PRIMARY KEY`; stable local binding identity used by connected UI actions. |
+| `site_id` | `INTEGER NOT NULL` FK to `atlassian_sites.id`, `ON DELETE CASCADE`. |
+| `source_instance_id` | `INTEGER NOT NULL` FK to `external_source_instances.id`, `ON DELETE CASCADE`. |
+| `created_at` | `TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; explicit or migrated binding creation time. |
+
+Constraints: `UNIQUE(site_id, source_instance_id)`. Explicit index: `idx_atlassian_site_bindings_source`.
 
 ### `atlassian_spaces`
 
-- Purpose and authority: optional Jira project or Confluence Space containment within one Site and service.
+- Purpose and authority: optional Jira project or Confluence Space containment within one Site and service, with optional current access ownership.
 - Lifecycle: external last-known identity. It can be re-read when access survives, but stable local containment and unavailable historical labels are not assumed recoverable.
 - Producers: `atlassian.py` validated Space registration and `atlassian_registration.py` direct-URL or explicitly confirmed partial-catalog registration.
 - Consumers: Item containment, registration inventory, hierarchy, explicit coverage display, and refresh scope.
-- Relations and deletion: required Site FK with `ON DELETE RESTRICT`; referenced by Items with `ON DELETE SET NULL`, so explicit Space removal keeps Item identity.
+- Relations and deletion: required Site FK with `ON DELETE RESTRICT`; nullable Source Instance FK with `ON DELETE SET NULL`; referenced by Items with `ON DELETE SET NULL`, so explicit Space or access removal keeps Item identity.
 - Recovery: database backup or a later explicit external read when the Space remains accessible.
 - DDL ownership: fresh definition plus `idx_atlassian_spaces_site` in `schema.sql`; the compatible path repeats the index idempotently.
 
@@ -101,7 +125,8 @@ Constraints: `UNIQUE(source_instance_id, normalized_domain)`, `UNIQUE(source_ins
 | --- | --- |
 | `id` | `INTEGER PRIMARY KEY`; stable local Space identity. |
 | `site_id` | `INTEGER NOT NULL` FK to `atlassian_sites.id`, `ON DELETE RESTRICT`. |
-| `service` | `TEXT NOT NULL`; constrained to Jira or Confluence and checked against the Site's Source Instance by the producer. |
+| `source_instance_id` | nullable `INTEGER` FK to `external_source_instances.id`, `ON DELETE SET NULL`; current access owner when known, otherwise local-only. |
+| `service` | `TEXT NOT NULL`; constrained to Jira or Confluence and checked against an assigned Source Instance or selected binding by the producer. |
 | `remote_id` | nullable `TEXT`; provider Space/project identity, unique within Site and service. |
 | `space_key` | nullable `TEXT`; Jira project key or Confluence Space key, unique within Site and service. |
 | `name` | `TEXT NOT NULL`; last-confirmed remote/display name. |
@@ -114,11 +139,11 @@ Constraints: service and coverage vocabularies; at least one of `remote_id` or `
 
 ### `atlassian_items`
 
-- Purpose and authority: strict one-to-one Atlassian extension of one stable External Resource, with source containment and independent coverage/attention axes.
+- Purpose and authority: strict one-to-one Atlassian extension of one stable External Resource, with Site containment, optional current access ownership, and independent coverage/attention axes.
 - Lifecycle: non-rebuildable local identity and organization. Remote identifiers can be re-read, but the stable External Resource binding, coverage, attention, and existing relations must survive.
 - Producers: `atlassian.py` URL stub registration, in-place remote binding, explicit axis changes, and explicit destructive purge; `atlassian_registration.py` recognizes strict service-specific URLs before invoking the stub contract.
 - Consumers: Workstream/Thread/checkpoint links through `external_resources.id`, registration inventory, refresh target resolution, freshness/content state, FTS projection, and Atlassian browse/detail.
-- Relations and deletion: primary key is an FK to `external_resources.id` with `ON DELETE CASCADE`; Site deletion is `RESTRICT`; Space deletion is `SET NULL`. The explicit purge API first removes the Item's FTS row and polymorphic Workstream, Thread, and checkpoint references, then removes the External Resource and all source-specific extension rows. Ordinary refresh never deletes the Resource.
+- Relations and deletion: primary key is an FK to `external_resources.id` with `ON DELETE CASCADE`; Site deletion is `RESTRICT`; Source Instance and Space deletion are `SET NULL`. The explicit purge API first removes the Item's FTS row and polymorphic Workstream, Thread, and checkpoint references, then removes the External Resource and all source-specific extension rows. Ordinary refresh never deletes the Resource.
 - Recovery: database backup. Remote re-discovery cannot recreate the same local Resource ID or user-managed axes.
 - DDL ownership: fresh definition plus `idx_atlassian_items_site` and `idx_atlassian_items_space` in `schema.sql`; compatible startup creates them additively.
 
@@ -126,8 +151,9 @@ Constraints: service and coverage vocabularies; at least one of `remote_id` or `
 | --- | --- |
 | `external_resource_id` | `INTEGER PRIMARY KEY` and FK to `external_resources.id`, `ON DELETE CASCADE`; sole local Item identity. |
 | `site_id` | `INTEGER NOT NULL` FK to `atlassian_sites.id`, `ON DELETE RESTRICT`. |
+| `source_instance_id` | nullable `INTEGER` FK to `external_source_instances.id`, `ON DELETE SET NULL`; current access owner when known, otherwise local-only. |
 | `space_id` | nullable `INTEGER` FK to `atlassian_spaces.id`, `ON DELETE SET NULL`. |
-| `service` | `TEXT NOT NULL`; Jira or Confluence, matched to Source Instance by the producer. |
+| `service` | `TEXT NOT NULL`; Jira or Confluence, matched to an assigned Source Instance or selected binding by the producer. |
 | `item_type` | `TEXT NOT NULL`; paired Jira issue or Confluence Page type. |
 | `remote_id` | nullable `TEXT`; confirmed provider identity, unique within Site and service. |
 | `remote_key` | nullable `TEXT`; Jira key or readable Page identity, unique within Site and service when present. |
@@ -294,7 +320,7 @@ Constraints: composite primary key `(external_resource_id, classification_id)`. 
 | `source_path` | nullable `TEXT` up to 8,000 characters; required only for Session scan state and part of its unique source-file identity. |
 | `document_id` | nullable unique FK to `context_documents.id`, `ON DELETE CASCADE`; mutually exclusive with `session_id`. |
 | `source_fingerprint` | `TEXT NOT NULL`; 64-character fingerprint of Session file size/mtime identity or Document content hash identity. |
-| `site_fingerprint` | `TEXT NOT NULL`; 64-character fingerprint of enabled configured Source Instance/Site/service mappings. |
+| `site_fingerprint` | `TEXT NOT NULL`; 64-character fingerprint of registered Site/service mappings derived from local Item/Space scope and enabled access bindings. |
 | `extractor_version` | `TEXT NOT NULL`; bounded extraction contract version. |
 | `status` | `TEXT NOT NULL`; `ok` or `error`. |
 | `error_code` | nullable `TEXT`; required non-empty code no longer than 80 characters only for error state. |

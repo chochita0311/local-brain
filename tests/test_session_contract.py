@@ -1,5 +1,6 @@
 import sqlite3
 import unittest
+from datetime import datetime, timezone
 from pathlib import Path
 
 from localbrain.db import _run_compatible_migrations
@@ -244,7 +245,17 @@ class SessionContractTests(unittest.TestCase):
             "codex",
             parsed_session("child", "subsession", "parent"),
         )
-        _store_session(connection, source_id, "codex", parsed_session("parent"))
+        parent = parsed_session("parent")
+        current_time = (
+            datetime.now(timezone.utc)
+            .replace(microsecond=0)
+            .isoformat()
+            .replace("+00:00", "Z")
+        )
+        parent.started_at = current_time
+        parent.ended_at = current_time
+        parent.last_event_at = current_time
+        _store_session(connection, source_id, "codex", parent)
         _store_session(
             connection,
             source_id,

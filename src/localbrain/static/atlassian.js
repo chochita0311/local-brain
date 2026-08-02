@@ -2,21 +2,11 @@ const atlassianRegistration = document.querySelector("[data-atlassian-registrati
 
 if (atlassianRegistration) {
   const registrationUrl = atlassianRegistration.querySelector("#atlassian-url");
-  const siteSelect = atlassianRegistration.querySelector("[data-atlassian-site-select]");
-  const newConnection = atlassianRegistration.querySelector("[data-atlassian-new-connection]");
   const preview = atlassianRegistration.querySelector("[data-atlassian-url-preview]");
-  const siteName = atlassianRegistration.querySelector("[data-atlassian-site-name]");
   const targetSelect = atlassianRegistration.querySelector("[data-atlassian-target-select]");
   const connectionSelect = atlassianRegistration.querySelector("[data-atlassian-connection-select]");
   let previewTimer = null;
   let previewRequest = null;
-
-  const syncConnectionMode = () => {
-    if (!siteSelect || !newConnection) return;
-    const creating = siteSelect.value === "new";
-    newConnection.dataset.active = creating ? "true" : "false";
-    if (creating) newConnection.open = true;
-  };
 
   const setPreview = (message, state = "neutral") => {
     if (!preview) return;
@@ -52,28 +42,10 @@ if (atlassianRegistration) {
       const serviceLabel = payload.service === "jira" ? "Jira" : "Confluence";
       const kindLabel = payload.kind === "item" ? "Item" : "Space";
       const identifier = payload.identifier ? ` · ${payload.identifier}` : "";
-      const enabledMatches = payload.matches.filter((match) => match.enabled);
-      if (enabledMatches.length === 1) {
-        if (siteSelect) siteSelect.value = String(enabledMatches[0].site_id);
-        setPreview(
-          `${serviceLabel} · ${payload.normalized_domain} · ${kindLabel}${identifier} · ${enabledMatches[0].provider_label} 연결 재사용`,
-          "success",
-        );
-      } else if (enabledMatches.length > 1) {
-        if (siteSelect) siteSelect.value = "";
-        setPreview(
-          `${serviceLabel} · ${payload.normalized_domain} · ${kindLabel}${identifier} · 일치하는 연결 ${enabledMatches.length}개 중 하나를 선택하세요.`,
-          "warning",
-        );
-      } else {
-        if (siteSelect) siteSelect.value = "new";
-        if (siteName && !siteName.value) siteName.value = payload.suggested_site_name || "";
-        setPreview(
-          `${serviceLabel} · ${payload.normalized_domain} · ${kindLabel}${identifier} · 새 MCP 연결을 선택하세요.`,
-          "warning",
-        );
-      }
-      syncConnectionMode();
+      setPreview(
+        `${serviceLabel} · ${payload.normalized_domain} · ${kindLabel}${identifier} · 로컬 등록 준비됨`,
+        "success",
+      );
     } catch (error) {
       if (error.name === "AbortError") return;
       setPreview(error.message, "error");
@@ -82,7 +54,6 @@ if (atlassianRegistration) {
     }
   };
 
-  siteSelect?.addEventListener("change", syncConnectionMode);
   registrationUrl?.addEventListener("input", () => {
     window.clearTimeout(previewTimer);
     previewTimer = window.setTimeout(previewUrl, 350);
@@ -91,7 +62,6 @@ if (atlassianRegistration) {
     window.clearTimeout(previewTimer);
     previewUrl();
   });
-  syncConnectionMode();
   if (registrationUrl?.value.trim()) previewUrl();
 
   const syncDiscoveryConnections = () => {

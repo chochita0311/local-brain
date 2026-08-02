@@ -472,7 +472,7 @@
       "producers": ["src/localbrain/atlassian_registration.py"],
       "consumers": ["src/localbrain/atlassian_registration.py", "src/localbrain/templates/atlassian.html", "src/localbrain/templates/atlassian-refresh.html"],
       "consequence": "Selected content limits management to explicitly registered Items; full content permits Space-wide inventory.",
-      "presentation": {"mode": "logical-label", "labels": {"selected-content": "선택한 항목만", "full-content": "Space 전체"}, "help": "‘선택한 항목만’은 등록하거나 선택한 티켓과 Page만 관리합니다."},
+      "presentation": {"mode": "logical-label", "labels": {"selected-content": "선택한 항목만", "full-content": "Space 전체"}},
       "visible_consumers": [{"path": "src/localbrain/templates/atlassian.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-refresh.html", "state": "registry-backed"}],
       "sources": [{"kind": "schema-check", "field": "atlassian_spaces.coverage"}]
     },

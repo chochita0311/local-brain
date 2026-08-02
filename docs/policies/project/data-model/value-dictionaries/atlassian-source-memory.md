@@ -34,7 +34,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Consequence: Selected content limits management to explicitly registered Items; full content permits Space-wide inventory.
 - Presentation mode: `logical-label`
 - Labels: `selected-content` → 선택한 항목만; `full-content` → Space 전체
-- Help: ‘선택한 항목만’은 등록하거나 선택한 티켓과 Page만 관리합니다.
+- Help: none
 - Visible consumer inventory: `src/localbrain/templates/atlassian.html` (registry-backed); `src/localbrain/templates/atlassian-refresh.html` (registry-backed)
 
 ## `atlassian-item.type`

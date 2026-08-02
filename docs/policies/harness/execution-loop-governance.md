@@ -19,6 +19,14 @@
 - `docs/plans/fix/` owns fix logs.
 - `docs/plans/heuristic/` owns heuristic backlog records.
 
+## Execution Artifact Status
+
+- A new or revised Spec uses `draft`, `approved`, or `superseded`. Approval means the implementation contract is ready for its Run; a successful Run does not change the Spec to `passed` or `complete`.
+- A new or revised Run uses `active`, `passed`, `blocked`, `returned-to-spec`, or `returned-to-planning`. The Run owns the execution outcome.
+- A new or revised Evaluation uses `draft` or `complete`. Its separate `Result` owns `PASS`, `PASS WITH SUGGESTIONS`, or `FAIL`, and `Evidence Coverage` owns `complete`, `partial`, or `unavailable`.
+- Before a Run closes, resolved items must leave the Spec's `Open Blockers` and any stale `pending` artifact references. Preserve earlier blockers or evidence gaps in dated `Continuity Notes` instead of leaving them expressed as current state.
+- Feature and PRD statuses remain owned by `docs/policies/harness/prd-feature-management.md`.
+
 ## Core Operating Rules
 - Only one feature should normally be `in-loop` at a time.
 - Do not execute from raw planner output.
@@ -37,6 +45,7 @@
 - Judge evidence coverage against the evidence required by the approved Feature, active Spec, and selected execution profile rather than against every theoretically possible environment.
 - Do not invent compound result labels such as `PASS WITH BROWSER GAP`; record `Result: PASS`, `Evidence Coverage: partial`, and name the unverified claims instead.
 - Partial or unavailable evidence does not automatically convert a result to `FAIL`, but the owning Feature, active Spec, or selected profile decides whether the gap blocks Run or human acceptance.
+- Before classifying required rendered, runtime, interaction, migration, or integration evidence as unavailable, inspect the relevant automation and inspection capabilities actually available in the current environment. A missing preferred skill, tool, or adapter does not by itself prove that every valid evidence path is unavailable.
 - An evaluator must not describe an unobserved rendered, runtime, interaction, migration, or integration state as verified merely because source inspection or a narrower automated check passed.
 - Before terminating a Run, the Orchestrator must inspect evidence gaps and their acceptance impact; keep the evaluator result unchanged when an evidence gap requires more collection or blocks acceptance.
 

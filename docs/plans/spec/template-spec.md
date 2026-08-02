@@ -2,7 +2,7 @@
 
 ## Metadata
 - ID: `spec-0000`
-- Status: `draft`
+- Status: `draft` | `approved` | `superseded`
 - Run ID:
 - Attempt:
 - Parent Feature: `[feat-0000-title](../feature/feat-0000-title.md)`

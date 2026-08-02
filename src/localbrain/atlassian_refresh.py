@@ -10,6 +10,7 @@ from .atlassian import (
     create_or_reuse_atlassian_stub,
     derive_atlassian_freshness,
     normalize_atlassian_url,
+    resolve_atlassian_site_access,
     set_atlassian_item_axes,
 )
 from .external_access import ExternalAccessError, capability_state
@@ -249,9 +250,9 @@ def _item_rows(
           ON external_resources.id = atlassian_items.external_resource_id
         JOIN atlassian_sites
           ON atlassian_sites.id = atlassian_items.site_id
-        JOIN external_source_instances
+        LEFT JOIN external_source_instances
           ON external_source_instances.id =
-             atlassian_sites.source_instance_id
+             atlassian_items.source_instance_id
         LEFT JOIN atlassian_spaces
           ON atlassian_spaces.id = atlassian_items.space_id
         LEFT JOIN atlassian_item_urls
@@ -275,6 +276,31 @@ def _item_rows(
     capability_cache = {}
     for item_id in normalized_ids:
         item = by_id[item_id]
+        access = None
+        if item["source_instance_id"] is None:
+            try:
+                access = resolve_atlassian_site_access(
+                    connection,
+                    site_id=int(item["site_id"]),
+                    service=item["service"],
+                )
+            except AtlassianContractError:
+                access = None
+            if access is not None:
+                item["source_instance_id"] = int(access["id"])
+                item["source_name"] = access["display_name"]
+                item["source_enabled"] = access["enabled"]
+        if item["source_instance_id"] is None:
+            item["capability_state"] = "unbound"
+            item["freshness"] = derive_atlassian_freshness(
+                item["service"], item
+            )
+            item["request_count"] = _request_count(
+                item["service"], item["coverage"]
+            )
+            item["selectable"] = False
+            items.append(item)
+            continue
         source_id = int(item["source_instance_id"])
         if source_id not in capability_cache:
             try:
@@ -345,9 +371,9 @@ def refresh_preview(
             FROM atlassian_spaces
             JOIN atlassian_sites
               ON atlassian_sites.id = atlassian_spaces.site_id
-            JOIN external_source_instances
+            LEFT JOIN external_source_instances
               ON external_source_instances.id =
-                 atlassian_sites.source_instance_id
+                 atlassian_spaces.source_instance_id
             WHERE atlassian_spaces.id = ?
             """,
             (scope["id"],),
@@ -355,13 +381,29 @@ def refresh_preview(
         if not space:
             _fail("scope-not-found", "The selected Space was not found")
         space = dict(space)
-        if space["service"] == "confluence":
+        if space["source_instance_id"] is None:
             try:
-                state = capability_state(
-                    connection, int(space["source_instance_id"])
-                )["state"]
-            except ExternalAccessError:
-                state = "error"
+                access = resolve_atlassian_site_access(
+                    connection,
+                    site_id=int(space["site_id"]),
+                    service=space["service"],
+                )
+            except AtlassianContractError:
+                access = None
+            if access is not None:
+                space["source_instance_id"] = int(access["id"])
+                space["source_name"] = access["display_name"]
+                space["enabled"] = access["enabled"]
+        if space["service"] == "confluence":
+            if space["source_instance_id"] is None:
+                state = "unbound"
+            else:
+                try:
+                    state = capability_state(
+                        connection, int(space["source_instance_id"])
+                    )["state"]
+                except ExternalAccessError:
+                    state = "error"
             catalog = {
                 "space_id": int(space["id"]),
                 "space_key": space["space_key"],
@@ -370,7 +412,11 @@ def refresh_preview(
                 "limit": CONFLUENCE_CATALOG_LIMIT,
                 "request_count": 1,
                 "capability_state": state,
-                "selectable": bool(space["enabled"] and state == "current"),
+                "selectable": bool(
+                    space["source_instance_id"] is not None
+                    and space["enabled"]
+                    and state == "current"
+                ),
             }
             catalog["selected"] = bool(
                 catalog["selectable"]
@@ -501,9 +547,9 @@ def _catalog_target(
         FROM atlassian_spaces
         JOIN atlassian_sites
           ON atlassian_sites.id = atlassian_spaces.site_id
-        JOIN external_source_instances
+        LEFT JOIN external_source_instances
           ON external_source_instances.id =
-             atlassian_sites.source_instance_id
+             atlassian_spaces.source_instance_id
         WHERE atlassian_spaces.id = ?
           AND atlassian_spaces.service = 'confluence'
         """,
@@ -511,6 +557,22 @@ def _catalog_target(
     ).fetchone()
     if not space:
         _fail("scope-not-found", "Confluence Space was not found")
+    space = dict(space)
+    if space["source_instance_id"] is None:
+        try:
+            access = resolve_atlassian_site_access(
+                connection,
+                site_id=int(space["site_id"]),
+                service="confluence",
+            )
+        except AtlassianContractError:
+            access = None
+        if access is None:
+            _fail(
+                "source-instance-unbound",
+                "Confluence Space has no unambiguous access binding",
+            )
+        space["source_instance_id"] = int(access["id"])
     page = int(catalog["page"])
     return {
         "target_id": "atlassian-space-catalog-{}-{}".format(
@@ -636,9 +698,9 @@ def _item_application_row(
         FROM atlassian_items
         JOIN atlassian_sites
           ON atlassian_sites.id = atlassian_items.site_id
-        JOIN external_source_instances
+        LEFT JOIN external_source_instances
           ON external_source_instances.id =
-             atlassian_sites.source_instance_id
+             atlassian_items.source_instance_id
         LEFT JOIN atlassian_item_urls
           ON atlassian_item_urls.external_resource_id =
              atlassian_items.external_resource_id
@@ -649,7 +711,19 @@ def _item_application_row(
     ).fetchone()
     if not row:
         _fail("item-not-found", "Refresh result Item was not found")
-    return dict(row)
+    item = dict(row)
+    if item["source_instance_id"] is None:
+        try:
+            access = resolve_atlassian_site_access(
+                connection,
+                site_id=int(item["site_id"]),
+                service=item["service"],
+            )
+        except AtlassianContractError:
+            access = None
+        if access is not None:
+            item["source_instance_id"] = int(access["id"])
+    return item
 
 
 def _reference_safe_result(target_result: Mapping[str, Any]) -> dict:
@@ -700,9 +774,9 @@ def _apply_catalog_result(
         FROM atlassian_spaces
         JOIN atlassian_sites
           ON atlassian_sites.id = atlassian_spaces.site_id
-        JOIN external_source_instances
+        LEFT JOIN external_source_instances
           ON external_source_instances.id =
-             atlassian_sites.source_instance_id
+             atlassian_spaces.source_instance_id
         WHERE atlassian_spaces.id = ?
           AND atlassian_spaces.service = 'confluence'
         """,
@@ -710,6 +784,22 @@ def _apply_catalog_result(
     ).fetchone()
     if not space:
         _fail("scope-not-found", "Catalog Space was not found")
+    space = dict(space)
+    if space["source_instance_id"] is None:
+        try:
+            access = resolve_atlassian_site_access(
+                connection,
+                site_id=int(space["site_id"]),
+                service="confluence",
+            )
+        except AtlassianContractError:
+            access = None
+        if access is None:
+            _fail(
+                "source-instance-unbound",
+                "Catalog Space has no unambiguous access binding",
+            )
+        space["source_instance_id"] = int(access["id"])
     target_source_id = target.get(
         "source_instance_id", manifest_source_id
     )

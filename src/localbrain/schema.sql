@@ -292,8 +292,8 @@ CREATE TABLE IF NOT EXISTS external_resources (
 
 CREATE TABLE IF NOT EXISTS atlassian_sites (
     id INTEGER PRIMARY KEY,
-    source_instance_id INTEGER NOT NULL
-        REFERENCES external_source_instances(id) ON DELETE RESTRICT,
+    source_instance_id INTEGER
+        REFERENCES external_source_instances(id) ON DELETE SET NULL,
     normalized_domain TEXT NOT NULL,
     display_name TEXT,
     remote_site_id TEXT,
@@ -306,10 +306,22 @@ CREATE TABLE IF NOT EXISTS atlassian_sites (
     CHECK(remote_site_id IS NULL OR length(remote_site_id) > 0)
 );
 
+CREATE TABLE IF NOT EXISTS atlassian_site_bindings (
+    id INTEGER PRIMARY KEY,
+    site_id INTEGER NOT NULL
+        REFERENCES atlassian_sites(id) ON DELETE CASCADE,
+    source_instance_id INTEGER NOT NULL
+        REFERENCES external_source_instances(id) ON DELETE CASCADE,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(site_id, source_instance_id)
+);
+
 CREATE TABLE IF NOT EXISTS atlassian_spaces (
     id INTEGER PRIMARY KEY,
     site_id INTEGER NOT NULL
         REFERENCES atlassian_sites(id) ON DELETE RESTRICT,
+    source_instance_id INTEGER
+        REFERENCES external_source_instances(id) ON DELETE SET NULL,
     service TEXT NOT NULL
         CHECK(service IN ('jira', 'confluence')),
     remote_id TEXT,
@@ -333,6 +345,8 @@ CREATE TABLE IF NOT EXISTS atlassian_items (
         REFERENCES external_resources(id) ON DELETE CASCADE,
     site_id INTEGER NOT NULL
         REFERENCES atlassian_sites(id) ON DELETE RESTRICT,
+    source_instance_id INTEGER
+        REFERENCES external_source_instances(id) ON DELETE SET NULL,
     space_id INTEGER
         REFERENCES atlassian_spaces(id) ON DELETE SET NULL,
     service TEXT NOT NULL
@@ -730,6 +744,8 @@ CREATE INDEX IF NOT EXISTS idx_external_sync_runs_scope
     ON external_sync_runs(requested_scope_kind, maintenance_run_id);
 CREATE INDEX IF NOT EXISTS idx_atlassian_sites_source
     ON atlassian_sites(source_instance_id, normalized_domain);
+CREATE INDEX IF NOT EXISTS idx_atlassian_site_bindings_source
+    ON atlassian_site_bindings(source_instance_id, site_id);
 CREATE INDEX IF NOT EXISTS idx_atlassian_spaces_site
     ON atlassian_spaces(site_id, service, name);
 CREATE INDEX IF NOT EXISTS idx_atlassian_items_site

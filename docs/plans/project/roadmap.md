@@ -2,7 +2,7 @@
 
 Status: Phase 1 complete; Phase 2 core vertical slice and Phase 4 Atlassian local vertical slice implemented
 
-Last reviewed: 2026-07-24
+Last reviewed: 2026-08-02
 
 ## Current Direction
 
@@ -19,6 +19,10 @@ Near-term priorities:
 5. Evaluate pinned Session recall and deterministic related context through repeated work resumption before expanding into native process resume or user-curated context relations.
 
 Detailed implementation tasks and unresolved decisions live in the [Project Backlog](backlog.md). Durable product and technical contracts live under [Policies](../../README.md#policies).
+
+Recently completed cross-surface reconciliation:
+
+- [PRD-0011: Shared Native Select Control Geometry](../prd/prd-0011-shared-native-select-control-geometry.md) (`passed`; shared native-select geometry verified across Atlassian, Workstream, and Search)
 
 ## Phase Overview
 
@@ -160,6 +164,7 @@ Planning tracks:
 
 - [PRD-0007: Atlassian Source Memory And Explicit Refresh](../prd/prd-0007-atlassian-source-memory-and-refresh.md) (`passed`)
 - [PRD-0008: Connected Atlassian Validation And Schema ERD Routing](../prd/prd-0008-connected-atlassian-validation-and-schema-erd-routing.md) (`passed`; FEAT-0053 through FEAT-0056 `passed`)
+- [PRD-0010: Atlassian UI And Interaction Reconciliation](../prd/prd-0010-atlassian-ui-and-interaction-reconciliation.md) (`approved`; FEAT-0062 and FEAT-0063 passed, boundary remains open for later owner observations)
 
 Executed PRD-0007 Features:
 
@@ -177,7 +182,7 @@ Delivered for Atlassian:
 - approved read-only capability policy and a source-neutral Claude/Codex maintenance Run boundary
 - stable Source Instance, Site, Space, Item, URL, remote-state/content, local-memory, and evidence ownership
 - URL-first local setup, reference/metadata/indexed coverage, Workstream and Thread links, freshness, explicit refresh preview, and local search
-- registered-scope-led `Browser | Add` interaction with target Site, MCP connection, and execution owner selected separately
+- registered-scope-led `Browser | Add` interaction with URL-only local registration, separate optional Site access binding, and connected discovery choosing Site, bound access path, and execution owner independently
 - bounded direct official Jira evidence plus explicit official Confluence and company Gateway environment-limit classifications
 - locally packaged official ELK routing for every Schema ERD with Dagre and textual fallback
 

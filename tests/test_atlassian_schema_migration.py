@@ -6,6 +6,8 @@ from unittest.mock import patch
 
 from localbrain.config import Settings
 from localbrain.db import (
+    _atlassian_site_access_backup_path,
+    _atlassian_site_access_contract_exists,
     _external_resource_url_scope_backup_path,
     _external_resource_url_unique_exists,
     _repair_external_resource_url_scope,
@@ -48,6 +50,46 @@ def pre_registration_space_schema() -> str:
             )
         schema = schema.replace(fragment, "", 1)
     return schema
+
+
+def required_site_access_schema() -> str:
+    schema = SCHEMA_PATH.read_text(encoding="utf-8")
+    current_site_source = """    source_instance_id INTEGER
+        REFERENCES external_source_instances(id) ON DELETE SET NULL,
+"""
+    legacy_site_source = """    source_instance_id INTEGER NOT NULL
+        REFERENCES external_source_instances(id) ON DELETE RESTRICT,
+"""
+    binding_table = """CREATE TABLE IF NOT EXISTS atlassian_site_bindings (
+    id INTEGER PRIMARY KEY,
+    site_id INTEGER NOT NULL
+        REFERENCES atlassian_sites(id) ON DELETE CASCADE,
+    source_instance_id INTEGER NOT NULL
+        REFERENCES external_source_instances(id) ON DELETE CASCADE,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(site_id, source_instance_id)
+);
+
+"""
+    optional_access_column = """    source_instance_id INTEGER
+        REFERENCES external_source_instances(id) ON DELETE SET NULL,
+"""
+    binding_index = """CREATE INDEX IF NOT EXISTS idx_atlassian_site_bindings_source
+    ON atlassian_site_bindings(source_instance_id, site_id);
+"""
+    for fragment in (
+        current_site_source,
+        binding_table,
+        binding_index,
+    ):
+        if fragment not in schema:
+            raise AssertionError(
+                "Atlassian optional-access fixture no longer matches canonical DDL"
+            )
+    schema = schema.replace(current_site_source, legacy_site_source, 1)
+    schema = schema.replace(binding_table, "", 1)
+    schema = schema.replace(optional_access_column, "", 2)
+    return schema.replace(binding_index, "", 1)
 
 
 def legacy_connection(path=":memory:"):
@@ -263,6 +305,192 @@ class ExternalResourceUrlScopeMigrationTests(unittest.TestCase):
                     "SELECT id FROM external_resources"
                 ).fetchone()[0],
                 41,
+            )
+            self.assertEqual(upgraded.execute("PRAGMA foreign_key_check").fetchall(), [])
+            upgraded.close()
+
+
+class AtlassianSiteAccessMigrationTests(unittest.TestCase):
+    def test_file_upgrade_preserves_local_graph_and_backfills_access(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            data_dir = Path(temporary)
+            database_path = data_dir / "localbrain.db"
+            connection = sqlite3.connect(str(database_path))
+            connection.row_factory = sqlite3.Row
+            connection.execute("PRAGMA foreign_keys = ON")
+            connection.executescript(required_site_access_schema())
+            source_id = connection.execute(
+                """
+                INSERT INTO external_source_instances(
+                    instance_key, provider_kind, service, display_name, config_ref
+                ) VALUES (
+                    'jira-source', 'mcp_gateway', 'jira',
+                    'Synthetic Jira', 'jira-approved'
+                )
+                """
+            ).lastrowid
+            site_id = connection.execute(
+                """
+                INSERT INTO atlassian_sites(
+                    source_instance_id, normalized_domain, display_name,
+                    canonical_base_url
+                ) VALUES (?, 'jira.example.test', 'Synthetic Site',
+                          'https://jira.example.test')
+                """,
+                (source_id,),
+            ).lastrowid
+            space_id = connection.execute(
+                """
+                INSERT INTO atlassian_spaces(
+                    site_id, service, space_key, name, canonical_url, coverage
+                ) VALUES (
+                    ?, 'jira', 'SYN', 'Synthetic Project',
+                    'https://jira.example.test/jira/software/projects/SYN',
+                    'selected-content'
+                )
+                """,
+                (site_id,),
+            ).lastrowid
+            resource_id = connection.execute(
+                """
+                INSERT INTO external_resources(
+                    resource_type, title, url, summary
+                ) VALUES (
+                    'jira', 'SYN-1',
+                    'https://jira.example.test/browse/SYN-1',
+                    'Preserved local summary'
+                )
+                """
+            ).lastrowid
+            connection.execute(
+                """
+                INSERT INTO atlassian_items(
+                    external_resource_id, site_id, space_id, service,
+                    item_type, remote_key, coverage
+                ) VALUES (?, ?, ?, 'jira', 'jira_issue', 'SYN-1', 'reference')
+                """,
+                (resource_id, site_id, space_id),
+            )
+            connection.execute(
+                """
+                INSERT INTO atlassian_item_local_state(
+                    external_resource_id, note
+                ) VALUES (?, 'Preserved local note')
+                """,
+                (resource_id,),
+            )
+            before_site = tuple(
+                connection.execute(
+                    "SELECT * FROM atlassian_sites WHERE id = ?", (site_id,)
+                ).fetchone()
+            )
+            connection.commit()
+            connection.close()
+
+            settings = Settings(
+                data_dir=data_dir,
+                database_path=database_path,
+                context_root=data_dir / "context",
+                claude_root=data_dir / "claude",
+                codex_root=data_dir / "codex",
+                mcp_call_budget=20,
+            )
+            with patch("localbrain.db.settings", settings):
+                init_db()
+                backup_path = _atlassian_site_access_backup_path(database_path)
+                self.assertTrue(backup_path.is_file())
+                backup_bytes = backup_path.read_bytes()
+                init_db()
+                self.assertEqual(backup_path.read_bytes(), backup_bytes)
+
+            backup = sqlite3.connect(str(backup_path))
+            backup.row_factory = sqlite3.Row
+            self.assertFalse(_atlassian_site_access_contract_exists(backup))
+            self.assertEqual(backup.execute("PRAGMA quick_check").fetchone()[0], "ok")
+            backup.close()
+
+            upgraded = sqlite3.connect(str(database_path))
+            upgraded.row_factory = sqlite3.Row
+            upgraded.execute("PRAGMA foreign_keys = ON")
+            self.assertTrue(_atlassian_site_access_contract_exists(upgraded))
+            self.assertEqual(
+                tuple(
+                    upgraded.execute(
+                        "SELECT * FROM atlassian_sites WHERE id = ?", (site_id,)
+                    ).fetchone()
+                ),
+                before_site,
+            )
+            self.assertEqual(
+                tuple(
+                    upgraded.execute(
+                        """
+                        SELECT site_id, source_instance_id
+                        FROM atlassian_site_bindings
+                        """
+                    ).fetchone()
+                ),
+                (site_id, source_id),
+            )
+            self.assertEqual(
+                upgraded.execute(
+                    "SELECT source_instance_id FROM atlassian_spaces WHERE id = ?",
+                    (space_id,),
+                ).fetchone()[0],
+                source_id,
+            )
+            self.assertEqual(
+                upgraded.execute(
+                    """
+                    SELECT source_instance_id
+                    FROM atlassian_items
+                    WHERE external_resource_id = ?
+                    """,
+                    (resource_id,),
+                ).fetchone()[0],
+                source_id,
+            )
+            self.assertEqual(
+                upgraded.execute(
+                    """
+                    SELECT note FROM atlassian_item_local_state
+                    WHERE external_resource_id = ?
+                    """,
+                    (resource_id,),
+                ).fetchone()[0],
+                "Preserved local note",
+            )
+            self.assertEqual(upgraded.execute("PRAGMA foreign_key_check").fetchall(), [])
+
+            upgraded.execute(
+                "DELETE FROM external_source_instances WHERE id = ?", (source_id,)
+            )
+            self.assertIsNone(
+                upgraded.execute(
+                    "SELECT source_instance_id FROM atlassian_sites WHERE id = ?",
+                    (site_id,),
+                ).fetchone()[0]
+            )
+            self.assertIsNone(
+                upgraded.execute(
+                    "SELECT source_instance_id FROM atlassian_spaces WHERE id = ?",
+                    (space_id,),
+                ).fetchone()[0]
+            )
+            self.assertIsNone(
+                upgraded.execute(
+                    """
+                    SELECT source_instance_id FROM atlassian_items
+                    WHERE external_resource_id = ?
+                    """,
+                    (resource_id,),
+                ).fetchone()[0]
+            )
+            self.assertEqual(
+                upgraded.execute(
+                    "SELECT COUNT(*) FROM atlassian_site_bindings"
+                ).fetchone()[0],
+                0,
             )
             self.assertEqual(upgraded.execute("PRAGMA foreign_key_check").fetchall(), [])
             upgraded.close()

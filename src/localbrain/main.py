@@ -26,8 +26,8 @@ from .atlassian_registration import (
     AtlassianRegistrationError,
     prepare_space_catalog_run,
     registration_preview,
+    register_atlassian_site_access,
     register_atlassian_url,
-    register_atlassian_url_with_connection,
     register_space_candidate,
     registered_scope_overview,
     registration_inventory,
@@ -455,8 +455,8 @@ def _atlassian_page_context(
         except AtlassianRegistrationError as exc:
             catalog_error = str(exc)
     notices = {
-        "connection-created": "연결과 Atlassian reference를 로컬에 등록했습니다.",
-        "connection-updated": "Source Instance와 Site 표시 정보를 저장했습니다.",
+        "connection-created": "Site에 원격 접근 경로를 연결했습니다.",
+        "connection-updated": "원격 접근 경로 설정을 저장했습니다.",
         "item-created": "Item reference를 로컬에 등록했습니다.",
         "item-reused": "이미 등록된 Item reference를 열었습니다.",
         "space-created": "Space를 로컬에 등록했습니다.",
@@ -603,28 +603,11 @@ async def atlassian_register(request: Request):
                 "invalid-service", "Atlassian service is invalid"
             )
         with transaction() as connection:
-            if form.get("site_id") == "new":
-                result = register_atlassian_url_with_connection(
-                    connection,
-                    url=form.get("url", ""),
-                    service=service,
-                    provider_kind=form.get("provider_kind", ""),
-                    source_name=form.get("source_name") or None,
-                    site_name=form.get("site_name") or None,
-                    config_ref=form.get("config_ref") or None,
-                    title=form.get("title") or None,
-                )
-            else:
-                site_id = _optional_form_int(
-                    form.get("site_id"), "Site"
-                )
-                result = register_atlassian_url(
-                    connection,
-                    url=form.get("url", ""),
-                    service=service,
-                    site_id=site_id,
-                    title=form.get("title") or None,
-                )
+            result = register_atlassian_url(
+                connection,
+                url=form.get("url", ""),
+                service=service,
+            )
     except AtlassianRegistrationError as exc:
         selected_view = (
             form.get("service")
@@ -664,6 +647,68 @@ async def atlassian_register(request: Request):
                 }
             ),
             fragment,
+        ),
+        status_code=303,
+    )
+
+
+@app.post("/atlassian/access", response_class=HTMLResponse)
+async def atlassian_register_access(request: Request):
+    form = {}
+    try:
+        form = await _bounded_urlencoded_form(request)
+        service = form.get("service", "")
+        if service not in {"jira", "confluence"}:
+            raise AtlassianRegistrationError(
+                "invalid-service", "Atlassian service is invalid"
+            )
+        site_id = _optional_form_int(form.get("site_id"), "Site")
+        if site_id is None:
+            raise AtlassianRegistrationError(
+                "site-required", "접근 경로를 연결할 Site를 선택하세요."
+            )
+        with transaction() as connection:
+            result = register_atlassian_site_access(
+                connection,
+                site_id=site_id,
+                service=service,
+                provider_kind=form.get("provider_kind", ""),
+                config_ref=form.get("config_ref", ""),
+            )
+    except AtlassianRegistrationError as exc:
+        selected_view = (
+            form.get("service")
+            if form.get("service") in {"jira", "confluence"}
+            else "jira"
+        )
+        with connect() as connection:
+            page_context = _atlassian_page_context(
+                connection,
+                request=request,
+                selected_view=selected_view,
+                selected_mode="setup",
+                selected_add_method="url",
+                form_state=form,
+                form_error=str(exc),
+            )
+        return templates.TemplateResponse(
+            "atlassian.html", page_context, status_code=422
+        )
+    return RedirectResponse(
+        url="/atlassian?{}#atlassian-connection-{}".format(
+            urlencode(
+                {
+                    "view": service,
+                    "mode": "setup",
+                    "method": "url",
+                    "notice": (
+                        "connection-created"
+                        if result["binding_created"]
+                        else "connection-updated"
+                    ),
+                }
+            ),
+            result["binding_id"],
         ),
         status_code=303,
     )
@@ -711,8 +756,6 @@ async def atlassian_update_connection(
                 connection,
                 source_instance_id=source_instance_id,
                 site_id=site_id,
-                source_name=form.get("source_name", ""),
-                site_name=form.get("site_name", ""),
                 enabled=form.get("enabled") == "1",
                 config_ref=form.get("config_ref") or None,
             )
@@ -749,7 +792,7 @@ async def atlassian_update_connection(
                     "notice": "connection-updated",
                 }
             ),
-            site_id,
+            result["binding_id"],
         ),
         status_code=303,
     )
@@ -765,10 +808,12 @@ async def atlassian_discover_spaces(request: Request):
             raise AtlassianRegistrationError(
                 "invalid-service", "Atlassian service is invalid"
             )
-        site_id = _optional_form_int(form.get("site_id"), "Site")
-        if site_id is None:
+        binding_id = _optional_form_int(
+            form.get("binding_id"), "Access binding"
+        )
+        if binding_id is None:
             raise AtlassianRegistrationError(
-                "site-required", "조회에 사용할 MCP 연결을 선택하세요."
+                "binding-required", "조회에 사용할 MCP 접근 경로를 선택하세요."
             )
         target_domain = (form.get("target_domain") or "").strip().lower()
         if not target_domain:
@@ -792,9 +837,28 @@ async def atlassian_discover_spaces(request: Request):
                 "{} runner is unavailable".format(runner.capitalize()),
             )
         with transaction() as connection:
+            binding = connection.execute(
+                """
+                SELECT atlassian_site_bindings.site_id,
+                       external_source_instances.id AS source_instance_id,
+                       external_source_instances.service
+                FROM atlassian_site_bindings
+                JOIN external_source_instances
+                  ON external_source_instances.id =
+                     atlassian_site_bindings.source_instance_id
+                WHERE atlassian_site_bindings.id = ?
+                """,
+                (binding_id,),
+            ).fetchone()
+            if not binding or binding["service"] != service:
+                raise AtlassianRegistrationError(
+                    "binding-mismatch",
+                    "선택한 MCP 접근 경로가 현재 서비스에 속하지 않습니다.",
+                )
             run_id = prepare_space_catalog_run(
                 connection,
-                site_id=site_id,
+                site_id=int(binding["site_id"]),
+                source_instance_id=int(binding["source_instance_id"]),
                 target_domain=target_domain,
                 runner=runner,
             )
@@ -854,6 +918,9 @@ async def atlassian_register_space_candidate(request: Request):
                 connection,
                 site_id=site_id,
                 service=service,
+                source_instance_id=_optional_form_int(
+                    form.get("source_instance_id"), "Source Instance"
+                ),
                 space_key=form.get("space_key", ""),
                 name=form.get("name", ""),
                 remote_id=form.get("remote_id") or None,

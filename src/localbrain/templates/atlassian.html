@@ -89,82 +89,73 @@
         </nav>
       </div>
       {% if selected_add_method == 'url' %}
-      <article class="atlassian-add-method">
-        <div class="atlassian-action-heading">
-          <div>
-            <p class="eyebrow">LOCAL ONLY</p>
-            <h3>URL로 추가</h3>
+      <div class="atlassian-add-columns">
+        <article class="atlassian-add-method">
+          <div class="atlassian-action-heading">
+            <div>
+              <p class="eyebrow">LOCAL ONLY</p>
+              <h3>URL로 추가</h3>
+            </div>
+            <span class="status-badge neutral">원격 조회 없음</span>
           </div>
-          <span class="status-badge neutral">원격 조회 없음</span>
-        </div>
-        <p class="atlassian-action-copy">
-          {{ '티켓 또는 프로젝트' if selected_view == 'jira' else 'Page 또는 Space' }} URL을 링크로 저장합니다.
-          키만 입력하면 등록되지 않습니다. 관리 범위 기본값은
-          <strong>{{ value_label("atlassian-space.coverage", "selected-content" if selected_view == "jira" else "full-content") }}</strong>입니다.
-        </p>
-        <p class="field-help">{{ value_help("atlassian-space.coverage") }}</p>
-        <form class="atlassian-form" method="post" action="/atlassian/register">
-          <input type="hidden" name="service" value="{{ selected_view }}">
-          <label for="atlassian-site">기존 MCP 연결</label>
-          <select id="atlassian-site" name="site_id" data-atlassian-site-select>
-            {% if sites %}
-              <option value="">URL 도메인과 일치하면 자동 선택</option>
-            {% endif %}
-            {% for site in sites %}
-              <option value="{{ site.site_id }}" {% if not site.enabled %}disabled{% endif %} {% if form_state.get('site_id') == site.site_id|string %}selected{% endif %}>
-                {{ site.source_display_name }} · {{ site.normalized_domain }}{% if not site.enabled %} · {{ value_label("external-source.enabled", 0) }}{% endif %}
-              </option>
-            {% endfor %}
-            <option value="new" {% if form_state.get('site_id') == 'new' or not sites %}selected{% endif %}>새 MCP 연결 만들기</option>
-          </select>
-          <span class="field-help">조회 대상 Site는 URL 도메인으로 정해집니다. 같은 도메인에 여러 연결이 있으면 하나를 선택합니다.</span>
+          <form class="atlassian-form" method="post" action="/atlassian/register">
+            <input type="hidden" name="service" value="{{ selected_view }}">
+            <label for="atlassian-url">Atlassian URL <span aria-hidden="true">*</span></label>
+            <input
+              id="atlassian-url"
+              name="url"
+              type="url"
+              required
+              maxlength="8000"
+              value="{{ form_state.get('url', '') }}"
+              placeholder="{{ 'https://jira.example.test/browse/PROJ-123' if selected_view == 'jira' else 'https://wiki.example.test/spaces/TEAM/pages/12345/Title' }}"
+            >
+            <div class="atlassian-url-preview neutral" role="status" aria-live="polite" data-atlassian-url-preview>
+              URL을 입력하면 Jira/Confluence, Site 도메인, Item 또는 Space 식별자를 로컬에서 확인합니다.
+            </div>
+            <button class="primary-button" type="submit">로컬에 등록</button>
+          </form>
+        </article>
 
-          <label for="atlassian-url">Atlassian URL <span aria-hidden="true">*</span></label>
-          <input
-            id="atlassian-url"
-            name="url"
-            type="url"
-            required
-            maxlength="8000"
-            value="{{ form_state.get('url', '') }}"
-            placeholder="{{ 'https://jira.example.test/browse/PROJ-123' if selected_view == 'jira' else 'https://wiki.example.test/spaces/TEAM/pages/12345/Title' }}"
-          >
-          <span class="field-help">HTTP(S) Item 또는 Space URL만 허용됩니다.</span>
-          <div class="atlassian-url-preview neutral" role="status" aria-live="polite" data-atlassian-url-preview>
-            URL을 입력하면 Jira/Confluence, Site 도메인, Item 또는 Space 식별자를 로컬에서 확인합니다.
+        <article class="atlassian-add-method atlassian-access-method">
+          <div class="atlassian-action-heading">
+            <div>
+              <p class="eyebrow">OPTIONAL ACCESS</p>
+              <h3>원격 접근 설정</h3>
+            </div>
+            <span class="status-badge info">별도 설정</span>
           </div>
+          <p class="atlassian-action-copy">
+            등록된 Site에 실제 MCP 접근 경로를 연결합니다. 설정만 저장하며 capability 확인이나 원격 조회는 시작하지 않습니다.
+          </p>
+          {% if registered_scopes %}
+            <form class="atlassian-form" method="post" action="/atlassian/access">
+              <input type="hidden" name="service" value="{{ selected_view }}">
+              <label for="atlassian-access-site">Site <span aria-hidden="true">*</span></label>
+              <select id="atlassian-access-site" name="site_id" required>
+                <option value="">Site 선택</option>
+                {% for scope in registered_scopes %}
+                  <option value="{{ scope.site_id }}" {% if form_state.get('site_id') == scope.site_id|string %}selected{% endif %}>{{ scope.normalized_domain }}</option>
+                {% endfor %}
+              </select>
 
-          <details class="atlassian-new-connection" data-atlassian-new-connection {% if form_state.get('site_id') == 'new' or not sites %}open{% endif %}>
-            <summary>새 연결 설정</summary>
-            <div class="atlassian-new-connection-fields">
-              <label for="atlassian-provider">MCP 연결 (Provider) <span aria-hidden="true">*</span></label>
-              <select id="atlassian-provider" name="provider_kind">
-                <option value="">MCP 연결 선택</option>
+              <label for="atlassian-provider">Provider <span aria-hidden="true">*</span></label>
+              <select id="atlassian-provider" name="provider_kind" required>
+                <option value="">Provider 선택</option>
                 <option value="atlassian_cloud" {% if form_state.get('provider_kind') == 'atlassian_cloud' %}selected{% endif %}>{{ value_label("external-source.provider", "atlassian_cloud") }}</option>
                 <option value="mcp_gateway" {% if form_state.get('provider_kind') == 'mcp_gateway' %}selected{% endif %}>{{ value_label("external-source.provider", "mcp_gateway") }}</option>
               </select>
 
-              <label for="atlassian-source-name">MCP 연결 이름 <span class="optional-label">선택</span></label>
-              <input id="atlassian-source-name" name="source_name" maxlength="160" value="{{ form_state.get('source_name', '') }}" placeholder="비워두면 MCP 연결과 도메인으로 생성" data-atlassian-source-name>
-
-              <label for="atlassian-site-name">Site 표시 이름 <span class="optional-label">선택</span></label>
-              <input id="atlassian-site-name" name="site_name" maxlength="300" value="{{ form_state.get('site_name', '') }}" placeholder="비워두면 도메인의 첫 이름 사용" data-atlassian-site-name>
-
-              <label for="atlassian-config-ref">연결 reference <span class="optional-label">나중에 설정 가능</span></label>
-              <input id="atlassian-config-ref" name="config_ref" maxlength="300" value="{{ form_state.get('config_ref', '') }}" placeholder="Cloud ID 또는 Gateway configuration alias">
-              <span class="field-help">비워두면 local-only 연결로 생성됩니다. 원격 조회 전에 한 번 바인딩할 수 있습니다.</span>
-            </div>
-          </details>
-
-          <label for="atlassian-title">로컬 표시 이름 <span class="optional-label">선택</span></label>
-          <input id="atlassian-title" name="title" maxlength="500" value="{{ form_state.get('title', '') }}" placeholder="비워두면 URL 또는 Space key 사용">
-          <button class="primary-button" type="submit">로컬에 등록</button>
-        </form>
-        {% if not sites %}
-          <p class="atlassian-inline-state neutral">첫 등록에서는 URL에서 Site를 확인하고 사용할 MCP 연결과 reference를 함께 만듭니다.</p>
-        {% endif %}
-      </article>
-
+              <label for="atlassian-config-ref">연결 reference <span aria-hidden="true">*</span></label>
+              <input id="atlassian-config-ref" name="config_ref" required maxlength="300" value="{{ form_state.get('config_ref', '') }}" placeholder="{{ 'Atlassian Cloud ID' if selected_view == 'jira' else 'Cloud ID 또는 Gateway configuration alias' }}">
+              <span class="field-help">공식 Atlassian MCP는 Cloud ID, Gateway는 승인된 configuration alias를 사용합니다.</span>
+              <button class="secondary-button" type="submit">접근 경로 연결</button>
+            </form>
+          {% else %}
+            <p class="atlassian-inline-state neutral">먼저 왼쪽에서 URL을 로컬에 등록하면 해당 Site에 접근 경로를 연결할 수 있습니다.</p>
+          {% endif %}
+        </article>
+      </div>
       {% else %}
       <article class="atlassian-add-method">
         <div class="atlassian-action-heading">
@@ -190,10 +181,10 @@
           <span class="field-help">등록된 Site 중에서 후보를 찾을 대상을 먼저 고릅니다.</span>
 
           <label for="atlassian-discovery-site"><span class="atlassian-step-number">2</span> 사용할 MCP 연결 <span aria-hidden="true">*</span></label>
-          <select id="atlassian-discovery-site" name="site_id" required data-atlassian-connection-select>
+          <select id="atlassian-discovery-site" name="binding_id" required data-atlassian-connection-select>
             <option value="">MCP 연결 선택</option>
             {% for site in sites %}
-              <option value="{{ site.site_id }}" data-domain="{{ site.normalized_domain }}" {% if not site.enabled or site.capability_state != 'current' %}disabled{% endif %} {% if form_state.get('site_id') == site.site_id|string %}selected{% endif %}>
+              <option value="{{ site.binding_id }}" data-domain="{{ site.normalized_domain }}" {% if not site.enabled or site.capability_state != 'current' %}disabled{% endif %} {% if form_state.get('binding_id') == site.binding_id|string %}selected{% endif %}>
                 {{ site.display_name }} · {{ value_label("external-source.provider", site.provider_kind) }} · {{ value_label("external-capability.state", site.capability_state) }}
               </option>
             {% endfor %}
@@ -216,13 +207,13 @@
 
     <details class="atlassian-connection-management">
       <summary>
-        <span><strong>MCP 연결 관리</strong><small>표시 이름, 사용 여부, 연결 reference</small></span>
+        <span><strong>MCP 접근 관리</strong><small>Provider, 사용 여부, 연결 reference</small></span>
         <span class="table-count">{{ sites | length }} connections</span>
       </summary>
       {% if sites %}
         <div class="atlassian-connection-list">
           {% for site in sites %}
-            <details class="atlassian-connection-row" id="atlassian-connection-{{ site.site_id }}" tabindex="-1">
+            <details class="atlassian-connection-row" id="atlassian-connection-{{ site.binding_id }}" tabindex="-1">
               <summary>
                 <span class="atlassian-connection-summary">
                   <strong>{{ site.source_display_name }}</strong>
@@ -238,23 +229,18 @@
               </summary>
               <form class="atlassian-form atlassian-connection-edit" method="post" action="/atlassian/connections/{{ site.source_instance_id }}/sites/{{ site.site_id }}">
                 <input type="hidden" name="service" value="{{ selected_view }}">
-                <label for="source-name-{{ site.site_id }}">MCP 연결 이름</label>
-                <input id="source-name-{{ site.site_id }}" name="source_name" maxlength="160" required value="{{ site.source_display_name }}">
-
-                <label for="site-name-{{ site.site_id }}">Site 표시 이름</label>
-                <input id="site-name-{{ site.site_id }}" name="site_name" maxlength="300" required value="{{ site.site_display_name or site.normalized_domain.split('.')[0] }}">
 
                 {% if not site.config_bound %}
-                  <label for="config-ref-{{ site.site_id }}">연결 reference <span class="optional-label">선택</span></label>
-                  <input id="config-ref-{{ site.site_id }}" name="config_ref" maxlength="300" placeholder="{{ 'Atlassian Cloud ID' if site.provider_kind == 'atlassian_cloud' else 'Gateway configuration alias' }}">
+                  <label for="config-ref-{{ site.binding_id }}">연결 reference</label>
+                  <input id="config-ref-{{ site.binding_id }}" name="config_ref" required maxlength="300" placeholder="{{ 'Atlassian Cloud ID' if site.provider_kind == 'atlassian_cloud' else 'Gateway configuration alias' }}">
                   <span class="field-help">한 번 바인딩한 reference는 이 화면에서 다른 값으로 교체하지 않습니다.</span>
                 {% else %}
                   <p class="atlassian-bound-note">연결 reference가 바인딩되어 있습니다. MCP Provider와 바인딩 값은 안정적인 접근 경계로 유지됩니다.</p>
                 {% endif %}
 
-                <label class="atlassian-check-label" for="connection-enabled-{{ site.site_id }}">
-                  <input id="connection-enabled-{{ site.site_id }}" name="enabled" type="checkbox" value="1" {% if site.enabled %}checked{% endif %}>
-                  <span>이 MCP 연결 사용</span>
+                <label class="atlassian-check-label" for="connection-enabled-{{ site.binding_id }}">
+                  <input id="connection-enabled-{{ site.binding_id }}" name="enabled" type="checkbox" value="1" {% if site.enabled %}checked{% endif %}>
+                  <span>이 접근 경로 사용</span>
                 </label>
                 <button class="secondary-button" type="submit">연결 정보 저장</button>
               </form>
@@ -290,6 +276,7 @@
               <form class="atlassian-candidate-row" method="post" action="/atlassian/spaces/register">
                 <input type="hidden" name="service" value="{{ selected_view }}">
                 <input type="hidden" name="site_id" value="{{ catalog.site_id }}">
+                <input type="hidden" name="source_instance_id" value="{{ catalog.source_instance_id }}">
                 <input type="hidden" name="space_key" value="{{ candidate.key }}">
                 <input type="hidden" name="remote_id" value="{{ candidate.remote_id or '' }}">
                 <input type="hidden" name="name" value="{{ candidate.name }}">

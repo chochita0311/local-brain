@@ -4,10 +4,11 @@ import re
 import sqlite3
 from dataclasses import dataclass
 from typing import Any, Iterable, Mapping, Optional
-from urllib.parse import parse_qs, urlsplit
+from urllib.parse import parse_qs, unquote, urlsplit
 
 from .atlassian import (
     AtlassianContractError,
+    bind_atlassian_site_access,
     create_or_reuse_atlassian_stub,
     derive_atlassian_freshness,
     normalize_atlassian_url,
@@ -199,6 +200,7 @@ def registration_sites(
     rows = connection.execute(
         """
         SELECT atlassian_sites.id AS site_id,
+               atlassian_site_bindings.id AS binding_id,
                atlassian_sites.normalized_domain,
                atlassian_sites.canonical_base_url,
                atlassian_sites.display_name AS site_display_name,
@@ -211,8 +213,11 @@ def registration_sites(
                CASE WHEN external_source_instances.config_ref IS NULL
                     THEN 0 ELSE 1 END AS config_bound
         FROM atlassian_sites
+        JOIN atlassian_site_bindings
+          ON atlassian_site_bindings.site_id = atlassian_sites.id
         JOIN external_source_instances
-          ON external_source_instances.id = atlassian_sites.source_instance_id
+          ON external_source_instances.id =
+             atlassian_site_bindings.source_instance_id
         WHERE external_source_instances.service = ?
         ORDER BY external_source_instances.display_name,
                  atlassian_sites.normalized_domain,
@@ -246,22 +251,6 @@ def registration_preview(
     locator = recognize_registration_url(
         url, expected_service=expected_service
     )
-    matches = [
-        {
-            "site_id": site["site_id"],
-            "source_instance_id": site["source_instance_id"],
-            "source_name": site["source_display_name"],
-            "site_name": site["site_display_name"],
-            "normalized_domain": site["normalized_domain"],
-            "provider_kind": site["provider_kind"],
-            "provider_label": site["provider_label"],
-            "enabled": bool(site["enabled"]),
-            "config_bound": bool(site["config_bound"]),
-            "capability_state": site["capability_state"],
-        }
-        for site in registration_sites(connection, locator.service)
-        if site["normalized_domain"] == locator.normalized_domain
-    ]
     identifier = (
         locator.remote_key or locator.remote_id or locator.space_key
     )
@@ -271,16 +260,32 @@ def registration_preview(
         "normalized_url": locator.normalized_url,
         "normalized_domain": locator.normalized_domain,
         "identifier": identifier,
-        "matches": matches,
-        "suggested_site_name": locator.normalized_domain.split(".", 1)[0],
-        "requires_connection": not any(
-            match["enabled"] for match in matches
-        ),
-        "ambiguous": len(
-            [match for match in matches if match["enabled"]]
-        )
-        > 1,
     }
+
+
+def _bootstrap_title(locator: RegistrationLocator) -> str:
+    if locator.remote_key:
+        return locator.remote_key
+    if locator.kind == "space" and locator.space_key:
+        return locator.space_key
+    if locator.service == "confluence" and locator.remote_id:
+        parts = [
+            unquote(part).strip()
+            for part in urlsplit(locator.normalized_url).path.split("/")
+            if part.strip()
+        ]
+        try:
+            page_index = parts.index(locator.remote_id)
+        except ValueError:
+            page_index = -1
+        if page_index >= 0 and page_index + 1 < len(parts):
+            candidate = re.sub(
+                r"[-_]+", " ", parts[page_index + 1]
+            ).strip()
+            if candidate:
+                return candidate
+        return locator.remote_id
+    return locator.space_key or locator.remote_id or locator.normalized_domain
 
 
 def _instance_key_base(
@@ -360,69 +365,52 @@ def _default_source_name(
     )
 
 
-def register_atlassian_url_with_connection(
+def register_atlassian_site_access(
     connection: sqlite3.Connection,
     *,
-    url: str,
+    site_id: int,
     service: str,
     provider_kind: str,
-    source_name: Optional[str] = None,
-    site_name: Optional[str] = None,
-    config_ref: Optional[str] = None,
-    title: Optional[str] = None,
+    config_ref: str,
 ) -> dict:
-    locator = recognize_registration_url(url, expected_service=service)
+    if service not in {"jira", "confluence"}:
+        _fail("invalid-service", "Unsupported Atlassian service")
     if provider_kind not in PROVIDER_LABELS:
         _fail(
             "invalid-provider",
             "Select an official Atlassian MCP or company MCP Gateway access path",
         )
-    source_name = _bounded_text(
-        source_name, "source_name", 160, optional=True
-    ) or _default_source_name(provider_kind, locator.normalized_domain)
-    site_name = _bounded_text(
-        site_name, "site_name", 300, optional=True
-    ) or locator.normalized_domain.split(".", 1)[0]
-    config_ref = _bounded_text(
-        config_ref, "config_ref", 300, optional=True
-    )
-    base_url = urlsplit(locator.normalized_url)
-    canonical_base_url = "{}://{}".format(
-        base_url.scheme, base_url.netloc
-    )
-    existing_sources = connection.execute(
+    reference = _bounded_text(config_ref, "config_ref", 300)
+    site = connection.execute(
+        "SELECT * FROM atlassian_sites WHERE id = ?",
+        (site_id,),
+    ).fetchone()
+    if not site:
+        _fail("site-not-found", "Atlassian Site does not exist")
+    existing = connection.execute(
         """
-        SELECT external_source_instances.*
+        SELECT *
         FROM external_source_instances
-        JOIN atlassian_sites
-          ON atlassian_sites.source_instance_id =
-             external_source_instances.id
-        WHERE external_source_instances.provider_kind = ?
-          AND external_source_instances.service = ?
-          AND external_source_instances.config_ref IS ?
-          AND atlassian_sites.normalized_domain = ?
-        ORDER BY external_source_instances.id
+        WHERE provider_kind = ?
+          AND service = ?
+          AND config_ref = ?
+        ORDER BY id
         """,
-        (
-            provider_kind,
-            service,
-            config_ref,
-            locator.normalized_domain,
-        ),
+        (provider_kind, service, reference),
     ).fetchall()
-    if len(existing_sources) > 1:
+    if len(existing) > 1:
         _fail(
             "ambiguous-source",
-            "More than one compatible Source Instance exists; select its Site explicitly",
+            "More than one Source Instance owns this access reference",
         )
-    connection.execute("SAVEPOINT atlassian_connection_onboarding")
+    connection.execute("SAVEPOINT atlassian_site_access_setup")
     try:
-        if existing_sources:
-            source = dict(existing_sources[0])
+        if existing:
+            source = dict(existing[0])
             if not bool(source["enabled"]):
                 _fail(
                     "source-instance-disabled",
-                    "The compatible Source Instance is disabled; edit it before reuse",
+                    "The matching access path is disabled",
                 )
             source_created = False
         else:
@@ -430,73 +418,105 @@ def register_atlassian_url_with_connection(
                 connection,
                 provider_kind=provider_kind,
                 service=service,
-                normalized_domain=locator.normalized_domain,
-                config_ref=config_ref,
+                normalized_domain=site["normalized_domain"],
+                config_ref=reference,
             )
-            before_source = connection.execute(
-                """
-                SELECT id FROM external_source_instances
-                WHERE instance_key = ?
-                """,
-                (instance_key,),
-            ).fetchone()
             source = register_source_instance(
                 connection,
                 instance_key=instance_key,
                 provider_kind=provider_kind,
                 service=service,
-                display_name=source_name,
-                config_ref=config_ref,
+                display_name=_default_source_name(
+                    provider_kind, site["normalized_domain"]
+                ),
+                config_ref=reference,
             )
-            source_created = before_source is None
-        before_site = connection.execute(
+            source_created = True
+        before = connection.execute(
             """
-            SELECT id FROM atlassian_sites
-            WHERE source_instance_id = ? AND normalized_domain = ?
+            SELECT id FROM atlassian_site_bindings
+            WHERE site_id = ? AND source_instance_id = ?
             """,
-            (source["id"], locator.normalized_domain),
+            (site_id, source["id"]),
         ).fetchone()
-        site = register_atlassian_site(
+        binding = bind_atlassian_site_access(
             connection,
+            site_id=site_id,
             source_instance_id=int(source["id"]),
-            base_url=canonical_base_url,
-            display_name=site_name,
         )
-        result = register_atlassian_url(
-            connection,
-            url=locator.normalized_url,
-            service=service,
-            site_id=int(site["id"]),
-            title=title,
+        connection.execute(
+            """
+            UPDATE atlassian_items
+            SET source_instance_id = ?, updated_at = ?
+            WHERE site_id = ? AND service = ?
+              AND source_instance_id IS NULL
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM atlassian_site_bindings AS other_binding
+                  JOIN external_source_instances AS other_source
+                    ON other_source.id =
+                       other_binding.source_instance_id
+                  WHERE other_binding.site_id = ?
+                    AND other_source.service = ?
+                    AND other_binding.source_instance_id != ?
+              )
+            """,
+            (
+                source["id"],
+                utc_now(),
+                site_id,
+                service,
+                site_id,
+                service,
+                source["id"],
+            ),
+        )
+        connection.execute(
+            """
+            UPDATE atlassian_spaces
+            SET source_instance_id = ?, updated_at = ?
+            WHERE site_id = ? AND service = ?
+              AND source_instance_id IS NULL
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM atlassian_site_bindings AS other_binding
+                  JOIN external_source_instances AS other_source
+                    ON other_source.id =
+                       other_binding.source_instance_id
+                  WHERE other_binding.site_id = ?
+                    AND other_source.service = ?
+                    AND other_binding.source_instance_id != ?
+              )
+            """,
+            (
+                source["id"],
+                utc_now(),
+                site_id,
+                service,
+                site_id,
+                service,
+                source["id"],
+            ),
         )
     except (AtlassianContractError, ExternalAccessError) as exc:
-        connection.execute(
-            "ROLLBACK TO atlassian_connection_onboarding"
-        )
-        connection.execute(
-            "RELEASE atlassian_connection_onboarding"
-        )
+        connection.execute("ROLLBACK TO atlassian_site_access_setup")
+        connection.execute("RELEASE atlassian_site_access_setup")
         raise AtlassianRegistrationError(
-            getattr(exc, "code", "connection-setup-failed"), str(exc)
+            getattr(exc, "code", "access-setup-failed"), str(exc)
         ) from exc
     except Exception:
-        connection.execute(
-            "ROLLBACK TO atlassian_connection_onboarding"
-        )
-        connection.execute(
-            "RELEASE atlassian_connection_onboarding"
-        )
+        connection.execute("ROLLBACK TO atlassian_site_access_setup")
+        connection.execute("RELEASE atlassian_site_access_setup")
         raise
     else:
-        connection.execute(
-            "RELEASE atlassian_connection_onboarding"
-        )
+        connection.execute("RELEASE atlassian_site_access_setup")
     return {
-        **result,
+        "binding_id": int(binding["binding_id"]),
+        "site_id": site_id,
         "source_instance_id": int(source["id"]),
-        "site_id": int(site["id"]),
         "source_created": source_created,
-        "site_created": before_site is None,
+        "binding_created": before is None,
+        "service": service,
     }
 
 
@@ -505,21 +525,22 @@ def update_atlassian_connection(
     *,
     source_instance_id: int,
     site_id: int,
-    source_name: str,
-    site_name: str,
     enabled: bool,
     config_ref: Optional[str] = None,
 ) -> dict:
     row = connection.execute(
         """
         SELECT external_source_instances.*,
+               atlassian_site_bindings.id AS binding_id,
                atlassian_sites.id AS site_id,
                atlassian_sites.canonical_base_url,
                atlassian_sites.display_name AS site_display_name
         FROM external_source_instances
-        JOIN atlassian_sites
-          ON atlassian_sites.source_instance_id =
+        JOIN atlassian_site_bindings
+          ON atlassian_site_bindings.source_instance_id =
              external_source_instances.id
+        JOIN atlassian_sites
+          ON atlassian_sites.id = atlassian_site_bindings.site_id
         WHERE external_source_instances.id = ?
           AND atlassian_sites.id = ?
         """,
@@ -530,8 +551,6 @@ def update_atlassian_connection(
             "connection-not-found",
             "The selected Source Instance/Site does not exist",
         )
-    source_name = _bounded_text(source_name, "source_name", 160)
-    site_name = _bounded_text(site_name, "site_name", 300)
     config_ref = _bounded_text(
         config_ref, "config_ref", 300, optional=True
     )
@@ -556,17 +575,9 @@ def update_atlassian_connection(
             instance_key=row["instance_key"],
             provider_kind=row["provider_kind"],
             service=row["service"],
-            display_name=source_name,
+            display_name=row["display_name"],
             config_ref=current_ref,
             enabled=enabled,
-        )
-        connection.execute(
-            """
-            UPDATE atlassian_sites
-            SET display_name = ?, updated_at = ?
-            WHERE id = ? AND source_instance_id = ?
-            """,
-            (site_name, utc_now(), site_id, source_instance_id),
         )
         site = connection.execute(
             "SELECT * FROM atlassian_sites WHERE id = ?", (site_id,)
@@ -585,6 +596,7 @@ def update_atlassian_connection(
         connection.execute("RELEASE atlassian_connection_edit")
     return {
         "source_instance_id": int(source["id"]),
+        "binding_id": int(row["binding_id"]),
         "site_id": int(site["id"]),
         "service": source["service"],
         "enabled": bool(source["enabled"]),
@@ -600,40 +612,35 @@ def resolve_registration_site(
 ) -> dict:
     rows = connection.execute(
         """
-        SELECT atlassian_sites.*,
-               external_source_instances.id AS source_instance_id,
-               external_source_instances.service,
-               external_source_instances.display_name AS source_name,
-               external_source_instances.enabled
+        SELECT atlassian_sites.*
         FROM atlassian_sites
-        JOIN external_source_instances
-          ON external_source_instances.id = atlassian_sites.source_instance_id
         WHERE atlassian_sites.normalized_domain = ?
-          AND external_source_instances.service = ?
-          AND external_source_instances.enabled = 1
-        ORDER BY external_source_instances.id, atlassian_sites.id
+        ORDER BY atlassian_sites.id
         """,
-        (locator.normalized_domain, locator.service),
+        (locator.normalized_domain,),
     ).fetchall()
     if site_id is not None:
         selected = [row for row in rows if int(row["id"]) == int(site_id)]
         if len(selected) != 1:
             _fail(
                 "site-mismatch",
-                "The selected Source Instance/Site does not own this URL",
+                "The selected Site does not own this URL",
             )
-        return dict(selected[0])
+        result = dict(selected[0])
+        result["service"] = locator.service
+        return result
     if not rows:
-        _fail(
-            "site-not-configured",
-            "No enabled Source Instance/Site matches this URL",
+        site = register_atlassian_site(
+            connection,
+            base_url=locator.normalized_url,
         )
+        site["service"] = locator.service
+        return site
     if len(rows) > 1:
-        _fail(
-            "ambiguous-site",
-            "More than one Source Instance matches; select one explicitly",
-        )
-    return dict(rows[0])
+        rows = rows[:1]
+    result = dict(rows[0])
+    result["service"] = locator.service
+    return result
 
 
 def register_atlassian_url(
@@ -642,6 +649,7 @@ def register_atlassian_url(
     url: str,
     service: str,
     site_id: Optional[int] = None,
+    source_instance_id: Optional[int] = None,
     title: Optional[str] = None,
 ) -> dict:
     locator = recognize_registration_url(url, expected_service=service)
@@ -662,9 +670,12 @@ def register_atlassian_url(
         try:
             item = create_or_reuse_atlassian_stub(
                 connection,
-                source_instance_id=int(site["source_instance_id"]),
+                source_instance_id=source_instance_id,
                 url=locator.normalized_url,
-                title=_bounded_text(title, "title", 500, optional=True),
+                service=service,
+                site_id=int(site["id"]),
+                title=_bounded_text(title, "title", 500, optional=True)
+                or _bootstrap_title(locator),
             )
         except AtlassianContractError as exc:
             raise AtlassianRegistrationError(exc.code, str(exc)) from exc
@@ -686,9 +697,10 @@ def register_atlassian_url(
         space = register_atlassian_space(
             connection,
             site_id=int(site["id"]),
+            service=service,
+            source_instance_id=source_instance_id,
             name=_bounded_text(title, "title", 500, optional=True)
-            or locator.space_key
-            or "Atlassian Space",
+            or _bootstrap_title(locator),
             space_key=locator.space_key,
             canonical_url=locator.normalized_url,
         )
@@ -716,7 +728,9 @@ def registration_inventory(
                atlassian_sites.id AS site_id,
                atlassian_sites.normalized_domain,
                external_source_instances.id AS source_instance_id,
-               external_source_instances.display_name AS source_name,
+               COALESCE(
+                   external_source_instances.display_name, '로컬 전용'
+               ) AS source_name,
                atlassian_item_urls.normalized_url AS canonical_url,
                atlassian_item_remote_state.last_successful_at,
                atlassian_item_remote_state.last_outcome,
@@ -727,8 +741,9 @@ def registration_inventory(
           ON external_resources.id = atlassian_items.external_resource_id
         JOIN atlassian_sites
           ON atlassian_sites.id = atlassian_items.site_id
-        JOIN external_source_instances
-          ON external_source_instances.id = atlassian_sites.source_instance_id
+        LEFT JOIN external_source_instances
+          ON external_source_instances.id =
+             atlassian_items.source_instance_id
         LEFT JOIN atlassian_item_urls
           ON atlassian_item_urls.external_resource_id =
              atlassian_items.external_resource_id
@@ -754,13 +769,15 @@ def registration_inventory(
             SELECT atlassian_spaces.*,
                    atlassian_sites.normalized_domain,
                    external_source_instances.id AS source_instance_id,
-                   external_source_instances.display_name AS source_name
+                   COALESCE(
+                       external_source_instances.display_name, '로컬 전용'
+                   ) AS source_name
             FROM atlassian_spaces
             JOIN atlassian_sites
               ON atlassian_sites.id = atlassian_spaces.site_id
-            JOIN external_source_instances
+            LEFT JOIN external_source_instances
               ON external_source_instances.id =
-                 atlassian_sites.source_instance_id
+                 atlassian_spaces.source_instance_id
             WHERE atlassian_spaces.service = ?
             ORDER BY atlassian_spaces.name, atlassian_spaces.id
             """,
@@ -783,6 +800,7 @@ def registered_scope_overview(
         group = domains.setdefault(
             domain,
             {
+                "site_id": site["site_id"],
                 "normalized_domain": domain,
                 "display_name": site["site_display_name"] or domain,
                 "connections": [],
@@ -797,17 +815,26 @@ def registered_scope_overview(
     }
     for space in inventory["spaces"]:
         domain = space["normalized_domain"]
-        group = domains.get(domain)
-        if group is None:
-            continue
+        group = domains.setdefault(
+            domain,
+            {
+                "site_id": space["site_id"],
+                "normalized_domain": domain,
+                "display_name": domain,
+                "connections": [],
+                "spaces": [],
+                "item_count": 0,
+            },
+        )
         identity = (
             space.get("remote_id") or "",
             space.get("space_key") or "",
             space.get("canonical_url") or "",
         )
-        if identity in seen_spaces[domain]:
+        domain_spaces = seen_spaces.setdefault(domain, set())
+        if identity in domain_spaces:
             continue
-        seen_spaces[domain].add(identity)
+        domain_spaces.add(identity)
         group["spaces"].append(space)
 
     seen_items: dict[str, set[tuple]] = {
@@ -815,17 +842,26 @@ def registered_scope_overview(
     }
     for item in inventory["items"]:
         domain = item["normalized_domain"]
-        group = domains.get(domain)
-        if group is None:
-            continue
+        group = domains.setdefault(
+            domain,
+            {
+                "site_id": item["site_id"],
+                "normalized_domain": domain,
+                "display_name": domain,
+                "connections": [],
+                "spaces": [],
+                "item_count": 0,
+            },
+        )
         identity = (
             item.get("remote_id") or "",
             item.get("remote_key") or "",
             item.get("canonical_url") or "",
         )
-        if identity in seen_items[domain]:
+        domain_items = seen_items.setdefault(domain, set())
+        if identity in domain_items:
             continue
-        seen_items[domain].add(identity)
+        domain_items.add(identity)
         group["item_count"] += 1
 
     return sorted(
@@ -841,23 +877,40 @@ def prepare_space_catalog_run(
     connection: sqlite3.Connection,
     *,
     site_id: int,
+    source_instance_id: Optional[int] = None,
     target_domain: Optional[str] = None,
     runner: str = "claude",
     run_root=None,
 ) -> str:
-    site = connection.execute(
+    sites = connection.execute(
         """
         SELECT atlassian_sites.*, external_source_instances.id AS source_instance_id,
                external_source_instances.service
         FROM atlassian_sites
+        JOIN atlassian_site_bindings
+          ON atlassian_site_bindings.site_id = atlassian_sites.id
         JOIN external_source_instances
-          ON external_source_instances.id = atlassian_sites.source_instance_id
-        WHERE atlassian_sites.id = ? AND external_source_instances.enabled = 1
+          ON external_source_instances.id =
+             atlassian_site_bindings.source_instance_id
+        WHERE atlassian_sites.id = ?
+          AND external_source_instances.enabled = 1
+          AND (? IS NULL OR external_source_instances.id = ?)
+        ORDER BY
+          CASE WHEN external_source_instances.id =
+                    atlassian_sites.source_instance_id
+               THEN 0 ELSE 1 END,
+          external_source_instances.id
         """,
-        (site_id,),
-    ).fetchone()
-    if not site:
+        (site_id, source_instance_id, source_instance_id),
+    ).fetchall()
+    if not sites:
         _fail("site-not-found", "The selected Atlassian Site is unavailable")
+    if len(sites) > 1:
+        _fail(
+            "ambiguous-source",
+            "Select one access binding for this Atlassian Site",
+        )
+    site = sites[0]
     if (
         target_domain is not None
         and target_domain.strip().lower() != site["normalized_domain"]
@@ -931,6 +984,7 @@ def register_space_candidate(
     *,
     site_id: int,
     service: str,
+    source_instance_id: Optional[int] = None,
     space_key: str,
     name: str,
     remote_id: Optional[str] = None,
@@ -940,21 +994,31 @@ def register_space_candidate(
     remote_id = _bounded_text(
         remote_id, "remote_id", 300, optional=True
     )
-    site = connection.execute(
+    sites = connection.execute(
         """
-        SELECT atlassian_sites.*, external_source_instances.service
+        SELECT atlassian_sites.*,
+               external_source_instances.id AS source_instance_id,
+               external_source_instances.service
         FROM atlassian_sites
+        JOIN atlassian_site_bindings
+          ON atlassian_site_bindings.site_id = atlassian_sites.id
         JOIN external_source_instances
-          ON external_source_instances.id = atlassian_sites.source_instance_id
-        WHERE atlassian_sites.id = ? AND external_source_instances.enabled = 1
+          ON external_source_instances.id =
+             atlassian_site_bindings.source_instance_id
+        WHERE atlassian_sites.id = ?
+          AND external_source_instances.service = ?
+          AND external_source_instances.enabled = 1
+          AND (? IS NULL OR external_source_instances.id = ?)
+        ORDER BY external_source_instances.id
         """,
-        (site_id,),
-    ).fetchone()
-    if not site or site["service"] != service:
+        (site_id, service, source_instance_id, source_instance_id),
+    ).fetchall()
+    if len(sites) != 1:
         _fail(
             "site-mismatch",
-            "The selected Source Instance/Site is unavailable",
+            "The selected Site access binding is unavailable or ambiguous",
         )
+    site = sites[0]
     canonical_url = "{}{}{}{}".format(
         site["canonical_base_url"].rstrip("/"),
         "/projects/" if service == "jira" else "/spaces/",
@@ -972,6 +1036,8 @@ def register_space_candidate(
         space = register_atlassian_space(
             connection,
             site_id=site_id,
+            service=service,
+            source_instance_id=int(site["source_instance_id"]),
             name=title,
             remote_id=remote_id,
             space_key=key,
@@ -1018,6 +1084,7 @@ def space_catalog_candidates(
         "status": row["status"],
         "partial": True,
         "site_id": None,
+        "source_instance_id": row["source_instance_id"],
         "candidates": [],
     }
     if not row["structured_result_json"]:

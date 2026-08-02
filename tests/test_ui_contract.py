@@ -90,6 +90,34 @@ class UiContractTests(unittest.TestCase):
         self.assertIsNone(re.search(r"#[0-9a-fA-F]{3,8}\b", component_rules))
         self.assertIsNone(re.search(r"rgba?\(", component_rules))
 
+    def test_native_selects_share_one_disclosure_geometry(self):
+        for token in (
+            "--select-disclosure-size: var(--space-12);",
+            "--select-disclosure-inset: var(--space-12);",
+            "--select-text-reserve: calc(var(--select-disclosure-size) + var(--select-disclosure-inset) + var(--space-control-gap));",
+        ):
+            self.assertIn(token, self.styles)
+        self.assertEqual(self.styles.count("select:not([multiple]) {"), 1)
+        for rule in (
+            "padding-right: var(--select-text-reserve);",
+            "background-position: right var(--select-disclosure-inset) center;",
+            "background-size: var(--select-disclosure-size) var(--select-disclosure-size);",
+        ):
+            self.assertIn(rule, self.styles)
+        for surface in (self.atlassian, self.workstream, self.search):
+            self.assertIn("<select", surface)
+
+    def test_atlassian_local_add_keeps_only_actionable_url_preview(self):
+        for removed_copy in (
+            "티켓 또는 프로젝트",
+            "Site와 표시 이름은 URL에서 정해지며",
+            "등록하거나 선택한 티켓과 Page만 관리합니다",
+            "HTTP(S) Item 또는 Space URL만 허용됩니다.",
+            'value_help("atlassian-space.coverage")',
+        ):
+            self.assertNotIn(removed_copy, self.atlassian)
+        self.assertIn("data-atlassian-url-preview", self.atlassian)
+
     def test_component_rules_consume_semantic_design_roles(self):
         token_end = self.styles.index("\n}\n\n* { box-sizing")
         component_rules = self.styles[token_end:]
@@ -256,14 +284,12 @@ class UiContractTests(unittest.TestCase):
             "조회할 Site",
             "사용할 MCP 연결",
             "실행 주체",
-            "MCP 연결 관리",
-            "selected-content",
-            "full-content",
+            "MCP 접근 관리",
             "data-atlassian-url-preview",
-            "data-atlassian-new-connection",
+            'action="/atlassian/access"',
             'value_label("external-source.provider"',
             'value_label("atlassian-space.coverage"',
-            "MCP 연결 (Provider)",
+            "원격 접근 설정",
             "atlassian.js",
         ):
             self.assertIn(marker, self.atlassian)
@@ -271,6 +297,9 @@ class UiContractTests(unittest.TestCase):
             "Source Instance / Site",
             "Source Instance는 LocalBrain이 사용할 MCP 연결",
             "Add / discover",
+            'name="source_name"',
+            'name="site_name"',
+            'name="title"',
         ):
             self.assertNotIn(retired_copy, self.atlassian)
         for selected_toggle in (
@@ -301,8 +330,6 @@ class UiContractTests(unittest.TestCase):
         self.assertNotIn("/atlassian/spaces/discover", self.atlassian_script)
         for preview_behavior in (
             "/api/atlassian/registration-preview",
-            'siteSelect.value = "new"',
-            "syncConnectionMode()",
             "syncDiscoveryConnections()",
             "option.dataset.domain !== targetDomain",
         ):
@@ -314,11 +341,12 @@ class UiContractTests(unittest.TestCase):
             ".atlassian-connection-management > summary {",
             ".atlassian-connection-row > summary {",
             ".atlassian-url-preview.warning {",
-            ".atlassian-new-connection-fields {",
+            ".atlassian-add-columns {",
+            ".atlassian-access-method {",
         ):
             self.assertIn(connection_style, self.styles)
         for responsive_rule in (
-            ".atlassian-registration-grid { grid-template-columns: 1fr; }",
+            ".atlassian-add-columns { grid-template-columns: 1fr; }",
             ".atlassian-candidate-row, .atlassian-record { grid-template-columns: 1fr; }",
             ".atlassian-record-meta { justify-items: start; text-align: left; }",
         ):

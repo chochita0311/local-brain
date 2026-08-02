@@ -3,7 +3,10 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from localbrain.atlassian import register_atlassian_site
+from localbrain.atlassian import (
+    create_or_reuse_atlassian_stub,
+    register_atlassian_site,
+)
 from localbrain.atlassian_evidence import (
     configured_atlassian_site_fingerprint,
     document_evidence_source_fingerprint,
@@ -100,7 +103,7 @@ class AtlassianEvidenceTests(unittest.TestCase):
             observed_at="2026-07-23T00:00:00Z",
         )
 
-    def test_recognizer_requires_item_url_and_unambiguous_configured_site(self):
+    def test_recognizer_requires_item_url_and_one_domain_site(self):
         jira = recognize_configured_atlassian_item_url(
             self.connection, "https://jira.example.test/browse/SYN-12"
         )
@@ -130,10 +133,44 @@ class AtlassianEvidenceTests(unittest.TestCase):
             source_instance_id=duplicate_instance,
             base_url="https://jira.example.test",
         )
-        self.assertIsNone(
-            recognize_configured_atlassian_item_url(
-                self.connection, "https://jira.example.test/browse/SYN-12"
-            )
+        shared_site = recognize_configured_atlassian_item_url(
+            self.connection, "https://jira.example.test/browse/SYN-12"
+        )
+        self.assertIsNotNone(shared_site)
+        self.assertIsNone(shared_site.source_instance_id)
+
+    def test_local_only_registered_site_participates_in_local_evidence(self):
+        item = create_or_reuse_atlassian_stub(
+            self.connection,
+            service="jira",
+            url="https://local.example.test/browse/LOCAL-7",
+            title="LOCAL-7",
+        )
+        recognized = recognize_configured_atlassian_item_url(
+            self.connection,
+            "https://local.example.test/browse/LOCAL-7",
+        )
+        self.assertIsNotNone(recognized)
+        self.assertIsNone(recognized.source_instance_id)
+
+        session_id = self._session()
+        count = reconcile_session_evidence(
+            self.connection,
+            session_id=session_id,
+            source_path="/tmp/work-primary.jsonl",
+            source_fingerprint="9" * 64,
+            candidates=[
+                self._candidate(
+                    "https://local.example.test/browse/LOCAL-7"
+                )
+            ],
+        )
+        self.assertEqual(count, 1)
+        self.assertEqual(
+            self.connection.execute(
+                "SELECT external_resource_id FROM atlassian_item_evidence"
+            ).fetchone()[0],
+            item["external_resource_id"],
         )
 
     def test_session_reconciliation_is_idempotent_and_removal_keeps_item(self):

@@ -44,15 +44,15 @@ class SchemaCleanupAuditTests(unittest.TestCase):
             text=True,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("516 objects", result.stdout)
-        self.assertIn("keep=426, change=0, remove=0, defer=90", result.stdout)
+        self.assertIn("528 objects", result.stdout)
+        self.assertIn("keep=437, change=0, remove=0, defer=91", result.stdout)
 
     def test_manifest_inventory_matches_audit_boundary(self):
         manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
-        self.assertEqual(len(manifest["tables"]), 36)
-        self.assertEqual(sum(len(table["columns"]) for table in manifest["tables"]), 383)
-        self.assertEqual(sum(len(table["indexes"]) for table in manifest["tables"]), 33)
-        self.assertEqual(len(manifest["relationships"]["physical"]), 40)
+        self.assertEqual(len(manifest["tables"]), 37)
+        self.assertEqual(sum(len(table["columns"]) for table in manifest["tables"]), 389)
+        self.assertEqual(sum(len(table["indexes"]) for table in manifest["tables"]), 34)
+        self.assertEqual(len(manifest["relationships"]["physical"]), 44)
         self.assertEqual(len(manifest["relationships"]["application"]), 24)
 
     def test_audit_checker_rejects_coverage_and_safety_drift(self):

@@ -2,7 +2,7 @@
 
 ## Metadata
 - ID: `eval-0000`
-- Status: `draft`
+- Status: `draft` | `complete`
 - Evaluator Type: `contract` | `design` | `functional` | `ux-heuristic`
 - Result: `PASS` | `PASS WITH SUGGESTIONS` | `FAIL`
 - Run ID:

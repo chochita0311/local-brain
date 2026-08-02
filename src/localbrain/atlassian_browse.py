@@ -212,7 +212,9 @@ def _item_rows(connection: sqlite3.Connection) -> list[dict]:
                atlassian_spaces.name AS space_name,
                atlassian_spaces.space_key,
                external_source_instances.id AS source_instance_id,
-               external_source_instances.display_name AS source_name,
+               COALESCE(
+                   external_source_instances.display_name, '로컬 전용'
+               ) AS source_name,
                atlassian_item_urls.normalized_url AS canonical_url,
                atlassian_item_remote_state.metadata_json,
                atlassian_item_remote_state.remote_version,
@@ -232,9 +234,9 @@ def _item_rows(connection: sqlite3.Connection) -> list[dict]:
           ON external_resources.id = atlassian_items.external_resource_id
         JOIN atlassian_sites
           ON atlassian_sites.id = atlassian_items.site_id
-        JOIN external_source_instances
+        LEFT JOIN external_source_instances
           ON external_source_instances.id =
-             atlassian_sites.source_instance_id
+             atlassian_items.source_instance_id
         LEFT JOIN atlassian_spaces
           ON atlassian_spaces.id = atlassian_items.space_id
         LEFT JOIN atlassian_item_urls
@@ -353,8 +355,8 @@ def browse_inventory(
                            external_source_instances.display_name,
                            external_source_instances.service
                     FROM external_source_instances
-                    JOIN atlassian_sites
-                      ON atlassian_sites.source_instance_id =
+                    JOIN atlassian_site_bindings
+                      ON atlassian_site_bindings.source_instance_id =
                          external_source_instances.id
                     ORDER BY external_source_instances.display_name,
                              external_source_instances.id
@@ -365,15 +367,18 @@ def browse_inventory(
                 dict(row)
                 for row in connection.execute(
                     """
-                    SELECT atlassian_sites.id,
-                           atlassian_sites.source_instance_id,
+                    SELECT DISTINCT atlassian_sites.id,
+                           NULL AS source_instance_id,
                            atlassian_sites.normalized_domain,
                            atlassian_sites.display_name,
-                           external_source_instances.service
+                           scoped_sites.service
                     FROM atlassian_sites
-                    JOIN external_source_instances
-                      ON external_source_instances.id =
-                         atlassian_sites.source_instance_id
+                    JOIN (
+                        SELECT site_id, service FROM atlassian_items
+                        UNION
+                        SELECT site_id, service FROM atlassian_spaces
+                    ) AS scoped_sites
+                      ON scoped_sites.site_id = atlassian_sites.id
                     ORDER BY atlassian_sites.normalized_domain,
                              atlassian_sites.id
                     """

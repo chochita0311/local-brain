@@ -1,30 +1,30 @@
 {
   "baseline": {
-    "explicit_index_count": 33,
+    "explicit_index_count": 34,
     "fts5_table_count": 1,
     "id": "localbrain-data-model-2026-07-23",
-    "ordinary_table_count": 35,
-    "physical_foreign_key_count": 40,
+    "ordinary_table_count": 36,
+    "physical_foreign_key_count": 44,
     "sources": [
       {
         "path": "src/localbrain/schema.sql",
         "role": "fresh-schema-truth",
-        "sha256": "941c6ad7f75d470eee0112051ae9c0db0a4e48a4a87e6df9c87d78bf563639b0"
+        "sha256": "0c49e93958560f43f53491bf6e436cdd7419431ff4d880b001b1b25845be6e6d"
       },
       {
         "path": "src/localbrain/db.py",
         "role": "compatible-structure-truth",
-        "sha256": "83b4ebcde6d7ccb2b80a0b79489c2c0e1bcd04153206f38e72873099702977a3"
+        "sha256": "ddafafe3e51f4ed34fba951116b96ff2cd8efc7657c0d5e5895700e824bf8b54"
       },
       {
         "path": "docs/policies/project/data-model.md",
         "role": "semantic-truth",
-        "sha256": "4ebbabba31ddd45925b4b4d0544316d7900962254022026309ec8f65506226c3"
+        "sha256": "e265abc8e1d5f3436b0f118806274ce89104bfe2a05cbc9f9e805f4929e253c7"
       },
       {
         "path": "docs/policies/project/data-model/source-registry-and-scans.md",
         "role": "semantic-truth",
-        "sha256": "c52d25efc0d6f649446fa0270a0e9317dbb54205ba84ec856109040249769596"
+        "sha256": "3b8809208286088f5a992a3aba5c18958b39b1dec410ab42d17a2e22b2a92549"
       },
       {
         "path": "docs/policies/project/data-model/workspace-and-session-activity.md",
@@ -49,7 +49,7 @@
       {
         "path": "docs/policies/project/data-model/atlassian-source-memory.md",
         "role": "semantic-truth",
-        "sha256": "75633c500af4da73d945cee5ee5e6ffcd13c88a7033a301a9d49de028fc9763e"
+        "sha256": "00e0c6357e0f8839e321d44e7b10b07abe0c15dabd0343e8ee0977275f70365b"
       },
       {
         "path": "docs/policies/project/data-model/review-and-resume-continuity.md",
@@ -71,7 +71,7 @@
   },
   "derived": true,
   "global": {
-    "mermaid": "erDiagram\n    SOURCES { integer id PK }\n    SOURCE_FILES { integer id PK }\n    EXTERNAL_SOURCE_INSTANCES { integer id PK }\n    EXTERNAL_SOURCE_CAPABILITIES { integer source_instance_id PK }\n    WORKSPACES { integer id PK }\n    SESSIONS { integer id PK }\n    ACTIVITY_EVENTS { string id PK }\n    SESSION_PINS { integer session_id PK }\n    USAGE_PRICE_SNAPSHOTS { string id PK }\n    USAGE_MODEL_PRICES { string snapshot_model PK }\n    USAGE_RECORDS { string id PK }\n    CONTEXT_ROOTS { integer id PK }\n    CONTEXT_DOCUMENTS { integer id PK }\n    WORKSTREAMS { integer id PK }\n    THREADS { integer id PK }\n    WORKSTREAM_LINKS { integer id PK }\n    THREAD_LINKS { integer id PK }\n    LOCAL_RESOURCES { integer id PK }\n    EXTERNAL_RESOURCES { integer id PK }\n    ATLASSIAN_SITES { integer id PK }\n    ATLASSIAN_SPACES { integer id PK }\n    ATLASSIAN_ITEMS { integer external_resource_id PK }\n    ATLASSIAN_ITEM_URLS { integer id PK }\n    ATLASSIAN_ITEM_REMOTE_STATE { integer external_resource_id PK }\n    ATLASSIAN_ITEM_CONTENT { integer external_resource_id PK }\n    ATLASSIAN_ITEM_LOCAL_STATE { integer external_resource_id PK }\n    ATLASSIAN_CLASSIFICATIONS { integer id PK }\n    ATLASSIAN_ITEM_CLASSIFICATIONS { integer external_resource_id PK integer classification_id PK }\n    ATLASSIAN_EVIDENCE_SCANS { integer id PK }\n    ATLASSIAN_ITEM_EVIDENCE { integer id PK }\n    SUGGESTIONS { integer id PK }\n    CHECKPOINTS { integer id PK }\n    CHECKPOINT_RESOURCE_REFS { integer id PK }\n    MAINTENANCE_RUNS { string id PK }\n    EXTERNAL_SYNC_RUNS { string maintenance_run_id PK }\n    SEARCH_INDEX { string entity_key \"derived\" }\n\n    SOURCES ||--o{ SOURCE_FILES : \"physical CASCADE\"\n    SOURCES ||--o{ SESSIONS : \"physical CASCADE\"\n    SOURCES ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    SOURCES ||--o{ CONTEXT_DOCUMENTS : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES ||--o| EXTERNAL_SOURCE_CAPABILITIES : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES ||--o{ ATLASSIAN_SITES : \"physical RESTRICT\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ EXTERNAL_SYNC_RUNS : \"physical SET_NULL\"\n    WORKSPACES o|--o{ SESSIONS : \"physical SET_NULL\"\n    WORKSPACES o|--o{ CONTEXT_DOCUMENTS : \"physical SET_NULL\"\n    MAINTENANCE_RUNS o|--o| SESSIONS : \"physical SET_NULL unique\"\n    SESSIONS o|--o{ SESSIONS : \"physical parent SET_NULL\"\n    SESSIONS ||--o{ ACTIVITY_EVENTS : \"physical CASCADE\"\n    SESSIONS ||--o| SESSION_PINS : \"physical CASCADE\"\n    SESSIONS ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    USAGE_PRICE_SNAPSHOTS ||--o{ USAGE_MODEL_PRICES : \"physical RESTRICT\"\n    USAGE_PRICE_SNAPSHOTS ||--o{ USAGE_RECORDS : \"physical RESTRICT\"\n    CONTEXT_ROOTS o|--o{ CONTEXT_DOCUMENTS : \"physical SET_NULL\"\n    WORKSTREAMS ||--o{ THREADS : \"physical CASCADE\"\n    WORKSTREAMS ||--o{ WORKSTREAM_LINKS : \"physical CASCADE\"\n    WORKSTREAMS ||--o{ CHECKPOINTS : \"physical CASCADE\"\n    WORKSTREAMS o|--o{ MAINTENANCE_RUNS : \"physical SET_NULL\"\n    MAINTENANCE_RUNS ||--o| EXTERNAL_SYNC_RUNS : \"physical CASCADE\"\n    EXTERNAL_RESOURCES ||--o| ATLASSIAN_ITEMS : \"physical CASCADE 1:1\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_SPACES : \"physical RESTRICT\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_ITEMS : \"physical RESTRICT\"\n    ATLASSIAN_SPACES o|--o{ ATLASSIAN_ITEMS : \"physical SET_NULL\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_URLS : \"physical composite CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_REMOTE_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_CONTENT : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_LOCAL_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_CLASSIFICATIONS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    SESSIONS ||--o{ ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE composite unique\"\n    CONTEXT_DOCUMENTS ||--o| ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE unique\"\n    SESSIONS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    CONTEXT_DOCUMENTS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    THREADS ||--o{ THREAD_LINKS : \"physical CASCADE\"\n    THREADS o|--o{ CHECKPOINT_RESOURCE_REFS : \"physical SET_NULL\"\n    CHECKPOINTS ||--o{ CHECKPOINT_RESOURCE_REFS : \"physical CASCADE\"\n\n    SOURCE_FILES ||..o| SESSIONS : \"app source_path\"\n    SOURCE_FILES ||..o| CONTEXT_DOCUMENTS : \"app path\"\n    WORKSPACES o|..o{ USAGE_RECORDS : \"app frozen snapshot\"\n    WORKSTREAM_LINKS }o..o| SESSIONS : \"app session target\"\n    WORKSTREAM_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document target\"\n    WORKSTREAM_LINKS }o..o| WORKSPACES : \"app project target\"\n    WORKSTREAM_LINKS }o..o| EXTERNAL_RESOURCES : \"app external target\"\n    WORKSTREAM_LINKS }o..o| LOCAL_RESOURCES : \"app local target\"\n    THREAD_LINKS }o..o| SESSIONS : \"app session target\"\n    THREAD_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document target\"\n    THREAD_LINKS }o..o| WORKSPACES : \"app project target\"\n    THREAD_LINKS }o..o| EXTERNAL_RESOURCES : \"app external target\"\n    THREAD_LINKS }o..o| LOCAL_RESOURCES : \"app local target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| SESSIONS : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| CONTEXT_DOCUMENTS : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| WORKSPACES : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| EXTERNAL_RESOURCES : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| LOCAL_RESOURCES : \"app snapshot target\"\n    SUGGESTIONS }o..o| WORKSTREAMS : \"app target\"\n    SUGGESTIONS }o..o| THREADS : \"app target\"\n    SUGGESTIONS }o..o| MAINTENANCE_RUNS : \"app origin\"\n    SEARCH_INDEX }o..o| SESSIONS : \"app projection\"\n    SEARCH_INDEX }o..o| CONTEXT_DOCUMENTS : \"app projection\"\n    SEARCH_INDEX }o..o| ATLASSIAN_ITEMS : \"app indexed projection\"\n"
+    "mermaid": "erDiagram\n    SOURCES { integer id PK }\n    SOURCE_FILES { integer id PK }\n    EXTERNAL_SOURCE_INSTANCES { integer id PK }\n    EXTERNAL_SOURCE_CAPABILITIES { integer source_instance_id PK }\n    WORKSPACES { integer id PK }\n    SESSIONS { integer id PK }\n    ACTIVITY_EVENTS { string id PK }\n    SESSION_PINS { integer session_id PK }\n    USAGE_PRICE_SNAPSHOTS { string id PK }\n    USAGE_MODEL_PRICES { string snapshot_model PK }\n    USAGE_RECORDS { string id PK }\n    CONTEXT_ROOTS { integer id PK }\n    CONTEXT_DOCUMENTS { integer id PK }\n    WORKSTREAMS { integer id PK }\n    THREADS { integer id PK }\n    WORKSTREAM_LINKS { integer id PK }\n    THREAD_LINKS { integer id PK }\n    LOCAL_RESOURCES { integer id PK }\n    EXTERNAL_RESOURCES { integer id PK }\n    ATLASSIAN_SITES { integer id PK }\n    ATLASSIAN_SITE_BINDINGS { integer id PK }\n    ATLASSIAN_SPACES { integer id PK }\n    ATLASSIAN_ITEMS { integer external_resource_id PK }\n    ATLASSIAN_ITEM_URLS { integer id PK }\n    ATLASSIAN_ITEM_REMOTE_STATE { integer external_resource_id PK }\n    ATLASSIAN_ITEM_CONTENT { integer external_resource_id PK }\n    ATLASSIAN_ITEM_LOCAL_STATE { integer external_resource_id PK }\n    ATLASSIAN_CLASSIFICATIONS { integer id PK }\n    ATLASSIAN_ITEM_CLASSIFICATIONS { integer external_resource_id PK integer classification_id PK }\n    ATLASSIAN_EVIDENCE_SCANS { integer id PK }\n    ATLASSIAN_ITEM_EVIDENCE { integer id PK }\n    SUGGESTIONS { integer id PK }\n    CHECKPOINTS { integer id PK }\n    CHECKPOINT_RESOURCE_REFS { integer id PK }\n    MAINTENANCE_RUNS { string id PK }\n    EXTERNAL_SYNC_RUNS { string maintenance_run_id PK }\n    SEARCH_INDEX { string entity_key \"derived\" }\n\n    SOURCES ||--o{ SOURCE_FILES : \"physical CASCADE\"\n    SOURCES ||--o{ SESSIONS : \"physical CASCADE\"\n    SOURCES ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    SOURCES ||--o{ CONTEXT_DOCUMENTS : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES ||--o| EXTERNAL_SOURCE_CAPABILITIES : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_SITES : \"physical SET_NULL compatibility\"\n    EXTERNAL_SOURCE_INSTANCES ||--o{ ATLASSIAN_SITE_BINDINGS : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_SPACES : \"physical SET_NULL access\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_ITEMS : \"physical SET_NULL access\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ EXTERNAL_SYNC_RUNS : \"physical SET_NULL\"\n    WORKSPACES o|--o{ SESSIONS : \"physical SET_NULL\"\n    WORKSPACES o|--o{ CONTEXT_DOCUMENTS : \"physical SET_NULL\"\n    MAINTENANCE_RUNS o|--o| SESSIONS : \"physical SET_NULL unique\"\n    SESSIONS o|--o{ SESSIONS : \"physical parent SET_NULL\"\n    SESSIONS ||--o{ ACTIVITY_EVENTS : \"physical CASCADE\"\n    SESSIONS ||--o| SESSION_PINS : \"physical CASCADE\"\n    SESSIONS ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    USAGE_PRICE_SNAPSHOTS ||--o{ USAGE_MODEL_PRICES : \"physical RESTRICT\"\n    USAGE_PRICE_SNAPSHOTS ||--o{ USAGE_RECORDS : \"physical RESTRICT\"\n    CONTEXT_ROOTS o|--o{ CONTEXT_DOCUMENTS : \"physical SET_NULL\"\n    WORKSTREAMS ||--o{ THREADS : \"physical CASCADE\"\n    WORKSTREAMS ||--o{ WORKSTREAM_LINKS : \"physical CASCADE\"\n    WORKSTREAMS ||--o{ CHECKPOINTS : \"physical CASCADE\"\n    WORKSTREAMS o|--o{ MAINTENANCE_RUNS : \"physical SET_NULL\"\n    MAINTENANCE_RUNS ||--o| EXTERNAL_SYNC_RUNS : \"physical CASCADE\"\n    EXTERNAL_RESOURCES ||--o| ATLASSIAN_ITEMS : \"physical CASCADE 1:1\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_SITE_BINDINGS : \"physical CASCADE\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_SPACES : \"physical RESTRICT\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_ITEMS : \"physical RESTRICT\"\n    ATLASSIAN_SPACES o|--o{ ATLASSIAN_ITEMS : \"physical SET_NULL\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_URLS : \"physical composite CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_REMOTE_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_CONTENT : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_LOCAL_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_CLASSIFICATIONS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    SESSIONS ||--o{ ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE composite unique\"\n    CONTEXT_DOCUMENTS ||--o| ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE unique\"\n    SESSIONS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    CONTEXT_DOCUMENTS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    THREADS ||--o{ THREAD_LINKS : \"physical CASCADE\"\n    THREADS o|--o{ CHECKPOINT_RESOURCE_REFS : \"physical SET_NULL\"\n    CHECKPOINTS ||--o{ CHECKPOINT_RESOURCE_REFS : \"physical CASCADE\"\n\n    SOURCE_FILES ||..o| SESSIONS : \"app source_path\"\n    SOURCE_FILES ||..o| CONTEXT_DOCUMENTS : \"app path\"\n    WORKSPACES o|..o{ USAGE_RECORDS : \"app frozen snapshot\"\n    WORKSTREAM_LINKS }o..o| SESSIONS : \"app session target\"\n    WORKSTREAM_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document target\"\n    WORKSTREAM_LINKS }o..o| WORKSPACES : \"app project target\"\n    WORKSTREAM_LINKS }o..o| EXTERNAL_RESOURCES : \"app external target\"\n    WORKSTREAM_LINKS }o..o| LOCAL_RESOURCES : \"app local target\"\n    THREAD_LINKS }o..o| SESSIONS : \"app session target\"\n    THREAD_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document target\"\n    THREAD_LINKS }o..o| WORKSPACES : \"app project target\"\n    THREAD_LINKS }o..o| EXTERNAL_RESOURCES : \"app external target\"\n    THREAD_LINKS }o..o| LOCAL_RESOURCES : \"app local target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| SESSIONS : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| CONTEXT_DOCUMENTS : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| WORKSPACES : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| EXTERNAL_RESOURCES : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| LOCAL_RESOURCES : \"app snapshot target\"\n    SUGGESTIONS }o..o| WORKSTREAMS : \"app target\"\n    SUGGESTIONS }o..o| THREADS : \"app target\"\n    SUGGESTIONS }o..o| MAINTENANCE_RUNS : \"app origin\"\n    SEARCH_INDEX }o..o| SESSIONS : \"app projection\"\n    SEARCH_INDEX }o..o| CONTEXT_DOCUMENTS : \"app projection\"\n    SEARCH_INDEX }o..o| ATLASSIAN_ITEMS : \"app indexed projection\"\n"
   },
   "relationships": {
     "application": [
@@ -468,7 +468,46 @@
       },
       {
         "enforcement": "sqlite-foreign-key",
-        "on_delete": "RESTRICT",
+        "on_delete": "SET NULL",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "source_instance_id"
+        ],
+        "source_table": "atlassian_items",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "external_source_instances"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "site_id"
+        ],
+        "source_table": "atlassian_site_bindings",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "atlassian_sites"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "source_instance_id"
+        ],
+        "source_table": "atlassian_site_bindings",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "external_source_instances"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "SET NULL",
         "on_update": "NO ACTION",
         "source_columns": [
           "source_instance_id"
@@ -491,6 +530,19 @@
           "id"
         ],
         "target_table": "atlassian_sites"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "SET NULL",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "source_instance_id"
+        ],
+        "source_table": "atlassian_spaces",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "external_source_instances"
       },
       {
         "enforcement": "sqlite-foreign-key",
@@ -858,9 +910,10 @@
       "document": "docs/policies/project/data-model/atlassian-source-memory.md",
       "id": "atlassian-source-memory",
       "label": "Atlassian source memory",
-      "mermaid": "erDiagram\n    EXTERNAL_SOURCE_INSTANCES { integer id PK string service }\n    EXTERNAL_RESOURCES { integer id PK string url }\n    ATLASSIAN_SITES { integer id PK integer source_instance_id FK string normalized_domain UK }\n    ATLASSIAN_SPACES { integer id PK integer site_id FK string space_key UK string canonical_url string coverage }\n    ATLASSIAN_ITEMS { integer external_resource_id PK integer site_id FK integer space_id FK string remote_id UK }\n    ATLASSIAN_ITEM_URLS { integer id PK integer external_resource_id FK integer site_id FK string normalized_url UK }\n    ATLASSIAN_ITEM_REMOTE_STATE { integer external_resource_id PK string last_outcome string last_successful_at }\n    ATLASSIAN_ITEM_CONTENT { integer external_resource_id PK string source_hash string normalizer_version }\n    ATLASSIAN_ITEM_LOCAL_STATE { integer external_resource_id PK string note }\n    ATLASSIAN_CLASSIFICATIONS { integer id PK string kind string normalized_name UK }\n    ATLASSIAN_ITEM_CLASSIFICATIONS { integer external_resource_id PK integer classification_id PK }\n    ATLASSIAN_EVIDENCE_SCANS { integer id PK integer session_id FK integer document_id FK string source_fingerprint }\n    ATLASSIAN_ITEM_EVIDENCE { integer id PK integer external_resource_id FK integer session_id FK integer document_id FK }\n    SESSIONS { integer id PK }\n    CONTEXT_DOCUMENTS { integer id PK }\n    SEARCH_INDEX { string entity_key \"derived\" }\n\n    EXTERNAL_SOURCE_INSTANCES ||--o{ ATLASSIAN_SITES : \"physical RESTRICT\"\n    EXTERNAL_RESOURCES ||--o| ATLASSIAN_ITEMS : \"physical CASCADE 1:1\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_SPACES : \"physical RESTRICT\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_ITEMS : \"physical RESTRICT\"\n    ATLASSIAN_SPACES o|--o{ ATLASSIAN_ITEMS : \"physical SET_NULL\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_URLS : \"physical composite CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_REMOTE_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_CONTENT : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_LOCAL_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_CLASSIFICATIONS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    SESSIONS ||--o{ ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE composite unique\"\n    CONTEXT_DOCUMENTS ||--o| ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE unique\"\n    SESSIONS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    CONTEXT_DOCUMENTS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS o|..o{ SEARCH_INDEX : \"app indexed projection\"\n",
+      "mermaid": "erDiagram\n    EXTERNAL_SOURCE_INSTANCES { integer id PK string service }\n    EXTERNAL_RESOURCES { integer id PK string url }\n    ATLASSIAN_SITES { integer id PK integer source_instance_id FK string normalized_domain }\n    ATLASSIAN_SITE_BINDINGS { integer id PK integer site_id FK integer source_instance_id FK }\n    ATLASSIAN_SPACES { integer id PK integer site_id FK integer source_instance_id FK string space_key UK string canonical_url string coverage }\n    ATLASSIAN_ITEMS { integer external_resource_id PK integer site_id FK integer source_instance_id FK integer space_id FK string remote_id UK }\n    ATLASSIAN_ITEM_URLS { integer id PK integer external_resource_id FK integer site_id FK string normalized_url UK }\n    ATLASSIAN_ITEM_REMOTE_STATE { integer external_resource_id PK string last_outcome string last_successful_at }\n    ATLASSIAN_ITEM_CONTENT { integer external_resource_id PK string source_hash string normalizer_version }\n    ATLASSIAN_ITEM_LOCAL_STATE { integer external_resource_id PK string note }\n    ATLASSIAN_CLASSIFICATIONS { integer id PK string kind string normalized_name UK }\n    ATLASSIAN_ITEM_CLASSIFICATIONS { integer external_resource_id PK integer classification_id PK }\n    ATLASSIAN_EVIDENCE_SCANS { integer id PK integer session_id FK integer document_id FK string source_fingerprint }\n    ATLASSIAN_ITEM_EVIDENCE { integer id PK integer external_resource_id FK integer session_id FK integer document_id FK }\n    SESSIONS { integer id PK }\n    CONTEXT_DOCUMENTS { integer id PK }\n    SEARCH_INDEX { string entity_key \"derived\" }\n\n    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_SITES : \"physical SET_NULL compatibility\"\n    EXTERNAL_SOURCE_INSTANCES ||--o{ ATLASSIAN_SITE_BINDINGS : \"physical CASCADE\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_SITE_BINDINGS : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_SPACES : \"physical SET_NULL access\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_ITEMS : \"physical SET_NULL access\"\n    EXTERNAL_RESOURCES ||--o| ATLASSIAN_ITEMS : \"physical CASCADE 1:1\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_SPACES : \"physical RESTRICT\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_ITEMS : \"physical RESTRICT\"\n    ATLASSIAN_SPACES o|--o{ ATLASSIAN_ITEMS : \"physical SET_NULL\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_URLS : \"physical composite CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_REMOTE_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_CONTENT : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_LOCAL_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_CLASSIFICATIONS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    SESSIONS ||--o{ ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE composite unique\"\n    CONTEXT_DOCUMENTS ||--o| ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE unique\"\n    SESSIONS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    CONTEXT_DOCUMENTS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS o|..o{ SEARCH_INDEX : \"app indexed projection\"\n",
       "table_ids": [
         "atlassian_sites",
+        "atlassian_site_bindings",
         "atlassian_spaces",
         "atlassian_items",
         "atlassian_item_urls",
@@ -1216,10 +1269,10 @@
         "class": "User-curated and non-rebuildable",
         "class_contract": "User intent or registration is authoritative and requires database backup for full recovery.",
         "consumers": "`external_access.py` resolves policy and capability state; source-neutral external synchronization and Atlassian registration, refresh, browse, and evidence services consume the stable ID.",
-        "deletion_effect": "physical parent of at most one current `external_source_capabilities` row with `ON DELETE CASCADE` and any number of `atlassian_sites` rows with `ON DELETE RESTRICT`. A Source Instance therefore cannot be deleted while a registered Site still depends on it. Deletion remains an explicit destructive local action and is not part of capability refresh.",
+        "deletion_effect": "physical parent of at most one current `external_source_capabilities` row and any number of `atlassian_site_bindings`, both with `ON DELETE CASCADE`. Nullable compatibility/current-access references from Sites, Spaces, and Items use `ON DELETE SET NULL`, so removing an explicit access boundary does not delete local Atlassian identity or content. Deletion remains an explicit destructive local action and is not part of capability refresh.",
         "documented_constraints": "unique `instance_key`; provider kind limited to `mcp_gateway` and `atlassian_cloud`; service limited to `jira` and `confluence`; enabled limited to `0` or `1`. Explicit indexes: none; SQLite owns the uniqueness autoindex.",
-        "lifecycle_contract": "user-curated and non-rebuildable. URL-first Atlassian setup may create an unbound Instance after an explicit local access-path choice. Idempotent registration and connection editing may update presentation and enabled state, but changing provider, service, or a bound configuration reference under an existing key is an identity conflict. An unbound Instance may bind one validated configuration reference without changing its stable local ID; binding invalidates any prior capability observation so site-scoped reads require an explicit recheck.",
-        "producers": "`external_access.py` identity services and approved URL-first composition in `atlassian_registration.py`.",
+        "lifecycle_contract": "user-curated and non-rebuildable. Local-only Atlassian URL registration does not create a Source Instance. Separate access setup creates or reuses one only when the user supplies a Provider and actual approved configuration reference. Idempotent registration and connection editing may update generated presentation and enabled state, but changing provider, service, or a bound configuration reference under an existing key is an identity conflict. Binding a validated reference invalidates any prior capability observation so site-scoped reads require an explicit recheck.",
+        "producers": "`external_access.py` identity services and separate Atlassian access setup in `atlassian_registration.py`.",
         "purpose_and_authority": "one stable local registration per independently configured external access boundary. The user-managed `instance_key`, provider kind, service, display name, shape-validated configuration reference, and enabled state identify the boundary without storing credentials or remote content.",
         "rebuildability": "non-rebuildable",
         "recovery_path": "restore from the LocalBrain database backup or re-register through an explicit user action. External connector configuration alone is not equivalent because local identity and later user-managed relationships depend on the stable ID.",
@@ -3630,9 +3683,9 @@
         {
           "default_sql": null,
           "name": "source_instance_id",
-          "not_null": true,
+          "not_null": false,
           "primary_key_position": 0,
-          "semantic_contract": "`INTEGER NOT NULL` FK to `external_source_instances.id`, `ON DELETE RESTRICT`; access/policy boundary.",
+          "semantic_contract": "nullable `INTEGER` FK to `external_source_instances.id`, `ON DELETE SET NULL`; legacy/default access projection retained for compatible databases, not Site identity.",
           "type": "INTEGER"
         },
         {
@@ -3640,7 +3693,7 @@
           "name": "normalized_domain",
           "not_null": true,
           "primary_key_position": 0,
-          "semantic_contract": "`TEXT NOT NULL`; lower-cased IDNA host plus non-default port, unique within one Source Instance.",
+          "semantic_contract": "`TEXT NOT NULL`; lower-cased IDNA host plus non-default port. Domain-first producers reuse one canonical Site before consulting access.",
           "type": "TEXT"
         },
         {
@@ -3689,7 +3742,7 @@
           "length(normalized_domain) > 0",
           "remote_site_id IS NULL OR length(remote_site_id) > 0"
         ],
-        "documented": "`UNIQUE(source_instance_id, normalized_domain)`, `UNIQUE(source_instance_id, remote_site_id)`, non-empty domain, and non-empty optional remote ID. Explicit index: `idx_atlassian_sites_source`.",
+        "documented": "compatibility uniqueness on `(source_instance_id, normalized_domain)` and `(source_instance_id, remote_site_id)`, non-empty domain, and non-empty optional remote ID. Application producers enforce canonical normalized-domain reuse while retaining legacy rows losslessly. Explicit index: `idx_atlassian_sites_source`.",
         "primary_key": [
           "id"
         ],
@@ -3706,7 +3759,7 @@
       },
       "foreign_keys": [
         {
-          "on_delete": "RESTRICT",
+          "on_delete": "SET NULL",
           "on_update": "NO ACTION",
           "source_columns": [
             "source_instance_id"
@@ -3740,15 +3793,122 @@
       "semantics": {
         "class": "User-curated and non-rebuildable",
         "class_contract": "User intent or registration is authoritative and requires database backup for full recovery.",
-        "consumers": "Space and Item identity, Source Instance-scoped inventory, URL collision checks, and registration or refresh previews.",
-        "deletion_effect": "required FK to `external_source_instances.id` with `ON DELETE RESTRICT`; parent of Spaces and Items with `RESTRICT`. A Source Instance or Site cannot be removed while known descendants exist.",
-        "documented_constraints": "`UNIQUE(source_instance_id, normalized_domain)`, `UNIQUE(source_instance_id, remote_site_id)`, non-empty domain, and non-empty optional remote ID. Explicit index: `idx_atlassian_sites_source`.",
+        "consumers": "Space and Item identity, local inventory, URL collision checks, access binding, and registration or refresh previews.",
+        "deletion_effect": "nullable compatibility/default FK to `external_source_instances.id` with `ON DELETE SET NULL`; parent of bindings with `CASCADE` and Spaces and Items with `RESTRICT`. Removing access does not remove the Site or its local records.",
+        "documented_constraints": "compatibility uniqueness on `(source_instance_id, normalized_domain)` and `(source_instance_id, remote_site_id)`, non-empty domain, and non-empty optional remote ID. Application producers enforce canonical normalized-domain reuse while retaining legacy rows losslessly. Explicit index: `idx_atlassian_sites_source`.",
         "lifecycle_contract": "user-registered and non-rebuildable as local identity, even when remote Site ID and display metadata can be confirmed again.",
-        "producers": "`atlassian.py` explicit Site registration and URL-backed stub registration; `atlassian_registration.py` composes first Source/Site/reference onboarding and bounded display or one-time binding edits.",
-        "purpose_and_authority": "stable domain or tenant identity below one approved Atlassian Source Instance.",
+        "producers": "`atlassian.py` domain-first Site registration and URL-backed stub registration; `atlassian_registration.py` composes URL-only registration and separate access binding.",
+        "purpose_and_authority": "stable local domain or tenant identity resolved by normalized domain, independent of Provider and access configuration.",
         "rebuildability": "non-rebuildable",
-        "recovery_path": "LocalBrain database backup plus the configured external access boundary. Reconnecting a domain does not recreate the same local Site ID automatically.",
+        "recovery_path": "LocalBrain database backup. Reconnecting a domain or Provider does not recreate the same local Site ID automatically.",
         "schema_ownership": "fresh definition plus `idx_atlassian_sites_source` in `schema.sql`; the compatible path repeats the index idempotently."
+      },
+      "subject_id": "atlassian-source-memory"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY`; stable local binding identity used by connected UI actions.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "site_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL` FK to `atlassian_sites.id`, `ON DELETE CASCADE`.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "source_instance_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL` FK to `external_source_instances.id`, `ON DELETE CASCADE`.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "created_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; explicit or migrated binding creation time.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [],
+        "documented": "`UNIQUE(site_id, source_instance_id)`. Explicit index: `idx_atlassian_site_bindings_source`.",
+        "primary_key": [
+          "id"
+        ],
+        "unique": [
+          [
+            "site_id",
+            "source_instance_id"
+          ]
+        ]
+      },
+      "foreign_keys": [
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "source_instance_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "external_source_instances"
+        },
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "site_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "atlassian_sites"
+        }
+      ],
+      "id": "atlassian_site_bindings",
+      "indexes": [
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "source_instance_id"
+            },
+            {
+              "descending": false,
+              "name": "site_id"
+            }
+          ],
+          "name": "idx_atlassian_site_bindings_source",
+          "partial": false,
+          "unique": false
+        }
+      ],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/atlassian-source-memory.md",
+      "semantics": {
+        "class": "User-curated and non-rebuildable",
+        "class_contract": "User intent or registration is authoritative and requires database backup for full recovery.",
+        "consumers": "connected discovery, refresh authorization, evidence recognition, connection management, and access-scoped inventory filters.",
+        "deletion_effect": "required cascading FKs to Site and Source Instance. Removing either owner removes only the binding; Site descendants and Source Instance capability follow their own owners.",
+        "documented_constraints": "`UNIQUE(site_id, source_instance_id)`. Explicit index: `idx_atlassian_site_bindings_source`.",
+        "lifecycle_contract": "user-curated and non-rebuildable access intent. Legacy Site ownership is backfilled as a binding; local-only Sites may have zero rows.",
+        "producers": "`atlassian.py` idempotent binding and access-resolution services; `atlassian_registration.py` separate access setup.",
+        "purpose_and_authority": "explicit many-to-many access relation between one local Site and one independently configured Source Instance. Provider, Jira/Confluence service, actual configuration reference, enabled state, and capability remain owned by the Source Instance.",
+        "rebuildability": "non-rebuildable",
+        "recovery_path": "LocalBrain database backup or an explicit user rebind using the real approved configuration reference.",
+        "schema_ownership": "fresh definition and `idx_atlassian_site_bindings_source` in `schema.sql`; compatible startup creates the table, index, and legacy bindings idempotently."
       },
       "subject_id": "atlassian-source-memory"
     },
@@ -3772,10 +3932,18 @@
         },
         {
           "default_sql": null,
+          "name": "source_instance_id",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `INTEGER` FK to `external_source_instances.id`, `ON DELETE SET NULL`; current access owner when known, otherwise local-only.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
           "name": "service",
           "not_null": true,
           "primary_key_position": 0,
-          "semantic_contract": "`TEXT NOT NULL`; constrained to Jira or Confluence and checked against the Site's Source Instance by the producer.",
+          "semantic_contract": "`TEXT NOT NULL`; constrained to Jira or Confluence and checked against an assigned Source Instance or selected binding by the producer.",
           "type": "TEXT"
         },
         {
@@ -3863,6 +4031,17 @@
       },
       "foreign_keys": [
         {
+          "on_delete": "SET NULL",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "source_instance_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "external_source_instances"
+        },
+        {
           "on_delete": "RESTRICT",
           "on_update": "NO ACTION",
           "source_columns": [
@@ -3902,11 +4081,11 @@
         "class": "External last-known memory",
         "class_contract": "Approved external reads may refresh the row, but inaccessible prior facts, aliases, and bodies are retained and are recoverable completely only from database backup.",
         "consumers": "Item containment, registration inventory, hierarchy, explicit coverage display, and refresh scope.",
-        "deletion_effect": "required Site FK with `ON DELETE RESTRICT`; referenced by Items with `ON DELETE SET NULL`, so explicit Space removal keeps Item identity.",
+        "deletion_effect": "required Site FK with `ON DELETE RESTRICT`; nullable Source Instance FK with `ON DELETE SET NULL`; referenced by Items with `ON DELETE SET NULL`, so explicit Space or access removal keeps Item identity.",
         "documented_constraints": "service and coverage vocabularies; at least one of `remote_id` or `space_key`; non-empty optional identifiers and canonical URL; `UNIQUE(site_id, service, remote_id)` and `UNIQUE(site_id, service, space_key)`. Explicit index: `idx_atlassian_spaces_site`.",
         "lifecycle_contract": "external last-known identity. It can be re-read when access survives, but stable local containment and unavailable historical labels are not assumed recoverable.",
         "producers": "`atlassian.py` validated Space registration and `atlassian_registration.py` direct-URL or explicitly confirmed partial-catalog registration.",
-        "purpose_and_authority": "optional Jira project or Confluence Space containment within one Site and service.",
+        "purpose_and_authority": "optional Jira project or Confluence Space containment within one Site and service, with optional current access ownership.",
         "rebuildability": "external-last-known",
         "recovery_path": "database backup or a later explicit external read when the Space remains accessible.",
         "schema_ownership": "fresh definition plus `idx_atlassian_spaces_site` in `schema.sql`; the compatible path repeats the index idempotently."
@@ -3933,6 +4112,14 @@
         },
         {
           "default_sql": null,
+          "name": "source_instance_id",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `INTEGER` FK to `external_source_instances.id`, `ON DELETE SET NULL`; current access owner when known, otherwise local-only.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
           "name": "space_id",
           "not_null": false,
           "primary_key_position": 0,
@@ -3944,7 +4131,7 @@
           "name": "service",
           "not_null": true,
           "primary_key_position": 0,
-          "semantic_contract": "`TEXT NOT NULL`; Jira or Confluence, matched to Source Instance by the producer.",
+          "semantic_contract": "`TEXT NOT NULL`; Jira or Confluence, matched to an assigned Source Instance or selected binding by the producer.",
           "type": "TEXT"
         },
         {
@@ -4056,6 +4243,17 @@
           "target_table": "atlassian_spaces"
         },
         {
+          "on_delete": "SET NULL",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "source_instance_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "external_source_instances"
+        },
+        {
           "on_delete": "RESTRICT",
           "on_update": "NO ACTION",
           "source_columns": [
@@ -4121,11 +4319,11 @@
         "class": "User-curated and non-rebuildable",
         "class_contract": "User intent or registration is authoritative and requires database backup for full recovery.",
         "consumers": "Workstream/Thread/checkpoint links through `external_resources.id`, registration inventory, refresh target resolution, freshness/content state, FTS projection, and Atlassian browse/detail.",
-        "deletion_effect": "primary key is an FK to `external_resources.id` with `ON DELETE CASCADE`; Site deletion is `RESTRICT`; Space deletion is `SET NULL`. The explicit purge API first removes the Item's FTS row and polymorphic Workstream, Thread, and checkpoint references, then removes the External Resource and all source-specific extension rows. Ordinary refresh never deletes the Resource.",
+        "deletion_effect": "primary key is an FK to `external_resources.id` with `ON DELETE CASCADE`; Site deletion is `RESTRICT`; Source Instance and Space deletion are `SET NULL`. The explicit purge API first removes the Item's FTS row and polymorphic Workstream, Thread, and checkpoint references, then removes the External Resource and all source-specific extension rows. Ordinary refresh never deletes the Resource.",
         "documented_constraints": "strict service/item-type pairing; coverage and attention vocabularies; non-empty optional identifiers; `UNIQUE(external_resource_id, site_id)` for composite URL ownership; `UNIQUE(site_id, service, remote_id)` and `UNIQUE(site_id, service, remote_key)`. Explicit indexes: `idx_atlassian_items_site`, `idx_atlassian_items_space`.",
         "lifecycle_contract": "non-rebuildable local identity and organization. Remote identifiers can be re-read, but the stable External Resource binding, coverage, attention, and existing relations must survive.",
         "producers": "`atlassian.py` URL stub registration, in-place remote binding, explicit axis changes, and explicit destructive purge; `atlassian_registration.py` recognizes strict service-specific URLs before invoking the stub contract.",
-        "purpose_and_authority": "strict one-to-one Atlassian extension of one stable External Resource, with source containment and independent coverage/attention axes.",
+        "purpose_and_authority": "strict one-to-one Atlassian extension of one stable External Resource, with Site containment, optional current access ownership, and independent coverage/attention axes.",
         "rebuildability": "non-rebuildable",
         "recovery_path": "database backup. Remote re-discovery cannot recreate the same local Resource ID or user-managed axes.",
         "schema_ownership": "fresh definition plus `idx_atlassian_items_site` and `idx_atlassian_items_space` in `schema.sql`; compatible startup creates them additively."
@@ -4914,7 +5112,7 @@
           "name": "site_fingerprint",
           "not_null": true,
           "primary_key_position": 0,
-          "semantic_contract": "`TEXT NOT NULL`; 64-character fingerprint of enabled configured Source Instance/Site/service mappings.",
+          "semantic_contract": "`TEXT NOT NULL`; 64-character fingerprint of registered Site/service mappings derived from local Item/Space scope and enabled access bindings.",
           "type": "TEXT"
         },
         {

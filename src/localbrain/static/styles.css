@@ -259,6 +259,9 @@
   --context-preview-header-height: 76px;
   --control-min-height: 32px;
   --control-min-height-touch: 40px;
+  --select-disclosure-size: var(--space-12);
+  --select-disclosure-inset: var(--space-12);
+  --select-text-reserve: calc(var(--select-disclosure-size) + var(--select-disclosure-inset) + var(--space-control-gap));
   --row-min-height: 48px;
   --chart-history-height: 240px;
   --chart-history-column-min-width: 28px;
@@ -1455,7 +1458,9 @@ a.search-result:hover { background: var(--surface-subtle); }
 .atlassian-scope-empty { margin: var(--space-card) var(--space-none) var(--space-none); }
 .atlassian-add-header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-card); padding-bottom: var(--space-card); border-bottom: var(--border-width-control) solid var(--divider-row); }
 .atlassian-add-header h2 { margin: var(--space-none); font-size: var(--type-section-size); }
-.atlassian-add-method { max-width: 760px; padding-top: var(--space-card); }
+.atlassian-add-columns { min-width: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-grid); }
+.atlassian-add-method { min-width: 0; padding-top: var(--space-card); }
+.atlassian-access-method { padding-left: var(--space-grid); border-left: var(--border-width-control) solid var(--divider-row); }
 .atlassian-step-number { display: inline-grid; width: calc(var(--space-card) + var(--space-micro)); height: calc(var(--space-card) + var(--space-micro)); place-items: center; margin-right: var(--space-compact); color: var(--text-info); background: var(--surface-info); border-radius: var(--radius-pill); font-size: var(--type-caption-size); }
 .atlassian-connection-management { padding: var(--space-none); overflow: hidden; }
 .atlassian-connection-management > summary { display: flex; align-items: center; justify-content: space-between; gap: var(--space-card); padding: var(--space-card) var(--space-panel); cursor: pointer; }
@@ -1859,6 +1864,14 @@ details.editor-panel > .stack-form { padding: var(--space-card); }
 .task-run-form input, .task-run-form select, .task-run-form textarea { width: 100%; min-width: 0; min-height: var(--control-min-height); padding: var(--space-control-gap) var(--space-control-gap); color: var(--text-primary); background: var(--surface-default); border: var(--border-width-control) solid var(--border-default); border-radius: var(--radius-control); outline: none; font-size: var(--type-micro-size); }
 .task-run-form textarea { resize: vertical; }
 .task-run-form input:focus, .task-run-form select:focus, .task-run-form textarea:focus { border-color: var(--text-link); box-shadow: var(--elevation-focus); }
+select:not([multiple]) {
+  appearance: none;
+  padding-right: var(--select-text-reserve);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'%3E%3Cpath d='m3 4.5 3 3 3-3' stroke='%236d6f76' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--select-disclosure-inset) center;
+  background-size: var(--select-disclosure-size) var(--select-disclosure-size);
+}
 .task-run-form input[readonly] { color: var(--text-secondary); background: var(--surface-disabled); }
 .runner-base-request { grid-column: 1 / -1; display: grid; gap: var(--space-compact); padding: var(--space-control-gap) var(--space-row-block); background: var(--surface-default); border: var(--border-width-control) solid var(--border-subtle); border-radius: var(--radius-control); }
 .runner-request-copy, .runner-command-preview { min-width: 0; display: grid; gap: var(--space-compact); }
@@ -2078,6 +2091,8 @@ details.editor-panel > .stack-form { padding: var(--space-card); }
   .context-root-add { flex: 0 0 250px; margin-top: var(--space-none); padding: var(--space-none); }
   .resource-row { grid-template-columns: minmax(150px, 1fr) 80px; }
   .atlassian-action-card, .atlassian-catalog-panel, .atlassian-inventory-section, .atlassian-connections-panel, .atlassian-scope-overview, .atlassian-add-flow, .atlassian-detail-card { padding: var(--space-card); }
+  .atlassian-add-columns { grid-template-columns: 1fr; }
+  .atlassian-access-method { padding-top: var(--space-card); padding-left: var(--space-none); border-top: var(--border-width-control) solid var(--divider-row); border-left: var(--border-width-none); }
   .atlassian-refresh-result, .atlassian-refresh-targets, .atlassian-refresh-submit { padding: var(--space-card); }
   .atlassian-action-heading, .atlassian-section-heading, .atlassian-add-header, .atlassian-scope-domain-heading { flex-direction: column; }
   .atlassian-connection-row > summary { grid-template-columns: 1fr; }

@@ -3,12 +3,12 @@
   "review_status": "complete",
   "manifest": {
     "path": "src/localbrain/schema-presentation.json",
-    "sha256": "7ba937819cbd951eb2f713f71957e913d49d73b6356ae7e806d3fd06b0dbb797",
+    "sha256": "0abd871cb24cf98ba704d4c02d2d5bb217f5bce18ccc1d41899539894ad26879",
     "expected": {
-      "tables": 36,
-      "columns": 383,
-      "indexes": 33,
-      "physical_relations": 40,
+      "tables": 37,
+      "columns": 389,
+      "indexes": 34,
+      "physical_relations": 44,
       "application_relations": 24
     }
   },
@@ -54,7 +54,8 @@
     "thread_links": {"decision": "keep", "risk": "high", "rationale": "Required reviewed heterogeneous Thread membership; inference cannot reproduce accepted scope and provenance."},
     "local_resources": {"decision": "keep", "risk": "high", "rationale": "The curated resource table remains required; FEAT-0030 removed its redundant named path index while preserving the UNIQUE(path) autoindex."},
     "external_resources": {"decision": "keep", "risk": "high", "rationale": "Required curated external-reference identity; stable ID, local title, provenance, and memberships are not source-rebuildable, while URL identity is source-scoped rather than globally unique."},
-    "atlassian_sites": {"decision": "keep", "risk": "high", "rationale": "Required stable domain/tenant layer below Source Instance so one access boundary can retain multiple Sites without cross-domain merge."},
+    "atlassian_sites": {"decision": "keep", "risk": "high", "rationale": "Required stable domain/tenant identity independent of optional access; local Items and Spaces must survive without a Provider or Source Instance."},
+    "atlassian_site_bindings": {"decision": "keep", "risk": "high", "rationale": "Required explicit user-managed relation between a domain-first Site and independently configured Source Instance; it prevents Provider and configuration identity from becoming Site identity."},
     "atlassian_spaces": {"decision": "keep", "risk": "medium", "rationale": "Required optional Site-scoped Jira project or Confluence Space containment and refresh-scope identity."},
     "atlassian_items": {"decision": "keep", "risk": "high", "rationale": "Required strict one-to-one source-specific extension of the stable External Resource ID; it prevents a second local Item identity from severing user relations."},
     "atlassian_item_urls": {"decision": "keep", "risk": "high", "rationale": "Required Site-scoped normalized URL identity plus exact observed canonical and alias links; global External Resource URL uniqueness cannot represent this boundary."},
@@ -117,6 +118,7 @@
     "atlassian_items.confirmed_at": {"decision": "defer", "risk": "high", "defer": "canonical-timestamp-contract", "rationale": "Remote identity confirmation is a durable freshness and provenance boundary requiring timezone-safe comparison."},
     "atlassian_items.created_at": {"decision": "defer", "risk": "medium", "defer": "canonical-timestamp-contract", "rationale": "SQLite default stub time and Python ISO application times can coexist."},
     "atlassian_items.updated_at": {"decision": "defer", "risk": "medium", "defer": "canonical-timestamp-contract", "rationale": "Item identity and local-axis updates use mixed repository timestamp forms."},
+    "atlassian_site_bindings.created_at": {"decision": "defer", "risk": "medium", "defer": "canonical-timestamp-contract", "rationale": "Explicit access-binding chronology uses the unresolved shared SQLite timestamp text contract."},
     "atlassian_item_urls.first_observed_at": {"decision": "defer", "risk": "high", "defer": "canonical-timestamp-contract", "rationale": "First URL evidence is durable provenance and must preserve timezone-safe chronology."},
     "atlassian_item_urls.last_observed_at": {"decision": "defer", "risk": "medium", "defer": "canonical-timestamp-contract", "rationale": "Repeated URL evidence freshness uses Python ISO text beside SQLite defaults."},
     "atlassian_item_remote_state.remote_updated_at": {"decision": "defer", "risk": "high", "defer": "canonical-timestamp-contract", "rationale": "Provider update evidence participates in change validation across provider timestamp shapes."},
@@ -204,6 +206,7 @@
     "local_resources": ["tests/test_runner.py", "tests/test_workstreams.py", "tests/test_schema_migrations.py"],
     "external_resources": ["tests/test_runner.py", "tests/test_workstreams.py", "tests/test_atlassian_schema_migration.py"],
     "atlassian_sites": ["tests/test_atlassian.py", "tests/test_atlassian_schema_migration.py"],
+    "atlassian_site_bindings": ["tests/test_atlassian.py", "tests/test_atlassian_schema_migration.py"],
     "atlassian_spaces": ["tests/test_atlassian.py"],
     "atlassian_items": ["tests/test_atlassian.py", "tests/test_atlassian_schema_migration.py"],
     "atlassian_item_urls": ["tests/test_atlassian.py"],
@@ -224,14 +227,14 @@
   "audit_dimensions": {
     "unused_fields": ["FEAT-0032 removed the supported unused Activity Event metadata field after all-null preflight"],
     "duplicated_facts": ["Session/event counts retained as rebuildable summary caches", "External capability JSON is the canonical minimal logical-operation projection rather than duplicated Source Instance identity", "The external-sync relational row is a bounded query projection derived atomically from the versioned detailed Run manifest"],
-    "wrong_ownership": ["No existing table owner move proposed; all 36 objects have exactly one Data Model subject owner, including separate user-owned Session pins and the Atlassian source-specific, bounded-evidence, and local-classification extensions."],
+    "wrong_ownership": ["No existing table owner move proposed; all 37 objects have exactly one Data Model subject owner, including separate user-owned Session pins and the Atlassian domain-first Site, explicit access binding, source-specific, bounded-evidence, and local-classification extensions."],
     "polymorphic_referential_gaps": ["All 24 application relations retained; add_link validates live targets, historical unresolved links are intentional, and projection/source correlations have explicit cleanup"],
     "identifier_inconsistencies": ["INTEGER local identities and TEXT stable/source/run identities retained by authority boundary; polymorphic entity_id remains TEXT by contract"],
-    "missing_or_redundant_indexes": ["FEAT-0030 removed three proven redundant names and added query-prefix indexes; FEAT-0045 adds external-sync prefixes; FEAT-0046 adds Site, Space, Item, URL, canonical-URL, and freshness query coverage; FEAT-0047 adds Item, Session-location, and Document-location evidence prefixes; FEAT-0050 adds the classification-first membership prefix used by Topic/Tag browse filters."],
+    "missing_or_redundant_indexes": ["FEAT-0030 removed three proven redundant names and added query-prefix indexes; FEAT-0045 adds external-sync prefixes; FEAT-0046 adds Site, Space, Item, URL, canonical-URL, and freshness query coverage; FEAT-0047 adds Item, Session-location, and Document-location evidence prefixes; FEAT-0050 adds the classification-first membership prefix used by Topic/Tag browse filters; FEAT-0062 adds Source-first Site-binding lookup coverage."],
     "timestamp_inconsistency": ["canonical-timestamp-contract"],
     "status_and_type_constraints": ["closed-vocabulary-constraints", "FEAT-0044 directly constrains provider, service, enabled, and capability availability; FEAT-0031 resolved Usage attribution and FEAT-0035 resolved Session class/index policy"],
     "stable_data_in_json": ["External capability JSON retains only canonical sorted logical-operation names; the external-sync envelope owns query fields; Atlassian metadata and normalized documents are bounded versioned payloads while Site, Space, Item, URL, version, hash, coverage, attention, freshness, and source evidence identity remain relational."],
-    "deletion_behavior": ["Session pin rows cascade only when their owning Session is deleted; the external-sync extension cascades with its maintenance parent; Atlassian Site descendants restrict accidental boundary deletion; source deletion clears only derived evidence; explicit External Resource purge cascades source-specific Item extensions; unavailable results retain last-known state."],
-    "fresh_vs_compatible_drift": ["Idempotent schema application creates the FEAT-0058 Session pin table and FEAT-0044/0045/0046/0047/0050 additive tables; the backup-backed External Resource rebuild removes only global URL uniqueness while preserving rows and polymorphic relations; canonical-timestamp-contract remains deferred."]
+    "deletion_behavior": ["Session pin rows cascade only when their owning Session is deleted; the external-sync extension cascades with its maintenance parent; Atlassian Site descendants restrict accidental Site deletion while access binding and nullable Source Instance pointers can be removed without deleting local identity; source deletion clears only derived evidence; explicit External Resource purge cascades source-specific Item extensions; unavailable results retain last-known state."],
+    "fresh_vs_compatible_drift": ["Idempotent schema application creates the FEAT-0058 Session pin table and FEAT-0044/0045/0046/0047/0050/0062 additive tables; the backup-backed External Resource rebuild removes only global URL uniqueness while preserving rows and polymorphic relations; the backup-backed Atlassian repair makes legacy Site access optional and backfills bindings plus Item/Space access ownership; canonical-timestamp-contract remains deferred."]
   }
 }
