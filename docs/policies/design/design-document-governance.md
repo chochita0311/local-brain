@@ -165,6 +165,10 @@ A constitution change fails when:
 | 2026-07-19 | v7 | Aligned the detail-and-read screen family with the source-neutral `Subsession` product term without changing its layout, tokens, or component behavior. |
 | 2026-07-20 | v8 | Added dedicated Markdown reading-code surfaces, syntax-text roles, and border semantics so sustained reading does not reuse Run-console or product-state color meaning. |
 | 2026-07-23 | v9 | Added External Source Instance capability and Atlassian Item freshness mappings for the Atlassian browse-and-inventory family. |
+| 2026-08-02 | v10 | Added source-specific Codex Company provenance aliases and the accessible `CL`/`CX`/`CC` compact-cue contract for ordinary Session inventory cards. |
+| 2026-08-02 | v11 | Restored the same compact accessible source-cue contract to Pinned Session cards without repeating configured source names visibly. |
+| 2026-08-02 | v12 | Extended the stable source-key `CL`/`CX`/`CC` icon contract to Session detail headings and normalized or lazy Subsession projections while preserving their readable source labels. |
+| 2026-08-03 | v13 | Removed repeated visible configured source names from Session detail headings and detail Subsession rows while preserving accessible source cues, and aligned child-row question, event, and date metadata with the Sessions inventory family. |
 
 ## Practical Summary
 

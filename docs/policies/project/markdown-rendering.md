@@ -78,6 +78,7 @@ This is an explicit LocalBrain syntax allowlist. Obsidian and third-party plugin
 - Only a valid leading YAML mapping becomes result properties. Invalid or non-mapping front matter stays safe readable body source.
 - YAML parsing uses safe loading, performs no object construction outside supported safe types, and never changes the authoritative body.
 - TeX-shaped math is converted locally to MathML without a browser CDN, font request, subprocess, or executable TeX. Conversion failure retains escaped source notation.
+- Inline dollar math requires its opening and closing delimiters on the same source line. Dollar-bearing identifiers and technical logs cannot consume following lines as derived MathML; multiline display math remains supported through block delimiters.
 - A note embed may resolve only to an indexed Markdown Document in the same FOLDERS source.
 - Heading embeds stop at the next heading of equal or higher level; block embeds select the line carrying the explicit block ID.
 - Nested note rendering stops after three embedded Documents and tracks visited Document IDs to stop cycles.
@@ -88,6 +89,7 @@ This is an explicit LocalBrain syntax allowlist. Obsidian and third-party plugin
 - Consumers pass authoritative text to `render_markdown` and render only its trusted result.
 - Visible readers use the shared `.markdown-body` semantic class for prose, headings, code, tables, callouts, footnotes, math, references, embeds, and deferred states; page containers own only composition and scrolling.
 - The renderer owns a non-semantic table scroll wrapper so tables retain native table layout, fill the available reading width, and overflow locally when their minimum column geometry exceeds it.
+- Shared presentation bounds generated MathML and CommonMark indented code blocks inside the owning reading container. Wide technical content scrolls locally and never widens the outer page.
 - Consumers may provide page-owned empty or failure copy from the returned state, but they must not reparse the output or mark source text as trusted.
 - Consumer CSS may style shared semantic classes under the Design Constitution but must not change syntax, trust, source, or fallback meaning.
 - Unsupported syntax stays safe and understandable until an approved Feature extends this allowlist.

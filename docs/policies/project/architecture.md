@@ -38,6 +38,11 @@ Approved external sources through MCP Gateway
 - `src/localbrain/main.py`: FastAPI routes, request models, and application composition
 - `src/localbrain/db.py` and `schema.sql`: connection lifecycle, fresh schema, compatible startup migrations, and explicitly approved backup-backed structural repair
 - `src/localbrain/ingest/`: source parsing, normalization, scanning, and deduplication
+- `src/localbrain/session_sources.py`: private TOML bootstrap, validation, bounded
+  diagnostics, and non-destructive local Session-source registry reconciliation
+- `src/localbrain/session_references.py`: source-neutral safe URL, exact Markdown,
+  and configured Atlassian reference resolution; file-scoped evidence replacement,
+  Session-level bounds/fingerprints, and database-only detail projection
 - `src/localbrain/contexts.py`: Local Context source registration and browsing behavior
 - `src/localbrain/markdown.py`: shared safe Markdown and approved Obsidian-style parsing, derived render state, local code and MathML rendering, attachment deferral, and reusable consumer output governed by the [Markdown Rendering Contract](markdown-rendering.md)
 - `src/localbrain/markdown_references.py`: one-FOLDERS-root Markdown and wikilink resolution, stable anchor identity, and bounded note-fragment extraction
@@ -71,6 +76,20 @@ Current adapters:
 - Apple Notes through local macOS Automation
 - local project and Git metadata discovered during scans
 
+Each local Session source has a stable source key independent from its provider
+kind. Source keys own provenance, filtering, and statistics; provider kind selects
+the parser, Usage normalizer, and other adapter-specific semantics. Multiple
+source keys may therefore reuse the Codex provider without sharing Session or
+Usage identity.
+
+The ordered local AI Session-source list is owned by private
+`<LOCALBRAIN_DATA_DIR>/session-sources.toml`. A missing file is atomically seeded
+once from the legacy Claude/Codex root settings plus the Codex Company default.
+Established-file syntax and identity validation precede registry mutation;
+omission, invalid paths, provider conflict, or an occupied-root change cannot
+delete or silently relocate retained normalized data. Scanner dispatch consumes
+this registry in the following multi-source synchronization contract.
+
 Current external-access foundation:
 
 - registered MCP Gateway Jira and Confluence Source Instance contracts
@@ -100,7 +119,7 @@ The current schema groups data into these responsibilities:
 | Responsibility | Current entities |
 | --- | --- |
 | Source inventory | `sources`, `source_files`, `external_source_instances`, `external_source_capabilities`, `context_roots`, `workspaces` |
-| Indexed activity | `sessions`, `activity_events`, `usage_records`, immutable usage price snapshots, `context_documents`, FTS5 search tables |
+| Indexed activity | `sessions`, `activity_events`, `session_reference_scans`, `session_reference_evidence`, `usage_records`, immutable usage price snapshots, `context_documents`, FTS5 search tables |
 | User organization | `workstreams`, `threads`, `checkpoints` |
 | Linkable resources | `local_resources`, `external_resources`, Workstream and Thread links |
 | Atlassian source memory | domain-first `atlassian_sites`, optional `atlassian_site_bindings`, access-optional `atlassian_spaces`, strict one-to-one `atlassian_items`, URL aliases, remote state, normalized content, local notes, reusable Topic/Tag assignments, source-backed evidence scans/sightings, and role-separated FTS rows |
@@ -122,8 +141,24 @@ Checkpoint records are versioned, user-confirmed resume states. Confirmation cap
 - Do not re-import maintenance Run artifacts as ordinary Sessions or Local Context documents.
 - Treat generated titles and summaries as presentation, never as stable identifiers.
 - Treat Atlassian URL evidence as a derived locator: retain the owning source identity, event/line/occurrence, observed URL, and only allowlisted bounded result fields, never a copied excerpt or opaque tool payload.
+- Treat source-neutral Session reference evidence as a separate derived projection from Activity Events, shared Resource metadata, remote content, and organization links. Retain only aggregate scan/version state plus deterministic target identity, event/line/ordinal, bounded observed identity, safe normalized destination, and approved tool-call outcome fields; never copy message excerpts or opaque tool payloads.
+- Compose primary Session `관련 자료` only at the bounded SQLite read layer: direct Session evidence precedes explicit shared Thread/Workstream Documents and Resources, stable target identity removes cross-group duplicates, and same-workspace/path/repository or recent Documents never become candidates. Each group owns its total and initial 10-item slice; presentation disclosure does not trigger a new query, parse, relationship write, or external operation.
+- Map every successfully parsed Session JSONL to its normalized Session and
+  reference contract in `source_files`. Reconcile changed paths independently,
+  then finalize one aggregate Session set; when a prior set is partial or errored,
+  reparse current siblings before applying the 100-target bound so a multi-file
+  native Session cannot lose unchanged evidence.
 
-Original Claude and Codex JSONL remains the authoritative Session source. LocalBrain stores normalized searchable text, selected metadata, source paths, source line numbers, and deterministic IDs so the index can be rebuilt.
+Original Claude and Codex JSONL remains the authoritative Session source. LocalBrain stores normalized searchable text, selected metadata, source paths, source line numbers, and deterministic IDs so the index can be rebuilt. Provider-native event and Usage identities are additionally source-key scoped when a noncanonical source such as Codex Company reuses the Codex adapter, preventing globally keyed descendants from colliding while preserving existing personal Codex IDs.
+
+Provider parsing is followed by one shared meaningful-Session eligibility gate. A
+parsed file must contain at least one normalized Activity Event or one direct
+Usage Record; title, name, identity, timestamp, cwd, branch, or other metadata
+alone describes an empty native stub. A successful readable-source scan stores no
+normalized Session or source-file evidence for a new stub and reconciles an
+existing empty projection after reparsing current sibling files. The source JSONL
+is never deleted. Because an ignored stub retains no freshness row, later syncs
+inspect it again and import it once Event or Usage evidence appears.
 
 Token usage is a separate derived-record lane from searchable Activity Events. Both adapters preserve one stable source-record identity, the raw model name, non-cached input, output, cache-write, cache-read, reasoning, source-total, and normalized-total semantics when those values are available. Claude input is already non-cached and its cache creation and cache read values remain additive. When Claude reports a zero cache-creation aggregate that contradicts a positive internally consistent ephemeral breakdown, the adapter uses the breakdown and records that bounded fallback. Each Codex `token_count` event contributes its direct `last_token_usage` when available; `total_token_usage` is Session-cumulative and is subtracted from the preceding observation only as a fallback. Spawned or forked subsession replay prefixes seed that cumulative baseline but do not produce copied records. Unchanged zero deltas are ignored, source input has cached input subtracted, and reasoning output remains an informational subset of output rather than an additional total.
 
@@ -137,17 +172,40 @@ Each new Usage Record also freezes its first-observation Project attribution. A 
 
 Activity time is derived separately from usage and cost. Valid Activity Event timestamps form per-Session segments: a gap of exactly 30 minutes remains continuous, while a greater gap starts a new segment. Segments end at the last observed event, are clipped with inclusive-start/exclusive-end range boundaries, and are merged across concurrent Sessions before estimated active seconds and the longest active segment are calculated. Observed Session span remains a separate first-to-last-event value. Single-event segments contribute zero inferred duration, and no value is extended to the current time. Local day and Monday-week boundaries use an explicit IANA timezone.
 
-The Sessions Dashboard read model normalizes `view`, `source`, `metric`, `from`, and `to` GET state before querying Usage Records. Daily uses 30 inclusive local days, Weekly uses 12 Monday-based local weeks, and Cumulative uses monthly running buckets from the earliest eligible real-model usage date. Valid paired custom dates replace only the bounds; malformed, partial, or reversed pairs retain the selected view, source, and metric while falling back to the view default. Token and priced-cost totals include every direct real-model record, including maintenance and subsession records, while the usage-linked Session denominator includes only primary work Sessions. Claude records whose raw model is exactly `<synthetic>` remain persisted but are removed at the dashboard query boundary from dates, totals, coverage, breakdowns, and Session counts. Records without usable timestamps or supported pricing remain explicit coverage limitations rather than zero values.
+The Sessions Dashboard read model normalizes `view`, `source`, `metric`, `from`, and `to` GET state before querying Usage Records. Its accepted Source options are loaded in Source-ID order from registered Claude/Codex adapter sources, with `All` first; an unknown stable key falls back to `All`. Exact facts use `sources.kind`, while `provider_kind` remains only the adapter semantic for rules such as Claude synthetic exclusion and may be shared by personal Codex and Codex Company. Daily uses 30 inclusive local days, Weekly uses 12 Monday-based local weeks, and Cumulative uses monthly running buckets from the earliest eligible real-model usage date. Valid paired custom dates replace only the bounds; malformed, partial, or reversed pairs retain the selected view, source, and metric while falling back to the view default. Token and priced-cost totals include every direct real-model record, including maintenance and subsession records, while the usage-linked Session denominator includes only primary work Sessions. Claude records whose raw model is exactly `<synthetic>` remain persisted but are removed at the dashboard query boundary from dates, totals, coverage, breakdowns, and Session counts. Records without usable timestamps or supported pricing remain explicit coverage limitations rather than zero values.
 
-The same read model normalizes `breakdown=source|model|project`. It groups by source kind, normalized model while retaining raw identities, or the immutable Usage Record Project key; current workspace joins may enable a browse link but never change a historical group. Compatible shares use the selected supported token total or priced-cost total. The first eight ranked groups remain visible and additional groups use native disclosure. Source trust derives current, stale, and error state from source-file status; when the latest attempt has errors, the latest healthy file time is the bounded last-success proxy and previously calculated records remain visible.
+The same read model normalizes `breakdown=source|model|project`. It groups by stable source key with configured display name and separate provider cue, normalized model while retaining raw identities, or the immutable Usage Record Project key; current workspace joins may enable a browse link but never change a historical group. Personal and company Codex therefore remain separate source rows. Compatible shares use the selected supported token total or priced-cost total, and the `All` compatible total equals its source-row sum. The first eight ranked groups remain visible and additional groups use native disclosure. Source trust consumes the persistent latest FEAT-0068 source attempt, success, status, and bounded error plus source-file stale/error evidence. Completed/empty is current; unavailable, configuration error, or scan failure requires attention; legacy rows without a source-level result retain file-status fallback. Previously calculated records remain visible and the last source success remains distinct from the failed attempt.
 
 Current-month projection remains a non-persisted compatibility calculation in the read model but is not rendered by the Sessions Dashboard. `calendar-elapsed-v1` divides source-scoped compatible MTD estimated cost by the timezone-aware fraction elapsed between local month start and next local month start. It requires three complete local days, a Cost view whose range contains today, and at least one priced Usage Record. Calculation time, source scope, input total, elapsed fraction, formula version, coverage, and freshness state travel with the internal value. It never updates Usage Records or their price snapshots and never runs for a historical-only range.
 
-The Sessions inventory owns a Session-only incremental synchronization action. It scans the configured Claude and Codex roots, reconciles normalized Sessions and parent relations, and does not scan Local Context sources. The Sources inventory owns the wider scan that includes those Session sources plus every enabled Local Context root. Both web actions retain the source-file freshness check. An otherwise-current source is reparsed only when its versioned Atlassian evidence scan or enabled configured-Site fingerprint is missing or changed; once both generic and evidence contracts are current, the source is skipped.
+The Sessions inventory owns a Session-only incremental synchronization action. It scans every validated source in the ordered private Session-source registry—currently Claude, personal Codex, and Codex Company—regardless of the selected inventory filter, and does not scan Local Context sources. Each source has an independent transaction, source-file set, stale-deletion boundary, and persistent latest attempt/success/status/error health. Unavailable or invalid sources skip stale reconciliation and retain their normalized data; an unexpected failure rolls back only that source. The API returns a bounded per-source report plus complete, partial, or failed aggregate outcome. The Sources inventory owns the wider scan that appends every enabled Local Context root without weakening those Session-source commit boundaries. Both web actions retain the source-file freshness check. An otherwise-current source is reparsed only when its versioned Atlassian evidence scan or enabled configured-Site fingerprint is missing or changed; once both generic and evidence contracts are current, the source is skipped.
+
+Sessions browsing derives its ordered peer source controls from the same registry
+and uses the stable source key, never provider kind, as GET and query identity.
+`all` plus each source-specific view share one primary-work/primary-role
+denominator across headline count, inventory, pagination, and Project grouping;
+the inventory adds no timestamp cutoff. Unknown source keys and missing workspace
+IDs normalize to a valid URL while preserving the other valid scope. Ordinary
+inventory and Pinned cards expose source-specific `CL`, `CX`, or `CC` cues with
+the configured display label in accessible text instead of repeating it visibly.
+Detail headings and normalized or lazy Subsession projections derive the same
+cue and provenance class from stable source identity rather than shared provider
+kind. Their configured source display label remains in accessible cue text rather
+than being repeated visibly in detail headings or parent-detail Subsession rows.
+The child projection carries the existing `user_message_count` beside
+`event_count`; a lazy Claude child derives the same question count from its
+source events. The detail row renders question, event, then activity date.
+Detail links retain the selected source/workspace only as return orientation.
 
 ### Adapter-specific Rules
 
-- Import Claude primary and nested `subagents/` files with distinct Session roles and a source-backed parent relation. Use the nested `agent-*.jsonl` filename stem as child identity; its record-level `sessionId` may denote the owning parent.
+- Import Claude primary and direct `subagents/*.jsonl` files with distinct Session
+  roles and a source-backed parent relation. Deeper descendants of the native
+  `subagents` tree, including `workflows/**/journal.jsonl`, are internal artifacts
+  rather than Session candidates. A successful scan excludes them from the valid
+  source-file set and reconciles any prior false normalized Session without
+  deleting the native artifact. Use the direct child filename stem as child
+  identity; its record-level `sessionId` may denote the owning parent.
 - Use the first Codex `session_meta` record as the file identity because a rollout file may contain older embedded metadata.
 - Read Codex parent and Git context from that same primary metadata record; later embedded metadata never replaces the file identity.
 - Index human and assistant message text plus tool names; do not index opaque tool arguments or result payloads. Approved Atlassian read results may be inspected ephemerally only through bounded URL, remote-ID, and title field/container allowlists, and only the resulting locator evidence is persisted.

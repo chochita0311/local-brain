@@ -1,55 +1,80 @@
+{% macro related_material_item(item) %}
+  {% if item.href %}
+    <a
+      class="related-material-item {{ item.availability }}"
+      href="{{ item.href }}"
+      {% if item.external %}target="_blank" rel="noopener noreferrer external"{% endif %}
+    >
+  {% else %}
+    <div class="related-material-item {{ item.availability }}">
+  {% endif %}
+      <span class="related-material-meta">
+        <span>{{ item.kind_label }}</span>
+        {% if item.availability_label %}<span class="related-material-availability">{{ item.availability_label }}</span>{% endif %}
+      </span>
+      <strong>{{ item.identity }}</strong>
+      {% if item.detail %}<span class="related-material-detail">{{ item.detail }}</span>{% endif %}
+      {% if item.evidence %}
+        <span class="related-material-evidence" aria-label="세션 참조 근거">
+          {% for evidence in item.evidence %}
+            <span{% if evidence.outcome == 'failure' %} class="failed"{% endif %}>{{ evidence.label }}{% if evidence.count > 1 %} · {{ evidence.count }}{% endif %}</span>
+          {% endfor %}
+        </span>
+      {% endif %}
+      {% if item.organization %}
+        <span class="related-material-organization">
+          {{ item.organization[0].label }}{% if item.organization | length > 1 %} 외 {{ (item.organization | length) - 1 }}개 연결{% endif %}
+        </span>
+      {% endif %}
+  {% if item.href %}
+    </a>
+  {% else %}
+    </div>
+  {% endif %}
+{% endmacro %}
+
 <aside class="session-related-context" aria-labelledby="related-context-title">
   <div class="side-heading">
-    <h2 id="related-context-title">Related Context</h2>
-    {% if related_context['items'] %}<span>{{ related_context['items'] | length }}</span>{% endif %}
+    <h2 id="related-context-title">관련 자료</h2>
+    {% if related_context.item_count %}<span>{{ related_context.item_count }}</span>{% endif %}
   </div>
-  <p class="related-context-intro">현재 로컬 연결 기준</p>
 
   {% if related_context.state == 'error' %}
     <div class="related-context-state error" role="status">
-      <strong>관련 컨텍스트를 불러오지 못했습니다</strong>
+      <strong>관련 자료를 불러오지 못했습니다</strong>
       <span>Session 대화는 계속 읽을 수 있습니다.</span>
     </div>
-  {% elif related_context['items'] %}
-    <div class="related-context-list">
-      {% for item in related_context['items'] %}
-        {% if item.href %}
-          <a
-            class="related-context-item {{ item.availability }}"
-            href="{{ item.href }}"
-            {% if item.external %}target="_blank" rel="noopener noreferrer external"{% endif %}
-          >
-        {% else %}
-          <div class="related-context-item {{ item.availability }}">
-        {% endif %}
-            <div class="related-context-title-line">
-              <span class="related-context-type">{{ item.resource_label }}</span>
-              {% if item.availability_label %}<span class="related-context-availability">{{ item.availability_label }}</span>{% endif %}
-            </div>
-            <strong>{{ item.title }}</strong>
-            <span class="related-context-provenance">{{ item.provenance }}</span>
-            <span class="related-context-detail">{{ item.detail }}</span>
-            <span class="related-context-reasons" aria-label="관련 이유">
-              {% for reason in item.reasons %}<span>{{ reason.label }}</span>{% endfor %}
-            </span>
-        {% if item.href %}
-          </a>
-        {% else %}
-          </div>
+  {% elif related_context.state == 'empty' %}
+    <div class="related-context-state empty">
+      <strong>이 세션에 연결된 자료가 없습니다</strong>
+      <span>같은 경로나 최근 문서를 대신 표시하지 않습니다.</span>
+    </div>
+  {% else %}
+    <div class="related-material-groups">
+      {% for group in related_context.groups %}
+        {% if group.items or group.notices %}
+          <section class="related-material-group" aria-labelledby="related-material-group-{{ group.key }}">
+            <header class="related-material-group-heading">
+              <h3 id="related-material-group-{{ group.key }}">{{ group.label }}</h3>
+              <span aria-label="총 {{ group.total }}개">{{ group.total }}</span>
+            </header>
+            {% if group.initial_items %}
+              <div class="related-material-list">
+                {% for item in group.initial_items %}{{ related_material_item(item) }}{% endfor %}
+              </div>
+            {% endif %}
+            {% if group.additional_items %}
+              <details class="related-material-disclosure">
+                <summary><span class="when-collapsed">{{ group.overflow_count }}개 더 보기</span><span class="when-expanded">접기</span></summary>
+                <div class="related-material-list related-material-additional">
+                  {% for item in group.additional_items %}{{ related_material_item(item) }}{% endfor %}
+                </div>
+              </details>
+            {% endif %}
+            {% for notice in group.notices %}<p class="related-context-partial" role="status">{{ notice }}</p>{% endfor %}
+          </section>
         {% endif %}
       {% endfor %}
-    </div>
-    {% if related_context.unavailable_count or related_context.overflow_count or related_context.scan_truncated %}
-      <p class="related-context-partial" role="status">
-        {% if related_context.unavailable_count %}대상을 찾을 수 없는 연결 {{ related_context.unavailable_count }}개를 제외했습니다.{% endif %}
-        {% if related_context.overflow_count %}추가 관련 항목 {{ related_context.overflow_count }}개는 표시 한도 밖에 있습니다.{% endif %}
-        {% if related_context.scan_truncated %}더 많은 로컬 연결이 있어 후보 확인 범위를 제한했습니다.{% endif %}
-      </p>
-    {% endif %}
-  {% else %}
-    <div class="related-context-state empty">
-      <strong>연결된 컨텍스트가 없습니다</strong>
-      <span>최근 문서나 추측한 항목은 대신 표시하지 않습니다.</span>
     </div>
   {% endif %}
 </aside>

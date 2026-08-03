@@ -1,6 +1,7 @@
 import os
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
 
 DEFAULT_DATA_DIR = Path.home() / "Library" / "Application Support" / "LocalBrain"
@@ -29,6 +30,7 @@ class Settings:
     codex_root: Path
     mcp_call_budget: int
     timezone_name: str = "UTC"
+    session_sources_path: Optional[Path] = None
 
 
 def load_settings() -> Settings:
@@ -61,6 +63,7 @@ def load_settings() -> Settings:
         timezone_name=os.environ.get(
             "LOCALBRAIN_TIMEZONE", _system_timezone_name()
         ),
+        session_sources_path=data_dir / "session-sources.toml",
     )
 
 

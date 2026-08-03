@@ -1,0 +1,3 @@
+{% macro source_cue(source_kind, provider_kind, display_label) -%}
+  {{- 'CC' if source_kind == 'codex-company' else ('CX' if source_kind == 'codex' else ('CL' if provider_kind == 'claude' else display_label[:2] | upper)) -}}
+{%- endmacro %}

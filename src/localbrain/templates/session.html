@@ -1,14 +1,15 @@
 {% extends "base.html" %}
 {% from "_conversation.html" import conversation_message %}
 {% from "_session_pin.html" import session_pin_control with context %}
+{% from "_source_cue.html" import source_cue %}
 {% set session_return_to = (request.url.path ~ (('?' ~ request.url.query) if request.url.query else '')) if request is defined else '/sessions/' ~ session.id %}
 {% set session_pin_error = request.query_params.get('pin_error') if request is defined else none %}
 {% block title %}{{ session.title }} · LocalBrain{% endblock %}
 {% block page_location %}Session detail{% endblock %}
 {% block content %}
   <nav class="detail-backlinks" aria-label="Session 상세 탐색">
-    {% if parent %}<a class="back-link" href="/sessions/{{ parent.id }}">상위 Session으로 돌아가기</a>{% endif %}
-    <a class="back-link" href="/sessions">Sessions 목록</a>
+    {% if parent %}<a class="back-link" href="{{ parent_url | default('/sessions/' ~ parent.id) }}">상위 Session으로 돌아가기</a>{% endif %}
+    <a class="back-link" href="{{ session_list_url | default('/sessions') }}">Sessions 목록</a>
   </nav>
   {% if session_pin_error and session_pin_error != 'storage-unavailable' %}
     <div class="session-pin-notice" role="alert">
@@ -20,9 +21,9 @@
     </div>
   {% endif %}
   <section class="session-heading">
-    <div class="session-source large {{ session.source_kind }}"><span aria-hidden="true">{{ 'CL' if session.source_kind == 'claude' else 'CX' }}</span><span class="sr-only">{{ value_label("source.kind", session.source_kind) }} · {{ value_label("session.role", session.session_role) }}</span></div>
+    <div class="session-source large {{ session.source_kind }}"><span aria-hidden="true">{{ source_cue(session.source_kind, session.provider_kind, session.source_name) }}</span><span class="sr-only">{{ session.source_name or value_label("source.kind", session.source_kind) }} · {{ value_label("session.role", session.session_role) }}</span></div>
     <div class="session-heading-copy">
-      {% if parent %}<p class="eyebrow">SUBSESSION</p>{% endif %}
+      {% if parent %}<p class="eyebrow">{{ value_label("session.role", "subsession") | upper }}</p>{% endif %}
       <h1>{{ session.title }}</h1>
       <p class="heading-copy path-copy">{{ session.workspace_path or session.cwd_raw or session.source_path }}</p>
     </div>
@@ -42,7 +43,7 @@
       </section>
 
       {% if parent %}
-        <section class="scope-notice parent-session-notice"><span>상위 Session</span><a href="/sessions/{{ parent.id }}">{{ parent.title }}</a></section>
+        <section class="scope-notice parent-session-notice"><span>상위 Session · {{ parent.source_name }}</span><a href="{{ parent_url | default('/sessions/' ~ parent.id) }}">{{ parent.title }}</a></section>
       {% endif %}
 
       {% if memberships %}
@@ -58,8 +59,9 @@
           <div class="subsession-list">
             {% for subsession in subsessions %}
               <a href="{{ subsession.url }}">
-                <span class="session-source {{ subsession.source_kind }}"><span aria-hidden="true">{{ 'CL' if subsession.source_kind == 'claude' else 'CX' }}</span><span class="sr-only">{{ value_label("source.kind", subsession.source_kind) }} · {{ value_label("session.role", "subsession") }}</span></span>
+                <span class="session-source {{ subsession.source_kind }}"><span aria-hidden="true">{{ source_cue(subsession.source_kind, subsession.provider_kind, subsession.source_name) }}</span><span class="sr-only">{{ subsession.source_name or value_label("source.kind", subsession.source_kind) }} · {{ value_label("session.role", "subsession") }}</span></span>
                 <div><strong>{{ subsession.title }}</strong><small>{{ subsession.external_id }}</small></div>
+                <span class="subsession-question-count">질문 {{ subsession.user_message_count }}</span>
                 <span class="subsession-event-count">이벤트 {{ subsession.event_count }}</span>
                 <time datetime="{{ subsession.last_event_at }}" data-local-time>{{ subsession.last_event_at or '-' }}</time>
               </a>

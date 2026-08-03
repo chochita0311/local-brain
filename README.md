@@ -14,9 +14,9 @@ The current MVP runs as a FastAPI web application on the local machine. A native
 - Maintain versioned checkpoints and review reversible resource Suggestions.
 - Run Claude maintenance tasks for resource organization, checkpoint drafting, and priority review.
 - Register Jira tickets/projects and Confluence Pages/Spaces from real URLs without MCP setup, configure optional remote access separately, and browse known records locally. External reads occur only through explicitly submitted bounded refresh or connected-discovery actions; see the [Product Model](docs/policies/project/product.md#navigation) and [Project Architecture](docs/policies/project/architecture.md#architectural-constraints) for the detailed contract.
-- Inspect Claude and Codex tokens, estimated trend cost, primary-work Session volume, active days, and Daily, Weekly, or Cumulative history in Sessions Dashboard.
+- Inspect aggregate or per-source tokens, estimated trend cost, primary-work Session volume, active days, and Daily, Weekly, or Cumulative history in Sessions Dashboard.
 - Pin persisted primary work Sessions from the Sessions inventory or Session detail. The global `Pinned Sessions` panel replaces generic recent Context, shows every current pin by displayed Session activity date, and stays independent from source, workspace, and page filters.
-- Open a persisted primary Session to see a local-only `Related Context` rail. It explains existing Session evidence, Thread, Workstream, and project relationships without using global recency or starting remote/model work.
+- Open a persisted primary Session to see a local-only `관련 자료` rail. `이 세션의 참조` shows the Session's normalized mentions and approved MCP read outcomes; `연결된 작업` follows only explicit shared Thread or Workstream links. Each group shows 10 items initially, keeps the rest behind a reversible disclosure, and never adds same-path or recent-document fallback or starts remote/model work.
 - Read bounded database-backed states through one complete product vocabulary per value family. Ordinary screens never mix translated labels with unexplained physical tokens from the same field, while stored values and request identities remain unchanged.
 - Explore the complete schema, nine subject areas, locally rendered orthogonal Mermaid ERDs, and table contracts from the read-only **System > Schema** surface.
 
@@ -35,13 +35,30 @@ uv run --no-sync uvicorn localbrain.main:app --host 127.0.0.1 --port 8000
 
 Open `http://127.0.0.1:8000`. The local database is created automatically on first startup. Stop the server with `Ctrl+C`.
 
-To import local Claude and Codex sessions, use **동기화** on the Sessions page. The same action automatically repairs derived usage records when LocalBrain's source-normalizer contract changes; no aggregate-reset control is required. The **Sources** page keeps the wider scan across Session sources and enabled Local Context folders, files, and Apple Notes. The initial `uv sync` downloads Python packages, but LocalBrain's indexed content and runtime data remain on the local machine.
+On first startup, LocalBrain creates a private `session-sources.toml` beside
+`localbrain.db`. It registers Claude, personal Codex, and Codex Company
+(`~/.codex-company/sessions`) as peer local Session sources and can hold future
+roots. This runtime configuration must not be committed. See
+[Configuration](docs/policies/project/developer-guide.md#configuration) for its
+schema, bootstrap behavior, and safe-change rules.
 
-Sessions Dashboard defaults to the latest 30 inclusive local days. Its Source, Range, Tokens/Cost, and paired custom-date controls are ordinary GET state, so a filtered view can be bookmarked or reopened. Cost is a locally reproduced trend estimate from stored price snapshots, including model-specific request-context tiers when the frozen reference defines them; it is not billed spend, and unsupported pricing stays visibly unavailable.
+To import local AI sessions, use **동기화** on the Sessions page. One action scans
+every validated registry entry; a missing or invalid source keeps its existing
+indexed data and appears as needing attention. The **Sources** page keeps the
+wider scan across Session sources and enabled Local Context folders, files, and
+Apple Notes. The initial `uv sync` downloads Python packages, but indexed content
+and runtime data remain on the local machine.
+
+Sessions supports combined and per-source inventory scopes without an age cutoff.
+Counts, pagination, Projects, Pinned Sessions, detail provenance, meaningful-
+Session eligibility, and source reconciliation follow the shared rules in the
+[Product Model](docs/policies/project/product.md#navigation).
+
+Sessions Dashboard defaults to the latest 30 inclusive local days. Its Source choices come from the same private registry: **All** combines every accepted local AI source, while Claude, personal Codex, and Codex Company remain independently selectable. Source, Range, Tokens/Cost, composition, and paired custom-date controls are ordinary GET state, so a filtered view can be bookmarked or reopened. Cost is a locally reproduced trend estimate from stored price snapshots, including model-specific request-context tiers when the frozen reference defines them; it is not billed spend, and unsupported pricing stays visibly unavailable.
 
 Actual model usage from primary, maintenance, and subsession records contributes to dashboard tokens and cost. Claude's source-generated `<synthetic>` assistant or API-error records remain stored for Session evidence but are excluded from usage periods, totals, coverage, and breakdowns because they are not model usage.
 
-The same selected records can be explained by Source, normalized Model, or first-observation Project snapshot. The composition list keeps compatible shares and evidence links separate from the trust region, which reports token and price coverage, source freshness, calculation time, and retained data when a source needs attention.
+The same selected records can be explained by Source, normalized Model, or first-observation Project snapshot. Personal Codex and Codex Company remain separate source rows even though they share token and price rules. The trust region reports token and price coverage, per-source synchronization results, calculation time, and retained data when a source needs attention.
 
 The dashboard deliberately stops at observed selected-period and month-to-date values. It does not surface a projected month-end cost, budget, cap, or billed amount.
 
@@ -65,7 +82,7 @@ Configuration, environment variables, and verification guidance live in the [Dev
 
 ## Local Data
 
-Runtime data is stored under `~/Library/Application Support/LocalBrain` by default. The SQLite database, indexed session and note content, task artifacts, exports, and logs stay outside the source repository.
+Runtime data is stored under `~/Library/Application Support/LocalBrain` by default. The SQLite database, private `session-sources.toml`, indexed session and note content, task artifacts, exports, and logs stay outside the source repository.
 
 Apple Notes indexing uses local macOS Automation and may trigger a permission prompt the first time it is connected. LocalBrain does not require Apple Notes access for its other sources.
 

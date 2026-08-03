@@ -8,30 +8,45 @@
       <h1>Sources</h1>
       <p class="heading-copy">각 정보가 어디에서 왔고, 어떤 역할과 최신성을 가지는지 관리합니다.</p>
     </div>
-    <button id="scan-button" class="primary-button" type="button">
-      <span class="button-idle">전체 스캔</span>
-      <span class="button-working" hidden>스캔 중...</span>
-    </button>
+    <form action="/sources/scan" method="post">
+      <button id="scan-button" class="primary-button" type="submit">
+        <span class="button-idle">전체 스캔</span>
+        <span class="button-working" hidden>스캔 중...</span>
+      </button>
+    </form>
   </section>
-  <div id="scan-result" class="scan-result" role="status" hidden></div>
+  <div id="scan-result" class="scan-result{% if sync_outcome | default(none) %} scan-report {{ 'success' if sync_outcome == 'complete' else ('warning' if sync_outcome == 'partial' else 'error') }}{% endif %}" role="{{ 'alert' if sync_outcome | default(none) in ['partial', 'failed'] else 'status' }}" {% if not sync_outcome | default(none) %}hidden{% endif %}>
+    {% if sync_outcome | default(none) %}
+      <strong>
+        {% if sync_outcome == 'complete' %}모든 로컬 소스를 스캔했습니다.
+        {% elif sync_outcome == 'partial' %}일부 로컬 소스에 확인이 필요합니다.
+        {% else %}로컬 소스를 스캔하지 못했습니다.{% endif %}
+      </strong>
+      <span>아래 소스 카드에서 상태와 기존 데이터 보존 여부를 확인하세요.</span>
+    {% endif %}
+  </div>
 
   <section class="source-inventory-section">
-    <div class="section-toolbar"><div><h2>Active sources</h2><p>현재 로컬 인덱스에 연결된 소스</p></div><span class="table-count">{{ sources | length }} connected</span></div>
+    <div class="section-toolbar"><div><h2>Local sources</h2><p>등록된 위치, 수집 상태, 마지막 성공을 함께 확인합니다.</p></div><span class="table-count">{{ sources | length }} registered</span></div>
     <div class="source-cards">
       {% for source in sources %}
         <article class="source-card">
           <div class="source-card-heading">
-            <span class="session-source {{ source.kind }}">{{ 'CL' if source.kind == 'claude' else ('CX' if source.kind == 'codex' else 'MD') }}</span>
-            <div><h3>{{ source.name }}</h3><span>{{ value_label("source.kind", source.kind) }} · {{ 'Operational signal' if source.kind in ['claude', 'codex'] else 'Historical note' }}</span></div>
-            <span class="health-label {{ 'error' if source.error_count else 'healthy' }}">{{ 'Error' if source.error_count else 'Healthy' }}</span>
+            <span class="session-source {{ source.provider_kind }}">{{ 'CL' if source.provider_kind == 'claude' else ('CX' if source.provider_kind == 'codex' else 'MD') }}</span>
+            <div><h3>{{ source.name }}</h3><span>{{ value_label("source.kind", source.kind) }} · {{ 'Operational signal' if source.provider_kind in ['claude', 'codex'] else 'Historical note' }}</span></div>
+            <span class="health-label {{ 'healthy' if source.last_scan_status == 'completed' else ('neutral' if source.last_scan_status in [none, 'empty'] else ('warning' if source.last_scan_status == 'unavailable' else 'error')) }}">{{ value_label("source.scan-status", source.last_scan_status) }}</span>
           </div>
           <p class="source-path">{{ source.root_path }}</p>
           <div class="source-card-stats">
-            <div><strong>{{ source.file_count }}</strong><span>Files</span></div>
-            <div><strong>{{ source.session_count }}</strong><span>Sessions</span></div>
+            <div><strong>{{ source.file_count }}</strong><span>Tracked files</span></div>
+            <div><strong>{{ source.session_count }}</strong><span>Eligible Sessions</span></div>
             <div><strong>{{ source.document_count }}</strong><span>Documents</span></div>
           </div>
-          <div class="source-card-footer"><span>Last scan</span><time datetime="{{ source.last_scanned_at }}" data-local-time>{{ source.last_scanned_at or '-' }}</time></div>
+          <dl class="source-health-times">
+            <div><dt>Last attempt</dt><dd><time datetime="{{ source.last_scanned_at or '' }}" data-local-time>{{ source.last_scanned_at or '-' }}</time></dd></div>
+            <div><dt>Last success</dt><dd><time datetime="{{ source.last_scan_success_at or '' }}" data-local-time>{{ source.last_scan_success_at or '-' }}</time></dd></div>
+          </dl>
+          {% if source.last_scan_error %}<p class="source-health-error">{{ source.last_scan_error }}</p>{% endif %}
         </article>
       {% endfor %}
     </div>

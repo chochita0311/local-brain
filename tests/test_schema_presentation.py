@@ -31,14 +31,14 @@ class SchemaPresentationBuildTests(unittest.TestCase):
         self.assertEqual(manifest["schema"], "localbrain.schema-presentation.v1")
         self.assertIs(manifest["derived"], True)
         self.assertEqual(len(manifest["subjects"]), 9)
-        self.assertEqual(len(manifest["tables"]), 37)
+        self.assertEqual(len(manifest["tables"]), 39)
         self.assertEqual(
-            sum(len(table["columns"]) for table in manifest["tables"]), 389
+            sum(len(table["columns"]) for table in manifest["tables"]), 426
         )
         self.assertEqual(
-            sum(len(table["indexes"]) for table in manifest["tables"]), 34
+            sum(len(table["indexes"]) for table in manifest["tables"]), 38
         )
-        self.assertEqual(len(manifest["relationships"]["physical"]), 44)
+        self.assertEqual(len(manifest["relationships"]["physical"]), 49)
         self.assertEqual(len(manifest["relationships"]["application"]), 24)
 
         owned = [
@@ -48,7 +48,7 @@ class SchemaPresentationBuildTests(unittest.TestCase):
         ]
         table_ids = [table["id"] for table in manifest["tables"]]
         self.assertEqual(owned, table_ids)
-        self.assertEqual(len(set(owned)), 37)
+        self.assertEqual(len(set(owned)), 39)
 
         required_semantics = {
             "purpose_and_authority",

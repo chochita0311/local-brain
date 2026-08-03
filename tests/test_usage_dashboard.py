@@ -79,14 +79,22 @@ class UsageDashboardTests(unittest.TestCase):
         self.connection.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
         self.claude_id = self.connection.execute(
             """
-            INSERT INTO sources(kind, name, root_path, last_scanned_at)
-            VALUES ('claude', 'Claude', '/tmp/claude', '2026-07-18T08:00:00Z')
+            INSERT INTO sources(
+                kind, provider_kind, name, root_path, last_scanned_at
+            ) VALUES (
+                'claude', 'claude', 'Claude', '/tmp/claude',
+                '2026-07-18T08:00:00Z'
+            )
             """
         ).lastrowid
         self.codex_id = self.connection.execute(
             """
-            INSERT INTO sources(kind, name, root_path, last_scanned_at)
-            VALUES ('codex', 'Codex', '/tmp/codex', '2026-07-18T09:00:00Z')
+            INSERT INTO sources(
+                kind, provider_kind, name, root_path, last_scanned_at
+            ) VALUES (
+                'codex', 'codex', 'Codex', '/tmp/codex',
+                '2026-07-18T09:00:00Z'
+            )
             """
         ).lastrowid
 
@@ -149,6 +157,44 @@ class UsageDashboardTests(unittest.TestCase):
             ],
         )
 
+    def _seed_company_usage(
+        self,
+        *,
+        scan_status="completed",
+        last_success="2026-07-18T10:00:00Z",
+        scan_error=None,
+    ):
+        company_id = self.connection.execute(
+            """
+            INSERT INTO sources(
+                kind, provider_kind, name, root_path, last_scanned_at,
+                last_scan_success_at, last_scan_status, last_scan_error
+            ) VALUES (
+                'codex-company', 'codex', 'Codex Company', '/tmp/codex-company',
+                '2026-07-18T10:00:00Z', ?, ?, ?
+            )
+            """,
+            (last_success, scan_status, scan_error),
+        ).lastrowid
+        for identity, session_class, session_role in (
+            ("company-primary", "work", "primary"),
+            ("company-maintenance", "maintenance", "primary"),
+            ("company-subsession", "work", "subsession"),
+        ):
+            _store_session(
+                self.connection,
+                company_id,
+                "codex-company",
+                parsed_session(
+                    identity,
+                    [usage_record(identity, "2026-07-18T10:00:00Z")],
+                    session_class=session_class,
+                    session_role=session_role,
+                ),
+                provider_kind="codex",
+            )
+        return company_id
+
     def test_default_summary_includes_all_direct_usage_but_counts_primary_work(self):
         self._seed_usage()
         result = usage_dashboard_data(
@@ -193,6 +239,118 @@ class UsageDashboardTests(unittest.TestCase):
             "1 of 1 usage record priced · trend estimate",
         )
         self.assertEqual(result["summary"][1]["detail"], "1 usage record")
+
+    def test_registry_sources_keep_company_usage_independent_and_sum_to_all(self):
+        self._seed_usage()
+        self._seed_company_usage()
+
+        common = {
+            "timezone_name": "UTC",
+            "today": date(2026, 7, 18),
+        }
+        all_usage = usage_dashboard_data(self.connection, **common)
+        per_source = {
+            source: usage_dashboard_data(self.connection, source=source, **common)
+            for source in ("claude", "codex", "codex-company")
+        }
+        company = per_source["codex-company"]
+
+        self.assertEqual(
+            [item["value"] for item in all_usage["controls"]["sources"]],
+            ["all", "claude", "codex", "codex-company"],
+        )
+        self.assertEqual(company["scope"]["source_label"], "Codex Company")
+        self.assertEqual(company["aggregate"]["total_tokens"], 510)
+        self.assertEqual(company["aggregate"]["usage_record_count"], 3)
+        self.assertEqual(company["aggregate"]["session_count"], 1)
+        self.assertEqual(per_source["codex"]["aggregate"]["total_tokens"], 510)
+        for field in (
+            "total_tokens",
+            "estimated_cost",
+            "usage_record_count",
+            "session_count",
+        ):
+            self.assertEqual(
+                all_usage["aggregate"][field],
+                sum(item["aggregate"][field] for item in per_source.values()),
+            )
+        for field in ("total_tokens", "estimated_cost", "usage_record_count", "session_count"):
+            self.assertEqual(
+                all_usage["month_to_date"][field],
+                sum(item["month_to_date"][field] for item in per_source.values()),
+            )
+        for index, bucket in enumerate(all_usage["history"]):
+            self.assertEqual(
+                bucket["value"],
+                sum(item["history"][index]["value"] for item in per_source.values()),
+            )
+        source_rows = {
+            row["key"]: row for row in all_usage["breakdown"]["rows"]
+        }
+        self.assertEqual(set(source_rows), {"claude", "codex", "codex-company"})
+        self.assertEqual(source_rows["codex-company"]["label"], "Codex Company")
+        self.assertEqual(source_rows["codex-company"]["provider_kind"], "codex")
+        self.assertEqual(
+            source_rows["codex-company"]["evidence_url"],
+            "/sessions?source=codex-company",
+        )
+        self.assertEqual(
+            all_usage["breakdown"]["compatible_total_label"],
+            all_usage["summary"][1]["value"],
+        )
+
+        invalid = usage_dashboard_data(
+            self.connection, source="combined-codex", **common
+        )
+        self.assertEqual(invalid["scope"]["source"], "all")
+
+        custom = usage_dashboard_data(
+            self.connection,
+            view="weekly",
+            source="codex-company",
+            metric="cost",
+            breakdown="model",
+            from_value="2026-07-01",
+            to_value="2026-07-18",
+            **common,
+        )
+        personal_url = next(
+            item["url"]
+            for item in custom["controls"]["sources"]
+            if item["value"] == "codex"
+        )
+        for value in (
+            "view=weekly",
+            "source=codex",
+            "metric=cost",
+            "breakdown=model",
+            "from=2026-07-01",
+            "to=2026-07-18",
+        ):
+            self.assertIn(value, personal_url)
+
+    def test_company_source_state_preserves_usage_and_reports_latest_scan_failure(self):
+        self._seed_company_usage(
+            scan_status="unavailable",
+            last_success="2026-07-01T08:00:00Z",
+            scan_error="This source was not synchronized; existing data was retained.",
+        )
+        result = usage_dashboard_data(
+            self.connection,
+            source="codex-company",
+            timezone_name="UTC",
+            today=date(2026, 7, 18),
+        )
+
+        self.assertTrue(result["has_usage"])
+        self.assertEqual(result["aggregate"]["total_tokens"], 510)
+        self.assertEqual(result["freshness"]["status"], "error")
+        company = result["freshness"]["sources"][0]
+        self.assertEqual(company["provider_kind"], "codex")
+        self.assertEqual(company["scan_status"], "unavailable")
+        self.assertEqual(company["last_successful_at"], "2026-07-01T08:00:00Z")
+        self.assertIn("existing data was retained", company["scan_error"])
+        self.assertEqual(company["selected_usage_record_count"], 3)
 
     def test_claude_synthetic_records_stay_stored_but_are_excluded_from_dashboard(self):
         _store_session(
@@ -530,7 +688,8 @@ class UsageDashboardTests(unittest.TestCase):
         unpriced_connection.execute("PRAGMA foreign_keys = ON")
         unpriced_connection.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
         source_id = unpriced_connection.execute(
-            "INSERT INTO sources(kind, name, root_path) VALUES ('codex', 'Codex', '/tmp')"
+            "INSERT INTO sources(kind, provider_kind, name, root_path) "
+            "VALUES ('codex', 'codex', 'Codex', '/tmp')"
         ).lastrowid
         _store_session(
             unpriced_connection,

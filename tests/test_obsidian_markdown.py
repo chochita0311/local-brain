@@ -104,6 +104,30 @@ class ObsidianMarkdownTests(unittest.TestCase):
         self.assertIn("markdown-math-fallback", unsafe_attribute.html)
         self.assertNotIn("file:///tmp/private", unsafe_attribute.html)
 
+    def test_inline_math_does_not_consume_multiline_java_stack_names(self):
+        source = (
+            "at io.grpc.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed."
+            "runInternal(ClientCallImpl.java:744)\n"
+            "at io.grpc.ClientCallImpl$ClientStreamListenerImpl$1StreamClosed."
+            "runInContext(ClientCallImpl.java:723)"
+        )
+
+        result = render_markdown(source)
+
+        self.assertNotIn("markdown-math", result.html)
+        self.assertIn("ClientStreamListenerImpl$1StreamClosed", result.html)
+        self.assertEqual(result.html.count("<br />"), 1)
+
+    def test_inline_math_requires_a_same_line_closing_delimiter(self):
+        result = render_markdown("Inline $x^2$ remains math.\nBroken $x +\ny$ stays text.")
+
+        self.assertEqual(result.html.count("markdown-math"), 1)
+        self.assertIn("Broken $x +", result.html)
+        self.assertIn("y$ stays text.", result.html)
+
+        block = render_markdown("$$\n\\frac{1}{2}\n$$")
+        self.assertIn('display="block"', block.html)
+
     def test_duplicate_headings_blocks_and_same_document_links_are_stable(self):
         result = render_markdown(
             "# Same\n\n# Same\n\nParagraph ^piece\n\n"

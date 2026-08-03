@@ -58,7 +58,7 @@ erDiagram
 
 ## Polymorphic Target Contract
 
-`entity_type` is restricted by application code to `session`, `document`, `project`, `external`, or `local`, resolving respectively to `sessions`, `context_documents`, `workspaces`, `external_resources`, or `local_resources`. `_validate_entity` confirms the target exists; Session targets must also be primary work Sessions. `entity_id` remains text so the shared link shape can address heterogeneous integer identities. SQLite provides no target FK, cascade, or orphan cleanup. Session `Related Context` may read shared Thread and Workstream memberships as a deterministic projection, but it creates no new ownership edge; unresolved targets are omitted and reported only as a bounded unavailable count.
+`entity_type` is restricted by application code to `session`, `document`, `project`, `external`, or `local`, resolving respectively to `sessions`, `context_documents`, `workspaces`, `external_resources`, or `local_resources`. `_validate_entity` confirms the target exists; Session targets must also be primary work Sessions. `entity_id` remains text so the shared link shape can address heterogeneous integer identities. SQLite provides no target FK, cascade, or orphan cleanup. Primary Session `관련 자료` may read Documents and Resources that share these explicit Thread or Workstream memberships as its secondary `연결된 작업` group, but it creates no new ownership edge. A target already owned by direct Session reference evidence stays only in the stronger direct group. Unresolved targets are omitted and reported only as a bounded unavailable count; workspace/path similarity never substitutes for a curated link.
 
 ## Catalog
 

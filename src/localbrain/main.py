@@ -59,6 +59,7 @@ from .queries import (
     session_inventory_page,
     session_detail,
     session_parent,
+    session_source_scopes,
     session_subsessions,
     source_inventory,
 )
@@ -82,8 +83,12 @@ from .runner import (
     task_choices,
 )
 from .schema_explorer import schema_explorer_page_data
-from .session_context import RELATED_CONTEXT_LIMIT, session_related_context
+from .session_context import (
+    session_related_context,
+    session_related_context_error,
+)
 from .session_reading import conversation_event_views
+from .session_sources import load_and_reconcile_session_sources
 from .subagents import list_subagents, load_subagent
 from .usage_queries import usage_dashboard_data
 from .value_registry import display_value_label, visible_value_help
@@ -185,6 +190,10 @@ class ContextFileCreate(BaseModel):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
+    with transaction() as connection:
+        app.state.session_source_registry = load_and_reconcile_session_sources(
+            connection, settings
+        )
     reconcile_interrupted_runs()
     try:
         yield
@@ -318,7 +327,6 @@ def sessions_page(
     workspace: Optional[int] = Query(default=None),
     page: str = Query(default="1"),
 ):
-    selected_source = source if source in {"claude", "codex"} else None
     try:
         requested_page = int(page)
         page_is_valid = requested_page > 0
@@ -326,7 +334,26 @@ def sessions_page(
         requested_page = 1
         page_is_valid = False
     with connect() as connection:
-        projects = project_activity(connection)
+        source_scopes = session_source_scopes(connection)
+        source_scope_by_key = {
+            item["source_key"]: item for item in source_scopes
+        }
+        source_is_valid = source == "all" or source in source_scope_by_key
+        workspace_is_valid = workspace is None or connection.execute(
+            "SELECT 1 FROM workspaces WHERE id = ?", (workspace,)
+        ).fetchone() is not None
+        if not source_is_valid or not workspace_is_valid:
+            params = {}
+            if source_is_valid and source != "all":
+                params["source"] = source
+            if workspace_is_valid and workspace is not None:
+                params["workspace"] = workspace
+            destination = "/sessions"
+            if params:
+                destination += "?{}".format(urlencode(params))
+            return RedirectResponse(url=destination, status_code=303)
+        selected_source = source if source != "all" else None
+        projects = project_activity(connection, selected_source)
         pagination = session_inventory_page(
             connection, selected_source, workspace, requested_page
         )
@@ -347,17 +374,26 @@ def sessions_page(
             "selected_inventory": "sessions",
             "page_title": "Sessions",
             "selected_source": selected_source or "all",
+            "selected_source_label": (
+                source_scope_by_key[selected_source]["display_label"]
+                if selected_source
+                else "전체"
+            ),
             "selected_workspace": workspace,
-            "stats": dashboard_stats(connection),
+            "stats": dashboard_stats(connection, selected_source),
             "sessions": pagination["items"],
             "pagination": pagination,
             "pinned_sessions": list_all_pinned_sessions(connection),
             "sources": source_inventory(connection),
+            "session_source_scopes": source_scopes,
             "projects": projects,
             "project_count": len(projects),
             "missing_count": sum(
                 1 for project in projects if not project["exists_now"]
             ),
+            "sync_outcome": request.query_params.get("sync")
+            if request.query_params.get("sync") in {"complete", "partial", "failed"}
+            else None,
         }
     return templates.TemplateResponse("sessions.html", page_context)
 
@@ -1309,23 +1345,29 @@ def projects_page(request: Request):
     with connect() as connection:
         projects = project_activity(connection)
         pagination = session_inventory_page(connection)
+        source_scopes = session_source_scopes(connection)
         page_context = {
             "request": request,
             "active_page": "sessions",
             "selected_inventory": "projects",
             "page_title": "Projects",
             "selected_source": "all",
+            "selected_source_label": "전체",
             "selected_workspace": None,
             "stats": dashboard_stats(connection),
             "sessions": pagination["items"],
             "pagination": pagination,
             "pinned_sessions": list_all_pinned_sessions(connection),
             "sources": source_inventory(connection),
+            "session_source_scopes": source_scopes,
             "projects": projects,
             "project_count": len(projects),
             "missing_count": sum(
                 1 for project in projects if not project["exists_now"]
             ),
+            "sync_outcome": request.query_params.get("sync")
+            if request.query_params.get("sync") in {"complete", "partial", "failed"}
+            else None,
         }
     return templates.TemplateResponse(
         "sessions.html",
@@ -1340,11 +1382,22 @@ def sync_sessions_page(
     workspace: Optional[int] = Query(default=None),
     page: int = Query(default=1, ge=1),
 ):
-    scan_session_sources()
+    report = scan_session_sources()
+    outcome = report.get("outcome")
+    if outcome not in {"complete", "partial", "failed"}:
+        outcome = "failed"
     if view == "projects":
-        return RedirectResponse(url="/projects", status_code=303)
-    params = {}
-    if source in {"claude", "codex"}:
+        return RedirectResponse(
+            url="/projects?{}".format(urlencode({"sync": outcome})),
+            status_code=303,
+        )
+    params = {"sync": outcome}
+    valid_source_keys = {
+        item.get("source_key")
+        for item in report.get("sources", [])
+        if isinstance(item, dict) and isinstance(item.get("source_key"), str)
+    }
+    if source in valid_source_keys:
         params["source"] = source
     if workspace is not None:
         params["workspace"] = workspace
@@ -1457,7 +1510,22 @@ def sources_page(request: Request):
             "active_page": "sources",
             "sources": sources,
             "database_path": str(settings.database_path),
+            "sync_outcome": request.query_params.get("sync")
+            if request.query_params.get("sync") in {"complete", "partial", "failed"}
+            else None,
         },
+    )
+
+
+@app.post("/sources/scan")
+def scan_sources_page():
+    report = scan_all()
+    outcome = report.get("outcome")
+    if outcome not in {"complete", "partial", "failed"}:
+        outcome = "failed"
+    return RedirectResponse(
+        url="/sources?{}".format(urlencode({"sync": outcome})),
+        status_code=303,
     )
 
 
@@ -1477,12 +1545,47 @@ def schema_page(
     )
 
 
+def _session_navigation_state(
+    connection: sqlite3.Connection,
+    source: str,
+    workspace: Optional[int],
+):
+    valid_source_keys = {
+        item["source_key"] for item in session_source_scopes(connection)
+    }
+    selected_source = source if source in valid_source_keys else "all"
+    selected_workspace = workspace
+    if selected_workspace is not None and connection.execute(
+        "SELECT 1 FROM workspaces WHERE id = ?", (selected_workspace,)
+    ).fetchone() is None:
+        selected_workspace = None
+    params = {}
+    if selected_source != "all":
+        params["source"] = selected_source
+    if selected_workspace is not None:
+        params["workspace"] = selected_workspace
+    query = "?{}".format(urlencode(params)) if params else ""
+    return selected_source, selected_workspace, query
+
+
 @app.get("/sessions/{session_id}", response_class=HTMLResponse)
-def show_session(request: Request, session_id: int):
+def show_session(
+    request: Request,
+    session_id: int,
+    source: str = Query(default="all"),
+    workspace: Optional[int] = Query(default=None),
+):
+    if not isinstance(source, str):
+        source = "all"
+    if isinstance(workspace, bool) or not isinstance(workspace, int):
+        workspace = None
     with connect() as connection:
         session = session_detail(connection, session_id)
         if not session or session["session_class"] != "work":
             raise HTTPException(status_code=404, detail="Session not found")
+        selected_source, selected_workspace, navigation_query = (
+            _session_navigation_state(connection, source, workspace)
+        )
         events = conversation_event_views(
             session_conversation_events(connection, session_id)
         )
@@ -1497,31 +1600,25 @@ def show_session(request: Request, session_id: int):
                     session_id,
                     session["workspace_id"],
                 )
-            except sqlite3.Error:
-                related_context = {
-                    "state": "error",
-                    "items": [],
-                    "limit": RELATED_CONTEXT_LIMIT,
-                    "candidate_count": 0,
-                    "overflow_count": 0,
-                    "unavailable_count": 0,
-                    "visible_unavailable_count": 0,
-                    "scan_truncated": False,
-                }
+            except Exception:
+                related_context = session_related_context_error()
 
     subsessions = [
         {
-            "url": "/sessions/{}".format(child["id"]),
+            "url": "/sessions/{}{}".format(child["id"], navigation_query),
             "source_kind": child["source_kind"],
+            "provider_kind": child["provider_kind"],
+            "source_name": child["source_name"],
             "external_id": child["external_id"],
             "title": child["title"],
+            "user_message_count": child["user_message_count"],
             "event_count": child["event_count"],
             "last_event_at": child["last_event_at"],
             "source_path": child["source_path"],
         }
         for child in direct_children
     ]
-    if session["session_role"] == "primary" and session["source_kind"] == "claude":
+    if session["session_role"] == "primary" and session["provider_kind"] == "claude":
         normalized_paths = {item["source_path"] for item in subsessions}
         normalized_external_ids = {item["external_id"] for item in subsessions}
         for item in list_subagents(session["source_path"], session["external_id"]):
@@ -1534,10 +1631,13 @@ def show_session(request: Request, session_id: int):
                 {
                     "url": "/sessions/{}/subsessions/{}".format(
                         session_id, quote(item["file_name"])
-                    ),
-                    "source_kind": "claude",
+                    ) + navigation_query,
+                    "source_kind": session["source_kind"],
+                    "provider_kind": session["provider_kind"],
+                    "source_name": session["source_name"],
                     "external_id": item["external_id"],
                     "title": item["title"],
+                    "user_message_count": item["user_message_count"],
                     "event_count": item["event_count"],
                     "last_event_at": item["last_event_at"],
                     "source_path": item["source_path"],
@@ -1554,21 +1654,43 @@ def show_session(request: Request, session_id: int):
             "memberships": memberships,
             "subsessions": subsessions,
             "related_context": related_context,
+            "selected_source": selected_source,
+            "selected_workspace": selected_workspace,
+            "navigation_query": navigation_query,
+            "session_list_url": "/sessions{}".format(navigation_query),
+            "parent_url": (
+                "/sessions/{}{}".format(parent["id"], navigation_query)
+                if parent
+                else None
+            ),
         },
     )
 
 
 @app.get("/sessions/{session_id}/subsessions/{file_name}", response_class=HTMLResponse)
-def show_subsession(request: Request, session_id: int, file_name: str):
+def show_subsession(
+    request: Request,
+    session_id: int,
+    file_name: str,
+    source: str = Query(default="all"),
+    workspace: Optional[int] = Query(default=None),
+):
+    if not isinstance(source, str):
+        source = "all"
+    if isinstance(workspace, bool) or not isinstance(workspace, int):
+        workspace = None
     with connect() as connection:
         session = session_detail(connection, session_id)
         if (
             not session
-            or session["source_kind"] != "claude"
+            or session["provider_kind"] != "claude"
             or session["session_role"] != "primary"
         ):
             raise HTTPException(status_code=404, detail="Parent session not found")
         direct_children = session_subsessions(connection, session_id)
+        selected_source, selected_workspace, navigation_query = (
+            _session_navigation_state(connection, source, workspace)
+        )
     subsession = load_subagent(session["source_path"], file_name)
     if not subsession or subsession.parent_external_id != session["external_id"]:
         raise HTTPException(status_code=404, detail="Subsession not found")
@@ -1583,7 +1705,10 @@ def show_subsession(request: Request, session_id: int, file_name: str):
     )
     if normalized_child:
         return RedirectResponse(
-            url="/sessions/{}".format(normalized_child["id"]), status_code=303
+            url="/sessions/{}{}".format(
+                normalized_child["id"], navigation_query
+            ),
+            status_code=303,
         )
     conversation_events = conversation_event_views(
         sorted(
@@ -1601,6 +1726,13 @@ def show_subsession(request: Request, session_id: int, file_name: str):
             "events": conversation_events,
             "event_count": len(subsession.events),
             "file_name": file_name,
+            "selected_source": selected_source,
+            "selected_workspace": selected_workspace,
+            "navigation_query": navigation_query,
+            "session_list_url": "/sessions{}".format(navigation_query),
+            "parent_url": "/sessions/{}{}".format(
+                session["id"], navigation_query
+            ),
         },
     )
 

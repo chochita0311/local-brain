@@ -20,6 +20,8 @@ from localbrain.db import (
     _repair_maintenance_session_contract,
     _repair_maintenance_workstream_fk,
     _run_compatible_migrations,
+    _source_provider_identity_backup_path,
+    _source_provider_identity_contract_exists,
     _usage_attribution_backup_path,
     init_db,
 )
@@ -34,6 +36,47 @@ def schema_connection() -> sqlite3.Connection:
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys = ON")
     connection.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
+    return connection
+
+
+def legacy_source_provider_schema() -> str:
+    schema = SCHEMA_PATH.read_text(encoding="utf-8")
+    current = """    provider_kind TEXT NOT NULL DEFAULT 'unknown'
+        CHECK(length(trim(provider_kind)) BETWEEN 1 AND 64),
+"""
+    if current not in schema:
+        raise AssertionError("Source provider schema fixture no longer matches DDL")
+    return schema.replace(current, "", 1)
+
+
+def legacy_source_provider_connection(path: str = ":memory:") -> sqlite3.Connection:
+    connection = sqlite3.connect(path)
+    connection.row_factory = sqlite3.Row
+    connection.execute("PRAGMA foreign_keys = ON")
+    connection.executescript(legacy_source_provider_schema())
+    return connection
+
+
+def legacy_source_scan_health_schema() -> str:
+    schema = SCHEMA_PATH.read_text(encoding="utf-8")
+    current = """    last_scan_success_at TEXT,
+    last_scan_status TEXT CHECK(last_scan_status IN (
+        'completed', 'empty', 'unavailable', 'configuration_error', 'scan_failed'
+    )),
+    last_scan_error TEXT CHECK(
+        last_scan_error IS NULL OR length(last_scan_error) <= 500
+    ),
+"""
+    if current not in schema:
+        raise AssertionError("Source scan health schema fixture no longer matches DDL")
+    return schema.replace(current, "", 1)
+
+
+def legacy_source_scan_health_connection() -> sqlite3.Connection:
+    connection = sqlite3.connect(":memory:")
+    connection.row_factory = sqlite3.Row
+    connection.execute("PRAGMA foreign_keys = ON")
+    connection.executescript(legacy_source_scan_health_schema())
     return connection
 
 
@@ -870,6 +913,388 @@ class SchemaIndexMigrationTests(unittest.TestCase):
         for name, shape in self.additions.items():
             self.assertEqual(index_shape(connection, name), shape)
         connection.close()
+
+
+class SourceEnabledColumnMigrationTests(unittest.TestCase):
+    retained_columns = (
+        "id",
+        "kind",
+        "provider_kind",
+        "name",
+        "root_path",
+        "last_scanned_at",
+        "last_scan_success_at",
+        "last_scan_status",
+        "last_scan_error",
+        "created_at",
+    )
+
+    def _legacy_connection(self):
+        connection = schema_connection()
+        connection.execute(
+            "ALTER TABLE sources ADD COLUMN enabled INTEGER NOT NULL DEFAULT 1"
+        )
+        connection.executescript(
+            """
+            INSERT INTO sources(
+                id, kind, name, root_path, last_scanned_at, created_at, enabled
+            ) VALUES
+                (7, 'claude', 'Claude', '/synthetic/claude',
+                 '2026-08-02T00:00:00+00:00', '2026-08-01 00:00:00', 0),
+                (9, 'codex', 'Codex', '/synthetic/codex',
+                 '2026-08-02T00:01:00+00:00', '2026-08-01 00:01:00', 1);
+            INSERT INTO source_files(
+                source_id, path, size_bytes, mtime_ns, last_scanned_at
+            ) VALUES
+                (7, '/synthetic/claude/session.jsonl', 10, 100,
+                 '2026-08-02T00:00:00+00:00'),
+                (9, '/synthetic/codex/session.jsonl', 20, 200,
+                 '2026-08-02T00:01:00+00:00');
+            INSERT INTO sessions(source_id, external_id, source_path, title)
+            VALUES
+                (7, 'claude-session', '/synthetic/claude/session.jsonl', 'Claude'),
+                (9, 'codex-session', '/synthetic/codex/session.jsonl', 'Codex');
+            """
+        )
+        return connection
+
+    def test_fresh_contract_omits_unused_enabled_field(self):
+        connection = schema_connection()
+        columns = {
+            row["name"] for row in connection.execute("PRAGMA table_info(sources)")
+        }
+        self.assertEqual(columns, set(self.retained_columns))
+        connection.close()
+
+    def test_legacy_field_is_removed_without_changing_sources_or_children(self):
+        connection = self._legacy_connection()
+        column_list = ", ".join(self.retained_columns)
+        before_sources = [
+            tuple(row)
+            for row in connection.execute(
+                "SELECT {} FROM sources ORDER BY id".format(column_list)
+            )
+        ]
+        before_files = [
+            tuple(row)
+            for row in connection.execute("SELECT * FROM source_files ORDER BY id")
+        ]
+        before_sessions = [
+            tuple(row)
+            for row in connection.execute("SELECT * FROM sessions ORDER BY id")
+        ]
+
+        _run_compatible_migrations(connection, include_data_migrations=False)
+
+        after_columns = {
+            row["name"] for row in connection.execute("PRAGMA table_info(sources)")
+        }
+        self.assertNotIn("enabled", after_columns)
+        self.assertEqual(
+            [
+                tuple(row)
+                for row in connection.execute(
+                    "SELECT {} FROM sources ORDER BY id".format(column_list)
+                )
+            ],
+            before_sources,
+        )
+        self.assertEqual(
+            [
+                tuple(row)
+                for row in connection.execute("SELECT * FROM source_files ORDER BY id")
+            ],
+            before_files,
+        )
+        self.assertEqual(
+            [
+                tuple(row)
+                for row in connection.execute("SELECT * FROM sessions ORDER BY id")
+            ],
+            before_sessions,
+        )
+        self.assertEqual(connection.execute("PRAGMA foreign_key_check").fetchall(), [])
+        unique_indexes = [
+            [
+                column["name"]
+                for column in connection.execute(
+                    'PRAGMA index_info("{}")'.format(index["name"])
+                )
+            ]
+            for index in connection.execute("PRAGMA index_list(sources)")
+            if index["unique"]
+        ]
+        self.assertIn(["kind"], unique_indexes)
+
+        _run_compatible_migrations(connection, include_data_migrations=False)
+        self.assertEqual(
+            [
+                tuple(row)
+                for row in connection.execute(
+                    "SELECT {} FROM sources ORDER BY id".format(column_list)
+                )
+            ],
+            before_sources,
+        )
+        connection.close()
+
+
+class SourceProviderIdentityMigrationTests(unittest.TestCase):
+    def _seed(self, connection):
+        connection.executescript(
+            """
+            INSERT INTO sources(
+                id, kind, name, root_path, last_scanned_at, created_at
+            ) VALUES
+                (7, 'claude', 'Claude', '/synthetic/claude',
+                 '2026-08-02T00:00:00+00:00', '2026-08-01 00:00:00'),
+                (9, 'codex', 'Codex', '/synthetic/codex',
+                 '2026-08-02T00:01:00+00:00', '2026-08-01 00:01:00');
+            INSERT INTO source_files(
+                id, source_id, path, size_bytes, mtime_ns, last_scanned_at
+            ) VALUES
+                (11, 7, '/synthetic/claude/session.jsonl', 10, 100,
+                 '2026-08-02T00:00:00+00:00'),
+                (12, 9, '/synthetic/codex/session.jsonl', 20, 200,
+                 '2026-08-02T00:01:00+00:00');
+            INSERT INTO sessions(
+                id, source_id, external_id, source_path, title
+            ) VALUES
+                (21, 7, 'shared-id', '/synthetic/claude/session.jsonl', 'Claude'),
+                (22, 9, 'shared-id', '/synthetic/codex/session.jsonl', 'Codex');
+            INSERT INTO session_pins(session_id, pinned_at)
+            VALUES (22, '2026-08-02T00:02:00+00:00');
+            """
+        )
+
+    def test_compatible_repair_preserves_identity_children_and_is_idempotent(self):
+        connection = legacy_source_provider_connection()
+        self.addCleanup(connection.close)
+        self._seed(connection)
+        before_files = [
+            tuple(row) for row in connection.execute("SELECT * FROM source_files ORDER BY id")
+        ]
+        before_sessions = [
+            tuple(row) for row in connection.execute("SELECT * FROM sessions ORDER BY id")
+        ]
+        before_pins = [
+            tuple(row) for row in connection.execute("SELECT * FROM session_pins ORDER BY session_id")
+        ]
+
+        _run_compatible_migrations(connection, include_data_migrations=False)
+
+        self.assertTrue(_source_provider_identity_contract_exists(connection))
+        self.assertEqual(
+            [tuple(row) for row in connection.execute(
+                "SELECT id, kind, provider_kind FROM sources ORDER BY id"
+            )],
+            [(7, "claude", "claude"), (9, "codex", "codex")],
+        )
+        self.assertEqual(
+            [tuple(row) for row in connection.execute("SELECT * FROM source_files ORDER BY id")],
+            before_files,
+        )
+        self.assertEqual(
+            [tuple(row) for row in connection.execute("SELECT * FROM sessions ORDER BY id")],
+            before_sessions,
+        )
+        self.assertEqual(
+            [tuple(row) for row in connection.execute("SELECT * FROM session_pins ORDER BY session_id")],
+            before_pins,
+        )
+        self.assertEqual(connection.execute("PRAGMA foreign_key_check").fetchall(), [])
+
+        _run_compatible_migrations(connection, include_data_migrations=False)
+        self.assertEqual(
+            [tuple(row) for row in connection.execute(
+                "SELECT id, kind, provider_kind FROM sources ORDER BY id"
+            )],
+            [(7, "claude", "claude"), (9, "codex", "codex")],
+        )
+
+    def test_file_upgrade_creates_non_overwriting_valid_backup(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            data_dir = Path(temporary)
+            database_path = data_dir / "localbrain.db"
+            legacy = legacy_source_provider_connection(str(database_path))
+            self._seed(legacy)
+            legacy.commit()
+            legacy.close()
+            settings = Settings(
+                data_dir=data_dir,
+                database_path=database_path,
+                context_root=data_dir / "context",
+                claude_root=data_dir / "claude",
+                codex_root=data_dir / "codex",
+                mcp_call_budget=20,
+            )
+
+            with patch("localbrain.db.settings", settings):
+                init_db()
+                backup_path = _source_provider_identity_backup_path(database_path)
+                self.assertTrue(backup_path.is_file())
+                backup_bytes = backup_path.read_bytes()
+                init_db()
+                self.assertEqual(backup_path.read_bytes(), backup_bytes)
+
+            backup = sqlite3.connect(str(backup_path))
+            self.assertEqual(backup.execute("PRAGMA quick_check").fetchone()[0], "ok")
+            self.assertNotIn(
+                "provider_kind",
+                {row[1] for row in backup.execute("PRAGMA table_info(sources)")},
+            )
+            backup.close()
+
+            upgraded = sqlite3.connect(str(database_path))
+            upgraded.row_factory = sqlite3.Row
+            upgraded.execute("PRAGMA foreign_keys = ON")
+            self.assertTrue(_source_provider_identity_contract_exists(upgraded))
+            self.assertEqual(
+                [tuple(row) for row in upgraded.execute(
+                    "SELECT id, kind, provider_kind FROM sources ORDER BY id"
+                )],
+                [(7, "claude", "claude"), (9, "codex", "codex")],
+            )
+            self.assertEqual(upgraded.execute("PRAGMA foreign_key_check").fetchall(), [])
+            upgraded.close()
+
+
+class SourceScanHealthMigrationTests(unittest.TestCase):
+    def test_fresh_contract_bounds_scan_status_and_error(self):
+        connection = schema_connection()
+        self.addCleanup(connection.close)
+        columns = {
+            row["name"] for row in connection.execute("PRAGMA table_info(sources)")
+        }
+        self.assertTrue(
+            {"last_scan_success_at", "last_scan_status", "last_scan_error"}
+            .issubset(columns)
+        )
+        connection.execute(
+            """
+            INSERT INTO sources(
+                kind, provider_kind, name, root_path,
+                last_scan_status, last_scan_error
+            ) VALUES ('codex-company', 'codex', 'Codex Company',
+                      '/synthetic/company', 'unavailable', ?)
+            """,
+            ("x" * 500,),
+        )
+        with self.assertRaises(sqlite3.IntegrityError):
+            connection.execute(
+                """
+                INSERT INTO sources(
+                    kind, provider_kind, name, root_path, last_scan_status
+                ) VALUES ('invalid-status', 'codex', 'Invalid',
+                          '/synthetic/invalid', 'unknown')
+                """
+            )
+        with self.assertRaises(sqlite3.IntegrityError):
+            connection.execute(
+                """
+                INSERT INTO sources(
+                    kind, provider_kind, name, root_path, last_scan_error
+                ) VALUES ('long-error', 'codex', 'Long error',
+                          '/synthetic/long-error', ?)
+                """,
+                ("x" * 501,),
+            )
+
+    def test_compatible_addition_preserves_source_children_and_is_idempotent(self):
+        connection = legacy_source_scan_health_connection()
+        self.addCleanup(connection.close)
+        connection.executescript(
+            """
+            INSERT INTO sources(
+                id, kind, provider_kind, name, root_path,
+                last_scanned_at, created_at
+            ) VALUES (
+                7, 'codex-company', 'codex', 'Codex Company',
+                '/synthetic/company', '2026-08-02T00:00:00+00:00',
+                '2026-08-01 00:00:00'
+            );
+            INSERT INTO source_files(
+                id, source_id, path, size_bytes, mtime_ns, last_scanned_at
+            ) VALUES (
+                11, 7, '/synthetic/company/session.jsonl', 10, 100,
+                '2026-08-02T00:00:00+00:00'
+            );
+            INSERT INTO sessions(
+                id, source_id, external_id, source_path, title
+            ) VALUES (
+                21, 7, 'company-session',
+                '/synthetic/company/session.jsonl', 'Company'
+            );
+            """
+        )
+        before_source = tuple(
+            connection.execute(
+                """
+                SELECT id, kind, provider_kind, name, root_path,
+                       last_scanned_at, created_at
+                FROM sources WHERE id = 7
+                """
+            ).fetchone()
+        )
+        before_files = [
+            tuple(row)
+            for row in connection.execute("SELECT * FROM source_files ORDER BY id")
+        ]
+        before_sessions = [
+            tuple(row)
+            for row in connection.execute("SELECT * FROM sessions ORDER BY id")
+        ]
+
+        _run_compatible_migrations(connection, include_data_migrations=False)
+
+        columns = {
+            row["name"] for row in connection.execute("PRAGMA table_info(sources)")
+        }
+        self.assertTrue(
+            {"last_scan_success_at", "last_scan_status", "last_scan_error"}
+            .issubset(columns)
+        )
+        self.assertEqual(
+            tuple(
+                connection.execute(
+                    """
+                    SELECT id, kind, provider_kind, name, root_path,
+                           last_scanned_at, created_at
+                    FROM sources WHERE id = 7
+                    """
+                ).fetchone()
+            ),
+            before_source,
+        )
+        health = connection.execute(
+            """
+            SELECT last_scan_success_at, last_scan_status, last_scan_error
+            FROM sources WHERE id = 7
+            """
+        ).fetchone()
+        self.assertEqual(tuple(health), (None, None, None))
+        self.assertEqual(
+            [tuple(row) for row in connection.execute("SELECT * FROM source_files ORDER BY id")],
+            before_files,
+        )
+        self.assertEqual(
+            [tuple(row) for row in connection.execute("SELECT * FROM sessions ORDER BY id")],
+            before_sessions,
+        )
+        self.assertEqual(connection.execute("PRAGMA foreign_key_check").fetchall(), [])
+
+        _run_compatible_migrations(connection, include_data_migrations=False)
+        self.assertEqual(
+            tuple(
+                connection.execute(
+                    """
+                    SELECT last_scan_success_at, last_scan_status, last_scan_error
+                    FROM sources WHERE id = 7
+                    """
+                ).fetchone()
+            ),
+            (None, None, None),
+        )
 
 
 class ActivityEventMetadataMigrationTests(unittest.TestCase):

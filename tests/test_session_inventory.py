@@ -1,13 +1,21 @@
 import sqlite3
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
+from starlette.requests import Request
+
+from localbrain.main import app, sessions_page, show_session
 from localbrain.queries import (
     SESSION_PAGE_SIZE,
     compact_pagination_items,
+    dashboard_stats,
     pagination_items,
+    project_activity,
     session_detail,
     session_inventory_page,
+    session_source_scopes,
+    source_inventory,
 )
 
 
@@ -15,16 +23,36 @@ SCHEMA_PATH = Path(__file__).parents[1] / "src" / "localbrain" / "schema.sql"
 
 
 class SessionInventoryTests(unittest.TestCase):
+    @staticmethod
+    def _request(query: bytes = b"", path: str = "/sessions") -> Request:
+        return Request(
+            {
+                "type": "http",
+                "http_version": "1.1",
+                "method": "GET",
+                "scheme": "http",
+                "path": path,
+                "raw_path": path.encode("utf-8"),
+                "query_string": query,
+                "headers": [],
+                "client": ("test", 50000),
+                "server": ("test", 80),
+                "root_path": "",
+                "app": app,
+                "router": app.router,
+            }
+        )
+
     def setUp(self):
         self.connection = sqlite3.connect(":memory:")
         self.connection.row_factory = sqlite3.Row
         self.connection.execute("PRAGMA foreign_keys = ON")
         self.connection.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
         self.connection.execute(
-            "INSERT INTO sources(kind, name, root_path) VALUES ('codex', 'Codex', '/tmp/codex')"
-        )
+            "INSERT INTO sources(kind, provider_kind, name, root_path) VALUES ('codex', 'codex', 'Codex', '/tmp/codex')"
+        ).lastrowid
         self.connection.execute(
-            "INSERT INTO sources(kind, name, root_path) VALUES ('claude', 'Claude', '/tmp/claude')"
+            "INSERT INTO sources(kind, provider_kind, name, root_path) VALUES ('claude', 'claude', 'Claude', '/tmp/claude')"
         )
         self.connection.execute(
             """
@@ -157,6 +185,194 @@ class SessionInventoryTests(unittest.TestCase):
         workspace = session_inventory_page(self.connection, workspace_id=1, page=2)
         self.assertEqual(workspace["total"], 30)
         self.assertEqual(len(workspace["items"]), 15)
+
+    def test_source_inventory_has_no_false_enablement_projection(self):
+        sources = source_inventory(self.connection)
+        self.assertEqual([source["kind"] for source in sources], ["claude", "codex"])
+        self.assertTrue(all("enabled" not in source.keys() for source in sources))
+
+    def test_registry_scopes_counts_and_projects_use_one_primary_work_denominator(self):
+        company_source_id = self.connection.execute(
+            """
+            INSERT INTO sources(kind, provider_kind, name, root_path)
+            VALUES ('codex-company', 'codex', 'Codex Company', '/tmp/company')
+            """
+        ).lastrowid
+        company_session_id = self.connection.execute(
+            """
+            INSERT INTO sessions(
+                source_id, workspace_id, external_id, source_path, title,
+                last_event_at, event_count
+            ) VALUES (?, 2, 'company-old', '/tmp/company-old.jsonl',
+                      'Company old', '2024-01-02T00:00:00Z', 7)
+            """,
+            (company_source_id,),
+        ).lastrowid
+        self.connection.execute(
+            """
+            INSERT INTO sessions(
+                source_id, workspace_id, external_id, source_path, title,
+                session_class
+            ) VALUES (?, 2, 'company-maintenance', '/tmp/company-maintenance.jsonl',
+                      'Company maintenance', 'maintenance')
+            """,
+            (company_source_id,),
+        ).lastrowid
+        self.connection.execute(
+            """
+            INSERT INTO sessions(
+                source_id, workspace_id, external_id, source_path, title,
+                session_role, parent_external_id, parent_session_id
+            ) VALUES (?, 2, 'company-child', '/tmp/company-child.jsonl',
+                      'Company child', 'subsession', 'company-old', ?)
+            """,
+            (company_source_id, company_session_id),
+        )
+
+        scopes = session_source_scopes(self.connection)
+        scope_counts = {
+            row["source_key"]: row["eligible_session_count"] for row in scopes
+        }
+        company = session_inventory_page(
+            self.connection, source_kind="codex-company"
+        )
+        personal = session_inventory_page(self.connection, source_kind="codex")
+        combined = session_inventory_page(self.connection)
+
+        self.assertEqual(
+            [row["source_key"] for row in scopes],
+            ["codex", "claude", "codex-company"],
+        )
+        self.assertEqual(scopes[-1]["display_label"], "Codex Company")
+        self.assertEqual(company["total"], 1)
+        self.assertEqual(company["items"][0]["external_id"], "company-old")
+        self.assertEqual(personal["total"], 24)
+        self.assertEqual(combined["total"], sum(scope_counts.values()))
+        self.assertEqual(
+            dashboard_stats(self.connection, "codex-company")["sessions"], 1
+        )
+        company_projects = project_activity(self.connection, "codex-company")
+        self.assertEqual(
+            [(row["display_name"], row["session_count"]) for row in company_projects],
+            [("two", 1)],
+        )
+
+    def test_route_normalizes_unknown_source_and_accepts_company_stable_key(self):
+        company_source_id = self.connection.execute(
+            """
+            INSERT INTO sources(kind, provider_kind, name, root_path)
+            VALUES ('codex-company', 'codex', 'Codex Company', '/tmp/company')
+            """
+        ).lastrowid
+        company_session_id = self.connection.execute(
+            """
+            INSERT INTO sessions(
+                source_id, workspace_id, external_id, source_path, title,
+                last_event_at
+            ) VALUES (?, 2, 'company-one', '/tmp/company-one.jsonl',
+                      'Company one', '2024-01-02T00:00:00Z')
+            """,
+            (company_source_id,),
+        ).lastrowid
+        company_child_id = self.connection.execute(
+            """
+            INSERT INTO sessions(
+                source_id, workspace_id, external_id, source_path, title,
+                last_event_at, session_role, parent_external_id,
+                parent_session_id, user_message_count, event_count
+            ) VALUES (?, 2, 'company-child', '/tmp/company-child.jsonl',
+                      'Company child', '2024-01-02T01:00:00Z', 'subsession',
+                      'company-one', ?, 3, 8)
+            """,
+            (company_source_id, company_session_id),
+        ).lastrowid
+
+        with patch("localbrain.main.connect", return_value=self.connection):
+            unknown = sessions_page(
+                self._request(b"source=phantom&workspace=2&page=4"),
+                source="phantom",
+                workspace=2,
+                page="4",
+            )
+            missing_workspace = sessions_page(
+                self._request(b"source=codex-company&workspace=999&page=4"),
+                source="codex-company",
+                workspace=999,
+                page="4",
+            )
+            company = sessions_page(
+                self._request(b"source=codex-company&workspace=2"),
+                source="codex-company",
+                workspace=2,
+                page="1",
+            )
+            detail = show_session(
+                self._request(
+                    b"source=codex-company&workspace=2",
+                    path="/sessions/{}".format(company_session_id),
+                ),
+                company_session_id,
+                source="codex-company",
+                workspace=2,
+            )
+            child_detail = show_session(
+                self._request(
+                    b"source=codex-company&workspace=2",
+                    path="/sessions/{}".format(company_child_id),
+                ),
+                company_child_id,
+                source="codex-company",
+                workspace=2,
+            )
+
+        self.assertEqual(unknown.status_code, 303)
+        self.assertEqual(unknown.headers["location"], "/sessions?workspace=2")
+        self.assertEqual(missing_workspace.status_code, 303)
+        self.assertEqual(
+            missing_workspace.headers["location"],
+            "/sessions?source=codex-company",
+        )
+        html = company.body.decode("utf-8")
+        self.assertIn("Codex Company 세션", html)
+        self.assertIn("Company one", html)
+        self.assertNotIn("Parent 47", html)
+        self.assertIn(
+            'href="/sessions?source=codex-company&workspace=2"', html
+        )
+        detail_html = detail.body.decode("utf-8")
+        self.assertIn("Codex Company", detail_html)
+        self.assertNotIn('<p class="eyebrow">Codex Company</p>', detail_html)
+        self.assertIn(
+            'class="session-source large codex-company"><span aria-hidden="true">CC</span>',
+            detail_html,
+        )
+        self.assertIn(
+            'class="session-source codex-company"><span aria-hidden="true">CC</span>',
+            detail_html,
+        )
+        self.assertIn("<small>company-child</small>", detail_html)
+        self.assertNotIn("Codex Company · company-child", detail_html)
+        question_count = detail_html.index(
+            '<span class="subsession-question-count">질문 3</span>'
+        )
+        event_count = detail_html.index(
+            '<span class="subsession-event-count">이벤트 8</span>'
+        )
+        self.assertLess(question_count, event_count)
+        self.assertIn(
+            'href="/sessions?source=codex-company&amp;workspace=2"',
+            detail_html,
+        )
+        child_detail_html = child_detail.body.decode("utf-8")
+        self.assertNotIn(
+            '<p class="eyebrow">Codex Company · SUBSESSION</p>',
+            child_detail_html,
+        )
+        self.assertIn('<p class="eyebrow">SUBSESSION</p>', child_detail_html)
+        self.assertIn(
+            'class="session-source large codex-company"><span aria-hidden="true">CC</span>',
+            child_detail_html,
+        )
 
     def test_inventory_and_detail_project_current_pin_state(self):
         session_id = self.parents[-1]

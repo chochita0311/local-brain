@@ -6,7 +6,7 @@ import subprocess
 from datetime import datetime, timezone
 from html.parser import HTMLParser
 from pathlib import Path
-from typing import Dict, Iterable, Optional, Tuple
+from typing import Any, Callable, Dict, Iterable, Optional, Set, Tuple
 from urllib.parse import quote
 
 from ..atlassian_evidence import (
@@ -18,10 +18,21 @@ from ..atlassian_evidence import (
 )
 from ..config import settings
 from ..db import init_db, transaction
+from ..session_sources import (
+    SessionSourceRegistration,
+    load_and_reconcile_session_sources,
+)
+from ..session_references import (
+    clear_session_reference_source,
+    finalize_session_references,
+    mark_session_reference_error,
+    reconcile_session_references,
+    session_reference_scan_is_current,
+)
 from ..usage import reconcile_usage_record_contract, store_usage_records
 from .claude import CLAUDE_USAGE_CONTRACT_VERSION, parse_claude_session
 from .codex import CODEX_USAGE_CONTRACT_VERSION, parse_codex_session
-from .common import ParsedSession
+from .common import ParsedSession, REFERENCE_EXTRACTOR_VERSION, stable_id
 
 
 IGNORED_CONTEXT_DIRECTORIES = {
@@ -104,21 +115,33 @@ def utc_now() -> str:
 
 
 def _upsert_source(
-    connection: sqlite3.Connection, kind: str, name: str, root: Path
+    connection: sqlite3.Connection,
+    source_key: str,
+    provider_kind: str,
+    name: str,
+    root: Path,
 ) -> int:
+    existing = connection.execute(
+        "SELECT id, provider_kind FROM sources WHERE kind = ?", (source_key,)
+    ).fetchone()
+    if existing and existing["provider_kind"] != provider_kind:
+        raise ValueError(
+            "Source key {!r} is already bound to provider {!r}".format(
+                source_key, existing["provider_kind"]
+            )
+        )
     connection.execute(
         """
-        INSERT INTO sources(kind, name, root_path)
-        VALUES (?, ?, ?)
+        INSERT INTO sources(kind, provider_kind, name, root_path)
+        VALUES (?, ?, ?, ?)
         ON CONFLICT(kind) DO UPDATE SET
             name = excluded.name,
-            root_path = excluded.root_path,
-            enabled = 1
+            root_path = excluded.root_path
         """,
-        (kind, name, str(root)),
+        (source_key, provider_kind, name, str(root)),
     )
     row = connection.execute(
-        "SELECT id FROM sources WHERE kind = ?", (kind,)
+        "SELECT id FROM sources WHERE kind = ?", (source_key,)
     ).fetchone()
     return int(row["id"])
 
@@ -128,11 +151,13 @@ def _file_is_current(
     source_id: int,
     path: Path,
     usage_contract_version: Optional[str] = None,
+    reference_contract_version: Optional[str] = None,
 ) -> bool:
     stat = path.stat()
     row = connection.execute(
         """
-        SELECT size_bytes, mtime_ns, status, usage_contract_version
+        SELECT size_bytes, mtime_ns, status, usage_contract_version,
+               reference_contract_version
         FROM source_files WHERE source_id = ? AND path = ?
         """,
         (source_id, str(path)),
@@ -146,6 +171,11 @@ def _file_is_current(
             usage_contract_version is None
             or row["usage_contract_version"] == usage_contract_version
         )
+        and (
+            reference_contract_version is None
+            or row["reference_contract_version"]
+            == reference_contract_version
+        )
     )
 
 
@@ -158,6 +188,8 @@ def _record_source_file(
     usage_contract_version: Optional[str] = None,
     scanned_size_bytes: Optional[int] = None,
     scanned_mtime_ns: Optional[int] = None,
+    session_id: Optional[int] = None,
+    reference_contract_version: Optional[str] = None,
 ) -> None:
     stat = path.stat()
     size_bytes = stat.st_size if scanned_size_bytes is None else scanned_size_bytes
@@ -165,10 +197,12 @@ def _record_source_file(
     connection.execute(
         """
         INSERT INTO source_files(
-            source_id, path, size_bytes, mtime_ns, last_scanned_at, status, error,
-            usage_contract_version
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            source_id, session_id, path, size_bytes, mtime_ns,
+            last_scanned_at, status, error, usage_contract_version,
+            reference_contract_version
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(source_id, path) DO UPDATE SET
+            session_id = COALESCE(excluded.session_id, source_files.session_id),
             size_bytes = excluded.size_bytes,
             mtime_ns = excluded.mtime_ns,
             last_scanned_at = excluded.last_scanned_at,
@@ -177,10 +211,15 @@ def _record_source_file(
             usage_contract_version = COALESCE(
                 excluded.usage_contract_version,
                 source_files.usage_contract_version
+            ),
+            reference_contract_version = COALESCE(
+                excluded.reference_contract_version,
+                source_files.reference_contract_version
             )
         """,
         (
             source_id,
+            session_id,
             str(path),
             size_bytes,
             mtime_ns,
@@ -188,6 +227,7 @@ def _record_source_file(
             status,
             error,
             usage_contract_version,
+            reference_contract_version,
         ),
     )
 
@@ -276,12 +316,33 @@ def _remove_stale_sessions(
     connection: sqlite3.Connection, source_id: int, valid_paths: Iterable[Path]
 ) -> None:
     valid = {str(path) for path in valid_paths}
+    reference_rows = connection.execute(
+        """
+        SELECT session_id, path
+        FROM source_files
+        WHERE source_id = ? AND session_id IS NOT NULL
+        """,
+        (source_id,),
+    ).fetchall()
+    valid_session_paths = {}
+    for row in reference_rows:
+        if row["path"] in valid:
+            valid_session_paths.setdefault(int(row["session_id"]), []).append(
+                row["path"]
+            )
     rows = connection.execute(
         "SELECT id, source_path FROM sessions WHERE source_id = ?",
         (source_id,),
     ).fetchall()
     for row in rows:
         if row["source_path"] in valid:
+            continue
+        remaining_paths = valid_session_paths.get(int(row["id"]), [])
+        if remaining_paths:
+            connection.execute(
+                "UPDATE sessions SET source_path = ? WHERE id = ?",
+                (sorted(remaining_paths)[0], row["id"]),
+            )
             continue
         connection.execute(
             "DELETE FROM search_index WHERE entity_type = 'session' AND entity_id = ?",
@@ -319,15 +380,144 @@ def _remove_stale_sessions(
     for row in source_file_rows:
         if row["path"] not in valid:
             connection.execute("DELETE FROM source_files WHERE id = ?", (row["id"],))
+    for row in reference_rows:
+        if row["path"] in valid:
+            continue
+        if connection.execute(
+            "SELECT 1 FROM sessions WHERE id = ?", (row["session_id"],)
+        ).fetchone():
+            clear_session_reference_source(
+                connection,
+                session_id=int(row["session_id"]),
+                source_path=row["path"],
+            )
+
+
+def _parsed_session_is_meaningful(parsed: ParsedSession) -> bool:
+    return bool(parsed.events or parsed.usage_records)
+
+
+def _session_eligibility_repair_required(
+    connection: sqlite3.Connection, source_id: int
+) -> bool:
+    return bool(
+        connection.execute(
+            """
+            SELECT 1
+            FROM sessions
+            WHERE source_id = ?
+              AND index_policy = 'full'
+              AND event_count = 0
+              AND NOT EXISTS (
+                  SELECT 1 FROM activity_events
+                  WHERE activity_events.session_id = sessions.id
+              )
+              AND NOT EXISTS (
+                  SELECT 1 FROM usage_records
+                  WHERE usage_records.session_id = sessions.id
+              )
+            LIMIT 1
+            """,
+            (source_id,),
+        ).fetchone()
+    )
+
+
+def _remove_empty_session_candidates(
+    connection: sqlite3.Connection,
+    source_id: int,
+    candidates: Iterable[Tuple[Path, ParsedSession]],
+) -> None:
+    for path, parsed in candidates:
+        source_path = str(path)
+        reference_source = connection.execute(
+            """
+            SELECT session_id FROM source_files
+            WHERE source_id = ? AND path = ?
+            """,
+            (source_id, source_path),
+        ).fetchone()
+        if reference_source and reference_source["session_id"] is not None:
+            clear_session_reference_source(
+                connection,
+                session_id=int(reference_source["session_id"]),
+                source_path=source_path,
+            )
+        scan_rows = connection.execute(
+            """
+            SELECT atlassian_evidence_scans.id,
+                   atlassian_evidence_scans.session_id
+            FROM atlassian_evidence_scans
+            JOIN sessions
+              ON sessions.id = atlassian_evidence_scans.session_id
+            WHERE sessions.source_id = ?
+              AND atlassian_evidence_scans.source_path = ?
+            """,
+            (source_id, source_path),
+        ).fetchall()
+        for scan_row in scan_rows:
+            connection.execute(
+                """
+                DELETE FROM atlassian_item_evidence
+                WHERE session_id = ? AND source_path = ?
+                """,
+                (scan_row["session_id"], source_path),
+            )
+            connection.execute(
+                "DELETE FROM atlassian_evidence_scans WHERE id = ?",
+                (scan_row["id"],),
+            )
+
+        session_rows = connection.execute(
+            """
+            SELECT id
+            FROM sessions
+            WHERE source_id = ?
+              AND index_policy = 'full'
+              AND (external_id = ? OR source_path = ?)
+            """,
+            (source_id, parsed.external_id, source_path),
+        ).fetchall()
+        for session_row in session_rows:
+            session_id = int(session_row["id"])
+            meaningful = connection.execute(
+                """
+                SELECT
+                    EXISTS(
+                        SELECT 1 FROM activity_events WHERE session_id = ?
+                    )
+                    OR EXISTS(
+                        SELECT 1 FROM usage_records WHERE session_id = ?
+                    )
+                """,
+                (session_id, session_id),
+            ).fetchone()[0]
+            if meaningful:
+                continue
+            connection.execute(
+                """
+                DELETE FROM search_index
+                WHERE entity_type = 'session' AND entity_id = ?
+                """,
+                (str(session_id),),
+            )
+            connection.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
+
+        connection.execute(
+            "DELETE FROM source_files WHERE source_id = ? AND path = ?",
+            (source_id, source_path),
+        )
 
 
 def _store_session(
     connection: sqlite3.Connection,
     source_id: int,
-    source_kind: str,
+    source_key: str,
     parsed: ParsedSession,
     usage_contract_version: Optional[str] = None,
+    provider_kind: Optional[str] = None,
 ) -> int:
+    effective_provider_kind = provider_kind or source_key
     workspace_id = _upsert_workspace(connection, parsed.cwd_raw, parsed.last_event_at)
     maintenance_run_id = parsed.maintenance_run_id
     if maintenance_run_id and not connection.execute(
@@ -400,6 +590,9 @@ def _store_session(
         (source_id, parsed.external_id),
     ).fetchone()
     session_id = int(session_row["id"])
+    identity_scope = (
+        source_key if source_key != effective_provider_kind else None
+    )
     store_usage_records(
         connection,
         source_id,
@@ -410,12 +603,13 @@ def _store_session(
             usage_contract_version
             or (
                 CLAUDE_USAGE_CONTRACT_VERSION
-                if source_kind == "claude"
+                if effective_provider_kind == "claude"
                 else CODEX_USAGE_CONTRACT_VERSION
-                if source_kind == "codex"
+                if effective_provider_kind == "codex"
                 else "legacy-v1"
             )
         ),
+        identity_scope=identity_scope,
     )
     connection.execute("DELETE FROM activity_events WHERE session_id = ?", (session_id,))
     connection.execute(
@@ -432,7 +626,11 @@ def _store_session(
             """,
             [
                 (
-                    event.event_id,
+                    stable_id(
+                        "source-scoped-event", source_key, event.event_id
+                    )
+                    if identity_scope
+                    else event.event_id,
                     session_id,
                     event.sequence,
                     event.occurred_at,
@@ -451,7 +649,7 @@ def _store_session(
                 connection,
                 "session",
                 str(session_id),
-                source_kind,
+                source_key,
                 parsed.title,
                 body,
                 parsed.cwd_raw or parsed.source_path,
@@ -467,7 +665,7 @@ def _claude_parent_source_path(source_path: str) -> Optional[str]:
 
 
 def _reconcile_session_parents(
-    connection: sqlite3.Connection, source_id: int, source_kind: str
+    connection: sqlite3.Connection, source_id: int, provider_kind: str
 ) -> None:
     rows = connection.execute(
         """
@@ -495,7 +693,7 @@ def _reconcile_session_parents(
             )
             continue
         parent = by_external_id.get(row["parent_external_id"])
-        if not parent and source_kind == "claude":
+        if not parent and provider_kind == "claude":
             parent_path = _claude_parent_source_path(row["source_path"])
             parent = by_source_path.get(parent_path) if parent_path else None
         if not parent or parent["id"] == row["id"]:
@@ -554,19 +752,28 @@ def _reconcile_session_parents(
 
 def _scan_session_source(
     connection: sqlite3.Connection,
-    source_kind: str,
+    source_key: str,
     name: str,
     root: Path,
     parser,
     usage_contract_version: str,
     force: bool = False,
+    provider_kind: Optional[str] = None,
+    path_filter: Optional[Callable[[Path, Path], bool]] = None,
 ) -> Tuple[int, int, int]:
-    source_id = _upsert_source(connection, source_kind, name, root)
+    effective_provider_kind = provider_kind or source_key
+    source_id = _upsert_source(
+        connection, source_key, effective_provider_kind, name, root
+    )
     imported = skipped = failed = 0
     if not root.exists():
         return imported, skipped, failed
 
-    paths = sorted(root.rglob("*.jsonl"))
+    paths = sorted(
+        path
+        for path in root.rglob("*.jsonl")
+        if path_filter is None or path_filter(root, path)
+    )
     contract_repair_required = bool(
         connection.execute(
             """
@@ -578,11 +785,100 @@ def _scan_session_source(
             (source_id, usage_contract_version),
         ).fetchone()
     )
-    if contract_repair_required:
+    reference_contract_repair_required = bool(
+        connection.execute(
+            """
+            SELECT 1 FROM source_files
+            WHERE source_id = ?
+              AND COALESCE(reference_contract_version, '') != ?
+            LIMIT 1
+            """,
+            (source_id, REFERENCE_EXTRACTOR_VERSION),
+        ).fetchone()
+    )
+    source_contract_repair_required = bool(
+        contract_repair_required or reference_contract_repair_required
+    )
+    eligibility_repair_required = _session_eligibility_repair_required(
+        connection, source_id
+    )
+    if source_contract_repair_required:
         connection.execute("SAVEPOINT source_usage_contract_repair")
     _remove_stale_sessions(connection, source_id, paths)
+    forced_reference_paths = set()
+    if not source_contract_repair_required:
+        dirty_session_ids = set()
+        has_unmapped_path = False
+        for path in paths:
+            row = connection.execute(
+                """
+                SELECT session_id, size_bytes, mtime_ns, status,
+                       reference_contract_version
+                FROM source_files
+                WHERE source_id = ? AND path = ?
+                """,
+                (source_id, str(path)),
+            ).fetchone()
+            if not row or row["session_id"] is None:
+                has_unmapped_path = True
+                continue
+            stat = path.stat()
+            if (
+                row["size_bytes"] != stat.st_size
+                or row["mtime_ns"] != stat.st_mtime_ns
+                or row["status"] != "ok"
+                or row["reference_contract_version"]
+                != REFERENCE_EXTRACTOR_VERSION
+            ):
+                dirty_session_ids.add(int(row["session_id"]))
+        partial_ids = set()
+        if dirty_session_ids:
+            placeholders = ",".join("?" for _ in dirty_session_ids)
+            partial_ids.update(
+                int(row["session_id"])
+                for row in connection.execute(
+                    """
+                    SELECT session_id
+                    FROM session_reference_scans
+                    WHERE status = 'partial'
+                      AND session_id IN ({})
+                    """.format(placeholders),
+                    tuple(sorted(dirty_session_ids)),
+                ).fetchall()
+            )
+        if has_unmapped_path:
+            partial_ids.update(
+                int(row["session_id"])
+                for row in connection.execute(
+                    """
+                    SELECT session_reference_scans.session_id
+                    FROM session_reference_scans
+                    JOIN sessions
+                      ON sessions.id = session_reference_scans.session_id
+                    WHERE sessions.source_id = ?
+                      AND session_reference_scans.status = 'partial'
+                    """,
+                    (source_id,),
+                ).fetchall()
+            )
+        if partial_ids:
+            placeholders = ",".join("?" for _ in partial_ids)
+            forced_reference_paths = {
+                row["path"]
+                for row in connection.execute(
+                    """
+                    SELECT path FROM source_files
+                    WHERE source_id = ?
+                      AND session_id IN ({})
+                    """.format(placeholders),
+                    (source_id,) + tuple(sorted(partial_ids)),
+                ).fetchall()
+            }
     expected_usage_record_ids = set()
     repair_errors = []
+    empty_candidates = []
+    reference_sessions_to_finalize = set()
+    failed_reference_sessions = {}
 
     for path in paths:
         current_stat = path.stat()
@@ -592,44 +888,74 @@ def _scan_session_source(
             size_bytes=current_stat.st_size,
             mtime_ns=current_stat.st_mtime_ns,
         )
-        if not force and not contract_repair_required and _file_is_current(
-            connection, source_id, path, usage_contract_version
+        if (
+            not force
+            and not source_contract_repair_required
+            and not eligibility_repair_required
+            and str(path) not in forced_reference_paths
+            and _file_is_current(
+                connection,
+                source_id,
+                path,
+                usage_contract_version,
+                REFERENCE_EXTRACTOR_VERSION,
+            )
         ):
             session_row = connection.execute(
                 """
                 SELECT sessions.id
-                FROM atlassian_evidence_scans
-                JOIN sessions
-                  ON sessions.id = atlassian_evidence_scans.session_id
-                WHERE sessions.source_id = ?
-                  AND atlassian_evidence_scans.source_path = ?
+                FROM source_files
+                JOIN sessions ON sessions.id = source_files.session_id
+                WHERE source_files.source_id = ?
+                  AND source_files.path = ?
                 """,
                 (source_id, str(path)),
             ).fetchone()
-            if session_row and evidence_scan_is_current(
-                connection,
-                session_id=int(session_row["id"]),
-                source_path=str(path),
-                source_fingerprint=evidence_source_fingerprint,
+            if (
+                session_row
+                and session_reference_scan_is_current(
+                    connection, int(session_row["id"])
+                )
+                and evidence_scan_is_current(
+                    connection,
+                    session_id=int(session_row["id"]),
+                    source_path=str(path),
+                    source_fingerprint=evidence_source_fingerprint,
+                )
             ):
                 skipped += 1
                 continue
+        current_session_id = None
         try:
             scanned_stat = current_stat
             parsed = parser(path)
+            if not _parsed_session_is_meaningful(parsed):
+                empty_candidates.append((path, parsed))
+                continue
             session_id = _store_session(
                 connection,
                 source_id,
-                source_kind,
+                source_key,
                 parsed,
                 usage_contract_version=usage_contract_version,
+                provider_kind=effective_provider_kind,
             )
+            current_session_id = session_id
             reconcile_session_evidence(
                 connection,
                 session_id=session_id,
                 source_path=str(path),
                 source_fingerprint=evidence_source_fingerprint,
                 candidates=parsed.url_evidence,
+            )
+            reconcile_session_references(
+                connection,
+                session_id=session_id,
+                source_path=str(path),
+                source_size_bytes=scanned_stat.st_size,
+                source_mtime_ns=scanned_stat.st_mtime_ns,
+                candidates=parsed.reference_candidates,
+                finalize=False,
             )
             _record_source_file(
                 connection,
@@ -638,32 +964,91 @@ def _scan_session_source(
                 usage_contract_version=usage_contract_version,
                 scanned_size_bytes=scanned_stat.st_size,
                 scanned_mtime_ns=scanned_stat.st_mtime_ns,
+                session_id=session_id,
+                reference_contract_version=REFERENCE_EXTRACTOR_VERSION,
             )
-            expected_usage_record_ids.update(record.usage_record_id for record in parsed.usage_records)
+            reference_sessions_to_finalize.add(session_id)
+            expected_usage_record_ids.update(
+                stable_id(
+                    "source-scoped-usage", source_key, record.usage_record_id
+                )
+                if source_key != effective_provider_kind
+                else record.usage_record_id
+                for record in parsed.usage_records
+            )
             imported += 1
         except Exception as exc:
-            if contract_repair_required:
+            if current_session_id is None:
+                mapped = connection.execute(
+                    """
+                    SELECT session_id FROM source_files
+                    WHERE source_id = ? AND path = ?
+                    """,
+                    (source_id, str(path)),
+                ).fetchone()
+                if mapped and mapped["session_id"] is not None:
+                    current_session_id = int(mapped["session_id"])
+            if current_session_id is not None:
+                failed_reference_sessions[current_session_id] = str(exc)
+            if source_contract_repair_required:
                 repair_errors.append((path, str(exc)))
             else:
                 _record_source_file(connection, source_id, path, "error", str(exc))
             failed += 1
-    if contract_repair_required and failed:
+    for session_id in sorted(
+        reference_sessions_to_finalize - set(failed_reference_sessions)
+    ):
+        try:
+            finalize_session_references(connection, session_id)
+        except Exception as exc:
+            failed_reference_sessions[session_id] = str(exc)
+            failed += 1
+            session_paths = connection.execute(
+                "SELECT path FROM source_files WHERE session_id = ? ORDER BY path",
+                (session_id,),
+            ).fetchall()
+            if source_contract_repair_required:
+                repair_errors.extend(
+                    (Path(row["path"]), str(exc)) for row in session_paths
+                )
+            else:
+                connection.execute(
+                    """
+                    UPDATE source_files
+                    SET status = 'error', error = ?
+                    WHERE session_id = ?
+                    """,
+                    (str(exc), session_id),
+                )
+    if source_contract_repair_required and failed:
         connection.execute("ROLLBACK TO source_usage_contract_repair")
         connection.execute("RELEASE source_usage_contract_repair")
         imported = 0
+        empty_candidates = []
         for path, error in repair_errors:
             _record_source_file(connection, source_id, path, "error", error)
-    elif contract_repair_required:
+    elif source_contract_repair_required:
         try:
-            reconcile_usage_record_contract(
-                connection, source_id, expected_usage_record_ids
-            )
+            if contract_repair_required:
+                reconcile_usage_record_contract(
+                    connection, source_id, expected_usage_record_ids
+                )
             connection.execute("RELEASE source_usage_contract_repair")
         except Exception:
             connection.execute("ROLLBACK TO source_usage_contract_repair")
             connection.execute("RELEASE source_usage_contract_repair")
             raise
-    _reconcile_session_parents(connection, source_id, source_kind)
+    for session_id, error in failed_reference_sessions.items():
+        if connection.execute(
+            "SELECT 1 FROM sessions WHERE id = ?", (session_id,)
+        ).fetchone():
+            mark_session_reference_error(
+                connection,
+                session_id=session_id,
+                error_message=error,
+            )
+    _remove_empty_session_candidates(connection, source_id, empty_candidates)
+    _reconcile_session_parents(connection, source_id, effective_provider_kind)
     connection.execute(
         "UPDATE sources SET last_scanned_at = ? WHERE id = ?", (utc_now(), source_id)
     )
@@ -953,7 +1338,11 @@ def _scan_context_documents(
     root_id: Optional[int] = None,
 ) -> Tuple[int, int, int]:
     source_id = _upsert_source(
-        connection, "context", "Local Contexts", settings.context_root
+        connection,
+        "context",
+        "context",
+        "Local Contexts",
+        settings.context_root,
     )
     imported = skipped = failed = 0
     params = []
@@ -1148,34 +1537,368 @@ def scan_context_root(
     return _scan_context_documents(connection, force=force, root_id=root_id)
 
 
-def _scan_session_sources(
-    connection: sqlite3.Connection, force: bool = False
-) -> Dict[str, Dict[str, int]]:
-    report: Dict[str, Dict[str, int]] = {}
-    for key, values in (
-        (
-            "claude",
-            _scan_claude_source(connection, force),
-        ),
-        (
-            "codex",
-            _scan_session_source(
+def _is_claude_session_candidate(root: Path, path: Path) -> bool:
+    relative_parts = path.relative_to(root).parts
+    ancestors = relative_parts[:-1]
+    return "subagents" not in ancestors or path.parent.name == "subagents"
+
+
+SESSION_SCAN_ADAPTERS = {
+    "claude": (parse_claude_session, CLAUDE_USAGE_CONTRACT_VERSION),
+    "codex": (parse_codex_session, CODEX_USAGE_CONTRACT_VERSION),
+}
+SESSION_SCAN_PATH_FILTERS = {
+    "claude": _is_claude_session_candidate,
+}
+SESSION_SCAN_SUCCESS_STATUSES = {"completed", "empty"}
+
+
+def _source_scan_counts(
+    connection: sqlite3.Connection, source_id: Optional[int]
+) -> Tuple[int, int]:
+    if source_id is None:
+        return 0, 0
+    row = connection.execute(
+        """
+        SELECT
+            (SELECT COUNT(*) FROM sessions
+             WHERE source_id = ? AND session_class = 'work'
+               AND session_role = 'primary') AS eligible_sessions,
+            (SELECT COUNT(*) FROM source_files
+             WHERE source_id = ?) AS tracked_files
+        """,
+        (source_id, source_id),
+    ).fetchone()
+    return int(row["eligible_sessions"]), int(row["tracked_files"])
+
+
+def _source_row(connection: sqlite3.Connection, source_key: str):
+    return connection.execute(
+        """
+        SELECT id, kind, provider_kind, name, root_path,
+               last_scanned_at, last_scan_success_at
+        FROM sources WHERE kind = ?
+        """,
+        (source_key,),
+    ).fetchone()
+
+
+def _bounded_scan_failure(provider_kind: str) -> str:
+    label = "Claude" if provider_kind == "claude" else "Codex"
+    return "{} Session files could not be synchronized; existing data was retained.".format(label)
+
+
+def _record_scan_health(
+    connection: sqlite3.Connection,
+    source_id: Optional[int],
+    status: str,
+    attempted_at: str,
+    error: Optional[str] = None,
+) -> None:
+    if source_id is None:
+        return
+    bounded_error = error[:500] if error else None
+    if status in SESSION_SCAN_SUCCESS_STATUSES:
+        connection.execute(
+            """
+            UPDATE sources
+            SET last_scanned_at = ?, last_scan_success_at = ?,
+                last_scan_status = ?, last_scan_error = NULL
+            WHERE id = ?
+            """,
+            (attempted_at, attempted_at, status, source_id),
+        )
+    else:
+        connection.execute(
+            """
+            UPDATE sources
+            SET last_scanned_at = ?, last_scan_status = ?, last_scan_error = ?
+            WHERE id = ?
+            """,
+            (attempted_at, status, bounded_error, source_id),
+        )
+
+
+def _source_report(
+    *,
+    source_key: str,
+    display_label: str,
+    provider_kind: str,
+    root: str,
+    status: str,
+    imported: int = 0,
+    unchanged: int = 0,
+    failed_files: int = 0,
+    eligible_sessions: int = 0,
+    tracked_files: int = 0,
+    last_attempt_at: Optional[str] = None,
+    last_success_at: Optional[str] = None,
+    error_code: Optional[str] = None,
+    error_message: Optional[str] = None,
+) -> Dict[str, Any]:
+    return {
+        "source_key": source_key,
+        "display_label": display_label,
+        "provider_kind": provider_kind,
+        "root": root,
+        "status": status,
+        "imported": imported,
+        "unchanged": unchanged,
+        "failed_files": failed_files,
+        "eligible_sessions": eligible_sessions,
+        "tracked_files": tracked_files,
+        "last_attempt_at": last_attempt_at,
+        "last_success_at": last_success_at,
+        "error_code": error_code,
+        "error_message": error_message,
+        "retained_data": status not in SESSION_SCAN_SUCCESS_STATUSES,
+    }
+
+
+def _aggregate_scan_report(sources: list) -> Dict[str, Any]:
+    success_count = sum(
+        1 for source in sources if source["status"] in SESSION_SCAN_SUCCESS_STATUSES
+    )
+    issue_count = len(sources) - success_count
+    if issue_count == 0:
+        outcome = "complete"
+    elif success_count:
+        outcome = "partial"
+    else:
+        outcome = "failed"
+    return {
+        "outcome": outcome,
+        "summary": {
+            "source_count": len(sources),
+            "completed_sources": success_count,
+            "attention_sources": issue_count,
+            "imported": sum(source["imported"] for source in sources),
+            "unchanged": sum(source["unchanged"] for source in sources),
+            "failed_files": sum(source["failed_files"] for source in sources),
+        },
+        "sources": sources,
+    }
+
+
+def _configuration_source_report(registration, diagnostic=None) -> Dict[str, Any]:
+    attempted_at = utc_now()
+    error_code = diagnostic.code if diagnostic else registration.status
+    if diagnostic:
+        error_message = "{} This source was not synchronized; existing data was retained.".format(
+            diagnostic.message
+        )
+    else:
+        error_message = "This source was not synchronized because its configuration needs attention; existing data was retained."
+    error_message = error_message[:500]
+    with transaction() as connection:
+        row = _source_row(connection, registration.source_key)
+        source_id = int(row["id"]) if row else registration.source_id
+        eligible, tracked = _source_scan_counts(connection, source_id)
+        _record_scan_health(
+            connection,
+            source_id,
+            "configuration_error",
+            attempted_at,
+            error_message,
+        )
+        last_success = row["last_scan_success_at"] if row else None
+    return _source_report(
+        source_key=registration.source_key,
+        display_label=registration.display_label,
+        provider_kind=registration.provider_kind,
+        root=registration.root,
+        status="configuration_error",
+        eligible_sessions=eligible,
+        tracked_files=tracked,
+        last_attempt_at=attempted_at,
+        last_success_at=last_success,
+        error_code=error_code,
+        error_message=error_message,
+    )
+
+
+def _scan_registered_session_source(registration, force: bool) -> Dict[str, Any]:
+    attempted_at = utc_now()
+    if registration.status == "unavailable":
+        message = "This source root is unavailable; it was not synchronized and existing data was retained."
+        with transaction() as connection:
+            row = _source_row(connection, registration.source_key)
+            source_id = int(row["id"]) if row else registration.source_id
+            eligible, tracked = _source_scan_counts(connection, source_id)
+            _record_scan_health(
+                connection, source_id, "unavailable", attempted_at, message
+            )
+            last_success = row["last_scan_success_at"] if row else None
+        return _source_report(
+            source_key=registration.source_key,
+            display_label=registration.display_label,
+            provider_kind=registration.provider_kind,
+            root=registration.root,
+            status="unavailable",
+            eligible_sessions=eligible,
+            tracked_files=tracked,
+            last_attempt_at=attempted_at,
+            last_success_at=last_success,
+            error_code="root_unavailable",
+            error_message=message,
+        )
+
+    if registration.status != "ready":
+        return _configuration_source_report(registration)
+
+    adapter = SESSION_SCAN_ADAPTERS.get(registration.provider_kind)
+    if adapter is None:
+        return _configuration_source_report(registration)
+    parser, usage_contract = adapter
+    try:
+        with transaction() as connection:
+            values = _scan_session_source(
                 connection,
-                "codex",
-                "Codex",
-                settings.codex_root,
-                parse_codex_session,
-                CODEX_USAGE_CONTRACT_VERSION,
+                registration.source_key,
+                registration.display_label,
+                Path(registration.root),
+                parser,
+                usage_contract,
                 force,
-            ),
-        ),
-    ):
-        report[key] = {
-            "imported": values[0],
-            "skipped": values[1],
-            "failed": values[2],
-        }
-    return report
+                provider_kind=registration.provider_kind,
+                path_filter=SESSION_SCAN_PATH_FILTERS.get(
+                    registration.provider_kind
+                ),
+            )
+            row = _source_row(connection, registration.source_key)
+            source_id = int(row["id"])
+            eligible, tracked = _source_scan_counts(connection, source_id)
+            status = "scan_failed" if values[2] else ("empty" if tracked == 0 else "completed")
+            message = (
+                "{} files could not be processed; existing data for those files was retained.".format(values[2])
+                if values[2]
+                else None
+            )
+            _record_scan_health(connection, source_id, status, attempted_at, message)
+            last_success = attempted_at if status in SESSION_SCAN_SUCCESS_STATUSES else row["last_scan_success_at"]
+        return _source_report(
+            source_key=registration.source_key,
+            display_label=registration.display_label,
+            provider_kind=registration.provider_kind,
+            root=registration.root,
+            status=status,
+            imported=values[0],
+            unchanged=values[1],
+            failed_files=values[2],
+            eligible_sessions=eligible,
+            tracked_files=tracked,
+            last_attempt_at=attempted_at,
+            last_success_at=last_success,
+            error_code="file_scan_failed" if values[2] else None,
+            error_message=message,
+        )
+    except Exception:
+        message = _bounded_scan_failure(registration.provider_kind)
+        with transaction() as connection:
+            row = _source_row(connection, registration.source_key)
+            source_id = int(row["id"]) if row else registration.source_id
+            eligible, tracked = _source_scan_counts(connection, source_id)
+            _record_scan_health(
+                connection, source_id, "scan_failed", attempted_at, message
+            )
+            last_success = row["last_scan_success_at"] if row else None
+        return _source_report(
+            source_key=registration.source_key,
+            display_label=registration.display_label,
+            provider_kind=registration.provider_kind,
+            root=registration.root,
+            status="scan_failed",
+            eligible_sessions=eligible,
+            tracked_files=tracked,
+            last_attempt_at=attempted_at,
+            last_success_at=last_success,
+            error_code="source_scan_failed",
+            error_message=message,
+        )
+
+
+def _scan_session_sources(
+    force: bool = False, selected_keys: Optional[Set[str]] = None
+) -> Dict[str, Any]:
+    with transaction() as connection:
+        registry = load_and_reconcile_session_sources(connection, settings)
+
+    reports = []
+    registrations = list(registry.registrations)
+    represented = {item.source_key for item in registrations}
+    diagnostics_by_key = {
+        item.source_key: item
+        for item in registry.diagnostics
+        if item.source_key and item.source_key not in represented
+    }
+    if registry.settings.file_error:
+        with transaction() as connection:
+            rows = connection.execute(
+                """
+                SELECT id, kind, provider_kind, name, root_path
+                FROM sources
+                WHERE provider_kind IN ('claude', 'codex')
+                ORDER BY id
+                """
+            ).fetchall()
+        registrations = [
+            SessionSourceRegistration(
+                source_key=row["kind"],
+                provider_kind=row["provider_kind"],
+                display_label=row["name"],
+                root=row["root_path"],
+                status="configuration_error",
+                source_id=int(row["id"]),
+            )
+            for row in rows
+        ]
+        if not registrations:
+            diagnostic = registry.diagnostics[0]
+            message = "{} Session sources were not synchronized; existing data was retained.".format(
+                diagnostic.message
+            )[:500]
+            reports.append(
+                _source_report(
+                    source_key="settings",
+                    display_label="Session source settings",
+                    provider_kind="unknown",
+                    root=str(registry.settings.settings_path),
+                    status="configuration_error",
+                    last_attempt_at=utc_now(),
+                    error_code=diagnostic.code,
+                    error_message=message,
+                )
+            )
+    else:
+        by_key = {item.source_key: item for item in registrations}
+        for source_key, diagnostic in diagnostics_by_key.items():
+            with transaction() as connection:
+                row = _source_row(connection, source_key)
+            by_key[source_key] = SessionSourceRegistration(
+                source_key=source_key,
+                provider_kind=row["provider_kind"] if row else "unknown",
+                display_label=row["name"] if row else source_key,
+                root=row["root_path"] if row else "",
+                status="configuration_error",
+                source_id=int(row["id"]) if row else None,
+            )
+        registrations = [
+            by_key[key] for key in registry.settings.declared_source_keys if key in by_key
+        ] + [
+            item for item in registrations if item.source_key not in registry.settings.declared_source_keys
+        ]
+
+    for registration in registrations:
+        if selected_keys is not None and registration.source_key not in selected_keys:
+            continue
+        diagnostic = diagnostics_by_key.get(registration.source_key)
+        if registry.settings.file_error:
+            diagnostic = registry.diagnostics[0]
+        if diagnostic or registration.status not in {"ready", "unavailable"}:
+            reports.append(_configuration_source_report(registration, diagnostic))
+        else:
+            reports.append(_scan_registered_session_source(registration, force))
+    return _aggregate_scan_report(reports)
 
 
 def _scan_claude_source(
@@ -1189,45 +1912,75 @@ def _scan_claude_source(
         parse_claude_session,
         CLAUDE_USAGE_CONTRACT_VERSION,
         force,
+        provider_kind="claude",
+        path_filter=_is_claude_session_candidate,
     )
 
 
 def scan_claude_sessions(force: bool = False) -> Dict[str, int]:
     init_db()
-    with transaction() as connection:
-        values = _scan_claude_source(connection, force=force)
-    return {"imported": values[0], "skipped": values[1], "failed": values[2]}
+    report = _scan_session_sources(force=force, selected_keys={"claude"})
+    source = report["sources"][0] if report["sources"] else {}
+    return {
+        "imported": source.get("imported", 0),
+        "skipped": source.get("unchanged", 0),
+        "failed": source.get("failed_files", 0),
+    }
 
 
 def scan_codex_sessions(force: bool = False) -> Dict[str, int]:
     init_db()
-    with transaction() as connection:
-        values = _scan_session_source(
-            connection,
-            "codex",
-            "Codex",
-            settings.codex_root,
-            parse_codex_session,
-            CODEX_USAGE_CONTRACT_VERSION,
-            force,
+    report = _scan_session_sources(force=force, selected_keys={"codex"})
+    source = report["sources"][0] if report["sources"] else {}
+    return {
+        "imported": source.get("imported", 0),
+        "skipped": source.get("unchanged", 0),
+        "failed": source.get("failed_files", 0),
+    }
+
+
+def scan_session_sources(force: bool = False) -> Dict[str, Any]:
+    init_db()
+    return _scan_session_sources(force=force)
+
+
+def scan_all(force: bool = False) -> Dict[str, Any]:
+    init_db()
+    report = _scan_session_sources(force=force)
+    attempted_at = utc_now()
+    context_report = None
+    try:
+        with transaction() as connection:
+            values = _scan_context_documents(connection, force=force)
+            row = _source_row(connection, "context")
+            source_id = int(row["id"]) if row else None
+            eligible, tracked = _source_scan_counts(connection, source_id)
+            status = "scan_failed" if values[2] else ("empty" if tracked == 0 else "completed")
+            message = "{} Context files could not be processed.".format(values[2]) if values[2] else None
+            _record_scan_health(connection, source_id, status, attempted_at, message)
+            last_success = attempted_at if status in SESSION_SCAN_SUCCESS_STATUSES else (row["last_scan_success_at"] if row else None)
+            context_report = _source_report(
+                source_key="context", display_label="Local Contexts",
+                provider_kind="context", root=str(settings.context_root),
+                status=status, imported=values[0], unchanged=values[1],
+                failed_files=values[2], tracked_files=tracked,
+                last_attempt_at=attempted_at, last_success_at=last_success,
+                error_code="file_scan_failed" if values[2] else None,
+                error_message=message,
+            )
+    except Exception:
+        message = "Local Context files could not be scanned; existing data was retained."
+        with transaction() as connection:
+            row = _source_row(connection, "context")
+            source_id = int(row["id"]) if row else None
+            _, tracked = _source_scan_counts(connection, source_id)
+            _record_scan_health(connection, source_id, "scan_failed", attempted_at, message)
+            last_success = row["last_scan_success_at"] if row else None
+        context_report = _source_report(
+            source_key="context", display_label="Local Contexts",
+            provider_kind="context", root=str(settings.context_root),
+            status="scan_failed", tracked_files=tracked,
+            last_attempt_at=attempted_at, last_success_at=last_success,
+            error_code="source_scan_failed", error_message=message,
         )
-    return {"imported": values[0], "skipped": values[1], "failed": values[2]}
-
-
-def scan_session_sources(force: bool = False) -> Dict[str, Dict[str, int]]:
-    init_db()
-    with transaction() as connection:
-        return _scan_session_sources(connection, force=force)
-
-
-def scan_all(force: bool = False) -> Dict[str, Dict[str, int]]:
-    init_db()
-    with transaction() as connection:
-        report = _scan_session_sources(connection, force=force)
-        values = _scan_context_documents(connection, force=force)
-        report["context"] = {
-            "imported": values[0],
-            "skipped": values[1],
-            "failed": values[2],
-        }
-    return report
+    return _aggregate_scan_report(report["sources"] + [context_report])

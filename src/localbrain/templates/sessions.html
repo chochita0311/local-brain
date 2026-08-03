@@ -1,13 +1,19 @@
 {% extends "base.html" %}
 {% from "_session_pin.html" import session_pin_control with context %}
+{% from "_source_cue.html" import source_cue %}
 {% set inventory_mode = selected_inventory | default('sessions') %}
 {% set inventory_page_title = page_title | default('Sessions') %}
 {% set project_items = projects | default([]) %}
 {% set project_total = project_count | default(project_items | length) %}
 {% set unavailable_project_total = missing_count | default(0) %}
 {% set pinned_items = pinned_sessions | default([]) %}
+{% set source_scope_items = session_source_scopes | default([]) %}
+{% set selected_scope_label = selected_source_label | default(value_label("source.kind", selected_source) if selected_source != 'all' else '전체') %}
 {% set session_return_to = (request.url.path ~ (('?' ~ request.url.query) if request.url.query else '')) if request is defined else '/sessions' %}
 {% set session_pin_error = request.query_params.get('pin_error') if request is defined else none %}
+{% macro session_detail_url(session_id) -%}
+  /sessions/{{ session_id }}{% if selected_source != 'all' or selected_workspace is not none %}?{% if selected_source != 'all' %}source={{ selected_source }}{% endif %}{% if selected_workspace is not none %}{% if selected_source != 'all' %}&{% endif %}workspace={{ selected_workspace }}{% endif %}{% endif %}
+{%- endmacro %}
 {% macro session_page_url(target_page) -%}
   /sessions?page={{ target_page }}{% if selected_source != 'all' %}&source={{ selected_source }}{% endif %}{% if selected_workspace is not none %}&workspace={{ selected_workspace }}{% endif %}
 {%- endmacro %}
@@ -49,7 +55,16 @@
       </button>
     </form>
   </section>
-  <div id="session-sync-result" class="scan-result" role="status" hidden></div>
+  <div id="session-sync-result" class="scan-result{% if sync_outcome | default(none) %} scan-report {{ 'success' if sync_outcome == 'complete' else ('warning' if sync_outcome == 'partial' else 'error') }}{% endif %}" role="{{ 'alert' if sync_outcome | default(none) in ['partial', 'failed'] else 'status' }}" {% if not sync_outcome | default(none) %}hidden{% endif %}>
+    {% if sync_outcome | default(none) %}
+      <strong>
+        {% if sync_outcome == 'complete' %}모든 Session 소스를 동기화했습니다.
+        {% elif sync_outcome == 'partial' %}일부 Session 소스에 확인이 필요합니다.
+        {% else %}Session 소스를 동기화하지 못했습니다.{% endif %}
+      </strong>
+      <span>아래 수집 소스 상태에서 각 결과와 보존 여부를 확인하세요.</span>
+    {% endif %}
+  </div>
   {% if session_pin_error and session_pin_error != 'storage-unavailable' %}
     <div class="session-pin-notice" role="alert">
       {% if session_pin_error == 'missing' %}
@@ -63,7 +78,7 @@
   <div data-inventory-content>
     <section data-inventory-panel="sessions" {% if inventory_mode != 'sessions' %}hidden{% endif %}>
       <section class="metric-band compact" aria-label="세션 현황">
-        <div class="metric"><strong>{{ stats.sessions }}</strong><span>전체 세션</span></div>
+        <div class="metric"><strong>{{ stats.sessions }}</strong><span>{{ selected_scope_label ~ ' 세션' if selected_source != 'all' else '전체 세션' }}</span></div>
         <div class="metric"><strong>{{ stats.events }}</strong><span>활동 이벤트</span></div>
         <div class="metric"><strong>{{ stats.active_workspaces }}</strong><span>최근 활성 경로</span></div>
         <div class="metric warning"><strong>{{ stats.missing_workspaces }}</strong><span>사라진 경로</span></div>
@@ -76,10 +91,11 @@
               <h2>세션 타임라인</h2>
               <p>{% if selected_workspace %}선택한 프로젝트의 세션{% else %}가장 최근 활동 기준{% endif %}</p>
             </div>
-            <div class="segmented-control" aria-label="AI 도구 필터">
+            <div class="segmented-control session-source-control" aria-label="Session 소스 필터">
               <a class="{% if selected_source == 'all' %}selected{% endif %}" href="/sessions{% if selected_workspace %}?workspace={{ selected_workspace }}{% endif %}">전체</a>
-              <a class="{% if selected_source == 'claude' %}selected{% endif %}" href="/sessions?source=claude{% if selected_workspace %}&workspace={{ selected_workspace }}{% endif %}">{{ value_label("source.kind", "claude") }}</a>
-              <a class="{% if selected_source == 'codex' %}selected{% endif %}" href="/sessions?source=codex{% if selected_workspace %}&workspace={{ selected_workspace }}{% endif %}">{{ value_label("source.kind", "codex") }}</a>
+              {% for source_scope in source_scope_items %}
+                <a class="{% if selected_source == source_scope.source_key %}selected{% endif %}" href="/sessions?source={{ source_scope.source_key }}{% if selected_workspace is not none %}&workspace={{ selected_workspace }}{% endif %}">{{ source_scope.display_label }}</a>
+              {% endfor %}
             </div>
           </div>
 
@@ -87,10 +103,10 @@
             <div class="session-list">
               {% for session in sessions %}
                 <div class="session-row">
-                  <a class="session-row-link" href="/sessions/{{ session.id }}">
+                  <a class="session-row-link" href="{{ session_detail_url(session.id) }}">
                     <div class="session-source {{ session.source_kind }}">
-                      <span aria-hidden="true">{{ 'CL' if session.source_kind == 'claude' else 'CX' }}</span>
-                      <span class="sr-only">{{ value_label("source.kind", session.source_kind) }} · {{ value_label("session.role", session.session_role) }}</span>
+                      <span aria-hidden="true">{{ source_cue(session.source_kind, session.provider_kind, session.source_name) }}</span>
+                      <span class="sr-only">{{ session.source_name }} · {{ value_label("session.role", session.session_role) }}</span>
                     </div>
                     <div class="session-main">
                       <div class="session-title-line">
@@ -98,9 +114,7 @@
                         {% if session.exists_now == 0 %}<span class="missing-label">경로 없음</span>{% endif %}
                       </div>
                       <p class="path-line" title="{{ session.workspace_path or session.cwd_raw or '작업 경로 없음' }}">{{ session.workspace_path or session.cwd_raw or '작업 경로 없음' }}</p>
-                      <div class="session-meta">
-                        {% if session.git_branch %}<span>{{ session.git_branch }}</span>{% endif %}
-                      </div>
+                      {% if session.git_branch %}<div class="session-meta"><span>{{ session.git_branch }}</span></div>{% endif %}
                     </div>
                   </a>
                   <div class="session-utility-layer">
@@ -120,9 +134,9 @@
                           <div class="subsession-dropdown-heading"><strong>Subsessions</strong><span>{{ session.subsessions | length }}</span></div>
                           <div class="subsession-dropdown-list">
                             {% for child in session.subsessions %}
-                              <a href="/sessions/{{ child.id }}" data-subsession-link>
+                              <a href="{{ session_detail_url(child.id) }}" data-subsession-link>
                                 <strong>{{ child.title }}</strong>
-                                <span>질문 {{ child.user_message_count }} · 이벤트 {{ child.event_count }}</span>
+                                <span>{{ child.source_name }} · 질문 {{ child.user_message_count }} · 이벤트 {{ child.event_count }}</span>
                                 <time datetime="{{ child.last_event_at or child.started_at }}" data-local-time>{{ child.last_event_at or child.started_at or '-' }}</time>
                               </a>
                             {% endfor %}
@@ -138,7 +152,7 @@
             <div class="empty-state">
               {% if selected_source != 'all' or selected_workspace is not none %}
                 <h3>조건에 맞는 세션이 없습니다</h3>
-                <p>다른 소스나 프로젝트 필터를 선택해 보세요.</p>
+                <p>{% if selected_source != 'all' %}{{ selected_scope_label }} 소스에 {% endif %}다른 소스나 프로젝트 필터를 선택해 보세요.</p>
               {% else %}
                 <h3>수집된 세션이 없습니다</h3>
                 <p>위의 동기화 버튼으로 Claude 또는 Codex 세션을 가져와 보세요.</p>
@@ -176,14 +190,15 @@
             {% if pinned_items %}
               <div class="pinned-session-list">
                 {% for pinned_session in pinned_items %}
-                  <a href="/sessions/{{ pinned_session.id }}">
-                    <span class="pinned-session-source {{ pinned_session.source_kind }}" aria-hidden="true">{{ 'CL' if pinned_session.source_kind == 'claude' else 'CX' }}</span>
+                  <a href="{{ session_detail_url(pinned_session.id) }}">
+                    <span class="pinned-session-source {{ pinned_session.source_kind }}">
+                      <span aria-hidden="true">{{ source_cue(pinned_session.source_kind, pinned_session.provider_kind, pinned_session.source_name) }}</span>
+                      <span class="sr-only">{{ pinned_session.source_name }}</span>
+                    </span>
                     <span class="pinned-session-copy">
                       <strong>{{ pinned_session.title }}</strong>
                       <span>{{ pinned_session.workspace_name or pinned_session.workspace_path or pinned_session.cwd_raw or '작업 경로 없음' }}</span>
-                      <small>
-                        <time datetime="{{ pinned_session.last_event_at or pinned_session.started_at }}" data-local-time>{{ pinned_session.last_event_at or pinned_session.started_at or '-' }}</time>
-                      </small>
+                      <small><time datetime="{{ pinned_session.last_event_at or pinned_session.started_at }}" data-local-time>{{ pinned_session.last_event_at or pinned_session.started_at or '-' }}</time></small>
                     </span>
                   </a>
                 {% endfor %}
@@ -198,10 +213,13 @@
 
           <section class="side-section source-status-section">
             <div class="side-heading"><h2>수집 소스</h2><a href="/sources">관리</a></div>
-            {% for source in sources if source.kind in ['claude', 'codex'] %}
-              <div class="source-status-row">
-                <span class="source-name"><i class="source-indicator {{ source.kind }}"></i>{{ source.name }}</span>
-                <span>{{ source.session_count }}</span>
+            {% for source in sources if source.provider_kind in ['claude', 'codex'] %}
+              <div class="source-status-row source-health-{{ source.last_scan_status or 'unknown' }}">
+                <span class="source-name"><i class="source-indicator {{ source.provider_kind }}"></i>{{ source.name }}</span>
+                <span class="source-status-summary">
+                  <span>{{ source.session_count }} Sessions</span>
+                  <small>{{ value_label("source.scan-status", source.last_scan_status) }}</small>
+                </span>
               </div>
             {% endfor %}
           </section>

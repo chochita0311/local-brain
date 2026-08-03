@@ -56,14 +56,43 @@ LocalBrain reads these environment variables at process startup:
 | --- | --- | --- |
 | `LOCALBRAIN_DATA_DIR` | `~/Library/Application Support/LocalBrain` | SQLite database and Run artifacts |
 | `LOCALBRAIN_CONTEXT_ROOT` | `~/Projects/context` | Initial Local Context folder discovery |
-| `LOCALBRAIN_CLAUDE_ROOT` | `~/.claude/projects` | Claude session history root |
-| `LOCALBRAIN_CODEX_ROOT` | `~/.codex/sessions` | Codex session history root |
+| `LOCALBRAIN_CLAUDE_ROOT` | `~/.claude/projects` | One-time Claude root seed when `session-sources.toml` is first absent |
+| `LOCALBRAIN_CODEX_ROOT` | `~/.codex/sessions` | One-time personal Codex root seed when `session-sources.toml` is first absent |
 | `LOCALBRAIN_CLAUDE_BIN` | resolved from `PATH` | Claude CLI executable used by the Task Runner |
 | `LOCALBRAIN_CODEX_BIN` | resolved from `PATH` | Codex CLI executable available to source-neutral external synchronization |
 | `LOCALBRAIN_MCP_CALL_BUDGET` | `20` | Advisory legacy-task budget and hard selected-request ceiling for external synchronization |
 | `LOCALBRAIN_TIMEZONE` | system IANA timezone, then `UTC` | Local calendar boundaries for usage and activity reports |
 
 Do not place secrets in tracked environment files. See [Privacy And Data Handling](privacy-and-data.md) before changing data locations or persistence behavior.
+
+Application startup creates `<LOCALBRAIN_DATA_DIR>/session-sources.toml` with
+mode `0600` when it is first absent. The file is the established local AI
+Session-source authority and contains an ordered `schema_version = 1` list:
+
+```toml
+schema_version = 1
+
+[[session_sources]]
+source_key = "codex-company"
+display_label = "Codex Company"
+provider_kind = "codex"
+root = "/absolute/path/to/.codex-company/sessions"
+```
+
+The bootstrapped file also contains explicit `claude` and `codex` peers. Once it
+exists, changing the two legacy root environment variables does not override it.
+Missing roots remain registered as unavailable. Malformed files, provider
+conflicts, omitted entries, and changes to a root that already owns imported data
+preserve the last registered Source and every normalized descendant; source
+deletion and occupied-root relocation require separate future workflows.
+
+Sessions synchronization dispatches every validated entry in file order, using
+one transaction per Source. The structured report names every Source and records
+latest attempt, latest success, outcome, counts, and a bounded consequence. A
+missing or invalid root never authorizes stale deletion; only a completed scan of
+the accepted, present root may reconcile disappeared JSONL for that Source. The
+Sources scan applies the same Session-source behavior before scanning enabled
+Local Context roots.
 
 ## Change Approach
 

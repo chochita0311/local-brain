@@ -25,7 +25,6 @@ DICTIONARY_ROOT = ROOT / "docs/policies/project/data-model/value-dictionaries"
 DICTIONARY_ENTRY = ROOT / "docs/policies/project/data-model/value-dictionaries.md"
 
 REQUIRED_BOOLEAN_FIELDS = {
-    "sources.enabled",
     "external_source_instances.enabled",
     "workspaces.exists_now",
     "context_roots.readable",
@@ -39,6 +38,8 @@ REQUIRED_BOOLEAN_FIELDS = {
 
 REQUIRED_APPLICATION_FAMILIES = {
     "source.kind",
+    "source.provider-kind",
+    "source.scan-status",
     "source-file.status",
     "context-root.source-type",
     "context-root.status",

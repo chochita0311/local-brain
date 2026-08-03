@@ -1,9 +1,10 @@
 import sqlite3
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from localbrain.ingest.common import ParsedEvent
+from localbrain.ingest.common import ParsedEvent, ParsedSession
 from localbrain.queries import (
     session_conversation_events,
     session_events,
@@ -11,6 +12,7 @@ from localbrain.queries import (
     session_subsessions,
 )
 from localbrain.session_reading import conversation_event_view, conversation_event_views
+from localbrain.subagents import list_subagents
 
 
 SCHEMA_PATH = Path(__file__).parents[1] / "src" / "localbrain" / "schema.sql"
@@ -200,6 +202,39 @@ class SessionDetailTests(unittest.TestCase):
         )
         self.assertIn('rel="noopener noreferrer external"', view["rendered_body"])
         self.assertNotIn('href="javascript:', view["rendered_body"])
+
+    def test_lazy_subsession_summary_counts_user_messages(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source_path = Path(temp_dir) / "parent.jsonl"
+            subagent_root = Path(temp_dir) / "parent" / "subagents"
+            subagent_root.mkdir(parents=True)
+            child_path = subagent_root / "agent-child.jsonl"
+            child_path.touch()
+            parsed = ParsedSession(
+                external_id="agent-child",
+                source_path=str(child_path),
+                cwd_raw=None,
+                git_branch=None,
+                title="Lazy child",
+                started_at=None,
+                ended_at=None,
+                last_event_at="2026-07-17T00:03:00Z",
+                parent_external_id="parent",
+                session_role="subsession",
+                events=[
+                    ParsedEvent("user-1", 1, 1, "message", role="user"),
+                    ParsedEvent("tool-1", 2, 2, "tool_call", role="assistant"),
+                    ParsedEvent("assistant-1", 3, 3, "message", role="assistant"),
+                    ParsedEvent("user-2", 4, 4, "message", role="user"),
+                ],
+            )
+
+            with patch("localbrain.subagents.parse_claude_session", return_value=parsed):
+                items = list_subagents(str(source_path), "parent")
+
+        self.assertEqual(len(items), 1)
+        self.assertEqual(items[0]["user_message_count"], 2)
+        self.assertEqual(items[0]["event_count"], 4)
 
     def test_non_eligible_role_stays_plain_and_renderer_failure_is_local(self):
         structural = ParsedEvent(

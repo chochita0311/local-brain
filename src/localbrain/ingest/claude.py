@@ -2,17 +2,23 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from .common import (
+    ApprovedResourceCall,
     ParsedEvent,
     ParsedSession,
     ParsedUsageRecord,
-    approved_atlassian_tool_call,
+    approved_resource_call,
+    approved_result_reference_candidates,
     approved_tool_result_evidence,
     compact_title,
     read_json_lines,
     session_policy,
     stable_id,
+    source_native_event_id,
     text_from_content,
     token_value,
+    tool_result_failed,
+    tool_result_completed,
+    visible_reference_candidates,
     visible_url_evidence,
 )
 
@@ -176,7 +182,8 @@ def parse_claude_session(path: Path) -> ParsedSession:
     events: List[ParsedEvent] = []
     usage_by_record: Dict[str, ParsedUsageRecord] = {}
     url_evidence = []
-    approved_tool_calls: Dict[str, bool] = {}
+    reference_candidates = []
+    approved_tool_calls: Dict[str, ApprovedResourceCall] = {}
     skipped_lines = 0
     is_subsession = path.parent.name == "subagents"
     parent_external_id = path.parent.parent.name if is_subsession else None
@@ -211,34 +218,64 @@ def parse_claude_session(path: Path) -> ParsedSession:
         if record.get("isMeta"):
             continue
 
-        is_tool_result = bool(record.get("sourceToolAssistantUUID")) or (
-            "toolUseResult" in record
+        message_content = _message_content(record)
+        is_tool_result = (
+            bool(record.get("sourceToolAssistantUUID"))
+            or "toolUseResult" in record
+            or (
+                isinstance(message_content, list)
+                and any(
+                    isinstance(item, dict) and item.get("type") == "tool_result"
+                    for item in message_content
+                )
+            )
         )
         if record_type == "user" and is_tool_result:
-            content = _message_content(record)
+            content = message_content
             items = content if isinstance(content, list) else []
             for offset, item in enumerate(items, start=1):
                 if not isinstance(item, dict) or item.get("type") != "tool_result":
                     continue
                 tool_use_id = item.get("tool_use_id")
-                if not isinstance(tool_use_id, str) or not approved_tool_calls.get(
-                    tool_use_id
-                ):
+                call = approved_tool_calls.get(tool_use_id)
+                if not isinstance(tool_use_id, str) or call is None:
                     continue
-                url_evidence.extend(
-                    approved_tool_result_evidence(
-                        item.get("content"),
-                        source_line=line_number,
-                        source_event_id=stable_id(
-                            "claude",
-                            external_id,
-                            line_number,
-                            "approved-tool-result",
-                            offset,
-                        ),
-                        observed_at=timestamp if isinstance(timestamp, str) else None,
-                    )
+                result_event_id = source_native_event_id(
+                    record,
+                    stable_id(
+                        "claude",
+                        external_id,
+                        line_number,
+                        "approved-tool-result",
+                        offset,
+                    ),
                 )
+                failed = tool_result_failed(item, record.get("toolUseResult"))
+                completed = tool_result_completed(item.get("content"))
+                if not failed and completed:
+                    url_evidence.extend(
+                        approved_tool_result_evidence(
+                            item.get("content"),
+                            source_line=line_number,
+                            source_event_id=result_event_id,
+                            observed_at=(
+                                timestamp if isinstance(timestamp, str) else None
+                            ),
+                        )
+                    )
+                if failed or completed:
+                    reference_candidates.extend(
+                        approved_result_reference_candidates(
+                            call,
+                            item.get("content"),
+                            source_line=line_number,
+                            source_event_id=result_event_id,
+                            observed_at=(
+                                timestamp if isinstance(timestamp, str) else None
+                            ),
+                            failed=failed,
+                        )
+                    )
             continue
 
         text = text_from_content(_message_content(record))
@@ -262,6 +299,15 @@ def parse_claude_session(path: Path) -> ParsedSession:
                     text,
                     source_line=line_number,
                     source_event_id=event_id,
+                    observed_at=timestamp if isinstance(timestamp, str) else None,
+                )
+            )
+            reference_candidates.extend(
+                visible_reference_candidates(
+                    text,
+                    role=record_type,
+                    source_line=line_number,
+                    source_event_id=source_native_event_id(record, event_id),
                     observed_at=timestamp if isinstance(timestamp, str) else None,
                 )
             )
@@ -290,11 +336,11 @@ def parse_claude_session(path: Path) -> ParsedSession:
                     if isinstance(tool_name, str):
                         tool_use_id = item.get("id")
                         if isinstance(tool_use_id, str):
-                            approved_tool_calls[tool_use_id] = (
-                                approved_atlassian_tool_call(
-                                    tool_name, item.get("input")
-                                )
+                            call = approved_resource_call(
+                                tool_name, tool_use_id, item.get("input")
                             )
+                            if call is not None:
+                                approved_tool_calls[tool_use_id] = call
                         events.append(
                             ParsedEvent(
                                 event_id=stable_id(
@@ -336,4 +382,5 @@ def parse_claude_session(path: Path) -> ParsedSession:
         parent_external_id=parent_external_id,
         usage_records=list(usage_by_record.values()),
         url_evidence=url_evidence,
+        reference_candidates=reference_candidates,
     )

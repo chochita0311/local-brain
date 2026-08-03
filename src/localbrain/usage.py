@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Dict, Iterable, Optional, Tuple
 
-from .ingest.common import ParsedUsageRecord
+from .ingest.common import ParsedUsageRecord, stable_id
 
 
 DEFAULT_PRICE_SNAPSHOT_ID = "ccusage-20.0.14-litellm-20260718"
@@ -341,6 +341,7 @@ def store_usage_records(
     usage_records: Iterable[ParsedUsageRecord],
     workspace_id: Optional[int] = None,
     normalizer_version: str = "legacy-v1",
+    identity_scope: Optional[str] = None,
 ) -> None:
     ensure_default_price_snapshot(connection)
     records = sorted(list(usage_records), key=lambda item: (item.source_line, item.usage_record_id))
@@ -349,12 +350,19 @@ def store_usage_records(
         (session_id,),
     ).fetchall()
     existing_by_id = {row["id"]: row for row in existing_rows}
+
+    def stored_record_id(record: ParsedUsageRecord) -> str:
+        if identity_scope is None:
+            return record.usage_record_id
+        return stable_id(
+            "source-scoped-usage", identity_scope, record.usage_record_id
+        )
     contract_changed = bool(existing_rows) and any(
         row["normalizer_version"] != normalizer_version for row in existing_rows
     )
 
     def reference_row(record: ParsedUsageRecord) -> Optional[sqlite3.Row]:
-        exact = existing_by_id.get(record.usage_record_id)
+        exact = existing_by_id.get(stored_record_id(record))
         if exact is not None:
             return exact
         if not contract_changed:
@@ -369,7 +377,8 @@ def store_usage_records(
     connection.execute("SAVEPOINT usage_record_reconcile")
     try:
         for record in records:
-            existing = existing_by_id.get(record.usage_record_id)
+            record_id = stored_record_id(record)
+            existing = existing_by_id.get(record_id)
             reference = reference_row(record)
             if (
                 existing
@@ -464,7 +473,7 @@ def store_usage_records(
                     imported_at = excluded.imported_at
                 """,
                 (
-                    record.usage_record_id,
+                    record_id,
                     source_id,
                     session_id,
                     record.source_record_id,

@@ -138,7 +138,7 @@ def activity_summary(
 ) -> dict:
     params = []
     source_filter = ""
-    if source_kind in {"claude", "codex"}:
+    if source_kind:
         source_filter = "AND sources.kind = ?"
         params.append(source_kind)
     rows = connection.execute(

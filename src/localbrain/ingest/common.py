@@ -7,7 +7,18 @@ from typing import Any, Dict, Iterable, List, Optional
 
 
 EVIDENCE_EXTRACTOR_VERSION = "localbrain.atlassian-evidence.v1"
+REFERENCE_EXTRACTOR_VERSION = "localbrain.session-reference.v1"
 URL_PATTERN = re.compile(r"https?://[^\s<>'\"`]+", re.IGNORECASE)
+MARKDOWN_LINK_PATTERN = re.compile(
+    r"\[[^\]]*\]\((?P<target>[^)\s]+\.md(?:#[^)]*)?)\)",
+    re.IGNORECASE,
+)
+MARKDOWN_PATH_PATTERN = re.compile(
+    r"(?<![A-Za-z0-9:/])"
+    r"(?P<target>(?:/|\.{1,2}/|[A-Za-z0-9_~.-]+/)*"
+    r"[A-Za-z0-9_~.-]+\.md(?:#[^\s)\]}>,'\"`]*)?)",
+    re.IGNORECASE,
+)
 APPROVED_ATLASSIAN_TOOL_NAMES = frozenset(
     {
         "atlassian.getAccessibleAtlassianResources",
@@ -82,6 +93,27 @@ class ParsedUrlEvidence:
     observed_title: Optional[str] = None
 
 
+@dataclass(frozen=True)
+class ParsedReferenceCandidate:
+    reference_kind: str
+    reference: str
+    evidence_kind: str
+    source_line: int
+    evidence_ordinal: int
+    source_event_id: Optional[str] = None
+    observed_at: Optional[str] = None
+    tool_name: Optional[str] = None
+    tool_call_id: Optional[str] = None
+    read_outcome: Optional[str] = None
+
+
+@dataclass(frozen=True)
+class ApprovedResourceCall:
+    tool_name: str
+    tool_call_id: str
+    target_hints: tuple[tuple[str, str], ...]
+
+
 @dataclass
 class ParsedUsageRecord:
     usage_record_id: str
@@ -123,6 +155,7 @@ class ParsedSession:
     parent_external_id: Optional[str] = None
     usage_records: List[ParsedUsageRecord] = field(default_factory=list)
     url_evidence: List[ParsedUrlEvidence] = field(default_factory=list)
+    reference_candidates: List[ParsedReferenceCandidate] = field(default_factory=list)
 
 
 def stable_id(*parts: object) -> str:
@@ -191,6 +224,80 @@ def visible_url_evidence(
     return evidence
 
 
+def source_native_event_id(
+    record: Dict[str, Any], fallback: str
+) -> str:
+    for value in (
+        record.get("uuid"),
+        record.get("id"),
+        record.get("event_id"),
+        record.get("eventId"),
+    ):
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return fallback
+
+
+def visible_reference_candidates(
+    text: str,
+    *,
+    role: str,
+    source_line: int,
+    source_event_id: Optional[str] = None,
+    observed_at: Optional[str] = None,
+) -> List[ParsedReferenceCandidate]:
+    evidence_kind = "user_mention" if role == "user" else "assistant_mention"
+    candidates: List[ParsedReferenceCandidate] = []
+    seen = set()
+    occupied_ranges = []
+
+    for match in URL_PATTERN.finditer(text or ""):
+        reference = _trim_url(match.group(0))
+        if not reference or len(reference) > 8000:
+            continue
+        key = ("url", reference)
+        if key in seen:
+            continue
+        seen.add(key)
+        occupied_ranges.append(match.span())
+        candidates.append(
+            ParsedReferenceCandidate(
+                reference_kind="url",
+                reference=reference,
+                evidence_kind=evidence_kind,
+                source_line=source_line,
+                evidence_ordinal=len(candidates) + 1,
+                source_event_id=source_event_id,
+                observed_at=observed_at,
+            )
+        )
+
+    markdown_matches = list(MARKDOWN_LINK_PATTERN.finditer(text or ""))
+    for match in markdown_matches + list(MARKDOWN_PATH_PATTERN.finditer(text or "")):
+        start, end = match.span("target")
+        if any(start < occupied_end and end > occupied_start for occupied_start, occupied_end in occupied_ranges):
+            continue
+        reference = match.group("target").strip().split("#", 1)[0]
+        if not reference or len(reference) > 8000:
+            continue
+        key = ("markdown", reference)
+        if key in seen:
+            continue
+        seen.add(key)
+        candidates.append(
+            ParsedReferenceCandidate(
+                reference_kind="markdown",
+                reference=reference,
+                evidence_kind=evidence_kind,
+                source_line=source_line,
+                evidence_ordinal=len(candidates) + 1,
+                source_event_id=source_event_id,
+                observed_at=observed_at,
+            )
+        )
+    return candidates
+
+
 def _normalized_field_name(value: Any) -> str:
     return re.sub(r"[^a-z0-9]", "", str(value).lower())
 
@@ -248,6 +355,230 @@ def approved_atlassian_tool_call(tool_name: Any, arguments: Any = None) -> bool:
         if isinstance(value, str) and value in APPROVED_GATEWAY_TARGETS:
             return True
     return False
+
+
+def _approved_operation_name(tool_name: str, arguments: Any) -> str:
+    parsed_arguments = _json_container(arguments)
+    if tool_name in {
+        "mcp_gateway.gateway_dispatch",
+        "gateway_dispatch",
+        "mcp__mcp_gateway__gateway_dispatch",
+    } and isinstance(parsed_arguments, dict):
+        for key in ("capability", "capability_name", "name", "target", "tool"):
+            value = parsed_arguments.get(key)
+            if isinstance(value, str) and value in APPROVED_GATEWAY_TARGETS:
+                return value
+    return tool_name
+
+
+def approved_resource_call(
+    tool_name: Any, tool_call_id: Any, arguments: Any
+) -> Optional[ApprovedResourceCall]:
+    if (
+        not isinstance(tool_name, str)
+        or not isinstance(tool_call_id, str)
+        or not tool_call_id.strip()
+        or not approved_atlassian_tool_call(tool_name, arguments)
+    ):
+        return None
+    parsed = _json_container(arguments)
+    operation = _approved_operation_name(tool_name.strip(), arguments).lower()
+    hints: List[tuple[str, str]] = []
+    seen = set()
+    nodes_seen = 0
+
+    def add(kind: str, value: Any) -> None:
+        if not isinstance(value, (str, int)) or isinstance(value, bool):
+            return
+        cleaned = str(value).strip()
+        if not cleaned or len(cleaned) > 8000:
+            return
+        key = (kind, cleaned)
+        if key not in seen:
+            seen.add(key)
+            hints.append(key)
+
+    def visit(value: Any, depth: int = 0) -> None:
+        nonlocal nodes_seen
+        if depth > 4 or nodes_seen >= 200 or len(hints) >= 20:
+            return
+        nodes_seen += 1
+        value = _json_container(value)
+        if isinstance(value, list):
+            for child in value[:50]:
+                visit(child, depth + 1)
+            return
+        if not isinstance(value, dict):
+            return
+        for key, child in value.items():
+            field = _normalized_field_name(key)
+            if field in RESULT_URL_FIELDS or field in {
+                "issueurl",
+                "pageurl",
+                "baseurl",
+            }:
+                if isinstance(child, str):
+                    for match in URL_PATTERN.finditer(child):
+                        add("url", _trim_url(match.group(0)))
+                continue
+            if (
+                "jira" in operation
+                and field in {"issuekey", "key"}
+                and isinstance(child, str)
+                and re.fullmatch(r"[A-Z][A-Z0-9_]*-\d+", child.strip(), re.I)
+            ):
+                add("jira_key", child.strip().upper())
+                continue
+            if "jira" in operation and field == "jql" and isinstance(child, str):
+                exact_key = re.fullmatch(
+                    r"\s*key\s*=\s*(?:\"([^\"]+)\"|'([^']+)'|([A-Z][A-Z0-9_]*-\d+))\s*",
+                    child,
+                    re.I,
+                )
+                if exact_key:
+                    issue_key = next(
+                        value for value in exact_key.groups() if value is not None
+                    )
+                    if re.fullmatch(r"[A-Z][A-Z0-9_]*-\d+", issue_key, re.I):
+                        add("jira_key", issue_key.upper())
+                continue
+            if (
+                ("confluence" in operation or "wiki" in operation)
+                and field in {"pageid", "contentid"}
+                and str(child).strip().isdigit()
+            ):
+                add("confluence_page_id", child)
+                continue
+            if field in {
+                "arguments",
+                "args",
+                "input",
+                "params",
+                "parameters",
+                "payload",
+                "request",
+            }:
+                visit(child, depth + 1)
+
+    visit(parsed)
+    return ApprovedResourceCall(
+        tool_name=tool_name.strip(),
+        tool_call_id=tool_call_id.strip(),
+        target_hints=tuple(hints),
+    )
+
+
+def tool_result_failed(*values: Any) -> bool:
+    for value in values:
+        parsed = _json_container(value)
+        if not isinstance(parsed, dict):
+            continue
+        if parsed.get("is_error") is True or parsed.get("isError") is True:
+            return True
+        if parsed.get("success") is False:
+            return True
+        status = parsed.get("status")
+        if isinstance(status, str) and status.strip().lower() in {
+            "cancelled",
+            "error",
+            "failed",
+            "failure",
+        }:
+            return True
+        if parsed.get("error") not in (None, "", False, [], {}):
+            return True
+    return False
+
+
+def tool_result_completed(value: Any) -> bool:
+    parsed = _json_container(value)
+    if isinstance(parsed, list):
+        return any(tool_result_completed(item) for item in parsed)
+    if not isinstance(parsed, dict) or not parsed:
+        return False
+    if parsed.get("success") is True:
+        return True
+    status = parsed.get("status")
+    if isinstance(status, str) and status.strip().lower() in {
+        "complete",
+        "completed",
+        "ok",
+        "success",
+        "succeeded",
+    }:
+        return True
+    for key, child in parsed.items():
+        field = _normalized_field_name(key)
+        if field in RESULT_CONTAINER_FIELDS:
+            if tool_result_completed(child):
+                return True
+            continue
+        if field in RESULT_URL_FIELDS | RESULT_REMOTE_ID_FIELDS | RESULT_TITLE_FIELDS:
+            if isinstance(child, (str, int)) and not isinstance(child, bool):
+                if str(child).strip():
+                    return True
+        if field in {"issuekey", "key", "pageid", "contentid"}:
+            if isinstance(child, (str, int)) and not isinstance(child, bool):
+                if str(child).strip():
+                    return True
+    return False
+
+
+def approved_result_reference_candidates(
+    call: ApprovedResourceCall,
+    result: Any,
+    *,
+    source_line: int,
+    source_event_id: Optional[str] = None,
+    observed_at: Optional[str] = None,
+    failed: bool = False,
+) -> List[ParsedReferenceCandidate]:
+    url_results = [] if failed else approved_tool_result_evidence(
+        result,
+        source_line=source_line,
+        source_event_id=source_event_id,
+        observed_at=observed_at,
+    )
+    candidates: List[ParsedReferenceCandidate] = []
+    for item in url_results:
+        candidates.append(
+            ParsedReferenceCandidate(
+                reference_kind="url",
+                reference=item.observed_url,
+                evidence_kind="tool_result",
+                source_line=source_line,
+                evidence_ordinal=len(candidates) + 1,
+                source_event_id=source_event_id,
+                observed_at=observed_at,
+                tool_name=call.tool_name,
+                tool_call_id=call.tool_call_id,
+            )
+        )
+
+    targets = list(call.target_hints)
+    if not failed:
+        targets.extend(("url", item.observed_url) for item in url_results)
+    seen = set()
+    for reference_kind, reference in targets:
+        key = (reference_kind, reference)
+        if key in seen:
+            continue
+        seen.add(key)
+        candidates.append(
+            ParsedReferenceCandidate(
+                reference_kind=reference_kind,
+                reference=reference,
+                evidence_kind="resource_read",
+                source_line=source_line,
+                evidence_ordinal=len(candidates) + 1,
+                source_event_id=source_event_id,
+                observed_at=observed_at,
+                tool_name=call.tool_name,
+                tool_call_id=call.tool_call_id,
+                read_outcome="failure" if failed else "success",
+            )
+        )
+    return candidates
 
 
 def approved_tool_result_evidence(

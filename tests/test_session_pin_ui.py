@@ -47,7 +47,9 @@ class SessionPinUiTests(unittest.TestCase):
             "id": session_id,
             "title": "Pinned session" if pinned else "Ordinary session",
             "source_kind": "codex" if pinned else "claude",
+            "provider_kind": "codex" if pinned else "claude",
             "source_name": "Codex" if pinned else "Claude",
+            "session_role": "primary",
             "workspace_path": "/synthetic/work",
             "cwd_raw": "/synthetic/work",
             "exists_now": 1,
@@ -64,8 +66,16 @@ class SessionPinUiTests(unittest.TestCase):
         environment = self._environment()
         child = self._session(3, pinned=False, children=[])
         child["session_role"] = "subsession"
+        company_session = {
+            **self._session(4, pinned=False, children=[]),
+            "title": "Company session",
+            "source_kind": "codex-company",
+            "provider_kind": "codex",
+            "source_name": "Codex Company",
+        }
         sessions = [
             self._session(1, pinned=True, children=[child]),
+            company_session,
             self._session(2, pinned=False, children=[]),
         ]
         response = environment.get_template("sessions.html").render(
@@ -74,10 +84,11 @@ class SessionPinUiTests(unittest.TestCase):
             ),
             active_page="sessions",
             selected_source="codex",
+            selected_source_label="Codex",
             selected_workspace=7,
             stats={
-                "sessions": 2,
-                "events": 16,
+                "sessions": 3,
+                "events": 24,
                 "active_workspaces": 1,
                 "missing_workspaces": 0,
             },
@@ -86,12 +97,25 @@ class SessionPinUiTests(unittest.TestCase):
                 {
                     **sessions[0],
                     "workspace_name": "Synthetic Work",
-                }
+                },
+                {
+                    **company_session,
+                    "workspace_name": "Company Work",
+                    "pinned_at": "2026-07-24T06:00:00+00:00",
+                },
             ],
             sources=[],
+            session_source_scopes=[
+                {"source_key": "claude", "display_label": "Claude"},
+                {"source_key": "codex", "display_label": "Codex"},
+                {
+                    "source_key": "codex-company",
+                    "display_label": "Codex Company",
+                },
+            ],
             projects=[],
             pagination={
-                "total": 2,
+                "total": 3,
                 "page": 3,
                 "total_pages": 3,
                 "page_items": [1, 2, 3],
@@ -102,6 +126,15 @@ class SessionPinUiTests(unittest.TestCase):
         )
 
         self.assertIn("Pinned Sessions", response)
+        self.assertLess(response.index(">전체</a>"), response.index(">Claude</a>"))
+        self.assertLess(response.index(">Claude</a>"), response.index(">Codex</a>"))
+        self.assertLess(
+            response.index(">Codex</a>"), response.index(">Codex Company</a>")
+        )
+        self.assertIn(
+            'href="/sessions?source=codex-company&workspace=7"', response
+        )
+        self.assertNotIn("source=codex-company&workspace=7&page=", response)
         self.assertNotIn("최근 컨텍스트", response)
         self.assertNotIn('href="/documents/', response)
         self.assertIn('action="/sessions/1/unpin"', response)
@@ -117,9 +150,14 @@ class SessionPinUiTests(unittest.TestCase):
             response.index("data-pinned-sessions-panel"):
             response.index("source-status-section")
         ]
-        self.assertNotIn("Codex ·", pinned_panel)
-        self.assertNotIn("Claude ·", pinned_panel)
+        self.assertIn("Codex", pinned_panel)
         self.assertIn('class="pinned-session-source codex"', pinned_panel)
+        self.assertIn('<span aria-hidden="true">CX</span>', pinned_panel)
+        self.assertIn('<span class="sr-only">Codex</span>', pinned_panel)
+        self.assertIn('class="pinned-session-source codex-company"', pinned_panel)
+        self.assertIn('<span aria-hidden="true">CC</span>', pinned_panel)
+        self.assertIn('<span class="sr-only">Codex Company</span>', pinned_panel)
+        self.assertNotIn('class="pinned-session-provenance"', pinned_panel)
         self.assertIn("data-local-time", pinned_panel)
 
         first_row = response[
@@ -131,10 +169,29 @@ class SessionPinUiTests(unittest.TestCase):
         self.assertGreater(first_row.index("data-session-pin-form"), link_end)
         self.assertGreater(first_row.index("data-subsession-menu"), link_end)
         self.assertIn("질문 3 · 이벤트 8", first_row)
+        self.assertIn('class="session-source codex"', first_row)
+        self.assertIn('<span aria-hidden="true">CX</span>', first_row)
+        self.assertIn('<span class="sr-only">Codex ·', first_row)
+        self.assertNotIn('class="session-provenance"', first_row)
         self.assertNotIn("Subsession · 질문", first_row)
         self.assertLess(first_row.index("질문 3"), first_row.index("이벤트 8"))
         self.assertLess(first_row.index("이벤트 8"), first_row.index("session-time"))
         self.assertLess(first_row.index("session-time"), first_row.index("data-session-pin-form"))
+
+        company_row_start = response.index(
+            '<div class="session-row">',
+            response.index('<div class="session-row">') + 1,
+        )
+        company_row_end = response.index(
+            '<div class="session-row">', company_row_start + 1
+        )
+        company_row = response[company_row_start:company_row_end]
+        self.assertIn('class="session-source codex-company"', company_row)
+        self.assertIn('<span aria-hidden="true">CC</span>', company_row)
+        self.assertIn('<span class="sr-only">Codex Company ·', company_row)
+        self.assertNotIn('class="session-provenance"', company_row)
+        self.assertIn('class="session-source claude"', response)
+        self.assertIn('<span aria-hidden="true">CL</span>', response)
 
     def test_empty_panel_never_falls_back_to_recent_documents(self):
         environment = self._environment()

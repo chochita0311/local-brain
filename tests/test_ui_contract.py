@@ -19,8 +19,10 @@ CONTEXT = ROOT / "src" / "localbrain" / "templates" / "context.html"
 CONTEXT_TREE = ROOT / "src" / "localbrain" / "templates" / "_context_tree.html"
 DOCUMENT = ROOT / "src" / "localbrain" / "templates" / "document.html"
 SESSIONS = ROOT / "src" / "localbrain" / "templates" / "sessions.html"
+SOURCES = ROOT / "src" / "localbrain" / "templates" / "sources.html"
 SESSION_DETAIL = ROOT / "src" / "localbrain" / "templates" / "session.html"
 SUBSESSION_DETAIL = ROOT / "src" / "localbrain" / "templates" / "subsession.html"
+SOURCE_CUE = ROOT / "src" / "localbrain" / "templates" / "_source_cue.html"
 CONVERSATION = ROOT / "src" / "localbrain" / "templates" / "_conversation.html"
 SESSIONS_DASHBOARD = ROOT / "src" / "localbrain" / "templates" / "sessions_dashboard.html"
 SCHEMA_EXPLORER = ROOT / "src" / "localbrain" / "templates" / "schema.html"
@@ -63,6 +65,7 @@ class UiContractTests(unittest.TestCase):
         cls.context = CONTEXT.read_text(encoding="utf-8") + cls.context_tree
         cls.document = DOCUMENT.read_text(encoding="utf-8") + cls.context_tree
         cls.sessions = SESSIONS.read_text(encoding="utf-8")
+        cls.sources = SOURCES.read_text(encoding="utf-8")
         cls.conversation = CONVERSATION.read_text(encoding="utf-8")
         cls.session_detail = (
             SESSION_DETAIL.read_text(encoding="utf-8") + cls.conversation
@@ -70,6 +73,7 @@ class UiContractTests(unittest.TestCase):
         cls.subsession_detail = (
             SUBSESSION_DETAIL.read_text(encoding="utf-8") + cls.conversation
         )
+        cls.source_cue = SOURCE_CUE.read_text(encoding="utf-8")
         cls.sessions_dashboard = SESSIONS_DASHBOARD.read_text(encoding="utf-8")
         cls.schema_explorer = SCHEMA_EXPLORER.read_text(encoding="utf-8")
         cls.workstream = WORKSTREAM.read_text(encoding="utf-8")
@@ -466,6 +470,58 @@ class UiContractTests(unittest.TestCase):
             self.styles,
         )
 
+    def test_usage_dashboard_source_identity_is_registry_driven_and_readable(self):
+        for marker in (
+            "{% for control in usage.controls.sources %}",
+            "{{ control.label }}",
+            "usage.scope.source_label",
+            "source.provider_kind",
+            'value_label("source.scan-status", source.scan_status)',
+            "source.scan_error",
+        ):
+            self.assertIn(marker, self.sessions_dashboard)
+        self.assertNotIn("control.value == 'all' else", self.sessions_dashboard)
+        self.assertIn(
+            ".usage-source-control { max-width: 100%; overflow-x: auto;",
+            self.styles,
+        )
+        self.assertIn(".usage-source-control a { flex: 0 0 auto; }", self.styles)
+
+    def test_usage_dashboard_renders_company_scope_and_retained_source_health(self):
+        connection = sqlite3.connect(":memory:")
+        connection.row_factory = sqlite3.Row
+        connection.executescript(SCHEMA.read_text(encoding="utf-8"))
+        connection.execute(
+            """
+            INSERT INTO sources(
+                kind, provider_kind, name, root_path, last_scanned_at,
+                last_scan_success_at, last_scan_status, last_scan_error
+            ) VALUES (
+                'codex-company', 'codex', 'Codex Company', '/synthetic/company',
+                '2026-07-18T10:00:00Z', '2026-07-01T08:00:00Z',
+                'unavailable',
+                'This source was not synchronized; existing data was retained.'
+            )
+            """
+        )
+        usage = usage_dashboard_data(
+            connection,
+            source="codex-company",
+            timezone_name="UTC",
+            today=date(2026, 7, 18),
+        )
+        html = template_environment().get_template(
+            "sessions_dashboard.html"
+        ).render(active_page="sessions-dashboard", usage=usage)
+        connection.close()
+
+        self.assertIn('data-usage-value="codex-company"', html)
+        self.assertIn(">Codex Company</a>", html)
+        self.assertIn("DAILY · CODEX COMPANY", html)
+        self.assertIn('class="source-indicator codex"', html)
+        self.assertIn("Latest source result · 경로 확인 필요", html)
+        self.assertIn("existing data was retained", html)
+
     def test_usage_dashboard_does_not_render_month_end_projection(self):
         connection = sqlite3.connect(":memory:")
         connection.row_factory = sqlite3.Row
@@ -527,6 +583,8 @@ class UiContractTests(unittest.TestCase):
             "AbortController",
             "restoreUsageScroll(scrollY)",
             "focus({ preventScroll: true })",
+            '[data-usage-control="source"][aria-current="page"]',
+            "[source, metric, breakdown]",
             "window.location.assign(destination.href)",
         ):
             self.assertIn(behavior, self.script)
@@ -734,6 +792,109 @@ class UiContractTests(unittest.TestCase):
         self.assertIn("const eventTarget = button.form || button;", self.script)
         self.assertIn('eventTarget.addEventListener(eventName', self.script)
 
+    def test_sync_report_and_source_inventory_expose_bounded_per_source_health(self):
+        for marker in (
+            "const scanStatusLabels",
+            "function renderScanReport",
+            "source.display_label || source.source_key",
+            "source.error_message",
+            "기존 데이터는 유지됩니다",
+        ):
+            self.assertIn(marker, self.script)
+        for marker in (
+            'action="/sources/scan"',
+            'id="scan-button" class="primary-button" type="submit"',
+            'class="source-health-times"',
+            "Last attempt",
+            "Last success",
+            "Tracked files",
+            "Eligible Sessions",
+            'class="source-health-error"',
+        ):
+            self.assertIn(marker, self.sources)
+        self.assertIn(
+            ".scan-source-result { grid-template-columns: 1fr; }",
+            self.styles,
+        )
+        self.assertIn(
+            ".source-cards { grid-template-columns: 1fr; }",
+            self.styles,
+        )
+
+        html = template_environment().get_template("sources.html").render(
+            active_page="sources",
+            sync_outcome="partial",
+            database_path="/tmp/synthetic.db",
+            sources=[
+                {
+                    "id": 1,
+                    "kind": "claude",
+                    "provider_kind": "claude",
+                    "name": "Claude Code",
+                    "root_path": "/synthetic/claude",
+                    "last_scanned_at": "2026-08-02T00:00:00Z",
+                    "last_scan_success_at": "2026-08-01T00:00:00Z",
+                    "last_scan_status": "completed",
+                    "last_scan_error": None,
+                    "file_count": 3,
+                    "session_count": 2,
+                    "document_count": 0,
+                },
+                {
+                    "id": 2,
+                    "kind": "codex-company",
+                    "provider_kind": "codex",
+                    "name": "Codex Company",
+                    "root_path": "/synthetic/a/very/long/company/source/root",
+                    "last_scanned_at": "2026-08-02T01:00:00Z",
+                    "last_scan_success_at": "2026-08-01T01:00:00Z",
+                    "last_scan_status": "unavailable",
+                    "last_scan_error": "This source was not synchronized; existing data was retained.",
+                    "file_count": 4,
+                    "session_count": 5,
+                    "document_count": 0,
+                },
+            ],
+        )
+        self.assertIn("일부 로컬 소스에 확인이 필요합니다.", html)
+        self.assertIn("Claude Code", html)
+        self.assertIn("Codex Company", html)
+        self.assertIn("경로 확인 필요", html)
+        self.assertIn("existing data was retained", html)
+
+    def test_sync_fallback_notices_keep_complete_partial_and_failed_distinct(self):
+        environment = template_environment()
+        common = {
+            "active_page": "sessions",
+            "selected_source": "all",
+            "selected_workspace": None,
+            "stats": {
+                "sessions": 0,
+                "events": 0,
+                "active_workspaces": 0,
+                "missing_workspaces": 0,
+            },
+            "sessions": [],
+            "sources": [],
+            "pagination": {
+                "total": 0,
+                "page": 1,
+                "total_pages": 1,
+                "page_items": [1],
+                "previous_page": None,
+                "next_page": None,
+            },
+        }
+        partial = environment.get_template("sessions.html").render(
+            sync_outcome="partial", **common
+        )
+        failed = environment.get_template("sessions.html").render(
+            sync_outcome="failed", **common
+        )
+        self.assertIn("일부 Session 소스에 확인이 필요합니다.", partial)
+        self.assertIn('role="alert"', partial)
+        self.assertIn("Session 소스를 동기화하지 못했습니다.", failed)
+
     def test_sessions_sidebar_shows_only_session_sources_without_database_path(self):
         environment = template_environment()
         html = environment.get_template("sessions.html").render(
@@ -749,9 +910,9 @@ class UiContractTests(unittest.TestCase):
             sessions=[],
             documents=[],
             sources=[
-                {"kind": "claude", "name": "Claude Code", "session_count": 3},
-                {"kind": "codex", "name": "Codex", "session_count": 4},
-                {"kind": "context", "name": "Local Contexts", "document_count": 9},
+                {"kind": "claude", "provider_kind": "claude", "name": "Claude Code", "session_count": 3, "last_scan_status": "completed"},
+                {"kind": "codex", "provider_kind": "codex", "name": "Codex", "session_count": 4, "last_scan_status": "completed"},
+                {"kind": "context", "provider_kind": "context", "name": "Local Contexts", "document_count": 9, "last_scan_status": "completed"},
             ],
             pagination={
                 "total": 0,
@@ -892,7 +1053,12 @@ class UiContractTests(unittest.TestCase):
         ):
             self.assertIn(marker, self.sessions)
         self.assertNotIn('<a class="session-row"', self.sessions)
-        self.assertNotIn("{{ session.source_name }}", self.sessions)
+        self.assertNotIn('class="session-provenance"', self.sessions)
+        self.assertIn(
+            '<span class="sr-only">{{ session.source_name }} ·',
+            self.sessions,
+        )
+        self.assertIn("{{ child.source_name }} · 질문", self.sessions)
 
         for behavior in (
             'trigger.addEventListener("click"',
@@ -916,6 +1082,46 @@ class UiContractTests(unittest.TestCase):
         self.assertIn(".session-pagination .page-previous", self.styles)
         self.assertIn(".session-pagination .page-next", self.styles)
 
+    def test_session_source_scopes_keep_compact_accessible_inventory_provenance(self):
+        for marker in (
+            "{% for source_scope in source_scope_items %}",
+            "source_scope.source_key",
+            "source_scope.display_label",
+            'class="session-source {{ session.source_kind }}"',
+            '<span class="sr-only">{{ session.source_name }} ·',
+            'class="pinned-session-source {{ pinned_session.source_kind }}"',
+            '<span class="sr-only">{{ pinned_session.source_name }}</span>',
+            "child.source_name",
+        ):
+            self.assertIn(marker, self.sessions)
+        for marker in (
+            "{% macro source_cue(source_kind, provider_kind, display_label)",
+            "source_kind == 'codex-company'",
+            "'CC'",
+            "source_kind == 'codex'",
+            "'CX'",
+            "provider_kind == 'claude'",
+            "'CL'",
+        ):
+            self.assertIn(marker, self.source_cue)
+        self.assertNotIn('class="session-provenance"', self.sessions)
+        self.assertNotIn('class="pinned-session-provenance"', self.sessions)
+        self.assertNotIn('href="/sessions?source=claude"', self.sessions)
+        self.assertNotIn('href="/sessions?source=codex"', self.sessions)
+        self.assertIn(
+            ".session-source-control { max-width: 100%; overflow-x: auto;",
+            self.styles,
+        )
+        self.assertIn(".session-source-control a { flex: 0 0 auto; }", self.styles)
+        for marker in (
+            "--surface-source-codex-company: var(--color-blue-100);",
+            "--text-source-codex-company: var(--color-blue-600);",
+            "--border-source-codex-company: var(--color-blue-600);",
+            ".session-source.codex-company {",
+            ".pinned-session-source.codex-company {",
+        ):
+            self.assertIn(marker, self.styles)
+
     def test_session_details_render_conversations_without_tool_rows(self):
         for template in (self.session_detail, self.subsession_detail):
             self.assertNotIn("event.event_type == 'tool_call'", template)
@@ -931,12 +1137,23 @@ class UiContractTests(unittest.TestCase):
             self.assertIn(marker, self.session_detail)
 
         self.assertNotIn(
-            '<p class="eyebrow">{{ session.source_name }}',
+            '<p class="eyebrow">{{ session.source_name or value_label("source.kind", session.source_kind) }}',
             self.session_detail,
         )
         self.assertIn(
-            '{% if parent %}<p class="eyebrow">SUBSESSION</p>{% endif %}',
+            '<span class="sr-only">{{ session.source_name or value_label("source.kind", session.source_kind) }} ·',
             self.session_detail,
+        )
+        self.assertIn(
+            '{% if parent %}<p class="eyebrow">{{ value_label("session.role", "subsession") | upper }}</p>{% endif %}',
+            self.session_detail,
+        )
+        self.assertNotIn("{{ subsession.source_name }} · {{ subsession.external_id }}", self.session_detail)
+        self.assertIn("<small>{{ subsession.external_id }}</small>", self.session_detail)
+        self.assertNotIn("{{ session.source_name | upper }}", self.subsession_detail)
+        self.assertIn(
+            '<p class="eyebrow">{{ value_label("session.role", "subsession") | upper }} · LAZY VIEW</p>',
+            self.subsession_detail,
         )
         self.assertNotIn(
             "이 Session의 직접 하위 Session",
@@ -946,21 +1163,26 @@ class UiContractTests(unittest.TestCase):
             "{{ subsession.external_id }} · 원본 이벤트",
             self.session_detail,
         )
+        question_count = self.session_detail.index(
+            'class="subsession-question-count"'
+        )
         event_count = self.session_detail.index(
             'class="subsession-event-count"'
         )
         event_time = self.session_detail.index(
             '<time datetime="{{ subsession.last_event_at }}"'
         )
+        self.assertLess(question_count, event_count)
         self.assertLess(event_count, event_time)
         self.assertIn(
-            ".subsession-event-count { justify-self: start; text-align: left; white-space: nowrap; }",
+            ".subsession-question-count, .subsession-event-count { justify-self: start; text-align: left; white-space: nowrap; }",
             self.styles,
         )
         self.assertIn(
-            "grid-template-columns: 38px minmax(0, 1fr) calc(var(--control-min-height) + var(--space-card) + var(--space-card)) 100px;",
+            "grid-template-columns: 38px minmax(0, 1fr) calc(var(--control-min-height) + var(--space-panel)) calc(var(--control-min-height) + var(--space-card) + var(--space-card)) 100px;",
             self.styles,
         )
+        self.assertIn(".subsession-question-count { grid-column: 2; }", self.styles)
 
         for template in (self.session_detail, self.subsession_detail):
             self.assertNotIn("Subagent", template)
@@ -970,6 +1192,29 @@ class UiContractTests(unittest.TestCase):
         self.assertIn('/sessions/{session_id}/subsessions/{file_name}', self.main)
         self.assertIn('/sessions/{session_id}/subagents/{file_name}', self.main)
         self.assertIn("redirect_legacy_subagent_route", self.main)
+
+    def test_session_detail_source_cues_use_stable_source_identity(self):
+        for template in (self.sessions, self.session_detail, self.subsession_detail):
+            self.assertIn(
+                '{% from "_source_cue.html" import source_cue %}',
+                template,
+            )
+        for marker in (
+            'class="session-source large {{ session.source_kind }}"',
+            "source_cue(session.source_kind, session.provider_kind, session.source_name)",
+            'class="session-source {{ subsession.source_kind }}"',
+            "source_cue(subsession.source_kind, subsession.provider_kind, subsession.source_name)",
+        ):
+            self.assertIn(marker, self.session_detail)
+        for marker in (
+            'class="session-source large {{ session.source_kind }}"',
+            "source_cue(session.source_kind, session.provider_kind, session.source_name)",
+        ):
+            self.assertIn(marker, self.subsession_detail)
+        self.assertNotIn(
+            'class="session-source large {{ session.provider_kind }}"',
+            self.session_detail + self.subsession_detail,
+        )
 
     def test_session_conversations_use_shared_markdown_without_source_guessing(self):
         for template in (self.session_detail, self.subsession_detail):
@@ -991,6 +1236,8 @@ class UiContractTests(unittest.TestCase):
         for rule in (
             ".conversation-markdown-properties {",
             ".event-text.markdown-body {",
+            ".event-text.markdown-body > pre { max-width: 100%; overflow-x: auto; }",
+            "span.markdown-math { display: inline-block; vertical-align: middle; }",
             "white-space: normal;",
             ".event-text.markdown-body h1 { font-size: var(--type-title-size);",
             ".event-text.markdown-body h2 { font-size: var(--type-body-size);",

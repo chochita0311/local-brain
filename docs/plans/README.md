@@ -24,10 +24,41 @@ Spec, Run, and Evaluation document owns its own detailed status and history.
 
 ## Active Execution
 
-- No Run is currently indexed as active. Start a new Run only from an approved
-  Feature and its approved Spec.
+- None.
 
-## Recently Completed Chain
+## Recently Completed Chains
+
+- [PRD-0013: Session-Centric Related Context Evidence](prd/prd-0013-session-centric-related-context-evidence.md)
+  (`passed`) completed [FEAT-0072](feature/feat-0072-session-reference-evidence-contract.md),
+  [FEAT-0073](feature/feat-0073-deterministic-session-reference-capture-and-reconciliation.md),
+  and [FEAT-0074](feature/feat-0074-session-centric-related-materials-rail.md).
+  The final presentation chain is [SPEC-0074](spec/spec-0074-session-centric-related-materials-rail.md)
+  → [RUN-20260803-84](run/run-20260803-84-session-centric-related-materials-rail.md)
+  → [FIX-0074](fix/fix-0074-related-material-evidence-density.md)
+  → [Contract](evaluation/eval-0074-contract-session-centric-related-materials-rail.md),
+  [Design](evaluation/eval-0074-design-session-centric-related-materials-rail.md),
+  [Functional](evaluation/eval-0074-functional-session-centric-related-materials-rail.md),
+  and [UX](evaluation/eval-0074-ux-session-centric-related-materials-rail.md)
+  evaluations.
+
+- [PRD-0012: Multiple Local AI Session Sources And Inventory Integrity](prd/prd-0012-multiple-local-ai-session-sources-and-inventory-integrity.md)
+  (`passed`) completed
+  [FEAT-0065](feature/feat-0065-session-source-enabled-field-removal.md),
+  [FEAT-0066](feature/feat-0066-local-ai-source-identity-contract.md),
+  [FEAT-0067](feature/feat-0067-local-session-source-settings-and-safe-registration.md),
+  [FEAT-0068](feature/feat-0068-multi-source-session-synchronization-and-health.md),
+  [FEAT-0069](feature/feat-0069-session-source-scope-and-provenance.md),
+  [FEAT-0070](feature/feat-0070-usage-source-scope-and-composition.md), and
+  [FEAT-0071](feature/feat-0071-meaningful-session-eligibility-and-empty-stub-reconciliation.md).
+  The latest detail-provenance chain is
+  [SPEC-0069-R5](spec/spec-0069-r5-session-detail-metadata-and-subsession-stats.md)
+  → [RUN-20260803-81](run/run-20260803-81-session-detail-metadata-and-subsession-stats.md)
+  → [Contract](evaluation/eval-0069-r5-contract-session-detail-metadata-and-subsession-stats.md),
+  [Design](evaluation/eval-0069-r5-design-session-detail-metadata-and-subsession-stats.md),
+  [Functional](evaluation/eval-0069-r5-functional-session-detail-metadata-and-subsession-stats.md),
+  and [UX](evaluation/eval-0069-r5-ux-session-detail-metadata-and-subsession-stats.md)
+  evaluations. Each Feature owns its complete Spec, Run, fix, and evaluation
+  history.
 
 - [PRD-0011: Shared Native Select Control Geometry](prd/prd-0011-shared-native-select-control-geometry.md)
   → [FEAT-0064](feature/feat-0064-shared-native-select-disclosure-geometry.md)

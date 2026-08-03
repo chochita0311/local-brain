@@ -2,16 +2,22 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from .common import (
+    ApprovedResourceCall,
     ParsedEvent,
     ParsedSession,
     ParsedUsageRecord,
-    approved_atlassian_tool_call,
+    approved_resource_call,
+    approved_result_reference_candidates,
     approved_tool_result_evidence,
     compact_title,
     read_json_lines,
     session_policy,
     stable_id,
+    source_native_event_id,
     token_value,
+    tool_result_failed,
+    tool_result_completed,
+    visible_reference_candidates,
     visible_url_evidence,
 )
 from ..usage import CODEX_FAST_TIERED_PRICE_SNAPSHOT_ID
@@ -260,7 +266,8 @@ def parse_codex_session(path: Path) -> ParsedSession:
     events: List[ParsedEvent] = []
     usage_by_record: Dict[str, ParsedUsageRecord] = {}
     url_evidence = []
-    approved_tool_calls: Dict[str, bool] = {}
+    reference_candidates = []
+    approved_tool_calls: Dict[str, ApprovedResourceCall] = {}
     skipped_lines = 0
     session_meta_seen = False
     primary_started_at: Optional[str] = None
@@ -395,6 +402,17 @@ def parse_codex_session(path: Path) -> ParsedSession:
                         observed_at=timestamp if isinstance(timestamp, str) else None,
                     )
                 )
+                reference_candidates.extend(
+                    visible_reference_candidates(
+                        text,
+                        role=role,
+                        source_line=line_number,
+                        source_event_id=source_native_event_id(payload, event_id),
+                        observed_at=(
+                            timestamp if isinstance(timestamp, str) else None
+                        ),
+                    )
+                )
             continue
 
         if record_type == "response_item" and payload.get("type") in {
@@ -402,20 +420,43 @@ def parse_codex_session(path: Path) -> ParsedSession:
             "custom_tool_call_output",
         }:
             call_id = payload.get("call_id") or payload.get("id")
-            if isinstance(call_id, str) and approved_tool_calls.get(call_id):
-                url_evidence.extend(
-                    approved_tool_result_evidence(
-                        payload.get("output"),
-                        source_line=line_number,
-                        source_event_id=stable_id(
-                            "codex",
-                            external_id,
-                            line_number,
-                            "approved-tool-result",
-                        ),
-                        observed_at=timestamp if isinstance(timestamp, str) else None,
-                    )
+            call = approved_tool_calls.get(call_id)
+            if isinstance(call_id, str) and call is not None:
+                result_event_id = source_native_event_id(
+                    payload,
+                    stable_id(
+                        "codex",
+                        external_id,
+                        line_number,
+                        "approved-tool-result",
+                    ),
                 )
+                failed = tool_result_failed(payload, payload.get("output"))
+                completed = tool_result_completed(payload.get("output"))
+                if not failed and completed:
+                    url_evidence.extend(
+                        approved_tool_result_evidence(
+                            payload.get("output"),
+                            source_line=line_number,
+                            source_event_id=result_event_id,
+                            observed_at=(
+                                timestamp if isinstance(timestamp, str) else None
+                            ),
+                        )
+                    )
+                if failed or completed:
+                    reference_candidates.extend(
+                        approved_result_reference_candidates(
+                            call,
+                            payload.get("output"),
+                            source_line=line_number,
+                            source_event_id=result_event_id,
+                            observed_at=(
+                                timestamp if isinstance(timestamp, str) else None
+                            ),
+                            failed=failed,
+                        )
+                    )
             continue
 
         if record_type == "response_item" and payload.get("type") in {
@@ -426,10 +467,13 @@ def parse_codex_session(path: Path) -> ParsedSession:
             if isinstance(tool_name, str):
                 call_id = payload.get("call_id") or payload.get("id")
                 if isinstance(call_id, str):
-                    approved_tool_calls[call_id] = approved_atlassian_tool_call(
+                    call = approved_resource_call(
                         tool_name,
+                        call_id,
                         payload.get("arguments") or payload.get("input"),
                     )
+                    if call is not None:
+                        approved_tool_calls[call_id] = call
                 events.append(
                     ParsedEvent(
                         event_id=stable_id("codex", external_id, line_number, "tool"),
@@ -466,4 +510,5 @@ def parse_codex_session(path: Path) -> ParsedSession:
         parent_external_id=parent_external_id,
         usage_records=list(usage_by_record.values()),
         url_evidence=url_evidence,
+        reference_candidates=reference_candidates,
     )

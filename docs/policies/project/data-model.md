@@ -7,13 +7,13 @@ This is the durable human entry point for LocalBrain's effective SQLite model. I
 ## Baseline Identity
 
 - Baseline: `localbrain-data-model-2026-07-23`
-- Ordinary tables: `36`
+- Ordinary tables: `38`
 - FTS5 virtual tables: `1` (`search_index`)
-- Physical foreign keys: `44`
-- Effective explicitly named indexes: `34`
+- Physical foreign keys: `49`
+- Effective explicitly named indexes: `38`
 - Focused subject areas: `9`
-- `schema.sql` SHA-256: `0c49e93958560f43f53491bf6e436cdd7419431ff4d880b001b1b25845be6e6d`
-- `db.py` SHA-256: `ddafafe3e51f4ed34fba951116b96ff2cd8efc7657c0d5e5895700e824bf8b54`
+- `schema.sql` SHA-256: `f6f86891fc8896b7c37b484e7d783a5c986e23e529f3f0353a4f1582a0e99023`
+- `db.py` SHA-256: `1533c3bbd5cc4f20cab80add9f93e7fb7423ba5df88e755878a2141ca600c16d`
 
 SQLite primary-key and uniqueness autoindexes and FTS5 shadow tables are implementation internals and are not counted as primary objects or explicitly named indexes. Validation applies `schema.sql` only to an in-memory database; no user database or runtime row is read.
 
@@ -24,7 +24,7 @@ Every primary object has exactly one owner. Cross-subject consumers link back to
 | Subject | Primary objects | Durable owner |
 | --- | --- | --- |
 | Source registry and scans | `sources`, `source_files`, `external_source_instances`, `external_source_capabilities` | [Source Registry And Scans](data-model/source-registry-and-scans.md) |
-| Workspace and Session activity | `workspaces`, `sessions`, `activity_events`, `session_pins` | [Workspace And Session Activity](data-model/workspace-and-session-activity.md) |
+| Workspace and Session activity | `workspaces`, `sessions`, `activity_events`, `session_pins`, `session_reference_scans`, `session_reference_evidence` | [Workspace And Session Activity](data-model/workspace-and-session-activity.md) |
 | Usage and cost records | `usage_price_snapshots`, `usage_model_prices`, `usage_records` | [Usage And Cost Records](data-model/usage-and-cost-records.md) |
 | Local Context corpus | `context_roots`, `context_documents` | [Local Context Corpus](data-model/local-context-corpus.md) |
 | Work organization and resources | `workstreams`, `threads`, `workstream_links`, `thread_links`, `local_resources`, `external_resources` | [Work Organization And Resources](data-model/work-organization-and-resources.md) |
@@ -47,6 +47,8 @@ erDiagram
     SESSIONS { integer id PK }
     ACTIVITY_EVENTS { string id PK }
     SESSION_PINS { integer session_id PK }
+    SESSION_REFERENCE_SCANS { integer session_id PK }
+    SESSION_REFERENCE_EVIDENCE { integer id PK }
     USAGE_PRICE_SNAPSHOTS { string id PK }
     USAGE_MODEL_PRICES { string snapshot_model PK }
     USAGE_RECORDS { string id PK }
@@ -81,6 +83,7 @@ erDiagram
     SOURCES ||--o{ SESSIONS : "physical CASCADE"
     SOURCES ||--o{ USAGE_RECORDS : "physical CASCADE"
     SOURCES ||--o{ CONTEXT_DOCUMENTS : "physical CASCADE"
+    SESSIONS o|--o{ SOURCE_FILES : "physical SET_NULL mapping"
     EXTERNAL_SOURCE_INSTANCES ||--o| EXTERNAL_SOURCE_CAPABILITIES : "physical CASCADE"
     EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_SITES : "physical SET_NULL compatibility"
     EXTERNAL_SOURCE_INSTANCES ||--o{ ATLASSIAN_SITE_BINDINGS : "physical CASCADE"
@@ -93,6 +96,8 @@ erDiagram
     SESSIONS o|--o{ SESSIONS : "physical parent SET_NULL"
     SESSIONS ||--o{ ACTIVITY_EVENTS : "physical CASCADE"
     SESSIONS ||--o| SESSION_PINS : "physical CASCADE"
+    SESSIONS ||--o| SESSION_REFERENCE_SCANS : "physical CASCADE"
+    SESSIONS ||--o{ SESSION_REFERENCE_EVIDENCE : "physical CASCADE"
     SESSIONS ||--o{ USAGE_RECORDS : "physical CASCADE"
     USAGE_PRICE_SNAPSHOTS ||--o{ USAGE_MODEL_PRICES : "physical RESTRICT"
     USAGE_PRICE_SNAPSHOTS ||--o{ USAGE_RECORDS : "physical RESTRICT"
@@ -118,6 +123,8 @@ erDiagram
     CONTEXT_DOCUMENTS ||--o| ATLASSIAN_EVIDENCE_SCANS : "physical CASCADE unique"
     SESSIONS ||--o{ ATLASSIAN_ITEM_EVIDENCE : "physical CASCADE"
     CONTEXT_DOCUMENTS ||--o{ ATLASSIAN_ITEM_EVIDENCE : "physical CASCADE"
+    CONTEXT_DOCUMENTS ||--o{ SESSION_REFERENCE_EVIDENCE : "physical CASCADE target"
+    ATLASSIAN_ITEMS ||--o{ SESSION_REFERENCE_EVIDENCE : "physical CASCADE target"
     THREADS ||--o{ THREAD_LINKS : "physical CASCADE"
     THREADS o|--o{ CHECKPOINT_RESOURCE_REFS : "physical SET_NULL"
     CHECKPOINTS ||--o{ CHECKPOINT_RESOURCE_REFS : "physical CASCADE"
@@ -157,6 +164,7 @@ erDiagram
 - `usage_price_snapshots` cannot be deleted while model prices or Usage Records refer to it. That preserves calculation evidence.
 - `sessions.maintenance_run_id` is a nullable unique FK to `maintenance_runs.id` with `ON DELETE SET NULL`; a linked row must be a primary metadata-only Maintenance Session.
 - `session_pins.session_id` is both the primary key and a cascading FK to `sessions.id`; row presence is the complete user-owned pin state, while deletion of the Session removes the now-unresolvable pin.
+- `session_reference_scans.session_id` is both its primary key and cascading Session FK. `session_reference_evidence` cascades from its owning Session and, according to target kind, from an exact Context Document or configured Atlassian Item. These target-directed edges remove unresolvable derived evidence but never allow evidence reconciliation to mutate or delete the target.
 - `external_source_capabilities.source_instance_id` is both its primary key and an FK to `external_source_instances.id` with `ON DELETE CASCADE`, so each durable registration has at most one replaceable latest observation.
 - `external_sync_runs.maintenance_run_id` is both its primary key and an FK to `maintenance_runs.id` with `ON DELETE CASCADE`; its nullable Source Instance FK uses `ON DELETE SET NULL`, preserving historical source/service/scope evidence after explicit registration removal.
 - `atlassian_sites` is domain-first and may exist without access. Its nullable legacy/default Source Instance pointer uses `ON DELETE SET NULL`; explicit `atlassian_site_bindings` cascade from either Site or Source Instance. Spaces and Items remain explicitly Site-scoped and hold nullable current-access Source Instance pointers with `SET NULL`. `atlassian_items.external_resource_id` is both primary key and cascading FK to the stable External Resource, while optional Space deletion sets only current containment null.
@@ -169,7 +177,10 @@ erDiagram
 - New Workstream and Thread links pass `_validate_entity`; Session links additionally require a primary work Session. Checkpoint references snapshot already validated links but do not revalidate historical targets.
 - `suggestions.target_type` plus `target_id` addresses a Workstream or Thread. `origin_run_id` identifies the maintenance Run that generated structured suggestions when present.
 - `usage_records.workspace_id_snapshot` may resolve to the current `workspaces` row for browsing, but Project key, name, path, Git root, basis, and attribution time are frozen values and never change through that join.
-- `source_files.path` correlates scan evidence with Session `source_path` or Context Document `path`; deletion is managed by scanner logic rather than a FK.
+- `source_files.session_id` physically maps accepted Session files to their
+  normalized Session with `ON DELETE SET NULL`; `source_files.path` still
+  correlates legacy Session `source_path` and Context Document `path` values for
+  scanner-managed reconciliation.
 - `search_index` contains derived `session`, `document`, and indexed `atlassian_item` rows. Its entity IDs are text projections and are explicitly deleted or rebuilt with their source objects; current Session/Document consumers filter unsupported types.
 
 ## Lifecycle And Recovery Vocabulary
@@ -185,18 +196,18 @@ erDiagram
 | Generated review state | `partial-review-history` | Suggestions may be regenerated, but accepted/rejected state and origin evidence are not equivalent after regeneration. | `suggestions` |
 | Confirmed continuity snapshot | `non-rebuildable-snapshot` | Human-confirmed resume state and the resource set captured at that time are historical records, not derived views. | `checkpoints`, `checkpoint_resource_refs` |
 | Operational history | `database-plus-artifacts` | Execution state, bounded query projections, and artifact references describe what happened; files outside SQLite may be required for complete recovery. | `maintenance_runs`, `external_sync_runs` |
-| Fully derived projection | `fully-derived` | Safe to clear and rebuild from current eligible source objects. | `atlassian_evidence_scans`, `atlassian_item_evidence`, `search_index` |
+| Fully derived projection | `fully-derived` | Safe to clear and rebuild from current eligible source objects. | `atlassian_evidence_scans`, `atlassian_item_evidence`, `session_reference_scans`, `session_reference_evidence`, `search_index` |
 
 The owning subject document records the precise deletion effect and recovery boundary for each table. “Rebuildable” never means cleanup is pre-approved.
 
 ## Fresh Schema And Compatible Ownership
 
-- `schema.sql` creates all 36 ordinary tables, `search_index`, all physical constraints, and 27 explicit indexes for a new database. Its idempotent application also creates the Session pin, external-source capability, external-sync, Atlassian source-memory and optional Site-binding, local-classification, and bounded evidence tables on older databases without rewriting existing objects.
-- `db.py` idempotently adds columns introduced after older installations, including Atlassian Space canonical URL, coverage, and nullable Item/Space access ownership, removes obsolete `workspaces.git_branch`, removes the legacy Activity Event metadata column only after an all-null preflight, backfills non-null continuity and attribution values, migrates Context root associations, marks Session source files stale when parser contracts change, and performs the approved backup-backed Usage attribution, Maintenance Run Workstream FK, Maintenance Session, External Resource URL-scope, and Atlassian optional-access repairs without changing retained rows or polymorphic relations. The Atlassian repair makes the legacy Site parent nullable, creates explicit bindings, and backfills current Item/Space access.
+- `schema.sql` creates all 38 ordinary tables, `search_index`, all physical constraints, and 30 explicit indexes for a new database. Its idempotent application also creates the Session pin, Session reference scan/evidence, external-source capability, external-sync, Atlassian source-memory and optional Site-binding, local-classification, and bounded evidence tables on older databases without rewriting existing objects.
+- `db.py` idempotently adds columns introduced after older installations, including Source latest-success/status/error health, Session-file owner/reference-contract mapping, Atlassian Space canonical URL, coverage, and nullable Item/Space access ownership, backup-rebuilds the Source registry to add provider identity while preserving stable Source IDs and descendants, removes the legacy unused `sources.enabled` field and obsolete `workspaces.git_branch`, removes the legacy Activity Event metadata column only after an all-null preflight, backfills non-null continuity and attribution values, migrates Context root associations, marks Session source files stale when parser contracts change, and performs the approved backup-backed Usage attribution, Maintenance Run Workstream FK, Maintenance Session, External Resource URL-scope, and Atlassian optional-access repairs without changing retained rows or polymorphic relations. The Atlassian repair makes the legacy Site parent nullable, creates explicit bindings, and backfills current Item/Space access.
 - Startup detects the legacy `usage_facts` table before fresh DDL, refuses an ambiguous database where it coexists with `usage_records`, and otherwise renames it in place while replacing only the three explicit legacy index names. Rows, identifiers, columns, constraints, and foreign-key validity remain unchanged.
 - Schema presentation generation invokes the same compatible structural and index path with data migrations disabled, so its in-memory database cannot inspect Context paths or mutate rows; normal application startup retains data migrations by default.
-- `db.py` converges 20 fresh index declarations safely and contributes seven effective runtime-only names: `idx_sessions_class`, `idx_sessions_role`, `idx_sessions_parent`, `idx_maintenance_runs_workstream`, `idx_maintenance_runs_status`, `idx_suggestions_origin_run`, and `idx_documents_context_root`.
-- The union is 34 effective explicit index names. A duplicate declaration is not a second index.
+- `db.py` converges 20 fresh index declarations safely and contributes eight effective runtime-only names: `idx_sessions_class`, `idx_sessions_role`, `idx_sessions_parent`, `idx_maintenance_runs_workstream`, `idx_maintenance_runs_status`, `idx_suggestions_origin_run`, `idx_documents_context_root`, and `idx_source_files_session`.
+- The union is 38 effective explicit index names. A duplicate declaration is not a second index.
 - `usage.ensure_default_price_snapshot` seeds immutable pricing rows after schema and compatible migrations complete. It is a data producer, not DDL ownership.
 
 The fresh schema plus compatible path has no unexplained object, column, named-index, physical relation, Session classification/Run-link, or Usage attribution vocabulary drift. Older databases can still retain approved timestamp-column metadata differences that SQLite `ADD COLUMN` does not reconstruct; several backfilled fields remain nullable or lack the fresh default after their values are populated. The owning subjects record these current differences.

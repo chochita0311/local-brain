@@ -245,6 +245,7 @@ Components consume semantic roles only. Color, type, spacing, radius, elevation,
   --surface-brand-soft: var(--color-brand-100);
   --surface-source-claude: var(--color-claude-100);
   --surface-source-codex: var(--color-codex-100);
+  --surface-source-codex-company: var(--color-blue-100);
 
   /* Text */
   --text-primary: var(--color-neutral-1000);
@@ -261,6 +262,7 @@ Components consume semantic roles only. Color, type, spacing, radius, elevation,
   --text-danger: var(--color-red-700);
   --text-source-claude: var(--color-claude-700);
   --text-source-codex: var(--color-codex-700);
+  --text-source-codex-company: var(--color-blue-600);
   --text-code-reading: var(--color-neutral-100);
   --text-code-muted: var(--color-neutral-550);
   --text-code-keyword: var(--color-code-blue-500);
@@ -282,6 +284,7 @@ Components consume semantic roles only. Color, type, spacing, radius, elevation,
   --border-danger: var(--color-red-700);
   --border-source-claude: var(--color-claude-700);
   --border-source-codex: var(--color-codex-700);
+  --border-source-codex-company: var(--color-blue-600);
   --focus-ring: var(--color-blue-600);
   --focus-ring-soft: var(--color-blue-100);
   --divider-row: var(--color-neutral-450);
@@ -406,11 +409,24 @@ Semantic provenance families are separate from status:
 
 | Source | Surface | Text and icon | Border | Fallback |
 |---|---|---|---|---|
-| Claude | `--surface-source-claude` | `--text-source-claude` | `--border-source-claude` | readable `Claude` label |
-| Codex | `--surface-source-codex` | `--text-source-codex` | `--border-source-codex` | readable `Codex` label |
+| Claude | `--surface-source-claude` | `--text-source-claude` | `--border-source-claude` | `CL` plus accessible configured label |
+| Codex | `--surface-source-codex` | `--text-source-codex` | `--border-source-codex` | `CX` plus accessible configured label |
+| Codex Company | `--surface-source-codex-company` | `--text-source-codex-company` | `--border-source-codex-company` | `CC` plus accessible configured label |
 | Other or unknown | `--surface-muted` | `--text-secondary` | `--border-subtle` | readable source-kind label |
 
 Provenance color identifies origin only. It never communicates health, success, failure, selection, confidence, or action priority. When source identity and a product state appear together, each keeps its own label and structural role.
+
+Several configured Sources may share one provider adapter without sharing one
+compact provenance treatment. Every Session source icon across inventory,
+Pinned cards, detail headings, and Subsession projections uses `CL` for Claude,
+`CX` with Codex provenance tokens for personal Codex, or `CC` with the blue
+Codex Company provenance tokens. Configured source names remain in accessible
+text, so color or initials never carry account identity alone. Ordinary cards,
+Pinned cards, detail headings, and detail Subsession rows omit that name visually;
+source controls, composition, and trust surfaces continue to expose configured
+readable labels where comparison requires them. Detail Subsession rows preserve
+the inventory-family scan order of question count, event count, then activity
+date after the title and source-native identifier.
 
 ## 7. Layout Rules
 
@@ -583,7 +599,7 @@ Running and working indicators may animate with motion tokens. Under `prefers-re
 - **Persistent shell:** navigation and header remain visually stable across route changes; only the active location and contextual actions change.
 - **Workstream hierarchy:** Workstream identity and status lead; Threads, checkpoint state, linked resources, Suggestions, and Runs follow in that order of responsibility.
 - **Browse and inventory:** headings, filters, counts, rows or cards, and bounded empty states form one scan path.
-- **Detail and read:** title and source metadata precede the body; evidence and actions stay adjacent without shrinking the reading column.
+- **Detail and read:** title and source metadata precede the body; evidence and actions stay adjacent without shrinking the reading column. A primary Session's `관련 자료` rail presents direct evidence before explicit organization, shows at most 10 rows per group initially, and uses one reversible disclosure for retained overflow instead of shrinking type or flooding the reading start.
 - **Explorer:** source rail, tree, and preview preserve selection context; panes collapse into sequential regions on narrow screens.
 - **Execution:** configuration, queued/running state, output, artifacts, and terminal result remain distinguishable throughout the Run lifecycle.
 - **Provenance cue:** imported source, inferred relation, user confirmation, and unavailable evidence use stable labels and placement across screen families.

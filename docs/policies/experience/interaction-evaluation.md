@@ -201,6 +201,7 @@
 - A compact disclosure control should not visually imply one expansion direction while actually opening in another.
 - If a menu opens downward, its cue should remain stable or reinforce downward attachment rather than flipping into an upward state on open.
 - Evaluators should check both closed and expanded states and confirm that the visual cue, placement, and expanded panel all tell the same directional story.
+- The Session `관련 자료` overflow uses the owning group's `N개 더 보기` summary while collapsed and `접기` while expanded. It reveals only already-loaded local rows, preserves page orientation and keyboard focus, and never changes the other group's count or disclosure state.
 
 ### Repeated Controls And State Anchoring
 

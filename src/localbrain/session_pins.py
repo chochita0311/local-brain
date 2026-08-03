@@ -86,6 +86,7 @@ _PINNED_SESSION_SELECT = """
             sessions.source_path,
             sessions.workspace_id,
             sources.kind AS source_kind,
+            sources.provider_kind,
             sources.name AS source_name,
             workspaces.display_name AS workspace_name,
             workspaces.canonical_path AS workspace_path,

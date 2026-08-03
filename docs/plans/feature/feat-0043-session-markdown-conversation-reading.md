@@ -10,7 +10,7 @@
 - Required Evaluators: `contract`, `design`, `functional`, `ux-heuristic`
 - Parent PRD: [prd-0006-markdown-reading-and-context-continuity](../prd/prd-0006-markdown-reading-and-context-continuity.md)
 - Created: `2026-07-19`
-- Updated: `2026-07-20`
+- Updated: `2026-08-03`
 
 ## Goal
 
@@ -126,9 +126,16 @@
   - [Functional — PASS, complete](../evaluation/eval-0043-functional-session-markdown-conversation-reading.md)
   - [UX Heuristic — PASS, complete](../evaluation/eval-0043-ux-session-markdown-conversation-reading.md)
 - Latest fix note:
+  - [Session Markdown technical-content overflow](../fix/fix-0043-session-markdown-technical-content-overflow.md)
 
 ## Continuity Notes
 
 - `2026-07-19`: initial draft limited Markdown to visible user and assistant bodies and preserved FEAT-0018's conversation-only presentation, no-owning-source link behavior, and stored-event boundaries.
 - `2026-07-20`: the owner continued the authorized sequential PRD-0006 workflow after FEAT-0042 passed. FEAT-0043 is approved under `fullstack-product`, with backend-rendering then frontend-conversation lanes and `screen-alignment` extend mode.
 - `2026-07-20`: copied rendering, shared templates, browser evidence, responsive containment, full regression, and all four evaluators passed. FEAT-0043 and the six-Feature PRD-0006 execution sequence are complete.
+- `2026-08-03`: owner review of a real Java-log Session exposed a multiline dollar-math false positive and direct indented-code overflow that the earlier synthetic long-content fixture did not cover. The bounded follow-up is tracked in FIX-0043 without reopening the approved feature boundary.
+- `2026-08-03`: FIX-0043 completed with a same-line inline-math boundary, bounded
+  generated MathML and direct indented-code overflow, a structural regression
+  fixture, fresh-process browser checks at `1440`, `920`, `700`, and `320`, 352
+  passing repository tests, and privacy verification. FEAT-0043 remains closed
+  as `passed`.

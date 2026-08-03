@@ -108,7 +108,7 @@ class SessionContractTests(unittest.TestCase):
         connection = connection_for(SCHEMA_PATH.read_text(encoding="utf-8"))
         self.addCleanup(connection.close)
         source_id = connection.execute(
-            "INSERT INTO sources(kind, name, root_path) VALUES ('claude', 'Claude', '/tmp')"
+            "INSERT INTO sources(kind, provider_kind, name, root_path) VALUES ('claude', 'claude', 'Claude', '/tmp')"
         ).lastrowid
         run_id = "lb-nativeparent01"
         connection.execute(
@@ -176,7 +176,7 @@ class SessionContractTests(unittest.TestCase):
         connection = connection_for(legacy_schema())
         self.addCleanup(connection.close)
         source_id = connection.execute(
-            "INSERT INTO sources(kind, name, root_path) VALUES ('codex', 'Codex', '/tmp')"
+            "INSERT INTO sources(kind, provider_kind, name, root_path) VALUES ('codex', 'codex', 'Codex', '/tmp')"
         ).lastrowid
         connection.execute(
             """
@@ -237,7 +237,7 @@ class SessionContractTests(unittest.TestCase):
         connection = connection_for(SCHEMA_PATH.read_text(encoding="utf-8"))
         self.addCleanup(connection.close)
         source_id = connection.execute(
-            "INSERT INTO sources(kind, name, root_path) VALUES ('codex', 'Codex', '/tmp')"
+            "INSERT INTO sources(kind, provider_kind, name, root_path) VALUES ('codex', 'codex', 'Codex', '/tmp')"
         ).lastrowid
         _store_session(
             connection,
@@ -314,7 +314,7 @@ class SessionContractTests(unittest.TestCase):
         connection = connection_for(SCHEMA_PATH.read_text(encoding="utf-8"))
         self.addCleanup(connection.close)
         source_id = connection.execute(
-            "INSERT INTO sources(kind, name, root_path) VALUES ('codex', 'Codex', '/tmp')"
+            "INSERT INTO sources(kind, provider_kind, name, root_path) VALUES ('codex', 'codex', 'Codex', '/tmp')"
         ).lastrowid
         for item in (
             parsed_session("cycle-a", "subsession", "cycle-b"),
@@ -338,7 +338,7 @@ class SessionContractTests(unittest.TestCase):
         connection = connection_for(SCHEMA_PATH.read_text(encoding="utf-8"))
         self.addCleanup(connection.close)
         source_id = connection.execute(
-            "INSERT INTO sources(kind, name, root_path) VALUES ('codex', 'Codex', '/tmp')"
+            "INSERT INTO sources(kind, provider_kind, name, root_path) VALUES ('codex', 'codex', 'Codex', '/tmp')"
         ).lastrowid
         _store_session(connection, source_id, "codex", parsed_session("parent"))
         _store_session(connection, source_id, "codex", parsed_session("child"))

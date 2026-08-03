@@ -69,6 +69,70 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Help: none
 - Visible consumer inventory: none.
 
+## `session-reference-scan.status`
+
+- Physical field or projection: `session_reference_scans.status`
+- Allowed values: `ok`, `partial`, `error`
+- Enforcement: `schema-check`
+- Logical axis: Session reference reconciliation state
+- Default: `NULL`
+- Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
+- Producers: `src/localbrain/ingest/scanner.py`
+- Consumers: `src/localbrain/queries.py`
+- Consequence: Distinguishes complete, safety-bounded, and stale-after-error reference evidence.
+- Presentation mode: `internal-only`
+- Labels: none; the family is not visible on ordinary screens.
+- Help: none
+- Visible consumer inventory: none.
+
+## `session-reference.target-kind`
+
+- Physical field or projection: `session_reference_evidence.target_kind`
+- Allowed values: `url`, `context_document`, `atlassian_item`
+- Enforcement: `schema-check`
+- Logical axis: Session reference target family
+- Default: `NULL`
+- Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
+- Producers: `src/localbrain/ingest/scanner.py`
+- Consumers: `src/localbrain/queries.py`
+- Consequence: Selects generic URL, exact Context Document, or configured Atlassian Item identity.
+- Presentation mode: `internal-only`
+- Labels: none; the family is not visible on ordinary screens.
+- Help: none
+- Visible consumer inventory: none.
+
+## `session-reference.evidence-kind`
+
+- Physical field or projection: `session_reference_evidence.evidence_kind`
+- Allowed values: `user_mention`, `assistant_mention`, `tool_result`, `resource_read`
+- Enforcement: `schema-check`
+- Logical axis: Session reference evidence provenance
+- Default: `NULL`
+- Fallbacks: `null`: reject; `unknown`: label → 참조 근거 알 수 없음; `invalid`: reject; `future`: label → 새 참조 근거
+- Producers: `src/localbrain/ingest/scanner.py`
+- Consumers: `src/localbrain/queries.py`
+- Consequence: Explains whether the Session mentioned, observed, or read the target.
+- Presentation mode: `logical-label`
+- Labels: `user_mention` → 사용자 메시지에서 언급; `assistant_mention` → Agent 응답에서 언급; `tool_result` → 도구 결과에서 확인; `resource_read` → MCP 조회
+- Help: 이 세션에서 해당 자료를 확인한 근거입니다.
+- Visible consumer inventory: none.
+
+## `session-reference.read-outcome`
+
+- Physical field or projection: `session_reference_evidence.read_outcome`
+- Allowed values: `success`, `failure`
+- Enforcement: `schema-check`
+- Logical axis: completed approved resource read outcome
+- Default: `NULL`
+- Fallbacks: `null`: reject; `unknown`: label → 조회 결과 알 수 없음; `invalid`: reject; `future`: label → 새 조회 결과
+- Producers: `src/localbrain/ingest/scanner.py`
+- Consumers: `src/localbrain/queries.py`
+- Consequence: A success requires one matched completed non-error call; failure never implies remote content or freshness.
+- Presentation mode: `logical-label`
+- Labels: `success` → MCP 조회; `failure` → MCP 조회 실패
+- Help: 승인된 MCP 조회 시도의 완료 결과입니다.
+- Visible consumer inventory: none.
+
 ## Explicit Exclusions
 
 | Pattern | Owner | Reason |

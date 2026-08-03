@@ -41,11 +41,21 @@ def compact_pagination_items(
     return [1, None, current_page, None, total_pages]
 
 
-def dashboard_stats(connection: sqlite3.Connection) -> dict:
+def dashboard_stats(
+    connection: sqlite3.Connection, source_kind: Optional[str] = None
+) -> dict:
+    source_condition = (
+        " AND sessions.source_id = (SELECT id FROM sources WHERE kind = ?)"
+        if source_kind
+        else ""
+    )
+    source_params = (source_kind,) if source_kind else ()
     result = {
         "sessions": connection.execute(
             "SELECT COUNT(*) AS count FROM sessions "
             "WHERE session_class = 'work' AND session_role = 'primary'"
+            + source_condition,
+            source_params,
         ).fetchone()["count"],
         "events": connection.execute(
             """
@@ -54,7 +64,8 @@ def dashboard_stats(connection: sqlite3.Connection) -> dict:
             JOIN sessions ON sessions.id = activity_events.session_id
             WHERE sessions.session_class = 'work'
               AND sessions.session_role = 'primary'
-            """
+            """ + source_condition,
+            source_params,
         ).fetchone()["count"],
         "documents": connection.execute(
             """
@@ -68,16 +79,32 @@ def dashboard_stats(connection: sqlite3.Connection) -> dict:
             "SELECT COUNT(*) AS count FROM workspaces"
         ).fetchone()["count"],
     }
-    result["missing_workspaces"] = connection.execute(
-        "SELECT COUNT(*) AS count FROM workspaces WHERE exists_now = 0"
-    ).fetchone()["count"]
+    if source_kind:
+        result["missing_workspaces"] = connection.execute(
+            """
+            SELECT COUNT(*) AS count
+            FROM workspaces
+            WHERE exists_now = 0
+              AND EXISTS (
+                  SELECT 1 FROM sessions
+                  WHERE sessions.workspace_id = workspaces.id
+                    AND sessions.session_class = 'work'
+                    AND sessions.session_role = 'primary'
+            """ + source_condition + ")",
+            source_params,
+        ).fetchone()["count"]
+    else:
+        result["missing_workspaces"] = connection.execute(
+            "SELECT COUNT(*) AS count FROM workspaces WHERE exists_now = 0"
+        ).fetchone()["count"]
     result["recent_sessions"] = connection.execute(
         """
         SELECT COUNT(*) AS count FROM sessions
         WHERE session_class = 'work'
           AND session_role = 'primary'
           AND datetime(last_event_at) >= datetime('now', '-7 days')
-        """
+        """ + source_condition,
+        source_params,
     ).fetchone()["count"]
     result["active_workspaces"] = connection.execute(
         """
@@ -86,7 +113,8 @@ def dashboard_stats(connection: sqlite3.Connection) -> dict:
           AND session_class = 'work'
           AND session_role = 'primary'
           AND datetime(last_event_at) >= datetime('now', '-7 days')
-        """
+        """ + source_condition,
+        source_params,
     ).fetchone()["count"]
     result["context_switches"] = connection.execute(
         """
@@ -98,12 +126,14 @@ def dashboard_stats(connection: sqlite3.Connection) -> dict:
               AND session_class = 'work'
               AND session_role = 'primary'
               AND datetime(last_event_at) >= datetime('now', '-7 days')
+        """ + source_condition + """
         )
         SELECT COUNT(*) AS count
         FROM ordered
         WHERE previous_workspace IS NOT NULL
           AND workspace_id != previous_workspace
-        """
+        """,
+        source_params,
     ).fetchone()["count"]
     return result
 
@@ -136,7 +166,7 @@ def daily_activity(connection: sqlite3.Connection, days: int = 14):
 def source_activity(connection: sqlite3.Connection):
     return connection.execute(
         """
-        SELECT sources.kind, sources.name,
+        SELECT sources.kind, sources.provider_kind, sources.name,
                COUNT(DISTINCT sessions.id) AS session_count,
                COUNT(activity_events.id) AS event_count,
                MAX(sessions.last_event_at) AS last_activity_at
@@ -145,7 +175,7 @@ def source_activity(connection: sqlite3.Connection):
             AND sessions.session_class = 'work'
             AND sessions.session_role = 'primary'
         LEFT JOIN activity_events ON activity_events.session_id = sessions.id
-        WHERE sources.kind IN ('claude', 'codex')
+        WHERE sources.provider_kind IN ('claude', 'codex')
         GROUP BY sources.id
         ORDER BY event_count DESC
         """
@@ -213,6 +243,7 @@ def recent_sessions(
         SELECT
             sessions.*,
             sources.kind AS source_kind,
+            sources.provider_kind,
             sources.name AS source_name,
             workspaces.display_name AS workspace_name,
             workspaces.canonical_path AS workspace_path,
@@ -264,6 +295,7 @@ def session_inventory_page(
         SELECT
             sessions.*,
             sources.kind AS source_kind,
+            sources.provider_kind,
             sources.name AS source_name,
             workspaces.display_name AS workspace_name,
             workspaces.canonical_path AS workspace_path,
@@ -289,6 +321,7 @@ def session_inventory_page(
         child_rows = connection.execute(
             """
             SELECT children.*, sources.kind AS source_kind,
+                   sources.provider_kind,
                    sources.name AS source_name,
                    workspaces.display_name AS workspace_name,
                    workspaces.canonical_path AS workspace_path,
@@ -379,41 +412,71 @@ def context_documents(
     ).fetchall()
 
 
-def project_activity(connection: sqlite3.Connection):
+def project_activity(
+    connection: sqlite3.Connection, source_kind: Optional[str] = None
+):
+    source_condition = "AND sources.kind = ?" if source_kind else ""
+    params = (source_kind,) if source_kind else ()
+    workspace_condition = (
+        "session_activity.workspace_id IS NOT NULL"
+        if source_kind
+        else "session_activity.workspace_id IS NOT NULL OR workspaces.git_root IS NOT NULL"
+    )
     return connection.execute(
         """
+        WITH session_activity AS (
+            SELECT sessions.workspace_id,
+                   COUNT(*) AS session_count,
+                   COALESCE(SUM(sessions.event_count), 0) AS event_count,
+                   MAX(sessions.last_event_at) AS last_activity_at,
+                   COUNT(DISTINCT sessions.source_id) AS source_count
+            FROM sessions
+            JOIN sources ON sources.id = sessions.source_id
+            WHERE sessions.workspace_id IS NOT NULL
+              AND sessions.session_class = 'work'
+              AND sessions.session_role = 'primary'
+              {source_condition}
+            GROUP BY sessions.workspace_id
+        )
         SELECT workspaces.id, workspaces.display_name, workspaces.canonical_path,
                workspaces.git_root, workspaces.exists_now,
-               (SELECT COUNT(*) FROM sessions
-                WHERE sessions.workspace_id = workspaces.id
-                  AND sessions.session_class = 'work'
-                  AND sessions.session_role = 'primary') AS session_count,
+               COALESCE(session_activity.session_count, 0) AS session_count,
                (SELECT COUNT(*) FROM context_documents
                 LEFT JOIN context_roots
                   ON context_roots.id = context_documents.context_root_id
                 WHERE context_documents.workspace_id = workspaces.id
                   AND (context_documents.context_root_id IS NULL
                        OR context_roots.enabled = 1)) AS document_count,
-               (SELECT COALESCE(SUM(event_count), 0) FROM sessions
-                WHERE sessions.workspace_id = workspaces.id
-                  AND sessions.session_class = 'work'
-                  AND sessions.session_role = 'primary') AS event_count,
-               (SELECT MAX(last_event_at) FROM sessions
-                WHERE sessions.workspace_id = workspaces.id
-                  AND sessions.session_class = 'work'
-                  AND sessions.session_role = 'primary') AS last_activity_at,
-               (SELECT COUNT(DISTINCT source_id) FROM sessions
-                WHERE sessions.workspace_id = workspaces.id
-                  AND sessions.session_class = 'work'
-                  AND sessions.session_role = 'primary') AS source_count
+               COALESCE(session_activity.event_count, 0) AS event_count,
+               session_activity.last_activity_at,
+               COALESCE(session_activity.source_count, 0) AS source_count
         FROM workspaces
-        WHERE EXISTS (
-            SELECT 1 FROM sessions
-            WHERE sessions.workspace_id = workspaces.id
-              AND sessions.session_class = 'work'
-              AND sessions.session_role = 'primary'
-        ) OR workspaces.git_root IS NOT NULL
-        ORDER BY last_activity_at DESC, workspaces.display_name
+        LEFT JOIN session_activity
+          ON session_activity.workspace_id = workspaces.id
+        WHERE {workspace_condition}
+        ORDER BY session_activity.last_activity_at DESC, workspaces.display_name
+        """.format(
+            source_condition=source_condition,
+            workspace_condition=workspace_condition,
+        ),
+        params,
+    ).fetchall()
+
+
+def session_source_scopes(connection: sqlite3.Connection):
+    return connection.execute(
+        """
+        SELECT sources.id, sources.kind AS source_key,
+               sources.provider_kind, sources.name AS display_label,
+               COUNT(CASE WHEN sessions.session_class = 'work'
+                                AND sessions.session_role = 'primary'
+                          THEN 1 END) AS eligible_session_count
+        FROM sources
+        LEFT JOIN sessions ON sessions.source_id = sources.id
+        WHERE sources.provider_kind != 'context'
+          AND sources.kind != 'context'
+        GROUP BY sources.id
+        ORDER BY sources.id
         """
     ).fetchall()
 
@@ -421,8 +484,10 @@ def project_activity(connection: sqlite3.Connection):
 def source_inventory(connection: sqlite3.Connection):
     return connection.execute(
         """
-        SELECT sources.id, sources.kind, sources.name, sources.root_path,
-               sources.enabled, sources.last_scanned_at,
+        SELECT sources.id, sources.kind, sources.provider_kind, sources.name,
+               sources.root_path,
+               sources.last_scanned_at, sources.last_scan_success_at,
+               sources.last_scan_status, sources.last_scan_error,
                COUNT(DISTINCT source_files.id) AS file_count,
                COUNT(DISTINCT CASE WHEN sessions.session_class = 'work'
                                       AND sessions.session_role = 'primary'
@@ -447,7 +512,8 @@ def source_inventory(connection: sqlite3.Connection):
 def session_detail(connection: sqlite3.Connection, session_id: int):
     return connection.execute(
         """
-        SELECT sessions.*, sources.kind AS source_kind, sources.name AS source_name,
+        SELECT sessions.*, sources.kind AS source_kind,
+               sources.provider_kind, sources.name AS source_name,
                workspaces.display_name AS workspace_name,
                workspaces.canonical_path AS workspace_path,
                workspaces.git_root, workspaces.exists_now,
@@ -501,6 +567,7 @@ def session_parent(connection: sqlite3.Connection, session_id: int):
     return connection.execute(
         """
         SELECT parents.*, sources.kind AS source_kind,
+               sources.provider_kind,
                sources.name AS source_name,
                workspaces.display_name AS workspace_name,
                workspaces.canonical_path AS workspace_path,
@@ -524,6 +591,7 @@ def session_subsessions(connection: sqlite3.Connection, session_id: int):
     return connection.execute(
         """
         SELECT children.*, sources.kind AS source_kind,
+               sources.provider_kind,
                sources.name AS source_name,
                workspaces.display_name AS workspace_name,
                workspaces.canonical_path AS workspace_path,

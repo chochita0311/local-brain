@@ -10,6 +10,7 @@ from markdown_it import MarkdownIt
 from markdown_it.token import Token
 from markupsafe import Markup, escape
 from mdit_py_plugins.dollarmath import dollarmath_plugin
+from mdit_py_plugins.dollarmath.index import math_inline_dollar
 from mdit_py_plugins.footnote import footnote_plugin
 from mdit_py_plugins.tasklists import tasklists_plugin
 from pygments import highlight
@@ -113,6 +114,11 @@ _DEFERRED_ATTACHMENT_SUFFIXES = {
     ".webp",
 }
 _PYGMENTS_FORMATTER = HtmlFormatter(nowrap=True)
+_SINGLE_LINE_MATH_RULE = math_inline_dollar(
+    allow_space=False,
+    allow_digits=False,
+    allow_double=False,
+)
 _MAX_EMBED_DEPTH = 3
 _MATHML_NAMESPACE = "http://www.w3.org/1998/Math/MathML"
 _MATHML_ELEMENTS = {
@@ -325,6 +331,29 @@ def _render_math(content: str, options: dict) -> str:
         )
     tag = "div" if display_mode else "span"
     return '<{} class="markdown-math">{}</{}>'.format(tag, mathml, tag)
+
+
+def _same_line_math_rule(state, silent: bool) -> bool:
+    """Keep inline dollar math from consuming technical text across lines."""
+    start = state.pos
+    if state.src[start] != "$":
+        return False
+
+    newline = state.src.find("\n", start + 1)
+    closing = state.src.find("$", start + 1)
+    while closing >= 0:
+        backslashes = 0
+        cursor = closing - 1
+        while cursor >= 0 and state.src[cursor] == "\\":
+            backslashes += 1
+            cursor -= 1
+        if backslashes % 2 == 0:
+            break
+        closing = state.src.find("$", closing + 1)
+
+    if closing < 0 or (newline >= 0 and closing > newline):
+        return False
+    return _SINGLE_LINE_MATH_RULE(state, silent)
 
 
 def _highlight_rule(state, silent: bool) -> bool:
@@ -665,6 +694,7 @@ def _build_renderer() -> MarkdownIt:
         allow_blank_lines=False,
         renderer=_render_math,
     )
+    renderer.inline.ruler.at("math_inline", _same_line_math_rule)
     renderer.block.ruler.before(
         "paragraph", "obsidian_embed_block", _wiki_embed_block_rule
     )

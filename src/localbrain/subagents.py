@@ -36,6 +36,11 @@ def list_subagents(
                 "agent_id": path.stem.removeprefix("agent-"),
                 "title": parsed.title,
                 "last_event_at": parsed.last_event_at,
+                "user_message_count": sum(
+                    1
+                    for event in parsed.events
+                    if event.event_type == "message" and event.role == "user"
+                ),
                 "event_count": len(parsed.events),
             }
         )

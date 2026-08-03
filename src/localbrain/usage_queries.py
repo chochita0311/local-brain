@@ -10,11 +10,28 @@ from .activity import activity_summary, parse_timestamp
 
 
 VALID_VIEWS = {"daily", "weekly", "cumulative"}
-VALID_SOURCES = {"all", "claude", "codex"}
 VALID_METRICS = {"tokens", "cost"}
 VALID_BREAKDOWNS = {"source", "model", "project"}
 PROJECTION_FORMULA_VERSION = "calendar-elapsed-v1"
 CLAUDE_SYNTHETIC_MODEL = "<synthetic>"
+
+
+def _usage_source_options(connection: sqlite3.Connection) -> List[dict]:
+    return [
+        {
+            "value": row["kind"],
+            "label": row["name"],
+            "provider_kind": row["provider_kind"],
+        }
+        for row in connection.execute(
+            """
+            SELECT kind, provider_kind, name
+            FROM sources
+            WHERE provider_kind IN ('claude', 'codex')
+            ORDER BY id
+            """
+        ).fetchall()
+    ]
 
 
 def _parse_date(value: Optional[str]) -> Optional[date]:
@@ -86,8 +103,9 @@ def _earliest_usage_date(
         FROM usage_records
         JOIN sources ON sources.id = usage_records.source_id
         WHERE usage_records.occurred_at IS NOT NULL
+          AND sources.provider_kind IN ('claude', 'codex')
           AND NOT (
-              sources.kind = 'claude'
+              sources.provider_kind = 'claude'
               AND COALESCE(usage_records.raw_model, '') = ?
           )
         {source_filter}
@@ -114,7 +132,14 @@ def normalize_usage_scope(
     today: Optional[date] = None,
 ) -> dict:
     selected_view = view if view in VALID_VIEWS else "daily"
-    selected_source = source if source in VALID_SOURCES else "all"
+    source_options = _usage_source_options(connection)
+    source_options_by_key = {item["value"]: item for item in source_options}
+    selected_source = source if source in source_options_by_key else "all"
+    selected_source_label = (
+        source_options_by_key[selected_source]["label"]
+        if selected_source != "all"
+        else "All"
+    )
     selected_metric = metric if metric in VALID_METRICS else "tokens"
     selected_breakdown = breakdown if breakdown in VALID_BREAKDOWNS else "source"
     current_day = today or datetime.now(ZoneInfo(timezone_name)).date()
@@ -152,6 +177,8 @@ def normalize_usage_scope(
     return {
         "view": selected_view,
         "source": selected_source,
+        "source_label": selected_source_label,
+        "source_options": source_options,
         "metric": selected_metric,
         "breakdown": selected_breakdown,
         "from_date": start_day,
@@ -180,6 +207,7 @@ def _usage_rows(connection: sqlite3.Connection, source: str) -> List[sqlite3.Row
     return connection.execute(
         """
         SELECT usage_records.*, sources.kind AS source_kind,
+               sources.provider_kind, sources.name AS source_name,
                sessions.session_class, sessions.session_role, sessions.title AS session_title,
                usage_price_snapshots.label AS price_snapshot_label,
                current_workspace.id AS current_workspace_id,
@@ -191,8 +219,9 @@ def _usage_rows(connection: sqlite3.Connection, source: str) -> List[sqlite3.Row
           ON usage_price_snapshots.id = usage_records.price_snapshot_id
         LEFT JOIN workspaces AS current_workspace
           ON current_workspace.id = usage_records.workspace_id_snapshot
-        WHERE NOT (
-            sources.kind = 'claude'
+        WHERE sources.provider_kind IN ('claude', 'codex')
+          AND NOT (
+            sources.provider_kind = 'claude'
             AND COALESCE(usage_records.raw_model, '') = ?
         ) {source_filter}
         ORDER BY usage_records.occurred_at, usage_records.id
@@ -328,39 +357,57 @@ def _freshness(connection: sqlite3.Connection, source: str) -> dict:
         params.append(source)
     rows = connection.execute(
         """
-        SELECT sources.kind, sources.name, sources.last_scanned_at AS last_attempt_at,
+        SELECT sources.kind, sources.provider_kind, sources.name,
+               sources.last_scanned_at AS last_attempt_at,
+               sources.last_scan_success_at,
+               sources.last_scan_status,
+               sources.last_scan_error,
                MAX(CASE WHEN source_files.status = 'ok'
                         THEN source_files.last_scanned_at END) AS last_healthy_file_at,
                SUM(CASE WHEN source_files.status = 'stale' THEN 1 ELSE 0 END) AS stale_count,
                SUM(CASE WHEN source_files.status = 'error' THEN 1 ELSE 0 END) AS error_count
         FROM sources
         LEFT JOIN source_files ON source_files.source_id = sources.id
-        WHERE sources.kind IN ('claude', 'codex') {source_filter}
-        GROUP BY sources.id, sources.kind, sources.name, sources.last_scanned_at
-        ORDER BY sources.kind
+        WHERE sources.provider_kind IN ('claude', 'codex') {source_filter}
+        GROUP BY sources.id, sources.kind, sources.provider_kind, sources.name,
+                 sources.last_scanned_at, sources.last_scan_success_at,
+                 sources.last_scan_status, sources.last_scan_error
+        ORDER BY sources.id
         """.format(source_filter=source_filter),
         tuple(params),
     ).fetchall()
     source_rows = []
     for row in rows:
-        if row["error_count"]:
+        if row["last_scan_status"] in {
+            "unavailable",
+            "configuration_error",
+            "scan_failed",
+        }:
+            row_status = "error"
+        elif row["error_count"]:
             row_status = "error"
         elif row["stale_count"]:
             row_status = "stale"
-        elif row["last_attempt_at"]:
+        elif row["last_scan_status"] in {"completed", "empty"} or row["last_attempt_at"]:
             row_status = "current"
         else:
             row_status = "not_synchronized"
         source_rows.append(
             {
                 "kind": row["kind"],
+                "provider_kind": row["provider_kind"],
                 "name": row["name"],
                 "status": row_status,
+                "scan_status": row["last_scan_status"],
+                "scan_error": row["last_scan_error"],
                 "last_attempt_at": row["last_attempt_at"],
                 "last_successful_at": (
-                    row["last_attempt_at"]
-                    if row_status == "current"
-                    else row["last_healthy_file_at"]
+                    row["last_scan_success_at"]
+                    or (
+                        row["last_attempt_at"]
+                        if row_status == "current"
+                        else row["last_healthy_file_at"]
+                    )
                 ),
                 "stale_count": row["stale_count"] or 0,
                 "error_count": row["error_count"] or 0,
@@ -372,9 +419,9 @@ def _freshness(connection: sqlite3.Connection, source: str) -> dict:
         row["last_successful_at"] for row in source_rows if row["last_successful_at"]
     ]
     attempt_values = [row["last_attempt_at"] for row in source_rows if row["last_attempt_at"]]
-    if error_count:
+    if any(row["status"] == "error" for row in source_rows):
         status = "error"
-    elif stale_count:
+    elif any(row["status"] == "stale" for row in source_rows):
         status = "stale"
     elif successful_values:
         status = "current"
@@ -392,10 +439,7 @@ def _freshness(connection: sqlite3.Connection, source: str) -> dict:
 
 def _breakdown_identity(row: sqlite3.Row, mode: str) -> Tuple[str, str]:
     if mode == "source":
-        return row["source_kind"], {
-            "claude": "Claude",
-            "codex": "Codex",
-        }.get(row["source_kind"], row["source_kind"].title())
+        return row["source_kind"], row["source_name"]
     if mode == "model":
         identity = row["model_name"] or row["raw_model"]
         return identity or "unknown-model", identity or "Unknown model"
@@ -445,6 +489,7 @@ def _breakdown(
                 "primary_session_ids": set(),
                 "current_workspace_id": row["current_workspace_id"],
                 "source_kind": row["source_kind"] if scope["breakdown"] == "source" else None,
+                "provider_kind": row["provider_kind"] if scope["breakdown"] == "source" else None,
             },
         )
         group["rows"].append((row, occurred_at))
@@ -486,6 +531,7 @@ def _breakdown(
                 "key": group["key"],
                 "label": group["label"],
                 "source_kind": group["source_kind"],
+                "provider_kind": group["provider_kind"],
                 "tokens": aggregate["total_tokens"],
                 "tokens_label": _format_tokens(aggregate["total_tokens"]),
                 "estimated_cost": aggregate["estimated_cost"],
@@ -822,12 +868,19 @@ def usage_dashboard_data(
             )
         ],
         "sources": [
-            {"value": value, "label": label, "url": _scope_url(scope, source=value)}
-            for value, label in (
-                ("all", "All"),
-                ("claude", "Claude"),
-                ("codex", "Codex"),
-            )
+            {
+                "value": "all",
+                "label": "All",
+                "provider_kind": None,
+                "url": _scope_url(scope, source="all"),
+            },
+            *[
+                {
+                    **option,
+                    "url": _scope_url(scope, source=option["value"]),
+                }
+                for option in scope["source_options"]
+            ],
         ],
         "metrics": [
             {"value": value, "label": label, "url": _scope_url(scope, metric=value)}

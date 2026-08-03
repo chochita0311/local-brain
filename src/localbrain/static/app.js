@@ -40,9 +40,10 @@ if (usageDashboardStatus) {
   };
 
   const announceUsageScope = (dashboard) => {
+    const source = dashboard.querySelector('[data-usage-control="source"][aria-current="page"]')?.textContent.trim();
     const metric = dashboard.querySelector('[data-usage-control="metric"][aria-current="page"]')?.textContent.trim();
     const breakdown = dashboard.querySelector('[data-usage-control="breakdown"][aria-current="page"]')?.textContent.trim();
-    usageDashboardStatus.textContent = [metric, breakdown].filter(Boolean).join(" · ")
+    usageDashboardStatus.textContent = [source, metric, breakdown].filter(Boolean).join(" · ")
       + " 보기로 전환했습니다.";
   };
 
@@ -378,6 +379,59 @@ function showNotice(message, tone = "error") {
   window.setTimeout(() => notice.remove(), 5000);
 }
 
+const scanStatusLabels = {
+  completed: "완료",
+  empty: "비어 있음",
+  unavailable: "경로 확인 필요",
+  configuration_error: "설정 확인 필요",
+  scan_failed: "동기화 실패",
+};
+
+function renderScanReport(result, report, actionLabel) {
+  if (!report || !Array.isArray(report.sources)) {
+    throw new Error("invalid-report");
+  }
+  const outcome = ["complete", "partial", "failed"].includes(report.outcome)
+    ? report.outcome
+    : "failed";
+  const heading = document.createElement("strong");
+  heading.textContent = outcome === "complete"
+    ? `${actionLabel}를 완료했습니다.`
+    : outcome === "partial"
+      ? `${actionLabel} 결과 중 확인이 필요한 소스가 있습니다.`
+      : `${actionLabel}를 완료하지 못했습니다.`;
+  const summary = document.createElement("span");
+  const changed = Number(report.summary?.imported || 0);
+  const unchanged = Number(report.summary?.unchanged || 0);
+  summary.textContent = `${changed}개 처리 · ${unchanged}개 변경 없음`;
+  const list = document.createElement("div");
+  list.className = "scan-source-results";
+  report.sources.forEach((source) => {
+    const row = document.createElement("div");
+    row.className = `scan-source-result ${source.status || "scan_failed"}`;
+    const identity = document.createElement("span");
+    const label = document.createElement("strong");
+    label.textContent = source.display_label || source.source_key || "Session source";
+    const state = document.createElement("small");
+    state.textContent = scanStatusLabels[source.status] || "확인 필요";
+    identity.append(label, state);
+    const counts = document.createElement("span");
+    counts.textContent = `${Number(source.eligible_sessions || 0)} Sessions · ${Number(source.tracked_files || 0)} files`;
+    row.append(identity, counts);
+    if (source.error_message) {
+      const consequence = document.createElement("p");
+      consequence.textContent = source.error_message;
+      row.append(consequence);
+    }
+    list.append(row);
+  });
+  result.replaceChildren(heading, summary, list);
+  result.className = `scan-result scan-report ${outcome === "complete" ? "success" : outcome === "partial" ? "warning" : "error"}`;
+  result.setAttribute("role", outcome === "complete" ? "status" : "alert");
+  result.hidden = false;
+  return outcome;
+}
+
 function bindScanAction(button, result, endpoint, actionLabel) {
   if (!button || !result) return;
   const eventTarget = button.form || button;
@@ -397,26 +451,28 @@ function bindScanAction(button, result, endpoint, actionLabel) {
 
     try {
       const response = await fetch(endpoint, { method: "POST" });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      if (!response.ok) throw new Error("request-failed");
       const data = await response.json();
-      const imported = Object.values(data.report).reduce(
-        (sum, source) => sum + source.imported,
-        0,
-      );
-      result.textContent = `${imported}개 변경 항목을 반영했습니다. 화면을 갱신합니다.`;
-      result.className = "scan-result success";
-      result.setAttribute("role", "status");
-      result.hidden = false;
-      window.setTimeout(() => window.location.reload(), 700);
-    } catch (error) {
-      result.textContent = `${actionLabel}에 실패했습니다: ${error.message}`;
-      result.className = "scan-result error";
+      const outcome = renderScanReport(result, data.report, actionLabel);
+      if (outcome === "complete") {
+        window.setTimeout(() => window.location.reload(), 900);
+        return;
+      }
+      button.disabled = false;
+      button.removeAttribute("aria-busy");
+      idle.hidden = false;
+      working.hidden = true;
+      button.focus({ preventScroll: true });
+    } catch (_error) {
+      result.textContent = `${actionLabel} 요청을 처리하지 못했습니다. 기존 데이터는 유지됩니다. 다시 시도하거나 소스 설정을 확인하세요.`;
+      result.className = "scan-result scan-report error";
       result.setAttribute("role", "alert");
       result.hidden = false;
       button.disabled = false;
       button.removeAttribute("aria-busy");
       idle.hidden = false;
       working.hidden = true;
+      button.focus({ preventScroll: true });
     }
   });
 }

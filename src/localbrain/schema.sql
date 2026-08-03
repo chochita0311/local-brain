@@ -4,16 +4,25 @@ PRAGMA foreign_keys = ON;
 CREATE TABLE IF NOT EXISTS sources (
     id INTEGER PRIMARY KEY,
     kind TEXT NOT NULL UNIQUE,
+    provider_kind TEXT NOT NULL DEFAULT 'unknown'
+        CHECK(length(trim(provider_kind)) BETWEEN 1 AND 64),
     name TEXT NOT NULL,
     root_path TEXT NOT NULL,
-    enabled INTEGER NOT NULL DEFAULT 1,
     last_scanned_at TEXT,
+    last_scan_success_at TEXT,
+    last_scan_status TEXT CHECK(last_scan_status IN (
+        'completed', 'empty', 'unavailable', 'configuration_error', 'scan_failed'
+    )),
+    last_scan_error TEXT CHECK(
+        last_scan_error IS NULL OR length(last_scan_error) <= 500
+    ),
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS source_files (
     id INTEGER PRIMARY KEY,
     source_id INTEGER NOT NULL REFERENCES sources(id) ON DELETE CASCADE,
+    session_id INTEGER REFERENCES sessions(id) ON DELETE SET NULL,
     path TEXT NOT NULL,
     size_bytes INTEGER NOT NULL,
     mtime_ns INTEGER NOT NULL,
@@ -21,6 +30,7 @@ CREATE TABLE IF NOT EXISTS source_files (
     status TEXT NOT NULL DEFAULT 'ok',
     error TEXT,
     usage_contract_version TEXT,
+    reference_contract_version TEXT,
     UNIQUE(source_id, path)
 );
 
@@ -142,6 +152,144 @@ CREATE TABLE IF NOT EXISTS session_pins (
     session_id INTEGER PRIMARY KEY
         REFERENCES sessions(id) ON DELETE CASCADE,
     pinned_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS session_reference_scans (
+    session_id INTEGER PRIMARY KEY
+        REFERENCES sessions(id) ON DELETE CASCADE,
+    source_fingerprint TEXT NOT NULL,
+    extractor_version TEXT NOT NULL,
+    status TEXT NOT NULL
+        CHECK(status IN ('ok', 'partial', 'error')),
+    observed_target_count INTEGER NOT NULL DEFAULT 0
+        CHECK(observed_target_count >= 0),
+    retained_target_count INTEGER NOT NULL DEFAULT 0
+        CHECK(retained_target_count >= 0 AND retained_target_count <= 100),
+    error_code TEXT,
+    error_message TEXT
+        CHECK(error_message IS NULL OR length(error_message) <= 500),
+    scanned_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CHECK(length(source_fingerprint) = 64),
+    CHECK(length(extractor_version) > 0 AND length(extractor_version) <= 80),
+    CHECK(retained_target_count <= observed_target_count),
+    CHECK(
+        (status = 'ok' AND retained_target_count = observed_target_count)
+        OR (
+            status = 'partial'
+            AND retained_target_count = 100
+            AND observed_target_count > retained_target_count
+        )
+        OR status = 'error'
+    ),
+    CHECK(
+        (status = 'error' AND error_code IS NOT NULL)
+        OR (
+            status IN ('ok', 'partial')
+            AND error_code IS NULL
+            AND error_message IS NULL
+        )
+    ),
+    CHECK(
+        error_code IS NULL
+        OR (length(error_code) > 0 AND length(error_code) <= 80)
+    )
+);
+
+CREATE TABLE IF NOT EXISTS session_reference_evidence (
+    id INTEGER PRIMARY KEY,
+    session_id INTEGER NOT NULL
+        REFERENCES sessions(id) ON DELETE CASCADE,
+    source_path TEXT NOT NULL,
+    source_event_id TEXT,
+    source_line INTEGER NOT NULL CHECK(source_line > 0),
+    evidence_ordinal INTEGER NOT NULL CHECK(evidence_ordinal > 0),
+    target_kind TEXT NOT NULL
+        CHECK(target_kind IN ('url', 'context_document', 'atlassian_item')),
+    target_key TEXT NOT NULL,
+    context_document_id INTEGER
+        REFERENCES context_documents(id) ON DELETE CASCADE,
+    external_resource_id INTEGER
+        REFERENCES atlassian_items(external_resource_id) ON DELETE CASCADE,
+    evidence_kind TEXT NOT NULL
+        CHECK(
+            evidence_kind IN (
+                'user_mention',
+                'assistant_mention',
+                'tool_result',
+                'resource_read'
+            )
+        ),
+    read_outcome TEXT
+        CHECK(read_outcome IS NULL OR read_outcome IN ('success', 'failure')),
+    observed_identity TEXT NOT NULL,
+    normalized_url TEXT,
+    tool_name TEXT,
+    tool_call_id TEXT,
+    observed_at TEXT,
+    extractor_version TEXT NOT NULL,
+    evidence_key TEXT NOT NULL UNIQUE,
+    first_observed_at TEXT NOT NULL,
+    last_observed_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CHECK(length(source_path) > 0 AND length(source_path) <= 8000),
+    CHECK(
+        source_event_id IS NULL
+        OR (length(source_event_id) > 0 AND length(source_event_id) <= 1000)
+    ),
+    CHECK(length(target_key) > 0 AND length(target_key) <= 300),
+    CHECK(length(observed_identity) > 0 AND length(observed_identity) <= 500),
+    CHECK(
+        normalized_url IS NULL
+        OR (length(normalized_url) > 0 AND length(normalized_url) <= 8000)
+    ),
+    CHECK(tool_name IS NULL OR (length(tool_name) > 0 AND length(tool_name) <= 200)),
+    CHECK(
+        tool_call_id IS NULL
+        OR (length(tool_call_id) > 0 AND length(tool_call_id) <= 500)
+    ),
+    CHECK(length(extractor_version) > 0 AND length(extractor_version) <= 80),
+    CHECK(length(evidence_key) = 64),
+    CHECK(
+        (
+            target_kind = 'url'
+            AND context_document_id IS NULL
+            AND external_resource_id IS NULL
+            AND normalized_url IS NOT NULL
+        )
+        OR (
+            target_kind = 'context_document'
+            AND context_document_id IS NOT NULL
+            AND external_resource_id IS NULL
+            AND normalized_url IS NULL
+        )
+        OR (
+            target_kind = 'atlassian_item'
+            AND context_document_id IS NULL
+            AND external_resource_id IS NOT NULL
+            AND normalized_url IS NOT NULL
+        )
+    ),
+    CHECK(
+        (
+            evidence_kind IN ('user_mention', 'assistant_mention')
+            AND read_outcome IS NULL
+            AND tool_name IS NULL
+            AND tool_call_id IS NULL
+        )
+        OR (
+            evidence_kind = 'tool_result'
+            AND read_outcome IS NULL
+            AND tool_name IS NOT NULL
+            AND tool_call_id IS NOT NULL
+        )
+        OR (
+            evidence_kind = 'resource_read'
+            AND read_outcome IS NOT NULL
+            AND tool_name IS NOT NULL
+            AND tool_call_id IS NOT NULL
+        )
+    )
 );
 
 CREATE TABLE IF NOT EXISTS usage_price_snapshots (
@@ -716,6 +864,19 @@ CREATE INDEX IF NOT EXISTS idx_sessions_last_event
     ON sessions(last_event_at DESC);
 CREATE INDEX IF NOT EXISTS idx_sessions_workspace
     ON sessions(workspace_id, last_event_at DESC);
+CREATE INDEX IF NOT EXISTS idx_session_reference_evidence_session
+    ON session_reference_evidence(
+        session_id,
+        target_kind,
+        target_key,
+        evidence_kind,
+        source_line,
+        evidence_ordinal
+    );
+CREATE INDEX IF NOT EXISTS idx_session_reference_evidence_document
+    ON session_reference_evidence(context_document_id, session_id);
+CREATE INDEX IF NOT EXISTS idx_session_reference_evidence_atlassian
+    ON session_reference_evidence(external_resource_id, session_id);
 CREATE INDEX IF NOT EXISTS idx_usage_records_session_time
     ON usage_records(session_id, occurred_at);
 CREATE INDEX IF NOT EXISTS idx_usage_records_source_time

@@ -5,7 +5,7 @@
   {% macro breakdown_row(item) -%}
     <div class="usage-breakdown-row">
       <div class="usage-breakdown-identity">
-        <strong>{% if item.source_kind %}<i class="source-indicator {{ item.source_kind }}" aria-hidden="true"></i>{% endif %}{{ item.label }}</strong>
+        <strong>{% if item.provider_kind %}<i class="source-indicator {{ item.provider_kind }}" aria-hidden="true"></i>{% endif %}{{ item.label }}</strong>
         {% if usage.scope.breakdown == 'model' and item.raw_models %}<small>Raw: {{ item.raw_models | join(', ') }}</small>{% elif usage.scope.breakdown == 'project' %}<small>{{ 'No Project attribution at observation time' if item.key == 'unassigned' else 'First-observation Project snapshot' }}</small>{% else %}<small>Source provenance</small>{% endif %}
       </div>
       <dl class="usage-breakdown-values">
@@ -29,7 +29,7 @@
     <div>
       <p class="eyebrow">USAGE &amp; COST</p>
       <h1>Sessions Dashboard</h1>
-      <p class="heading-copy">Claude와 Codex의 사용량, 추정 비용, 활동 흐름을 같은 범위에서 확인합니다.</p>
+      <p class="heading-copy">등록된 로컬 AI 소스의 사용량, 추정 비용, 활동 흐름을 같은 범위에서 확인합니다.</p>
     </div>
     <a class="secondary-button" href="/sessions">세션 보기</a>
   </section>
@@ -38,9 +38,9 @@
     <div class="usage-scope-groups">
       <div class="usage-scope-group">
         <span>Source</span>
-        <nav class="segmented-control" aria-label="Source filter">
+        <nav class="segmented-control usage-source-control" aria-label="Source filter">
           {% for control in usage.controls.sources %}
-            <a class="{% if usage.scope.source == control.value %}selected{% endif %}" href="{{ control.url }}" data-usage-scope-link data-usage-control="source" data-usage-value="{{ control.value }}" {% if usage.scope.source == control.value %}aria-current="page"{% endif %}>{{ control.label if control.value == 'all' else value_label("source.kind", control.value) }}</a>
+            <a class="{% if usage.scope.source == control.value %}selected{% endif %}" href="{{ control.url }}" data-usage-scope-link data-usage-control="source" data-usage-value="{{ control.value }}" {% if usage.scope.source == control.value %}aria-current="page"{% endif %}>{{ control.label }}</a>
           {% endfor %}
         </nav>
       </div>
@@ -99,7 +99,7 @@
   <article class="analysis-panel usage-history-panel">
     <header class="usage-history-heading">
       <div>
-        <p class="eyebrow">{{ usage.scope.view | upper }} · {{ usage.scope.source | upper }}</p>
+        <p class="eyebrow">{{ usage.scope.view | upper }} · {{ usage.scope.source_label | upper }}</p>
         <h2>{{ usage.history_title }}</h2>
         <p>{{ usage.scope.period_label }} · {{ usage.history_unit }}</p>
       </div>
@@ -113,7 +113,7 @@
     {% if not usage.has_usage %}
       <div class="usage-chart-empty" role="status">
         <h3>{% if usage.empty_kind == 'source' %}No usage indexed{% else %}No matching usage{% endif %}</h3>
-        <p>{% if usage.empty_kind == 'source' %}동기화된 Claude 또는 Codex 사용량이 아직 없습니다.{% else %}선택한 기간과 소스에 해당하는 사용량이 없습니다.{% endif %}</p>
+        <p>{% if usage.empty_kind == 'source' %}{{ usage.scope.source_label }}에 동기화된 사용량이 아직 없습니다.{% else %}선택한 기간과 {{ usage.scope.source_label }} 범위에 해당하는 사용량이 없습니다.{% endif %}</p>
       </div>
     {% elif not usage.history_has_values %}
       <div class="usage-chart-empty" role="status">
@@ -193,11 +193,13 @@
           <div class="usage-trust-list">
             {% for source in usage.freshness.sources %}
               <div class="usage-source-trust-row">
-                <strong><i class="source-indicator {{ source.kind }}" aria-hidden="true"></i>{{ value_label("source.kind", source.kind) }} · {{ source.name }}</strong>
+                <strong><i class="source-indicator {{ source.provider_kind }}" aria-hidden="true"></i>{{ source.name or value_label("source.kind", source.kind) }}</strong>
                 <span class="usage-freshness {{ source.status }}">{{ value_label("usage.freshness", source.status) }}</span>
+                {% if source.scan_status %}<small>Latest source result · {{ value_label("source.scan-status", source.scan_status) }}</small>{% endif %}
                 <small>Last successful {% if source.last_successful_at %}<time datetime="{{ source.last_successful_at }}" data-local-time>{{ source.last_successful_at }}</time>{% else %}unavailable{% endif %}</small>
                 <small>{{ source.selected_usage_record_count }} selected usage record{% if source.selected_usage_record_count != 1 %}s{% endif %}</small>
                 {% if source.error_count or source.stale_count %}<small>{{ value_label("source-file.status", "error") }} {{ source.error_count }} · {{ value_label("source-file.status", "stale") }} {{ source.stale_count }}</small>{% endif %}
+                {% if source.scan_error %}<small class="usage-source-trust-error">{{ source.scan_error }}</small>{% endif %}
               </div>
             {% endfor %}
           </div>

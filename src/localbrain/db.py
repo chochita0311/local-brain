@@ -20,6 +20,7 @@ EXTERNAL_RESOURCE_URL_SCOPE_BACKUP_SUFFIX = (
     "-pre-external-resource-url-scope-v1.bak"
 )
 ATLASSIAN_SITE_ACCESS_BACKUP_SUFFIX = "-pre-atlassian-site-access-v1.bak"
+SOURCE_PROVIDER_IDENTITY_BACKUP_SUFFIX = "-pre-source-provider-identity-v1.bak"
 USAGE_ATTRIBUTION_CHECK = (
     "CHECK(attribution_basis IN ('git_root', 'workspace_path', 'unassigned'))"
 )
@@ -62,6 +63,14 @@ def connect() -> sqlite3.Connection:
 
 def init_db() -> None:
     with connect() as connection:
+        source_provider_identity_needs_repair = bool(
+            _table_sql(connection, "sources")
+            and not _source_provider_identity_contract_exists(connection)
+        )
+        if source_provider_identity_needs_repair:
+            _ensure_source_provider_identity_backup(
+                connection, settings.database_path
+            )
         atlassian_site_access_needs_repair = bool(
             _table_sql(connection, "atlassian_sites")
             and not _atlassian_site_access_contract_exists(connection)
@@ -114,7 +123,8 @@ def init_db() -> None:
                 UPDATE source_files
                 SET status = 'stale'
                 WHERE source_id IN (
-                    SELECT id FROM sources WHERE kind IN ('claude', 'codex')
+                    SELECT id FROM sources
+                    WHERE provider_kind IN ('claude', 'codex')
                 )
                 """
             )
@@ -148,6 +158,193 @@ def _table_sql(connection: sqlite3.Connection, table: str):
         (table,),
     ).fetchone()
     return row["sql"] if row else None
+
+
+def _source_provider_identity_contract_exists(
+    connection: sqlite3.Connection,
+) -> bool:
+    if not _table_sql(connection, "sources"):
+        return False
+    columns = {
+        row["name"]: row
+        for row in connection.execute("PRAGMA table_info(sources)")
+    }
+    provider = columns.get("provider_kind")
+    return bool(
+        provider
+        and provider["notnull"]
+        and ["kind"] in _unique_index_columns(connection, "sources")
+    )
+
+
+def _source_provider_identity_backup_path(database_path: Path) -> Path:
+    return database_path.with_name(
+        database_path.name + SOURCE_PROVIDER_IDENTITY_BACKUP_SUFFIX
+    )
+
+
+def _ensure_source_provider_identity_backup(
+    connection: sqlite3.Connection, database_path: Path
+) -> Path:
+    backup_path = _source_provider_identity_backup_path(database_path)
+    if backup_path.exists():
+        _quick_check_database(backup_path)
+        return backup_path
+    backup_connection = sqlite3.connect(str(backup_path))
+    try:
+        connection.backup(backup_connection)
+    except Exception:
+        backup_connection.close()
+        backup_path.unlink(missing_ok=True)
+        raise
+    else:
+        backup_connection.close()
+    try:
+        _quick_check_database(backup_path)
+    except Exception:
+        backup_path.unlink(missing_ok=True)
+        raise
+    return backup_path
+
+
+def _canonical_sources_sql() -> str:
+    reference = sqlite3.connect(":memory:")
+    try:
+        reference.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
+        row = reference.execute(
+            "SELECT sql FROM sqlite_master "
+            "WHERE type = 'table' AND name = 'sources'"
+        ).fetchone()
+        if row is None:
+            raise RuntimeError("Canonical Source registry schema is unavailable")
+        return row[0]
+    finally:
+        reference.close()
+
+
+def _repair_source_provider_identity_contract(
+    connection: sqlite3.Connection,
+) -> bool:
+    if _source_provider_identity_contract_exists(connection):
+        return False
+    source_sql = _table_sql(connection, "sources")
+    if not source_sql:
+        return False
+    columns = [
+        row["name"] for row in connection.execute("PRAGMA table_info(sources)")
+    ]
+    required = {
+        "id",
+        "kind",
+        "name",
+        "root_path",
+        "last_scanned_at",
+        "created_at",
+    }
+    if not required.issubset(columns):
+        raise RuntimeError(
+            "Source provider identity migration found an unexpected table shape"
+        )
+    legacy_table = "sources__provider_identity_legacy"
+    if _table_sql(connection, legacy_table):
+        raise RuntimeError(
+            "Source provider identity migration target already exists"
+        )
+    retained_columns = (
+        "id",
+        "kind",
+        "name",
+        "root_path",
+        "last_scanned_at",
+        "created_at",
+    )
+    column_list = ", ".join(retained_columns)
+    before_rows = [
+        tuple(row)
+        for row in connection.execute(
+            "SELECT {} FROM sources ORDER BY id".format(column_list)
+        )
+    ]
+    child_tables = ("source_files", "sessions", "usage_records", "context_documents")
+    before_children = {
+        table: [
+            tuple(row)
+            for row in connection.execute(
+                "SELECT * FROM {} ORDER BY rowid".format(table)
+            )
+        ]
+        for table in child_tables
+        if _table_sql(connection, table)
+    }
+    foreign_keys_enabled = bool(
+        connection.execute("PRAGMA foreign_keys").fetchone()[0]
+    )
+    connection.commit()
+    connection.execute("PRAGMA foreign_keys = OFF")
+    connection.execute("PRAGMA legacy_alter_table = ON")
+    try:
+        connection.execute("BEGIN IMMEDIATE")
+        connection.execute(
+            "ALTER TABLE sources RENAME TO {}".format(
+                _quote_identifier(legacy_table)
+            )
+        )
+        connection.execute(_canonical_sources_sql())
+        connection.execute(
+            """
+            INSERT INTO sources(
+                id, kind, provider_kind, name, root_path,
+                last_scanned_at, created_at
+            )
+            SELECT id, kind, kind, name, root_path, last_scanned_at, created_at
+            FROM {legacy}
+            ORDER BY id
+            """.format(legacy=_quote_identifier(legacy_table))
+        )
+        after_rows = [
+            tuple(row)
+            for row in connection.execute(
+                "SELECT {} FROM sources ORDER BY id".format(column_list)
+            )
+        ]
+        if after_rows != before_rows:
+            raise RuntimeError(
+                "Source provider identity migration changed retained Source rows"
+            )
+        for table, rows in before_children.items():
+            after = [
+                tuple(row)
+                for row in connection.execute(
+                    "SELECT * FROM {} ORDER BY rowid".format(table)
+                )
+            ]
+            if after != rows:
+                raise RuntimeError(
+                    "Source provider identity migration changed {} rows".format(table)
+                )
+        connection.execute(
+            "DROP TABLE {}".format(_quote_identifier(legacy_table))
+        )
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+    finally:
+        connection.execute("PRAGMA legacy_alter_table = OFF")
+        connection.execute(
+            "PRAGMA foreign_keys = {}".format(
+                "ON" if foreign_keys_enabled else "OFF"
+            )
+        )
+    if not _source_provider_identity_contract_exists(connection):
+        raise RuntimeError(
+            "Source provider identity migration did not restore the contract"
+        )
+    if connection.execute("PRAGMA foreign_key_check").fetchall():
+        raise RuntimeError(
+            "Source provider identity migration foreign key check failed"
+        )
+    return True
 
 
 def _unique_index_columns(
@@ -1281,6 +1478,7 @@ def _migrate_schema_indexes(connection: sqlite3.Connection) -> None:
         "ON context_documents(source_id)",
         "CREATE INDEX IF NOT EXISTS idx_documents_workspace "
         "ON context_documents(workspace_id, mtime_ns DESC)",
+        "CREATE INDEX IF NOT EXISTS idx_source_files_session ON source_files(session_id, path)",
     ):
         connection.execute(definition)
 
@@ -1336,6 +1534,15 @@ def _run_compatible_migrations(
     )
     usage_normalizer_contract_changed = _ensure_column(
         connection, "source_files", "usage_contract_version", "TEXT"
+    )
+    _ensure_column(
+        connection,
+        "source_files",
+        "session_id",
+        "INTEGER REFERENCES sessions(id) ON DELETE SET NULL",
+    )
+    _ensure_column(
+        connection, "source_files", "reference_contract_version", "TEXT"
     )
     atlassian_space_url_added = _ensure_column(
         connection,
@@ -1405,9 +1612,14 @@ def _run_compatible_migrations(
           )
         """
     )
+    _repair_source_provider_identity_contract(connection)
+    _drop_column(connection, "sources", "enabled")
     _drop_column(connection, "workspaces", "git_branch")
 
     for table, column, definition in (
+        ("sources", "last_scan_success_at", "TEXT"),
+        ("sources", "last_scan_status", "TEXT"),
+        ("sources", "last_scan_error", "TEXT"),
         (
             "context_documents",
             "context_root_id",
@@ -1525,7 +1737,8 @@ def _run_compatible_migrations(
                 UPDATE source_files
                 SET status = 'stale'
                 WHERE source_id IN (
-                    SELECT id FROM sources WHERE kind IN ('claude', 'codex')
+                    SELECT id FROM sources
+                    WHERE provider_kind IN ('claude', 'codex')
                 )
                 """
             )

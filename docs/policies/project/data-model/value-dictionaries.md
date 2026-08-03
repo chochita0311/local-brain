@@ -15,8 +15,8 @@ A family never mixes modes. Runtime code loads `src/localbrain/value-registry.js
 
 | Subject | Families | Explicit exclusions | Dictionary |
 | --- | ---: | ---: | --- |
-| Source registry and scans | 8 | 2 | [Open](value-dictionaries/source-registry-and-scans.md) |
-| Workspace and Session activity | 4 | 3 | [Open](value-dictionaries/workspace-and-session-activity.md) |
+| Source registry and scans | 9 | 2 | [Open](value-dictionaries/source-registry-and-scans.md) |
+| Workspace and Session activity | 8 | 3 | [Open](value-dictionaries/workspace-and-session-activity.md) |
 | Usage and cost records | 5 | 1 | [Open](value-dictionaries/usage-and-cost-records.md) |
 | Local Context corpus | 4 | 1 | [Open](value-dictionaries/local-context-corpus.md) |
 | Work organization and resources | 6 | 1 | [Open](value-dictionaries/work-organization-and-resources.md) |

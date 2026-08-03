@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 from localbrain.ingest.common import ParsedEvent, ParsedSession
-from localbrain.ingest.scanner import _store_session
+from localbrain.ingest.scanner import _store_session, _upsert_source
 
 
 SCHEMA_PATH = Path(__file__).parents[1] / "src" / "localbrain" / "schema.sql"
@@ -20,7 +20,8 @@ class IngestPolicyTests(unittest.TestCase):
         self.connection.execute("PRAGMA foreign_keys = ON")
         self.connection.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
         self.connection.execute(
-            "INSERT INTO sources(kind, name, root_path) VALUES ('codex', 'Codex', '/tmp')"
+            "INSERT INTO sources(kind, provider_kind, name, root_path) "
+            "VALUES ('codex', 'codex', 'Codex', '/tmp')"
         )
         self.source_id = self.connection.execute(
             "SELECT id FROM sources WHERE kind = 'codex'"
@@ -29,6 +30,105 @@ class IngestPolicyTests(unittest.TestCase):
     def tearDown(self):
         self.connection.close()
         self.path.unlink(missing_ok=True)
+
+    def test_source_key_is_stable_and_cannot_change_provider(self):
+        source_id = _upsert_source(
+            self.connection,
+            "codex-company",
+            "codex",
+            "Codex Company",
+            Path("/tmp/codex-company"),
+        )
+        updated_id = _upsert_source(
+            self.connection,
+            "codex-company",
+            "codex",
+            "Company Codex",
+            Path("/tmp/company-codex"),
+        )
+        self.assertEqual(source_id, updated_id)
+        row = self.connection.execute(
+            "SELECT provider_kind, name, root_path FROM sources WHERE id = ?",
+            (source_id,),
+        ).fetchone()
+        self.assertEqual(row["provider_kind"], "codex")
+        self.assertEqual(row["name"], "Company Codex")
+        self.assertEqual(row["root_path"], "/tmp/company-codex")
+
+        with self.assertRaisesRegex(ValueError, "already bound to provider 'codex'"):
+            _upsert_source(
+                self.connection,
+                "codex-company",
+                "claude",
+                "Wrong Provider",
+                Path("/tmp/wrong-provider"),
+            )
+        unchanged = self.connection.execute(
+            "SELECT provider_kind, name, root_path FROM sources WHERE id = ?",
+            (source_id,),
+        ).fetchone()
+        self.assertEqual(dict(unchanged), dict(row))
+
+    def test_same_external_id_is_isolated_by_source_key(self):
+        company_source_id = _upsert_source(
+            self.connection,
+            "codex-company",
+            "codex",
+            "Codex Company",
+            Path("/tmp/codex-company"),
+        )
+
+        def parsed(source_path: str) -> ParsedSession:
+            return ParsedSession(
+                external_id="shared-session-id",
+                source_path=source_path,
+                cwd_raw="/tmp",
+                git_branch=None,
+                title="Shared identity",
+                started_at="2026-08-02T00:00:00Z",
+                ended_at="2026-08-02T00:01:00Z",
+                last_event_at="2026-08-02T00:01:00Z",
+                events=[],
+            )
+
+        _store_session(
+            self.connection,
+            self.source_id,
+            "codex",
+            parsed("/tmp/codex/shared.jsonl"),
+            provider_kind="codex",
+        )
+        _store_session(
+            self.connection,
+            company_source_id,
+            "codex-company",
+            parsed("/tmp/codex-company/shared.jsonl"),
+            provider_kind="codex",
+        )
+        rows = self.connection.execute(
+            """
+            SELECT sources.kind, sources.provider_kind, sessions.external_id
+            FROM sessions
+            JOIN sources ON sources.id = sessions.source_id
+            WHERE sessions.external_id = 'shared-session-id'
+            ORDER BY sources.kind
+            """
+        ).fetchall()
+        self.assertEqual(
+            [dict(row) for row in rows],
+            [
+                {
+                    "kind": "codex",
+                    "provider_kind": "codex",
+                    "external_id": "shared-session-id",
+                },
+                {
+                    "kind": "codex-company",
+                    "provider_kind": "codex",
+                    "external_id": "shared-session-id",
+                },
+            ],
+        )
 
     def test_maintenance_session_keeps_metadata_without_events_or_search(self):
         event = ParsedEvent(

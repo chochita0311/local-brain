@@ -315,6 +315,210 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(parsed.url_evidence[0].observed_remote_id, "12")
         self.assertEqual(parsed.url_evidence[0].observed_title, "Synthetic page")
 
+    def test_claude_reference_candidates_preserve_role_and_read_truth(self):
+        path = self._write_jsonl(
+            [
+                {
+                    "type": "user",
+                    "uuid": "user-event",
+                    "sessionId": "claude-references",
+                    "message": {
+                        "content": "See docs/guide.md and https://example.test/path?q=1"
+                    },
+                },
+                {
+                    "type": "assistant",
+                    "uuid": "assistant-event",
+                    "sessionId": "claude-references",
+                    "message": {
+                        "content": [
+                            {"type": "text", "text": "Also README.md"},
+                            {
+                                "type": "tool_use",
+                                "id": "call-success",
+                                "name": "atlassian.searchJiraIssuesUsingJql",
+                                "input": {"jql": 'key = "SYN-62"'},
+                            },
+                            {
+                                "type": "tool_use",
+                                "id": "call-failed",
+                                "name": "atlassian.searchJiraIssuesUsingJql",
+                                "input": {"jql": "key = SYN-63"},
+                            },
+                            {
+                                "type": "tool_use",
+                                "id": "call-missing",
+                                "name": "atlassian.searchJiraIssuesUsingJql",
+                                "input": {"jql": "key = SYN-64"},
+                            },
+                            {
+                                "type": "tool_use",
+                                "id": "call-malformed",
+                                "name": "atlassian.searchJiraIssuesUsingJql",
+                                "input": {"jql": "key = SYN-65"},
+                            },
+                        ]
+                    },
+                },
+                {
+                    "type": "user",
+                    "uuid": "result-event",
+                    "sessionId": "claude-references",
+                    "message": {
+                        "content": [
+                            {
+                                "type": "tool_result",
+                                "tool_use_id": "call-success",
+                                "content": {
+                                    "issues": [
+                                        {
+                                            "url": "https://jira.example.test/browse/SYN-62"
+                                        }
+                                    ]
+                                },
+                            },
+                            {
+                                "type": "tool_result",
+                                "tool_use_id": "call-failed",
+                                "is_error": True,
+                                "content": {"error": "denied"},
+                            },
+                            {
+                                "type": "tool_result",
+                                "tool_use_id": "call-malformed",
+                                "content": "opaque unstructured output",
+                            },
+                        ]
+                    },
+                },
+            ]
+        )
+
+        parsed = parse_claude_session(path)
+        visible = {
+            (item.reference_kind, item.reference, item.evidence_kind)
+            for item in parsed.reference_candidates
+            if item.evidence_kind.endswith("mention")
+        }
+        reads = {
+            (item.reference, item.read_outcome, item.tool_call_id)
+            for item in parsed.reference_candidates
+            if item.evidence_kind == "resource_read"
+        }
+
+        self.assertIn(("markdown", "docs/guide.md", "user_mention"), visible)
+        self.assertIn(("url", "https://example.test/path?q=1", "user_mention"), visible)
+        self.assertIn(("markdown", "README.md", "assistant_mention"), visible)
+        self.assertIn(("SYN-62", "success", "call-success"), reads)
+        self.assertIn(("SYN-63", "failure", "call-failed"), reads)
+        self.assertNotIn("call-missing", {item[2] for item in reads})
+        self.assertNotIn("call-malformed", {item[2] for item in reads})
+
+    def test_codex_reference_candidates_match_call_result_identity(self):
+        path = self._write_jsonl(
+            [
+                {
+                    "type": "session_meta",
+                    "payload": {"id": "codex-references", "cwd": "/workspace"},
+                },
+                {
+                    "type": "response_item",
+                    "payload": {
+                        "type": "function_call",
+                        "call_id": "call-success",
+                        "name": "mcp_gateway.gateway_dispatch",
+                        "arguments": json.dumps(
+                            {
+                                "capability": "jira__searchIssuesByJql",
+                                "arguments": {"jql": 'key = "SYN-62"'},
+                            }
+                        ),
+                    },
+                },
+                {
+                    "type": "response_item",
+                    "payload": {
+                        "type": "function_call_output",
+                        "id": "result-success",
+                        "call_id": "call-success",
+                        "output": json.dumps(
+                            {
+                                "issues": [
+                                    {
+                                        "url": "https://jira.example.test/browse/SYN-62"
+                                    }
+                                ]
+                            }
+                        ),
+                    },
+                },
+                {
+                    "type": "response_item",
+                    "payload": {
+                        "type": "function_call",
+                        "call_id": "call-failed",
+                        "name": "mcp_gateway.gateway_dispatch",
+                        "arguments": json.dumps(
+                            {
+                                "capability": "jira__searchIssuesByJql",
+                                "arguments": {"jql": "key = SYN-63"},
+                            }
+                        ),
+                    },
+                },
+                {
+                    "type": "response_item",
+                    "payload": {
+                        "type": "function_call_output",
+                        "id": "result-failed",
+                        "call_id": "call-failed",
+                        "output": {"status": "error", "error": "denied"},
+                    },
+                },
+                {
+                    "type": "response_item",
+                    "payload": {
+                        "type": "function_call",
+                        "call_id": "call-malformed",
+                        "name": "mcp_gateway.gateway_dispatch",
+                        "arguments": json.dumps(
+                            {
+                                "capability": "jira__searchIssuesByJql",
+                                "arguments": {"jql": "key = SYN-65"},
+                            }
+                        ),
+                    },
+                },
+                {
+                    "type": "response_item",
+                    "payload": {
+                        "type": "function_call_output",
+                        "call_id": "call-malformed",
+                        "output": "opaque unstructured output",
+                    },
+                },
+            ]
+        )
+
+        parsed = parse_codex_session(path)
+        reads = {
+            (item.reference, item.read_outcome, item.tool_call_id)
+            for item in parsed.reference_candidates
+            if item.evidence_kind == "resource_read"
+        }
+
+        self.assertIn(("SYN-62", "success", "call-success"), reads)
+        self.assertIn(("SYN-63", "failure", "call-failed"), reads)
+        self.assertNotIn("call-malformed", {item[2] for item in reads})
+        self.assertEqual(
+            {
+                item.source_event_id
+                for item in parsed.reference_candidates
+                if item.tool_call_id == "call-success"
+            },
+            {"result-success"},
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
