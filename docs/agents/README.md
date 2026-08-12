@@ -9,6 +9,10 @@ This directory contains LocalBrain's installed agent workflow package. The repos
 - Use [Execution Profiles](profiles/README.md) to select the smallest profile that matches the approved work.
 - Use [PRD And Feature Management](../policies/harness/prd-feature-management.md) for planning approval and traceability rules.
 - Use [Execution Loop Governance](../policies/harness/execution-loop-governance.md) for failure routing and artifact ownership.
+- Use [Execution Profile Policy](../policies/harness/execution-profiles.md) for profile selection, surface lanes, and evaluator routing.
+- Use [Traceability And Link Hygiene](../policies/harness/traceability-and-link-hygiene.md) for source-of-truth paths and portable references.
+- Use [Competence-First Delegation](../policies/harness/competence-first-delegation.md) before delegating bounded work.
+- Use [Operator Briefing And Review Receipts](../policies/harness/operator-briefing-and-review-receipts.md) when prior context materially affects orientation, execution, review, block, or handoff.
 
 ## Roles
 
@@ -62,6 +66,8 @@ Templates and generated artifacts live under `docs/plans/`:
 - `heuristic/`: non-blocking UX suggestion backlog
 
 Templates are named `template-*.md` in their owning directories. Generated artifacts must use repository-relative links and must not contain private runtime data.
+
+The optional [Operator Briefing Template](templates/operator-briefing.md) is a user-facing scaffold, not a new workflow phase or source of truth.
 
 ## Local Ownership
 

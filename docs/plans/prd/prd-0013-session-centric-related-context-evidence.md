@@ -340,9 +340,10 @@
 - Synthetic Contract, parser, reconciliation, route, UI, responsive, keyboard,
   and browser evidence covers every supported reference family and group state.
 
-## Candidate Features
+## Implemented Features
 
 The completed PRD is decomposed into the following passed Feature boundaries.
+The original approved planning labels such as `Likely execution profile`, dependency wording, and `Pass seed` remain below as historical continuity; the linked Feature, Spec, Run, Fix, and Evaluation artifacts own the final execution results.
 
 ### [FEAT-0072: Session Reference Evidence Contract](../feature/feat-0072-session-reference-evidence-contract.md)
 
@@ -405,7 +406,7 @@ The completed PRD is decomposed into the following passed Feature boundaries.
   Documents remain absent; desktop and compact layouts preserve the conversation
   reading hierarchy with no hidden I/O.
 
-## Recommended Feature Order
+## Execution Sequence And Completion
 
 1. `FEAT-0072`: Session Reference Evidence Contract.
 2. `FEAT-0073`: Deterministic Session Reference Capture And Reconciliation.

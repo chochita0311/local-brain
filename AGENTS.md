@@ -63,6 +63,8 @@ Runtime data belongs under `~/Library/Application Support/LocalBrain` by default
 ## Planning And Execution Gate
 
 - Use [Agent Workflow](docs/agents/README.md) when a request enters the shared PRD, feature, spec, or execution-loop process.
+- Before delegating bounded work, apply [Competence-First Delegation](docs/policies/harness/competence-first-delegation.md) for admission, worker selection, context transfer, fallback, and primary-agent ownership.
+- When prior context materially affects an orientation, work start, direction change, review boundary, block, or handoff, apply [Operator Briefing And Review Receipts](docs/policies/harness/operator-briefing-and-review-receipts.md) without changing the underlying workflow or approval state.
 - A PRD request is planning-only until the human owner approves its boundary.
 - A `draft` PRD or unapproved Feature must not trigger spec work, code changes, or evaluation.
 - If an open point can change scope, acceptance, dependency, or user-visible behavior, stop and ask instead of carrying the ambiguity into implementation.

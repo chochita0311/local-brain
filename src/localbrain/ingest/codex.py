@@ -14,6 +14,7 @@ from .common import (
     session_policy,
     stable_id,
     source_native_event_id,
+    text_from_content,
     token_value,
     tool_result_failed,
     tool_result_completed,
@@ -23,7 +24,9 @@ from .common import (
 from ..usage import CODEX_FAST_TIERED_PRICE_SNAPSHOT_ID
 
 
-CODEX_USAGE_CONTRACT_VERSION = "codex-last-token-usage-v4-fast-context-tier"
+CODEX_USAGE_CONTRACT_VERSION = (
+    "codex-last-token-usage-v5-fast-context-tier-response-message-fallback"
+)
 
 CODEX_AUTO_REVIEW_FALLBACKS = (
     ("2026-04-23", "gpt-5.5"),
@@ -277,8 +280,53 @@ def parse_codex_session(path: Path) -> ParsedSession:
     current_turn_id: Optional[str] = None
     current_model: Optional[str] = None
     previous_total_usage: Dict[str, int] = {}
+    response_messages: List[Dict[str, Any]] = []
+    event_message_turns = set()
+    event_message_texts = {"user": set(), "assistant": set()}
     replay_second = _codex_subagent_replay_second(path)
     skip_subagent_replay = replay_second is not None
+
+    def append_message_event(
+        *,
+        line_number: int,
+        timestamp: Optional[str],
+        payload: Dict[str, Any],
+        role: str,
+        text: str,
+    ) -> None:
+        normalized_text = text.strip()
+        if not normalized_text:
+            return
+        event_id = stable_id("codex", external_id, line_number, role)
+        source_event_id = source_native_event_id(payload, event_id)
+        events.append(
+            ParsedEvent(
+                event_id=event_id,
+                sequence=line_number * 10,
+                source_line=line_number,
+                event_type="message",
+                occurred_at=timestamp,
+                role=role,
+                text=normalized_text,
+            )
+        )
+        url_evidence.extend(
+            visible_url_evidence(
+                normalized_text,
+                source_line=line_number,
+                source_event_id=source_event_id,
+                observed_at=timestamp,
+            )
+        )
+        reference_candidates.extend(
+            visible_reference_candidates(
+                normalized_text,
+                role=role,
+                source_line=line_number,
+                source_event_id=source_event_id,
+                observed_at=timestamp,
+            )
+        )
 
     for line_number, record in read_json_lines(path):
         if not isinstance(record, dict):
@@ -379,40 +427,36 @@ def parse_codex_session(path: Path) -> ParsedSession:
                 text = payload.get("message")
 
             if role and isinstance(text, str) and text.strip():
-                text = text.strip()
-                if role == "user" and not first_user_text:
-                    first_user_text = text
-                event_id = stable_id("codex", external_id, line_number, role)
-                events.append(
-                    ParsedEvent(
-                        event_id=event_id,
-                        sequence=line_number * 10,
-                        source_line=line_number,
-                        event_type="message",
-                        occurred_at=timestamp if isinstance(timestamp, str) else None,
-                        role=role,
-                        text=text,
-                    )
+                event_message_turns.add((role, current_turn_id))
+                event_message_texts[role].add(text.strip())
+                append_message_event(
+                    line_number=line_number,
+                    timestamp=timestamp if isinstance(timestamp, str) else None,
+                    payload=payload,
+                    role=role,
+                    text=text,
                 )
-                url_evidence.extend(
-                    visible_url_evidence(
-                        text,
-                        source_line=line_number,
-                        source_event_id=event_id,
-                        observed_at=timestamp if isinstance(timestamp, str) else None,
-                    )
-                )
-                reference_candidates.extend(
-                    visible_reference_candidates(
-                        text,
-                        role=role,
-                        source_line=line_number,
-                        source_event_id=source_native_event_id(payload, event_id),
-                        observed_at=(
-                            timestamp if isinstance(timestamp, str) else None
-                        ),
-                    )
-                )
+            continue
+
+        if record_type == "response_item" and payload.get("type") == "message":
+            role = payload.get("role")
+            if role not in {"user", "assistant"}:
+                continue
+            text = text_from_content(payload.get("content"))
+            if not text:
+                continue
+            metadata = payload.get("internal_chat_message_metadata_passthrough")
+            turn_value = metadata.get("turn_id") if isinstance(metadata, dict) else None
+            response_messages.append(
+                {
+                    "line_number": line_number,
+                    "timestamp": timestamp if isinstance(timestamp, str) else None,
+                    "payload": payload,
+                    "role": role,
+                    "text": text,
+                    "turn_id": str(turn_value) if turn_value else current_turn_id,
+                }
+            )
             continue
 
         if record_type == "response_item" and payload.get("type") in {
@@ -485,6 +529,43 @@ def parse_codex_session(path: Path) -> ParsedSession:
                         tool_name=tool_name,
                     )
                 )
+
+    last_user_by_turn = {
+        message["turn_id"]: index
+        for index, message in enumerate(response_messages)
+        if message["role"] == "user" and message["turn_id"]
+    }
+    for index, message in enumerate(response_messages):
+        role = message["role"]
+        turn_id = message["turn_id"]
+        if (
+            (turn_id and (role, turn_id) in event_message_turns)
+            or message["text"].strip() in event_message_texts[role]
+        ):
+            continue
+        if (
+            role == "user"
+            and turn_id
+            and last_user_by_turn.get(turn_id) != index
+        ):
+            continue
+        append_message_event(
+            line_number=message["line_number"],
+            timestamp=message["timestamp"],
+            payload=message["payload"],
+            role=role,
+            text=message["text"],
+        )
+
+    events.sort(key=lambda event: (event.sequence, event.source_line, event.event_id))
+    first_user_text = next(
+        (
+            event.text
+            for event in events
+            if event.event_type == "message" and event.role == "user" and event.text
+        ),
+        "",
+    )
 
     title = compact_title(first_user_text, path.stem)
     session_class, index_policy, maintenance_run_id = session_policy(events)

@@ -19,6 +19,18 @@
 - Add new entries when the same class of design failure proves reusable beyond one feature.
 - Promote an entry into the constitution only when it becomes a broader product-wide visual law.
 
+## Category Index
+
+- [Layout Containment And Readability](#layout-containment-and-readability)
+- [Information Hierarchy And Metric Meaning](#information-hierarchy-and-metric-meaning)
+- [Boundary And Scope Discipline](#boundary-and-scope-discipline)
+- [Typography, Alignment, And Accent Consistency](#typography-alignment-and-accent-consistency)
+- [Card Metadata And Footer Structure](#card-metadata-and-footer-structure)
+- [Stateful Navigation And Selection](#stateful-navigation-and-selection)
+- [First-State And Viewport Checks](#first-state-and-viewport-checks)
+- [Evaluation Evidence](#evaluation-evidence)
+- [Classification Guidance](#classification-guidance)
+
 ## Reusable Evaluation Notes
 
 ### Layout Containment And Readability
@@ -56,17 +68,36 @@
 - When density rises, the system should preserve hierarchy and containment before adding more visible information.
 - A visually compact layout that causes clipping, overlap, or scan breakdown is a failure, not a stylistic preference.
 
+#### Long Technical Asset Containment
+
+- Commands, code, schemas, diagrams, traces, and similarly wide technical assets must remain inside a bounded presentation region rather than widening the outer document.
+- Choose the internal scrolling axis from the content shape, and keep the asset's label, purpose, and any essential instruction or action readable without requiring the user to traverse the full overflow region first.
+- Evaluators should exercise representative maximum-length content at supported viewport boundaries and verify keyboard and touch reachability without hover dependence, bounded local overflow ownership, and no unintended outer-document overflow.
+
 #### Technical Canvas Control And Fallback Legibility
 
 - Dense diagrams, maps, and other technical canvases should expose visible controls for supported navigation such as zoom, reset, or fit; a modifier gesture may accelerate the task but should not be the only discoverable path.
 - Keep the control group, current scale or state, diagram legend, and canvas visually related without collapsing them into one ambiguous action cluster. Controls that depend on successful rendering should remain truthfully unavailable until the canvas is ready.
 - Evaluators should compare wide and narrow layouts, long labels, disabled and bounded states, render failure, keyboard and touch reachability, and the non-interactive or textual fallback. Canvas navigation must not widen the outer document or make the fallback feel like error residue.
 
-#### Shared Markdown Consumer Coverage
+#### Scrollable Table Frame And Fill
 
-- A Markdown defect found in one Document may belong to the shared renderer, wrapper, or `.markdown-body` presentation rather than to that source file.
-- Tables should fill their available reading region through the final column and keep overflow inside a dedicated wrapper; code should use reading-specific semantics rather than Run-console, brand, status, or provenance colors.
-- When the shared owner changes, evaluators should inspect representative preview, full-Document, and conversation consumers instead of treating the reported note as the complete scope.
+- A table that scrolls locally should keep overflow and outer frame ownership in a wrapper while retaining native table layout inside it. When columns are narrower than the reading region, header and row surfaces should fill that region instead of ending at intrinsic cell width.
+- Evaluators should compare short or two-column tables with wide multi-column tables. Check wrapper, table, and final-cell edges, border and radius continuity, local overflow, and outer-document overflow.
+- If one renderer or table primitive serves several reading surfaces, apply [Shared Owner And Propagation Evidence](#shared-owner-and-propagation-evidence) instead of treating the reported document or route as the entire scope.
+
+#### Technical Reading Surface Role Separation
+
+- Code embedded in a reading surface does not automatically share the visual role of a terminal, Run console, status panel, brand accent, or provenance marker merely because both use monospace text.
+- Inspect whether background, border, label, default text, and syntax colors express sustained reading without borrowing semantic roles that imply execution or status.
+- A visual reference may calibrate hierarchy, contrast, and palette variety, but it does not require importing the reference theme, decorative chrome, gradients, or shell. Compare generic and highlighted code across every shared reading consumer in scope.
+
+#### Content-Triggered Rendering Evidence
+
+- Technical prose, logs, paths, identifiers, URLs, stack traces, and code-like output must remain literal unless they unambiguously match an approved rich-content syntax. Punctuation must not silently convert unrelated text into math, links, emphasis, or another semantic element.
+- A generic long string is not equivalent evidence for a content-triggered defect. Preserve the reported trigger's structural shape in a privacy-safe witness, including relevant punctuation, indentation, line breaks, nesting, and unbroken-token behavior.
+- Inspect the produced semantic DOM as well as screenshots, and locate overflow ownership at the document, outer surface, reading body, generated wrapper, and leaf asset. Intentional horizontal overflow must belong to one bounded local owner.
+- Retain a deterministic regression at the lowest shared renderer or component that owns the trigger and render at least one representative consumer when the failure depends on browser layout.
 
 ### Information Hierarchy And Metric Meaning
 
@@ -107,6 +138,19 @@
 - A related or contextual item should state why it appears and where it came from; global proximity or recency alone should not look like an explained relationship.
 - Evaluators should inspect fully populated, partially available, stale, failed, and secondary-panel error states together. Headings, provenance, timestamps, relationship reasons, status copy, and explicit external-navigation or refresh actions should make each authority and its update path understandable without relying on color alone.
 
+#### Subject-Relative Relationship Evidence
+
+- A relationship label should describe observed evidence from the current record's perspective, not reuse an external title, transport name, parser label, or storage relation merely because that value is available.
+- Distinguish direct evidence such as mention, lookup, attachment, or explicit reference from ambient coincidence such as a shared folder, workspace, tenant, or recent activity. Omit weak proximity when it does not help the current task.
+- Failed attempts may remain useful evidence, but label them as failed rather than presenting them as successful or silently removing them from a traceability group.
+- When direct evidence is numerous, keep an intentionally bounded initial slice per semantic group, preserve the true total, and provide reversible disclosure so one noisy group does not consume another group's visibility budget.
+
+#### Source Identity Cue Propagation And Redundancy
+
+- A stable source identity should produce the same compact cue across inventory rows, pinned or saved views, detail headers, and parent-owned child rows. Derived child presentation follows the owning record's source.
+- Compact lettermarks, icons, and color accents require accessible text identity; color alone must not distinguish sources that share a parser or visual family.
+- Do not repeat a full provider or source label in every card, heading, badge, and child row when one nearby cue already establishes identity. Remove redundant copy only after direct entry, mixed-source lists, assistive output, and narrow layouts remain understandable.
+
 #### Independent State-Axis Legibility
 
 - Content coverage, freshness, availability, attention, classification, and work organization are independent when the product contract says they can change separately. Do not compress them into one vague tracked, active, or synchronized treatment.
@@ -132,6 +176,8 @@
 - A source artifact may guide layout direction inside the approved surface.
 - A source artifact must not justify importing new controls, data, or shell behavior that the approved feature did not include.
 - Visual borrowing is valid only inside the approved boundary.
+- A single golden screen may bootstrap later work only when it yields a stable design grammar.
+- When later features require patterns the approved sources do not cover, record the gap as uncertainty and request additional source material instead of improvising.
 
 #### Single Boundary Ownership
 

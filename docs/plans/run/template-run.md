@@ -2,7 +2,7 @@
 
 ## Metadata
 - ID: `run-YYYYMMDD-01`
-- Status: `active` | `passed` | `blocked` | `returned-to-spec` | `returned-to-planning`
+- Status: `active`
 - Feature: `[feat-0000-title](../feature/feat-0000-title.md)`
 - Parent PRD: `[prd-0000-title](../prd/prd-0000-title.md)`
 - Active Spec: `[spec-0000-title](../spec/spec-0000-title.md)`

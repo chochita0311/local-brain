@@ -22,7 +22,9 @@ Durable rules and current contracts live under `docs/policies/`.
 - [Developer Guide](policies/project/developer-guide.md): setup, configuration, development workflow, and verification
 - [Markdown Rendering Contract](policies/project/markdown-rendering.md): shared syntax, trust, local-reference, highlighting, consumer, and fallback rules
 - [Maintenance Task Runner](policies/operations/claude-task-runner.md): in-app Claude/Codex maintenance execution, retrieval, external-sync boundaries, persistence, and review behavior
-- [Harness Policies](policies/harness/): planning approval, execution routing, profiles, surface lanes, and traceability
+- [Harness Policies](policies/harness/): planning approval, execution routing, profiles, delegation, operator continuity, and traceability
+- [Competence-First Delegation](policies/harness/competence-first-delegation.md): delegation admission, worker suitability, context transfer, fallback, and binding lifecycle
+- [Operator Briefing And Review Receipts](policies/harness/operator-briefing-and-review-receipts.md): orientation, work-start, direction-change, review, block, and handoff continuity
 - [Interaction Evaluation](policies/experience/interaction-evaluation.md): reusable interaction continuity and UX checks
 
 ## Design System
@@ -38,6 +40,7 @@ Durable rules and current contracts live under `docs/policies/`.
 - `docs/agents/flows/`: default baton flow and stop points
 - `docs/agents/operations/`: prompts for starting and continuing a Run
 - `docs/agents/profiles/`: frontend, backend, fullstack, foundation, infrastructure, and docs profiles
+- `docs/agents/templates/`: reusable operator-facing briefing scaffolds
 
 ## Plans
 
@@ -46,6 +49,7 @@ Sequencing and unresolved work live under `docs/plans/`.
 - [Plans Index](plans/README.md): open planning boundaries, active execution, recently completed chains, and artifact locations
 - [Project Roadmap](plans/project/roadmap.md): phase direction, current priorities, validation strategy, and risk controls
 - [Project Backlog](plans/project/backlog.md): detailed open work and decisions ordered by priority
+- [Planning Artifact Catalog](plans/artifact-catalog.md): generated navigation for all tracked historical planning and execution artifacts
 - `docs/plans/prd/`, `feature/`, and `spec/`: planning and implementation boundaries across their lifecycle
 - `docs/plans/run/`, `evaluation/`, `fix/`, and `heuristic/`: execution and review artifacts
 

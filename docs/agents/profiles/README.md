@@ -7,16 +7,16 @@
 
 ## Ownership
 - This directory owns profile descriptions.
-- Use the harness `execution-profiles.md` policy for the rules that govern profile selection, surface lanes, and evaluator routing.
-- Use the Orchestrator role contract for the role responsible for selecting and applying a profile during a run.
+- Use the harness [Execution Profiles](../../policies/harness/execution-profiles.md) policy for the rules that govern profile selection, surface lanes, and evaluator routing.
+- Use the [Orchestrator](../roles/orchestrator.md) role contract for the role responsible for selecting and applying a profile during a run.
 
 ## Profile Set
-- `frontend-product.md`: user-facing screen, component, route, interaction, or presentation work.
-- `backend-product.md`: service, API, job, command, persistence, message, or server-side behavior work.
-- `fullstack-product.md`: product work spanning two or more coupled surfaces.
-- `foundation-contract.md`: contract, invariant, ownership, schema, identity, or generated-output foundation work.
-- `infra-devtool.md`: infrastructure, tooling, scripts, CI, local workflow, or operational developer-surface work.
-- `docs-content.md`: documentation, content, policy, guide, or information-architecture work.
+- [Frontend Product](frontend-product.md): user-facing screen, component, route, interaction, or presentation work.
+- [Backend Product](backend-product.md): service, API, job, command, persistence, message, or server-side behavior work.
+- [Fullstack Product](fullstack-product.md): product work spanning two or more coupled surfaces.
+- [Foundation Contract](foundation-contract.md): contract, invariant, ownership, schema, identity, or generated-output foundation work.
+- [Infra Devtool](infra-devtool.md): infrastructure, tooling, scripts, CI, local workflow, or operational developer-surface work.
+- [Docs Content](docs-content.md): documentation, content, policy, guide, or information-architecture work.
 
 ## Use Rule
 - Profiles are presets, not new role systems.

@@ -1,5 +1,22 @@
 # Runner
 
+## Contents
+
+- [Purpose](#purpose)
+- [Ownership](#ownership)
+- [When To Use](#when-to-use)
+- [Core Rule](#core-rule)
+- [Required Inputs](#required-inputs)
+- [Run Artifact](#run-artifact)
+- [Default Invocation Order](#default-invocation-order)
+- [Invocation Rules](#invocation-rules)
+- [Default Closing Sequence](#default-closing-sequence)
+- [Prompt Frame](#prompt-frame)
+- [Role Prompts](#role-prompts)
+- [Invocation Examples](#invocation-examples)
+- [Environment Rule](#environment-rule)
+- [Continuation Rule](#continuation-rule)
+
 ## Purpose
 - Define how a human or harness starts and continues one execution run using prompts.
 - Keep execution startup and continuation consistent without requiring repo-local automation scripts.
@@ -12,6 +29,7 @@
 - Use `docs/agents/flows/workflow.md` for the sequence model.
 - Use `docs/agents/roles/orchestrator.md` for loop-control responsibilities and routing logic.
 - Use `docs/policies/harness/execution-profiles.md` for profile and lane routing rules.
+- Use `docs/policies/harness/execution-loop-governance.md` for run-unit boundaries, active-feature concurrency, return timing, and post-run review.
 
 ## When To Use
 - A feature document has already been approved.
@@ -22,9 +40,7 @@
 - Start execution from the approved feature and parent PRD, not from the original request.
 - Treat this document as the operator-facing execution entry guide.
 - Do not generate ad hoc startup flows per run unless the project explicitly needs them.
-- Treat one run as an automated unit.
-- Do not assume the human owner will interrupt a normal active run.
-- If the result should go back to spec or planning, report that at run completion so the human owner can make the next routing decision.
+- Apply the execution-loop governance policy instead of redefining lifecycle, return, or review timing in invocation guidance.
 
 ## Required Inputs
 - one approved feature document
@@ -68,7 +84,7 @@
   - surface lane when relevant
 - Keep the role prompt anchored to approved docs.
 - Do not restate the original request as the primary source once the feature is approved.
-- Evaluator outputs must record `Result` and `Evidence Coverage` separately, name unverified claims, and state whether each gap blocks acceptance under the owning Feature, Spec, or profile.
+- Evaluator outputs must record `Result` and `Evidence Coverage` separately, name unverified claims, and state whether each gap blocks acceptance under the owning feature, spec, or profile.
 - If a role reports `spec gap` or `planning gap`, record it as a result for the run report unless a technical blocker prevents further continuation.
 - After post-run human review sends work upward and that layer is corrected, start a new run from the corrected layer rather than continuing as if the earlier attempt remained valid.
 - After the run exists, prefer continuing from the run document plus active spec and latest reports instead of re-invoking only from the feature path.

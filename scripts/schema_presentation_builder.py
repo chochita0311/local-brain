@@ -7,7 +7,7 @@ import sqlite3
 import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, Iterable, List, Tuple
+from typing import Dict, Iterable, List, Optional, Tuple
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -125,16 +125,46 @@ SEMANTIC_LABELS = {
 }
 
 
+def continued_value(lines: List[str], start: int, initial: str) -> str:
+    parts = [initial.strip()]
+    for line in lines[start + 1 :]:
+        if not line.startswith(("  ", "\t")):
+            break
+        continuation = line.strip()
+        if continuation:
+            parts.append(continuation)
+    return " ".join(parts)
+
+
+def labeled_bullet(body: str, label: str) -> Optional[str]:
+    lines = body.splitlines()
+    prefix = f"- {label}:"
+    for index, line in enumerate(lines):
+        if line.startswith(prefix):
+            return continued_value(lines, index, line[len(prefix) :])
+    return None
+
+
+def labeled_paragraph(body: str, labels: Iterable[str]) -> Optional[str]:
+    lines = body.splitlines()
+    for index, line in enumerate(lines):
+        for label in labels:
+            prefix = f"{label}:"
+            if line.startswith(prefix):
+                return continued_value(lines, index, line[len(prefix) :])
+    return None
+
+
 def parse_table_semantics(
     document: str, document_path: str, table: str, lifecycle: dict
 ) -> dict:
     body = table_section(document, table, document_path)
     semantics = {}
     for key, label in SEMANTIC_LABELS.items():
-        match = re.search(rf"^- {re.escape(label)}:\s*(.+)$", body, re.MULTILINE)
-        if not match:
+        value = labeled_bullet(body, label)
+        if not value:
             raise PresentationBuildError(f"{document_path}: {table} missing {label}")
-        semantics[key] = match.group(1).strip()
+        semantics[key] = value
 
     column_contracts = {}
     for name, contract in re.findall(r"^\| `([^`]+)` \| (.+) \|$", body, re.MULTILINE):
@@ -142,17 +172,17 @@ def parse_table_semantics(
     if not column_contracts:
         raise PresentationBuildError(f"{document_path}: {table} has no column contracts")
 
-    constraint_match = re.search(
-        r"^(Constraints(?: and tokenizer)?):\s*(.+)$", body, re.MULTILINE
+    documented_constraints = labeled_paragraph(
+        body, ("Constraints", "Constraints and tokenizer")
     )
-    if not constraint_match:
+    if not documented_constraints:
         raise PresentationBuildError(
             f"{document_path}: {table} missing documented constraints"
         )
 
     semantics.update(lifecycle)
     semantics["column_contracts"] = column_contracts
-    semantics["documented_constraints"] = constraint_match.group(2).strip()
+    semantics["documented_constraints"] = documented_constraints
     return semantics
 
 

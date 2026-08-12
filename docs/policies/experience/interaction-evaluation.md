@@ -19,6 +19,17 @@
 - Add new entries when the same class of interaction failure proves reusable beyond one feature.
 - Promote an entry elsewhere only when it becomes broader product law rather than an evaluation asset.
 
+## Category Index
+
+- [Transition Stability And Continuity](#transition-stability-and-continuity)
+- [Binding, Scope, And Responsive State Ownership](#binding-scope-and-responsive-state-ownership)
+- [Execution Confirmation And Action Ownership](#execution-confirmation-and-action-ownership)
+- [Menus, Disclosures, And Affordances](#menus-disclosures-and-affordances)
+- [Repeated Controls And State Anchoring](#repeated-controls-and-state-anchoring)
+- [Reading Surface Link Integrity](#reading-surface-link-integrity)
+- [First-State Isolation And Handoff](#first-state-isolation-and-handoff)
+- [Classification Guidance](#classification-guidance)
+
 ## Reusable Evaluation Notes
 
 ### Transition Stability And Continuity
@@ -75,19 +86,19 @@
 - Endpoint success alone is insufficient evidence for a click-driven action because stale assets can leave new markup visible but inert.
 - When progressive enhancement is part of the approved contract, the underlying form or link should remain a safe executable path and preserve the relevant user scope.
 
-#### Scope Transition Reset Rule
+#### Scope Transition State Contract
 
-- When a scope change redefines the result set, explicit reset is usually safer than carrying forward the previous search or filter state.
+- When a scope change redefines the result set, define preservation or reset per state owner instead of treating the whole page as one state. Query, filter, selection, disclosure, pane geometry, outer page scroll, and nested result or tree scroll may need different outcomes.
 - If global filtering and scoped search would conflict, the interaction should clear one state before entering the other instead of leaving both implicitly active.
-- Evaluators should check whether query, tag, category, collection, or similar browse states are reset or preserved intentionally rather than by accident.
-- If a scope change replaces the visible result set after the user has scrolled, the destination scope should start at an intentional anchor, usually the top of the new result list.
-- Carrying the previous scroll depth into a different category, collection, or result scope is usually a continuity failure because it hides the beginning of the newly selected content.
+- A destination scope should normally start its result-local, tree-local, or preview-local state at an intentional anchor. Carrying hidden local scroll depth, disclosure, selection, or layout state from an unrelated scope is usually a continuity failure.
+- Preserving outer document position can still be intentional when it keeps the scope control or task anchor stable; full-page versus partial navigation does not decide this contract by itself.
+- Evaluators should exercise the transition after scrolling, across multiple choices, with shorter and longer destinations, and through back, forward, refresh, and direct entry as applicable. Verify each scroll container and state owner separately.
 
-#### Layered Scope-Transition State
+#### Equivalent Scope Consistency
 
-- A scope transition may preserve the outer page position while resetting state owned by the replaced scope; page scroll, local scrollers, disclosure, selection, preview state, and pane geometry must be evaluated separately.
-- The approved interaction contract should identify which layer provides continuity and which layers start fresh rather than describing the whole transition only as a reset or preservation.
-- When a shared scope selector serves several equivalent roots, tabs, or categories, test more than the originally reported instance and confirm the common transition owner applies the same rule to every peer scope.
+- Trace a problem reported for one tab, root, category, collection, or similar option to the shared control and state owner before treating it as data-specific.
+- When behavior is shared, sample multiple equivalent options and include selected, unselected, empty, or unavailable states that materially change disclosure or orientation.
+- A fix must not hard-code the reported example when approved behavior belongs to the whole scope family; evidence should state the family-wide rule and representative cases checked.
 
 #### In-Place Analytical Switch Continuity
 
@@ -116,6 +127,12 @@
 - Rapid consecutive selections should cancel or ignore superseded work so stale responses cannot overwrite the latest choice. Normal destination links should remain available as a no-script or failed-enhancement fallback when the product supports progressive enhancement.
 - Evaluators should test deep selection, repeated sibling selection, preserved scroll and disclosure, back and forward restoration, rapid input, and failed-update fallback instead of validating only the final preview content.
 
+#### Contextual Selection Focus And Scroll
+
+- When a nested selection reveals or replaces a meaningful content region, focus and scroll should move to the most specific newly selected destination that establishes context, not to a generic page heading or shared ancestor.
+- The destination should remain visible below sticky shell regions and use the nearest reachable document position when the exact offset cannot be attained near a scroll boundary.
+- Click-driven selection, back or forward restoration, and initial direct entry require explicit, separately tested focus and scroll behavior rather than one unconditional jump routine.
+
 #### Breakpoint Control-State Compatibility
 
 - If a responsive breakpoint hides or removes a mode switch, toggle, or similar state-changing control, the interface must also normalize into a state that remains supported without that control.
@@ -136,6 +153,13 @@
 - Readiness failures such as a missing connection, capability, executor, permission, or runtime dependency should gate execution rather than erase the preview. Preserve the user's inputs and target selection, explain the recovery path, and keep safe local navigation or organization work available.
 - Defaults should be inspectable and overridable before submission. Page load, ordinary browse, search, setup, or preview must not silently become execution merely because the required dependency is available.
 - Evaluators should test preview with execution ready and unavailable, positive target data, zero targets, limit boundaries, partial failure, selected-only retry, and no-script fallback where progressive enhancement is part of the contract.
+
+#### Multi-Target Action Outcome Legibility
+
+- When one action operates across independent sources, accounts, targets, or partitions, preserve a distinct outcome for each target and an honest aggregate result. Overall success must not hide a skipped or failed target, and one failure must not visually erase completed peers.
+- Distinguish `not attempted`, `unavailable or invalid configuration`, `completed with zero results`, and `completed with removals` when they have different consequences. If prior data is retained after a readiness failure, say so where feedback appears.
+- Keep retry, reload, and recovery guidance scoped to the failed target or clearly state when the only action repeats the whole batch. Preserve current filters, source selection, and readable successful results while recovery is pending.
+- Exercise all-success, partial-success, all-failed, missing or invalid target, valid empty target, and successful reconciliation states when they belong to the approved contract. Confirm both summary and per-target consequences.
 
 #### Effective Execution Input Confirmation
 
@@ -201,7 +225,6 @@
 - A compact disclosure control should not visually imply one expansion direction while actually opening in another.
 - If a menu opens downward, its cue should remain stable or reinforce downward attachment rather than flipping into an upward state on open.
 - Evaluators should check both closed and expanded states and confirm that the visual cue, placement, and expanded panel all tell the same directional story.
-- The Session `관련 자료` overflow uses the owning group's `N개 더 보기` summary while collapsed and `접기` while expanded. It reveals only already-loaded local rows, preserves page orientation and keyboard focus, and never changes the other group's count or disclosure state.
 
 ### Repeated Controls And State Anchoring
 

@@ -13,14 +13,11 @@ The current MVP runs as a FastAPI web application on the local machine. A native
 - Link sessions, documents, local paths, projects, and external references to Threads.
 - Maintain versioned checkpoints and review reversible resource Suggestions.
 - Run Claude maintenance tasks for resource organization, checkpoint drafting, and priority review.
-- Register Jira tickets/projects and Confluence Pages/Spaces from real URLs without MCP setup, configure optional remote access separately, and browse known records locally. External reads occur only through explicitly submitted bounded refresh or connected-discovery actions; see the [Product Model](docs/policies/project/product.md#navigation) and [Project Architecture](docs/policies/project/architecture.md#architectural-constraints) for the detailed contract.
-- Inspect aggregate or per-source tokens, estimated trend cost, primary-work Session volume, active days, and Daily, Weekly, or Cumulative history in Sessions Dashboard.
-- Pin persisted primary work Sessions from the Sessions inventory or Session detail. The global `Pinned Sessions` panel replaces generic recent Context, shows every current pin by displayed Session activity date, and stays independent from source, workspace, and page filters.
-- Open a persisted primary Session to see a local-only `관련 자료` rail. `이 세션의 참조` shows the Session's normalized mentions and approved MCP read outcomes; `연결된 작업` follows only explicit shared Thread or Workstream links. Each group shows 10 items initially, keeps the rest behind a reversible disclosure, and never adds same-path or recent-document fallback or starts remote/model work.
-- Read bounded database-backed states through one complete product vocabulary per value family. Ordinary screens never mix translated labels with unexplained physical tokens from the same field, while stored values and request identities remain unchanged.
-- Explore the complete schema, nine subject areas, locally rendered orthogonal Mermaid ERDs, and table contracts from the read-only **System > Schema** surface.
+- Register and browse Jira and Confluence records locally, with optional access and explicit bounded remote actions.
+- Inspect source-aware Session inventory, pinned recall, related evidence, and token or estimated-cost history.
+- Explore the packaged data model, subject ERDs, and table contracts from the read-only **System > Schema** surface.
 
-See [Project Architecture](docs/policies/project/architecture.md) for the implementation boundary and current feature baseline.
+Detailed behavior belongs to the [Product Model](docs/policies/project/product.md), while implementation and I/O boundaries belong to [Project Architecture](docs/policies/project/architecture.md).
 
 ## Quick Start
 
@@ -49,20 +46,7 @@ wider scan across Session sources and enabled Local Context folders, files, and
 Apple Notes. The initial `uv sync` downloads Python packages, but indexed content
 and runtime data remain on the local machine.
 
-Sessions supports combined and per-source inventory scopes without an age cutoff.
-Counts, pagination, Projects, Pinned Sessions, detail provenance, meaningful-
-Session eligibility, and source reconciliation follow the shared rules in the
-[Product Model](docs/policies/project/product.md#navigation).
-
-Sessions Dashboard defaults to the latest 30 inclusive local days. Its Source choices come from the same private registry: **All** combines every accepted local AI source, while Claude, personal Codex, and Codex Company remain independently selectable. Source, Range, Tokens/Cost, composition, and paired custom-date controls are ordinary GET state, so a filtered view can be bookmarked or reopened. Cost is a locally reproduced trend estimate from stored price snapshots, including model-specific request-context tiers when the frozen reference defines them; it is not billed spend, and unsupported pricing stays visibly unavailable.
-
-Actual model usage from primary, maintenance, and subsession records contributes to dashboard tokens and cost. Claude's source-generated `<synthetic>` assistant or API-error records remain stored for Session evidence but are excluded from usage periods, totals, coverage, and breakdowns because they are not model usage.
-
-The same selected records can be explained by Source, normalized Model, or first-observation Project snapshot. Personal Codex and Codex Company remain separate source rows even though they share token and price rules. The trust region reports token and price coverage, per-source synchronization results, calculation time, and retained data when a source needs attention.
-
-The dashboard deliberately stops at observed selected-period and month-to-date values. It does not surface a projected month-end cost, budget, cap, or billed amount.
-
-**System > Schema** opens the complete packaged data-model overview without reading database rows. Global and subject ERDs use the locally bundled ELK relationship layout, retry once with the default layout if needed, and retain the textual catalog if rendering remains unavailable. Subject and table selections use ordinary bookmarkable links. A rendered relationship map has visible zoom, reset, and width-fit controls; `Ctrl`/`Cmd` plus wheel or a browser-normalized trackpad pinch zooms in place, while an unmodified wheel keeps ordinary scrolling.
+Sessions supports combined and per-source inventory scopes without an age cutoff. The [Session inventory contract](docs/policies/project/product.md#application-navigation-and-session-inventory), [analytical read models](docs/policies/project/architecture.md#analytical-read-models), and [Schema Explorer boundary](docs/policies/project/architecture.md#persistence-model) own the detailed behavior.
 
 Certificate configuration is not required on a normal network. If `uv sync` fails with an `UnknownIssuer` error, retry the installation with the macOS system certificate store:
 

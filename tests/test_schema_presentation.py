@@ -117,6 +117,50 @@ class SchemaPresentationBuildTests(unittest.TestCase):
                 malformed, subject["document"], table, lifecycle[table]
             )
 
+    def test_wrapped_semantic_and_constraint_fields_preserve_continuations(self):
+        document = """# Subject
+
+### `sample_table`
+
+- Purpose and authority: first purpose line
+  continues with authority detail.
+- Lifecycle: durable local state
+- Producers: first producer
+  and second producer.
+- Consumers: one consumer
+- Relations and deletion: retained on delete
+- Recovery: restore from source
+- DDL ownership: `schema.sql` owns the table
+
+| Column | Contract |
+| --- | --- |
+| `id` | Stable identity. |
+
+Constraints: first constraint
+  and a second constraint.
+"""
+        lifecycle = {
+            "class": "Durable",
+            "rebuildability": "not-rebuildable",
+            "class_contract": "Preserve local state.",
+        }
+
+        semantics = builder.parse_table_semantics(
+            document, "docs/example.md", "sample_table", lifecycle
+        )
+
+        self.assertEqual(
+            semantics["purpose_and_authority"],
+            "first purpose line continues with authority detail.",
+        )
+        self.assertEqual(
+            semantics["producers"], "first producer and second producer."
+        )
+        self.assertEqual(
+            semantics["documented_constraints"],
+            "first constraint and a second constraint.",
+        )
+
     def test_check_rejects_missing_and_stale_outputs(self):
         with tempfile.TemporaryDirectory() as directory, mock.patch.object(
             builder, "validate_mermaid"

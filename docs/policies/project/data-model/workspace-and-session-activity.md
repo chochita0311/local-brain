@@ -108,20 +108,25 @@ Constraints: uniqueness of `canonical_path`. Explicit indexes: none.
   accepted by the owning provider's Session-candidate contract. Meaningful means
   the parsed file contains at least one normalized Activity Event or direct Usage
   Record; metadata-only stubs retain no Session or source-file projection and are
-  reconsidered on later syncs. Claude primary files and
-  direct `subagents/*.jsonl` children are accepted, while deeper internal
-  `subagents` artifacts such as workflow journals are not Sessions. A successful
-  scan reconciles a previously imported row that is no longer an accepted
-  candidate without deleting the native file. Native tools can remove accepted
-  JSONL files under their own retention policies; Claude Code is a confirmed
-  example because it deletes Session files older than `cleanupPeriodDays` at
-  startup. LocalBrain is therefore a source mirror rather than an immutable
-  Session archive. Stable IDs are preserved while their accepted source files
-  remain so curated links and Usage Records remain valid. The same native
-  external ID may exist under personal Codex and Codex Company because Session
-  identity is unique within `source_id`, not provider kind. A Run-linked primary
-  and its resolved child Sessions keep metadata while maintenance index/event
-  policy is restricted; the private Runner stream is an operational artifact only.
+  reconsidered on later syncs. Codex conversation ingestion prefers native
+  `event_msg` user/assistant records per role and falls back to `response_item`
+  message content only when the matching role and turn are absent; response-only
+  user records sharing one turn retain the final record so injected turn context
+  does not replace the visible prompt or duplicate the conversation. Claude
+  primary files and direct `subagents/*.jsonl` children are accepted, while deeper
+  internal `subagents` artifacts such as workflow journals are not Sessions. A
+  successful scan reconciles a previously imported row that is no longer an
+  accepted candidate without deleting the native file. Native tools can remove
+  accepted JSONL files under their own retention policies; Claude Code is a
+  confirmed example because it deletes Session files older than
+  `cleanupPeriodDays` at startup. LocalBrain is therefore a source mirror rather
+  than an immutable Session archive. Stable IDs are preserved while their
+  accepted source files remain so curated links and Usage Records remain valid.
+  The same native external ID may exist under personal Codex and Codex Company
+  because Session identity is unique within `source_id`, not provider kind. A
+  Run-linked primary and its resolved child Sessions keep metadata while
+  maintenance index/event policy is restricted; the private Runner stream is an
+  operational artifact only.
 - Producers: `ingest/scanner.py` plus Claude/Codex parsers create Sessions and Usage Records; parent reconciliation updates self-references and propagates maintenance policy to Claude or Codex children. `runner.py` synchronizes the selected native source after terminal and recovered Runs. `db.py` owns the classification/Run-link constraint repair and stales source files when parser contracts change.
 - Consumers: Session inventory/detail, dashboard counts, normalized activity, retrieval, Workstream linking/suggestions, Runner context, search projection, Usage Records, and Usage Dashboard denominators. Sessions inventory headline, rows, pagination, and Project grouping share the same `work` plus `primary` denominator with no age cutoff. A selected source matches the stable `sources.kind`, not `provider_kind`, so personal and company Codex remain statistically separate while sharing one adapter.
 - Relations and deletion: physical `source_id` cascades; optional `workspace_id`, `parent_session_id`, and unique `maintenance_run_id` set null. After a successful scan of a present source root, disappearance of one previously imported native JSONL or confirmation that it remains a zero-Event, zero-Usage stub is deletion authority for its normalized Session. Deleting that Session cascades `activity_events`, `usage_records`, derived `session_reference_scans` and `session_reference_evidence`, and the optional user-owned `session_pins` row; scanner also removes its search and source-file projection while preserving a present native stub. A wholly missing source root does not trigger the same stale-file reconciliation. Polymorphic links and checkpoint refs are application edges and can retain an unresolved historical ID.

@@ -70,6 +70,16 @@
    - After the automated run reports its result, the human owner decides whether to accept, return to spec, or return to planning.
    - Start a new run from the corrected layer instead of treating that return as an in-progress interruption to the earlier run.
 
+## Operator Briefing Hooks
+
+The workflow may expose user-facing continuity without adding a workflow phase.
+
+- On orientation requests, explain the active destination, current position, available next work, and material blockers.
+- After canonical target resolution and before work begins, emit one target-specific Work Briefing when prior context materially affects understanding or execution.
+- During work, emit a Direction Alert only when direction, scope, evidence, safety, authority, or review obligations materially change.
+- At completion, planning return, block, handoff, or approval boundary, emit a Review Receipt only when the operator has a meaningful delta to understand.
+- Apply [Operator Briefing And Review Receipts](../../policies/harness/operator-briefing-and-review-receipts.md); these hooks do not change workflow routing or state transitions.
+
 ## Role Boundaries
 - Human:
   - sets product direction
@@ -135,24 +145,11 @@ Process:
 ```
 
 ## Execution Loop Guidance
-- `Orchestrator` should keep only one feature in active loop unless the human owner explicitly opts into parallel execution.
-- `Orchestrator` should choose one execution profile for the run and declare surface lanes when the feature spans multiple surfaces.
+- Apply the execution-loop governance policy for active-feature concurrency, evidence gaps, failure classification, return paths, and post-contract regression checks; this flow does not redefine those rules.
+- Select the execution profile, surface lanes, and evaluator set through the execution-profile policy; this flow does not redefine that matrix.
 - `Spec Agent` is the first execution role and should create one spec per active feature.
 - `Builder` should work from the active spec, not directly from rough feature prose.
-- Use only the evaluators needed by the feature:
-  - `foundation` features usually need contract evaluation, with functional evaluation only when runtime behavior also changes
-  - product features with contract surfaces need contract evaluation
-  - design-sensitive product features may need design, functional, and heuristic evaluation
 - `Fix Agent` should consume findings from the active evaluator set and preserve the same feature boundary.
-- If any evaluator finds what is really a planning or spec gap, report that result for post-run human routing instead of normalizing the gap as a defect.
-- If execution changes a source-of-truth contract, identity model, or generated-data contract, add a stale-assumption check before closing the run.
-- `UX Heuristic Evaluator` should operate as a side-channel by default:
-  - `PASS WITH SUGGESTIONS` does not block the loop
-  - only severe blocking UX contradictions should stop execution
-- Every blocking finding should be classified as:
-  - implementation bug
-  - spec gap
-  - planning gap
 
 ## Example Variations
 - Planning-only:
@@ -165,7 +162,3 @@ Process:
   - Human -> PRD Normalizer -> Feature Planner -> Orchestrator -> Spec Agent -> Builder or contract updater -> Contract Evaluator -> Fix Agent
 - Multi-surface product loop:
   - Human -> PRD Normalizer -> Feature Planner -> Orchestrator -> Spec Agent -> ordered or parallel surface lanes -> Contract Evaluator -> needed evaluator set -> Fix Agent
-
-## Design Note
-- A single golden screen can be enough to bootstrap later work if it yields a stable design grammar.
-- If later features introduce patterns that the sources do not cover, treat them as uncertainty and request more source material instead of improvising.

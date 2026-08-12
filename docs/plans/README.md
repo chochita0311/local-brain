@@ -11,6 +11,8 @@ Spec, Run, and Evaluation document owns its own detailed status and history.
   decisions ordered by priority
 - [Agent Workflow](../agents/README.md): approval gates and the PRD → Feature →
   Spec → Run → Evaluation flow
+- [Artifact Catalog](artifact-catalog.md): generated link index for every tracked
+  historical PRD, Feature, Spec, Run, Evaluation, Fix, and heuristic artifact
 
 ## Open Planning Boundaries
 
@@ -79,6 +81,7 @@ Spec, Run, and Evaluation document owns its own detailed status and history.
 - `fix/`: bounded corrections from evaluator findings
 - `heuristic/`: non-blocking UX suggestion backlog
 - `project/`: roadmap and backlog ownership
+- [Artifact Catalog](artifact-catalog.md): complete generated historical navigation
 
 ## Maintenance Rule
 
@@ -86,3 +89,6 @@ Spec, Run, and Evaluation document owns its own detailed status and history.
   completed chains; do not turn it into a registry of every historical artifact.
 - Update this index when one of those navigation states changes, but keep the
   owning artifact's metadata and continuity notes as the detailed truth.
+- Regenerate the complete historical catalog with
+  `uv run python scripts/build-plan-artifact-catalog.py build` whenever a tracked
+  planning or execution artifact is added, removed, or renamed.

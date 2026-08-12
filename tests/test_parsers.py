@@ -80,7 +80,13 @@ class ParserTests(unittest.TestCase):
                 {
                     "type": "response_item",
                     "timestamp": "2026-07-13T02:03:00Z",
-                    "payload": {"type": "message", "role": "assistant", "content": []},
+                    "payload": {
+                        "type": "message",
+                        "role": "assistant",
+                        "content": [
+                            {"type": "output_text", "text": "구현했습니다"}
+                        ],
+                    },
                 },
             ]
         )
@@ -89,6 +95,235 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(parsed.cwd_raw, "/tmp/project")
         self.assertEqual(parsed.title, "구현해줘")
         self.assertEqual(len(parsed.events), 2)
+        self.assertEqual(
+            [event.text for event in parsed.events], ["구현해줘", "구현했습니다"]
+        )
+
+    def test_codex_parser_falls_back_to_response_messages_by_turn(self):
+        path = self._write_jsonl(
+            [
+                {
+                    "type": "session_meta",
+                    "timestamp": "2026-08-11T05:32:15Z",
+                    "payload": {
+                        "id": "codex-response-only",
+                        "cwd": "/tmp/project",
+                        "source": "cli",
+                        "thread_source": "user",
+                    },
+                },
+                {
+                    "type": "turn_context",
+                    "timestamp": "2026-08-11T05:32:16Z",
+                    "payload": {"turn_id": "turn-one"},
+                },
+                {
+                    "type": "response_item",
+                    "timestamp": "2026-08-11T05:32:17Z",
+                    "payload": {
+                        "id": "injected-context",
+                        "type": "message",
+                        "role": "user",
+                        "content": [
+                            {"type": "input_text", "text": "주입된 실행 컨텍스트"}
+                        ],
+                        "internal_chat_message_metadata_passthrough": {
+                            "turn_id": "turn-one"
+                        },
+                    },
+                },
+                {
+                    "type": "response_item",
+                    "timestamp": "2026-08-11T05:32:18Z",
+                    "payload": {
+                        "id": "visible-user-message",
+                        "type": "message",
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "input_text",
+                                "text": "새 형식 질문 https://example.test/item",
+                            }
+                        ],
+                        "internal_chat_message_metadata_passthrough": {
+                            "turn_id": "turn-one"
+                        },
+                    },
+                },
+                {
+                    "type": "response_item",
+                    "timestamp": "2026-08-11T05:32:19Z",
+                    "payload": {
+                        "id": "visible-assistant-message",
+                        "type": "message",
+                        "role": "assistant",
+                        "phase": "final_answer",
+                        "content": [
+                            {"type": "output_text", "text": "새 형식 답변"}
+                        ],
+                        "internal_chat_message_metadata_passthrough": {
+                            "turn_id": "turn-one"
+                        },
+                    },
+                },
+            ]
+        )
+
+        parsed = parse_codex_session(path)
+
+        self.assertEqual(parsed.session_role, "primary")
+        self.assertEqual(parsed.title, "새 형식 질문 https://example.test/item")
+        self.assertEqual(
+            [(event.role, event.text) for event in parsed.events],
+            [
+                ("user", "새 형식 질문 https://example.test/item"),
+                ("assistant", "새 형식 답변"),
+            ],
+        )
+        self.assertEqual(
+            [item.observed_url for item in parsed.url_evidence],
+            ["https://example.test/item"],
+        )
+
+    def test_codex_parser_fills_only_missing_event_message_role(self):
+        path = self._write_jsonl(
+            [
+                {
+                    "type": "session_meta",
+                    "payload": {
+                        "id": "codex-partial-events",
+                        "source": {"subagent": {"other": "worker"}},
+                        "parent_thread_id": "codex-parent",
+                    },
+                },
+                {
+                    "type": "turn_context",
+                    "payload": {"turn_id": "turn-one"},
+                },
+                {
+                    "type": "response_item",
+                    "payload": {
+                        "id": "response-user",
+                        "type": "message",
+                        "role": "user",
+                        "content": [{"type": "input_text", "text": "작업 지시"}],
+                        "internal_chat_message_metadata_passthrough": {
+                            "turn_id": "turn-one"
+                        },
+                    },
+                },
+                {
+                    "type": "response_item",
+                    "payload": {
+                        "id": "response-assistant",
+                        "type": "message",
+                        "role": "assistant",
+                        "content": [
+                            {"type": "output_text", "text": "중복될 응답"}
+                        ],
+                        "internal_chat_message_metadata_passthrough": {
+                            "turn_id": "turn-one"
+                        },
+                    },
+                },
+                {
+                    "type": "event_msg",
+                    "payload": {"type": "agent_message", "message": "기존 응답"},
+                },
+            ]
+        )
+
+        parsed = parse_codex_session(path)
+
+        self.assertEqual(parsed.session_role, "subsession")
+        self.assertEqual(parsed.title, "작업 지시")
+        self.assertEqual(
+            [(event.role, event.text) for event in parsed.events],
+            [("user", "작업 지시"), ("assistant", "기존 응답")],
+        )
+
+    def test_codex_parser_preserves_response_only_turn_before_legacy_turn(self):
+        path = self._write_jsonl(
+            [
+                {
+                    "type": "session_meta",
+                    "payload": {"id": "codex-mixed-format", "source": "cli"},
+                },
+                {"type": "turn_context", "payload": {"turn_id": "turn-new"}},
+                {
+                    "type": "response_item",
+                    "payload": {
+                        "id": "new-user",
+                        "type": "message",
+                        "role": "user",
+                        "content": [{"type": "input_text", "text": "먼저 한 질문"}],
+                        "internal_chat_message_metadata_passthrough": {
+                            "turn_id": "turn-new"
+                        },
+                    },
+                },
+                {
+                    "type": "response_item",
+                    "payload": {
+                        "id": "new-assistant",
+                        "type": "message",
+                        "role": "assistant",
+                        "content": [{"type": "output_text", "text": "먼저 한 답변"}],
+                        "internal_chat_message_metadata_passthrough": {
+                            "turn_id": "turn-new"
+                        },
+                    },
+                },
+                {"type": "turn_context", "payload": {"turn_id": "turn-legacy"}},
+                {
+                    "type": "response_item",
+                    "payload": {
+                        "id": "legacy-user-response",
+                        "type": "message",
+                        "role": "user",
+                        "content": [{"type": "input_text", "text": "나중 질문"}],
+                        "internal_chat_message_metadata_passthrough": {
+                            "turn_id": "turn-legacy"
+                        },
+                    },
+                },
+                {
+                    "type": "event_msg",
+                    "payload": {"type": "user_message", "message": "나중 질문"},
+                },
+                {
+                    "type": "response_item",
+                    "payload": {
+                        "id": "legacy-assistant-response",
+                        "type": "message",
+                        "role": "assistant",
+                        "content": [
+                            {"type": "output_text", "text": "나중 답변"}
+                        ],
+                        "internal_chat_message_metadata_passthrough": {
+                            "turn_id": "turn-legacy"
+                        },
+                    },
+                },
+                {
+                    "type": "event_msg",
+                    "payload": {"type": "agent_message", "message": "나중 답변"},
+                },
+            ]
+        )
+
+        parsed = parse_codex_session(path)
+
+        self.assertEqual(parsed.title, "먼저 한 질문")
+        self.assertEqual(
+            [(event.role, event.text) for event in parsed.events],
+            [
+                ("user", "먼저 한 질문"),
+                ("assistant", "먼저 한 답변"),
+                ("user", "나중 질문"),
+                ("assistant", "나중 답변"),
+            ],
+        )
 
     def test_codex_primary_metadata_owns_parent_and_branch(self):
         path = self._write_jsonl(
