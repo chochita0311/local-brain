@@ -114,8 +114,13 @@ Constraints: uniqueness of `canonical_path`. Explicit indexes: none.
   user records sharing one turn retain the final record so injected turn context
   does not replace the visible prompt or duplicate the conversation. Claude
   primary files and direct `subagents/*.jsonl` children are accepted, while deeper
-  internal `subagents` artifacts such as workflow journals are not Sessions. A
-  successful scan reconciles a previously imported row that is no longer an
+  internal `subagents` artifacts such as workflow journals are not Sessions. Codex
+  `source.subagent.other=guardian` files remain normalized so their stable source
+  identity, parent relation, and directly observed Usage Records survive, but the
+  parser classifies them as maintenance plus metadata-only: their approval prompts
+  and decisions produce no Activity Events, question counts, search text, or
+  ordinary Session/Subsession presentation. A successful scan reconciles a
+  previously imported row that is no longer an
   accepted candidate without deleting the native file. Native tools can remove
   accepted JSONL files under their own retention policies; Claude Code is a
   confirmed example because it deletes Session files older than
@@ -149,7 +154,7 @@ Constraints: uniqueness of `canonical_path`. Explicit indexes: none.
 | `event_count` | `INTEGER NOT NULL DEFAULT 0`; normalized source event count. |
 | `user_message_count` | `INTEGER NOT NULL DEFAULT 0`; normalized user-message count. |
 | `assistant_message_count` | `INTEGER NOT NULL DEFAULT 0`; normalized assistant-message count. |
-| `session_class` | `TEXT NOT NULL DEFAULT 'work'`; checked to `work` or `maintenance`. |
+| `session_class` | `TEXT NOT NULL DEFAULT 'work'`; checked to `work` or `maintenance`. `maintenance` owns non-work execution activity, including linked LocalBrain Runs and recognized provider-internal helpers. |
 | `session_role` | `TEXT NOT NULL DEFAULT 'primary'`; checked to `primary` or `subsession`. |
 | `parent_external_id` | nullable `TEXT`; source-backed parent identity retained even when unresolved. |
 | `parent_session_id` | nullable self-FK, `ON DELETE SET NULL`; resolved same-source parent. |

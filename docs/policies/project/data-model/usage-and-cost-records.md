@@ -45,7 +45,7 @@ erDiagram
 ### `usage_price_snapshots`
 
 - Purpose and authority: immutable identity and provenance for a versioned local pricing set used by estimated-cost calculations.
-- Lifecycle: code-seeded reference. `usage.ensure_default_price_snapshot` inserts known versions without overwriting existing evidence.
+- Lifecycle: code-seeded reference. `usage.ensure_default_price_snapshot` inserts known versions without overwriting existing evidence. The 2026-08-20 Codex Spark correction uses a new snapshot identity and leaves the earlier ccusage 20.0.17-referenced snapshot unchanged.
 - Producers: `usage.py` startup seeding.
 - Consumers: `usage.py` calculation/version validation and `usage_queries.py` trust/provenance presentation.
 - Relations and deletion: physical parent of model prices and Usage Records with `ON DELETE RESTRICT`; cited pricing evidence cannot be removed.
@@ -92,7 +92,7 @@ Constraints: `PRIMARY KEY(snapshot_id, model_name)` and positive-or-null thresho
 
 - Purpose and authority: one normalized direct or aggregate usage observation per source record, with token semantics, capability/calculation state, cited pricing, and frozen Project attribution.
 - Lifecycle: mixed source-derived and immutable historical evidence. Source observations can be re-normalized, but exact calculated cost and Project attribution must retain their cited versions and snapshot values. Canonical Claude and personal Codex Usage IDs retain their existing deterministic values; an additional source key reusing a provider scopes the stored ID by that source key so an identical native observation can coexist in both homes.
-- Producers: Claude/Codex native source normalizers feed `usage.py`; source repair replaces a source's complete record set, including Run-linked Maintenance Sessions. The Runner stream is not a Usage producer. `db.py` compatibly adds attribution, normalizer, and snapshot fields and backfills missing basis/time.
+- Producers: Claude/Codex native source normalizers feed `usage.py`; source repair replaces a source's complete record set, including Run-linked Maintenance Sessions. The v7 Codex corrective producer assigns the new Spark-capable snapshot only to exact `gpt-5.3-codex-spark` observations while other models retain the earlier snapshot. The Runner stream is not a Usage producer. `db.py` compatibly adds attribution, normalizer, and snapshot fields and backfills missing basis/time.
 - Consumers: `usage.py` repair/idempotency, `usage_queries.py` period summary/history/breakdowns/trust, and activity/project attribution tests. Dashboard source options are registry-derived, exact selection and source composition use stable `sources.kind`, and provider kind remains the shared normalizer family. `All` includes every accepted Claude/Codex-adapter Source and source-compatible totals equal their exact source-row sums. Dashboard selection excludes exact Claude `<synthetic>` pseudo-model rows without deleting them.
 - Relations and deletion: physical source and Session parents cascade; pricing snapshot deletion is restricted. `workspace_id_snapshot` is an application-only optional current browse join, never attribution authority.
 - Recovery: native source records plus the correct normalizer/calculator and price snapshots can rebuild observations, but a Runner stream alone cannot and current paths may not reproduce historical Project attribution. Before repairing a legacy attribution CHECK, startup preserves `localbrain.db-pre-usage-attribution-check-v1.bak` beside the database and validates it with SQLite `quick_check`.

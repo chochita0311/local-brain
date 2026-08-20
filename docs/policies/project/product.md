@@ -91,8 +91,9 @@ The same Resource may relate to multiple Threads. Relationship-specific evidence
 
 - Original Claude and Codex metadata owns whether a Session is primary or a subsession and which source parent it reports.
 - LocalBrain retains both the source parent identity and the resolved internal parent relation. An unresolved child remains a subsession and never falls back to a primary Session.
+- A recognized Codex guardian Session is provider-internal approval activity rather than user work. LocalBrain retains its source identity, parent relation, and directly observed Usage Records as metadata-only maintenance activity, but does not expose its prompts, decisions, or counters as an ordinary Subsession.
 - Current Session browsing exposes only direct children of a primary Session. Deeper hierarchy remains preserved but is not flattened into user-facing lists.
-- Subsessions remain outside global Search, Session-derived statistics, Workstream organization candidates, and Workstream Claude maintenance evidence. Their stored source and events remain available through approved parent-owned browsing.
+- Work Subsessions remain outside global Search, Session-derived statistics, Workstream organization candidates, and Workstream Claude maintenance evidence. Their stored source and events remain available through approved parent-owned browsing; provider-internal metadata-only children are excluded from that browsing surface.
 
 ### Usage And Cost Semantics
 

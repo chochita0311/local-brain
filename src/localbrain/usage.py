@@ -12,6 +12,9 @@ CODEX_FAST_PRICE_SNAPSHOT_ID = "ccusage-20.0.17-codex-fast-20260718"
 CODEX_FAST_TIERED_PRICE_SNAPSHOT_ID = (
     "ccusage-20.0.17-codex-fast-context-tier-20260718"
 )
+CODEX_FAST_TIERED_SPARK_PRICE_SNAPSHOT_ID = (
+    "ccusage-20.0.17-codex-fast-context-tier-spark-20260820"
+)
 CALCULATOR_VERSION = "localbrain-usage-cost-v1"
 CONTEXT_TIER_CALCULATOR_VERSION = "localbrain-usage-cost-v2-context-tier"
 
@@ -77,6 +80,21 @@ CODEX_FAST_TIERED_MODEL_PRICES = {
     ),
 }
 
+CODEX_FAST_TIERED_SPARK_MODEL_PRICES = {
+    **CODEX_FAST_TIERED_MODEL_PRICES,
+    "gpt-5.3-codex-spark": (
+        "3.5",
+        "28",
+        None,
+        "0.35",
+        None,
+        None,
+        None,
+        None,
+        None,
+    ),
+}
+
 MODEL_ALIASES = {
     "anthropic/claude-haiku-4-5-20251001": "claude-haiku-4-5-20251001",
     "anthropic/claude-sonnet-4-6": "claude-sonnet-4-6",
@@ -123,6 +141,40 @@ def ensure_default_price_snapshot(connection: sqlite3.Connection) -> None:
         [
             (DEFAULT_PRICE_SNAPSHOT_ID, model_name) + rates
             for model_name, rates in DEFAULT_MODEL_PRICES.items()
+        ],
+    )
+    connection.execute(
+        """
+        INSERT OR IGNORE INTO usage_price_snapshots(
+            id, label, source_ref, calculator_version, created_at
+        ) VALUES (?, ?, ?, ?, ?)
+        """,
+        (
+            CODEX_FAST_TIERED_SPARK_PRICE_SNAPSHOT_ID,
+            "ccusage 20.0.17 Codex fast request-tier plus Spark trend reference",
+            (
+                "local parity inspection of ccusage 20.0.17 offline Codex "
+                "pricing and fast multiplier on 2026-08-20"
+            ),
+            CONTEXT_TIER_CALCULATOR_VERSION,
+            "2026-08-20T00:00:00Z",
+        ),
+    )
+    connection.executemany(
+        """
+        INSERT OR IGNORE INTO usage_model_prices(
+            snapshot_id, model_name, input_usd_per_million,
+            output_usd_per_million, cache_write_usd_per_million,
+            cache_read_usd_per_million, long_context_threshold_tokens,
+            long_context_input_usd_per_million,
+            long_context_output_usd_per_million,
+            long_context_cache_write_usd_per_million,
+            long_context_cache_read_usd_per_million
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        [
+            (CODEX_FAST_TIERED_SPARK_PRICE_SNAPSHOT_ID, model_name) + rates
+            for model_name, rates in CODEX_FAST_TIERED_SPARK_MODEL_PRICES.items()
         ],
     )
     connection.execute(

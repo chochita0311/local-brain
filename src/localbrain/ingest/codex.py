@@ -21,12 +21,16 @@ from .common import (
     visible_reference_candidates,
     visible_url_evidence,
 )
-from ..usage import CODEX_FAST_TIERED_PRICE_SNAPSHOT_ID
+from ..usage import (
+    CODEX_FAST_TIERED_PRICE_SNAPSHOT_ID,
+    CODEX_FAST_TIERED_SPARK_PRICE_SNAPSHOT_ID,
+)
 
 
 CODEX_USAGE_CONTRACT_VERSION = (
-    "codex-last-token-usage-v5-fast-context-tier-response-message-fallback"
+    "codex-last-token-usage-v7-fast-context-tier-response-message-fallback-guardian-spark-price"
 )
+CODEX_GUARDIAN_TITLE = "Codex guardian"
 
 CODEX_AUTO_REVIEW_FALLBACKS = (
     ("2026-04-23", "gpt-5.5"),
@@ -257,7 +261,11 @@ def _codex_usage_record(
         capability_state=capability_state,
         capability=component_states,
         normalized_model=normalized_model,
-        price_snapshot_id=CODEX_FAST_TIERED_PRICE_SNAPSHOT_ID,
+        price_snapshot_id=(
+            CODEX_FAST_TIERED_SPARK_PRICE_SNAPSHOT_ID
+            if normalized_model == "gpt-5.3-codex-spark"
+            else CODEX_FAST_TIERED_PRICE_SNAPSHOT_ID
+        ),
     )
 
 
@@ -273,6 +281,7 @@ def parse_codex_session(path: Path) -> ParsedSession:
     approved_tool_calls: Dict[str, ApprovedResourceCall] = {}
     skipped_lines = 0
     session_meta_seen = False
+    internal_guardian = False
     primary_started_at: Optional[str] = None
     git_branch: Optional[str] = None
     session_role = "primary"
@@ -354,6 +363,11 @@ def parse_codex_session(path: Path) -> ParsedSession:
                         git_branch = branch.strip()
                 source = payload.get("source")
                 subagent = source.get("subagent") if isinstance(source, dict) else None
+                internal_guardian = bool(
+                    isinstance(subagent, dict)
+                    and isinstance(subagent.get("other"), str)
+                    and subagent["other"].strip().lower() == "guardian"
+                )
                 parent_value = payload.get("parent_thread_id") or payload.get(
                     "forked_from_id"
                 )
@@ -569,7 +583,12 @@ def parse_codex_session(path: Path) -> ParsedSession:
 
     title = compact_title(first_user_text, path.stem)
     session_class, index_policy, maintenance_run_id = session_policy(events)
-    if session_class == "maintenance":
+    if internal_guardian:
+        session_class = "maintenance"
+        index_policy = "metadata_only"
+        maintenance_run_id = None
+        title = CODEX_GUARDIAN_TITLE
+    elif session_class == "maintenance":
         title = "LocalBrain maintenance" + (
             " · " + maintenance_run_id if maintenance_run_id else ""
         )

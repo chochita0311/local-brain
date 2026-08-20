@@ -19,7 +19,9 @@ from localbrain.ingest.scanner import (
     _store_session,
 )
 from localbrain.usage import (
+    CODEX_FAST_PRICE_SNAPSHOT_ID,
     CODEX_FAST_TIERED_PRICE_SNAPSHOT_ID,
+    CODEX_FAST_TIERED_SPARK_PRICE_SNAPSHOT_ID,
     CONTEXT_TIER_CALCULATOR_VERSION,
     DEFAULT_PRICE_SNAPSHOT_ID,
     ensure_default_price_snapshot,
@@ -388,7 +390,7 @@ class UsageContractTests(unittest.TestCase):
 
     def test_codex_tiered_snapshot_freezes_every_supported_model_boundary(self):
         ensure_default_price_snapshot(self.connection)
-        rows = self.connection.execute(
+        legacy_rows = self.connection.execute(
             """
             SELECT model_name, long_context_threshold_tokens,
                    long_context_input_usd_per_million,
@@ -409,7 +411,7 @@ class UsageContractTests(unittest.TestCase):
                     row["long_context_output_usd_per_million"],
                     row["long_context_cache_read_usd_per_million"],
                 )
-                for row in rows
+                for row in legacy_rows
             },
             {
                 "gpt-5.5": (272_000, "25", "112.5", "2.5"),
@@ -418,6 +420,140 @@ class UsageContractTests(unittest.TestCase):
                 "gpt-5.6-terra": (272_000, "10", "45", "1"),
             },
         )
+
+        current_rows = self.connection.execute(
+            """
+            SELECT model_name, input_usd_per_million,
+                   output_usd_per_million, cache_read_usd_per_million,
+                   long_context_threshold_tokens,
+                   long_context_input_usd_per_million,
+                   long_context_output_usd_per_million,
+                   long_context_cache_read_usd_per_million
+            FROM usage_model_prices
+            WHERE snapshot_id = ?
+            ORDER BY model_name
+            """,
+            (CODEX_FAST_TIERED_SPARK_PRICE_SNAPSHOT_ID,),
+        ).fetchall()
+
+        self.assertEqual(
+            {
+                row["model_name"]: (
+                    row["input_usd_per_million"],
+                    row["output_usd_per_million"],
+                    row["cache_read_usd_per_million"],
+                    row["long_context_threshold_tokens"],
+                    row["long_context_input_usd_per_million"],
+                    row["long_context_output_usd_per_million"],
+                    row["long_context_cache_read_usd_per_million"],
+                )
+                for row in current_rows
+            },
+            {
+                "gpt-5.3-codex-spark": (
+                    "3.5",
+                    "28",
+                    "0.35",
+                    None,
+                    None,
+                    None,
+                    None,
+                ),
+                "gpt-5.5": (
+                    "12.5",
+                    "75",
+                    "1.25",
+                    272_000,
+                    "25",
+                    "112.5",
+                    "2.5",
+                ),
+                "gpt-5.6-luna": (
+                    "2",
+                    "12",
+                    "0.20",
+                    200_000,
+                    "4",
+                    "18",
+                    "0.40",
+                ),
+                "gpt-5.6-sol": (
+                    "10",
+                    "60",
+                    "1",
+                    272_000,
+                    "20",
+                    "90",
+                    "2",
+                ),
+                "gpt-5.6-terra": (
+                    "5",
+                    "30",
+                    "0.50",
+                    272_000,
+                    "10",
+                    "45",
+                    "1",
+                ),
+            },
+        )
+
+    def test_codex_spark_fast_price_matches_ccusage_20_0_17(self):
+        path = self._write_jsonl(
+            [
+                {
+                    "type": "session_meta",
+                    "timestamp": "2026-08-03T01:44:00Z",
+                    "payload": {"id": "codex-spark", "cwd": "/tmp/codex"},
+                },
+                {
+                    "type": "turn_context",
+                    "timestamp": "2026-08-03T01:44:01Z",
+                    "payload": {
+                        "turn_id": "spark-turn",
+                        "model": "gpt-5.3-codex-spark",
+                    },
+                },
+                {
+                    "type": "event_msg",
+                    "timestamp": "2026-08-03T01:44:02Z",
+                    "payload": {
+                        "type": "token_count",
+                        "info": {
+                            "last_token_usage": {
+                                "input_tokens": 176_288,
+                                "cached_input_tokens": 102_656,
+                                "output_tokens": 4_177,
+                                "reasoning_output_tokens": 2_640,
+                                "total_tokens": 180_465,
+                            }
+                        },
+                    },
+                },
+            ]
+        )
+
+        parsed = parse_codex_session(path)
+        _store_session(self.connection, self.codex_source_id, "codex", parsed)
+        row = self.connection.execute(
+            """
+            SELECT model_name, input_tokens, cache_read_tokens, output_tokens,
+                   price_snapshot_id, calculation_state, estimated_cost_usd
+            FROM usage_records
+            """
+        ).fetchone()
+
+        self.assertEqual(row["model_name"], "gpt-5.3-codex-spark")
+        self.assertEqual(
+            (row["input_tokens"], row["cache_read_tokens"], row["output_tokens"]),
+            (73_632, 102_656, 4_177),
+        )
+        self.assertEqual(
+            row["price_snapshot_id"],
+            CODEX_FAST_TIERED_SPARK_PRICE_SNAPSHOT_ID,
+        )
+        self.assertEqual(row["calculation_state"], "priced")
+        self.assertEqual(row["estimated_cost_usd"], "0.410597600000")
 
     def test_codex_excludes_initial_subagent_replay_and_keeps_following_delta(self):
         path = self._write_jsonl(
@@ -1269,10 +1405,18 @@ class UsageContractTests(unittest.TestCase):
                 "ok",
             )
             self.assertEqual(
-                upgraded.execute(
-                    "SELECT COUNT(*) FROM usage_price_snapshots"
-                ).fetchone()[0],
-                3,
+                {
+                    row[0]
+                    for row in upgraded.execute(
+                        "SELECT id FROM usage_price_snapshots"
+                    )
+                },
+                {
+                    DEFAULT_PRICE_SNAPSHOT_ID,
+                    CODEX_FAST_PRICE_SNAPSHOT_ID,
+                    CODEX_FAST_TIERED_PRICE_SNAPSHOT_ID,
+                    CODEX_FAST_TIERED_SPARK_PRICE_SNAPSHOT_ID,
+                },
             )
             columns = {
                 row[1]

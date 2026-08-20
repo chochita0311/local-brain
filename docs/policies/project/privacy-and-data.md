@@ -51,6 +51,8 @@ sync can import it after meaningful growth.
 
 An in-app Task Runner stream remains a private Run artifact used for the Run Console and result parsing. It must not be re-imported as a Session, Usage Record, Local Context document, Activity Event, or search row. The selected Claude or Codex runner's persisted native JSONL is the sole Session and Usage source for that execution; maintenance policy keeps its content and resolved child content out of ordinary activity and search consumers while their direct real-model Usage Records remain eligible for cost totals.
 
+Recognized provider-internal Codex guardian JSONL follows the same content boundary without becoming a LocalBrain Run: LocalBrain retains only its normalized Session metadata, parent relation, and direct Usage Records. Approval-review prompts and decisions, including embedded Session history, remain outside Activity Events, search, question counts, and ordinary Session/Subsession presentation.
+
 Removing a source from LocalBrain must be distinguished from deleting the original local file or note. The application must not delete an original source as a side effect of unregistering or purging its index.
 
 General backup, user-facing restore, retention, purge, encryption, and broader schema-recovery controls remain open work tracked in the [Project Backlog](../../plans/project/backlog.md); a migration-specific recovery copy does not close that wider requirement.

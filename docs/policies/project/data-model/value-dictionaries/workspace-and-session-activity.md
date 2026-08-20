@@ -29,9 +29,9 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: session ownership class
 - Default: `work`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/ingest/scanner.py`, `src/localbrain/runner.py`
+- Producers: `src/localbrain/ingest/codex.py`, `src/localbrain/ingest/scanner.py`, `src/localbrain/runner.py`
 - Consumers: `src/localbrain/queries.py`, `src/localbrain/retrieval.py`
-- Consequence: Maintenance Sessions are excluded from ordinary user Session surfaces.
+- Consequence: Maintenance Sessions, including recognized provider-internal helpers, are excluded from ordinary user Session surfaces.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
 - Help: none
@@ -61,7 +61,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: search indexing policy
 - Default: `full`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/ingest/scanner.py`, `src/localbrain/runner.py`
+- Producers: `src/localbrain/ingest/codex.py`, `src/localbrain/ingest/scanner.py`, `src/localbrain/runner.py`
 - Consumers: `src/localbrain/retrieval.py`
 - Consequence: Metadata-only Sessions never expose conversation content to search.
 - Presentation mode: `internal-only`

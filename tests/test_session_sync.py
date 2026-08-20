@@ -8,6 +8,7 @@ from localbrain.config import Settings
 from localbrain import db
 from localbrain.ingest import scanner
 from localbrain.main import scan_sources_page, sync_session_sources, sync_sessions_page
+from localbrain.queries import session_detail, session_subsessions
 
 
 class SessionSyncTests(unittest.TestCase):
@@ -110,6 +111,70 @@ root = "{company}"
             encoding="utf-8",
         )
 
+    def _write_codex_guardian(
+        self, path: Path, external_id: str, parent_external_id: str
+    ):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(
+            "\n".join(
+                json.dumps(record)
+                for record in (
+                    {
+                        "type": "session_meta",
+                        "timestamp": "2026-08-20T01:00:00Z",
+                        "payload": {
+                            "id": external_id,
+                            "cwd": "/tmp/project",
+                            "source": {"subagent": {"other": "guardian"}},
+                            "parent_thread_id": parent_external_id,
+                        },
+                    },
+                    {
+                        "type": "turn_context",
+                        "timestamp": "2026-08-20T01:00:01Z",
+                        "payload": {
+                            "turn_id": "guardian-turn",
+                            "model": "gpt-5.6-sol",
+                        },
+                    },
+                    {
+                        "type": "event_msg",
+                        "timestamp": "2026-08-20T01:00:02Z",
+                        "payload": {
+                            "type": "user_message",
+                            "message": "The following is the Codex agent history whose request action you are assessing.",
+                        },
+                    },
+                    {
+                        "type": "event_msg",
+                        "timestamp": "2026-08-20T01:00:03Z",
+                        "payload": {
+                            "type": "agent_message",
+                            "message": '{"outcome":"allow"}',
+                        },
+                    },
+                    {
+                        "type": "event_msg",
+                        "timestamp": "2026-08-20T01:00:04Z",
+                        "payload": {
+                            "type": "token_count",
+                            "info": {
+                                "last_token_usage": {
+                                    "input_tokens": 10,
+                                    "cached_input_tokens": 2,
+                                    "output_tokens": 5,
+                                    "reasoning_output_tokens": 1,
+                                    "total_tokens": 15,
+                                }
+                            },
+                        },
+                    },
+                )
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+
     def test_session_scan_report_dispatches_all_three_configured_sources(self):
         with tempfile.TemporaryDirectory() as temporary:
             settings = self._settings(Path(temporary))
@@ -158,6 +223,111 @@ root = "{company}"
             ["claude", "codex", "codex"],
         )
         scan_context.assert_not_called()
+
+    def test_codex_guardian_repair_keeps_usage_and_suppresses_work_surfaces(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            settings = self._settings(root)
+            parent_path = settings.codex_root / "2026" / "08" / "parent.jsonl"
+            guardian_path = settings.codex_root / "2026" / "08" / "guardian.jsonl"
+            self._write_codex_session(parent_path, "codex-parent", "Primary work")
+            self._write_codex_guardian(
+                guardian_path, "codex-guardian", "codex-parent"
+            )
+
+            with patch.object(db, "settings", settings), patch.object(
+                scanner, "settings", settings
+            ):
+                db.init_db()
+                with db.connect() as connection:
+                    source_id = scanner._upsert_source(
+                        connection,
+                        "codex",
+                        "codex",
+                        "Codex",
+                        settings.codex_root,
+                    )
+                    parsed_guardian = scanner.parse_codex_session(guardian_path)
+                    parsed_guardian.session_class = "work"
+                    parsed_guardian.index_policy = "full"
+                    parsed_guardian.title = "Approval history prompt"
+                    guardian_id = scanner._store_session(
+                        connection,
+                        source_id,
+                        "codex",
+                        parsed_guardian,
+                        usage_contract_version="codex-legacy-guardian-work-v1",
+                        provider_kind="codex",
+                    )
+                    scanner._record_source_file(
+                        connection,
+                        source_id,
+                        guardian_path,
+                        usage_contract_version="codex-legacy-guardian-work-v1",
+                        session_id=guardian_id,
+                    )
+                    connection.commit()
+
+                report = scanner.scan_session_sources()
+
+                with db.connect() as connection:
+                    rows = {
+                        row["external_id"]: row
+                        for row in connection.execute(
+                            """
+                            SELECT sessions.id AS id, external_id, title, session_class,
+                                   session_role, parent_session_id, index_policy,
+                                   event_count, user_message_count,
+                                   assistant_message_count
+                            FROM sessions
+                            JOIN sources ON sources.id = sessions.source_id
+                            WHERE sources.kind = 'codex'
+                            ORDER BY sessions.external_id
+                            """
+                        ).fetchall()
+                    }
+                    parent = rows["codex-parent"]
+                    guardian = rows["codex-guardian"]
+                    guardian_event_count = connection.execute(
+                        "SELECT COUNT(*) FROM activity_events WHERE session_id = ?",
+                        (guardian["id"],),
+                    ).fetchone()[0]
+                    guardian_usage_count = connection.execute(
+                        "SELECT COUNT(*) FROM usage_records WHERE session_id = ?",
+                        (guardian["id"],),
+                    ).fetchone()[0]
+                    guardian_search_count = connection.execute(
+                        """
+                        SELECT COUNT(*) FROM search_index
+                        WHERE entity_type = 'session' AND entity_id = ?
+                        """,
+                        (str(guardian["id"]),),
+                    ).fetchone()[0]
+                    visible_children = session_subsessions(connection, parent["id"])
+                    guardian_detail = session_detail(connection, guardian["id"])
+
+        codex_report = next(
+            item for item in report["sources"] if item["source_key"] == "codex"
+        )
+        self.assertEqual(codex_report["status"], "completed")
+        self.assertEqual(guardian["title"], "Codex guardian")
+        self.assertEqual(guardian["session_class"], "maintenance")
+        self.assertEqual(guardian["session_role"], "subsession")
+        self.assertEqual(guardian["parent_session_id"], parent["id"])
+        self.assertEqual(guardian["index_policy"], "metadata_only")
+        self.assertEqual(
+            (
+                guardian["event_count"],
+                guardian["user_message_count"],
+                guardian["assistant_message_count"],
+            ),
+            (0, 0, 0),
+        )
+        self.assertEqual(guardian_event_count, 0)
+        self.assertEqual(guardian_usage_count, 1)
+        self.assertEqual(guardian_search_count, 0)
+        self.assertEqual(visible_children, [])
+        self.assertIsNone(guardian_detail)
 
     def test_claude_scan_excludes_nested_workflow_journal_and_reconciles_false_import(self):
         with tempfile.TemporaryDirectory() as temporary:

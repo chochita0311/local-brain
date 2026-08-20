@@ -344,6 +344,7 @@ class ParserTests(unittest.TestCase):
                     "timestamp": "2026-07-12T02:00:00Z",
                     "payload": {
                         "id": "embedded-old-session",
+                        "source": {"subagent": {"other": "guardian"}},
                         "parent_thread_id": "wrong-parent",
                         "git": {"branch": "wrong-branch"},
                     },
@@ -355,6 +356,72 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(parsed.session_role, "subsession")
         self.assertEqual(parsed.parent_external_id, "codex-parent")
         self.assertEqual(parsed.git_branch, "feature/session-ui")
+        self.assertEqual(parsed.session_class, "work")
+        self.assertEqual(parsed.index_policy, "full")
+
+    def test_codex_guardian_is_metadata_only_maintenance_subsession(self):
+        path = self._write_jsonl(
+            [
+                {
+                    "type": "session_meta",
+                    "timestamp": "2026-08-20T01:00:00Z",
+                    "payload": {
+                        "id": "codex-guardian",
+                        "cwd": "/tmp/project",
+                        "source": {"subagent": {"other": "guardian"}},
+                        "parent_thread_id": "codex-parent",
+                    },
+                },
+                {
+                    "type": "turn_context",
+                    "timestamp": "2026-08-20T01:00:01Z",
+                    "payload": {"turn_id": "guardian-turn", "model": "gpt-5.6-sol"},
+                },
+                {
+                    "type": "event_msg",
+                    "timestamp": "2026-08-20T01:00:02Z",
+                    "payload": {
+                        "type": "user_message",
+                        "message": "The following is the Codex agent history whose request action you are assessing.",
+                    },
+                },
+                {
+                    "type": "event_msg",
+                    "timestamp": "2026-08-20T01:00:03Z",
+                    "payload": {
+                        "type": "agent_message",
+                        "message": '{"outcome":"allow"}',
+                    },
+                },
+                {
+                    "type": "event_msg",
+                    "timestamp": "2026-08-20T01:00:04Z",
+                    "payload": {
+                        "type": "token_count",
+                        "info": {
+                            "last_token_usage": {
+                                "input_tokens": 10,
+                                "cached_input_tokens": 2,
+                                "output_tokens": 5,
+                                "reasoning_output_tokens": 1,
+                                "total_tokens": 15,
+                            }
+                        },
+                    },
+                },
+            ]
+        )
+
+        parsed = parse_codex_session(path)
+
+        self.assertEqual(parsed.session_role, "subsession")
+        self.assertEqual(parsed.parent_external_id, "codex-parent")
+        self.assertEqual(parsed.session_class, "maintenance")
+        self.assertEqual(parsed.index_policy, "metadata_only")
+        self.assertIsNone(parsed.maintenance_run_id)
+        self.assertEqual(parsed.title, "Codex guardian")
+        self.assertEqual(len(parsed.events), 2)
+        self.assertEqual(len(parsed.usage_records), 1)
 
     def test_claude_subagent_path_produces_parent_identity(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
