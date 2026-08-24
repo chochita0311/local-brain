@@ -477,17 +477,136 @@ function bindScanAction(button, result, endpoint, actionLabel) {
   });
 }
 
+function restoreScanAction(button, idle, working) {
+  button.disabled = false;
+  button.removeAttribute("aria-busy");
+  idle.hidden = false;
+  working.hidden = true;
+  button.focus({ preventScroll: true });
+}
+
+function bindSessionSyncAction(button, result) {
+  if (!button || !result) return;
+  const eventTarget = button.form || button;
+  const eventName = button.form ? "submit" : "click";
+  eventTarget.addEventListener(eventName, async (event) => {
+    event.preventDefault();
+    const idle = button.querySelector(".button-idle");
+    const working = button.querySelector(".button-working");
+    const plans = new Map();
+    button.disabled = true;
+    button.setAttribute("aria-busy", "true");
+    idle.hidden = true;
+    working.hidden = false;
+    result.textContent = "동기화 준비 중...";
+    result.className = "scan-result working";
+    result.setAttribute("role", "status");
+    result.hidden = false;
+
+    const renderProgress = (message) => {
+      result.textContent = message;
+      result.className = "scan-result working";
+      result.setAttribute("role", "status");
+      result.hidden = false;
+    };
+
+    const consumeEvent = (payload) => {
+      const label = payload.display_label || payload.source_key || "Session source";
+      if (payload.type === "source_started") {
+        renderProgress(`${label} 준비 중...`);
+      } else if (payload.type === "source_plan") {
+        plans.set(payload.source_key, payload);
+        const repairLabels = { session: "Session", usage: "Usage", reference: "참조" };
+        const repairs = Array.isArray(payload.repair_kinds)
+          ? payload.repair_kinds.map((kind) => repairLabels[kind]).filter(Boolean)
+          : [];
+        const activity = repairs.length
+          ? `${repairs.join(" · ")} 계약 업그레이드`
+          : payload.mode === "forced"
+            ? "전체 다시 처리"
+            : "변경 확인";
+        renderProgress(`${label} ${activity} · 0/${Number(payload.total_files || 0)}`);
+      } else if (payload.type === "source_progress") {
+        const plan = plans.get(payload.source_key);
+        const repair = plan && Array.isArray(plan.repair_kinds) && plan.repair_kinds.length;
+        const activity = repair ? "계약 업그레이드" : "동기화";
+        renderProgress(
+          `${label} ${activity} · ${Number(payload.processed_files || 0)}/${Number(payload.total_files || 0)}`,
+        );
+      } else if (payload.type === "source_result") {
+        renderProgress(
+          `${label} 완료 · ${Number(payload.imported || 0)}개 처리 · ${Number(payload.unchanged || 0)}개 변경 없음`,
+        );
+      } else if (payload.type === "sync_complete") {
+        renderProgress("동기화 결과를 정리하는 중...");
+      }
+    };
+
+    try {
+      const supportsStreaming = Boolean(window.ReadableStream && window.TextDecoder);
+      const response = await fetch(
+        supportsStreaming ? "/api/sessions/sync/stream" : "/api/sessions/sync",
+        { method: "POST" },
+      );
+      if (!response.ok) throw new Error("request-failed");
+
+      let report = null;
+      if (!supportsStreaming) {
+        const data = await response.json();
+        report = data.report;
+      } else {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let terminalError = false;
+        const consumeLine = (line) => {
+          if (!line.trim()) return;
+          const payload = JSON.parse(line);
+          if (payload.type === "result" && payload.ok) {
+            report = payload.report;
+          } else if (payload.type === "error") {
+            terminalError = true;
+          } else {
+            consumeEvent(payload);
+          }
+        };
+        while (true) {
+          const { value, done } = await reader.read();
+          buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
+          lines.forEach(consumeLine);
+          if (done) break;
+        }
+        consumeLine(buffer);
+        if (terminalError || !report) throw new Error("sync-failed");
+      }
+
+      const outcome = renderScanReport(result, report, "동기화");
+      if (outcome === "complete") {
+        window.setTimeout(() => window.location.reload(), 900);
+        return;
+      }
+      restoreScanAction(button, idle, working);
+    } catch (_error) {
+      result.textContent = "동기화 요청을 처리하지 못했습니다. 기존 데이터는 유지됩니다. 다시 시도하거나 소스 설정을 확인하세요.";
+      result.className = "scan-result scan-report error";
+      result.setAttribute("role", "alert");
+      result.hidden = false;
+      restoreScanAction(button, idle, working);
+    }
+  });
+}
+
 bindScanAction(
   document.querySelector("#scan-button"),
   document.querySelector("#scan-result"),
   "/api/scan",
   "스캔",
 );
-bindScanAction(
+bindSessionSyncAction(
   document.querySelector("#session-sync-button"),
   document.querySelector("#session-sync-result"),
-  "/api/sessions/sync",
-  "동기화",
 );
 
 async function requestJson(endpoint, options = {}) {

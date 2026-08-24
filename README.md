@@ -41,10 +41,12 @@ schema, bootstrap behavior, and safe-change rules.
 
 To import local AI sessions, use **동기화** on the Sessions page. One action scans
 every validated registry entry; a missing or invalid source keeps its existing
-indexed data and appears as needing attention. The **Sources** page keeps the
-wider scan across Session sources and enabled Local Context folders, files, and
-Apple Notes. The initial `uv sync` downloads Python packages, but indexed content
-and runtime data remain on the local machine.
+indexed data and appears as needing attention. Longer contract upgrades show the
+current source, repair reason, and file progress in the existing result area.
+The **Sources** page keeps the wider scan across Session sources and enabled
+Local Context folders, files, and Apple Notes. The initial `uv sync` downloads
+Python packages, but indexed content and runtime data remain on the local
+machine.
 
 Sessions supports combined and per-source inventory scopes without an age cutoff. The [Session inventory contract](docs/policies/project/product.md#application-navigation-and-session-inventory), [analytical read models](docs/policies/project/architecture.md#analytical-read-models), and [Schema Explorer boundary](docs/policies/project/architecture.md#persistence-model) own the detailed behavior.
 

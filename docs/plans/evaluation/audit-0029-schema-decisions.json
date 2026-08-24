@@ -3,10 +3,10 @@
   "review_status": "complete",
   "manifest": {
     "path": "src/localbrain/schema-presentation.json",
-    "sha256": "e06557790230bf5068eb3c2100be993e15414e1e19f5e2240f93b6e916a610ae",
+    "sha256": "cd8404e5f167fb9f3b9055923b2a7ca272ea2ade896eb8c62cbb1b90eb5b4f07",
     "expected": {
       "tables": 39,
-      "columns": 426,
+      "columns": 427,
       "indexes": 38,
       "physical_relations": 49,
       "application_relations": 24

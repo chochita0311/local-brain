@@ -18,6 +18,16 @@ CODEX_FAST_TIERED_SPARK_PRICE_SNAPSHOT_ID = (
 CALCULATOR_VERSION = "localbrain-usage-cost-v1"
 CONTEXT_TIER_CALCULATOR_VERSION = "localbrain-usage-cost-v2-context-tier"
 
+
+class UsagePersistenceCache:
+    def __init__(self) -> None:
+        self.defaults_ready = False
+        self.price_rows: Dict[
+            tuple[str, Optional[str]], Optional[sqlite3.Row]
+        ] = {}
+        self.calculator_versions: Dict[str, str] = {}
+
+
 DEFAULT_MODEL_PRICES: Dict[str, Tuple[str, str, Optional[str], Optional[str]]] = {
     "claude-haiku-4-5-20251001": ("1", "5", "1.25", "0.10"),
     "claude-sonnet-4-6": ("3", "15", "3.75", "0.30"),
@@ -394,8 +404,12 @@ def store_usage_records(
     workspace_id: Optional[int] = None,
     normalizer_version: str = "legacy-v1",
     identity_scope: Optional[str] = None,
+    cache: Optional[UsagePersistenceCache] = None,
 ) -> None:
-    ensure_default_price_snapshot(connection)
+    persistence_cache = cache or UsagePersistenceCache()
+    if not persistence_cache.defaults_ready:
+        ensure_default_price_snapshot(connection)
+        persistence_cache.defaults_ready = True
     records = sorted(list(usage_records), key=lambda item: (item.source_line, item.usage_record_id))
     existing_rows = connection.execute(
         "SELECT * FROM usage_records WHERE session_id = ? ORDER BY source_line, id",
@@ -428,6 +442,7 @@ def store_usage_records(
 
     connection.execute("SAVEPOINT usage_record_reconcile")
     try:
+        upsert_values = []
         for record in records:
             record_id = stored_record_id(record)
             existing = existing_by_id.get(record_id)
@@ -445,8 +460,19 @@ def store_usage_records(
                 else DEFAULT_PRICE_SNAPSHOT_ID
             )
             model_name = normalize_model(record.normalized_model or record.raw_model)
-            price = _price_row(connection, snapshot_id, model_name)
-            calculator_version = _snapshot_calculator_version(connection, snapshot_id)
+            price_key = (snapshot_id, model_name)
+            if price_key not in persistence_cache.price_rows:
+                persistence_cache.price_rows[price_key] = _price_row(
+                    connection, snapshot_id, model_name
+                )
+            price = persistence_cache.price_rows[price_key]
+            if snapshot_id not in persistence_cache.calculator_versions:
+                persistence_cache.calculator_versions[snapshot_id] = (
+                    _snapshot_calculator_version(connection, snapshot_id)
+                )
+            calculator_version = persistence_cache.calculator_versions[
+                snapshot_id
+            ]
             calculation_state, estimated_cost_usd = calculate_estimated_cost(
                 record, price
             )
@@ -485,8 +511,47 @@ def store_usage_records(
                 )
                 else utc_now()
             )
-            connection.execute(
-                """
+            upsert_values.append(
+                (
+                    record_id,
+                    source_id,
+                    session_id,
+                    record.source_record_id,
+                    record.source_line,
+                    record.occurred_at,
+                    record.raw_model,
+                    model_name,
+                    record.input_tokens,
+                    record.output_tokens,
+                    record.cache_write_tokens,
+                    record.cache_read_tokens,
+                    record.reasoning_tokens,
+                    record.source_total_tokens,
+                    record.total_tokens,
+                    record.total_semantics,
+                    record.aggregation_scope,
+                    record.capability_state,
+                    json.dumps(
+                        record.capability, ensure_ascii=False, sort_keys=True
+                    ),
+                    calculation_state,
+                    estimated_cost_usd,
+                    snapshot_id,
+                    calculator_version,
+                    normalizer_version,
+                    calculated_at,
+                    attribution["workspace_id_snapshot"],
+                    attribution["project_key"],
+                    attribution["project_name_snapshot"],
+                    attribution["project_path_snapshot"],
+                    attribution["project_git_root_snapshot"],
+                    attribution["attribution_basis"],
+                    attribution["attributed_at"],
+                    utc_now(),
+                )
+            )
+        connection.executemany(
+            """
                 INSERT INTO usage_records(
                     id, source_id, session_id, source_record_id, source_line,
                     occurred_at, raw_model, model_name, input_tokens, output_tokens,
@@ -523,43 +588,9 @@ def store_usage_records(
                     normalizer_version = excluded.normalizer_version,
                     calculated_at = excluded.calculated_at,
                     imported_at = excluded.imported_at
-                """,
-                (
-                    record_id,
-                    source_id,
-                    session_id,
-                    record.source_record_id,
-                    record.source_line,
-                    record.occurred_at,
-                    record.raw_model,
-                    model_name,
-                    record.input_tokens,
-                    record.output_tokens,
-                    record.cache_write_tokens,
-                    record.cache_read_tokens,
-                    record.reasoning_tokens,
-                    record.source_total_tokens,
-                    record.total_tokens,
-                    record.total_semantics,
-                    record.aggregation_scope,
-                    record.capability_state,
-                    json.dumps(record.capability, ensure_ascii=False, sort_keys=True),
-                    calculation_state,
-                    estimated_cost_usd,
-                    snapshot_id,
-                    calculator_version,
-                    normalizer_version,
-                    calculated_at,
-                    attribution["workspace_id_snapshot"],
-                    attribution["project_key"],
-                    attribution["project_name_snapshot"],
-                    attribution["project_path_snapshot"],
-                    attribution["project_git_root_snapshot"],
-                    attribution["attribution_basis"],
-                    attribution["attributed_at"],
-                    utc_now(),
-                ),
-            )
+            """,
+            upsert_values,
+        )
 
     except Exception:
         connection.execute("ROLLBACK TO usage_record_reconcile")

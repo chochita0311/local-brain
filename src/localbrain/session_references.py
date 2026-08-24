@@ -5,12 +5,16 @@ import sqlite3
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, Optional, Sequence
+from typing import Dict, Iterable, Optional, Sequence
 from urllib.parse import urlsplit, urlunsplit
 
 from .atlassian import create_or_reuse_atlassian_stub
 from .atlassian_evidence import recognize_configured_atlassian_item_url
-from .ingest.common import ParsedReferenceCandidate, REFERENCE_EXTRACTOR_VERSION
+from .ingest.common import (
+    ParsedReferenceCandidate,
+    REFERENCE_EXTRACTOR_VERSION,
+    trim_url_token,
+)
 from .workstreams import utc_now
 
 
@@ -42,6 +46,22 @@ class ResolvedReferenceEvidence:
     observed_at: Optional[str]
 
 
+@dataclass(frozen=True)
+class SessionReferenceLookup:
+    by_normalized_path: Dict[str, tuple[sqlite3.Row, ...]]
+    by_workspace_name: Dict[tuple[int, str], tuple[sqlite3.Row, ...]]
+
+
+class SessionReferenceLookupCache:
+    def __init__(self) -> None:
+        self._lookup: Optional[SessionReferenceLookup] = None
+
+    def get(self, connection: sqlite3.Connection) -> SessionReferenceLookup:
+        if self._lookup is None:
+            self._lookup = build_session_reference_lookup(connection)
+        return self._lookup
+
+
 @contextmanager
 def _atomic(connection: sqlite3.Connection, name: str):
     connection.execute("SAVEPOINT {}".format(name))
@@ -64,7 +84,7 @@ def _hash_payload(value: object) -> str:
 
 def _safe_generic_url(value: str) -> Optional[str]:
     try:
-        parsed = urlsplit(value.strip())
+        parsed = urlsplit(trim_url_token(value.strip()))
         port = parsed.port
     except (TypeError, ValueError):
         return None
@@ -122,12 +142,34 @@ def _eligible_document_rows(
     return connection.execute(query, values).fetchall()
 
 
+def build_session_reference_lookup(
+    connection: sqlite3.Connection,
+) -> SessionReferenceLookup:
+    by_normalized_path: Dict[str, list[sqlite3.Row]] = {}
+    by_workspace_name: Dict[tuple[int, str], list[sqlite3.Row]] = {}
+    for row in _eligible_document_rows(connection):
+        normalized_path = os.path.abspath(os.path.normpath(row["path"]))
+        by_normalized_path.setdefault(normalized_path, []).append(row)
+        if row["workspace_id"] is not None:
+            key = (int(row["workspace_id"]), Path(row["path"]).name)
+            by_workspace_name.setdefault(key, []).append(row)
+    return SessionReferenceLookup(
+        by_normalized_path={
+            key: tuple(rows) for key, rows in by_normalized_path.items()
+        },
+        by_workspace_name={
+            key: tuple(rows) for key, rows in by_workspace_name.items()
+        },
+    )
+
+
 def _resolve_markdown(
     connection: sqlite3.Connection,
     *,
     candidate: ParsedReferenceCandidate,
     session: sqlite3.Row,
     source_path: str,
+    lookup: Optional[SessionReferenceLookup] = None,
 ) -> Optional[ResolvedReferenceEvidence]:
     reference = candidate.reference.strip()
     if not reference.lower().endswith(".md"):
@@ -136,32 +178,47 @@ def _resolve_markdown(
     rows: list[sqlite3.Row]
     if path.is_absolute():
         normalized_path = os.path.abspath(os.path.normpath(reference))
-        rows = [
-            row
-            for row in _eligible_document_rows(connection)
-            if os.path.abspath(os.path.normpath(row["path"])) == normalized_path
-        ]
+        rows = (
+            list(lookup.by_normalized_path.get(normalized_path, ()))
+            if lookup is not None
+            else [
+                row
+                for row in _eligible_document_rows(connection)
+                if os.path.abspath(os.path.normpath(row["path"]))
+                == normalized_path
+            ]
+        )
     elif "/" in reference or reference.startswith("."):
         if not session["cwd_raw"]:
             return None
         normalized_path = os.path.abspath(
             os.path.normpath(os.path.join(session["cwd_raw"], reference))
         )
-        rows = [
-            row
-            for row in _eligible_document_rows(connection)
-            if os.path.abspath(os.path.normpath(row["path"])) == normalized_path
-        ]
+        rows = (
+            list(lookup.by_normalized_path.get(normalized_path, ()))
+            if lookup is not None
+            else [
+                row
+                for row in _eligible_document_rows(connection)
+                if os.path.abspath(os.path.normpath(row["path"]))
+                == normalized_path
+            ]
+        )
     else:
         if session["workspace_id"] is None:
             return None
-        rows = [
-            row
-            for row in _eligible_document_rows(
-                connection, workspace_id=int(session["workspace_id"])
-            )
-            if Path(row["path"]).name == reference
-        ]
+        workspace_id = int(session["workspace_id"])
+        rows = (
+            list(lookup.by_workspace_name.get((workspace_id, reference), ()))
+            if lookup is not None
+            else [
+                row
+                for row in _eligible_document_rows(
+                    connection, workspace_id=workspace_id
+                )
+                if Path(row["path"]).name == reference
+            ]
+        )
     if len(rows) != 1:
         return None
     document = rows[0]
@@ -362,6 +419,7 @@ def _resolve_candidate(
     candidate: ParsedReferenceCandidate,
     session: sqlite3.Row,
     source_path: str,
+    lookup: Optional[SessionReferenceLookup] = None,
 ) -> Optional[ResolvedReferenceEvidence]:
     if candidate.reference_kind == "markdown":
         return _resolve_markdown(
@@ -369,6 +427,7 @@ def _resolve_candidate(
             candidate=candidate,
             session=session,
             source_path=source_path,
+            lookup=lookup,
         )
     if candidate.reference_kind == "url":
         return _resolve_url(
@@ -568,6 +627,7 @@ def reconcile_session_references(
     source_mtime_ns: int,
     candidates: Sequence[ParsedReferenceCandidate],
     finalize: bool = True,
+    lookup: Optional[SessionReferenceLookup] = None,
 ) -> int:
     session = connection.execute(
         """
@@ -611,6 +671,7 @@ def reconcile_session_references(
                     candidate=candidate,
                     session=session,
                     source_path=source_path,
+                    lookup=lookup,
                 )
                 if item is None:
                     continue
@@ -639,25 +700,25 @@ def reconcile_session_references(
                 (session_id, source_path),
             )
             now = utc_now()
-            for evidence_key, item in resolved:
-                connection.execute(
-                    """
-                    INSERT INTO session_reference_evidence(
-                        session_id, source_path, source_event_id, source_line,
-                        evidence_ordinal, target_kind, target_key,
-                        context_document_id, external_resource_id,
-                        evidence_kind, read_outcome, observed_identity,
-                        normalized_url, tool_name, tool_call_id, observed_at,
-                        extractor_version, evidence_key,
-                        first_observed_at, last_observed_at, updated_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ON CONFLICT(evidence_key) DO UPDATE SET
-                        observed_identity = excluded.observed_identity,
-                        normalized_url = excluded.normalized_url,
-                        observed_at = excluded.observed_at,
-                        last_observed_at = excluded.last_observed_at,
-                        updated_at = excluded.updated_at
-                    """,
+            connection.executemany(
+                """
+                INSERT INTO session_reference_evidence(
+                    session_id, source_path, source_event_id, source_line,
+                    evidence_ordinal, target_kind, target_key,
+                    context_document_id, external_resource_id,
+                    evidence_kind, read_outcome, observed_identity,
+                    normalized_url, tool_name, tool_call_id, observed_at,
+                    extractor_version, evidence_key,
+                    first_observed_at, last_observed_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(evidence_key) DO UPDATE SET
+                    observed_identity = excluded.observed_identity,
+                    normalized_url = excluded.normalized_url,
+                    observed_at = excluded.observed_at,
+                    last_observed_at = excluded.last_observed_at,
+                    updated_at = excluded.updated_at
+                """,
+                [
                     (
                         session_id,
                         item.source_path,
@@ -680,8 +741,10 @@ def reconcile_session_references(
                         prior_first_observed.get(evidence_key, now),
                         now,
                         now,
-                    ),
-                )
+                    )
+                    for evidence_key, item in resolved
+                ],
+            )
 
         if finalize:
             return finalize_session_references(
@@ -911,6 +974,17 @@ def session_reference_projection(
 
     items = []
     for target_rows in grouped.values():
+        first_occurrence = min(
+            target_rows,
+            key=lambda row: (
+                0 if row["observed_at"] else 1,
+                row["observed_at"] or "",
+                row["source_path"],
+                row["source_line"],
+                row["evidence_ordinal"],
+                row["target_key"],
+            ),
+        )
         target_rows = sorted(
             target_rows,
             key=lambda row: (
@@ -973,14 +1047,16 @@ def session_reference_projection(
                     evidence[0]["kind"], evidence[0]["outcome"]
                 ) if evidence else 5,
                 "_sort_key": (
-                    strongest["source_path"],
-                    strongest["source_line"],
-                    strongest["evidence_ordinal"],
-                    strongest["target_key"],
+                    0 if first_occurrence["observed_at"] else 1,
+                    first_occurrence["observed_at"] or "",
+                    first_occurrence["source_path"],
+                    first_occurrence["source_line"],
+                    first_occurrence["evidence_ordinal"],
+                    first_occurrence["target_key"],
                 ),
             }
         )
-    items.sort(key=lambda item: (item["rank"], item["_sort_key"]))
+    items.sort(key=lambda item: item["_sort_key"])
     for item in items:
         item.pop("_sort_key")
     return {

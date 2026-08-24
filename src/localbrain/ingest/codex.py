@@ -30,6 +30,9 @@ from ..usage import (
 CODEX_USAGE_CONTRACT_VERSION = (
     "codex-last-token-usage-v7-fast-context-tier-response-message-fallback-guardian-spark-price"
 )
+CODEX_SESSION_CONTRACT_VERSION = (
+    "codex-session-v3-response-message-fallback-user-prompt-guardian"
+)
 CODEX_GUARDIAN_TITLE = "Codex guardian"
 
 CODEX_AUTO_REVIEW_FALLBACKS = (
@@ -41,6 +44,25 @@ CODEX_AUTO_REVIEW_FALLBACKS = (
     ("2025-09-15", "gpt-5-codex"),
     ("2025-08-07", "gpt-5"),
 )
+
+
+def _codex_generated_user_context(text: str) -> bool:
+    value = text.strip()
+    if (
+        value.startswith("<skill>\n<name>")
+        and "\n<path>" in value
+        and value.endswith("\n</skill>")
+    ):
+        return True
+    if (
+        value.startswith("# AGENTS.md instructions for ")
+        and "\n<INSTRUCTIONS>" in value
+        and "\n</INSTRUCTIONS>" in value
+    ):
+        return True
+    return value.startswith("<environment_context>") and value.endswith(
+        "</environment_context>"
+    )
 
 
 def _resolved_codex_model(
@@ -544,14 +566,20 @@ def parse_codex_session(path: Path) -> ParsedSession:
                     )
                 )
 
-    last_user_by_turn = {
+    last_visible_user_by_turn = {
         message["turn_id"]: index
         for index, message in enumerate(response_messages)
-        if message["role"] == "user" and message["turn_id"]
+        if (
+            message["role"] == "user"
+            and message["turn_id"]
+            and not _codex_generated_user_context(message["text"])
+        )
     }
     for index, message in enumerate(response_messages):
         role = message["role"]
         turn_id = message["turn_id"]
+        if role == "user" and _codex_generated_user_context(message["text"]):
+            continue
         if (
             (turn_id and (role, turn_id) in event_message_turns)
             or message["text"].strip() in event_message_texts[role]
@@ -560,7 +588,7 @@ def parse_codex_session(path: Path) -> ParsedSession:
         if (
             role == "user"
             and turn_id
-            and last_user_by_turn.get(turn_id) != index
+            and last_visible_user_by_turn.get(turn_id) != index
         ):
             continue
         append_message_event(

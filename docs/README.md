@@ -49,9 +49,10 @@ Sequencing and unresolved work live under `docs/plans/`.
 - [Plans Index](plans/README.md): open planning boundaries, active execution, recently completed chains, and artifact locations
 - [Project Roadmap](plans/project/roadmap.md): phase direction, current priorities, validation strategy, and risk controls
 - [Project Backlog](plans/project/backlog.md): detailed open work and decisions ordered by priority
-- [Planning Artifact Catalog](plans/artifact-catalog.md): generated navigation for all tracked historical planning and execution artifacts
+- [Planning Artifact Catalog](plans/artifact-catalog.md): generated navigation for tracked PRD, Feature, Spec, Run, Evaluation, Fix, and heuristic artifacts
 - `docs/plans/prd/`, `feature/`, and `spec/`: planning and implementation boundaries across their lifecycle
 - `docs/plans/run/`, `evaluation/`, `fix/`, and `heuristic/`: execution and review artifacts
+- `docs/plans/refactoring/`: scoped refactor tracks and their validation or merge-check logs
 
 ## Ownership Rules
 

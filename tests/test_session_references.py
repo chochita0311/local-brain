@@ -9,8 +9,10 @@ from localbrain.ingest.common import (
     ParsedReferenceCandidate,
     REFERENCE_EXTRACTOR_VERSION,
 )
+from localbrain import session_references
 from localbrain.ingest import scanner
 from localbrain.session_references import (
+    SessionReferenceLookupCache,
     finalize_session_references,
     reconcile_session_references,
     session_reference_projection,
@@ -256,6 +258,58 @@ class SessionReferenceTests(unittest.TestCase):
             session_reference_projection(self.connection, 10)["items"][0]["evidence"][0]["count"],
             1,
         )
+
+    def test_document_lookup_cache_is_built_once_and_preserves_resolution(self):
+        candidates = [
+            self._candidate(
+                "/workspace/docs/guide.md",
+                reference_kind="markdown",
+                line=1,
+            ),
+            self._candidate(
+                "README.md",
+                reference_kind="markdown",
+                line=2,
+                event="event-2",
+            ),
+            self._candidate(
+                "notes.md",
+                reference_kind="markdown",
+                line=3,
+                event="event-3",
+            ),
+        ]
+        cache = SessionReferenceLookupCache()
+        with patch(
+            "localbrain.session_references._eligible_document_rows",
+            wraps=session_references._eligible_document_rows,
+        ) as eligible_rows:
+            self._reconcile(candidates)
+            uncached = [
+                tuple(row)
+                for row in self.connection.execute(
+                    "SELECT target_key, observed_identity FROM session_reference_evidence ORDER BY target_key"
+                ).fetchall()
+            ]
+            reconcile_session_references(
+                self.connection,
+                session_id=10,
+                source_path="/sessions/a.jsonl",
+                source_size_bytes=100,
+                source_mtime_ns=200,
+                candidates=candidates,
+                lookup=cache.get(self.connection),
+            )
+            cached = [
+                tuple(row)
+                for row in self.connection.execute(
+                    "SELECT target_key, observed_identity FROM session_reference_evidence ORDER BY target_key"
+                ).fetchall()
+            ]
+            cache.get(self.connection)
+
+        self.assertEqual(cached, uncached)
+        self.assertEqual(eligible_rows.call_count, 4)
 
     def test_multi_file_finalization_applies_one_session_target_bound(self):
         first = [

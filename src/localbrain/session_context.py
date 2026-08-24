@@ -2,10 +2,11 @@ import sqlite3
 from typing import Optional
 from urllib.parse import urlsplit
 
+from .ingest.common import trim_url_token
 from .session_references import session_reference_projection
 
 
-RELATED_CONTEXT_LIMIT = 10
+RELATED_CONTEXT_LIMIT = 100
 RELATED_CONTEXT_CANDIDATE_LIMIT = 100
 EVIDENCE_LABELS = {
     ("resource_read", "success"): "MCP 조회",
@@ -28,7 +29,8 @@ def _safe_external_href(value: Optional[str]) -> Optional[str]:
     if not value:
         return None
     try:
-        parsed = urlsplit(value)
+        safe_value = trim_url_token(value.strip())
+        parsed = urlsplit(safe_value)
         parsed.port
     except (TypeError, ValueError):
         return None
@@ -39,7 +41,7 @@ def _safe_external_href(value: Optional[str]) -> Optional[str]:
         or parsed.password is not None
     ):
         return None
-    return value
+    return safe_value
 
 
 def _safe_url_detail(value: Optional[str]) -> Optional[str]:
@@ -400,14 +402,15 @@ def _direct_item(
 
     if metadata is None and target_kind == "url":
         href = _safe_external_href(raw_item["destination"])
+        safe_identity = _safe_url_detail(href)
         metadata = {
             "target_key": raw_item["target_key"],
             "dedupe_key": _safe_url_dedupe_key(href)
             or raw_item["target_key"],
             "entity_type": "external",
             "entity_id": None,
-            "identity": raw_item["identity"],
-            "detail": _safe_url_detail(href),
+            "identity": safe_identity or raw_item["identity"],
+            "detail": safe_identity,
             "kind_label": "URL",
             "availability": "available" if href else "unavailable",
             "availability_label": None if href else "열 수 없음",
@@ -441,13 +444,16 @@ def _direct_item(
         )
         if label:
             evidence.append({**summary, "label": label})
+    identity = (
+        metadata["identity"] if target_kind == "url" else raw_item["identity"]
+    )
     detail = metadata["detail"]
-    if detail and detail.casefold() == raw_item["identity"].casefold():
+    if detail and detail.casefold() == identity.casefold():
         detail = None
     return {
         **metadata,
         "target_key": raw_item["target_key"],
-        "identity": raw_item["identity"],
+        "identity": identity,
         "detail": detail,
         "evidence": evidence,
         "organization": [],
@@ -464,14 +470,49 @@ def _group(
     stale: bool = False,
     notices: Optional[list[str]] = None,
 ) -> dict:
+    sections_by_label = {}
+    for item in items:
+        section_label = str(item.get("kind_label") or "기타").strip().upper()
+        sections_by_label.setdefault(section_label, []).append(item)
+    sections = [
+        {"label": section_label, "rows": sections_by_label[section_label]}
+        for section_label in sorted(sections_by_label, key=str.casefold)
+    ]
+    ordered_items = [
+        item for section in sections for item in section["rows"]
+    ]
+    initial_items = ordered_items[:RELATED_CONTEXT_LIMIT]
+    additional_items = ordered_items[RELATED_CONTEXT_LIMIT:]
+
+    def section_items(section_slice: list[dict]) -> list[dict]:
+        by_label = {}
+        for item in section_slice:
+            section_label = str(item.get("kind_label") or "기타").strip().upper()
+            by_label.setdefault(section_label, []).append(item)
+        return [
+            {"label": section_label, "rows": by_label[section_label]}
+            for section_label in sorted(by_label, key=str.casefold)
+        ]
+
+    initial_sections = section_items(initial_items)
+    additional_sections = section_items(additional_items)
+    if (
+        initial_sections
+        and additional_sections
+        and initial_sections[-1]["label"] == additional_sections[0]["label"]
+    ):
+        additional_sections[0]["continuation"] = True
+
     return {
         "key": key,
         "label": label,
         "total": total,
-        "items": items,
-        "initial_items": items[:RELATED_CONTEXT_LIMIT],
-        "additional_items": items[RELATED_CONTEXT_LIMIT:],
-        "overflow_count": max(0, len(items) - RELATED_CONTEXT_LIMIT),
+        "items": ordered_items,
+        "initial_items": initial_items,
+        "additional_items": additional_items,
+        "initial_sections": initial_sections,
+        "additional_sections": additional_sections,
+        "overflow_count": len(additional_items),
         "partial": partial,
         "stale": stale,
         "notices": notices or [],

@@ -93,6 +93,7 @@ class SessionRelatedContextTests(unittest.TestCase):
         outcome=None,
         tool_name=None,
         call_id=None,
+        observed_at=None,
     ) -> ParsedReferenceCandidate:
         return ParsedReferenceCandidate(
             reference_kind=reference_kind,
@@ -104,6 +105,7 @@ class SessionRelatedContextTests(unittest.TestCase):
             tool_name=tool_name,
             tool_call_id=call_id,
             read_outcome=outcome,
+            observed_at=observed_at,
         )
 
     def _reconcile(self, candidates) -> None:
@@ -311,6 +313,84 @@ class SessionRelatedContextTests(unittest.TestCase):
         self.assertEqual(organization["items"], [])
         self.assertEqual(organization["total"], 0)
 
+    def test_generic_url_projection_repairs_legacy_sentence_suffix(self):
+        target = (
+            "https://chat.example.test/archives/"
+            "SYNTHETIC/p1234567890123456"
+        )
+        self._reconcile([self._candidate(target)])
+        self.connection.execute(
+            """
+            UPDATE session_reference_evidence
+            SET observed_identity = ?, normalized_url = ?
+            WHERE session_id = 10 AND target_kind = 'url'
+            """,
+            (target.removeprefix("https://") + ")와", target + ")와"),
+        )
+
+        direct = self._group(
+            session_related_context(self.connection, 10), "direct"
+        )
+        item = direct["items"][0]
+
+        self.assertEqual(item["href"], target)
+        self.assertEqual(item["identity"], target.removeprefix("https://"))
+        self.assertNotIn(")와", item["identity"])
+
+    def test_material_kinds_are_alphabetic_and_direct_items_follow_first_occurrence(self):
+        self._document("Synthetic Guide", number=1)
+        self._reconcile(
+            [
+                self._candidate(
+                    "https://newer.example.test/reference",
+                    evidence_kind="resource_read",
+                    outcome="success",
+                    tool_name="approved__read",
+                    call_id="call-newer",
+                    line=2,
+                    event="newer-read",
+                    observed_at="2026-07-24T03:00:00+00:00",
+                ),
+                self._candidate(
+                    "/synthetic/context/document-001.md",
+                    reference_kind="markdown",
+                    line=3,
+                    event="markdown",
+                    observed_at="2026-07-24T02:00:00+00:00",
+                ),
+                self._candidate(
+                    "SYN-62",
+                    reference_kind="jira_key",
+                    line=4,
+                    event="jira",
+                    observed_at="2026-07-24T04:00:00+00:00",
+                ),
+                self._candidate(
+                    "https://older.example.test/reference",
+                    line=20,
+                    event="older-mention",
+                    observed_at="2026-07-24T01:00:00+00:00",
+                ),
+            ]
+        )
+
+        direct = self._group(
+            session_related_context(self.connection, 10), "direct"
+        )
+
+        self.assertEqual(
+            [section["label"] for section in direct["initial_sections"]],
+            ["JIRA", "MARKDOWN", "URL"],
+        )
+        url_section = direct["initial_sections"][2]
+        self.assertEqual(
+            [item["href"] for item in url_section["rows"]],
+            [
+                "https://older.example.test/reference",
+                "https://newer.example.test/reference",
+            ],
+        )
+
     def test_only_explicit_organization_links_are_candidates(self):
         linked_id = self._document("Explicit Document", number=1)
         workspace_only_id = self._document("Workspace Only", number=2)
@@ -371,7 +451,7 @@ class SessionRelatedContextTests(unittest.TestCase):
             [group["total"] for group in view["groups"]], [0, 0]
         )
 
-    def test_groups_have_independent_initial_ten_and_reversible_overflow(self):
+    def test_groups_show_up_to_one_hundred_items_by_default(self):
         direct_candidates = [
             self._candidate(
                 "https://direct.example.test/{:02d}".format(number),
@@ -399,10 +479,10 @@ class SessionRelatedContextTests(unittest.TestCase):
         direct = self._group(view, "direct")
         organization = self._group(view, "organization")
 
-        self.assertEqual(RELATED_CONTEXT_LIMIT, 10)
+        self.assertEqual(RELATED_CONTEXT_LIMIT, 100)
         self.assertEqual(
             (direct["total"], len(direct["initial_items"]), direct["overflow_count"]),
-            (12, 10, 2),
+            (12, 12, 0),
         )
         self.assertEqual(
             (
@@ -410,7 +490,7 @@ class SessionRelatedContextTests(unittest.TestCase):
                 len(organization["initial_items"]),
                 organization["overflow_count"],
             ),
-            (13, 10, 3),
+            (13, 13, 0),
         )
 
     def test_direct_safety_boundary_reports_observed_total(self):
@@ -525,6 +605,49 @@ class SessionRelatedContextTests(unittest.TestCase):
         self.assertIn("Session 대화는 계속 읽을 수 있습니다", html)
         self.assertIn("<h2>대화</h2>", html)
 
+    def test_detail_route_renders_each_alphabetic_kind_heading_once(self):
+        self._document("Synthetic Guide", number=1)
+        self._reconcile(
+            [
+                self._candidate(
+                    "https://reference.example.test/path",
+                    observed_at="2026-07-24T01:00:00+00:00",
+                ),
+                self._candidate(
+                    "/synthetic/context/document-001.md",
+                    reference_kind="markdown",
+                    line=2,
+                    event="markdown",
+                    observed_at="2026-07-24T02:00:00+00:00",
+                ),
+                self._candidate(
+                    "SYN-62",
+                    reference_kind="jira_key",
+                    line=3,
+                    event="jira",
+                    observed_at="2026-07-24T03:00:00+00:00",
+                ),
+            ]
+        )
+        with patch("localbrain.main.connect", self._connection):
+            response = show_session(self._request(), 10)
+
+        html = response.body.decode("utf-8")
+        markers = [">JIRA</h4>", ">MARKDOWN</h4>", ">URL</h4>"]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([html.count(marker) for marker in markers], [1, 1, 1])
+        self.assertLess(html.index(markers[0]), html.index(markers[1]))
+        self.assertLess(html.index(markers[1]), html.index(markers[2]))
+        self.assertNotIn("<span>Jira</span>", html)
+        self.assertNotIn("<span>Markdown</span>", html)
+        self.assertNotIn("<span>URL</span>", html)
+        self.assertIn(
+            '<h3 id="related-material-group-organization">연결된 작업</h3>',
+            html,
+        )
+        self.assertIn('<span aria-label="총 0개">0</span>', html)
+
     def test_persisted_subsession_detail_has_no_related_materials_rail(self):
         self.connection.execute(
             """
@@ -573,7 +696,7 @@ class SessionRelatedContextUiContractTests(unittest.TestCase):
         self.assertLess(orientation, related)
         self.assertLess(related, timeline)
         self.assertIn(
-            ".session-detail-layout.has-related-context .session-related-context { position: static; grid-column: 1; grid-row: 2; }",
+            ".session-detail-layout.has-related-context .session-related-context { position: static; grid-column: 1; grid-row: 2; max-height: none; }",
             self.styles,
         )
         self.assertIn(
@@ -586,6 +709,7 @@ class SessionRelatedContextUiContractTests(unittest.TestCase):
             "관련 자료",
             "group.label",
             "group.total",
+            "section.label",
             "item.identity",
             "item.detail",
             "evidence.label",
@@ -599,14 +723,73 @@ class SessionRelatedContextUiContractTests(unittest.TestCase):
         for label in EVIDENCE_LABELS.values():
             self.assertIn(label, self.projection)
         self.assertNotIn("대화에서 보기", self.related_template)
+        self.assertNotIn("related_context.item_count", self.related_template)
+        self.assertNotIn("item.kind_label", self.related_template)
         self.assertNotIn("same-workspace", self.projection)
         self.assertNotIn("_workspace_document_candidates", self.projection)
+        self.assertIn("RELATED_CONTEXT_LIMIT = 100", self.projection)
+        self.assertIn("group.initial_sections is defined", self.related_template)
+        self.assertIn(
+            "group['items'] | groupby('kind_label', case_sensitive=false)",
+            self.related_template,
+        )
+        self.assertNotIn("if group.items", self.related_template)
+        self.assertIn("group.key == 'organization'", self.related_template)
+        self.assertIn(
+            ".related-material-disclosure[open] summary { order: 2;",
+            self.styles,
+        )
+        self.assertIn(
+            ".related-material-disclosure[open] { display: flex; flex-direction: column; }",
+            self.styles,
+        )
+        disclosure = self.related_template.split(
+            '<details class="related-material-disclosure">', 1
+        )[1].split("</details>", 1)[0]
+        self.assertLess(
+            disclosure.index('class="related-material-additional"'),
+            disclosure.index("<summary>"),
+        )
 
     def test_rail_preserves_tokens_focus_containment_and_responsive_flow(self):
         self.assertIn("position: sticky;", self.styles)
         self.assertIn("var(--rail-context-width)", self.styles)
+        self.assertIn('class="session-related-context-scroll"', self.related_template)
+        self.assertIn(
+            "max-height: calc(100vh - var(--shell-sticky-offset) - var(--space-section));",
+            self.styles,
+        )
+        self.assertIn("overflow-y: auto;", self.styles)
+        self.assertIn("overscroll-behavior: contain;", self.styles)
+        self.assertIn("padding-right: var(--space-card);", self.styles)
+        self.assertIn("scrollbar-gutter: stable;", self.styles)
+        self.assertIn(
+            ".session-detail-layout.has-related-context .session-related-context { position: static; grid-column: 1; grid-row: 2; max-height: none; }",
+            self.styles,
+        )
+        self.assertIn(
+            ".session-related-context-scroll { overflow-y: visible; padding-right: var(--space-none); overscroll-behavior: auto; scrollbar-gutter: auto; }",
+            self.styles,
+        )
         self.assertIn(
             ".related-material-item > strong,\n.related-material-detail,\n.related-material-organization { overflow-wrap: anywhere; }",
+            self.styles,
+        )
+        self.assertIn(
+            ".related-material-group-heading h3 { margin: var(--space-none); font-size: var(--type-body-small-size); }",
+            self.styles,
+        )
+        self.assertIn(
+            ".related-material-kind-section:not(:last-child) { margin-bottom: var(--space-card); padding-bottom: var(--space-row-block); border-bottom: var(--border-width-focus) solid var(--border-subtle); }",
+            self.styles,
+        )
+        item_rule = self.styles.split(".related-material-item {", 1)[1].split(
+            "}", 1
+        )[0]
+        self.assertNotIn("border", item_rule)
+        self.assertNotIn(".related-material-item:last-child", self.styles)
+        self.assertIn(
+            ".related-material-item > strong { font-size: var(--type-label-size); font-weight: var(--type-semibold); }",
             self.styles,
         )
         self.assertIn(

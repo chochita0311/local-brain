@@ -30,6 +30,12 @@ Spec, Run, and Evaluation document owns its own detailed status and history.
 
 ## Recently Completed Chains
 
+- [REFACTOR-0001: Session Sync Repair Performance](refactoring/refactor-0001-session-sync-repair-performance.md)
+  completed concern-specific repair lanes, request-local lookup and pricing
+  caches, batched derived writes, bounded synchronization progress, and final
+  parity/performance review. See the [wrap-up](refactoring/logs/2026-08-24_refactor-0001_session-sync-performance.md)
+  and [final merge check](refactoring/logs/2026-08-24_refactor-0001_final-merge-check.md).
+
 - [PRD-0013: Session-Centric Related Context Evidence](prd/prd-0013-session-centric-related-context-evidence.md)
   (`passed`) completed [FEAT-0072](feature/feat-0072-session-reference-evidence-contract.md),
   [FEAT-0073](feature/feat-0073-deterministic-session-reference-capture-and-reconciliation.md),
@@ -80,8 +86,10 @@ Spec, Run, and Evaluation document owns its own detailed status and history.
 - `evaluation/`: contract, design, functional, and UX results
 - `fix/`: bounded corrections from evaluator findings
 - `heuristic/`: non-blocking UX suggestion backlog
+- `refactoring/`: scoped refactor tracks and their validation or merge-check logs
 - `project/`: roadmap and backlog ownership
-- [Artifact Catalog](artifact-catalog.md): complete generated historical navigation
+- [Artifact Catalog](artifact-catalog.md): complete generated navigation for its
+  catalog-managed artifact families
 
 ## Maintenance Rule
 
@@ -90,5 +98,6 @@ Spec, Run, and Evaluation document owns its own detailed status and history.
 - Update this index when one of those navigation states changes, but keep the
   owning artifact's metadata and continuity notes as the detailed truth.
 - Regenerate the complete historical catalog with
-  `uv run python scripts/build-plan-artifact-catalog.py build` whenever a tracked
-  planning or execution artifact is added, removed, or renamed.
+  `uv run python scripts/build-plan-artifact-catalog.py build` whenever a
+  catalog-managed PRD, Feature, Spec, Run, Evaluation, Fix, or heuristic artifact
+  is added, removed, or renamed.

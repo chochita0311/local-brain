@@ -272,6 +272,10 @@ class SessionReferenceSchemaTests(unittest.TestCase):
             "    reference_contract_version TEXT,\n",
             "",
             1,
+        ).replace(
+            "    session_contract_version TEXT,\n",
+            "",
+            1,
         )
         connection.executescript(legacy_schema)
         connection.executescript(
@@ -301,6 +305,7 @@ class SessionReferenceSchemaTests(unittest.TestCase):
         )
         self.assertIsNone(after["session_id"])
         self.assertIsNone(after["reference_contract_version"])
+        self.assertIsNone(after["session_contract_version"])
         self.assertIn(
             "idx_source_files_session",
             {

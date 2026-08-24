@@ -972,7 +972,7 @@ class AtlassianContractTests(unittest.TestCase):
             self.connection,
             stub["external_resource_id"],
             result,
-            checked_at="2026-07-23T00:00:00Z",
+            checked_at=datetime.now(timezone.utc).isoformat(),
         )
         self.assertEqual(state["service"], "confluence")
         self.assertEqual(state["freshness"], "current")

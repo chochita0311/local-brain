@@ -110,9 +110,11 @@ Constraints: uniqueness of `canonical_path`. Explicit indexes: none.
   Record; metadata-only stubs retain no Session or source-file projection and are
   reconsidered on later syncs. Codex conversation ingestion prefers native
   `event_msg` user/assistant records per role and falls back to `response_item`
-  message content only when the matching role and turn are absent; response-only
-  user records sharing one turn retain the final record so injected turn context
-  does not replace the visible prompt or duplicate the conversation. Claude
+  message content only when the matching role and turn are absent. Response-only
+  user records exclude Codex-expanded repository/environment instructions and
+  `<skill>` bodies before retaining the final user-authored record in a turn, so
+  the literal `$skill` prompt remains visible without duplicating provider context.
+  Claude
   primary files and direct `subagents/*.jsonl` children are accepted, while deeper
   internal `subagents` artifacts such as workflow journals are not Sessions. Codex
   `source.subagent.other=guardian` files remain normalized so their stable source
@@ -132,7 +134,7 @@ Constraints: uniqueness of `canonical_path`. Explicit indexes: none.
   Run-linked primary and its resolved child Sessions keep metadata while
   maintenance index/event policy is restricted; the private Runner stream is an
   operational artifact only.
-- Producers: `ingest/scanner.py` plus Claude/Codex parsers create Sessions and Usage Records; parent reconciliation updates self-references and propagates maintenance policy to Claude or Codex children. `runner.py` synchronizes the selected native source after terminal and recovered Runs. `db.py` owns the classification/Run-link constraint repair and stales source files when parser contracts change.
+- Producers: `ingest/scanner.py` plus Claude/Codex parsers create Sessions and Usage Records; parent reconciliation updates self-references and propagates maintenance policy to Claude or Codex children. `runner.py` synchronizes the selected native source after terminal and recovered Runs. Session projection freshness is independently versioned in `source_files`, so classification/parser changes can rebuild Sessions, Activity Events, and search without replacing Usage merely because the Session contract changed. `db.py` owns the classification/Run-link constraint repair.
 - Consumers: Session inventory/detail, dashboard counts, normalized activity, retrieval, Workstream linking/suggestions, Runner context, search projection, Usage Records, and Usage Dashboard denominators. Sessions inventory headline, rows, pagination, and Project grouping share the same `work` plus `primary` denominator with no age cutoff. A selected source matches the stable `sources.kind`, not `provider_kind`, so personal and company Codex remain statistically separate while sharing one adapter.
 - Relations and deletion: physical `source_id` cascades; optional `workspace_id`, `parent_session_id`, and unique `maintenance_run_id` set null. After a successful scan of a present source root, disappearance of one previously imported native JSONL or confirmation that it remains a zero-Event, zero-Usage stub is deletion authority for its normalized Session. Deleting that Session cascades `activity_events`, `usage_records`, derived `session_reference_scans` and `session_reference_evidence`, and the optional user-owned `session_pins` row; scanner also removes its search and source-file projection while preserving a present native stub. A wholly missing source root does not trigger the same stale-file reconciliation. Polymorphic links and checkpoint refs are application edges and can retain an unresolved historical ID.
 - Recovery: rescan the authoritative native source file and reconcile parents. Restoring only a Task Runner stream cannot rebuild a Session or Usage Record; restore the selected runner's native Claude or Codex JSONL and the Run ledger together. A full database rebuild cannot restore user-curated links, exact operational history, or confirmed review state without backup.
@@ -245,7 +247,7 @@ Constraints: 64-character source fingerprint; bounded extractor and error values
 - Producers: shared Claude/Codex `ParsedReferenceCandidate` adapters and the
   source-neutral resolver/reconciler in `session_references.py`, invoked only by
   Session synchronization.
-- Consumers: the bounded FEAT-0073 read projection and FEAT-0074 primary Session `관련 자료` rail. The rail maps evidence to `MCP 조회`, `MCP 조회 실패`, `사용자 메시지에서 언급`, `Agent 응답에서 언급`, or `도구 결과에서 확인`, uses `observed_identity` before shared Resource titles, and keeps the direct target under its strongest group when an explicit organization relation also exists. Read counts use distinct completed resource-read call IDs; mention and observation counts use distinct normalized source locations.
+- Consumers: the bounded FEAT-0073 read projection and FEAT-0074 primary Session `관련 자료` rail. The rail maps evidence to `MCP 조회`, `MCP 조회 실패`, `사용자 메시지에서 언급`, `Agent 응답에서 언급`, or `도구 결과에서 확인`, uses `observed_identity` before shared Resource titles, orders retained direct targets by their oldest `observed_at` with deterministic source-location fallback, and keeps the direct target under its strongest group when an explicit organization relation also exists. Read counts use distinct completed resource-read call IDs; mention and observation counts use distinct normalized source locations.
 - Relations and deletion: required Session FK plus an optional target FK selected by `target_kind`. Session, exact Context Document target, or configured Atlassian Item deletion cascades the now-unresolvable derived row. The edge points from evidence to the shared target, so evidence reconciliation never deletes or mutates the Document, External Resource/Item, remote content, note, classification, Thread, or Workstream.
 - Recovery: rescan the authoritative Session source while its exact eligible Document and configured Atlassian Item targets remain resolvable. Generic safe URLs are rebuilt from the Session source without creating shared Resource rows.
 - DDL ownership: complete fresh definition and `idx_session_reference_evidence_session`, `idx_session_reference_evidence_document`, and `idx_session_reference_evidence_atlassian` in `schema.sql`; ordinary idempotent schema application adds them to compatible older databases.

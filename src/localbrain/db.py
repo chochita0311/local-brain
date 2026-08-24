@@ -1536,6 +1536,9 @@ def _run_compatible_migrations(
         connection, "source_files", "usage_contract_version", "TEXT"
     )
     _ensure_column(
+        connection, "source_files", "session_contract_version", "TEXT"
+    )
+    _ensure_column(
         connection,
         "source_files",
         "session_id",

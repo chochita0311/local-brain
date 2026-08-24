@@ -7,11 +7,25 @@ from unittest.mock import patch
 from localbrain.config import Settings
 from localbrain import db
 from localbrain.ingest import scanner
-from localbrain.main import scan_sources_page, sync_session_sources, sync_sessions_page
+from localbrain.main import (
+    _session_sync_event_stream,
+    scan_sources_page,
+    sync_session_sources,
+    sync_sessions_page,
+)
 from localbrain.queries import session_detail, session_subsessions
 
 
 class SessionSyncTests(unittest.TestCase):
+    @staticmethod
+    def _table_rows(connection, table: str):
+        return [
+            tuple(row)
+            for row in connection.execute(
+                "SELECT * FROM {} ORDER BY rowid".format(table)
+            ).fetchall()
+        ]
+
     def _settings(self, root: Path) -> Settings:
         data_dir = root / "runtime"
         source_roots = {
@@ -1023,6 +1037,224 @@ root = "{company}"
                 sync_session_sources(),
                 {"ok": True, "report": expected},
             )
+
+    def test_contract_repairs_touch_only_their_owned_derived_lanes(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            settings = self._settings(root)
+            self._write_codex_session(
+                root / "codex" / "owned-lanes.jsonl",
+                "owned-lanes",
+                "Read /tmp/project/notes.md",
+            )
+            with patch.object(db, "settings", settings), patch.object(
+                scanner, "settings", settings
+            ):
+                scanner.scan_session_sources()
+                with db.connect() as connection:
+                    source_id = connection.execute(
+                        "SELECT id FROM sources WHERE kind = 'codex'"
+                    ).fetchone()["id"]
+                    usage_unowned_before = {
+                        table: self._table_rows(connection, table)
+                        for table in (
+                            "sessions",
+                            "activity_events",
+                            "search_index",
+                            "session_reference_evidence",
+                            "session_reference_scans",
+                        )
+                    }
+                    connection.execute(
+                        "UPDATE source_files SET usage_contract_version = 'old-usage' WHERE source_id = ?",
+                        (source_id,),
+                    )
+                    connection.commit()
+
+                with patch.object(
+                    scanner, "_store_session", wraps=scanner._store_session
+                ) as store_session, patch.object(
+                    scanner,
+                    "reconcile_session_references",
+                    wraps=scanner.reconcile_session_references,
+                ) as reconcile_references, patch.object(
+                    scanner, "_store_parsed_usage", wraps=scanner._store_parsed_usage
+                ) as store_usage:
+                    scanner.scan_session_sources()
+                self.assertEqual(store_session.call_count, 0)
+                self.assertEqual(reconcile_references.call_count, 0)
+                self.assertEqual(store_usage.call_count, 1)
+
+                with db.connect() as connection:
+                    self.assertEqual(
+                        {
+                            table: self._table_rows(connection, table)
+                            for table in usage_unowned_before
+                        },
+                        usage_unowned_before,
+                    )
+                    usage_before_session_repair = self._table_rows(
+                        connection, "usage_records"
+                    )
+                    connection.execute(
+                        "UPDATE source_files SET session_contract_version = 'old-session' WHERE source_id = ?",
+                        (source_id,),
+                    )
+                    connection.commit()
+
+                with patch.object(
+                    scanner, "_store_session", wraps=scanner._store_session
+                ) as store_session:
+                    scanner.scan_session_sources()
+                self.assertEqual(store_session.call_count, 1)
+                self.assertFalse(store_session.call_args.kwargs["include_usage"])
+
+                with db.connect() as connection:
+                    self.assertEqual(
+                        self._table_rows(connection, "usage_records"),
+                        usage_before_session_repair,
+                    )
+                    reference_unowned_before = {
+                        table: self._table_rows(connection, table)
+                        for table in (
+                            "sessions",
+                            "activity_events",
+                            "usage_records",
+                            "search_index",
+                        )
+                    }
+                    connection.execute(
+                        "UPDATE source_files SET reference_contract_version = 'old-reference' WHERE source_id = ?",
+                        (source_id,),
+                    )
+                    connection.commit()
+
+                with patch.object(
+                    scanner, "_store_session", wraps=scanner._store_session
+                ) as store_session, patch.object(
+                    scanner, "_store_parsed_usage", wraps=scanner._store_parsed_usage
+                ) as store_usage, patch.object(
+                    scanner,
+                    "reconcile_session_references",
+                    wraps=scanner.reconcile_session_references,
+                ) as reconcile_references:
+                    scanner.scan_session_sources()
+                self.assertEqual(store_session.call_count, 0)
+                self.assertEqual(store_usage.call_count, 0)
+                self.assertEqual(reconcile_references.call_count, 1)
+
+                with db.connect() as connection:
+                    self.assertEqual(
+                        {
+                            table: self._table_rows(connection, table)
+                            for table in reference_unowned_before
+                        },
+                        reference_unowned_before,
+                    )
+
+    def test_existing_current_parser_state_backfills_session_contract_without_repair(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            settings = self._settings(root)
+            self._write_codex_session(
+                root / "codex" / "compatible.jsonl", "compatible", "Compatible"
+            )
+            with patch.object(db, "settings", settings), patch.object(
+                scanner, "settings", settings
+            ):
+                scanner.scan_session_sources()
+                with db.connect() as connection:
+                    connection.execute(
+                        """
+                        UPDATE source_files
+                        SET session_contract_version = NULL
+                        WHERE source_id = (
+                            SELECT id FROM sources WHERE kind = 'codex'
+                        )
+                        """
+                    )
+                    connection.commit()
+                events = []
+                report = scanner.scan_session_sources(progress=events.append)
+                with db.connect() as connection:
+                    stored_version = connection.execute(
+                        """
+                        SELECT session_contract_version
+                        FROM source_files
+                        WHERE source_id = (
+                            SELECT id FROM sources WHERE kind = 'codex'
+                        )
+                        """
+                    ).fetchone()["session_contract_version"]
+
+        plan = next(
+            event
+            for event in events
+            if event["type"] == "source_plan" and event["source_key"] == "codex"
+        )
+        self.assertEqual(plan["repair_kinds"], [])
+        self.assertEqual(report["summary"]["imported"], 0)
+        self.assertEqual(stored_version, scanner.CODEX_SESSION_CONTRACT_VERSION)
+
+    def test_session_sync_progress_is_bounded_ordered_and_callback_safe(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            settings = self._settings(root)
+            self._write_codex_session(
+                root / "codex" / "progress.jsonl", "progress", "Progress"
+            )
+            events = []
+            with patch.object(db, "settings", settings), patch.object(
+                scanner, "settings", settings
+            ):
+                report = scanner.scan_session_sources(progress=events.append)
+                callback_safe_report = scanner.scan_session_sources(
+                    progress=lambda _event: (_ for _ in ()).throw(
+                        RuntimeError("observer failure")
+                    )
+                )
+
+        event_types = [event["type"] for event in events]
+        self.assertEqual(event_types[0], "sync_started")
+        self.assertEqual(event_types[-1], "sync_complete")
+        self.assertLess(
+            event_types.index("source_plan"), event_types.index("source_progress")
+        )
+        codex_plan = next(
+            event
+            for event in events
+            if event["type"] == "source_plan" and event["source_key"] == "codex"
+        )
+        codex_progress = next(
+            event
+            for event in events
+            if event["type"] == "source_progress"
+            and event["source_key"] == "codex"
+        )
+        self.assertEqual(codex_plan["total_files"], 1)
+        self.assertEqual(codex_progress["processed_files"], 1)
+        self.assertTrue(all("path" not in event and "root" not in event for event in events))
+        self.assertEqual(report["outcome"], "complete")
+        self.assertEqual(callback_safe_report["outcome"], "complete")
+
+    def test_session_sync_stream_emits_progress_and_terminal_report(self):
+        expected = {
+            "outcome": "complete",
+            "summary": {"source_count": 1},
+            "sources": [],
+        }
+
+        def synchronize(progress=None):
+            progress({"type": "source_progress", "processed_files": 1, "total_files": 2})
+            return expected
+
+        with patch("localbrain.main.scan_session_sources", side_effect=synchronize):
+            payloads = [json.loads(line) for line in _session_sync_event_stream()]
+
+        self.assertEqual(payloads[0]["type"], "source_progress")
+        self.assertEqual(
+            payloads[-1], {"type": "result", "ok": True, "report": expected}
+        )
 
     def test_sessions_sync_form_fallback_preserves_inventory_scope(self):
         with patch(

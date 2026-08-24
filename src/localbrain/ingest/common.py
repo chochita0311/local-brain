@@ -7,7 +7,7 @@ from typing import Any, Dict, Iterable, List, Optional
 
 
 EVIDENCE_EXTRACTOR_VERSION = "localbrain.atlassian-evidence.v1"
-REFERENCE_EXTRACTOR_VERSION = "localbrain.session-reference.v1"
+REFERENCE_EXTRACTOR_VERSION = "localbrain.session-reference.v2"
 URL_PATTERN = re.compile(r"https?://[^\s<>'\"`]+", re.IGNORECASE)
 MARKDOWN_LINK_PATTERN = re.compile(
     r"\[[^\]]*\]\((?P<target>[^)\s]+\.md(?:#[^)]*)?)\)",
@@ -195,8 +195,23 @@ def text_from_content(content: Any) -> str:
     return "\n\n".join(chunks)
 
 
-def _trim_url(value: str) -> str:
-    return value.rstrip(".,;:!?)]}")
+def trim_url_token(value: str) -> str:
+    candidate = value.rstrip(".,;:!?")
+    opening_for = {")": "(", "]": "[", "}": "{"}
+    openings = set(opening_for.values())
+    stack = []
+    for index, character in enumerate(candidate):
+        if character in openings:
+            stack.append(character)
+            continue
+        expected = opening_for.get(character)
+        if expected is None:
+            continue
+        if stack and stack[-1] == expected:
+            stack.pop()
+            continue
+        return candidate[:index].rstrip(".,;:!?")
+    return candidate
 
 
 def visible_url_evidence(
@@ -208,7 +223,7 @@ def visible_url_evidence(
 ) -> List[ParsedUrlEvidence]:
     evidence = []
     for ordinal, match in enumerate(URL_PATTERN.finditer(text or ""), start=1):
-        observed_url = _trim_url(match.group(0))
+        observed_url = trim_url_token(match.group(0))
         if not observed_url:
             continue
         evidence.append(
@@ -252,7 +267,7 @@ def visible_reference_candidates(
     occupied_ranges = []
 
     for match in URL_PATTERN.finditer(text or ""):
-        reference = _trim_url(match.group(0))
+        reference = trim_url_token(match.group(0))
         if not reference or len(reference) > 8000:
             continue
         key = ("url", reference)
@@ -419,7 +434,7 @@ def approved_resource_call(
             }:
                 if isinstance(child, str):
                     for match in URL_PATTERN.finditer(child):
-                        add("url", _trim_url(match.group(0)))
+                        add("url", trim_url_token(match.group(0)))
                 continue
             if (
                 "jira" in operation
@@ -621,7 +636,10 @@ def approved_tool_result_evidence(
             if _normalized_field_name(key) not in RESULT_URL_FIELDS:
                 continue
             if isinstance(candidate, str):
-                urls.extend(_trim_url(match.group(0)) for match in URL_PATTERN.finditer(candidate))
+                urls.extend(
+                    trim_url_token(match.group(0))
+                    for match in URL_PATTERN.finditer(candidate)
+                )
         for url in urls:
             if url:
                 raw_candidates.append((url, remote_id, title))

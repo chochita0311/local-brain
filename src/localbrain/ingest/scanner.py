@@ -23,15 +23,28 @@ from ..session_sources import (
     load_and_reconcile_session_sources,
 )
 from ..session_references import (
+    SessionReferenceLookupCache,
     clear_session_reference_source,
     finalize_session_references,
     mark_session_reference_error,
     reconcile_session_references,
     session_reference_scan_is_current,
 )
-from ..usage import reconcile_usage_record_contract, store_usage_records
-from .claude import CLAUDE_USAGE_CONTRACT_VERSION, parse_claude_session
-from .codex import CODEX_USAGE_CONTRACT_VERSION, parse_codex_session
+from ..usage import (
+    UsagePersistenceCache,
+    reconcile_usage_record_contract,
+    store_usage_records,
+)
+from .claude import (
+    CLAUDE_SESSION_CONTRACT_VERSION,
+    CLAUDE_USAGE_CONTRACT_VERSION,
+    parse_claude_session,
+)
+from .codex import (
+    CODEX_SESSION_CONTRACT_VERSION,
+    CODEX_USAGE_CONTRACT_VERSION,
+    parse_codex_session,
+)
 from .common import ParsedSession, REFERENCE_EXTRACTOR_VERSION, stable_id
 
 
@@ -49,6 +62,8 @@ TEXT_FILE_EXTENSIONS = {
     ".kt", ".log", ".md", ".properties", ".py", ".rst", ".sh", ".sql",
     ".toml", ".ts", ".txt", ".xml", ".yaml", ".yml",
 }
+
+ScanProgressCallback = Callable[[Dict[str, Any]], None]
 
 APPLE_NOTES_SCRIPT = r"""
 const Notes = Application('Notes');
@@ -114,6 +129,17 @@ def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _emit_scan_progress(
+    progress: Optional[ScanProgressCallback], event: Dict[str, Any]
+) -> None:
+    if progress is None:
+        return
+    try:
+        progress(event)
+    except Exception:
+        return
+
+
 def _upsert_source(
     connection: sqlite3.Connection,
     source_key: str,
@@ -146,22 +172,13 @@ def _upsert_source(
     return int(row["id"])
 
 
-def _file_is_current(
-    connection: sqlite3.Connection,
-    source_id: int,
-    path: Path,
+def _source_file_row_is_current(
+    row: Optional[sqlite3.Row],
+    stat,
     usage_contract_version: Optional[str] = None,
     reference_contract_version: Optional[str] = None,
+    session_contract_version: Optional[str] = None,
 ) -> bool:
-    stat = path.stat()
-    row = connection.execute(
-        """
-        SELECT size_bytes, mtime_ns, status, usage_contract_version,
-               reference_contract_version
-        FROM source_files WHERE source_id = ? AND path = ?
-        """,
-        (source_id, str(path)),
-    ).fetchone()
     return bool(
         row
         and row["size_bytes"] == stat.st_size
@@ -176,6 +193,36 @@ def _file_is_current(
             or row["reference_contract_version"]
             == reference_contract_version
         )
+        and (
+            session_contract_version is None
+            or row["session_contract_version"] == session_contract_version
+        )
+    )
+
+
+def _file_is_current(
+    connection: sqlite3.Connection,
+    source_id: int,
+    path: Path,
+    usage_contract_version: Optional[str] = None,
+    reference_contract_version: Optional[str] = None,
+    session_contract_version: Optional[str] = None,
+) -> bool:
+    stat = path.stat()
+    row = connection.execute(
+        """
+        SELECT size_bytes, mtime_ns, status, session_contract_version,
+               usage_contract_version, reference_contract_version
+        FROM source_files WHERE source_id = ? AND path = ?
+        """,
+        (source_id, str(path)),
+    ).fetchone()
+    return _source_file_row_is_current(
+        row,
+        stat,
+        usage_contract_version,
+        reference_contract_version,
+        session_contract_version,
     )
 
 
@@ -190,6 +237,7 @@ def _record_source_file(
     scanned_mtime_ns: Optional[int] = None,
     session_id: Optional[int] = None,
     reference_contract_version: Optional[str] = None,
+    session_contract_version: Optional[str] = None,
 ) -> None:
     stat = path.stat()
     size_bytes = stat.st_size if scanned_size_bytes is None else scanned_size_bytes
@@ -199,8 +247,8 @@ def _record_source_file(
         INSERT INTO source_files(
             source_id, session_id, path, size_bytes, mtime_ns,
             last_scanned_at, status, error, usage_contract_version,
-            reference_contract_version
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            reference_contract_version, session_contract_version
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(source_id, path) DO UPDATE SET
             session_id = COALESCE(excluded.session_id, source_files.session_id),
             size_bytes = excluded.size_bytes,
@@ -215,6 +263,10 @@ def _record_source_file(
             reference_contract_version = COALESCE(
                 excluded.reference_contract_version,
                 source_files.reference_contract_version
+            ),
+            session_contract_version = COALESCE(
+                excluded.session_contract_version,
+                source_files.session_contract_version
             )
         """,
         (
@@ -228,6 +280,7 @@ def _record_source_file(
             error,
             usage_contract_version,
             reference_contract_version,
+            session_contract_version,
         ),
     )
 
@@ -509,6 +562,43 @@ def _remove_empty_session_candidates(
         )
 
 
+def _usage_identity_scope(source_key: str, provider_kind: str) -> Optional[str]:
+    return source_key if source_key != provider_kind else None
+
+
+def _store_parsed_usage(
+    connection: sqlite3.Connection,
+    *,
+    source_id: int,
+    session_id: int,
+    source_key: str,
+    provider_kind: str,
+    workspace_id: Optional[int],
+    usage_contract_version: Optional[str],
+    parsed: ParsedSession,
+    usage_cache: Optional[UsagePersistenceCache] = None,
+) -> None:
+    store_usage_records(
+        connection,
+        source_id,
+        session_id,
+        parsed.usage_records,
+        workspace_id=workspace_id,
+        normalizer_version=(
+            usage_contract_version
+            or (
+                CLAUDE_USAGE_CONTRACT_VERSION
+                if provider_kind == "claude"
+                else CODEX_USAGE_CONTRACT_VERSION
+                if provider_kind == "codex"
+                else "legacy-v1"
+            )
+        ),
+        identity_scope=_usage_identity_scope(source_key, provider_kind),
+        cache=usage_cache,
+    )
+
+
 def _store_session(
     connection: sqlite3.Connection,
     source_id: int,
@@ -516,6 +606,8 @@ def _store_session(
     parsed: ParsedSession,
     usage_contract_version: Optional[str] = None,
     provider_kind: Optional[str] = None,
+    include_usage: bool = True,
+    usage_cache: Optional[UsagePersistenceCache] = None,
 ) -> int:
     effective_provider_kind = provider_kind or source_key
     workspace_id = _upsert_workspace(connection, parsed.cwd_raw, parsed.last_event_at)
@@ -590,27 +682,19 @@ def _store_session(
         (source_id, parsed.external_id),
     ).fetchone()
     session_id = int(session_row["id"])
-    identity_scope = (
-        source_key if source_key != effective_provider_kind else None
-    )
-    store_usage_records(
-        connection,
-        source_id,
-        session_id,
-        parsed.usage_records,
-        workspace_id=workspace_id,
-        normalizer_version=(
-            usage_contract_version
-            or (
-                CLAUDE_USAGE_CONTRACT_VERSION
-                if effective_provider_kind == "claude"
-                else CODEX_USAGE_CONTRACT_VERSION
-                if effective_provider_kind == "codex"
-                else "legacy-v1"
-            )
-        ),
-        identity_scope=identity_scope,
-    )
+    identity_scope = _usage_identity_scope(source_key, effective_provider_kind)
+    if include_usage:
+        _store_parsed_usage(
+            connection,
+            source_id=source_id,
+            session_id=session_id,
+            source_key=source_key,
+            provider_kind=effective_provider_kind,
+            workspace_id=workspace_id,
+            usage_contract_version=usage_contract_version,
+            parsed=parsed,
+            usage_cache=usage_cache,
+        )
     connection.execute("DELETE FROM activity_events WHERE session_id = ?", (session_id,))
     connection.execute(
         "DELETE FROM search_index WHERE entity_type = 'session' AND entity_id = ?",
@@ -760,12 +844,18 @@ def _scan_session_source(
     force: bool = False,
     provider_kind: Optional[str] = None,
     path_filter: Optional[Callable[[Path, Path], bool]] = None,
+    session_contract_version: Optional[str] = None,
+    reference_lookup_cache: Optional[SessionReferenceLookupCache] = None,
+    progress: Optional[ScanProgressCallback] = None,
 ) -> Tuple[int, int, int]:
     effective_provider_kind = provider_kind or source_key
     source_id = _upsert_source(
         connection, source_key, effective_provider_kind, name, root
     )
     imported = skipped = failed = 0
+    usage_cache = UsagePersistenceCache()
+    if reference_lookup_cache is None:
+        reference_lookup_cache = SessionReferenceLookupCache()
     if not root.exists():
         return imported, skipped, failed
 
@@ -774,7 +864,30 @@ def _scan_session_source(
         for path in root.rglob("*.jsonl")
         if path_filter is None or path_filter(root, path)
     )
-    contract_repair_required = bool(
+    if session_contract_version is not None:
+        connection.execute(
+            """
+            UPDATE source_files
+            SET session_contract_version = ?
+            WHERE source_id = ?
+              AND session_contract_version IS NULL
+              AND usage_contract_version = ?
+            """,
+            (session_contract_version, source_id, usage_contract_version),
+        )
+    session_contract_repair_required = bool(
+        session_contract_version is not None
+        and connection.execute(
+            """
+            SELECT 1 FROM source_files
+            WHERE source_id = ?
+              AND COALESCE(session_contract_version, '') != ?
+            LIMIT 1
+            """,
+            (source_id, session_contract_version),
+        ).fetchone()
+    )
+    usage_contract_repair_required = bool(
         connection.execute(
             """
             SELECT 1 FROM source_files
@@ -797,13 +910,41 @@ def _scan_session_source(
         ).fetchone()
     )
     source_contract_repair_required = bool(
-        contract_repair_required or reference_contract_repair_required
+        session_contract_repair_required
+        or usage_contract_repair_required
+        or reference_contract_repair_required
+    )
+    repair_kinds = [
+        kind
+        for kind, required in (
+            ("session", session_contract_repair_required),
+            ("usage", usage_contract_repair_required),
+            ("reference", reference_contract_repair_required),
+        )
+        if required
+    ]
+    _emit_scan_progress(
+        progress,
+        {
+            "type": "source_plan",
+            "source_key": source_key,
+            "display_label": name,
+            "mode": (
+                "forced"
+                if force
+                else "contract_repair"
+                if repair_kinds
+                else "incremental"
+            ),
+            "repair_kinds": repair_kinds,
+            "total_files": len(paths),
+        },
     )
     eligibility_repair_required = _session_eligibility_repair_required(
         connection, source_id
     )
     if source_contract_repair_required:
-        connection.execute("SAVEPOINT source_usage_contract_repair")
+        connection.execute("SAVEPOINT source_contract_repair")
     _remove_stale_sessions(connection, source_id, paths)
     forced_reference_paths = set()
     if not source_contract_repair_required:
@@ -879,84 +1020,185 @@ def _scan_session_source(
     empty_candidates = []
     reference_sessions_to_finalize = set()
     failed_reference_sessions = {}
+    tracked_files = {
+        row["path"]: row
+        for row in connection.execute(
+            """
+            SELECT session_id, path, size_bytes, mtime_ns, status,
+                   session_contract_version, usage_contract_version,
+                   reference_contract_version
+            FROM source_files
+            WHERE source_id = ?
+            """,
+            (source_id,),
+        ).fetchall()
+    }
+    progress_interval = max(1, (len(paths) + 19) // 20)
 
-    for path in paths:
+    def report_file_progress(processed_files: int) -> None:
+        if (
+            processed_files != len(paths)
+            and processed_files % progress_interval != 0
+        ):
+            return
+        _emit_scan_progress(
+            progress,
+            {
+                "type": "source_progress",
+                "source_key": source_key,
+                "display_label": name,
+                "processed_files": processed_files,
+                "total_files": len(paths),
+                "imported": imported,
+                "unchanged": skipped,
+                "failed_files": failed,
+            },
+        )
+
+    for processed_files, path in enumerate(paths, start=1):
+        source_path = str(path)
         current_stat = path.stat()
+        tracked_file = tracked_files.get(source_path)
+        mapped_session_id = (
+            int(tracked_file["session_id"])
+            if tracked_file and tracked_file["session_id"] is not None
+            else None
+        )
+        native_file_current = _source_file_row_is_current(
+            tracked_file, current_stat
+        )
         evidence_source_fingerprint = session_evidence_source_fingerprint(
             source_id=source_id,
-            source_path=str(path),
+            source_path=source_path,
             size_bytes=current_stat.st_size,
             mtime_ns=current_stat.st_mtime_ns,
+        )
+        reference_scan_current = bool(
+            mapped_session_id is not None
+            and session_reference_scan_is_current(
+                connection, mapped_session_id
+            )
+        )
+        evidence_current = bool(
+            mapped_session_id is not None
+            and evidence_scan_is_current(
+                connection,
+                session_id=mapped_session_id,
+                source_path=source_path,
+                source_fingerprint=evidence_source_fingerprint,
+            )
         )
         if (
             not force
             and not source_contract_repair_required
             and not eligibility_repair_required
-            and str(path) not in forced_reference_paths
-            and _file_is_current(
-                connection,
-                source_id,
-                path,
+            and source_path not in forced_reference_paths
+            and _source_file_row_is_current(
+                tracked_file,
+                current_stat,
                 usage_contract_version,
                 REFERENCE_EXTRACTOR_VERSION,
+                session_contract_version,
             )
+            and reference_scan_current
+            and evidence_current
         ):
-            session_row = connection.execute(
-                """
-                SELECT sessions.id
-                FROM source_files
-                JOIN sessions ON sessions.id = source_files.session_id
-                WHERE source_files.source_id = ?
-                  AND source_files.path = ?
-                """,
-                (source_id, str(path)),
-            ).fetchone()
-            if (
-                session_row
-                and session_reference_scan_is_current(
-                    connection, int(session_row["id"])
-                )
-                and evidence_scan_is_current(
-                    connection,
-                    session_id=int(session_row["id"]),
-                    source_path=str(path),
-                    source_fingerprint=evidence_source_fingerprint,
-                )
-            ):
-                skipped += 1
-                continue
+            skipped += 1
+            report_file_progress(processed_files)
+            continue
+        missing_session = mapped_session_id is None
+        refresh_session = bool(
+            force
+            or eligibility_repair_required
+            or session_contract_repair_required
+            or not native_file_current
+            or missing_session
+        )
+        refresh_usage = bool(
+            force
+            or usage_contract_repair_required
+            or not native_file_current
+            or missing_session
+        )
+        refresh_references = bool(
+            force
+            or session_contract_repair_required
+            or reference_contract_repair_required
+            or not native_file_current
+            or missing_session
+            or source_path in forced_reference_paths
+            or not reference_scan_current
+        )
+        refresh_atlassian_evidence = bool(
+            force
+            or session_contract_repair_required
+            or reference_contract_repair_required
+            or not native_file_current
+            or missing_session
+            or not evidence_current
+        )
         current_session_id = None
         try:
             scanned_stat = current_stat
             parsed = parser(path)
             if not _parsed_session_is_meaningful(parsed):
                 empty_candidates.append((path, parsed))
+                report_file_progress(processed_files)
                 continue
-            session_id = _store_session(
-                connection,
-                source_id,
-                source_key,
-                parsed,
-                usage_contract_version=usage_contract_version,
-                provider_kind=effective_provider_kind,
-            )
+            if refresh_session:
+                session_id = _store_session(
+                    connection,
+                    source_id,
+                    source_key,
+                    parsed,
+                    usage_contract_version=usage_contract_version,
+                    provider_kind=effective_provider_kind,
+                    include_usage=refresh_usage,
+                    usage_cache=usage_cache,
+                )
+            else:
+                session_row = connection.execute(
+                    """
+                    SELECT id, workspace_id
+                    FROM sessions WHERE id = ? AND source_id = ?
+                    """,
+                    (mapped_session_id, source_id),
+                ).fetchone()
+                if session_row is None:
+                    raise RuntimeError("Mapped Session is unavailable")
+                session_id = int(session_row["id"])
+                if refresh_usage:
+                    _store_parsed_usage(
+                        connection,
+                        source_id=source_id,
+                        session_id=session_id,
+                        source_key=source_key,
+                        provider_kind=effective_provider_kind,
+                        workspace_id=session_row["workspace_id"],
+                        usage_contract_version=usage_contract_version,
+                        parsed=parsed,
+                        usage_cache=usage_cache,
+                    )
             current_session_id = session_id
-            reconcile_session_evidence(
-                connection,
-                session_id=session_id,
-                source_path=str(path),
-                source_fingerprint=evidence_source_fingerprint,
-                candidates=parsed.url_evidence,
-            )
-            reconcile_session_references(
-                connection,
-                session_id=session_id,
-                source_path=str(path),
-                source_size_bytes=scanned_stat.st_size,
-                source_mtime_ns=scanned_stat.st_mtime_ns,
-                candidates=parsed.reference_candidates,
-                finalize=False,
-            )
+            if refresh_atlassian_evidence:
+                reconcile_session_evidence(
+                    connection,
+                    session_id=session_id,
+                    source_path=source_path,
+                    source_fingerprint=evidence_source_fingerprint,
+                    candidates=parsed.url_evidence,
+                )
+            if refresh_references:
+                reconcile_session_references(
+                    connection,
+                    session_id=session_id,
+                    source_path=source_path,
+                    source_size_bytes=scanned_stat.st_size,
+                    source_mtime_ns=scanned_stat.st_mtime_ns,
+                    candidates=parsed.reference_candidates,
+                    finalize=False,
+                    lookup=reference_lookup_cache.get(connection),
+                )
             _record_source_file(
                 connection,
                 source_id,
@@ -966,17 +1208,21 @@ def _scan_session_source(
                 scanned_mtime_ns=scanned_stat.st_mtime_ns,
                 session_id=session_id,
                 reference_contract_version=REFERENCE_EXTRACTOR_VERSION,
+                session_contract_version=session_contract_version,
             )
-            reference_sessions_to_finalize.add(session_id)
-            expected_usage_record_ids.update(
-                stable_id(
-                    "source-scoped-usage", source_key, record.usage_record_id
+            if refresh_references:
+                reference_sessions_to_finalize.add(session_id)
+            if usage_contract_repair_required:
+                expected_usage_record_ids.update(
+                    stable_id(
+                        "source-scoped-usage", source_key, record.usage_record_id
+                    )
+                    if source_key != effective_provider_kind
+                    else record.usage_record_id
+                    for record in parsed.usage_records
                 )
-                if source_key != effective_provider_kind
-                else record.usage_record_id
-                for record in parsed.usage_records
-            )
             imported += 1
+            report_file_progress(processed_files)
         except Exception as exc:
             if current_session_id is None:
                 mapped = connection.execute(
@@ -995,6 +1241,7 @@ def _scan_session_source(
             else:
                 _record_source_file(connection, source_id, path, "error", str(exc))
             failed += 1
+            report_file_progress(processed_files)
     for session_id in sorted(
         reference_sessions_to_finalize - set(failed_reference_sessions)
     ):
@@ -1021,22 +1268,22 @@ def _scan_session_source(
                     (str(exc), session_id),
                 )
     if source_contract_repair_required and failed:
-        connection.execute("ROLLBACK TO source_usage_contract_repair")
-        connection.execute("RELEASE source_usage_contract_repair")
+        connection.execute("ROLLBACK TO source_contract_repair")
+        connection.execute("RELEASE source_contract_repair")
         imported = 0
         empty_candidates = []
         for path, error in repair_errors:
             _record_source_file(connection, source_id, path, "error", error)
     elif source_contract_repair_required:
         try:
-            if contract_repair_required:
+            if usage_contract_repair_required:
                 reconcile_usage_record_contract(
                     connection, source_id, expected_usage_record_ids
                 )
-            connection.execute("RELEASE source_usage_contract_repair")
+            connection.execute("RELEASE source_contract_repair")
         except Exception:
-            connection.execute("ROLLBACK TO source_usage_contract_repair")
-            connection.execute("RELEASE source_usage_contract_repair")
+            connection.execute("ROLLBACK TO source_contract_repair")
+            connection.execute("RELEASE source_contract_repair")
             raise
     for session_id, error in failed_reference_sessions.items():
         if connection.execute(
@@ -1544,8 +1791,16 @@ def _is_claude_session_candidate(root: Path, path: Path) -> bool:
 
 
 SESSION_SCAN_ADAPTERS = {
-    "claude": (parse_claude_session, CLAUDE_USAGE_CONTRACT_VERSION),
-    "codex": (parse_codex_session, CODEX_USAGE_CONTRACT_VERSION),
+    "claude": (
+        parse_claude_session,
+        CLAUDE_SESSION_CONTRACT_VERSION,
+        CLAUDE_USAGE_CONTRACT_VERSION,
+    ),
+    "codex": (
+        parse_codex_session,
+        CODEX_SESSION_CONTRACT_VERSION,
+        CODEX_USAGE_CONTRACT_VERSION,
+    ),
 }
 SESSION_SCAN_PATH_FILTERS = {
     "claude": _is_claude_session_candidate,
@@ -1717,7 +1972,12 @@ def _configuration_source_report(registration, diagnostic=None) -> Dict[str, Any
     )
 
 
-def _scan_registered_session_source(registration, force: bool) -> Dict[str, Any]:
+def _scan_registered_session_source(
+    registration,
+    force: bool,
+    reference_lookup_cache: Optional[SessionReferenceLookupCache] = None,
+    progress: Optional[ScanProgressCallback] = None,
+) -> Dict[str, Any]:
     attempted_at = utc_now()
     if registration.status == "unavailable":
         message = "This source root is unavailable; it was not synchronized and existing data was retained."
@@ -1749,7 +2009,7 @@ def _scan_registered_session_source(registration, force: bool) -> Dict[str, Any]
     adapter = SESSION_SCAN_ADAPTERS.get(registration.provider_kind)
     if adapter is None:
         return _configuration_source_report(registration)
-    parser, usage_contract = adapter
+    parser, session_contract, usage_contract = adapter
     try:
         with transaction() as connection:
             values = _scan_session_source(
@@ -1764,6 +2024,9 @@ def _scan_registered_session_source(registration, force: bool) -> Dict[str, Any]
                 path_filter=SESSION_SCAN_PATH_FILTERS.get(
                     registration.provider_kind
                 ),
+                session_contract_version=session_contract,
+                reference_lookup_cache=reference_lookup_cache,
+                progress=progress,
             )
             row = _source_row(connection, registration.source_key)
             source_id = int(row["id"])
@@ -1818,12 +2081,15 @@ def _scan_registered_session_source(registration, force: bool) -> Dict[str, Any]
 
 
 def _scan_session_sources(
-    force: bool = False, selected_keys: Optional[Set[str]] = None
+    force: bool = False,
+    selected_keys: Optional[Set[str]] = None,
+    progress: Optional[ScanProgressCallback] = None,
 ) -> Dict[str, Any]:
     with transaction() as connection:
         registry = load_and_reconcile_session_sources(connection, settings)
 
     reports = []
+    reference_lookup_cache = SessionReferenceLookupCache()
     registrations = list(registry.registrations)
     represented = {item.source_key for item in registrations}
     diagnostics_by_key = {
@@ -1888,17 +2154,66 @@ def _scan_session_sources(
             item for item in registrations if item.source_key not in registry.settings.declared_source_keys
         ]
 
-    for registration in registrations:
-        if selected_keys is not None and registration.source_key not in selected_keys:
-            continue
+    selected_registrations = [
+        registration
+        for registration in registrations
+        if selected_keys is None or registration.source_key in selected_keys
+    ]
+    _emit_scan_progress(
+        progress,
+        {
+            "type": "sync_started",
+            "source_count": len(selected_registrations),
+        },
+    )
+    for source_index, registration in enumerate(selected_registrations, start=1):
+        _emit_scan_progress(
+            progress,
+            {
+                "type": "source_started",
+                "source_key": registration.source_key,
+                "display_label": registration.display_label,
+                "source_index": source_index,
+                "source_count": len(selected_registrations),
+            },
+        )
         diagnostic = diagnostics_by_key.get(registration.source_key)
         if registry.settings.file_error:
             diagnostic = registry.diagnostics[0]
         if diagnostic or registration.status not in {"ready", "unavailable"}:
-            reports.append(_configuration_source_report(registration, diagnostic))
+            source_report = _configuration_source_report(
+                registration, diagnostic
+            )
         else:
-            reports.append(_scan_registered_session_source(registration, force))
-    return _aggregate_scan_report(reports)
+            source_report = _scan_registered_session_source(
+                registration,
+                force,
+                reference_lookup_cache=reference_lookup_cache,
+                progress=progress,
+            )
+        reports.append(source_report)
+        _emit_scan_progress(
+            progress,
+            {
+                "type": "source_result",
+                "source_key": source_report["source_key"],
+                "display_label": source_report["display_label"],
+                "status": source_report["status"],
+                "imported": source_report["imported"],
+                "unchanged": source_report["unchanged"],
+                "failed_files": source_report["failed_files"],
+            },
+        )
+    report = _aggregate_scan_report(reports)
+    _emit_scan_progress(
+        progress,
+        {
+            "type": "sync_complete",
+            "outcome": report["outcome"],
+            "summary": report["summary"],
+        },
+    )
+    return report
 
 
 def _scan_claude_source(
@@ -1914,6 +2229,7 @@ def _scan_claude_source(
         force,
         provider_kind="claude",
         path_filter=_is_claude_session_candidate,
+        session_contract_version=CLAUDE_SESSION_CONTRACT_VERSION,
     )
 
 
@@ -1939,9 +2255,12 @@ def scan_codex_sessions(force: bool = False) -> Dict[str, int]:
     }
 
 
-def scan_session_sources(force: bool = False) -> Dict[str, Any]:
+def scan_session_sources(
+    force: bool = False,
+    progress: Optional[ScanProgressCallback] = None,
+) -> Dict[str, Any]:
     init_db()
-    return _scan_session_sources(force=force)
+    return _scan_session_sources(force=force, progress=progress)
 
 
 def scan_all(force: bool = False) -> Dict[str, Any]:

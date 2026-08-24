@@ -1,12 +1,14 @@
 import json
+import queue
 import sqlite3
+import threading
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional
 from urllib.parse import parse_qs, parse_qsl, quote, urlencode, urlsplit
 
 from fastapi import FastAPI, HTTPException, Query, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
@@ -2154,6 +2156,52 @@ def scan_sources():
 @app.post("/api/sessions/sync")
 def sync_session_sources():
     return {"ok": True, "report": scan_session_sources()}
+
+
+def _session_sync_event_stream():
+    events = queue.Queue()
+    finished = object()
+
+    def publish(event):
+        events.put(event)
+
+    def synchronize():
+        try:
+            report = scan_session_sources(progress=publish)
+            events.put({"type": "result", "ok": True, "report": report})
+        except Exception:
+            events.put(
+                {
+                    "type": "error",
+                    "ok": False,
+                    "message": (
+                        "Session sources could not be synchronized; "
+                        "existing data was retained."
+                    ),
+                }
+            )
+        finally:
+            events.put(finished)
+
+    worker = threading.Thread(target=synchronize, daemon=True)
+    worker.start()
+    while True:
+        event = events.get()
+        if event is finished:
+            break
+        yield json.dumps(event, ensure_ascii=False, separators=(",", ":")) + "\n"
+
+
+@app.post("/api/sessions/sync/stream")
+def stream_session_sources():
+    return StreamingResponse(
+        _session_sync_event_stream(),
+        media_type="application/x-ndjson",
+        headers={
+            "Cache-Control": "no-store",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @app.get("/api/health")

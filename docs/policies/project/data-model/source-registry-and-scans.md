@@ -25,6 +25,7 @@ erDiagram
         integer session_id FK
         string path
         string status
+        string session_contract_version
         string usage_contract_version
         string reference_contract_version
     }
@@ -104,9 +105,10 @@ indexes: none; SQLite owns the uniqueness autoindex.
 
 - Purpose and authority: per-source scan evidence for an accepted local input
   path, including its file fingerprint, latest attempt state, error, optional
-  normalized Session owner, Usage-normalizer contract version, and generalized
-  Session-reference contract version. Provider-internal files outside the
-  adapter's Session candidate contract never own rows here.
+  normalized Session owner, Session-projection contract version,
+  Usage-normalizer contract version, and generalized Session-reference contract
+  version. Provider-internal files outside the adapter's Session candidate
+  contract never own rows here.
 - Lifecycle: source-derived and rebuildable. Healthy unchanged rows are freshness
   inputs; failed rows retain the latest error rather than masquerading as absent.
   A successful scan removes prior evidence for paths that are no longer accepted
@@ -116,12 +118,13 @@ indexes: none; SQLite owns the uniqueness autoindex.
   Record is also omitted: any prior file row is removed, the native stub remains,
   and its lack of a freshness row makes later meaningful growth discoverable.
 - Producers: `ingest/scanner.py` inserts and updates scan results, writes the
-  resolved Session mapping and both contract versions, and replaces mappings on
+  resolved Session mapping and all three contract versions, and replaces mappings on
   successful reparse; `contexts.py` removes Context-owned rows when a root is
-  disabled; `db.py` compatibly adds all three optional Session contract/mapping
-  fields and marks Claude/Codex rows stale when Session or Usage contracts change.
+  disabled; `db.py` compatibly adds the optional Session mapping and three
+  contract fields.
 - Consumers: `ingest/scanner.py` generic skip/retry logic, Usage version repair,
-  multi-file Session-reference aggregation and partial/error sibling repair;
+  Session projection repair, multi-file Session-reference aggregation and
+  partial/error sibling repair;
   `session_references.py` uses the mapped current file set for aggregate
   fingerprints; `queries.py`, `usage_queries.py`, and `contexts.py` consume the
   existing source-status and root lifecycle state. Legacy Atlassian evidence adds
@@ -139,9 +142,12 @@ indexes: none; SQLite owns the uniqueness autoindex.
   and root-availability failures do not authorize stale reconciliation.
 - Recovery: rescan the owning source. Errors and exact prior attempt times are operational history and are not reproduced exactly.
 - DDL ownership: fresh table definition in `schema.sql`; `db.py` compatibly adds
-  `usage_contract_version`, `session_id`, and `reference_contract_version`, and
-  creates `idx_source_files_session` after those columns exist. Older null
-  mappings/versions force one safe reparse rather than being treated as current.
+  `session_id`, `session_contract_version`, `usage_contract_version`, and
+  `reference_contract_version`, and creates `idx_source_files_session` after
+  those columns exist. On the first startup with the separated contract,
+  a null Session version may be backfilled only when the current Usage version
+  proves that the same parser generation already produced the Session. Other
+  unknown or mismatched versions force repair rather than being assumed current.
 
 | Column | Contract |
 | --- | --- |
@@ -154,6 +160,7 @@ indexes: none; SQLite owns the uniqueness autoindex.
 | `last_scanned_at` | `TEXT NOT NULL`; latest attempt time for this input. |
 | `status` | `TEXT NOT NULL DEFAULT 'ok'`; freshness state such as healthy, stale, or error. |
 | `error` | nullable `TEXT`; bounded scan or parse error evidence. |
+| `session_contract_version` | nullable `TEXT`; parser/classification contract used to decide whether the Session, Activity Events, and Session search projection remain current. |
 | `usage_contract_version` | nullable `TEXT`; normalizer contract used to decide whether Usage Records remain current. |
 | `reference_contract_version` | nullable `TEXT`; generalized Session-reference extractor/reconciler contract used to decide whether the mapped Session evidence remains current. |
 

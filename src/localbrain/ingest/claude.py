@@ -24,6 +24,7 @@ from .common import (
 
 
 CLAUDE_USAGE_CONTRACT_VERSION = "claude-message-usage-v2-source-repair"
+CLAUDE_SESSION_CONTRACT_VERSION = "claude-session-v1"
 
 
 def _message_content(record: Dict[str, Any]) -> Any:

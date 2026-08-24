@@ -789,6 +789,9 @@ class UiContractTests(unittest.TestCase):
         self.assertIn(".segmented-control a,\n.inventory-switch a", self.styles)
         self.assertIn('document.querySelector("#session-sync-button")', self.script)
         self.assertIn('"/api/sessions/sync"', self.script)
+        self.assertIn('"/api/sessions/sync/stream"', self.script)
+        self.assertIn("function bindSessionSyncAction", self.script)
+        self.assertIn("계약 업그레이드", self.script)
         self.assertIn("const eventTarget = button.form || button;", self.script)
         self.assertIn('eventTarget.addEventListener(eventName', self.script)
 

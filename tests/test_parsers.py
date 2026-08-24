@@ -5,6 +5,10 @@ from pathlib import Path
 
 from localbrain.ingest.claude import parse_claude_session
 from localbrain.ingest.codex import parse_codex_session
+from localbrain.ingest.common import (
+    visible_reference_candidates,
+    visible_url_evidence,
+)
 
 
 class ParserTests(unittest.TestCase):
@@ -14,6 +18,26 @@ class ParserTests(unittest.TestCase):
             for record in records:
                 temporary.write(json.dumps(record) + "\n")
         return Path(temporary.name)
+
+    def test_visible_url_boundary_excludes_markdown_close_and_korean_postposition(self):
+        target = (
+            "https://chat.example.test/archives/"
+            "SYNTHETIC/p1234567890123456"
+        )
+        text = "관련 대화는 [{}]({})와 다음 자료를 참고하세요.".format(
+            "Slack", target
+        )
+
+        references = visible_reference_candidates(
+            text, role="user", source_line=1
+        )
+        evidence = visible_url_evidence(text, source_line=1)
+
+        self.assertEqual(
+            [item.reference for item in references if item.reference_kind == "url"],
+            [target],
+        )
+        self.assertEqual([item.observed_url for item in evidence], [target])
 
     def test_claude_parser_extracts_messages_and_tools(self):
         path = self._write_jsonl(
@@ -183,6 +207,95 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(
             [item.observed_url for item in parsed.url_evidence],
             ["https://example.test/item"],
+        )
+
+    def test_codex_parser_keeps_prompt_before_expanded_skill_context(self):
+        path = self._write_jsonl(
+            [
+                {
+                    "type": "session_meta",
+                    "payload": {"id": "codex-skill-prompt", "source": "cli"},
+                },
+                {"type": "turn_context", "payload": {"turn_id": "turn-skill"}},
+                {
+                    "type": "response_item",
+                    "payload": {
+                        "id": "visible-user-message",
+                        "type": "message",
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "input_text",
+                                "text": (
+                                    "$synthetic-review 결과를 대조해줘 "
+                                    "https://visible.example.test/item"
+                                ),
+                            }
+                        ],
+                        "internal_chat_message_metadata_passthrough": {
+                            "turn_id": "turn-skill"
+                        },
+                    },
+                },
+                {
+                    "type": "response_item",
+                    "payload": {
+                        "id": "expanded-skill-context",
+                        "type": "message",
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "input_text",
+                                "text": (
+                                    "<skill>\n<name>synthetic-review</name>\n"
+                                    "<path>/synthetic/SKILL.md</path>\n"
+                                    "Do not surface https://injected.example.test/item\n"
+                                    "</skill>"
+                                ),
+                            }
+                        ],
+                        "internal_chat_message_metadata_passthrough": {
+                            "turn_id": "turn-skill"
+                        },
+                    },
+                },
+                {
+                    "type": "response_item",
+                    "payload": {
+                        "id": "visible-assistant-message",
+                        "type": "message",
+                        "role": "assistant",
+                        "content": [
+                            {"type": "output_text", "text": "검토했습니다"}
+                        ],
+                        "internal_chat_message_metadata_passthrough": {
+                            "turn_id": "turn-skill"
+                        },
+                    },
+                },
+            ]
+        )
+
+        parsed = parse_codex_session(path)
+
+        self.assertEqual(
+            parsed.title,
+            "$synthetic-review 결과를 대조해줘 https://visible.example.test/item",
+        )
+        self.assertEqual(
+            [(event.role, event.text) for event in parsed.events],
+            [
+                (
+                    "user",
+                    "$synthetic-review 결과를 대조해줘 "
+                    "https://visible.example.test/item",
+                ),
+                ("assistant", "검토했습니다"),
+            ],
+        )
+        self.assertEqual(
+            [item.observed_url for item in parsed.url_evidence],
+            ["https://visible.example.test/item"],
         )
 
     def test_codex_parser_fills_only_missing_event_message_role(self):
