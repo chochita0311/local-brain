@@ -189,19 +189,21 @@
             </div>
             {% if pinned_items %}
               <div class="pinned-session-list">
-                {% for pinned_session in pinned_items %}
-                  <a href="{{ session_detail_url(pinned_session.id) }}">
-                    <span class="pinned-session-source {{ pinned_session.source_kind }}">
-                      <span aria-hidden="true">{{ source_cue(pinned_session.source_kind, pinned_session.provider_kind, pinned_session.source_name) }}</span>
-                      <span class="sr-only">{{ pinned_session.source_name }}</span>
-                    </span>
-                    <span class="pinned-session-copy">
-                      <strong>{{ pinned_session.title }}</strong>
-                      <span>{{ pinned_session.workspace_name or pinned_session.workspace_path or pinned_session.cwd_raw or '작업 경로 없음' }}</span>
-                      <small><time datetime="{{ pinned_session.last_event_at or pinned_session.started_at }}" data-local-time>{{ pinned_session.last_event_at or pinned_session.started_at or '-' }}</time></small>
-                    </span>
-                  </a>
-                {% endfor %}
+                <div class="pinned-session-list-content">
+                  {% for pinned_session in pinned_items %}
+                    <a href="{{ session_detail_url(pinned_session.id) }}">
+                      <span class="pinned-session-source {{ pinned_session.source_kind }}">
+                        <span aria-hidden="true">{{ source_cue(pinned_session.source_kind, pinned_session.provider_kind, pinned_session.source_name) }}</span>
+                        <span class="sr-only">{{ pinned_session.source_name }}</span>
+                      </span>
+                      <span class="pinned-session-copy">
+                        <strong>{{ pinned_session.title }}</strong>
+                        <span>{{ pinned_session.workspace_name or pinned_session.workspace_path or pinned_session.cwd_raw or '작업 경로 없음' }}</span>
+                        <small><time datetime="{{ pinned_session.last_event_at or pinned_session.started_at }}" data-local-time>{{ pinned_session.last_event_at or pinned_session.started_at or '-' }}</time></small>
+                      </span>
+                    </a>
+                  {% endfor %}
+                </div>
               </div>
             {% else %}
               <div class="pinned-session-empty">

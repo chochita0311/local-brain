@@ -158,6 +158,7 @@ class SessionPinUiTests(unittest.TestCase):
         self.assertIn('<span aria-hidden="true">CC</span>', pinned_panel)
         self.assertIn('<span class="sr-only">Codex Company</span>', pinned_panel)
         self.assertNotIn('class="pinned-session-provenance"', pinned_panel)
+        self.assertIn('class="pinned-session-list-content"', pinned_panel)
         self.assertIn("data-local-time", pinned_panel)
 
         first_row = response[
@@ -309,6 +310,22 @@ class SessionPinUiTests(unittest.TestCase):
         )
         self.assertIn("window.scrollTo(0, windowScrollY);", script)
         self.assertIn("adoptedControl?.focus({ preventScroll: true });", script)
+
+    def test_pinned_session_scroll_content_owns_desktop_end_inset(self):
+        styles = (ROOT / "src/localbrain/static/styles.css").read_text(
+            encoding="utf-8"
+        )
+
+        list_rule = styles.split(".pinned-session-list {", 1)[1].split("}", 1)[0]
+        self.assertNotIn("padding", list_rule)
+        self.assertIn(
+            ".pinned-session-list-content { padding-right: var(--space-section); }",
+            styles,
+        )
+        self.assertIn(
+            ".pinned-session-list-content { padding-right: var(--space-none); }",
+            styles,
+        )
 
 
 if __name__ == "__main__":

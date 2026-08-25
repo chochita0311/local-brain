@@ -755,20 +755,32 @@ class SessionRelatedContextUiContractTests(unittest.TestCase):
         self.assertIn("position: sticky;", self.styles)
         self.assertIn("var(--rail-context-width)", self.styles)
         self.assertIn('class="session-related-context-scroll"', self.related_template)
+        self.assertIn('class="session-related-context-content"', self.related_template)
         self.assertIn(
             "max-height: calc(100vh - var(--shell-sticky-offset) - var(--space-section));",
             self.styles,
         )
         self.assertIn("overflow-y: auto;", self.styles)
         self.assertIn("overscroll-behavior: contain;", self.styles)
-        self.assertIn("padding-right: var(--space-card);", self.styles)
+        scroll_rule = self.styles.split(
+            ".session-related-context-scroll {", 1
+        )[1].split("}", 1)[0]
+        self.assertNotIn("padding", scroll_rule)
+        self.assertIn(
+            ".session-related-context-content { padding-right: var(--space-section); }",
+            self.styles,
+        )
         self.assertIn("scrollbar-gutter: stable;", self.styles)
         self.assertIn(
             ".session-detail-layout.has-related-context .session-related-context { position: static; grid-column: 1; grid-row: 2; max-height: none; }",
             self.styles,
         )
         self.assertIn(
-            ".session-related-context-scroll { overflow-y: visible; padding-right: var(--space-none); overscroll-behavior: auto; scrollbar-gutter: auto; }",
+            ".session-related-context-scroll { overflow-y: visible; overscroll-behavior: auto; scrollbar-gutter: auto; }",
+            self.styles,
+        )
+        self.assertIn(
+            ".session-related-context-content { padding-right: var(--space-none); }",
             self.styles,
         )
         self.assertIn(

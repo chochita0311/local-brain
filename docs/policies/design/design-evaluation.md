@@ -48,11 +48,20 @@
 - Responsive column changes must not cause content overlap, spill, or collapse.
 - A layout that works only at one width is not a pass.
 
-#### Scrollable Disclosure Frame Integrity
+#### Bounded Scroll Frame And End-Inset Integrity
 
-- A bounded disclosure, menu, or popover with a long list should keep one stable outer frame for background, border, radius, shadow, and clipping.
+- A bounded list, disclosure, menu, popover, or secondary region should keep one stable outer frame for background, border, radius, shadow, and clipping.
 - Vertical scrolling should normally belong to an inner content region so scrollbars and overflowing children do not erase, split, or square off the visible frame.
-- Evaluators should inspect short, threshold, and long-list states and compare all four edges, corner radii, and overflow behavior.
+- Treat the outer-frame inset and the visible separation between content and the scrollbar as different relationships. When a scrollbar is present, measure the end edges of text, truncation boundaries, dividers, and focus surfaces against the scrollbar track rather than inferring breathing room from the panel edge alone.
+- Preserve the approved content-to-scrollbar separation without inflating the opposite inset merely to create coordinate symmetry. The implementation may use a content-owned inner wrapper or another layout mechanism as long as the visible result and overflow ownership remain stable.
+- Evaluators should inspect short, threshold, and long-list states, plus the breakpoint where nested scrolling becomes normal document flow. Compare all four edges, corner radii, overflow behavior, and active-scrollbar end insets, and confirm that scrollbar-specific compensation does not leave an unexplained gap after the scrollbar lane disappears.
+
+#### Parallel Reading Region Scroll Ownership
+
+- A secondary reference, navigation, or context region used for independent lookup should not require the user to traverse the full depth of a much longer primary reading surface merely to reach the secondary region's later items.
+- When long primary and secondary regions remain side by side, keep the primary task's document scroll distinct from any intentionally viewport-bounded secondary scroll. Keep persistent orientation such as the secondary title outside the inner scroller when that title must remain visible, and preserve frame clipping, usable inner insets, scrollbar gutter, sticky offsets, and the intended scroll-chaining boundary.
+- When the regions stack at a narrower breakpoint, release desktop-only maximum height and nested scrolling unless the narrow-layout contract explicitly retains them. A responsive reflow must not leave an unnecessary scroll trap inside the document.
+- Evaluators should exercise short-primary/long-secondary, long-primary/short-secondary, and long-both combinations at wide and narrow viewports. Check top, middle, and end reachability with wheel, trackpad, keyboard, and touch as applicable, along with focus visibility, overscroll behavior, and both content-facing edges of the secondary frame.
 
 #### Composite Record State Continuity
 
@@ -290,6 +299,7 @@
 #### Rendered State And Viewport Evidence
 
 - Claims about geometry, overflow, contrast, selection visibility, focus, or responsive composition should use rendered evidence when those properties cannot be established from source inspection alone.
+- Before classifying or correcting a rendered mismatch, confirm the exact route, region, and scroll owner named by the report. A visually similar peer is useful comparison evidence, but it is not a substitute for observing the affected surface.
 - Broad screen-family work should sample LocalBrain's supported viewport boundaries and representative long-content, empty, unavailable, error, and active-interaction states. Exact widths and required states belong to the approved Feature, active Spec, or selected profile.
 - Record the effective viewport rendered by the page rather than assuming that a requested window size was applied exactly. Browser minimum-window constraints, device-pixel ratio, zoom, or tool clamping can change the observed width; use viewport or device emulation when needed to reach a required minimum boundary.
 - Use synthetic or explicitly approved content when captures, fixtures, or audit artifacts could otherwise expose private runtime data.

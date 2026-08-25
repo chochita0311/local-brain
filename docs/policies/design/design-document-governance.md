@@ -169,6 +169,7 @@ A constitution change fails when:
 | 2026-08-02 | v11 | Restored the same compact accessible source-cue contract to Pinned Session cards without repeating configured source names visibly. |
 | 2026-08-02 | v12 | Extended the stable source-key `CL`/`CX`/`CC` icon contract to Session detail headings and normalized or lazy Subsession projections while preserving their readable source labels. |
 | 2026-08-03 | v13 | Removed repeated visible configured source names from Session detail headings and detail Subsession rows while preserving accessible source cues, and aligned child-row question, event, and date metadata with the Sessions inventory family. |
+| 2026-08-25 | v14 | Separated Session related-material and Pinned Session content insets from their desktop scrollbar lanes, using the section spacing role for optical breathing room while preserving normal compact card insets. |
 
 ## Practical Summary
 
