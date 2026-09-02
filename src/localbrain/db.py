@@ -50,6 +50,19 @@ MAINTENANCE_SESSION_SHAPE_CHECK_PATTERN = re.compile(
     r"AND\s+index_policy\s*=\s*'metadata_only'\s*\)\s*\)",
     flags=re.IGNORECASE,
 )
+STRUCTURE_REFERENCE_TABLES = (
+    "atlassian_structure_references",
+    "atlassian_structure_reference_urls",
+    "atlassian_structure_reference_evidence",
+)
+STRUCTURE_REFERENCE_INDEXES = (
+    "idx_atlassian_structure_references_site",
+    "idx_atlassian_structure_reference_urls_reference",
+    "idx_atlassian_structure_reference_urls_canonical",
+    "idx_atlassian_structure_reference_evidence_reference",
+    "idx_atlassian_structure_reference_evidence_session",
+    "idx_atlassian_structure_reference_evidence_document",
+)
 
 
 def connect() -> sqlite3.Connection:
@@ -63,6 +76,7 @@ def connect() -> sqlite3.Connection:
 
 def init_db() -> None:
     with connect() as connection:
+        _validate_preexisting_structure_reference_contract(connection)
         source_provider_identity_needs_repair = bool(
             _table_sql(connection, "sources")
             and not _source_provider_identity_contract_exists(connection)
@@ -111,6 +125,7 @@ def init_db() -> None:
             _ensure_usage_attribution_backup(connection, settings.database_path)
         _migrate_legacy_usage_table_name(connection)
         connection.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
+        _validate_structure_reference_contract(connection)
         if atlassian_site_access_needs_repair:
             _repair_atlassian_site_access_contract(connection)
         _run_compatible_migrations(connection)
@@ -158,6 +173,131 @@ def _table_sql(connection: sqlite3.Connection, table: str):
         (table,),
     ).fetchone()
     return row["sql"] if row else None
+
+
+def _normalized_schema_sql(value) -> str:
+    return " ".join(str(value or "").split())
+
+
+def _schema_object_sql(
+    connection: sqlite3.Connection, object_type: str, name: str
+):
+    row = connection.execute(
+        "SELECT sql FROM sqlite_master WHERE type = ? AND name = ?",
+        (object_type, name),
+    ).fetchone()
+    return _normalized_schema_sql(row["sql"] if row else None)
+
+
+def _table_contract_signature(
+    connection: sqlite3.Connection, table: str
+) -> tuple:
+    return (
+        _schema_object_sql(connection, "table", table),
+        tuple(
+            tuple(row)
+            for row in connection.execute(
+                'PRAGMA table_info("{}")'.format(table)
+            )
+        ),
+        tuple(
+            sorted(
+                tuple(row)
+                for row in connection.execute(
+                    'PRAGMA foreign_key_list("{}")'.format(table)
+                )
+            )
+        ),
+    )
+
+
+def _index_contract_signature(
+    connection: sqlite3.Connection, index: str
+) -> tuple:
+    return (
+        _schema_object_sql(connection, "index", index),
+        tuple(
+            tuple(row)
+            for row in connection.execute(
+                'PRAGMA index_xinfo("{}")'.format(index)
+            )
+        ),
+    )
+
+
+def _canonical_structure_reference_contract() -> tuple[dict, dict]:
+    reference = sqlite3.connect(":memory:")
+    reference.row_factory = sqlite3.Row
+    try:
+        reference.execute("PRAGMA foreign_keys = ON")
+        reference.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
+        tables = {
+            table: _table_contract_signature(reference, table)
+            for table in STRUCTURE_REFERENCE_TABLES
+        }
+        indexes = {
+            index: _index_contract_signature(reference, index)
+            for index in STRUCTURE_REFERENCE_INDEXES
+        }
+        return tables, indexes
+    finally:
+        reference.close()
+
+
+def _validate_preexisting_structure_reference_contract(
+    connection: sqlite3.Connection,
+) -> None:
+    present = {
+        table for table in STRUCTURE_REFERENCE_TABLES if _table_sql(connection, table)
+    }
+    if not present:
+        return
+    if present != set(STRUCTURE_REFERENCE_TABLES):
+        raise RuntimeError(
+            "Unexpected partial Atlassian Structure Reference schema"
+        )
+    canonical_tables, canonical_indexes = (
+        _canonical_structure_reference_contract()
+    )
+    if any(
+        _table_contract_signature(connection, table) != canonical_tables[table]
+        for table in STRUCTURE_REFERENCE_TABLES
+    ):
+        raise RuntimeError(
+            "Unexpected Atlassian Structure Reference table contract"
+        )
+    if any(
+        _schema_object_sql(connection, "index", index)
+        and _index_contract_signature(connection, index)
+        != canonical_indexes[index]
+        for index in STRUCTURE_REFERENCE_INDEXES
+    ):
+        raise RuntimeError(
+            "Unexpected Atlassian Structure Reference index contract"
+        )
+
+
+def _validate_structure_reference_contract(
+    connection: sqlite3.Connection,
+) -> None:
+    canonical_tables, canonical_indexes = (
+        _canonical_structure_reference_contract()
+    )
+    if any(
+        _table_contract_signature(connection, table) != canonical_tables[table]
+        for table in STRUCTURE_REFERENCE_TABLES
+    ):
+        raise RuntimeError(
+            "Canonical Atlassian Structure Reference tables are unavailable"
+        )
+    if any(
+        _index_contract_signature(connection, index)
+        != canonical_indexes[index]
+        for index in STRUCTURE_REFERENCE_INDEXES
+    ):
+        raise RuntimeError(
+            "Canonical Atlassian Structure Reference indexes are unavailable"
+        )
 
 
 def _source_provider_identity_contract_exists(

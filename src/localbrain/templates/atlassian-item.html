@@ -1,16 +1,20 @@
 {% extends "base.html" %}
 {% block title %}{{ item.remote_key or item.display_title }} · Atlassian · LocalBrain{% endblock %}
-{% block page_location %}Atlassian Item{% endblock %}
+{% block page_location %}Atlassian {{ '링크' if item.service == 'jira' else '문서' }}{% endblock %}
 {% block content %}
+  {% set content_kind = '링크' if item.service == 'jira' else '문서' %}
+  {% set container_kind = item.container_kind or ('space' if item.space_name else 'unclassified') %}
+  {% set container_label = item.container_label or item.space_name or '소속 미확인' %}
+  {% set container_service = item.container_service or item.service %}
   <div class="atlassian-item-page">
-    <a class="context-back-link" href="/atlassian?view={{ item.service }}&amp;mode=browse">← {{ value_label("atlassian-space.service", item.service) }} inventory</a>
+    <a class="context-back-link" href="{{ return_to }}">← Atlassian inventory</a>
 
     <section class="page-heading atlassian-item-heading">
       <div>
-        <p class="eyebrow">LOCAL SOURCE ITEM · {{ value_label("atlassian-item.type", item.item_type) | upper }}</p>
+        <p class="eyebrow">LOCAL SOURCE {{ 'LINK' if item.service == 'jira' else 'DOCUMENT' }} · {{ value_label("atlassian-item.type", item.item_type) | upper }}</p>
         <h1>{{ item.remote_key or item.display_title }}</h1>
         {% if item.remote_key %}<p class="heading-copy">{{ item.display_title }}</p>{% endif %}
-        <p class="atlassian-item-origin">{{ item.source_name }} · {{ item.normalized_domain }}{% if item.space_name %} · {{ item.space_name }}{% endif %}</p>
+        <p class="atlassian-item-origin">{{ item.source_name }} · {{ item.normalized_domain }} · {{ container_label }}{% if container_kind == 'url' %} · URL 기준{% endif %}</p>
         <div class="atlassian-classification-strip">
           <span class="status-badge neutral">{{ value_label("atlassian-item.coverage", item.coverage) }}</span>
           <span class="status-badge {{ 'warning' if item.freshness in ['due', 'stale'] else ('danger' if item.freshness == 'unavailable' else ('success' if item.freshness == 'current' else 'neutral')) }}">{{ value_label("atlassian-item.freshness", item.freshness) }}</span>
@@ -20,7 +24,7 @@
         </div>
       </div>
       <div class="atlassian-item-heading-actions">
-        <a class="secondary-button button-link" href="/atlassian/refresh?scope=item&amp;id={{ item.id }}">Refresh preview</a>
+        <a class="secondary-button button-link" href="{{ refresh_url }}">Refresh preview</a>
         <a class="primary-button button-link" href="{{ item.canonical_url }}" target="_blank" rel="noreferrer">Atlassian에서 열기</a>
       </div>
     </section>
@@ -28,7 +32,7 @@
     {% if notice %}<div class="atlassian-feedback success" role="status" tabindex="-1">{{ notice }}</div>{% endif %}
     {% if form_error %}<div class="atlassian-feedback error" role="alert">{{ form_error }}</div>{% endif %}
     {% if item.attention == 'archived' %}
-      <div class="atlassian-inline-state warning">이 Item은 {{ value_label("atlassian-item.attention", item.attention) }} 상태입니다. 직접 링크와 보관됨 필터에서는 계속 접근할 수 있습니다.</div>
+      <div class="atlassian-inline-state warning">이 {{ content_kind }}는 {{ value_label("atlassian-item.attention", item.attention) }} 상태입니다. 직접 링크와 보관됨 필터에서는 계속 접근할 수 있습니다.</div>
     {% endif %}
 
     <div class="atlassian-detail-grid">
@@ -39,8 +43,8 @@
         </div>
         <dl class="atlassian-fact-grid">
           <div><dt>Source Instance</dt><dd>{{ item.source_name }}</dd></div>
-          <div><dt>Site</dt><dd>{{ item.normalized_domain }}</dd></div>
-          <div><dt>Space</dt><dd>{{ item.space_name or '확인되지 않음' }}</dd></div>
+          <div><dt>도메인</dt><dd>{{ item.normalized_domain }}</dd></div>
+          <div><dt>{% if container_kind == 'space' %}{{ 'Project' if container_service == 'jira' else 'Space' }}{% elif container_kind == 'url' %}URL 기준 그룹{% else %}Project/Space{% endif %}</dt><dd>{{ container_label }}{% if container_kind == 'url' %} · 로컬 파생{% endif %}</dd></div>
           <div><dt>Remote ID</dt><dd class="mono">{{ item.remote_id or '확인되지 않음' }}</dd></div>
           <div><dt>Remote version</dt><dd>{{ item.remote_version or '확인되지 않음' }}</dd></div>
           <div><dt>Remote updated</dt><dd><time datetime="{{ item.remote_updated_at or '' }}" data-local-time>{{ item.remote_updated_at or '확인되지 않음' }}</time></dd></div>
@@ -53,7 +57,7 @@
             <pre>{{ item.metadata | tojson(indent=2) }}</pre>
           </details>
         {% else %}
-          <p class="atlassian-inline-state neutral">저장된 remote 기본 정보가 없습니다. {{ value_label("atlassian-item.coverage", "reference") }} Item은 로컬 identity만 유지합니다.</p>
+          <p class="atlassian-inline-state neutral">저장된 remote 기본 정보가 없습니다. {{ value_label("atlassian-item.coverage", "reference") }} {{ content_kind }}는 로컬 identity만 유지합니다.</p>
         {% endif %}
         {% if item.coverage == 'indexed' and item.normalized_text %}
           <div class="atlassian-source-content">
@@ -74,6 +78,7 @@
           <span class="status-badge neutral">Atlassian write 없음</span>
         </div>
         <form class="atlassian-local-form" method="post" action="/atlassian/items/{{ item.id }}/local">
+          <input type="hidden" name="return_to" value="{{ return_to }}">
           <label for="item-attention">Attention</label>
           <select id="item-attention" name="attention">
             {% for value in ['normal', 'pinned', 'ignored', 'archived'] %}
@@ -116,6 +121,7 @@
                 <div class="atlassian-membership-row">
                   <span><strong>{{ membership.workstream_name }}</strong>{% if membership.thread_title %} · {{ membership.thread_title }}{% endif %}</span>
                   <form method="post" action="/atlassian/items/{{ item.id }}/links/{{ membership.scope_type }}/{{ membership.scope_id }}/{{ membership.link_id }}">
+                    <input type="hidden" name="return_to" value="{{ return_to }}">
                     <button class="text-button danger" type="submit">연결 해제</button>
                   </form>
                 </div>
@@ -126,6 +132,7 @@
           {% endif %}
           {% if item.workstreams %}
             <form class="atlassian-link-form" method="post" action="/atlassian/items/{{ item.id }}/links">
+              <input type="hidden" name="return_to" value="{{ return_to }}">
               <label for="item-link-target">기존 작업에 연결</label>
               <select id="item-link-target" name="target" required>
                 <option value="">Workstream 또는 Thread 선택</option>
@@ -159,7 +166,7 @@
           {% endfor %}
         </div>
       {% else %}
-        <p class="atlassian-inline-state neutral">연결된 Session 또는 Local Context URL evidence가 없습니다. 수동 등록 Item도 그대로 사용할 수 있습니다.</p>
+        <p class="atlassian-inline-state neutral">연결된 Session 또는 Local Context URL evidence가 없습니다. 수동 등록 {{ content_kind }}도 그대로 사용할 수 있습니다.</p>
       {% endif %}
     </section>
 
@@ -174,7 +181,7 @@
           <time datetime="{{ item.latest_refresh_run.completed_at or item.latest_refresh_run.created_at }}" data-local-time>{{ item.latest_refresh_run.completed_at or item.latest_refresh_run.created_at }}</time>
         </a>
       {% else %}
-        <p class="atlassian-inline-state neutral">이 Item을 대상으로 한 explicit refresh Run이 아직 없습니다.</p>
+        <p class="atlassian-inline-state neutral">이 {{ content_kind }}를 대상으로 한 explicit refresh Run이 아직 없습니다.</p>
       {% endif %}
     </section>
   </div>

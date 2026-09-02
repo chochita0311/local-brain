@@ -8,8 +8,13 @@ from pathlib import Path
 from typing import Dict, Iterable, Optional, Sequence
 from urllib.parse import urlsplit, urlunsplit
 
-from .atlassian import create_or_reuse_atlassian_stub
+from .atlassian import normalize_atlassian_url
 from .atlassian_evidence import recognize_configured_atlassian_item_url
+from .atlassian_locators import (
+    AtlassianLocatorResult,
+    atlassian_locator_identity,
+    describe_atlassian_url,
+)
 from .ingest.common import (
     ParsedReferenceCandidate,
     REFERENCE_EXTRACTOR_VERSION,
@@ -282,6 +287,71 @@ def _configured_item_by_hint(
     return rows[0] if len(rows) == 1 else None
 
 
+def _configured_item_for_locator(
+    connection: sqlite3.Connection,
+    locator: AtlassianLocatorResult,
+    exact_normalized_url: str,
+) -> Optional[sqlite3.Row]:
+    if locator.kind != "item" or not locator.safe_locator_url:
+        return None
+    recognized = recognize_configured_atlassian_item_url(
+        connection, locator.safe_locator_url
+    )
+    if recognized is None:
+        return None
+    exact = connection.execute(
+        """
+        SELECT atlassian_items.external_resource_id,
+               atlassian_items.remote_key, atlassian_items.remote_id,
+               atlassian_items.service, external_resources.url
+        FROM atlassian_item_urls
+        JOIN atlassian_items
+          ON atlassian_items.external_resource_id =
+             atlassian_item_urls.external_resource_id
+        JOIN external_resources
+          ON external_resources.id = atlassian_items.external_resource_id
+        WHERE atlassian_item_urls.site_id = ?
+          AND atlassian_item_urls.normalized_url = ?
+          AND atlassian_items.service = ?
+        ORDER BY atlassian_items.external_resource_id
+        """,
+        (
+            recognized.site_id,
+            exact_normalized_url,
+            locator.service,
+        ),
+    ).fetchall()
+    if len(exact) == 1:
+        return exact[0]
+
+    if locator.item_identity_kind == "jira_issue":
+        predicate = "UPPER(atlassian_items.remote_key) = UPPER(?)"
+    elif locator.item_identity_kind == "confluence_page":
+        predicate = "atlassian_items.remote_id = ?"
+    else:
+        return None
+    rows = connection.execute(
+        """
+        SELECT atlassian_items.external_resource_id,
+               atlassian_items.remote_key, atlassian_items.remote_id,
+               atlassian_items.service, external_resources.url
+        FROM atlassian_items
+        JOIN external_resources
+          ON external_resources.id = atlassian_items.external_resource_id
+        WHERE atlassian_items.site_id = ?
+          AND atlassian_items.service = ?
+          AND {}
+        ORDER BY atlassian_items.external_resource_id
+        """.format(predicate),
+        (
+            recognized.site_id,
+            locator.service,
+            locator.item_identity,
+        ),
+    ).fetchall()
+    return rows[0] if len(rows) == 1 else None
+
+
 def _resolved_item(
     *,
     candidate: ParsedReferenceCandidate,
@@ -309,29 +379,61 @@ def _resolved_item(
     )
 
 
+def _locator_observed_identity(locator: AtlassianLocatorResult) -> str:
+    identity = locator.item_identity or locator.reference_identity
+    value = "{} · {}".format(locator.normalized_domain, locator.family)
+    if identity:
+        value += ":{}".format(identity)
+    return value[:500]
+
+
+def _resolved_locator_url(
+    *,
+    candidate: ParsedReferenceCandidate,
+    source_path: str,
+    locator: AtlassianLocatorResult,
+) -> ResolvedReferenceEvidence:
+    identity = atlassian_locator_identity(locator)
+    assert identity is not None
+    assert locator.safe_locator_url is not None
+    return ResolvedReferenceEvidence(
+        source_path=source_path,
+        source_event_id=candidate.source_event_id,
+        source_line=candidate.source_line,
+        evidence_ordinal=candidate.evidence_ordinal,
+        target_kind="url",
+        target_key="url:{}".format(_hash_payload(identity)),
+        context_document_id=None,
+        external_resource_id=None,
+        evidence_kind=candidate.evidence_kind,
+        read_outcome=candidate.read_outcome,
+        observed_identity=_locator_observed_identity(locator),
+        normalized_url=locator.safe_locator_url,
+        tool_name=candidate.tool_name,
+        tool_call_id=candidate.tool_call_id,
+        observed_at=candidate.observed_at,
+    )
+
+
 def _resolve_url(
     connection: sqlite3.Connection,
     *,
     candidate: ParsedReferenceCandidate,
     source_path: str,
 ) -> Optional[ResolvedReferenceEvidence]:
-    recognized = recognize_configured_atlassian_item_url(
-        connection, candidate.reference
-    )
-    if recognized is not None:
-        hint_kind = (
-            "jira_key" if recognized.observed_remote_key else "confluence_page_id"
-        )
-        hint_value = recognized.observed_remote_key or recognized.observed_remote_id
-        configured = (
-            _configured_item_by_hint(connection, hint_kind, hint_value)
-            if hint_value
-            else None
+    locator = describe_atlassian_url(candidate.reference)
+    if locator.kind == "item":
+        exact_normalized_url = normalize_atlassian_url(
+            candidate.reference
+        ).normalized_url
+        configured = _configured_item_for_locator(
+            connection,
+            locator,
+            exact_normalized_url,
         )
         if configured is not None:
-            normalized_url = _safe_generic_url(configured["url"])
-            if normalized_url is None:
-                return None
+            normalized_url = locator.safe_locator_url
+            assert normalized_url is not None
             return _resolved_item(
                 candidate=candidate,
                 source_path=source_path,
@@ -343,53 +445,20 @@ def _resolve_url(
                     or _safe_url_identity(normalized_url)
                 ),
             )
-        safe_identity_url = _safe_generic_url(candidate.reference)
-        if recognized.observed_remote_key:
-            parsed = urlsplit(recognized.normalized.normalized_url)
-            safe_identity_url = urlunsplit(
-                (
-                    parsed.scheme,
-                    parsed.netloc,
-                    "/browse/{}".format(recognized.observed_remote_key),
-                    "",
-                    "",
-                )
-            )
-        elif recognized.observed_remote_id and safe_identity_url:
-            parsed = urlsplit(safe_identity_url)
-            if recognized.observed_remote_id not in parsed.path.split("/"):
-                safe_identity_url = urlunsplit(
-                    (
-                        parsed.scheme,
-                        parsed.netloc,
-                        "/wiki/pages/{}".format(recognized.observed_remote_id),
-                        "",
-                        "",
-                    )
-                )
-        if safe_identity_url is None:
-            return None
-        item = create_or_reuse_atlassian_stub(
-            connection,
-            source_instance_id=recognized.source_instance_id,
-            service=recognized.service,
-            site_id=recognized.site_id,
-            url=safe_identity_url,
-            observed_at=candidate.observed_at or utc_now(),
-        )
-        external_resource_id = int(item["external_resource_id"])
-        identity = (
-            recognized.observed_remote_key
-            or recognized.observed_remote_id
-            or _safe_url_identity(safe_identity_url)
-        )
-        return _resolved_item(
+        return _resolved_locator_url(
             candidate=candidate,
             source_path=source_path,
-            external_resource_id=external_resource_id,
-            normalized_url=safe_identity_url,
-            observed_identity=identity,
+            locator=locator,
         )
+
+    if locator.kind in {"structure", "site"}:
+        return _resolved_locator_url(
+            candidate=candidate,
+            source_path=source_path,
+            locator=locator,
+        )
+    if locator.kind == "unsafe":
+        return None
 
     normalized_url = _safe_generic_url(candidate.reference)
     if normalized_url is None:

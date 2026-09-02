@@ -6,7 +6,7 @@ Edit the owning artifact, then run `uv run python scripts/build-plan-artifact-ca
 
 Status and relation values are preserved from each owner artifact. `—` means the field is not declared or does not apply; historical Spec `passed` and Run `complete` values are legacy aliases preserved under [Execution Artifact Status](../policies/harness/execution-loop-governance.md#execution-artifact-status).
 
-## PRDs (13)
+## PRDs (16)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -23,8 +23,11 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [PRD-0011: Shared Native Select Control Geometry](prd/prd-0011-shared-native-select-control-geometry.md) | `passed` | — |
 | [PRD-0012: Multiple Local AI Session Sources And Inventory Integrity](prd/prd-0012-multiple-local-ai-session-sources-and-inventory-integrity.md) | `passed` | — |
 | [PRD-0013: Session-Centric Related Context Evidence](prd/prd-0013-session-centric-related-context-evidence.md) | `passed` | — |
+| [PRD-0014: Atlassian Explorer And Unified Retrieval](prd/prd-0014-atlassian-explorer-and-unified-retrieval.md) | `passed` | — |
+| [PRD-0015: Atlassian Site-First URL Organization](prd/prd-0015-atlassian-site-first-url-organization.md) | `passed` | — |
+| [PRD-0016: Atlassian Standard URL Structure References](prd/prd-0016-atlassian-standard-url-recognition.md) | `passed` | — |
 
-## Features (74)
+## Features (83)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -102,8 +105,17 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [FEAT-0072: Session Reference Evidence Contract](feature/feat-0072-session-reference-evidence-contract.md) | `passed` | PRD-0013: Session-Centric Related Context Evidence |
 | [FEAT-0073: Deterministic Session Reference Capture And Reconciliation](feature/feat-0073-deterministic-session-reference-capture-and-reconciliation.md) | `passed` | PRD-0013: Session-Centric Related Context Evidence |
 | [FEAT-0074: Session-Centric Related Materials Rail](feature/feat-0074-session-centric-related-materials-rail.md) | `passed` | PRD-0013: Session-Centric Related Context Evidence |
+| [FEAT-0075: Atlassian Explorer Family And State Contract](feature/feat-0075-atlassian-explorer-family-and-state-contract.md) | `passed` | PRD-0014: Atlassian Explorer And Unified Retrieval |
+| [FEAT-0076: Atlassian Exact Retrieval Contract](feature/feat-0076-atlassian-exact-retrieval-contract.md) | `passed` | PRD-0014: Atlassian Explorer And Unified Retrieval |
+| [FEAT-0077: Atlassian Explorer Inventory And Search](feature/feat-0077-atlassian-explorer-inventory-and-search.md) | `passed` | PRD-0014: Atlassian Explorer And Unified Retrieval |
+| [FEAT-0078: Atlassian In-Context Item Detail](feature/feat-0078-atlassian-in-context-item-detail.md) | `passed` | PRD-0014: Atlassian Explorer And Unified Retrieval |
+| [FEAT-0079: Atlassian Manual Add And Connections Separation](feature/feat-0079-atlassian-manual-add-and-connections-separation.md) | `passed` | PRD-0014: Atlassian Explorer And Unified Retrieval |
+| [FEAT-0080: Atlassian Local Evidence Sync](feature/feat-0080-atlassian-local-evidence-sync.md) | `passed` | PRD-0014: Atlassian Explorer And Unified Retrieval |
+| [FEAT-0081: Atlassian Deterministic Site-First Hierarchy](feature/feat-0081-atlassian-deterministic-site-first-hierarchy.md) | `passed` | PRD-0015 |
+| [FEAT-0082: Atlassian Structure Reference Locator Foundation](feature/feat-0082-atlassian-static-url-locator-contract.md) | `passed` | PRD-0016 |
+| [FEAT-0083: Atlassian Structure Reference Sync And Explorer](feature/feat-0083-atlassian-structure-reference-sync-and-explorer.md) | `passed` | PRD-0016 |
 
-## Specs (78)
+## Specs (87)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -185,8 +197,17 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [SPEC-0072: Session Reference Evidence Contract](spec/spec-0072-session-reference-evidence-contract.md) | `approved` | feat-0072-session-reference-evidence-contract |
 | [SPEC-0073: Deterministic Session Reference Capture And Reconciliation](spec/spec-0073-deterministic-session-reference-capture-and-reconciliation.md) | `approved` | feat-0073-deterministic-session-reference-capture-and-reconciliation |
 | [SPEC-0074: Session-Centric Related Materials Rail](spec/spec-0074-session-centric-related-materials-rail.md) | `approved` | feat-0074-session-centric-related-materials-rail |
+| [SPEC-0075: Atlassian Explorer Family And State Contract](spec/spec-0075-atlassian-explorer-family-and-state-contract.md) | `approved` | FEAT-0075 |
+| [SPEC-0076: Atlassian Exact Retrieval Contract](spec/spec-0076-atlassian-exact-retrieval-contract.md) | `approved` | FEAT-0076 |
+| [SPEC-0077: Atlassian Explorer Inventory And Search](spec/spec-0077-atlassian-explorer-inventory-and-search.md) | `approved` | FEAT-0077 |
+| [SPEC-0078: Atlassian In-Context Item Detail](spec/spec-0078-atlassian-in-context-item-detail.md) | `approved` | FEAT-0078 |
+| [SPEC-0079: Atlassian Manual Add And Connections Separation](spec/spec-0079-atlassian-manual-add-and-connections-separation.md) | `approved` | FEAT-0079 |
+| [SPEC-0080: Atlassian Local Evidence Sync](spec/spec-0080-atlassian-local-evidence-sync.md) | `approved` | FEAT-0080 |
+| [SPEC-0081: Atlassian Deterministic Site-First Hierarchy](spec/spec-0081-atlassian-deterministic-site-first-hierarchy.md) | `approved` | FEAT-0081 |
+| [SPEC-0082: Atlassian Structure Reference Locator Foundation](spec/spec-0082-atlassian-static-url-locator-contract.md) | `approved` | FEAT-0082 |
+| [SPEC-0083: Atlassian Structure Reference Sync And Explorer](spec/spec-0083-atlassian-structure-reference-sync-and-explorer.md) | `approved` | FEAT-0083 |
 
-## Runs (84)
+## Runs (93)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -274,8 +295,17 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [RUN-20260803-82: Session Reference Evidence Contract](run/run-20260803-82-session-reference-evidence-contract.md) | `passed` | feat-0072-session-reference-evidence-contract |
 | [RUN-20260803-83: Deterministic Session Reference Capture And Reconciliation](run/run-20260803-83-deterministic-session-reference-capture-and-reconciliation.md) | `passed` | feat-0073-deterministic-session-reference-capture-and-reconciliation |
 | [RUN-20260803-84: Session-Centric Related Materials Rail](run/run-20260803-84-session-centric-related-materials-rail.md) | `passed` | feat-0074-session-centric-related-materials-rail |
+| [RUN-20260829-85: Atlassian Explorer Family And State Contract](run/run-20260829-85-atlassian-explorer-family-and-state-contract.md) | `passed` | FEAT-0075 |
+| [RUN-20260829-86: Atlassian Exact Retrieval Contract](run/run-20260829-86-atlassian-exact-retrieval-contract.md) | `passed` | FEAT-0076 |
+| [RUN-20260829-87: Atlassian Explorer Inventory And Search](run/run-20260829-87-atlassian-explorer-inventory-and-search.md) | `passed` | FEAT-0077 |
+| [RUN-20260829-88: Atlassian In-Context Item Detail](run/run-20260829-88-atlassian-in-context-item-detail.md) | `complete` | FEAT-0078 |
+| [RUN-20260829-89: Atlassian Manual Add And Connections Separation](run/run-20260829-89-atlassian-manual-add-and-connections-separation.md) | `complete` | FEAT-0079 |
+| [RUN-20260829-90: Atlassian Local Evidence Sync](run/run-20260829-90-atlassian-local-evidence-sync.md) | `complete` | FEAT-0080 |
+| [RUN-20260901-91: Atlassian Deterministic Site-First Hierarchy](run/run-20260901-91-atlassian-deterministic-site-first-hierarchy.md) | `complete` | FEAT-0081 |
+| [RUN-20260901-92: Atlassian Structure Reference Locator Foundation](run/run-20260901-92-atlassian-static-url-locator-contract.md) | `passed` | FEAT-0082 |
+| [RUN-20260901-93: Atlassian Structure Reference Sync And Explorer](run/run-20260901-93-atlassian-structure-reference-sync-and-explorer.md) | `passed` | FEAT-0083 |
 
-## Evaluations And Schema Audits (270)
+## Evaluations And Schema Audits (304)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -549,8 +579,42 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [EVAL-0074: Session-Centric Related Materials Rail — Design](evaluation/eval-0074-design-session-centric-related-materials-rail.md) | `complete` | feat-0074-session-centric-related-materials-rail |
 | [EVAL-0074: Session-Centric Related Materials Rail — Functional](evaluation/eval-0074-functional-session-centric-related-materials-rail.md) | `complete` | feat-0074-session-centric-related-materials-rail |
 | [EVAL-0074: Session-Centric Related Materials Rail — UX Heuristic](evaluation/eval-0074-ux-session-centric-related-materials-rail.md) | `complete` | feat-0074-session-centric-related-materials-rail |
+| [EVAL-0075 Contract: Atlassian Explorer Family And State Contract](evaluation/eval-0075-contract-atlassian-explorer-family-and-state-contract.md) | `complete` | FEAT-0075 |
+| [EVAL-0075 Design: Atlassian Explorer Family And State Contract](evaluation/eval-0075-design-atlassian-explorer-family-and-state-contract.md) | `complete` | FEAT-0075 |
+| [EVAL-0076 Contract: Atlassian Exact Retrieval Contract](evaluation/eval-0076-contract-atlassian-exact-retrieval-contract.md) | `complete` | FEAT-0076 |
+| [EVAL-0076 Functional: Atlassian Exact Retrieval Contract](evaluation/eval-0076-functional-atlassian-exact-retrieval-contract.md) | `complete` | FEAT-0076 |
+| [EVAL-0077 Contract: Atlassian Explorer Inventory And Search](evaluation/eval-0077-contract-atlassian-explorer-inventory-and-search.md) | `complete` | FEAT-0077 |
+| [EVAL-0077 Design: Atlassian Explorer Inventory And Search](evaluation/eval-0077-design-atlassian-explorer-inventory-and-search.md) | `complete` | FEAT-0077 |
+| [EVAL-0077 Functional: Atlassian Explorer Inventory And Search](evaluation/eval-0077-functional-atlassian-explorer-inventory-and-search.md) | `complete` | FEAT-0077 |
+| [EVAL-0077 R2 Contract: Atlassian Structural Scope Parity](evaluation/eval-0077-r2-contract-atlassian-structural-scope-parity.md) | `complete` | FEAT-0077 |
+| [EVAL-0077 R2 Design: Atlassian Structural Scope Parity](evaluation/eval-0077-r2-design-atlassian-structural-scope-parity.md) | `complete` | FEAT-0077 |
+| [EVAL-0077 R2 Functional: Atlassian Structural Scope Parity](evaluation/eval-0077-r2-functional-atlassian-structural-scope-parity.md) | `complete` | FEAT-0077 |
+| [EVAL-0077 R2 UX: Atlassian Structural Scope Parity](evaluation/eval-0077-r2-ux-atlassian-structural-scope-parity.md) | `complete` | FEAT-0077 |
+| [EVAL-0077 UX: Atlassian Explorer Inventory And Search](evaluation/eval-0077-ux-atlassian-explorer-inventory-and-search.md) | `complete` | FEAT-0077 |
+| [EVAL-0078 Contract: Atlassian In-Context Item Detail](evaluation/eval-0078-contract-atlassian-in-context-item-detail.md) | `complete` | FEAT-0078 |
+| [EVAL-0078 Design: Atlassian In-Context Item Detail](evaluation/eval-0078-design-atlassian-in-context-item-detail.md) | `complete` | FEAT-0078 |
+| [EVAL-0078 Functional: Atlassian In-Context Item Detail](evaluation/eval-0078-functional-atlassian-in-context-item-detail.md) | `complete` | FEAT-0078 |
+| [EVAL-0078 UX: Atlassian In-Context Item Detail](evaluation/eval-0078-ux-atlassian-in-context-item-detail.md) | `complete` | FEAT-0078 |
+| [EVAL-0079 Contract: Atlassian Manual Add And Connections Separation](evaluation/eval-0079-contract-atlassian-manual-add-and-connections-separation.md) | `complete` | FEAT-0079 |
+| [EVAL-0079 Design: Atlassian Manual Add And Connections Separation](evaluation/eval-0079-design-atlassian-manual-add-and-connections-separation.md) | `complete` | FEAT-0079 |
+| [EVAL-0079 Functional: Atlassian Manual Add And Connections Separation](evaluation/eval-0079-functional-atlassian-manual-add-and-connections-separation.md) | `complete` | FEAT-0079 |
+| [EVAL-0079 UX: Atlassian Manual Add And Connections Separation](evaluation/eval-0079-ux-atlassian-manual-add-and-connections-separation.md) | `complete` | FEAT-0079 |
+| [EVAL-0080 Contract: Atlassian Local Evidence Sync](evaluation/eval-0080-contract-atlassian-local-evidence-sync.md) | `complete` | FEAT-0080 |
+| [EVAL-0080 Design: Atlassian Local Evidence Sync](evaluation/eval-0080-design-atlassian-local-evidence-sync.md) | `complete` | FEAT-0080 |
+| [EVAL-0080 Functional: Atlassian Local Evidence Sync](evaluation/eval-0080-functional-atlassian-local-evidence-sync.md) | `complete` | FEAT-0080 |
+| [EVAL-0080 UX: Atlassian Local Evidence Sync](evaluation/eval-0080-ux-atlassian-local-evidence-sync.md) | `complete` | FEAT-0080 |
+| [EVAL-0081 Contract: Atlassian Deterministic Site-First Hierarchy](evaluation/eval-0081-contract-atlassian-deterministic-site-first-hierarchy.md) | `complete` | FEAT-0081 |
+| [EVAL-0081 Design: Atlassian Deterministic Site-First Hierarchy](evaluation/eval-0081-design-atlassian-deterministic-site-first-hierarchy.md) | `complete` | FEAT-0081 |
+| [EVAL-0081 Functional: Atlassian Deterministic Site-First Hierarchy](evaluation/eval-0081-functional-atlassian-deterministic-site-first-hierarchy.md) | `complete` | FEAT-0081 |
+| [EVAL-0081 UX: Atlassian Deterministic Site-First Hierarchy](evaluation/eval-0081-ux-atlassian-deterministic-site-first-hierarchy.md) | `complete` | FEAT-0081 |
+| [EVAL-0082 Contract: Atlassian Structure Reference Locator Foundation](evaluation/eval-0082-contract-atlassian-static-url-locator-contract.md) | `complete` | FEAT-0082 |
+| [EVAL-0082 Functional: Atlassian Static URL Locator Contract](evaluation/eval-0082-functional-atlassian-static-url-locator-contract.md) | `complete` | FEAT-0082 |
+| [EVAL-0083 Contract: Atlassian Structure Reference Sync And Explorer](evaluation/eval-0083-contract-atlassian-structure-reference-sync-and-explorer.md) | `complete` | FEAT-0083 |
+| [EVAL-0083 Design: Atlassian Structure Reference Sync And Explorer](evaluation/eval-0083-design-atlassian-structure-reference-sync-and-explorer.md) | `complete` | FEAT-0083 |
+| [EVAL-0083 Functional: Atlassian Structure Reference Sync And Explorer](evaluation/eval-0083-functional-atlassian-structure-reference-sync-and-explorer.md) | `complete` | FEAT-0083 |
+| [EVAL-0083 UX: Atlassian Structure Reference Sync And Explorer](evaluation/eval-0083-ux-atlassian-structure-reference-sync-and-explorer.md) | `complete` | FEAT-0083 |
 
-## Fix Logs (21)
+## Fix Logs (22)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -575,6 +639,7 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [FIX-0047: Session Source-File Evidence Cardinality](fix/fix-0047-session-source-file-evidence-cardinality.md) | `complete` | feat-0047-bounded-atlassian-url-evidence-extraction |
 | [FIX-0068: Claude Session Candidate Discovery](fix/fix-0068-claude-session-candidate-discovery.md) | `complete` | feat-0068-multi-source-session-synchronization-and-health |
 | [FIX-0074: Related Material Evidence Density](fix/fix-0074-related-material-evidence-density.md) | `complete` | feat-0074-session-centric-related-materials-rail |
+| [FIX-0077: Atlassian Structural Scope Parity](fix/fix-0077-atlassian-structural-scope-parity.md) | `complete` | FEAT-0077 |
 
 ## Heuristic Backlogs (0)
 

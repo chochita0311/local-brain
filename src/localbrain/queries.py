@@ -684,6 +684,7 @@ def search(
         key=lambda result: (
             result.get("score", 0),
             result.get("title") or "",
+            result.get("entity_type") or "",
             result.get("entity_id") or "",
         ),
     )[:limit]

@@ -16,6 +16,9 @@ from ..atlassian_evidence import (
     reconcile_session_evidence,
     session_evidence_source_fingerprint,
 )
+from ..atlassian_structure_references import (
+    project_structure_reference_search,
+)
 from ..config import settings
 from ..db import init_db, transaction
 from ..session_sources import (
@@ -365,6 +368,44 @@ def _replace_search_item(
     )
 
 
+def _delete_structure_evidence_owner(
+    connection: sqlite3.Connection,
+    *,
+    session_id: Optional[int] = None,
+    document_id: Optional[int] = None,
+) -> None:
+    if (session_id is None) == (document_id is None):
+        raise ValueError("Exactly one structure evidence owner is required")
+    if session_id is not None:
+        reference_query = """
+            SELECT DISTINCT reference_id
+            FROM atlassian_structure_reference_evidence
+            WHERE session_id = ?
+            ORDER BY reference_id
+        """
+        delete_query = "DELETE FROM sessions WHERE id = ?"
+        owner_id = session_id
+    else:
+        reference_query = """
+            SELECT DISTINCT reference_id
+            FROM atlassian_structure_reference_evidence
+            WHERE document_id = ?
+            ORDER BY reference_id
+        """
+        delete_query = "DELETE FROM context_documents WHERE id = ?"
+        owner_id = document_id
+    reference_ids = tuple(
+        int(row["reference_id"])
+        for row in connection.execute(
+            reference_query,
+            (owner_id,),
+        ).fetchall()
+    )
+    connection.execute(delete_query, (owner_id,))
+    for reference_id in reference_ids:
+        project_structure_reference_search(connection, reference_id)
+
+
 def _remove_stale_sessions(
     connection: sqlite3.Connection, source_id: int, valid_paths: Iterable[Path]
 ) -> None:
@@ -401,7 +442,9 @@ def _remove_stale_sessions(
             "DELETE FROM search_index WHERE entity_type = 'session' AND entity_id = ?",
             (str(row["id"]),),
         )
-        connection.execute("DELETE FROM sessions WHERE id = ?", (row["id"],))
+        _delete_structure_evidence_owner(
+            connection, session_id=int(row["id"])
+        )
     scan_rows = connection.execute(
         """
         SELECT atlassian_evidence_scans.id,
@@ -554,7 +597,9 @@ def _remove_empty_session_candidates(
                 """,
                 (str(session_id),),
             )
-            connection.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
+            _delete_structure_evidence_owner(
+                connection, session_id=session_id
+            )
 
         connection.execute(
             "DELETE FROM source_files WHERE source_id = ? AND path = ?",
@@ -1390,7 +1435,9 @@ def _remove_context_source_documents(
             "DELETE FROM search_index WHERE entity_type = 'document' AND entity_id = ?",
             (str(row["id"]),),
         )
-        connection.execute("DELETE FROM context_documents WHERE id = ?", (row["id"],))
+        _delete_structure_evidence_owner(
+            connection, document_id=int(row["id"])
+        )
 
 
 def _read_context_file(path: Path) -> Tuple[Optional[str], Optional[str], Optional[str]]:
@@ -1664,8 +1711,8 @@ def _scan_context_documents(
                 "DELETE FROM search_index WHERE entity_type = 'document' AND entity_id = ?",
                 (str(row["id"]),),
             )
-            connection.execute(
-                "DELETE FROM context_documents WHERE id = ?", (row["id"],)
+            _delete_structure_evidence_owner(
+                connection, document_id=int(row["id"])
             )
             connection.execute(
                 "DELETE FROM source_files WHERE source_id = ? AND path = ?",

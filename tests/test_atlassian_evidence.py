@@ -8,16 +8,19 @@ from localbrain.atlassian import (
     register_atlassian_site,
 )
 from localbrain.atlassian_evidence import (
+    atlassian_url_container_hint,
     configured_atlassian_site_fingerprint,
     document_evidence_source_fingerprint,
     evidence_scan_is_current,
+    normalize_atlassian_structural_scope,
     recognize_configured_atlassian_item_url,
+    recognize_strict_atlassian_item_url,
     reconcile_document_evidence,
     reconcile_session_evidence,
 )
 from localbrain.contexts import add_context_root, remove_context_root
 from localbrain.ingest.scanner import scan_context_root
-from localbrain.ingest.common import ParsedUrlEvidence
+from localbrain.ingest.common import EVIDENCE_EXTRACTOR_VERSION, ParsedUrlEvidence
 
 
 SCHEMA_PATH = Path(__file__).parents[1] / "src" / "localbrain" / "schema.sql"
@@ -116,6 +119,50 @@ class AtlassianEvidenceTests(unittest.TestCase):
         self.assertEqual(jira.observed_remote_key, "SYN-12")
         self.assertEqual(page.service, "confluence")
         self.assertEqual(page.observed_remote_id, "77")
+        jira_key_at_limit = "A{}-1".format("B" * 297)
+        page_id_at_limit = "7" * 300
+        self.assertEqual(len(jira_key_at_limit), 300)
+        self.assertIsNotNone(
+            recognize_configured_atlassian_item_url(
+                self.connection,
+                "https://jira.example.test/browse/{}".format(
+                    jira_key_at_limit
+                ),
+            )
+        )
+        self.assertIsNotNone(
+            recognize_configured_atlassian_item_url(
+                self.connection,
+                "https://wiki.example.test/wiki/pages/{}/Page".format(
+                    page_id_at_limit
+                ),
+            )
+        )
+        self.assertIsNone(
+            recognize_configured_atlassian_item_url(
+                self.connection,
+                "https://jira.example.test/browse/A{}-1".format("B" * 298),
+            )
+        )
+        self.assertIsNone(
+            recognize_configured_atlassian_item_url(
+                self.connection,
+                "https://wiki.example.test/wiki/pages/{}/Page".format(
+                    "7" * 301
+                ),
+            )
+        )
+        bounded_query = recognize_configured_atlassian_item_url(
+            self.connection,
+            "https://jira.example.test/browse/SYN-12?q={}".format(
+                "한" * 900
+            ),
+        )
+        self.assertIsNotNone(bounded_query)
+        self.assertEqual(
+            bounded_query.normalized.normalized_url,
+            "https://jira.example.test/browse/SYN-12",
+        )
         self.assertIsNone(
             recognize_configured_atlassian_item_url(
                 self.connection, "https://jira.example.test/projects/SYN"
@@ -138,6 +185,114 @@ class AtlassianEvidenceTests(unittest.TestCase):
         )
         self.assertIsNotNone(shared_site)
         self.assertIsNone(shared_site.source_instance_id)
+
+    def test_strict_url_container_hints_are_stable_service_specific_and_bounded(self):
+        jira = recognize_strict_atlassian_item_url(
+            "https://new.example.test/issues/abc_2-17"
+        )
+        self.assertIsNotNone(jira.recognized)
+        self.assertEqual(jira.recognized.service, "jira")
+        self.assertEqual(
+            jira.recognized.container_structural_scope,
+            "url:jira:ABC_2",
+        )
+        wiki = atlassian_url_container_hint(
+            "https://new.example.test/wiki/spaces/%EF%BC%B4%EF%BC%A5%EF%BC%A1%EF%BC%AD/pages/77/Guide"
+        )
+        self.assertEqual(
+            wiki,
+            {
+                "structural_scope": "url:confluence:TEAM",
+                "label": "TEAM",
+                "service": "confluence",
+            },
+        )
+        for url in (
+            "https://new.example.test/wiki/pages/77/Guide",
+            "https://new.example.test/wiki/viewpage.action?pageId=77",
+            "https://new.example.test/wiki/spaces/%2E/pages/77/Guide",
+            "https://new.example.test/wiki/spaces/%2E%2E/pages/77/Guide",
+            "https://new.example.test/wiki/spaces/A%2FB/pages/77/Guide",
+            "https://new.example.test/wiki/spaces/A%5CB/pages/77/Guide",
+            "https://new.example.test/wiki/spaces/A%00B/pages/77/Guide",
+            "https://new.example.test/wiki/spaces/{}/pages/77/Guide".format(
+                "A" * 301
+            ),
+        ):
+            with self.subTest(url=url):
+                self.assertIsNone(atlassian_url_container_hint(url))
+
+        self.assertEqual(
+            normalize_atlassian_structural_scope("url:jira:project_1"),
+            "url:jira:PROJECT_1",
+        )
+        self.assertEqual(
+            normalize_atlassian_structural_scope(
+                "url:confluence:" + ("A" * 300)
+            ),
+            "url:confluence:" + ("A" * 300),
+        )
+        for value in (
+            "url:jira:" + ("A" * 301),
+            "url:confluence:",
+            "url:confluence:.",
+            "url:confluence:..",
+            "url:confluence:A/B",
+            "url:confluence:A\\B",
+            "url:confluence:A\x00B",
+            "url:confluence:" + ("A" * 301),
+        ):
+            with self.subTest(value=value):
+                self.assertIsNone(
+                    normalize_atlassian_structural_scope(value)
+                )
+
+    def test_evidence_consumer_admits_only_locator_items_without_dml(self):
+        aliases = (
+            (
+                "https://jira.example.test/jira/software/c/projects/SYN/issues/SYN-44",
+                "jira",
+                "https://jira.example.test/browse/SYN-44",
+            ),
+            (
+                "https://wiki.example.test/confluence/pages/00077/Guide",
+                "confluence",
+                "https://wiki.example.test/confluence/pages/viewpage.action?pageId=77",
+            ),
+        )
+        before = self.connection.total_changes
+        for url, service, safe_url in aliases:
+            with self.subTest(url=url):
+                result = recognize_strict_atlassian_item_url(url)
+                self.assertIsNotNone(result.recognized)
+                self.assertEqual(result.recognized.service, service)
+                self.assertEqual(result.normalized_url, safe_url)
+
+        rejected = (
+            (
+                "https://jira.example.test/secure/RapidBoard.jspa?rapidView=17",
+                "unsupported-locator",
+            ),
+            ("https://jira.example.test/issues", "unsupported-locator"),
+            (
+                "https://wiki.example.test/wiki/spaces/TEAM",
+                "unsupported-locator",
+            ),
+            (
+                "https://jira.example.test/browse?issueKey=SYN-44",
+                "unsupported-locator",
+            ),
+            (
+                "https://jira.example.test/browse/SYN-44?selectedIssue=%ZZ",
+                "unsafe-url",
+            ),
+        )
+        for url, reason in rejected:
+            with self.subTest(url=url):
+                result = recognize_strict_atlassian_item_url(url)
+                self.assertIsNone(result.recognized)
+                self.assertEqual(result.reason_code, reason)
+        self.assertEqual(self.connection.total_changes, before)
 
     def test_local_only_registered_site_participates_in_local_evidence(self):
         item = create_or_reuse_atlassian_stub(
@@ -418,6 +573,49 @@ class AtlassianEvidenceTests(unittest.TestCase):
                 scan_context_root(self.connection, root_id, force=False),
                 (0, 1, 0),
             )
+            self.assertEqual(
+                EVIDENCE_EXTRACTOR_VERSION,
+                "localbrain.atlassian-evidence.v4",
+            )
+            self.connection.execute(
+                """
+                UPDATE atlassian_evidence_scans
+                SET extractor_version = 'localbrain.atlassian-evidence.v2'
+                """
+            )
+            self.assertEqual(
+                scan_context_root(self.connection, root_id, force=False),
+                (1, 0, 0),
+            )
+            self.assertEqual(
+                self.connection.execute(
+                    "SELECT extractor_version FROM atlassian_evidence_scans"
+                ).fetchone()[0],
+                EVIDENCE_EXTRACTOR_VERSION,
+            )
+            statements = []
+            self.connection.set_trace_callback(statements.append)
+            self.assertEqual(
+                scan_context_root(self.connection, root_id, force=False),
+                (0, 1, 0),
+            )
+            self.connection.set_trace_callback(None)
+            identity_writes = [
+                statement
+                for statement in statements
+                if statement.lstrip().split(None, 1)[0].upper()
+                in {"INSERT", "UPDATE", "DELETE", "REPLACE"}
+                and any(
+                    table in statement.lower()
+                    for table in (
+                        "atlassian_item_evidence",
+                        "atlassian_item_urls",
+                        "atlassian_items",
+                        "atlassian_evidence_scans",
+                    )
+                )
+            ]
+            self.assertEqual(identity_writes, [])
             resource_id = int(
                 self.connection.execute(
                     "SELECT external_resource_id FROM atlassian_item_evidence"

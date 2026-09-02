@@ -1,21 +1,22 @@
 # Project Roadmap
 
-Status: Phase 1 complete; Phase 2 core vertical slice and Phase 4 Atlassian local vertical slice implemented
+Status: Phase 1 complete; Phase 2 core vertical slice implemented; Phase 4 Atlassian structure-reference product delivered
 
-Last reviewed: 2026-08-02
+Last reviewed: 2026-09-01
 
 ## Current Direction
 
 LocalBrain is validating the Workstream and Thread workflow as a local web application while expanding approved external connectors one bounded read-only source at a time. Desktop packaging remains later.
 
-The design-system realignment of the current screen families is complete and accepted. Near-term work remains focused on validating and extending the product workflow rather than starting another broad visual redesign.
+The design-system realignment of the current screen families is complete and accepted. PRD-0014 and FEAT-0075 through FEAT-0080 remain the passed Atlassian Explorer baseline. PRD-0015 and FEAT-0081 also remain the passed bounded follow-up for domain-first hierarchy, strict empty-inventory local Sync admission, and ordinary link/document terminology. PRD-0016 is passed after its dependency-ordered standard-URL structure-reference chain completed: FEAT-0082 owns semantic taxonomy, query-safe Session projection, and identity precedence; FEAT-0083 owns durable structure-reference Sync and Explorer/Search behavior. No Atlassian Feature is currently in-loop. AI retrieval remains deferred without an approved Feature.
 
 Near-term priorities:
 
 1. Use several real Workstreams through repeated daily context switches and evaluate whether Thread and checkpoint fields are sufficient.
 2. Add the unified cross-source Workstream timeline and historical path reconciliation.
 3. Improve source-aware matching, review ergonomics, and source controls.
-4. Exercise the passed Atlassian Add and explicit-refresh workflow in daily use; revalidate official Confluence or company Gateway only when those host capabilities become available.
+4. Exercise the completed Site-first Explorer, Add, local Sync, Connections,
+   and explicit Refresh workflow through repeated daily use.
 5. Evaluate pinned Session recall and deterministic related context through repeated work resumption before expanding into native process resume or user-curated context relations.
 
 Detailed implementation tasks and unresolved decisions live in the [Project Backlog](backlog.md). Durable product and technical contracts live under [Policies](../../README.md#policies).
@@ -32,7 +33,7 @@ Recently completed cross-surface reconciliation:
 | 1. Local activity foundation | Reliably collect and inspect local activity | Complete |
 | 2. Workstream and resume MVP | Find and resume interrupted work | Core vertical slice implemented |
 | 3. Activity insights | Add reproducible usage, cost, workflow, and skill intelligence | Usage and cost dashboard implemented; workflow intelligence planned |
-| 4. External read-only sources | Connect approved ticket, conversation, Git, and document systems | Atlassian local vertical slice implemented; connected validation and other sources planned |
+| 4. External read-only sources | Connect approved ticket, conversation, Git, and document systems | Atlassian local vertical slice, Site-first follow-up, and standard-URL structure references implemented; connected validation and other sources planned |
 | 5. Context reconciliation | Produce reviewable current context while preserving uncertainty | Planned |
 | 6. Handoff and controlled actions | Support low-friction AI handoff and explicitly approved actions | Planned |
 | 7. macOS packaging | Package the validated workflow as a native-feeling application | Planned |
@@ -165,6 +166,9 @@ Planning tracks:
 - [PRD-0007: Atlassian Source Memory And Explicit Refresh](../prd/prd-0007-atlassian-source-memory-and-refresh.md) (`passed`)
 - [PRD-0008: Connected Atlassian Validation And Schema ERD Routing](../prd/prd-0008-connected-atlassian-validation-and-schema-erd-routing.md) (`passed`; FEAT-0053 through FEAT-0056 `passed`)
 - [PRD-0010: Atlassian UI And Interaction Reconciliation](../prd/prd-0010-atlassian-ui-and-interaction-reconciliation.md) (`approved`; FEAT-0062 and FEAT-0063 passed, boundary remains open for later owner observations)
+- [PRD-0014: Atlassian Explorer And Unified Retrieval](../prd/prd-0014-atlassian-explorer-and-unified-retrieval.md) (`passed`; FEAT-0075 through FEAT-0080 passed, AI retrieval deferred)
+- [PRD-0015: Atlassian Site-First URL Organization](../prd/prd-0015-atlassian-site-first-url-organization.md) (`passed`; FEAT-0081 passed RUN-91 Attempt 1)
+- [PRD-0016: Atlassian Standard URL Structure References](../prd/prd-0016-atlassian-standard-url-recognition.md) (`passed`; FEAT-0082 passed RUN-92 and FEAT-0083 passed RUN-93)
 
 Executed PRD-0007 Features:
 
@@ -182,12 +186,17 @@ Delivered for Atlassian:
 - approved read-only capability policy and a source-neutral Claude/Codex maintenance Run boundary
 - stable Source Instance, Site, Space, Item, URL, remote-state/content, local-memory, and evidence ownership
 - URL-first local setup, reference/metadata/indexed coverage, Workstream and Thread links, freshness, explicit refresh preview, and local search
-- registered-scope-led `Browser | Add` interaction with URL-only local registration, separate optional Site access binding, and connected discovery choosing Site, bound access path, and execution owner independently
+- Site-first domain Explorer with `All / Jira / Wiki`, persisted or canonical-URL child groups, honest `소속 미확인`, one exact-first query, compact link/document detail, one-URL Add, empty-inventory local evidence Sync, separate Connections and discovery, and explicit remote Refresh
+- deterministic standard Jira/Confluence URL recognition and durable local
+  structure references for Project, Board, Filter, Dashboard, service portal/
+  project, and Wiki Space URLs, with separate evidence provenance, Search,
+  preview/detail, count, and no-script behavior
 - bounded direct official Jira evidence plus explicit official Confluence and company Gateway environment-limit classifications
 - locally packaged official ELK routing for every Schema ERD with Dagre and textual fallback
 
 Remaining work:
 
+- evaluate the completed Atlassian Explorer and local Sync workflow in repeated real use before approving any further retrieval mode
 - recheck official Confluence or company Gateway only after those host capabilities become available and a new bounded validation inventory is approved
 - discover and normalize approved conversation, hosted Git, email, and other document sources behind source-specific adapters
 - combine local and federated results only where storage and freshness boundaries remain visible

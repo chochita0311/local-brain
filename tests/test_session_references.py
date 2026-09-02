@@ -130,12 +130,12 @@ class SessionReferenceTests(unittest.TestCase):
     def test_safe_url_and_exact_markdown_resolution(self):
         candidates = [
             self._candidate(
-                "https://Example.Test:443/path?q=private#fragment",
+                "https://Example.Test:443/path?q=sample#fragment",
                 line=1,
                 ordinal=1,
             ),
             self._candidate(
-                "https://" + "u:p" + "@example.test/private",
+                "https://" + "account:value" + "@example.test/path",
                 line=2,
                 ordinal=1,
                 event="event-2",
@@ -239,6 +239,286 @@ class SessionReferenceTests(unittest.TestCase):
                 {"kind": "tool_result", "outcome": None, "count": 1},
                 {"kind": "user_mention", "outcome": None, "count": 1},
             ],
+        )
+
+    def test_semantic_atlassian_locator_projection_groups_safe_variants(self):
+        candidates = [
+            self._candidate(
+                "https://jirap.example.test/secure/RapidBoard.jspa"
+                "?projectKey=JPDI&rapidView=37746&layout=compact",
+                line=1,
+                ordinal=1,
+            ),
+            self._candidate(
+                "https://jirap.example.test/secure/RapidBoard.jspa"
+                "?rapidView=37746&projectKey=OTHER&theme=wide",
+                line=2,
+                ordinal=1,
+                event="event-2",
+            ),
+        ]
+
+        before = {
+            table: self.connection.execute(
+                "SELECT COUNT(*) FROM {}".format(table)
+            ).fetchone()[0]
+            for table in (
+                "atlassian_sites",
+                "atlassian_spaces",
+                "atlassian_items",
+                "atlassian_item_urls",
+            )
+        }
+        self._reconcile(candidates)
+        rows = self.connection.execute(
+            """
+            SELECT target_kind, target_key, normalized_url
+            FROM session_reference_evidence
+            ORDER BY source_line
+            """
+        ).fetchall()
+
+        expected_key = (
+            "url:a42aa269be59f4c54139e2dfb761c018ec228978aa1ecbd0428e2065b7b6d9b5"
+        )
+        self.assertEqual({row["target_key"] for row in rows}, {expected_key})
+        self.assertEqual({row["target_kind"] for row in rows}, {"url"})
+        self.assertEqual(
+            [row["normalized_url"] for row in rows],
+            [
+                "https://jirap.example.test/secure/RapidBoard.jspa"
+                "?rapidView=37746&projectKey=JPDI",
+                "https://jirap.example.test/secure/RapidBoard.jspa"
+                "?rapidView=37746&projectKey=OTHER",
+            ],
+        )
+        self.assertEqual(
+            session_reference_projection(self.connection, 10)["retained_total"],
+            1,
+        )
+        self.assertEqual(
+            {
+                table: self.connection.execute(
+                    "SELECT COUNT(*) FROM {}".format(table)
+                ).fetchone()[0]
+                for table in before
+            },
+            before,
+        )
+
+    def test_unconfigured_item_aliases_group_without_atlassian_dml(self):
+        self._reconcile(
+            [
+                self._candidate(
+                    "https://new.example.test/issues/new-1?theme=compact",
+                    line=1,
+                ),
+                self._candidate(
+                    "https://new.example.test/browse/NEW-1",
+                    line=2,
+                    event="event-2",
+                ),
+            ]
+        )
+        rows = self.connection.execute(
+            """
+            SELECT target_kind, target_key, external_resource_id,
+                   normalized_url
+            FROM session_reference_evidence
+            ORDER BY source_line
+            """
+        ).fetchall()
+
+        self.assertEqual(len({row["target_key"] for row in rows}), 1)
+        self.assertEqual({row["target_kind"] for row in rows}, {"url"})
+        self.assertEqual(
+            {row["normalized_url"] for row in rows},
+            {"https://new.example.test/browse/NEW-1"},
+        )
+        self.assertTrue(all(row["external_resource_id"] is None for row in rows))
+        self.assertEqual(
+            self.connection.execute(
+                "SELECT COUNT(*) FROM atlassian_items"
+            ).fetchone()[0],
+            1,
+        )
+
+    def test_configured_item_resolution_is_site_scoped_and_exact_url_first(self):
+        self.connection.executescript(
+            """
+            UPDATE atlassian_items SET remote_key = NULL
+            WHERE external_resource_id = 40;
+            INSERT INTO external_resources(id, resource_type, title, url)
+            VALUES (
+                41, 'jira_issue', 'SYN-62 identity owner',
+                'https://jira.example.test/browse/OTHER-1'
+            );
+            INSERT INTO atlassian_items(
+                external_resource_id, site_id, service, item_type, remote_key
+            ) VALUES (41, 30, 'jira', 'jira_issue', 'SYN-62');
+            INSERT INTO atlassian_item_urls(
+                external_resource_id, site_id, url_role, observed_url,
+                normalized_url
+            ) VALUES (
+                41, 30, 'canonical',
+                'https://jira.example.test/browse/OTHER-1',
+                'https://jira.example.test/browse/OTHER-1'
+            );
+            INSERT INTO atlassian_sites(
+                id, normalized_domain, display_name, canonical_base_url
+            ) VALUES (
+                31, 'other.example.test', 'Other Jira',
+                'https://other.example.test'
+            );
+            INSERT INTO external_resources(id, resource_type, title, url)
+            VALUES (
+                42, 'jira_issue', 'SYN-62 other domain',
+                'https://other.example.test/browse/SYN-62'
+            );
+            INSERT INTO atlassian_items(
+                external_resource_id, site_id, service, item_type, remote_key
+            ) VALUES (42, 31, 'jira', 'jira_issue', 'SYN-62');
+            INSERT INTO atlassian_item_urls(
+                external_resource_id, site_id, url_role, observed_url,
+                normalized_url
+            ) VALUES (
+                42, 31, 'canonical',
+                'https://other.example.test/browse/SYN-62',
+                'https://other.example.test/browse/SYN-62'
+            );
+            """
+        )
+        self._reconcile(
+            [
+                self._candidate(
+                    "https://jira.example.test/browse/SYN-62",
+                    line=1,
+                ),
+                self._candidate(
+                    "https://unconfigured.example.test/browse/SYN-62",
+                    line=2,
+                    event="event-2",
+                ),
+            ]
+        )
+        rows = self.connection.execute(
+            """
+            SELECT source_line, target_kind, external_resource_id
+            FROM session_reference_evidence ORDER BY source_line
+            """
+        ).fetchall()
+
+        self.assertEqual(
+            [tuple(row) for row in rows],
+            [(1, "atlassian_item", 40), (2, "url", None)],
+        )
+
+    def test_configured_item_exact_add_alias_wins_before_identity_fallback(self):
+        self.connection.executescript(
+            """
+            UPDATE external_resources
+            SET url = 'https://jira.example.test/browse/SYN-62?view=compact'
+            WHERE id = 40;
+            UPDATE atlassian_items SET remote_key = NULL
+            WHERE external_resource_id = 40;
+            UPDATE atlassian_item_urls
+            SET observed_url =
+                    'https://jira.example.test/browse/SYN-62?view=compact',
+                normalized_url =
+                    'https://jira.example.test/browse/SYN-62?view=compact'
+            WHERE external_resource_id = 40;
+
+            INSERT INTO external_resources(id, resource_type, title, url)
+            VALUES (
+                41, 'jira_issue', 'SYN-62 semantic owner',
+                'https://jira.example.test/browse/SYN-62'
+            );
+            INSERT INTO atlassian_items(
+                external_resource_id, site_id, service, item_type, remote_key
+            ) VALUES (41, 30, 'jira', 'jira_issue', 'SYN-62');
+            INSERT INTO atlassian_item_urls(
+                external_resource_id, site_id, url_role, observed_url,
+                normalized_url
+            ) VALUES (
+                41, 30, 'canonical',
+                'https://jira.example.test/browse/SYN-62',
+                'https://jira.example.test/browse/SYN-62'
+            );
+            """
+        )
+
+        self._reconcile(
+            [
+                self._candidate(
+                    "https://jira.example.test/browse/SYN-62?view=compact"
+                )
+            ]
+        )
+        row = self.connection.execute(
+            """
+            SELECT target_kind, external_resource_id, normalized_url
+            FROM session_reference_evidence
+            """
+        ).fetchone()
+
+        self.assertEqual(
+            tuple(row),
+            (
+                "atlassian_item",
+                40,
+                "https://jira.example.test/browse/SYN-62",
+            ),
+        )
+
+    def test_configured_confluence_page_keeps_safe_identity_query(self):
+        self.connection.executescript(
+            """
+            INSERT INTO atlassian_sites(
+                id, normalized_domain, display_name, canonical_base_url
+            ) VALUES (
+                31, 'wiki.example.test', 'Synthetic Wiki',
+                'https://wiki.example.test'
+            );
+            INSERT INTO external_resources(id, resource_type, title, url)
+            VALUES (
+                41, 'confluence_page', 'Synthetic Page',
+                'https://wiki.example.test/wiki/pages/viewpage.action?pageId=123'
+            );
+            INSERT INTO atlassian_items(
+                external_resource_id, site_id, service, item_type, remote_id
+            ) VALUES (41, 31, 'confluence', 'confluence_page', '123');
+            INSERT INTO atlassian_item_urls(
+                external_resource_id, site_id, url_role, observed_url,
+                normalized_url
+            ) VALUES (
+                41, 31, 'canonical',
+                'https://wiki.example.test/wiki/pages/viewpage.action?pageId=123',
+                'https://wiki.example.test/wiki/pages/viewpage.action?pageId=123'
+            );
+            """
+        )
+
+        self._reconcile(
+            [
+                self._candidate(
+                    "https://wiki.example.test/wiki/pages/viewpage.action?pageId=123"
+                )
+            ]
+        )
+        row = self.connection.execute(
+            """
+            SELECT target_kind, external_resource_id, normalized_url
+            FROM session_reference_evidence
+            """
+        ).fetchone()
+
+        self.assertEqual(
+            tuple(row),
+            (
+                "atlassian_item",
+                41,
+                "https://wiki.example.test/wiki/pages/viewpage.action?pageId=123",
+            ),
         )
 
     def test_repeat_reconciliation_does_not_inflate_evidence(self):

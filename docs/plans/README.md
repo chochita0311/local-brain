@@ -26,9 +26,49 @@ Spec, Run, and Evaluation document owns its own detailed status and history.
 
 ## Active Execution
 
-- None.
+- No Atlassian Feature is currently in-loop. AI retrieval remains deferred
+  without an approved Feature.
 
 ## Recently Completed Chains
+
+- [PRD-0016: Atlassian Standard URL Structure References](prd/prd-0016-atlassian-standard-url-recognition.md)
+  passed after its dependency-ordered chain completed. The pure
+  [FEAT-0082 foundation](feature/feat-0082-atlassian-static-url-locator-contract.md)
+  passed [RUN-92 Attempt 1](run/run-20260901-92-atlassian-static-url-locator-contract.md)
+  with [contract](evaluation/eval-0082-contract-atlassian-static-url-locator-contract.md)
+  and [functional](evaluation/eval-0082-functional-atlassian-static-url-locator-contract.md)
+  evaluation. The durable
+  [FEAT-0083 product](feature/feat-0083-atlassian-structure-reference-sync-and-explorer.md)
+  then passed [RUN-93 Attempt 1](run/run-20260901-93-atlassian-structure-reference-sync-and-explorer.md)
+  with [contract](evaluation/eval-0083-contract-atlassian-structure-reference-sync-and-explorer.md),
+  [design](evaluation/eval-0083-design-atlassian-structure-reference-sync-and-explorer.md),
+  [functional](evaluation/eval-0083-functional-atlassian-structure-reference-sync-and-explorer.md),
+  and [UX](evaluation/eval-0083-ux-atlassian-structure-reference-sync-and-explorer.md)
+  `PASS`. The completed
+  [design plan](design/atlassian-structure-reference-plan.md) retains the
+  reconciliation rationale.
+
+- [PRD-0015: Atlassian Site-First URL Organization](prd/prd-0015-atlassian-site-first-url-organization.md)
+  passed after [FEAT-0081](feature/feat-0081-atlassian-deterministic-site-first-hierarchy.md)
+  completed [RUN-91 Attempt 1](run/run-20260901-91-atlassian-deterministic-site-first-hierarchy.md)
+  and its [contract](evaluation/eval-0081-contract-atlassian-deterministic-site-first-hierarchy.md),
+  [design](evaluation/eval-0081-design-atlassian-deterministic-site-first-hierarchy.md),
+  [functional](evaluation/eval-0081-functional-atlassian-deterministic-site-first-hierarchy.md),
+  and [UX](evaluation/eval-0081-ux-atlassian-deterministic-site-first-hierarchy.md)
+  evaluations. The completed [design plan](design/atlassian-site-first-hierarchy-plan.md)
+  retains the reconciliation rationale. This chain remains the historical
+  baseline and is not reopened by PRD-0016.
+
+- [PRD-0014: Atlassian Explorer And Unified Retrieval](prd/prd-0014-atlassian-explorer-and-unified-retrieval.md)
+  passed after FEAT-0075 through FEAT-0080 completed their sequential loops.
+  FEAT-0077 completed its structural-scope correction through
+  [RUN-87 Attempt 2](run/run-20260829-87-atlassian-explorer-inventory-and-search.md)
+  and [FIX-0077](fix/fix-0077-atlassian-structural-scope-parity.md).
+  The final [FEAT-0080](feature/feat-0080-atlassian-local-evidence-sync.md)
+  passed [RUN-90 Attempt 1](run/run-20260829-90-atlassian-local-evidence-sync.md)
+  and its contract, design, functional, and UX evaluations. The completed
+  [design plan](design/atlassian-explorer-reframe-plan.md) retains the phased
+  rationale; AI retrieval remains deferred.
 
 - [REFACTOR-0001: Session Sync Repair Performance](refactoring/refactor-0001-session-sync-repair-performance.md)
   completed concern-specific repair lanes, request-local lookup and pricing
@@ -88,6 +128,8 @@ Spec, Run, and Evaluation document owns its own detailed status and history.
 - `heuristic/`: non-blocking UX suggestion backlog
 - `refactoring/`: scoped refactor tracks and their validation or merge-check logs
 - `project/`: roadmap and backlog ownership
+- `design/`: tracked design reconciliation, sequencing, validation gates, and
+  handoff plans; durable visual law remains under `docs/policies/design/`
 - [Artifact Catalog](artifact-catalog.md): complete generated navigation for its
   catalog-managed artifact families
 

@@ -1,0 +1,84 @@
+{% if preview.state == 'missing' %}
+  <div class="atlassian-preview-unavailable" role="status">
+    <p class="eyebrow">STRUCTURE REFERENCE NOT FOUND</p>
+    <h2 id="atlassian-preview-title" tabindex="-1" data-atlassian-detail-focus>이 구조 참조를 찾을 수 없습니다</h2>
+    <p>요청한 로컬 구조 참조가 존재하지 않습니다. 현재 탐색 범위는 바꾸지 않았습니다.</p>
+    <div class="atlassian-preview-actions"><a class="secondary-button button-link" href="{{ preview.clear_url }}">선택 지우기</a></div>
+  </div>
+{% else %}
+  {% set reference = preview.reference %}
+  {% set reference_url = reference.canonical_url or reference.canonical_safe_locator %}
+  {% set group_label = reference.container_label or '소속 미확인' %}
+  {% if preview.state == 'out_of_scope' %}
+    <div class="atlassian-preview-unavailable" role="status">
+      <p class="eyebrow">OUTSIDE CURRENT VIEW</p>
+      <h2 id="atlassian-preview-title" tabindex="-1" data-atlassian-detail-focus>{{ reference.display_title or reference.reference_identity }}</h2>
+      <p>{{ reference.family_label }} · {{ reference.normalized_domain }} · {{ group_label }}{% if reference.container_kind == 'url' %} · URL 기준{% endif %}</p>
+      <p class="atlassian-reference-authority">{{ reference.authority_copy or 'Session/Local Context에서 URL 구조만 확인했습니다. Jira 링크/Wiki 문서·등록된 Project/Space·원격 조회 결과가 아닙니다.' }}</p>
+      <p>이 구조 참조는 현재 서비스, 도메인, URL 그룹, 검색 또는 링크/문서 전용 필터 범위에 포함되지 않습니다. 범위는 자동으로 바꾸지 않았습니다.</p>
+      <div class="atlassian-preview-actions">
+        <a class="primary-button button-link" href="{{ preview.detail_url }}">전체 상세 보기</a>
+        <a class="secondary-button button-link" href="{{ preview.clear_url }}">선택 지우기</a>
+      </div>
+    </div>
+  {% elif preview.state == 'archived' %}
+    <div class="atlassian-preview-unavailable" role="status">
+      <p class="eyebrow">ARCHIVED STRUCTURE REFERENCE</p>
+      <h2 id="atlassian-preview-title" tabindex="-1" data-atlassian-detail-focus>{{ reference.display_title or reference.reference_identity }}</h2>
+      <p>{{ reference.family_label }} · {{ reference.normalized_domain }}</p>
+      <p class="atlassian-reference-authority">{{ reference.authority_copy or 'Session/Local Context에서 URL 구조만 확인했습니다. Jira 링크/Wiki 문서·등록된 Project/Space·원격 조회 결과가 아닙니다.' }}</p>
+      <p>현재 보존된 Session 또는 Local Context 근거가 없어 기본 Explorer와 Search에서는 제외됩니다. 안정적인 참조 ID와 안전 URL 기록은 재사용을 위해 남아 있습니다.</p>
+      <div class="atlassian-preview-actions">
+        <a class="primary-button button-link" href="{{ preview.detail_url }}">보관된 상세 보기</a>
+        <a class="secondary-button button-link" href="{{ preview.clear_url }}">선택 지우기</a>
+      </div>
+    </div>
+  {% else %}
+    <header class="atlassian-preview-header">
+      <div>
+        <p class="eyebrow">{{ 'JIRA' if reference.service == 'jira' else 'WIKI' }} · STRUCTURE REFERENCE</p>
+        <h2 id="atlassian-preview-title" tabindex="-1" data-atlassian-detail-focus>{{ reference.display_title or reference.reference_identity }}</h2>
+        <p>{{ reference.family_label }}</p>
+        <p class="atlassian-preview-origin">구조 참조 · {{ reference.normalized_domain }} · {{ group_label }}{% if reference.container_kind == 'url' %} · URL 기준{% endif %}</p>
+      </div>
+      <div class="atlassian-classification-strip">
+        <span class="status-badge neutral">URL 기준 · Local evidence</span>
+        <span class="status-badge {{ 'warning' if reference.availability == 'unavailable' else 'success' }}">{{ '근거 소스 확인 불가' if reference.availability == 'unavailable' else 'Local evidence 확인됨' }}</span>
+      </div>
+      <div class="atlassian-preview-actions">
+        {% if reference_url %}<a class="primary-button button-link" href="{{ reference_url }}" target="_blank" rel="noreferrer">Atlassian에서 열기</a>{% endif %}
+        <a class="text-link" href="{{ preview.detail_url }}">전체 상세 보기</a>
+      </div>
+    </header>
+
+    <section class="atlassian-preview-group" aria-labelledby="preview-reference-authority-{{ reference.id }}">
+      <div class="atlassian-section-heading"><div><p class="eyebrow">LOCAL STRUCTURE ONLY</p><h3 id="preview-reference-authority-{{ reference.id }}">이 참조가 의미하는 범위</h3></div></div>
+      <p class="atlassian-reference-authority">{{ reference.authority_copy or 'Session/Local Context에서 URL 구조만 확인했습니다. Jira 링크/Wiki 문서·등록된 Project/Space·원격 조회 결과가 아닙니다.' }}</p>
+      <dl class="atlassian-preview-facts">
+        <div><dt>유형</dt><dd>{{ reference.family_label }}</dd></div>
+        <div><dt>Identity</dt><dd class="mono">{{ reference.reference_identity }}</dd></div>
+        <div><dt>도메인</dt><dd>{{ reference.normalized_domain }}</dd></div>
+        <div><dt>URL 기준 그룹</dt><dd>{{ group_label }}{% if reference.container_kind == 'url' %} · 로컬 파생{% endif %}</dd></div>
+        {% if reference_url %}<div><dt>Canonical safe URL</dt><dd><a href="{{ reference_url }}" target="_blank" rel="noreferrer">{{ reference_url }}</a></dd></div>{% endif %}
+        <div><dt>Aliases</dt><dd>{{ reference.alias_total or 0 }}개</dd></div>
+      </dl>
+    </section>
+
+    <section class="atlassian-preview-group" aria-labelledby="preview-reference-evidence-{{ reference.id }}">
+      <div class="atlassian-section-heading"><div><p class="eyebrow">FOUND IN · LOCAL EVIDENCE</p><h3 id="preview-reference-evidence-{{ reference.id }}">발견 위치</h3></div><span class="table-count">{{ reference.evidence.total }}</span></div>
+      {% if reference.evidence['items'] %}
+        <div class="atlassian-evidence-list">
+          {% for evidence in reference.evidence['items'] %}
+            {% set evidence_kind = evidence.kind or evidence.source_kind %}{% set evidence_channel = evidence.channel or evidence.source_channel %}
+            <a class="atlassian-evidence-row" href="/{{ 'sessions' if evidence_kind == 'session' else 'documents' }}/{{ evidence.local_id }}">
+              <span class="status-badge {{ 'neutral' if evidence.source_available else 'warning' }}">{{ 'Session' if evidence_kind == 'session' else 'Local Context' }}{% if not evidence.source_available %} · 확인 불가{% endif %}</span>
+              <span><strong>{{ evidence_channel }}</strong><small>line {{ evidence.source_line }} · URL {{ evidence.url_ordinal }}{% if evidence.container_hint %} · hint {{ evidence.container_hint }}{% endif %}</small><small>{{ evidence.safe_locator_url }}</small></span>
+              <time datetime="{{ evidence.observed_at or evidence.last_observed_at or '' }}" data-local-time>{{ evidence.observed_at or evidence.last_observed_at or '시간 정보 없음' }}</time>
+            </a>
+          {% endfor %}
+        </div>
+        {% if reference.evidence.truncated %}<p class="atlassian-preview-bound">최근 {{ reference.evidence['items'] | length }}개만 표시</p>{% endif %}
+      {% else %}<p class="atlassian-inline-state warning">현재 보존된 Session 또는 Local Context evidence가 없습니다.</p>{% endif %}
+    </section>
+  {% endif %}
+{% endif %}

@@ -1,25 +1,25 @@
 {
   "baseline": {
-    "explicit_index_count": 38,
+    "explicit_index_count": 44,
     "fts5_table_count": 1,
-    "id": "localbrain-data-model-2026-07-23",
-    "ordinary_table_count": 38,
-    "physical_foreign_key_count": 49,
+    "id": "localbrain-data-model-2026-09-01",
+    "ordinary_table_count": 41,
+    "physical_foreign_key_count": 54,
     "sources": [
       {
         "path": "src/localbrain/schema.sql",
         "role": "fresh-schema-truth",
-        "sha256": "fa4735c25e3fe9e63d22579a11bc7422d3ce0393a7d9e1bcca0f18712b3fbb8a"
+        "sha256": "4812d0a7287fde4bf518990dfce7a9512fa427fe163e5ef65c324be749e69f3f"
       },
       {
         "path": "src/localbrain/db.py",
         "role": "compatible-structure-truth",
-        "sha256": "b7ff0fc74960517e3a546cec1d7656a658d2e43662ceda9ca9dc32a9cefb6064"
+        "sha256": "e86117f629c765c41c7e5762374dedcfd0167f761f7a6dc9e71547968296a6c0"
       },
       {
         "path": "docs/policies/project/data-model.md",
         "role": "semantic-truth",
-        "sha256": "0527973ecc5a30e53c5b24269ca4aff5e213cb66ffed4b9f7528cff130d7c284"
+        "sha256": "0921056a1a7a88267256cf04fa14ca5505e02a81ee9691b200eea957db3326d9"
       },
       {
         "path": "docs/policies/project/data-model/source-registry-and-scans.md",
@@ -29,7 +29,7 @@
       {
         "path": "docs/policies/project/data-model/workspace-and-session-activity.md",
         "role": "semantic-truth",
-        "sha256": "cb7595d6d2fdb0e328d2f21c23848770e4ab65ff504c38b95fe273689cb2d3be"
+        "sha256": "574aab0c36e08886c651b4537dc3e9540834ccd5e1b55c870e9583a1febdb7b5"
       },
       {
         "path": "docs/policies/project/data-model/usage-and-cost-records.md",
@@ -49,7 +49,7 @@
       {
         "path": "docs/policies/project/data-model/atlassian-source-memory.md",
         "role": "semantic-truth",
-        "sha256": "00e0c6357e0f8839e321d44e7b10b07abe0c15dabd0343e8ee0977275f70365b"
+        "sha256": "88072ce83c961770cf6ec73b5c7974e80fd7a01518ff838c3207193a4b8c00e0"
       },
       {
         "path": "docs/policies/project/data-model/review-and-resume-continuity.md",
@@ -64,14 +64,14 @@
       {
         "path": "docs/policies/project/data-model/derived-retrieval-index.md",
         "role": "semantic-truth",
-        "sha256": "08e9a7b53042d3dea708a4b6f87e676fa9098941ed8c192a4fc2aef0d1cbfd98"
+        "sha256": "18334a8e453b40377e190ede2f7ac9faca046e7f5698508d22ff0f9382973d46"
       }
     ],
     "subject_count": 9
   },
   "derived": true,
   "global": {
-    "mermaid": "erDiagram\n    SOURCES { integer id PK }\n    SOURCE_FILES { integer id PK }\n    EXTERNAL_SOURCE_INSTANCES { integer id PK }\n    EXTERNAL_SOURCE_CAPABILITIES { integer source_instance_id PK }\n    WORKSPACES { integer id PK }\n    SESSIONS { integer id PK }\n    ACTIVITY_EVENTS { string id PK }\n    SESSION_PINS { integer session_id PK }\n    SESSION_REFERENCE_SCANS { integer session_id PK }\n    SESSION_REFERENCE_EVIDENCE { integer id PK }\n    USAGE_PRICE_SNAPSHOTS { string id PK }\n    USAGE_MODEL_PRICES { string snapshot_model PK }\n    USAGE_RECORDS { string id PK }\n    CONTEXT_ROOTS { integer id PK }\n    CONTEXT_DOCUMENTS { integer id PK }\n    WORKSTREAMS { integer id PK }\n    THREADS { integer id PK }\n    WORKSTREAM_LINKS { integer id PK }\n    THREAD_LINKS { integer id PK }\n    LOCAL_RESOURCES { integer id PK }\n    EXTERNAL_RESOURCES { integer id PK }\n    ATLASSIAN_SITES { integer id PK }\n    ATLASSIAN_SITE_BINDINGS { integer id PK }\n    ATLASSIAN_SPACES { integer id PK }\n    ATLASSIAN_ITEMS { integer external_resource_id PK }\n    ATLASSIAN_ITEM_URLS { integer id PK }\n    ATLASSIAN_ITEM_REMOTE_STATE { integer external_resource_id PK }\n    ATLASSIAN_ITEM_CONTENT { integer external_resource_id PK }\n    ATLASSIAN_ITEM_LOCAL_STATE { integer external_resource_id PK }\n    ATLASSIAN_CLASSIFICATIONS { integer id PK }\n    ATLASSIAN_ITEM_CLASSIFICATIONS { integer external_resource_id PK integer classification_id PK }\n    ATLASSIAN_EVIDENCE_SCANS { integer id PK }\n    ATLASSIAN_ITEM_EVIDENCE { integer id PK }\n    SUGGESTIONS { integer id PK }\n    CHECKPOINTS { integer id PK }\n    CHECKPOINT_RESOURCE_REFS { integer id PK }\n    MAINTENANCE_RUNS { string id PK }\n    EXTERNAL_SYNC_RUNS { string maintenance_run_id PK }\n    SEARCH_INDEX { string entity_key \"derived\" }\n\n    SOURCES ||--o{ SOURCE_FILES : \"physical CASCADE\"\n    SOURCES ||--o{ SESSIONS : \"physical CASCADE\"\n    SOURCES ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    SOURCES ||--o{ CONTEXT_DOCUMENTS : \"physical CASCADE\"\n    SESSIONS o|--o{ SOURCE_FILES : \"physical SET_NULL mapping\"\n    EXTERNAL_SOURCE_INSTANCES ||--o| EXTERNAL_SOURCE_CAPABILITIES : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_SITES : \"physical SET_NULL compatibility\"\n    EXTERNAL_SOURCE_INSTANCES ||--o{ ATLASSIAN_SITE_BINDINGS : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_SPACES : \"physical SET_NULL access\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_ITEMS : \"physical SET_NULL access\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ EXTERNAL_SYNC_RUNS : \"physical SET_NULL\"\n    WORKSPACES o|--o{ SESSIONS : \"physical SET_NULL\"\n    WORKSPACES o|--o{ CONTEXT_DOCUMENTS : \"physical SET_NULL\"\n    MAINTENANCE_RUNS o|--o| SESSIONS : \"physical SET_NULL unique\"\n    SESSIONS o|--o{ SESSIONS : \"physical parent SET_NULL\"\n    SESSIONS ||--o{ ACTIVITY_EVENTS : \"physical CASCADE\"\n    SESSIONS ||--o| SESSION_PINS : \"physical CASCADE\"\n    SESSIONS ||--o| SESSION_REFERENCE_SCANS : \"physical CASCADE\"\n    SESSIONS ||--o{ SESSION_REFERENCE_EVIDENCE : \"physical CASCADE\"\n    SESSIONS ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    USAGE_PRICE_SNAPSHOTS ||--o{ USAGE_MODEL_PRICES : \"physical RESTRICT\"\n    USAGE_PRICE_SNAPSHOTS ||--o{ USAGE_RECORDS : \"physical RESTRICT\"\n    CONTEXT_ROOTS o|--o{ CONTEXT_DOCUMENTS : \"physical SET_NULL\"\n    WORKSTREAMS ||--o{ THREADS : \"physical CASCADE\"\n    WORKSTREAMS ||--o{ WORKSTREAM_LINKS : \"physical CASCADE\"\n    WORKSTREAMS ||--o{ CHECKPOINTS : \"physical CASCADE\"\n    WORKSTREAMS o|--o{ MAINTENANCE_RUNS : \"physical SET_NULL\"\n    MAINTENANCE_RUNS ||--o| EXTERNAL_SYNC_RUNS : \"physical CASCADE\"\n    EXTERNAL_RESOURCES ||--o| ATLASSIAN_ITEMS : \"physical CASCADE 1:1\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_SITE_BINDINGS : \"physical CASCADE\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_SPACES : \"physical RESTRICT\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_ITEMS : \"physical RESTRICT\"\n    ATLASSIAN_SPACES o|--o{ ATLASSIAN_ITEMS : \"physical SET_NULL\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_URLS : \"physical composite CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_REMOTE_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_CONTENT : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_LOCAL_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_CLASSIFICATIONS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    SESSIONS ||--o{ ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE composite unique\"\n    CONTEXT_DOCUMENTS ||--o| ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE unique\"\n    SESSIONS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    CONTEXT_DOCUMENTS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    CONTEXT_DOCUMENTS ||--o{ SESSION_REFERENCE_EVIDENCE : \"physical CASCADE target\"\n    ATLASSIAN_ITEMS ||--o{ SESSION_REFERENCE_EVIDENCE : \"physical CASCADE target\"\n    THREADS ||--o{ THREAD_LINKS : \"physical CASCADE\"\n    THREADS o|--o{ CHECKPOINT_RESOURCE_REFS : \"physical SET_NULL\"\n    CHECKPOINTS ||--o{ CHECKPOINT_RESOURCE_REFS : \"physical CASCADE\"\n\n    SOURCE_FILES ||..o| SESSIONS : \"app source_path\"\n    SOURCE_FILES ||..o| CONTEXT_DOCUMENTS : \"app path\"\n    WORKSPACES o|..o{ USAGE_RECORDS : \"app frozen snapshot\"\n    WORKSTREAM_LINKS }o..o| SESSIONS : \"app session target\"\n    WORKSTREAM_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document target\"\n    WORKSTREAM_LINKS }o..o| WORKSPACES : \"app project target\"\n    WORKSTREAM_LINKS }o..o| EXTERNAL_RESOURCES : \"app external target\"\n    WORKSTREAM_LINKS }o..o| LOCAL_RESOURCES : \"app local target\"\n    THREAD_LINKS }o..o| SESSIONS : \"app session target\"\n    THREAD_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document target\"\n    THREAD_LINKS }o..o| WORKSPACES : \"app project target\"\n    THREAD_LINKS }o..o| EXTERNAL_RESOURCES : \"app external target\"\n    THREAD_LINKS }o..o| LOCAL_RESOURCES : \"app local target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| SESSIONS : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| CONTEXT_DOCUMENTS : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| WORKSPACES : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| EXTERNAL_RESOURCES : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| LOCAL_RESOURCES : \"app snapshot target\"\n    SUGGESTIONS }o..o| WORKSTREAMS : \"app target\"\n    SUGGESTIONS }o..o| THREADS : \"app target\"\n    SUGGESTIONS }o..o| MAINTENANCE_RUNS : \"app origin\"\n    SEARCH_INDEX }o..o| SESSIONS : \"app projection\"\n    SEARCH_INDEX }o..o| CONTEXT_DOCUMENTS : \"app projection\"\n    SEARCH_INDEX }o..o| ATLASSIAN_ITEMS : \"app indexed projection\"\n"
+    "mermaid": "erDiagram\n    SOURCES { integer id PK }\n    SOURCE_FILES { integer id PK }\n    EXTERNAL_SOURCE_INSTANCES { integer id PK }\n    EXTERNAL_SOURCE_CAPABILITIES { integer source_instance_id PK }\n    WORKSPACES { integer id PK }\n    SESSIONS { integer id PK }\n    ACTIVITY_EVENTS { string id PK }\n    SESSION_PINS { integer session_id PK }\n    SESSION_REFERENCE_SCANS { integer session_id PK }\n    SESSION_REFERENCE_EVIDENCE { integer id PK }\n    USAGE_PRICE_SNAPSHOTS { string id PK }\n    USAGE_MODEL_PRICES { string snapshot_model PK }\n    USAGE_RECORDS { string id PK }\n    CONTEXT_ROOTS { integer id PK }\n    CONTEXT_DOCUMENTS { integer id PK }\n    WORKSTREAMS { integer id PK }\n    THREADS { integer id PK }\n    WORKSTREAM_LINKS { integer id PK }\n    THREAD_LINKS { integer id PK }\n    LOCAL_RESOURCES { integer id PK }\n    EXTERNAL_RESOURCES { integer id PK }\n    ATLASSIAN_SITES { integer id PK }\n    ATLASSIAN_SITE_BINDINGS { integer id PK }\n    ATLASSIAN_SPACES { integer id PK }\n    ATLASSIAN_ITEMS { integer external_resource_id PK }\n    ATLASSIAN_ITEM_URLS { integer id PK }\n    ATLASSIAN_ITEM_REMOTE_STATE { integer external_resource_id PK }\n    ATLASSIAN_ITEM_CONTENT { integer external_resource_id PK }\n    ATLASSIAN_ITEM_LOCAL_STATE { integer external_resource_id PK }\n    ATLASSIAN_CLASSIFICATIONS { integer id PK }\n    ATLASSIAN_ITEM_CLASSIFICATIONS { integer external_resource_id PK integer classification_id PK }\n    ATLASSIAN_EVIDENCE_SCANS { integer id PK }\n    ATLASSIAN_ITEM_EVIDENCE { integer id PK }\n    ATLASSIAN_STRUCTURE_REFERENCES { integer id PK }\n    ATLASSIAN_STRUCTURE_REFERENCE_URLS { integer id PK }\n    ATLASSIAN_STRUCTURE_REFERENCE_EVIDENCE { integer id PK }\n    SUGGESTIONS { integer id PK }\n    CHECKPOINTS { integer id PK }\n    CHECKPOINT_RESOURCE_REFS { integer id PK }\n    MAINTENANCE_RUNS { string id PK }\n    EXTERNAL_SYNC_RUNS { string maintenance_run_id PK }\n    SEARCH_INDEX { string entity_key \"derived\" }\n\n    SOURCES ||--o{ SOURCE_FILES : \"physical CASCADE\"\n    SOURCES ||--o{ SESSIONS : \"physical CASCADE\"\n    SOURCES ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    SOURCES ||--o{ CONTEXT_DOCUMENTS : \"physical CASCADE\"\n    SESSIONS o|--o{ SOURCE_FILES : \"physical SET_NULL mapping\"\n    EXTERNAL_SOURCE_INSTANCES ||--o| EXTERNAL_SOURCE_CAPABILITIES : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_SITES : \"physical SET_NULL compatibility\"\n    EXTERNAL_SOURCE_INSTANCES ||--o{ ATLASSIAN_SITE_BINDINGS : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_SPACES : \"physical SET_NULL access\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_ITEMS : \"physical SET_NULL access\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ EXTERNAL_SYNC_RUNS : \"physical SET_NULL\"\n    WORKSPACES o|--o{ SESSIONS : \"physical SET_NULL\"\n    WORKSPACES o|--o{ CONTEXT_DOCUMENTS : \"physical SET_NULL\"\n    MAINTENANCE_RUNS o|--o| SESSIONS : \"physical SET_NULL unique\"\n    SESSIONS o|--o{ SESSIONS : \"physical parent SET_NULL\"\n    SESSIONS ||--o{ ACTIVITY_EVENTS : \"physical CASCADE\"\n    SESSIONS ||--o| SESSION_PINS : \"physical CASCADE\"\n    SESSIONS ||--o| SESSION_REFERENCE_SCANS : \"physical CASCADE\"\n    SESSIONS ||--o{ SESSION_REFERENCE_EVIDENCE : \"physical CASCADE\"\n    SESSIONS ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    USAGE_PRICE_SNAPSHOTS ||--o{ USAGE_MODEL_PRICES : \"physical RESTRICT\"\n    USAGE_PRICE_SNAPSHOTS ||--o{ USAGE_RECORDS : \"physical RESTRICT\"\n    CONTEXT_ROOTS o|--o{ CONTEXT_DOCUMENTS : \"physical SET_NULL\"\n    WORKSTREAMS ||--o{ THREADS : \"physical CASCADE\"\n    WORKSTREAMS ||--o{ WORKSTREAM_LINKS : \"physical CASCADE\"\n    WORKSTREAMS ||--o{ CHECKPOINTS : \"physical CASCADE\"\n    WORKSTREAMS o|--o{ MAINTENANCE_RUNS : \"physical SET_NULL\"\n    MAINTENANCE_RUNS ||--o| EXTERNAL_SYNC_RUNS : \"physical CASCADE\"\n    EXTERNAL_RESOURCES ||--o| ATLASSIAN_ITEMS : \"physical CASCADE 1:1\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_SITE_BINDINGS : \"physical CASCADE\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_SPACES : \"physical RESTRICT\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_ITEMS : \"physical RESTRICT\"\n    ATLASSIAN_SPACES o|--o{ ATLASSIAN_ITEMS : \"physical SET_NULL\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_URLS : \"physical composite CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_REMOTE_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_CONTENT : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_LOCAL_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_CLASSIFICATIONS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    SESSIONS ||--o{ ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE composite unique\"\n    CONTEXT_DOCUMENTS ||--o| ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE unique\"\n    SESSIONS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    CONTEXT_DOCUMENTS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_STRUCTURE_REFERENCES : \"physical RESTRICT\"\n    ATLASSIAN_STRUCTURE_REFERENCES ||--o{ ATLASSIAN_STRUCTURE_REFERENCE_URLS : \"physical composite CASCADE\"\n    ATLASSIAN_STRUCTURE_REFERENCES ||--o{ ATLASSIAN_STRUCTURE_REFERENCE_EVIDENCE : \"physical CASCADE\"\n    SESSIONS ||--o{ ATLASSIAN_STRUCTURE_REFERENCE_EVIDENCE : \"physical CASCADE\"\n    CONTEXT_DOCUMENTS ||--o{ ATLASSIAN_STRUCTURE_REFERENCE_EVIDENCE : \"physical CASCADE\"\n    CONTEXT_DOCUMENTS ||--o{ SESSION_REFERENCE_EVIDENCE : \"physical CASCADE target\"\n    ATLASSIAN_ITEMS ||--o{ SESSION_REFERENCE_EVIDENCE : \"physical CASCADE target\"\n    THREADS ||--o{ THREAD_LINKS : \"physical CASCADE\"\n    THREADS o|--o{ CHECKPOINT_RESOURCE_REFS : \"physical SET_NULL\"\n    CHECKPOINTS ||--o{ CHECKPOINT_RESOURCE_REFS : \"physical CASCADE\"\n\n    SOURCE_FILES ||..o| SESSIONS : \"app source_path\"\n    SOURCE_FILES ||..o| CONTEXT_DOCUMENTS : \"app path\"\n    WORKSPACES o|..o{ USAGE_RECORDS : \"app frozen snapshot\"\n    WORKSTREAM_LINKS }o..o| SESSIONS : \"app session target\"\n    WORKSTREAM_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document target\"\n    WORKSTREAM_LINKS }o..o| WORKSPACES : \"app project target\"\n    WORKSTREAM_LINKS }o..o| EXTERNAL_RESOURCES : \"app external target\"\n    WORKSTREAM_LINKS }o..o| LOCAL_RESOURCES : \"app local target\"\n    THREAD_LINKS }o..o| SESSIONS : \"app session target\"\n    THREAD_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document target\"\n    THREAD_LINKS }o..o| WORKSPACES : \"app project target\"\n    THREAD_LINKS }o..o| EXTERNAL_RESOURCES : \"app external target\"\n    THREAD_LINKS }o..o| LOCAL_RESOURCES : \"app local target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| SESSIONS : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| CONTEXT_DOCUMENTS : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| WORKSPACES : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| EXTERNAL_RESOURCES : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| LOCAL_RESOURCES : \"app snapshot target\"\n    SUGGESTIONS }o..o| WORKSTREAMS : \"app target\"\n    SUGGESTIONS }o..o| THREADS : \"app target\"\n    SUGGESTIONS }o..o| MAINTENANCE_RUNS : \"app origin\"\n    SEARCH_INDEX }o..o| SESSIONS : \"app projection\"\n    SEARCH_INDEX }o..o| CONTEXT_DOCUMENTS : \"app projection\"\n    SEARCH_INDEX }o..o| ATLASSIAN_ITEMS : \"app indexed projection\"\n    SEARCH_INDEX o|..o| ATLASSIAN_STRUCTURE_REFERENCES : \"app indexed projection\"\n"
   },
   "relationships": {
     "application": [
@@ -122,6 +122,14 @@
         "source_table": "search_index",
         "target_cardinality": "o|",
         "target_table": "atlassian_items"
+      },
+      {
+        "enforcement": "application",
+        "label": "app indexed projection",
+        "source_cardinality": "o|",
+        "source_table": "search_index",
+        "target_cardinality": "o|",
+        "target_table": "atlassian_structure_references"
       },
       {
         "enforcement": "application",
@@ -543,6 +551,73 @@
           "id"
         ],
         "target_table": "external_source_instances"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "reference_id"
+        ],
+        "source_table": "atlassian_structure_reference_evidence",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "atlassian_structure_references"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "document_id"
+        ],
+        "source_table": "atlassian_structure_reference_evidence",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "context_documents"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "session_id"
+        ],
+        "source_table": "atlassian_structure_reference_evidence",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "sessions"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "reference_id",
+          "site_id"
+        ],
+        "source_table": "atlassian_structure_reference_urls",
+        "target_columns": [
+          "id",
+          "site_id"
+        ],
+        "target_table": "atlassian_structure_references"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "RESTRICT",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "site_id"
+        ],
+        "source_table": "atlassian_structure_references",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "atlassian_sites"
       },
       {
         "enforcement": "sqlite-foreign-key",
@@ -977,7 +1052,7 @@
       "document": "docs/policies/project/data-model/atlassian-source-memory.md",
       "id": "atlassian-source-memory",
       "label": "Atlassian source memory",
-      "mermaid": "erDiagram\n    EXTERNAL_SOURCE_INSTANCES { integer id PK string service }\n    EXTERNAL_RESOURCES { integer id PK string url }\n    ATLASSIAN_SITES { integer id PK integer source_instance_id FK string normalized_domain }\n    ATLASSIAN_SITE_BINDINGS { integer id PK integer site_id FK integer source_instance_id FK }\n    ATLASSIAN_SPACES { integer id PK integer site_id FK integer source_instance_id FK string space_key UK string canonical_url string coverage }\n    ATLASSIAN_ITEMS { integer external_resource_id PK integer site_id FK integer source_instance_id FK integer space_id FK string remote_id UK }\n    ATLASSIAN_ITEM_URLS { integer id PK integer external_resource_id FK integer site_id FK string normalized_url UK }\n    ATLASSIAN_ITEM_REMOTE_STATE { integer external_resource_id PK string last_outcome string last_successful_at }\n    ATLASSIAN_ITEM_CONTENT { integer external_resource_id PK string source_hash string normalizer_version }\n    ATLASSIAN_ITEM_LOCAL_STATE { integer external_resource_id PK string note }\n    ATLASSIAN_CLASSIFICATIONS { integer id PK string kind string normalized_name UK }\n    ATLASSIAN_ITEM_CLASSIFICATIONS { integer external_resource_id PK integer classification_id PK }\n    ATLASSIAN_EVIDENCE_SCANS { integer id PK integer session_id FK integer document_id FK string source_fingerprint }\n    ATLASSIAN_ITEM_EVIDENCE { integer id PK integer external_resource_id FK integer session_id FK integer document_id FK }\n    SESSIONS { integer id PK }\n    CONTEXT_DOCUMENTS { integer id PK }\n    SEARCH_INDEX { string entity_key \"derived\" }\n\n    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_SITES : \"physical SET_NULL compatibility\"\n    EXTERNAL_SOURCE_INSTANCES ||--o{ ATLASSIAN_SITE_BINDINGS : \"physical CASCADE\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_SITE_BINDINGS : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_SPACES : \"physical SET_NULL access\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_ITEMS : \"physical SET_NULL access\"\n    EXTERNAL_RESOURCES ||--o| ATLASSIAN_ITEMS : \"physical CASCADE 1:1\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_SPACES : \"physical RESTRICT\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_ITEMS : \"physical RESTRICT\"\n    ATLASSIAN_SPACES o|--o{ ATLASSIAN_ITEMS : \"physical SET_NULL\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_URLS : \"physical composite CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_REMOTE_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_CONTENT : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_LOCAL_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_CLASSIFICATIONS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    SESSIONS ||--o{ ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE composite unique\"\n    CONTEXT_DOCUMENTS ||--o| ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE unique\"\n    SESSIONS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    CONTEXT_DOCUMENTS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS o|..o{ SEARCH_INDEX : \"app indexed projection\"\n",
+      "mermaid": "erDiagram\n    EXTERNAL_SOURCE_INSTANCES { integer id PK string service }\n    EXTERNAL_RESOURCES { integer id PK string url }\n    ATLASSIAN_SITES { integer id PK integer source_instance_id FK string normalized_domain }\n    ATLASSIAN_SITE_BINDINGS { integer id PK integer site_id FK integer source_instance_id FK }\n    ATLASSIAN_SPACES { integer id PK integer site_id FK integer source_instance_id FK string space_key UK string canonical_url string coverage }\n    ATLASSIAN_ITEMS { integer external_resource_id PK integer site_id FK integer source_instance_id FK integer space_id FK string remote_id UK }\n    ATLASSIAN_ITEM_URLS { integer id PK integer external_resource_id FK integer site_id FK string normalized_url UK }\n    ATLASSIAN_ITEM_REMOTE_STATE { integer external_resource_id PK string last_outcome string last_successful_at }\n    ATLASSIAN_ITEM_CONTENT { integer external_resource_id PK string source_hash string normalizer_version }\n    ATLASSIAN_ITEM_LOCAL_STATE { integer external_resource_id PK string note }\n    ATLASSIAN_CLASSIFICATIONS { integer id PK string kind string normalized_name UK }\n    ATLASSIAN_ITEM_CLASSIFICATIONS { integer external_resource_id PK integer classification_id PK }\n    ATLASSIAN_EVIDENCE_SCANS { integer id PK integer session_id FK integer document_id FK string source_fingerprint }\n    ATLASSIAN_ITEM_EVIDENCE { integer id PK integer external_resource_id FK integer session_id FK integer document_id FK }\n    ATLASSIAN_STRUCTURE_REFERENCES { integer id PK integer site_id FK string service string reference_kind string reference_identity }\n    ATLASSIAN_STRUCTURE_REFERENCE_URLS { integer id PK integer reference_id FK integer site_id FK string safe_locator_url UK }\n    ATLASSIAN_STRUCTURE_REFERENCE_EVIDENCE { integer id PK integer reference_id FK integer session_id FK integer document_id FK }\n    SESSIONS { integer id PK }\n    CONTEXT_DOCUMENTS { integer id PK }\n    SEARCH_INDEX { string entity_key \"derived\" }\n\n    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_SITES : \"physical SET_NULL compatibility\"\n    EXTERNAL_SOURCE_INSTANCES ||--o{ ATLASSIAN_SITE_BINDINGS : \"physical CASCADE\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_SITE_BINDINGS : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_SPACES : \"physical SET_NULL access\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_ITEMS : \"physical SET_NULL access\"\n    EXTERNAL_RESOURCES ||--o| ATLASSIAN_ITEMS : \"physical CASCADE 1:1\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_SPACES : \"physical RESTRICT\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_ITEMS : \"physical RESTRICT\"\n    ATLASSIAN_SPACES o|--o{ ATLASSIAN_ITEMS : \"physical SET_NULL\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_URLS : \"physical composite CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_REMOTE_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_CONTENT : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_LOCAL_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_CLASSIFICATIONS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    SESSIONS ||--o{ ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE composite unique\"\n    CONTEXT_DOCUMENTS ||--o| ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE unique\"\n    SESSIONS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    CONTEXT_DOCUMENTS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_STRUCTURE_REFERENCES : \"physical RESTRICT\"\n    ATLASSIAN_STRUCTURE_REFERENCES ||--o{ ATLASSIAN_STRUCTURE_REFERENCE_URLS : \"physical composite CASCADE\"\n    ATLASSIAN_STRUCTURE_REFERENCES ||--o{ ATLASSIAN_STRUCTURE_REFERENCE_EVIDENCE : \"physical CASCADE\"\n    SESSIONS ||--o{ ATLASSIAN_STRUCTURE_REFERENCE_EVIDENCE : \"physical CASCADE\"\n    CONTEXT_DOCUMENTS ||--o{ ATLASSIAN_STRUCTURE_REFERENCE_EVIDENCE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS o|..o{ SEARCH_INDEX : \"app indexed projection\"\n    ATLASSIAN_STRUCTURE_REFERENCES o|..o| SEARCH_INDEX : \"app indexed projection\"\n",
       "table_ids": [
         "atlassian_sites",
         "atlassian_site_bindings",
@@ -990,7 +1065,10 @@
         "atlassian_classifications",
         "atlassian_item_classifications",
         "atlassian_evidence_scans",
-        "atlassian_item_evidence"
+        "atlassian_item_evidence",
+        "atlassian_structure_references",
+        "atlassian_structure_reference_urls",
+        "atlassian_structure_reference_evidence"
       ]
     },
     {
@@ -1018,7 +1096,7 @@
       "document": "docs/policies/project/data-model/derived-retrieval-index.md",
       "id": "derived-retrieval-index",
       "label": "Derived retrieval index",
-      "mermaid": "erDiagram\n    SESSIONS { integer id PK string index_policy }\n    CONTEXT_DOCUMENTS { integer id PK }\n    ATLASSIAN_ITEMS { integer external_resource_id PK string coverage }\n    ATLASSIAN_ITEM_LOCAL_STATE { integer external_resource_id PK }\n    ATLASSIAN_CLASSIFICATIONS { integer id PK string kind }\n    SEARCH_INDEX {\n        string entity_type\n        string entity_id\n        string source_kind\n        string title\n        string body\n        string path\n    }\n\n    SESSIONS o|..o| SEARCH_INDEX : \"app projection\"\n    CONTEXT_DOCUMENTS o|..o| SEARCH_INDEX : \"app projection\"\n    ATLASSIAN_ITEMS o|..o{ SEARCH_INDEX : \"app indexed projection\"\n    ATLASSIAN_ITEM_LOCAL_STATE o|..o| SEARCH_INDEX : \"app local role input\"\n    ATLASSIAN_CLASSIFICATIONS }o..o{ SEARCH_INDEX : \"app local role input\"\n",
+      "mermaid": "erDiagram\n    SESSIONS { integer id PK string index_policy }\n    CONTEXT_DOCUMENTS { integer id PK }\n    ATLASSIAN_ITEMS { integer external_resource_id PK string coverage }\n    ATLASSIAN_ITEM_LOCAL_STATE { integer external_resource_id PK }\n    ATLASSIAN_CLASSIFICATIONS { integer id PK string kind }\n    ATLASSIAN_STRUCTURE_REFERENCES { integer id PK string reference_kind string reference_identity }\n    SEARCH_INDEX {\n        string entity_type\n        string entity_id\n        string source_kind\n        string title\n        string body\n        string path\n    }\n\n    SESSIONS o|..o| SEARCH_INDEX : \"app projection\"\n    CONTEXT_DOCUMENTS o|..o| SEARCH_INDEX : \"app projection\"\n    ATLASSIAN_ITEMS o|..o{ SEARCH_INDEX : \"app indexed projection\"\n    ATLASSIAN_ITEM_LOCAL_STATE o|..o| SEARCH_INDEX : \"app local role input\"\n    ATLASSIAN_CLASSIFICATIONS }o..o{ SEARCH_INDEX : \"app local role input\"\n    ATLASSIAN_STRUCTURE_REFERENCES o|..o| SEARCH_INDEX : \"app indexed projection\"\n",
       "table_ids": [
         "search_index"
       ]
@@ -2358,7 +2436,7 @@
           "name": "target_key",
           "not_null": true,
           "primary_key_position": 0,
-          "semantic_contract": "non-empty `TEXT NOT NULL` up to 300 characters; opaque deterministic grouping key, never display copy.",
+          "semantic_contract": "non-empty `TEXT NOT NULL` up to 300 characters; opaque deterministic grouping key, never display copy. Generic URL grouping hashes the whole safe URL; a recognized Atlassian Item/structure/Site URL hashes its canonical semantic descriptor so locator aliases and container hints cannot split identity.",
           "type": "TEXT"
         },
         {
@@ -2406,7 +2484,7 @@
           "name": "normalized_url",
           "not_null": false,
           "primary_key_position": 0,
-          "semantic_contract": "nullable non-empty `TEXT` up to 8,000 characters; required for URL and Atlassian targets and prohibited for Context Documents. It contains only approved normalized safe destination data.",
+          "semantic_contract": "nullable non-empty `TEXT` up to 8,000 characters; required for URL and Atlassian targets and prohibited for Context Documents. It contains only approved normalized safe destination data. Generic URLs contain no query; a recognized Atlassian descriptor may retain only its canonical bounded identity-query projection and optional approved grouping hint.",
           "type": "TEXT"
         },
         {
@@ -4400,8 +4478,8 @@
         "consumers": "Space and Item identity, local inventory, URL collision checks, access binding, and registration or refresh previews.",
         "deletion_effect": "nullable compatibility/default FK to `external_source_instances.id` with `ON DELETE SET NULL`; parent of bindings with `CASCADE` and Spaces and Items with `RESTRICT`. Removing access does not remove the Site or its local records.",
         "documented_constraints": "compatibility uniqueness on `(source_instance_id, normalized_domain)` and `(source_instance_id, remote_site_id)`, non-empty domain, and non-empty optional remote ID. Application producers enforce canonical normalized-domain reuse while retaining legacy rows losslessly. Explicit index: `idx_atlassian_sites_source`.",
-        "lifecycle_contract": "user-registered and non-rebuildable as local identity, even when remote Site ID and display metadata can be confirmed again.",
-        "producers": "`atlassian.py` domain-first Site registration and URL-backed stub registration; `atlassian_registration.py` composes URL-only registration and separate access binding.",
+        "lifecycle_contract": "locally registered and non-rebuildable as stable local identity, whether created by one-URL Add, explicit strict-URL Sync, or later remote confirmation. Remote Site ID and display metadata can be confirmed again but do not replace the local Site owner.",
+        "producers": "`atlassian.py` domain-first Site registration and URL-backed stub registration; `atlassian_registration.py` composes URL-only registration and separate access binding; `atlassian_evidence_sync.py` may invoke only the local normalized-domain registration path for a strict Jira Issue or Confluence Page candidate.",
         "purpose_and_authority": "stable local domain or tenant identity resolved by normalized domain, independent of Provider and access configuration.",
         "rebuildability": "non-rebuildable",
         "recovery_path": "LocalBrain database backup. Reconnecting a domain or Provider does not recreate the same local Site ID automatically.",
@@ -4735,7 +4813,7 @@
           "name": "service",
           "not_null": true,
           "primary_key_position": 0,
-          "semantic_contract": "`TEXT NOT NULL`; Jira or Confluence, matched to an assigned Source Instance or selected binding by the producer.",
+          "semantic_contract": "`TEXT NOT NULL`; Jira or Confluence. When access is assigned it must match that Source Instance or selected binding; URL-only Add and strict local Sync may persist service with no access owner.",
           "type": "TEXT"
         },
         {
@@ -4926,7 +5004,7 @@
         "deletion_effect": "primary key is an FK to `external_resources.id` with `ON DELETE CASCADE`; Site deletion is `RESTRICT`; Source Instance and Space deletion are `SET NULL`. The explicit purge API first removes the Item's FTS row and polymorphic Workstream, Thread, and checkpoint references, then removes the External Resource and all source-specific extension rows. Ordinary refresh never deletes the Resource.",
         "documented_constraints": "strict service/item-type pairing; coverage and attention vocabularies; non-empty optional identifiers; `UNIQUE(external_resource_id, site_id)` for composite URL ownership; `UNIQUE(site_id, service, remote_id)` and `UNIQUE(site_id, service, remote_key)`. Explicit indexes: `idx_atlassian_items_site`, `idx_atlassian_items_space`.",
         "lifecycle_contract": "non-rebuildable local identity and organization. Remote identifiers can be re-read, but the stable External Resource binding, coverage, attention, and existing relations must survive.",
-        "producers": "`atlassian.py` URL stub registration, in-place remote binding, explicit axis changes, and explicit destructive purge; `atlassian_registration.py` recognizes strict service-specific URLs before invoking the stub contract.",
+        "producers": "`atlassian.py` URL stub registration, in-place remote binding, explicit axis changes, and explicit destructive purge; `atlassian_registration.py` recognizes strict service-specific URLs before invoking the stub contract; `atlassian_evidence_sync.py` may invoke that same local Site-scoped stub path for strict Issue/Page evidence.",
         "purpose_and_authority": "strict one-to-one Atlassian extension of one stable External Resource, with Site containment, optional current access ownership, and independent coverage/attention axes.",
         "rebuildability": "non-rebuildable",
         "recovery_path": "database backup. Remote re-discovery cannot recreate the same local Resource ID or user-managed axes.",
@@ -4997,7 +5075,7 @@
           "name": "last_observed_at",
           "not_null": true,
           "primary_key_position": 0,
-          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; latest repeated observation.",
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; latest persisted repeated observation from an owning changed-source reconciliation. Read-only reuse of a current fingerprint is not written as a new observation.",
           "type": "TEXT"
         }
       ],
@@ -5067,11 +5145,11 @@
       "semantics": {
         "class": "External last-known memory",
         "class_contract": "Approved external reads may refresh the row, but inaccessible prior facts, aliases, and bodies are retained and are recoverable completely only from database backup.",
-        "consumers": "deduplication, safe navigation, alias resolution, FTS path projection, and Session/Local Context evidence attachment.",
+        "consumers": "deduplication, safe navigation, alias resolution, FTS path projection, Session/Local Context evidence attachment, and the read-only Site-first hierarchy descriptor. Exactly one `url_role = 'canonical'` row may own URL-derived child grouping; alias and evidence URLs never own or merge a hierarchy group.",
         "deletion_effect": "composite FK `(external_resource_id, site_id)` to `atlassian_items` with `ON DELETE CASCADE`; Site and Item cannot be mixed. URL collision aborts before mutation.",
         "documented_constraints": "canonical/alias vocabulary; non-empty URL values; `UNIQUE(site_id, normalized_url)`; composite cascading Item FK. Explicit indexes: `idx_atlassian_item_urls_item`; partial unique `idx_atlassian_item_urls_canonical` enforces at most one canonical URL per Item.",
         "lifecycle_contract": "external last-known URL evidence. Observed spellings are retained even when canonical navigation changes.",
-        "producers": "`atlassian.py` stub registration and atomic canonical URL transition during remote binding.",
+        "producers": "`atlassian.py` stub registration and atomic canonical URL transition during remote binding, composed by one-URL registration and strict persisted-only Sync; `atlassian_evidence_sync.py` may also retain the latest exact spelling observed during changed persisted-Document reconciliation.",
         "purpose_and_authority": "exact observed Atlassian links and normalized Site-scoped canonical/alias identity for one Item.",
         "rebuildability": "external-last-known",
         "recovery_path": "database backup or rediscovery from eligible local evidence and remote identity; rediscovery is not assumed complete.",
@@ -5716,7 +5794,7 @@
           "name": "site_fingerprint",
           "not_null": true,
           "primary_key_position": 0,
-          "semantic_contract": "`TEXT NOT NULL`; 64-character fingerprint of registered Site/service mappings derived from local Item/Space scope and enabled access bindings.",
+          "semantic_contract": "`TEXT NOT NULL`; 64-character fingerprint of registered Site/service mappings derived from local Item/Space scope and enabled access bindings. It is freshness authority for the source-scanner lane and retained diagnostic state for an explicit Document Sync row, but explicit Sync currentness does not compare it.",
           "type": "TEXT"
         },
         {
@@ -5827,8 +5905,8 @@
         "consumers": "scanner skip/retry logic and evidence diagnostics.",
         "deletion_effect": "nullable FKs to Session and Document, each `ON DELETE CASCADE`, with an exactly-one-source check. Session scan identity is unique by Session plus source path because one normalized Session may span several JSONL files; Document scan identity remains one-to-one. Source deletion therefore removes its scan state without affecting the Atlassian Item.",
         "documented_constraints": "exactly one source FK; `UNIQUE(session_id, source_path)` and unique Document identity; bounded Session path; 64-character fingerprints; status/error parity and bounded errors. Explicit indexes: none; source uniqueness owns current lookup.",
-        "lifecycle_contract": "fully derived and replaceable. It advances after a successful bounded reconciliation; an error retains prior Item evidence while recording only a bounded code/message.",
-        "producers": "`atlassian_evidence.py` through Session and Local Context scanner hooks.",
+        "lifecycle_contract": "fully derived and replaceable. The authoritative source scanner advances it after a successful bounded reconciliation; an error retains prior Item evidence while recording only a bounded code/message. Explicit local evidence Sync may advance the Document row only after a complete persisted-body pass. It never reads, advances, replaces, or creates a Session row.",
+        "producers": "`atlassian_evidence.py` through Session and Local Context scanner hooks, plus `atlassian_evidence_sync.py` for complete persisted Document reconciliation only.",
         "purpose_and_authority": "versioned local extraction freshness for exactly one eligible Session or Context Document.",
         "rebuildability": "fully-derived",
         "recovery_path": "re-run the local scanner while the source remains available. No external access is required.",
@@ -5915,7 +5993,7 @@
           "name": "observed_url",
           "not_null": true,
           "primary_key_position": 0,
-          "semantic_contract": "non-empty `TEXT` up to 8,000 characters; exact bounded spelling.",
+          "semantic_contract": "non-empty `TEXT` up to 8,000 characters; exact bounded spelling for authoritative source evidence, or the same safe normalized locator retained by the Session-reference projection when explicit local Sync cannot recover the original spelling.",
           "type": "TEXT"
         },
         {
@@ -5923,7 +6001,7 @@
           "name": "normalized_url",
           "not_null": true,
           "primary_key_position": 0,
-          "semantic_contract": "non-empty `TEXT` up to 8,000 characters; FEAT-0046 normalization result.",
+          "semantic_contract": "non-empty `TEXT` up to 8,000 characters; current evidence-Sync canonical safe locator used for Item URL matching. Exact authoritative Document spelling, including query provenance, remains separately in `observed_url`; explicit manual Add URL ownership is separate.",
           "type": "TEXT"
         },
         {
@@ -5979,7 +6057,7 @@
           "name": "last_observed_at",
           "not_null": true,
           "primary_key_position": 0,
-          "semantic_contract": "`TEXT NOT NULL`; latest successful reconciliation.",
+          "semantic_contract": "`TEXT NOT NULL`; latest persisted successful changed-source reconciliation. Read-only reuse of a current fingerprint is not written as a new observation.",
           "type": "TEXT"
         },
         {
@@ -6113,12 +6191,568 @@
         "consumers": "Item detail, evidence navigation, and the local Session `Related Context` projection when `session_id` points to the viewed primary Session; no refresh or remote-identity path may treat a sighting as successful remote confirmation.",
         "deletion_effect": "required cascading Item FK plus exactly one cascading Session or Document FK. Session evidence requires a stable event/location identifier; Document evidence uses line and URL occurrence without an excerpt.",
         "documented_constraints": "exactly one source FK; Session location parity; source-channel vocabulary; positive location values; bounded URLs/observations; unique evidence key. Explicit indexes: `idx_atlassian_evidence_item`, `idx_atlassian_evidence_session`, and `idx_atlassian_evidence_document`.",
-        "lifecycle_contract": "fully derived per owning source. A successful changed scan upserts current sightings and removes obsolete sightings from that source, but never deletes the stable Item, remote state/content, or local organization.",
-        "producers": "`atlassian_evidence.py` after URL recognition and FEAT-0046 stable stub reuse.",
-        "purpose_and_authority": "a derived, source-separated sighting of one recognized configured Atlassian Item URL.",
+        "lifecycle_contract": "fully derived per owning source. A successful changed scan upserts current sightings and removes obsolete sightings from that source, but never deletes the stable Item, remote state/content, or local organization. Explicit local evidence Sync is a narrow Session exception: it consumes the bounded retained Session-reference URL projection, merge-inserts only missing sightings, and never deletes Session evidence or changes Session scan state. The authoritative Session scanner remains the sole cleanup owner. A complete persisted Document Sync still owns bounded replacement; an unavailable or failed pass retains prior evidence.",
+        "producers": "`atlassian_evidence.py` after URL recognition and FEAT-0046 stable stub reuse, plus the explicit persisted-only orchestration in `atlassian_evidence_sync.py`.",
+        "purpose_and_authority": "a derived, source-separated sighting of one strictly recognized Atlassian Item URL. The authoritative scanner admits configured scope; explicit persisted-only Sync may additionally admit a strict Jira Issue or Confluence Page URL by locally creating/reusing its normalized-domain Site and Item. Shared locator `structure` and `site` results are not Item- evidence producers and cannot create a row in this table.",
         "rebuildability": "fully-derived",
         "recovery_path": "rescan the owning local source. If the source is gone, the evidence is intentionally unavailable; Item identity and user state remain in their own tables.",
         "schema_ownership": "fresh definition plus `idx_atlassian_evidence_item`, `idx_atlassian_evidence_session`, and `idx_atlassian_evidence_document` in `schema.sql`."
+      },
+      "subject_id": "atlassian-source-memory"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY`; stable local structure-reference identity.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "site_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL` FK to `atlassian_sites.id`, `ON DELETE RESTRICT`; domain owner.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "service",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; `jira` or `confluence`, paired with the reference kind.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "reference_kind",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; Jira project, board, filter, dashboard, service portal/project, or Confluence Space family.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "reference_identity",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "non-empty `TEXT` up to 300 characters; family-specific semantic identity independent of optional grouping hints.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "created_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; first stable identity creation.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "updated_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; latest owned reference update.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [
+          "service IN ('jira', 'confluence')",
+          "reference_kind IN ( 'jira_project', 'jira_board', 'jira_filter', 'jira_dashboard', 'jira_service_portal', 'jira_service_project', 'confluence_space' )",
+          "length(reference_identity) BETWEEN 1 AND 300",
+          "(service = 'jira' AND reference_kind LIKE 'jira_%') OR (service = 'confluence' AND reference_kind = 'confluence_space')"
+        ],
+        "documented": "`UNIQUE(site_id, service, reference_kind, reference_identity)`, composite `UNIQUE(id, site_id)` for URL ownership, bounded identity, and strict service/kind pairing. Explicit index: `idx_atlassian_structure_references_site`.",
+        "primary_key": [
+          "id"
+        ],
+        "unique": [
+          [
+            "id",
+            "site_id"
+          ],
+          [
+            "site_id",
+            "service",
+            "reference_kind",
+            "reference_identity"
+          ]
+        ]
+      },
+      "foreign_keys": [
+        {
+          "on_delete": "RESTRICT",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "site_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "atlassian_sites"
+        }
+      ],
+      "id": "atlassian_structure_references",
+      "indexes": [
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "site_id"
+            },
+            {
+              "descending": false,
+              "name": "service"
+            },
+            {
+              "descending": false,
+              "name": "reference_kind"
+            },
+            {
+              "descending": false,
+              "name": "id"
+            }
+          ],
+          "name": "idx_atlassian_structure_references_site",
+          "partial": false,
+          "unique": false
+        }
+      ],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/atlassian-source-memory.md",
+      "semantics": {
+        "class": "Mixed source identity and curated references",
+        "class_contract": "Source-derived identity participates in user-curated links or immutable historical evidence, so delete-and-recreate is not equivalent to an in-place refresh.",
+        "consumers": "Atlassian Explorer hierarchy/list/preview/detail, shared Search projection, and the bounded Sync report. Refresh, Connections, classification, local edits, and Workstream organization do not consume it as an Item.",
+        "deletion_effect": "required Site FK uses `ON DELETE RESTRICT`; Site/service/kind/identity is unique. URL and evidence children cascade only if an explicit owner deletion removes the stable reference.",
+        "documented_constraints": "`UNIQUE(site_id, service, reference_kind, reference_identity)`, composite `UNIQUE(id, site_id)` for URL ownership, bounded identity, and strict service/kind pairing. Explicit index: `idx_atlassian_structure_references_site`.",
+        "lifecycle_contract": "explicit local evidence Sync creates or reuses the row. Loss of all owning evidence archives it as a derived presentation state but does not delete or renumber it; later rediscovery reactivates the same identity.",
+        "producers": "`atlassian_structure_references.py` within the per-source savepoint owned by `atlassian_evidence_sync.py`.",
+        "purpose_and_authority": "stable local identity for one standard Atlassian structure URL family, scoped by Site and service. It records only URL-derived Project, Board, filter, dashboard, service-portal/project, or Confluence Space identity and never claims a registered Space, Item, remote confirmation, access binding, or user organization.",
+        "rebuildability": "conditional-stable-id",
+        "recovery_path": "rescan retained Session/Local Context evidence to rediscover current references; database backup is required to preserve an archived row's exact stable ID and historical aliases after explicit deletion.",
+        "schema_ownership": "fresh definition plus `idx_atlassian_structure_references_site` in `schema.sql`; compatible startup validates the complete table and index family before use."
+      },
+      "subject_id": "atlassian-source-memory"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY`; stable URL-observation row identity.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "reference_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL`; first half of the composite cascading reference FK.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "site_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL`; second half of the composite cascading reference FK and URL collision scope.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "url_role",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; `canonical` or `alias`.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "safe_locator_url",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "non-empty `TEXT` up to 8,000 characters; canonical allowlisted locator with arbitrary query and fragment removed.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "first_observed_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; first persisted sighting of this safe locator.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "last_observed_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; latest persisted changed-source observation.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [
+          "url_role IN ('canonical', 'alias')",
+          "length(safe_locator_url) BETWEEN 1 AND 8000"
+        ],
+        "documented": "canonical/alias vocabulary, bounded safe locator, `UNIQUE(site_id, safe_locator_url)`, and composite cascading reference FK. Explicit indexes: `idx_atlassian_structure_reference_urls_reference` and partial unique `idx_atlassian_structure_reference_urls_canonical`.",
+        "primary_key": [
+          "id"
+        ],
+        "unique": [
+          [
+            "site_id",
+            "safe_locator_url"
+          ]
+        ]
+      },
+      "foreign_keys": [
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "reference_id",
+            "site_id"
+          ],
+          "target_columns": [
+            "id",
+            "site_id"
+          ],
+          "target_table": "atlassian_structure_references"
+        }
+      ],
+      "id": "atlassian_structure_reference_urls",
+      "indexes": [
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "reference_id"
+            }
+          ],
+          "name": "idx_atlassian_structure_reference_urls_canonical",
+          "partial": true,
+          "unique": true
+        },
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "reference_id"
+            },
+            {
+              "descending": false,
+              "name": "url_role"
+            }
+          ],
+          "name": "idx_atlassian_structure_reference_urls_reference",
+          "partial": false,
+          "unique": false
+        }
+      ],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/atlassian-source-memory.md",
+      "semantics": {
+        "class": "Mixed source identity and curated references",
+        "class_contract": "Source-derived identity participates in user-curated links or immutable historical evidence, so delete-and-recreate is not equivalent to an in-place refresh.",
+        "consumers": "Explorer rows/preview/detail, shared Search paths, direct external-open links, and exact local reuse.",
+        "deletion_effect": "composite `(reference_id, site_id)` FK cascades from the matching reference/Site pair. A safe locator is unique within one Site and cannot silently move to a different reference.",
+        "documented_constraints": "canonical/alias vocabulary, bounded safe locator, `UNIQUE(site_id, safe_locator_url)`, and composite cascading reference FK. Explicit indexes: `idx_atlassian_structure_reference_urls_reference` and partial unique `idx_atlassian_structure_reference_urls_canonical`.",
+        "lifecycle_contract": "created or observation-refreshed only by explicit local evidence Sync. Evidence cleanup never deletes canonical or alias history, including when the parent becomes archived.",
+        "producers": "`atlassian_structure_references.py` after the shared static locator returns a safe structure locator.",
+        "purpose_and_authority": "privacy-safe canonical and alias locator ownership for one stable structure reference. The first safe locator remains canonical; later recognized variants remain aliases rather than replacing identity.",
+        "rebuildability": "conditional-stable-id",
+        "recovery_path": "rediscovery can recreate semantic ownership, but database backup preserves the original canonical choice, row IDs, and alias observation history.",
+        "schema_ownership": "fresh definition plus `idx_atlassian_structure_reference_urls_reference` and partial unique `idx_atlassian_structure_reference_urls_canonical` in `schema.sql`; compatible startup validates them fail closed."
+      },
+      "subject_id": "atlassian-source-memory"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY`; stable row identity while the evidence key is retained.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "reference_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`INTEGER NOT NULL` FK to `atlassian_structure_references.id`, `ON DELETE CASCADE`.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "session_id",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable FK to `sessions.id`, `ON DELETE CASCADE`; mutually exclusive with `document_id`.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "source_path",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT` up to 8,000 characters; required only for Session evidence.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "document_id",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable FK to `context_documents.id`, `ON DELETE CASCADE`; mutually exclusive with `session_id`.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "source_channel",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; `visible_text` or `approved_tool_result`.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "source_event_id",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; required stable event/location identity only for Session evidence.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "source_line",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "positive `INTEGER`; Session projection or Document line.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "url_ordinal",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "positive `INTEGER`; URL occurrence within the source location.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "safe_locator_url",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "non-empty `TEXT` up to 8,000 characters; privacy-safe locator owned by the shared descriptor.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "container_hint",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable non-empty `TEXT` up to 300 characters; non-authoritative Project/Space grouping hint.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "observed_at",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; source event time when available.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "extractor_version",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "non-empty `TEXT`; extraction contract that created the sighting.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "evidence_key",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "unique 64-character deterministic fingerprint of reference, source, location, and safe locator.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "first_observed_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; first local reconciliation of this evidence key.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "last_observed_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; latest persisted successful changed-source reconciliation.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "CURRENT_TIMESTAMP",
+          "name": "updated_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; latest row update.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [
+          "source_channel IN ('visible_text', 'approved_tool_result')",
+          "source_line > 0",
+          "url_ordinal > 0",
+          "( session_id IS NOT NULL AND source_path IS NOT NULL AND document_id IS NULL AND source_event_id IS NOT NULL ) OR ( session_id IS NULL AND source_path IS NULL AND document_id IS NOT NULL AND source_event_id IS NULL )",
+          "source_path IS NULL OR length(source_path) <= 8000",
+          "length(safe_locator_url) BETWEEN 1 AND 8000",
+          "container_hint IS NULL OR length(container_hint) BETWEEN 1 AND 300",
+          "length(extractor_version) > 0",
+          "length(evidence_key) = 64"
+        ],
+        "documented": "exactly one source FK, Session location parity, source-channel vocabulary, positive location values, bounded safe URL/hint, and unique evidence key. Explicit indexes: `idx_atlassian_structure_reference_evidence_reference`, `idx_atlassian_structure_reference_evidence_session`, and `idx_atlassian_structure_reference_evidence_document`.",
+        "primary_key": [
+          "id"
+        ],
+        "unique": [
+          [
+            "evidence_key"
+          ]
+        ]
+      },
+      "foreign_keys": [
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "document_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "context_documents"
+        },
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "session_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "sessions"
+        },
+        {
+          "on_delete": "CASCADE",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "reference_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "atlassian_structure_references"
+        }
+      ],
+      "id": "atlassian_structure_reference_evidence",
+      "indexes": [
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "document_id"
+            },
+            {
+              "descending": false,
+              "name": "source_line"
+            },
+            {
+              "descending": false,
+              "name": "url_ordinal"
+            }
+          ],
+          "name": "idx_atlassian_structure_reference_evidence_document",
+          "partial": false,
+          "unique": false
+        },
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "reference_id"
+            },
+            {
+              "descending": true,
+              "name": "last_observed_at"
+            },
+            {
+              "descending": true,
+              "name": "id"
+            }
+          ],
+          "name": "idx_atlassian_structure_reference_evidence_reference",
+          "partial": false,
+          "unique": false
+        },
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "session_id"
+            },
+            {
+              "descending": false,
+              "name": "source_path"
+            },
+            {
+              "descending": false,
+              "name": "source_event_id"
+            },
+            {
+              "descending": false,
+              "name": "source_line"
+            },
+            {
+              "descending": false,
+              "name": "url_ordinal"
+            }
+          ],
+          "name": "idx_atlassian_structure_reference_evidence_session",
+          "partial": false,
+          "unique": false
+        }
+      ],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/atlassian-source-memory.md",
+      "semantics": {
+        "class": "Fully derived projection",
+        "class_contract": "Safe to clear and rebuild from current eligible source objects.",
+        "consumers": "bounded reference preview/detail evidence, availability/lifecycle derivation, hierarchy grouping-hint consensus, and Sync counts. Evidence text is not a Search body owner.",
+        "deletion_effect": "required reference FK plus exactly one cascading Session or Document FK. Session evidence requires source path/event identity; Document evidence uses line and URL ordinal without an excerpt.",
+        "documented_constraints": "exactly one source FK, Session location parity, source-channel vocabulary, positive location values, bounded safe URL/hint, and unique evidence key. Explicit indexes: `idx_atlassian_structure_reference_evidence_reference`, `idx_atlassian_structure_reference_evidence_session`, and `idx_atlassian_structure_reference_evidence_document`.",
+        "lifecycle_contract": "Session projection is merge-only and scanner-owned for cleanup. A complete changed Document Sync replaces that Document's bounded evidence set; unavailable or failed sources retain prior rows. Removing the final row archives, but never deletes, the parent reference.",
+        "producers": "`atlassian_structure_references.py` through the explicit persisted-only orchestration in `atlassian_evidence_sync.py`.",
+        "purpose_and_authority": "derived, source-separated evidence that one eligible Session or Local Context Document contained a recognized standard structure locator. It carries only safe locator, optional non-authoritative container hint, provenance location, and timestamps; it never copies source text or confirms remote state.",
+        "rebuildability": "fully-derived",
+        "recovery_path": "rescan the owning persisted projection or Document. If a source is unavailable, retained evidence remains labeled unavailable; source deletion removes only that evidence and may archive the reference.",
+        "schema_ownership": "fresh definition plus `idx_atlassian_structure_reference_evidence_reference`, `idx_atlassian_structure_reference_evidence_session`, and `idx_atlassian_structure_reference_evidence_document` in `schema.sql`; compatible startup validates the same family."
       },
       "subject_id": "atlassian-source-memory"
     },
@@ -7037,7 +7671,7 @@
           "name": "entity_type",
           "not_null": false,
           "primary_key_position": 0,
-          "semantic_contract": "FTS5 `UNINDEXED`; application discriminator for `session`, `document`, or `atlassian_item`.",
+          "semantic_contract": "FTS5 `UNINDEXED`; application discriminator for `session`, `document`, `atlassian_item`, or `atlassian_structure_reference`.",
           "type": null
         },
         {
@@ -7083,7 +7717,7 @@
       ],
       "constraints": {
         "checks": [],
-        "documented": "`fts5(..., tokenize = 'unicode61')`; Session and Document projections use one row per entity, while Atlassian Items use deterministic source-kind role rows (`identity`, optional `metadata`, optional `content`, and optional `local`). Row-set uniqueness is maintained by compare-and-replace application logic, not a SQL unique constraint. Explicit named indexes: none.",
+        "documented": "`fts5(..., tokenize = 'unicode61')`; Session, Document, and active structure-reference projections use one row per entity, while Atlassian Items use deterministic source-kind role rows (`identity`, optional `metadata`, optional `content`, and optional `local`). Row-set uniqueness is maintained by compare-and-replace application logic, not a SQL unique constraint. Explicit named indexes: none.",
         "primary_key": [],
         "unique": []
       },
@@ -7095,14 +7729,14 @@
       "semantics": {
         "class": "Fully derived projection",
         "class_contract": "Safe to clear and rebuild from current eligible source objects.",
-        "consumers": "`queries.py` returns Session/Document results and groups matching Atlassian roles back to one stable Item with current relational context; `retrieval.py` ranked work-context candidates explicitly filter their supported types. Retrieval adds current relational evidence after candidate selection.",
-        "deletion_effect": "no physical FK. `entity_type` plus `entity_id` application-addresses `sessions`, `context_documents`, or `atlassian_items.external_resource_id`; each source lifecycle explicitly removes projections. Maintenance Sessions, subsessions, policy-excluded content, and ineligible Atlassian role text do not enter the projection.",
-        "documented_constraints": "`fts5(..., tokenize = 'unicode61')`; Session and Document projections use one row per entity, while Atlassian Items use deterministic source-kind role rows (`identity`, optional `metadata`, optional `content`, and optional `local`). Row-set uniqueness is maintained by compare-and-replace application logic, not a SQL unique constraint. Explicit named indexes: none.",
+        "consumers": "`queries.py` returns Session/Document, Atlassian Item, and structure-reference results with current relational context; `retrieval.py` ranked work-context candidates explicitly filter their supported types. Retrieval adds current relational evidence after candidate selection.",
+        "deletion_effect": "no physical FK. `entity_type` plus `entity_id` application-addresses `sessions`, `context_documents`, `atlassian_items.external_resource_id`, or `atlassian_structure_references.id`; each source lifecycle explicitly removes projections. Maintenance Sessions, subsessions, policy-excluded content, ineligible Atlassian role text, and archived structure references do not enter the projection.",
+        "documented_constraints": "`fts5(..., tokenize = 'unicode61')`; Session, Document, and active structure-reference projections use one row per entity, while Atlassian Items use deterministic source-kind role rows (`identity`, optional `metadata`, optional `content`, and optional `local`). Row-set uniqueness is maintained by compare-and-replace application logic, not a SQL unique constraint. Explicit named indexes: none.",
         "lifecycle_contract": "fully derived projection. It is safe to clear and rebuild from current eligible source objects.",
-        "producers": "`ingest/scanner.py` replaces Session and document rows during scan; `contexts.py` deletes root-owned document projections on disable; `atlassian.py` compares and rebuilds each Item's eligible role rows from current relational identity, remote state/content, and local memory; source cleanup deletes projections before normalized objects.",
-        "purpose_and_authority": "FTS5 search projection for eligible primary work Sessions, enabled Context Documents, and role-separated Atlassian Item identity/metadata/content/local text, retaining unindexed target/provenance fields beside indexed title/body/path text.",
+        "producers": "`ingest/scanner.py` replaces Session and document rows during scan; `contexts.py` deletes root-owned document projections on disable; `atlassian.py` compares and rebuilds each Item's eligible role rows from current relational identity, remote state/content, and local memory; `atlassian_structure_references.py` compares active reference identity/domain/family/safe-locator projection and removes it when archived; source cleanup deletes projections before normalized objects.",
+        "purpose_and_authority": "FTS5 search projection for eligible primary work Sessions, enabled Context Documents, role-separated Atlassian Item identity/metadata/content/local text, and active URL-derived Atlassian structure-reference identity/provenance, retaining unindexed target fields beside indexed title/body/path text.",
         "rebuildability": "fully-derived",
-        "recovery_path": "rescan enabled Session and Context sources and rebuild Atlassian role rows from stable External Resource identity, bounded eligible remote state/content, and local note/classification tables. No backup is required for this table itself, though its authoritative local/last-known inputs must exist.",
+        "recovery_path": "rescan enabled Session and Context sources and rebuild Atlassian role rows from stable External Resource identity, bounded eligible remote state/content, local note/classification tables, and active stable structure-reference rows. No backup is required for this table itself, though its authoritative local/last-known inputs must exist.",
         "schema_ownership": "FTS5 virtual-table declaration in `schema.sql`; no compatible migration or separate explicit named index. FTS5 shadow tables are SQLite internals."
       },
       "subject_id": "derived-retrieval-index"

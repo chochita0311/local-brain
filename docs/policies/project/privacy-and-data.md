@@ -77,10 +77,43 @@ No connector may silently promote content from `reference` or `cache` into durab
 - Capability observations retain only versioned logical-operation names, a schema fingerprint, availability, timestamps, invalidation, and bounded error evidence. They are refreshed explicitly rather than on startup, page load, search, or ordinary preview.
 - A version-controlled allowlist must map logical reads to exact provider targets and validate bounded arguments before dispatch. Runtime rows, model output, prompts, or caller-supplied tool names cannot grant external writes.
 - External synchronization requires a host-side executor that receives only a pre-authorized dispatch. Provider arguments and returned content stay in private Run artifacts; query projections and call-accounting rows contain no arguments or provider content. Claude or Codex receives only the validated local evidence and cannot access broad external tools in that Run.
-- Applied Atlassian facts are private runtime data: Site domains, exact URLs, remote identifiers, bounded metadata, source bodies, normalized text, hashes, freshness evidence, local notes, Topic/Tag vocabulary and assignments, and FTS rows remain outside Git. Remote metadata cannot contain Jira description or Confluence body; approved body content is stored in its separate source-preserving table and reaches the content-role FTS row only under explicit indexed coverage.
-- Derived Atlassian sightings are private runtime data. They may retain an eligible primary work Session or enabled Local Context Document identity, event/line/occurrence locator, exact and normalized URL, and optional bounded title/remote-ID observations from an approved read result. They must not retain a Session or Document excerpt, opaque tool arguments/results, comments, attachments, command output, or maintenance/subsession content.
-- Source-neutral Session reference evidence is private, fully derived runtime data. It may retain an eligible primary work Session and source path, event/line/ordinal locator, opaque grouping key, exact Document or configured Atlassian Item FK, bounded observed issue/file/host-path identity, safe normalized HTTP(S) destination, approved tool name/call identity, completed success/failure outcome, extractor fingerprints, counts, and bounded diagnostics. Visible generic URLs discard credentials, fragments, and all query material; approved Atlassian calls correlate only bounded call/result identity fields and never initiate a provider request. It must not retain message excerpts, credentials, URL fragments, unapproved query material, opaque arguments/results, remote content, Maintenance content, or Subsession content. Reconciliation may delete only these derived rows; shared Resources, Documents, remote facts, notes, classifications, and organization links remain separate owners.
-- Atlassian browse, Add orientation, URL preview and registration, access setup, search, detail reading, local classification, local relationship edits, and refresh preview use only persisted local state and must not send a query, result, or local content to Atlassian or an AI service. Provider is never inferred from URL content; credentials and tokens are never accepted. Invalid input or failed local setup creates no partial rows and triggers no remote lookup. The [Product Model](product.md#atlassian-browse-add-and-access) owns the user-visible flow, and [Project Architecture](architecture.md#external-access-and-synchronization-constraints) owns request limits, dispatch, and transaction boundaries.
+- Applied Atlassian facts are private runtime data: manually registered or
+  strict-Sync-created Site domains and Item identities, exact URLs, read-only
+  URL container descriptors, remote identifiers, bounded metadata, source
+  bodies, normalized text, hashes, freshness evidence, local notes, Topic/Tag
+  vocabulary and assignments, and FTS rows remain outside Git. A derived URL
+  descriptor is not persisted as Space identity and never changes `space_id`.
+  Remote metadata cannot contain Jira description or Confluence body; approved
+  body content is stored in its separate source-preserving table and reaches
+  the content-role FTS row only under explicit indexed coverage.
+- Derived Atlassian sightings are private runtime data. They may retain an eligible primary work Session or enabled Local Context Document identity, event/line/occurrence locator, an exact observed URL or a safe persisted normalized Session-projection locator, normalized URL, and optional bounded title/remote-ID observations from an approved read result. A projected locator must not be presented as unavailable original spelling. Sightings must not retain a Session or Document excerpt, opaque tool arguments/results, comments, attachments, command output, or maintenance/subsession content.
+- Approved Atlassian structure-reference evidence is a separate private runtime
+  owner from Item sightings. It may retain stable Site/service/reference
+  identity, one canonical or alias safe locator, eligible Session or Context
+  Document local identity, bounded event/line/ordinal location, optional
+  non-authoritative container hint, and timestamps. It stores the privacy-safe
+  locator for both Session and Document evidence, not an authoritative
+  Document's arbitrary query spelling, source excerpt, raw query/JQL,
+  credential, opaque payload, remote content, or Item local/organization state.
+  Removing the last evidence may derive archived availability but does not
+  require deleting the stable reference identity or safe locator history.
+- Source-neutral Session reference evidence is private, fully derived runtime data. It may retain an eligible primary work Session and source path, event/line/ordinal locator, opaque grouping key, exact Document or configured Atlassian Item FK, bounded observed issue/file/host-path identity, safe normalized HTTP(S) destination, approved tool name/call identity, completed success/failure outcome, extractor fingerprints, counts, and bounded diagnostics. Visible generic URLs discard credentials, fragments, and all query material. The shared static Atlassian locator may inspect only its bounded family-specific query allowlist ephemerally, then retain a canonical safe locator containing only the identity projection needed to distinguish the reference. Jira Issue query identity canonicalizes to a query-free `/browse/{ISSUE_KEY}` path. A Confluence Page keeps its valid Space/Page path when available; otherwise it may retain only canonical positive `pageId` on `pages/viewpage.action`. RapidBoard may retain canonical positive `rapidView` plus one validated `projectKey` grouping hint; Filter and Dashboard may retain only canonical positive `filter` or `selectPageId`. It never retains raw query, JQL, arbitrary filter text, tokens, or unrelated parameters. Semantic Session grouping excludes locator spelling and container hint. Approved Atlassian calls correlate only bounded call/result identity fields and never initiate a provider request. It must not retain message excerpts, credentials, URL fragments, unapproved query material, opaque arguments/results, remote content, Maintenance content, or Subsession content. Reconciliation may delete only these derived rows; shared Resources, Documents, remote facts, notes, classifications, and organization links remain separate owners.
+- Atlassian browse, Add orientation, URL preview and registration, access setup,
+  search, detail reading, local classification, local relationship edits, local
+  evidence Sync, and refresh preview use only persisted local state and must not
+  send a query, result, or local content to Atlassian or an AI service. Strict
+  Jira Issue or Confluence Page recognition may create a local Site, Item, URL,
+  and evidence rows during Sync, but never a binding, credential, Source
+  Instance, remote fact, or persisted Space inference. Each source is atomic;
+  a failed source publishes neither partial rows nor a resolver-cache identity
+  for later sources. Local evidence Sync receipts contain only bounded counts,
+  fixed reason codes, source kind, and local numeric ID; they remain
+  process-local, expire, and are never persisted. Provider is never inferred
+  from URL content; credentials and tokens are never accepted. Invalid input or
+  failed local setup creates no partial rows and triggers no remote lookup. The
+  [Product Model](product.md#atlassian-explorer-add-connections-sync-and-refresh)
+  owns the user-visible flow, and [Project Architecture](architecture.md#external-access-and-synchronization-constraints)
+  owns request limits, dispatch, and transaction boundaries.
 - Connected candidate discovery and refresh require explicit submission through an authorized Source Instance. Candidate results and per-target manifests are private runtime evidence, never authorize automatic bulk registration, and must not imply complete company-wide enumeration.
 - Validated remote results may update only their approved remote-state and content owners. They must not overwrite local attention, notes, Topics, Tags, Workstream/Thread relations, or other user-owned organization state.
 - Reference coverage rejects remote metadata and body persistence; metadata coverage rejects bodies. Explicitly downgrading indexed coverage removes the stored body and rebuilds the remaining eligible identity/local FTS roles, while ordinary failure or unavailability never performs that destructive downgrade.

@@ -9,11 +9,15 @@ The current MVP runs as a FastAPI web application on the local machine. A native
 - Ingest local Claude and Codex session history.
 - Register and browse folders, individual files, and Apple Notes as Local Context sources.
 - Read safe, locally rendered Markdown in Local Context previews, context-aware full Document views, and Session or Subsession conversations.
+- Browse Jira and Confluence links plus URL-derived Project, Board, Filter,
+  Dashboard, portal, and Space references in a Site-first Explorer. Local Add
+  registers one known link, document, Project, or Space URL; explicit local
+  Sync reconciles persisted Session and Local Context evidence, while optional
+  Connections and bounded remote Refresh remain separate actions.
 - Organize work into user-created Workstreams and Threads.
 - Link sessions, documents, local paths, projects, and external references to Threads.
 - Maintain versioned checkpoints and review reversible resource Suggestions.
 - Run Claude maintenance tasks for resource organization, checkpoint drafting, and priority review.
-- Register and browse Jira and Confluence records locally, with optional access and explicit bounded remote actions.
 - Inspect source-aware Session inventory, pinned recall, related evidence, and token or estimated-cost history.
 - Explore the packaged data model, subject ERDs, and table contracts from the read-only **System > Schema** surface.
 

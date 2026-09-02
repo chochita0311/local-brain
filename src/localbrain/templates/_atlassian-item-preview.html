@@ -1,0 +1,164 @@
+<aside
+  class="atlassian-item-preview state-{{ preview.state }}"
+  data-atlassian-preview
+  data-preview-state="{{ preview.state }}"
+  data-selection-kind="{{ preview.selection_kind or '' }}"
+  data-selected-key="{{ preview.selected_key or (preview.selection_kind ~ ':' ~ preview.selected_id if preview.selected_id and preview.selection_kind else '') }}"
+  data-selected-id="{{ preview.selected_id or '' }}"
+  data-document-title="{{ preview.document_title }}"
+  aria-busy="false"
+>
+  <button class="atlassian-preview-scrim" type="button" tabindex="-1" aria-hidden="true" data-atlassian-detail-close></button>
+  <div class="atlassian-preview-panel" data-atlassian-detail-scroll>
+    {% if preview.state != 'empty' %}
+      <a class="atlassian-preview-close" href="{{ preview.clear_url }}" data-atlassian-detail-close>
+        <span aria-hidden="true">←</span><span>목록으로 돌아가기</span>
+      </a>
+    {% endif %}
+
+    <div data-atlassian-preview-content>
+    {% if preview.selection_kind == 'reference' %}
+      {% include "_atlassian-reference-preview-content.html" %}
+    {% elif preview.state == 'empty' %}
+      <div class="atlassian-preview-empty">
+        <p class="eyebrow">LOCAL ATLASSIAN PREVIEW</p>
+        <h2>링크, 문서 또는 구조 참조를 선택하세요</h2>
+        <p>목록과 그룹 위치를 그대로 둔 채 실제 Jira 링크·Wiki 문서와 URL에서 확인한 구조 참조를 구분해 볼 수 있습니다.</p>
+      </div>
+    {% elif preview.state == 'missing' %}
+      <div class="atlassian-preview-unavailable" role="status">
+        <p class="eyebrow">LINK / DOCUMENT NOT FOUND</p>
+        <h2 id="atlassian-preview-title" tabindex="-1" data-atlassian-detail-focus>이 링크/문서를 찾을 수 없습니다</h2>
+        <p>요청한 로컬 링크/문서는 더 이상 존재하지 않거나 등록되지 않았습니다. 현재 탐색 범위는 바꾸지 않았습니다.</p>
+        <a class="secondary-button button-link" href="{{ preview.clear_url }}">선택 지우기</a>
+      </div>
+    {% elif preview.state == 'out_of_scope' %}
+      {% set preview_content_kind = '링크' if preview.item.service == 'jira' else '문서' %}
+      {% set preview_container_label = preview.item.container_label or preview.item.space_name or '소속 미확인' %}
+      <div class="atlassian-preview-unavailable" role="status">
+        <p class="eyebrow">OUTSIDE CURRENT VIEW</p>
+        <h2 id="atlassian-preview-title" tabindex="-1" data-atlassian-detail-focus>{{ preview.item.remote_key or preview.item.display_title }}</h2>
+        <p>{{ 'Jira 링크' if preview.item.service == 'jira' else 'Wiki 문서' }} · {{ preview.item.normalized_domain }} · {{ preview_container_label }}{% if preview.item.container_kind == 'url' %} · URL 기준{% endif %}</p>
+        <p>이 {{ preview_content_kind }}는 현재 서비스, 도메인, Project/Space, 검색 또는 필터 범위에 포함되지 않습니다. 범위는 자동으로 바꾸지 않았습니다.</p>
+        <div class="atlassian-preview-actions">
+          <a class="primary-button button-link" href="{{ preview.detail_url }}">전체 상세 보기</a>
+          <a class="secondary-button button-link" href="{{ preview.clear_url }}">선택 지우기</a>
+        </div>
+      </div>
+    {% else %}
+      {% set item = preview.item %}
+      {% set content_kind = '링크' if item.service == 'jira' else '문서' %}
+      {% set container_kind = item.container_kind or ('space' if item.space_name else 'unclassified') %}
+      {% set container_label = item.container_label or item.space_name or '소속 미확인' %}
+      {% set container_service = item.container_service or item.service %}
+      <header class="atlassian-preview-header">
+        <div>
+          <p class="eyebrow">{{ 'JIRA' if item.service == 'jira' else 'WIKI' }} · {{ value_label("atlassian-item.type", item.item_type) | upper }}</p>
+          <h2 id="atlassian-preview-title" tabindex="-1" data-atlassian-detail-focus>{{ item.remote_key or item.display_title }}</h2>
+          {% if item.remote_key %}<p>{{ item.display_title }}</p>{% endif %}
+          <p class="atlassian-preview-origin">{{ 'Jira 링크' if item.service == 'jira' else 'Wiki 문서' }} · {{ item.normalized_domain }} · {{ container_label }}{% if container_kind == 'url' %} · URL 기준{% endif %}</p>
+        </div>
+        <div class="atlassian-classification-strip">
+          <span class="status-badge neutral">{{ value_label("atlassian-item.coverage", item.coverage) }}</span>
+          <span class="status-badge {{ 'warning' if item.freshness in ['due', 'stale'] else ('danger' if item.freshness == 'unavailable' else ('success' if item.freshness == 'current' else 'neutral')) }}">{{ value_label("atlassian-item.freshness", item.freshness) }}</span>
+          {% if item.attention != 'normal' %}<span class="status-badge info">{{ value_label("atlassian-item.attention", item.attention) }}</span>{% endif %}
+        </div>
+        <div class="atlassian-preview-actions">
+          {% if item.canonical_url %}<a class="primary-button button-link" href="{{ item.canonical_url }}" target="_blank" rel="noreferrer">Atlassian에서 열기</a>{% endif %}
+          <a class="secondary-button button-link" href="{{ preview.refresh_url }}">Refresh preview</a>
+          <a class="text-link" href="{{ preview.detail_url }}">전체 상세 및 편집</a>
+        </div>
+      </header>
+
+      <section class="atlassian-preview-group remote-facts" aria-labelledby="preview-remote-title-{{ item.id }}">
+        <div class="atlassian-section-heading">
+          <div><p class="eyebrow">REMOTE FACTS · LAST KNOWN</p><h3 id="preview-remote-title-{{ item.id }}">Atlassian 정보</h3></div>
+        </div>
+        <dl class="atlassian-preview-facts">
+          <div><dt>도메인</dt><dd>{{ item.normalized_domain }}</dd></div>
+          <div><dt>{% if container_kind == 'space' %}{{ 'Project' if container_service == 'jira' else 'Space' }}{% elif container_kind == 'url' %}URL 기준 그룹{% else %}Project/Space{% endif %}</dt><dd>{{ container_label }}{% if container_kind == 'url' %} · 로컬 파생{% endif %}</dd></div>
+          {% if item.canonical_url %}<div><dt>Canonical URL</dt><dd><a href="{{ item.canonical_url }}" target="_blank" rel="noreferrer">{{ item.canonical_url }}</a></dd></div>{% endif %}
+          <div><dt>Last check</dt><dd><time datetime="{{ item.last_attempted_at or '' }}" data-local-time>{{ item.last_attempted_at or '아직 없음' }}</time></dd></div>
+          {% if item.last_successful_at %}<div><dt>Last successful</dt><dd><time datetime="{{ item.last_successful_at }}" data-local-time>{{ item.last_successful_at }}</time></dd></div>{% endif %}
+          {% if item.last_outcome %}<div><dt>Latest outcome</dt><dd>{{ value_label("atlassian-item.remote-outcome", item.last_outcome) }}</dd></div>{% endif %}
+          {% if item.remote_id %}<div><dt>Remote ID</dt><dd class="mono">{{ item.remote_id }}</dd></div>{% endif %}
+          {% if item.remote_version %}<div><dt>Remote version</dt><dd>{{ item.remote_version }}</dd></div>{% endif %}
+          {% if item.remote_updated_at %}<div><dt>Remote updated</dt><dd><time datetime="{{ item.remote_updated_at }}" data-local-time>{{ item.remote_updated_at }}</time></dd></div>{% endif %}
+        </dl>
+        {% if item.last_error_code %}<p class="atlassian-inline-state warning">최근 확인 오류 · {{ item.last_error_code }}</p>{% endif %}
+        {% if item.metadata_summary %}
+          <dl class="atlassian-preview-metadata">
+            {% for entry in item.metadata_summary %}
+              <div><dt class="mono"{% if entry.path_truncated %} title="경로가 잘렸습니다"{% endif %}>{{ entry.path }}</dt><dd{% if entry.value_truncated %} title="값이 잘렸습니다"{% endif %}>{{ entry.value }}</dd></div>
+            {% endfor %}
+          </dl>
+          {% if item.metadata_summary_truncated %}<p class="atlassian-preview-bound">{{ item.metadata_summary_total }}개 중 {{ item.metadata_summary | length }}개 표시</p>{% endif %}
+        {% else %}
+          <p class="atlassian-inline-state neutral">저장된 remote metadata가 없습니다.</p>
+        {% endif %}
+        {% if item.content_excerpt %}
+          <div class="atlassian-preview-excerpt">
+            <h4>{{ 'Jira description' if item.service == 'jira' else 'Confluence Page body' }}</h4>
+            <p>{{ item.content_excerpt }}</p>
+            {% if item.content_truncated %}<span>1,200자 preview · 전체 내용은 상세 화면에서 확인</span>{% endif %}
+          </div>
+        {% elif item.coverage == 'indexed' %}
+          <p class="atlassian-inline-state warning">Indexed 범위지만 적용된 본문이 없습니다.</p>
+        {% endif %}
+      </section>
+
+      <section class="atlassian-preview-group local-memory" aria-labelledby="preview-local-title-{{ item.id }}">
+        <div class="atlassian-section-heading">
+          <div><p class="eyebrow">LOCAL ONLY</p><h3 id="preview-local-title-{{ item.id }}">내 메모와 분류</h3></div>
+          <span class="status-badge neutral">읽기 전용</span>
+        </div>
+        {% if item.note_excerpt %}<p class="atlassian-preview-note">{{ item.note_excerpt }}</p>{% if item.note_truncated %}<p class="atlassian-preview-bound">600자 preview · 전체 메모는 상세 화면에서 편집</p>{% endif %}{% else %}<p class="atlassian-inline-state neutral">로컬 메모가 없습니다.</p>{% endif %}
+        <div class="atlassian-preview-classifications">
+          <div><strong>Topics · {{ item.topics.total }}</strong>{% for topic in item.topics['items'] %}<span class="status-badge info">{{ topic.name }}</span>{% else %}<span>없음</span>{% endfor %}{% if item.topics.truncated %}<small>첫 {{ item.topics['items'] | length }}개</small>{% endif %}</div>
+          <div><strong>Tags · {{ item.tags.total }}</strong>{% for tag in item.tags['items'] %}<span class="status-badge neutral">{{ tag.name }}</span>{% else %}<span>없음</span>{% endfor %}{% if item.tags.truncated %}<small>첫 {{ item.tags['items'] | length }}개</small>{% endif %}</div>
+        </div>
+      </section>
+
+      <section class="atlassian-preview-group" aria-labelledby="preview-evidence-title-{{ item.id }}">
+        <div class="atlassian-section-heading"><div><p class="eyebrow">FOUND IN · LOCAL EVIDENCE</p><h3 id="preview-evidence-title-{{ item.id }}">발견 위치</h3></div><span class="table-count">{{ item.evidence.total }}</span></div>
+        {% if item.evidence['items'] %}
+          <div class="atlassian-evidence-list">
+            {% for evidence in item.evidence['items'] %}
+              <a class="atlassian-evidence-row" href="/{{ 'sessions' if evidence.session_id else 'documents' }}/{{ evidence.session_id or evidence.document_id }}">
+                <span class="status-badge neutral">{{ 'Session' if evidence.session_id else 'Local Context' }}</span>
+                <span><strong>{{ evidence.session_title or evidence.document_title or evidence.observed_url }}</strong><small>{{ evidence.document_path or evidence.source_channel }}{% if evidence.source_line %} · line {{ evidence.source_line }}{% endif %}</small></span>
+                <time datetime="{{ evidence.observed_at or evidence.last_observed_at or '' }}" data-local-time>{{ evidence.observed_at or evidence.last_observed_at or '시간 정보 없음' }}</time>
+              </a>
+            {% endfor %}
+          </div>
+          {% if item.evidence.truncated %}<p class="atlassian-preview-bound">최근 {{ item.evidence['items'] | length }}개만 표시</p>{% endif %}
+        {% else %}<p class="atlassian-inline-state neutral">연결된 Session 또는 Local Context evidence가 없습니다.</p>{% endif %}
+      </section>
+
+      <section class="atlassian-preview-group" aria-labelledby="preview-organization-title-{{ item.id }}">
+        <div class="atlassian-section-heading"><div><p class="eyebrow">ORGANIZATION</p><h3 id="preview-organization-title-{{ item.id }}">Workstream과 Thread</h3></div><span class="table-count">{{ item.organization.total }}</span></div>
+        {% if item.organization['items'] %}
+          <div class="atlassian-preview-memberships">
+            {% for membership in item.organization['items'] %}
+              <a href="/workstreams/{{ membership.workstream_id }}{% if membership.thread_id %}#thread-{{ membership.thread_id }}{% endif %}"><strong>{{ membership.workstream_name }}</strong>{% if membership.thread_title %}<span>{{ membership.thread_title }}</span>{% else %}<span>Workstream</span>{% endif %}</a>
+            {% endfor %}
+          </div>
+          {% if item.organization.truncated %}<p class="atlassian-preview-bound">첫 {{ item.organization['items'] | length }}개만 표시</p>{% endif %}
+        {% else %}<p class="atlassian-inline-state neutral">연결된 Workstream 또는 Thread가 없습니다.</p>{% endif %}
+      </section>
+
+      <section class="atlassian-preview-group" aria-labelledby="preview-history-title-{{ item.id }}">
+        <div class="atlassian-section-heading"><div><p class="eyebrow">REFRESH HISTORY</p><h3 id="preview-history-title-{{ item.id }}">최근 maintenance Run</h3></div></div>
+        {% if item.recent_refresh_run %}
+          <a class="atlassian-run-summary" href="/runs/{{ item.recent_refresh_run.id }}">
+            <span class="run-status {{ item.recent_refresh_run.status }}">{{ value_label("maintenance.status", item.recent_refresh_run.status) }}</span>
+            <span><strong>{{ item.recent_refresh_run.id }}</strong><small>{{ value_label("maintenance.runner", item.recent_refresh_run.runner) }} · {{ item.recent_refresh_run.summary or item.recent_refresh_run.error or '요약 없음' }}</small></span>
+            <time datetime="{{ item.recent_refresh_run.completed_at or item.recent_refresh_run.created_at }}" data-local-time>{{ item.recent_refresh_run.completed_at or item.recent_refresh_run.created_at }}</time>
+          </a>
+        {% else %}<p class="atlassian-inline-state neutral">최근 200개 외부 동기화 Run에서는 이 {{ content_kind }}의 refresh를 찾지 못했습니다.</p>{% endif %}
+        <p class="atlassian-preview-bound">최근 200개 Run 범위 · 전체 이력 아님</p>
+      </section>
+    {% endif %}
+    </div>
+  </div>
+</aside>

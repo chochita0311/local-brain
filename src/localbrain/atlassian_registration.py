@@ -2,9 +2,10 @@ import hashlib
 import json
 import re
 import sqlite3
+from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Any, Iterable, Mapping, Optional
-from urllib.parse import parse_qs, unquote, urlsplit
+from urllib.parse import unquote, urlsplit
 
 from .atlassian import (
     AtlassianContractError,
@@ -22,30 +23,16 @@ from .external_access import (
     register_source_instance,
 )
 from .external_sync import ExternalSyncError, prepare_external_sync_run
+from .atlassian_locators import (
+    atlassian_item_container_hint,
+    atlassian_page_title_hint,
+    describe_atlassian_url,
+)
 from .workstreams import utc_now
 
 
-JIRA_KEY = r"[A-Z][A-Z0-9_]*-[1-9][0-9]*"
-JIRA_ISSUE_PATTERNS = (
-    re.compile(r"/(?:browse|issues)/({})(?:/|$)".format(JIRA_KEY), re.I),
-    re.compile(r"/projects/[^/]+/issues/({})(?:/|$)".format(JIRA_KEY), re.I),
-)
-JIRA_SPACE_PATTERNS = (
-    re.compile(r"/(?:jira/software/c/)?projects/([A-Z][A-Z0-9_]*)(?:/|$)", re.I),
-    re.compile(
-        r"/plugins/servlet/project-config/([A-Z][A-Z0-9_]*)(?:/|$)", re.I
-    ),
-)
-CONFLUENCE_PAGE_PATTERN = re.compile(
-    r"/(?:wiki/)?(?:spaces/([^/]+)/)?pages/(\d+)(?:/|$)", re.I
-)
-CONFLUENCE_SPACE_PATTERN = re.compile(
-    r"/(?:wiki/)?spaces/([^/]+)(?:/(?:overview)?)?/?$", re.I
-)
-CONFLUENCE_DISPLAY_SPACE_PATTERN = re.compile(
-    r"/(?:wiki/)?display/([^/]+)/?$", re.I
-)
 CATALOG_MAX_CANDIDATES = 200
+MAX_SQLITE_INTEGER = 9_223_372_036_854_775_807
 PROVIDER_LABELS = {
     "atlassian_cloud": "공식 Atlassian MCP",
     "mcp_gateway": "회사 MCP Gateway",
@@ -67,10 +54,24 @@ class RegistrationLocator:
     remote_id: Optional[str] = None
     remote_key: Optional[str] = None
     space_key: Optional[str] = None
+    title_hint: Optional[str] = None
 
 
 def _fail(code: str, message: str) -> None:
     raise AtlassianRegistrationError(code, message)
+
+
+@contextmanager
+def _registration_savepoint(connection: sqlite3.Connection, name: str):
+    connection.execute("SAVEPOINT {}".format(name))
+    try:
+        yield
+    except Exception:
+        connection.execute("ROLLBACK TO {}".format(name))
+        connection.execute("RELEASE {}".format(name))
+        raise
+    else:
+        connection.execute("RELEASE {}".format(name))
 
 
 def _bounded_text(
@@ -96,90 +97,52 @@ def _bounded_text(
 def recognize_registration_url(
     url: str, *, expected_service: Optional[str] = None
 ) -> RegistrationLocator:
+    described = describe_atlassian_url(url)
+    if described.kind == "unsafe":
+        _fail("invalid-url", "Atlassian URL is invalid")
     try:
-        normalized = normalize_atlassian_url(url)
+        owner_url = normalize_atlassian_url(url)
     except AtlassianContractError as exc:
         raise AtlassianRegistrationError(exc.code, str(exc)) from exc
-    parsed = urlsplit(normalized.normalized_url)
-    path = parsed.path or "/"
-    if "/rest/" in path.lower():
-        _fail("unsupported-url", "REST endpoints cannot be registered")
-    query = parse_qs(parsed.query)
-
-    for pattern in JIRA_ISSUE_PATTERNS:
-        match = pattern.search(path)
-        if match:
-            locator = RegistrationLocator(
-                service="jira",
-                kind="item",
-                normalized_url=normalized.normalized_url,
-                normalized_domain=normalized.normalized_domain,
-                remote_key=match.group(1).upper(),
-            )
-            break
+    if described.kind == "item":
+        assert described.service is not None
+        assert described.safe_locator_url is not None
+        assert described.normalized_domain is not None
+        assert described.item_identity is not None
+        locator = RegistrationLocator(
+            service=described.service,
+            kind="item",
+            normalized_url=owner_url.normalized_url,
+            normalized_domain=described.normalized_domain,
+            remote_id=(
+                described.item_identity
+                if described.item_identity_kind == "confluence_page"
+                else None
+            ),
+            remote_key=(
+                described.item_identity
+                if described.item_identity_kind == "jira_issue"
+                else None
+            ),
+            space_key=atlassian_item_container_hint(url),
+            title_hint=atlassian_page_title_hint(url),
+        )
+    elif described.kind == "structure" and described.reference_kind in {
+        "jira_project",
+        "confluence_space",
+    }:
+        assert described.service is not None
+        assert described.safe_locator_url is not None
+        assert described.normalized_domain is not None
+        assert described.reference_identity is not None
+        locator = RegistrationLocator(
+            service=described.service,
+            kind="space",
+            normalized_url=owner_url.normalized_url,
+            normalized_domain=described.normalized_domain,
+            space_key=described.reference_identity,
+        )
     else:
-        locator = None
-    if locator is None:
-        for name in ("selectedIssue", "issueKey", "key"):
-            values = query.get(name) or query.get(name.lower())
-            candidate = values[0].strip().upper() if values else ""
-            if re.fullmatch(JIRA_KEY, candidate):
-                locator = RegistrationLocator(
-                    service="jira",
-                    kind="item",
-                    normalized_url=normalized.normalized_url,
-                    normalized_domain=normalized.normalized_domain,
-                    remote_key=candidate,
-                )
-                break
-
-    if locator is None:
-        page_match = CONFLUENCE_PAGE_PATTERN.search(path)
-        page_id = page_match.group(2) if page_match else None
-        space_key = page_match.group(1) if page_match else None
-        if page_id is None:
-            for name in ("pageId", "pageid"):
-                values = query.get(name)
-                if values and values[0].strip().isdigit():
-                    page_id = values[0].strip()
-                    break
-        if page_id is not None:
-            locator = RegistrationLocator(
-                service="confluence",
-                kind="item",
-                normalized_url=normalized.normalized_url,
-                normalized_domain=normalized.normalized_domain,
-                remote_id=page_id,
-                space_key=space_key,
-            )
-
-    if locator is None:
-        for pattern in JIRA_SPACE_PATTERNS:
-            match = pattern.search(path)
-            if match:
-                locator = RegistrationLocator(
-                    service="jira",
-                    kind="space",
-                    normalized_url=normalized.normalized_url,
-                    normalized_domain=normalized.normalized_domain,
-                    space_key=match.group(1).upper(),
-                )
-                break
-
-    if locator is None:
-        match = CONFLUENCE_SPACE_PATTERN.search(path)
-        if not match:
-            match = CONFLUENCE_DISPLAY_SPACE_PATTERN.search(path)
-        if match:
-            locator = RegistrationLocator(
-                service="confluence",
-                kind="space",
-                normalized_url=normalized.normalized_url,
-                normalized_domain=normalized.normalized_domain,
-                space_key=match.group(1),
-            )
-
-    if locator is None:
         _fail(
             "unsupported-url",
             "Use a Jira issue/project URL or Confluence Page/Space URL",
@@ -269,6 +232,10 @@ def _bootstrap_title(locator: RegistrationLocator) -> str:
     if locator.kind == "space" and locator.space_key:
         return locator.space_key
     if locator.service == "confluence" and locator.remote_id:
+        if locator.title_hint:
+            candidate = re.sub(r"[-_]+", " ", locator.title_hint).strip()
+            if candidate:
+                return candidate
         parts = [
             unquote(part).strip()
             for part in urlsplit(locator.normalized_url).path.split("/")
@@ -647,71 +614,95 @@ def register_atlassian_url(
     connection: sqlite3.Connection,
     *,
     url: str,
-    service: str,
+    service: Optional[str] = None,
     site_id: Optional[int] = None,
     source_instance_id: Optional[int] = None,
     title: Optional[str] = None,
 ) -> dict:
-    locator = recognize_registration_url(url, expected_service=service)
-    site = resolve_registration_site(connection, locator, site_id=site_id)
-    if locator.kind == "item":
-        before = connection.execute(
-            """
-            SELECT atlassian_items.external_resource_id
-            FROM atlassian_item_urls
-            JOIN atlassian_items
-              ON atlassian_items.external_resource_id =
-                 atlassian_item_urls.external_resource_id
-            WHERE atlassian_item_urls.site_id = ?
-              AND atlassian_item_urls.normalized_url = ?
-            """,
-            (site["id"], locator.normalized_url),
-        ).fetchone()
-        try:
-            item = create_or_reuse_atlassian_stub(
-                connection,
-                source_instance_id=source_instance_id,
-                url=locator.normalized_url,
-                service=service,
-                site_id=int(site["id"]),
-                title=_bounded_text(title, "title", 500, optional=True)
-                or _bootstrap_title(locator),
-            )
-        except AtlassianContractError as exc:
-            raise AtlassianRegistrationError(exc.code, str(exc)) from exc
-        return {
-            "kind": "item",
-            "created": before is None,
-            "id": int(item["external_resource_id"]),
-            "service": service,
-        }
-
-    existing = connection.execute(
-        """
-        SELECT id FROM atlassian_spaces
-        WHERE site_id = ? AND service = ? AND space_key = ?
-        """,
-        (site["id"], service, locator.space_key),
-    ).fetchone()
-    try:
-        space = register_atlassian_space(
-            connection,
-            site_id=int(site["id"]),
-            service=service,
-            source_instance_id=source_instance_id,
-            name=_bounded_text(title, "title", 500, optional=True)
-            or _bootstrap_title(locator),
-            space_key=locator.space_key,
-            canonical_url=locator.normalized_url,
-        )
-    except AtlassianContractError as exc:
-        raise AtlassianRegistrationError(exc.code, str(exc)) from exc
-    return {
-        "kind": "space",
-        "created": existing is None,
-        "id": int(space["id"]),
-        "service": service,
-    }
+    # ``service`` remains accepted for internal caller compatibility, but URL
+    # recognition is the only pre-confirmation service authority.
+    locator = recognize_registration_url(url)
+    service = locator.service
+    local_title = (
+        _bounded_text(title, "title", 500, optional=True)
+        or _bootstrap_title(locator)[:500]
+    )
+    with _registration_savepoint(connection, "atlassian_url_registration"):
+        site = resolve_registration_site(connection, locator, site_id=site_id)
+        if locator.kind == "item":
+            before = connection.execute(
+                """
+                SELECT atlassian_items.external_resource_id
+                FROM atlassian_item_urls
+                JOIN atlassian_items
+                  ON atlassian_items.external_resource_id =
+                     atlassian_item_urls.external_resource_id
+                WHERE atlassian_item_urls.site_id = ?
+                  AND atlassian_item_urls.normalized_url = ?
+                """,
+                (site["id"], locator.normalized_url),
+            ).fetchone()
+            try:
+                item = create_or_reuse_atlassian_stub(
+                    connection,
+                    source_instance_id=source_instance_id,
+                    url=locator.normalized_url,
+                    service=service,
+                    site_id=int(site["id"]),
+                    title=local_title,
+                )
+            except AtlassianContractError as exc:
+                raise AtlassianRegistrationError(exc.code, str(exc)) from exc
+            result = {
+                "kind": "item",
+                "created": before is None,
+                "id": int(item["external_resource_id"]),
+                "site_id": int(item["site_id"]),
+                "space_id": (
+                    int(item["space_id"])
+                    if item.get("space_id") is not None
+                    else None
+                ),
+                "attention": item["attention"],
+                "service": service,
+                "canonical_url": locator.normalized_url,
+            }
+        else:
+            existing = connection.execute(
+                """
+                SELECT id, canonical_url FROM atlassian_spaces
+                WHERE site_id = ? AND service = ? AND space_key = ?
+                """,
+                (site["id"], service, locator.space_key),
+            ).fetchone()
+            if (
+                existing is not None
+                and existing["canonical_url"] != locator.normalized_url
+            ):
+                _fail(
+                    "space-url-conflict",
+                    "This Space key is already registered from a different URL",
+                )
+            try:
+                space = register_atlassian_space(
+                    connection,
+                    site_id=int(site["id"]),
+                    service=service,
+                    source_instance_id=source_instance_id,
+                    name=local_title,
+                    space_key=locator.space_key,
+                    canonical_url=locator.normalized_url,
+                )
+            except AtlassianContractError as exc:
+                raise AtlassianRegistrationError(exc.code, str(exc)) from exc
+            result = {
+                "kind": "space",
+                "created": existing is None,
+                "id": int(space["id"]),
+                "site_id": int(space["site_id"]),
+                "service": service,
+            }
+    return result
 
 
 def registration_inventory(
@@ -790,85 +781,81 @@ def registration_inventory(
 def registered_scope_overview(
     connection: sqlite3.Connection, service: str
 ) -> list[dict]:
-    """Return only persisted Atlassian scope, grouped by service and domain."""
-    sites = registration_sites(connection, service)
-    inventory = registration_inventory(connection, service)
-    domains: dict[str, dict] = {}
-
-    for site in sites:
-        domain = site["normalized_domain"]
-        group = domains.setdefault(
-            domain,
-            {
-                "site_id": site["site_id"],
-                "normalized_domain": domain,
-                "display_name": site["site_display_name"] or domain,
-                "connections": [],
-                "spaces": [],
-                "item_count": 0,
-            },
+    """Return cached connection scope without materializing Item rows."""
+    if service not in {"jira", "confluence"}:
+        _fail("invalid-service", "Unsupported Atlassian service")
+    connections = registration_sites(connection, service)
+    site_rows = connection.execute(
+        """
+        SELECT atlassian_sites.id AS site_id,
+               atlassian_sites.normalized_domain,
+               atlassian_sites.display_name,
+               COALESCE(item_counts.item_count, 0) AS item_count
+        FROM atlassian_sites
+        LEFT JOIN (
+            SELECT site_id, COUNT(*) AS item_count
+            FROM atlassian_items
+            WHERE service = ?
+            GROUP BY site_id
+        ) AS item_counts ON item_counts.site_id = atlassian_sites.id
+        WHERE EXISTS (
+            SELECT 1 FROM atlassian_spaces
+            WHERE atlassian_spaces.site_id = atlassian_sites.id
+              AND atlassian_spaces.service = ?
+        ) OR item_counts.item_count IS NOT NULL OR EXISTS (
+            SELECT 1
+            FROM atlassian_site_bindings
+            JOIN external_source_instances
+              ON external_source_instances.id =
+                 atlassian_site_bindings.source_instance_id
+            WHERE atlassian_site_bindings.site_id = atlassian_sites.id
+              AND external_source_instances.service = ?
         )
-        group["connections"].append(site)
-
-    seen_spaces: dict[str, set[tuple]] = {
-        domain: set() for domain in domains
+        ORDER BY atlassian_sites.normalized_domain, atlassian_sites.id
+        """,
+        (service, service, service),
+    ).fetchall()
+    spaces = connection.execute(
+        """
+        SELECT atlassian_spaces.id, atlassian_spaces.site_id,
+               atlassian_spaces.service, atlassian_spaces.remote_id,
+               atlassian_spaces.space_key, atlassian_spaces.name,
+               atlassian_spaces.canonical_url, atlassian_spaces.coverage,
+               atlassian_sites.normalized_domain
+        FROM atlassian_spaces
+        JOIN atlassian_sites
+          ON atlassian_sites.id = atlassian_spaces.site_id
+        WHERE atlassian_spaces.service = ?
+        ORDER BY atlassian_spaces.name, atlassian_spaces.id
+        """,
+        (service,),
+    ).fetchall()
+    groups = {
+        int(row["site_id"]): {
+            "site_id": int(row["site_id"]),
+            "normalized_domain": row["normalized_domain"],
+            "display_name": row["display_name"]
+            or row["normalized_domain"],
+            "connections": [],
+            "spaces": [],
+            "item_count": int(row["item_count"]),
+        }
+        for row in site_rows
     }
-    for space in inventory["spaces"]:
-        domain = space["normalized_domain"]
-        group = domains.setdefault(
-            domain,
-            {
-                "site_id": space["site_id"],
-                "normalized_domain": domain,
-                "display_name": domain,
-                "connections": [],
-                "spaces": [],
-                "item_count": 0,
-            },
-        )
-        identity = (
-            space.get("remote_id") or "",
-            space.get("space_key") or "",
-            space.get("canonical_url") or "",
-        )
-        domain_spaces = seen_spaces.setdefault(domain, set())
-        if identity in domain_spaces:
-            continue
-        domain_spaces.add(identity)
-        group["spaces"].append(space)
-
-    seen_items: dict[str, set[tuple]] = {
-        domain: set() for domain in domains
-    }
-    for item in inventory["items"]:
-        domain = item["normalized_domain"]
-        group = domains.setdefault(
-            domain,
-            {
-                "site_id": item["site_id"],
-                "normalized_domain": domain,
-                "display_name": domain,
-                "connections": [],
-                "spaces": [],
-                "item_count": 0,
-            },
-        )
-        identity = (
-            item.get("remote_id") or "",
-            item.get("remote_key") or "",
-            item.get("canonical_url") or "",
-        )
-        domain_items = seen_items.setdefault(domain, set())
-        if identity in domain_items:
-            continue
-        domain_items.add(identity)
-        group["item_count"] += 1
-
+    for value in connections:
+        group = groups.get(int(value["site_id"]))
+        if group is not None:
+            group["connections"].append(value)
+    for row in spaces:
+        group = groups.get(int(row["site_id"]))
+        if group is not None:
+            group["spaces"].append(dict(row))
     return sorted(
-        domains.values(),
+        groups.values(),
         key=lambda item: (
             str(item["display_name"]).lower(),
             item["normalized_domain"],
+            item["site_id"],
         ),
     )
 
@@ -1049,6 +1036,7 @@ def register_space_candidate(
         "kind": "space",
         "created": existing is None,
         "id": int(space["id"]),
+        "site_id": int(space["site_id"]),
         "service": service,
     }
 
@@ -1063,7 +1051,9 @@ def _candidate_objects(value: Any) -> Iterable[Mapping[str, Any]]:
 
 
 def space_catalog_candidates(
-    connection: sqlite3.Connection, run_id: str, service: str
+    connection: sqlite3.Connection,
+    run_id: str,
+    service: Optional[str] = None,
 ) -> dict:
     row = connection.execute(
         """
@@ -1077,12 +1067,14 @@ def space_catalog_candidates(
         """,
         (run_id,),
     ).fetchone()
-    if not row or row["service"] != service:
+    if not row or (service is not None and row["service"] != service):
         _fail("catalog-not-found", "Space discovery Run was not found")
+    service = str(row["service"])
     result = {
         "run_id": run_id,
         "status": row["status"],
         "partial": True,
+        "service": service,
         "site_id": None,
         "source_instance_id": row["source_instance_id"],
         "candidates": [],
@@ -1136,3 +1128,49 @@ def space_catalog_candidates(
                 )
     result["candidates"] = list(candidates.values())[:CATALOG_MAX_CANDIDATES]
     return result
+
+
+def register_space_catalog_candidate(
+    connection: sqlite3.Connection,
+    *,
+    run_id: str,
+    candidate_key: str,
+) -> dict:
+    key = _bounded_text(candidate_key, "candidate_key", 300)
+    catalog = space_catalog_candidates(connection, run_id)
+    matches = [
+        candidate
+        for candidate in catalog["candidates"]
+        if candidate.get("key") == key
+    ]
+    try:
+        site_id = int(catalog.get("site_id"))
+        source_instance_id = int(catalog.get("source_instance_id"))
+    except (TypeError, ValueError, OverflowError):
+        site_id = 0
+        source_instance_id = 0
+    if (
+        len(matches) != 1
+        or site_id < 1
+        or site_id > MAX_SQLITE_INTEGER
+        or source_instance_id < 1
+        or source_instance_id > MAX_SQLITE_INTEGER
+    ):
+        _fail(
+            "candidate-not-found",
+            "The selected Space candidate is no longer available",
+        )
+    candidate = matches[0]
+    return register_space_candidate(
+        connection,
+        site_id=site_id,
+        service=str(catalog["service"]),
+        source_instance_id=source_instance_id,
+        space_key=str(candidate["key"]),
+        name=str(candidate["name"]),
+        remote_id=(
+            str(candidate["remote_id"])
+            if candidate.get("remote_id") is not None
+            else None
+        ),
+    )

@@ -742,6 +742,99 @@ CREATE TABLE IF NOT EXISTS atlassian_item_evidence (
     CHECK(length(evidence_key) = 64)
 );
 
+CREATE TABLE IF NOT EXISTS atlassian_structure_references (
+    id INTEGER PRIMARY KEY,
+    site_id INTEGER NOT NULL
+        REFERENCES atlassian_sites(id) ON DELETE RESTRICT,
+    service TEXT NOT NULL
+        CHECK(service IN ('jira', 'confluence')),
+    reference_kind TEXT NOT NULL
+        CHECK(
+            reference_kind IN (
+                'jira_project',
+                'jira_board',
+                'jira_filter',
+                'jira_dashboard',
+                'jira_service_portal',
+                'jira_service_project',
+                'confluence_space'
+            )
+        ),
+    reference_identity TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(site_id, service, reference_kind, reference_identity),
+    UNIQUE(id, site_id),
+    CHECK(length(reference_identity) BETWEEN 1 AND 300),
+    CHECK(
+        (service = 'jira' AND reference_kind LIKE 'jira_%')
+        OR
+        (service = 'confluence' AND reference_kind = 'confluence_space')
+    )
+);
+
+CREATE TABLE IF NOT EXISTS atlassian_structure_reference_urls (
+    id INTEGER PRIMARY KEY,
+    reference_id INTEGER NOT NULL,
+    site_id INTEGER NOT NULL,
+    url_role TEXT NOT NULL
+        CHECK(url_role IN ('canonical', 'alias')),
+    safe_locator_url TEXT NOT NULL,
+    first_observed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_observed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(reference_id, site_id)
+        REFERENCES atlassian_structure_references(id, site_id)
+        ON DELETE CASCADE,
+    UNIQUE(site_id, safe_locator_url),
+    CHECK(length(safe_locator_url) BETWEEN 1 AND 8000)
+);
+
+CREATE TABLE IF NOT EXISTS atlassian_structure_reference_evidence (
+    id INTEGER PRIMARY KEY,
+    reference_id INTEGER NOT NULL
+        REFERENCES atlassian_structure_references(id) ON DELETE CASCADE,
+    session_id INTEGER
+        REFERENCES sessions(id) ON DELETE CASCADE,
+    source_path TEXT,
+    document_id INTEGER
+        REFERENCES context_documents(id) ON DELETE CASCADE,
+    source_channel TEXT NOT NULL
+        CHECK(source_channel IN ('visible_text', 'approved_tool_result')),
+    source_event_id TEXT,
+    source_line INTEGER NOT NULL CHECK(source_line > 0),
+    url_ordinal INTEGER NOT NULL CHECK(url_ordinal > 0),
+    safe_locator_url TEXT NOT NULL,
+    container_hint TEXT,
+    observed_at TEXT,
+    extractor_version TEXT NOT NULL,
+    evidence_key TEXT NOT NULL UNIQUE,
+    first_observed_at TEXT NOT NULL,
+    last_observed_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CHECK(
+        (
+            session_id IS NOT NULL
+            AND source_path IS NOT NULL
+            AND document_id IS NULL
+            AND source_event_id IS NOT NULL
+        )
+        OR (
+            session_id IS NULL
+            AND source_path IS NULL
+            AND document_id IS NOT NULL
+            AND source_event_id IS NULL
+        )
+    ),
+    CHECK(source_path IS NULL OR length(source_path) <= 8000),
+    CHECK(length(safe_locator_url) BETWEEN 1 AND 8000),
+    CHECK(
+        container_hint IS NULL
+        OR length(container_hint) BETWEEN 1 AND 300
+    ),
+    CHECK(length(extractor_version) > 0),
+    CHECK(length(evidence_key) = 64)
+);
+
 CREATE TABLE IF NOT EXISTS local_resources (
     id INTEGER PRIMARY KEY,
     path TEXT NOT NULL UNIQUE,
@@ -929,3 +1022,24 @@ CREATE INDEX IF NOT EXISTS idx_atlassian_evidence_session
     ON atlassian_item_evidence(session_id, source_line, url_ordinal);
 CREATE INDEX IF NOT EXISTS idx_atlassian_evidence_document
     ON atlassian_item_evidence(document_id, source_line, url_ordinal);
+CREATE INDEX IF NOT EXISTS idx_atlassian_structure_references_site
+    ON atlassian_structure_references(
+        site_id, service, reference_kind, id
+    );
+CREATE INDEX IF NOT EXISTS idx_atlassian_structure_reference_urls_reference
+    ON atlassian_structure_reference_urls(reference_id, url_role);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_atlassian_structure_reference_urls_canonical
+    ON atlassian_structure_reference_urls(reference_id)
+    WHERE url_role = 'canonical';
+CREATE INDEX IF NOT EXISTS idx_atlassian_structure_reference_evidence_reference
+    ON atlassian_structure_reference_evidence(
+        reference_id, last_observed_at DESC, id DESC
+    );
+CREATE INDEX IF NOT EXISTS idx_atlassian_structure_reference_evidence_session
+    ON atlassian_structure_reference_evidence(
+        session_id, source_path, source_event_id, source_line, url_ordinal
+    );
+CREATE INDEX IF NOT EXISTS idx_atlassian_structure_reference_evidence_document
+    ON atlassian_structure_reference_evidence(
+        document_id, source_line, url_ordinal
+    );

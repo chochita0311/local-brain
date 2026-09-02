@@ -137,19 +137,222 @@ The application uses a persistent left navigation boundary. Dashboard, Sessions 
 
 The Sessions inventory uses its secondary recall region for owner-curated `Pinned Sessions`, never recent Documents, inferred importance, or generated Suggestions. The panel is global across active Session filters, exposes every current pin by displayed activity date (`last_event_at`, otherwise `started_at`) descending with `pinned_at DESC, session_id DESC` tie-breaks, and bounds only wide-layout height with an internal scroller. Persisted primary work Sessions can be pinned or unpinned from inventory and detail; Maintenance Sessions and Subsessions remain ineligible. Every inventory row reserves one utility layer: desktop and laptop place `질문 → 이벤트 → 날짜 → 핀` on the aligned upper edge, use stable left-aligned question and event columns across rows, and anchor optional Subsessions at the lower trailing edge; narrow layouts keep the pin upper trailing and the Subsession action lower trailing. Pin and Subsession controls remain outside the Session destination link. The fixed pin hit area has no visible outline border or independent background in idle, hover, or pinned state, so it follows the owning row or detail surface; pinning never changes that surface. An unpinned pin may use the ordinary hover emphasis, while an already pinned glyph retains its information color on hover. The filled glyph, accessible name, and `aria-pressed` expose state while keyboard focus retains its separate focus ring. Enhanced pin mutations update the control and Pinned Sessions panel in place, preserve document and panel scroll positions, keep the current inventory query state, and return focus to the changed control. Pinned entries show their compact accessible source cue and activity date without repeating the configured source name visibly. Pin mutations remain local POST actions; they never write source files or imply native Claude/Codex process resume.
 
-### Atlassian Browse, Add, And Access
+### Atlassian Explorer, Add, Connections, Sync, And Refresh
 
-Atlassian owns separate Jira and Confluence inventories. `Browser` is the default local-read mode and `Add` is its explicit neighbor. Add first summarizes only Site and Space/project records already persisted in LocalBrain, grouped by recognizable Site/domain; unregistered candidates and URL evidence that has not produced the owning record remain absent. URL registration and connected candidate search are two methods in one Add flow. A ticket, Page, project, or Space starts from a real URL; key-only text is not treated as evidence. Local-only Add asks for that URL alone, parses service, normalized-domain Site, kind, and available identifier locally, and derives a compact Item/Space title from the key, Page slug, or Page ID. It creates no Source Instance, Provider, configuration reference, capability, or remote read.
+#### Scope, Terminology, And Retrieval
 
-Optional remote access is a distinct adjacent task: the user chooses a registered Site, official Atlassian MCP or company MCP Gateway, and the actual validated Cloud ID or Gateway configuration alias. That action creates or reuses the Source Instance and binds it to the Site without changing Site identity or inspecting capability. Source Instance remains the internal access, capability, and policy boundary; generated connection display text is compatibility presentation, not a user-managed alias.
+Atlassian is one local Explorer over persisted Jira links, Confluence
+documents, and non-archived URL-derived structure references. The physical
+data model retains `Item` as its internal stable identity term for links and
+documents, but ordinary product copy uses `링크` in Jira-only context,
+`문서` in Wiki-only context, and `링크/문서` in mixed context; structure
+references retain their separate family and provenance labels. The
+Explorer opens in `All`, with reversible `Jira` and user-facing `Wiki` scopes;
+`Wiki` maps to stored `confluence` identity and does not rename persistence
+vocabulary. One surface-local query owns Atlassian retrieval while the route is
+active, and the shared-header global query is not simultaneously visible.
+Local Browse and query work never call a model, provider, capability, or
+maintenance runner.
 
-### Connected Discovery And Explicit Refresh
+The Explorer's exact query trims surrounding whitespace and treats an empty
+value as unfiltered local Browse. A complete case-normalized Jira key or stored
+remote/Page ID, or an exactly normalized canonical/alias URL, is an identity
+match. Other text uses NFKC-plus-casefolded Unicode word tokens and matches only
+when the complete token phrase is contiguous inside one owned value: a local
+or approved remote title, one approved remote-metadata scalar, indexed
+normalized content, the local note, one Topic name/description, or one Tag
+name. Separate values never combine. Identity results precede title results,
+which precede other owned-value results; ties use ascending stable local Item
+ID. Evidence/source text, opaque payloads, Workstream names, Site/Space labels,
+and unavailable remote bodies are not query owners. The shared cross-source
+Search retains separately owned local FTS behavior. The passed
+structure-reference contract adds one independently typed result from reference
+identity, generated family label, and privacy-safe locator only. It does not
+index source text, hint, remote content, Item local memory, or organization
+state, and the surface is not relabeled as Atlassian exact retrieval.
 
-Connected search selects the target Site first, then an eligible bound access path, then the Claude or Codex runner. A Site reachable through multiple paths remains one target rather than connection-specific duplicate tabs. Jira projects default to selected content, while regular Confluence Spaces default to full Page content. Connected candidate discovery is a bounded maintenance action whose result may be partial and requires confirmation before registration.
+#### Site-First Hierarchy And Counts
 
-The local inventory keeps Source, Site, Space, Item type, coverage, freshness, attention, Topic, Tag, Workstream, and text filters as bookmarkable GET state. Archived Items are excluded by default but remain recoverable through direct detail or an explicit archived/all filter. Identical ticket keys on different Site domains never collapse into one Item. Each detail separates remote facts/content, user-owned notes and Topic/Tag classification, Session/Local Context evidence, Workstream/Thread membership, and latest refresh Run evidence. Topics are reusable and may carry a local description; Tags are reusable lightweight labels. Both are independent from remote labels and Workstream membership.
+Every service scope projects the hierarchy under the `모든 도메인` root by
+normalized Site domain first; Service is never a hierarchy parent. `All` keeps Jira and Wiki records under
+the same canonical Site, while the top `Jira` and `Wiki` scopes reversibly
+filter that population. Each Site has only three kinds of child structure:
 
-Remote refresh is always explicit. Item, Space, Thread, Workstream, and all-known entry points first resolve a local preview that performs no external or model call. The preview identifies exact known targets, Source Instance, Site/Space, coverage, freshness, timestamps, and calculated provider reads; unknown, due, stale, and unavailable targets default selected, while current targets remain opt-in. One action may combine several Source Instances into one inspectable maintenance Run, but at most 20 pre-authorized reads are selected. “All known” means only Items already present in LocalBrain, never the accessible company estate. Jira Space refresh checks selected known Items only. A Confluence full-content Space may additionally request one explicit catalog page of at most 200 regular Pages; newly cataloged Pages are indexed-intent stale stubs whose bodies require later explicit batches.
+- a persisted Jira project or Confluence Space, whose `space_id`, stored
+  service, key, and display name remain authoritative;
+- for a record with null `space_id`, a read-only container hint derived from
+  exactly one canonical URL when a strict Jira Issue URL exposes its project
+  key or a strict Confluence Page URL exposes its Space path segment; or
+- one Site-local `소속 미확인` child when neither persisted containment nor
+  an eligible canonical-URL hint exists.
+
+Alias URLs, evidence URLs, titles, body text, nearby prose, and source paths do
+not own hierarchy grouping. A URL hint never creates a Space, writes
+`space_id`, merges into a same-labeled persisted Space, or represents remote
+confirmation. Persisted containment always wins. Equal child labels remain
+separate when service or persisted-versus-derived provenance differs and use a
+compact non-color-only cue. The hierarchy does not claim a nested Confluence
+Page or Jira issue tree. Its adjacent inventory keeps stable internal Item
+identity, Site or Space context, and independent coverage, freshness,
+attention, classification, organization, and provenance cues without
+compressing those axes into one status. Identical keys on different Site
+domains remain distinct. Archived records stay outside the default population
+but remain recoverable through explicit state or direct detail.
+
+Hierarchy counts and the adjacent list share one eligible population after
+service, exact query, archived-default, and advanced filters. The current Site,
+persisted child, URL child, or `소속 미확인` constraint applies only after
+that population is formed, so the active node count equals list membership and
+sibling counts stay navigable. In `All`, selecting only a Site intersects both
+services; a persisted child carries its stored service, a URL child carries its
+descriptor service, and `소속 미확인` intersects both services for that Site.
+Jira/Wiki scopes apply their service before the same structure. Root and sibling
+projections remain backed by eligible records. A narrow action-integration
+exception keeps a valid explicitly selected persisted Project/Space or known
+canonical-URL child, or a previously valid Site-local `소속 미확인`
+selection reachable at count zero after filters: only that active node and its
+Site ancestor are projected, the adjacent list remains empty, and no remote
+discovery or new record is implied. The one advanced disclosure
+contains only coverage, freshness, attention, Topic, Tag, and Workstream.
+Source Instance remains a Connections or diagnostic concern, and internal Item
+type derives from service.
+
+#### URL State, Selection, And Detail
+
+The Explorer has one URL-backed state contract:
+
+| Transition | Preserve | Reset or normalize |
+| --- | --- | --- |
+| open Atlassian without explicit state | shell and navigation continuity | `All`, hierarchy root, empty query, no advanced filters, no link/document or structure-reference selection |
+| change `All / Jira / Wiki` scope | query and compatible advanced filters | structural scope, selected entry, result-local scroll, and unsupported hierarchy disclosure |
+| change Site/child/`소속 미확인` scope | current top service scope, query, advanced filters, and reachable hierarchy orientation; `All` remains `All` while child service stays in persisted or descriptor identity | selected entry and result-local scroll |
+| change query or advanced filters | service and structural scope plus entered URL-backed values | selected entry and result-local scroll |
+| select a link/document or structure reference | service, structure, query, filters, hierarchy disclosure, and practical list position | only the mutually exclusive detail identity and its pane state advance |
+| refresh or direct entry | every valid explicit URL-backed value | omitted values use defaults; forged, stale, repeated, mismatched, or otherwise invalid structure fails with a bounded visible validation state rather than hidden normalization |
+| browser back or forward | the historical service, structure, query, filters, selection, and supported pane orientation | focus and each scroll owner restore to the nearest reachable historical anchor |
+| cross a responsive breakpoint | eligible service, structure, query, filters, selection, and practical list position | unsupported persistent panes become explicit disclosures, sheets, or sequential destinations |
+
+Wide Explorer state keeps hierarchy, list, and read-first detail adjacent with
+intentional independent scroll ownership. Compact state keeps the list primary
+and moves hierarchy and detail into bounded disclosures. Narrow state is
+list-first and exposes hierarchy, filters, and detail as explicit sheets or
+sequential destinations. Full-detail link/document routes remain the
+direct-entry, local-edit, and no-script fallback; the separate read-only
+structure-reference detail route provides the equivalent direct-entry and
+no-script recovery without acquiring Item edit authority. Remote facts/content,
+user-owned notes and
+Topic/Tag classification, Session/Local Context evidence, Workstream/Thread
+membership, and maintenance history remain separate authority regions.
+
+One optional positive local internal Item ID or one optional positive local
+structure-reference ID owns the selected Explorer state; the two identities
+are mutually exclusive. Direct and enhanced selection use the same
+server-authored, read-only preview contract for the selected entity, and the
+enhanced response replaces only that preview without rebuilding hierarchy or
+inventory. Unknown identities produce a bounded missing state. Known records
+outside the active scope retain concise identity and explain that scope instead
+of exposing unrelated detail; archived references remain a separately named
+bounded direct-history state. Invalid structural combinations remain visible
+local validation errors. Selection never starts a provider, model, capability,
+source scan, Refresh, or maintenance action, and Setup never accepts selection
+state. Both full-detail families remain executable without JavaScript; only
+the link/document family owns local editing.
+
+#### Static Locator Admission
+
+Static URL recognition and product admission are separate authorities. One
+shared, pure Atlassian locator contract classifies bounded standard Jira and
+Confluence URL families as `item`, `structure`, `site`, `unsupported`, or
+`unsafe`. Recognized results carry service, family, normalized domain/base, and
+a privacy-minimized safe locator. An Item carries exact Issue/Page identity; a
+structure result carries a stable reference kind/identity and optional
+non-authoritative Project/Space hint; a Site result carries no selectable
+identity. Path or approved-query Item identity wins over structure/site, and an
+exact structure identity wins over the family root. The safe locator removes
+fragment, JQL, and arbitrary query while retaining only canonical allowlisted
+identity projection: for example RapidBoard retains positive `rapidView` and
+may retain one normalized `projectKey` only as a grouping hint. Each action must
+explicitly admit its subset. The passed foundation changed no structure/Site
+persistence, Atlassian screen, or Sync report beyond already passed explicit
+Add authority; normal Session reference repair may deduplicate an existing
+generic URL by semantic target and navigate it through the canonical safe
+locator. Passed SPEC-0083 owns the current successor product boundary: persist
+structure identity, safe locator aliases, and source evidence under separate
+owners from Item and Space; report Site-family roots without a selectable
+zero-count row; and expose non-archived reference rows through Site-first
+Explorer and the narrow shared-Search projection. Zero retained evidence keeps
+stable identity direct-only as archived; retained but currently unusable
+evidence is shown as unavailable rather than deleted or treated as fresh.
+
+#### Action Consequences
+
+Atlassian actions have distinct consequences:
+
+- `Sync` deterministically reconciles recognized Atlassian URL evidence from
+  the retained safe-URL projection of eligible primary work Sessions and the
+  persisted bodies of enabled, readable, ready Local Context Documents. Session
+  evidence is merge-only because the authoritative Session scanner remains its
+  cleanup owner; a completely read Document owns bounded replace-derived
+  evidence. A strict Jira Issue or Confluence Page URL may create or reuse one
+  normalized-domain Site and one Site-scoped normalized-URL record even when no
+  Site, binding, or inventory existed at action start. The same normalized
+  domain is one Site across Jira and Wiki; service qualifies URL admission, not
+  Site identity. Each source is atomic: a new Site is source-local until that
+  source transaction commits, then becomes available to later sources; rollback
+  discards both the rows and its resolver overlay. Explicit Sync Document
+  currentness is owned by content/source fingerprint, successful status, and
+  the current extractor/resolver version, not by registered Site/service
+  fingerprint. Sync imports no authoritative source content and performs no
+  external or model work. Under passed SPEC-0083 it reconciles eligible
+  structure descriptors into separately owned references, safe URLs, and
+  evidence while a `site` result remains report-only. Reports keep bounded
+  source, link/document, structure-reference, evidence, Site-only, and
+  candidate-skip outcomes distinct. Unchanged repeat Sync is read-only reuse,
+  and retry repeats the whole local scope.
+- `Add` registers or reuses one real Jira link, Confluence document, Jira
+  project, or Confluence Space URL locally. Key-only text is not evidence.
+  Service, Site, kind, and available identity are inferred locally; Provider,
+  Source Instance, capability,
+  runner, and remote readiness are not prerequisites.
+- `Connections` owns optional Site access bindings, Provider/configuration
+  references, readiness, and connected discovery. Connected discovery selects
+  Site, eligible bound access path, and Claude or Codex runner, may return
+  partial candidates, and registers nothing without explicit confirmation.
+- `Refresh` is the existing explicit remote maintenance path. Link/document,
+  Space, Thread, Workstream, and all-known entry points first resolve a local
+  preview
+  with no external or model call. The preview shows exact known targets,
+  Source Instance, Site/Space, coverage, freshness, timestamps, and calculated
+  reads; unknown, due, stale, and unavailable targets default selected while
+  current targets remain opt-in. A Run selects at most 20 pre-authorized reads.
+  “All known” means only records already in LocalBrain. Jira Space refresh
+  checks selected known links only. A Confluence full-content Space may additionally
+  request one explicit catalog page of at most 200 regular Pages; cataloged
+  Pages are indexed-intent stale stubs whose bodies require later explicit
+  batches.
+
+#### Access And Entity Boundaries
+
+Optional access failure never blocks Explorer Browse, local query,
+link/document detail, local classification, Add, or Sync. Source Instance remains the internal
+access, capability, and policy boundary; Site remains domain identity, and a
+Site reachable through several access paths remains one target rather than
+connection-specific duplicate inventory.
+
+A structure reference is a distinct read-only Explorer/Search entity, not an
+Item or persisted Space. Its optional container hint owns presentation grouping
+only. It has no local note, attention, Topic/Tag, Workstream/Thread,
+Connections, Refresh, remote-fact, or content authority. A Site-only recognition
+is report-only. Item and structure-reference selection are mutually exclusive;
+known filtered references produce an out-of-scope state without widening the
+current population, while unknown and archived identities remain separately
+named bounded states.
+
+The `링크` / `문서` / `링크/문서` mapping applies to Explorer rows and
+counts, Add, preview, full detail, Sync reports and announcements, Connections,
+Refresh, and shared global Search. Physical schema, internal APIs and routes,
+data attributes/selectors, diagnostics, value-registry keys, and historical
+artifacts retain `Item` where it is the stable engineering identity.
 
 ### Dashboard
 
@@ -179,7 +382,14 @@ A Workstream view provides connected Threads, resources, checkpoints, Suggestion
 
 ### Timeline And Search
 
-Timeline and search span sessions, questions, errors, files, commands, tickets, messages, decisions, and documents while preserving filters, source identity, and deep links. Atlassian matches group identity, eligible remote metadata/body, and local note/Topic/Tag roles back to one stable Item result with its Source domain, coverage, and freshness. Browsing and search are local reads and never trigger remote or model work.
+Timeline and search span sessions, questions, errors, files, commands, tickets,
+messages, decisions, and documents while preserving filters, source identity,
+and deep links. Atlassian Item matches group identity, eligible remote
+metadata/body, and local note/Topic/Tag roles back to one stable Item result
+with its Source domain, coverage, and freshness. A non-archived Atlassian
+structure reference remains a separately typed result projected only from its
+reference identity, generated family label, and privacy-safe locator. Browsing
+and search are local reads and never trigger remote or model work.
 
 ### Insights
 

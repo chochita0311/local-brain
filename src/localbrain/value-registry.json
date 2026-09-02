@@ -86,10 +86,10 @@
       "default": null,
       "fallbacks": {"null": {"action": "reject"}, "unknown": {"action": "label", "label": "알 수 없는 연결 방식"}, "invalid": {"action": "reject"}, "future": {"action": "label", "label": "새 연결 방식"}},
       "producers": ["src/localbrain/external_access.py"],
-      "consumers": ["src/localbrain/atlassian_registration.py", "src/localbrain/templates/atlassian.html"],
+      "consumers": ["src/localbrain/atlassian_registration.py", "src/localbrain/templates/atlassian-connections.html"],
       "consequence": "Selects the approved MCP dispatch adapter.",
       "presentation": {"mode": "logical-label", "labels": {"mcp_gateway": "회사 MCP Gateway", "atlassian_cloud": "공식 Atlassian MCP"}, "help": "같은 사이트도 연결 방식별로 별도 등록됩니다."},
-      "visible_consumers": [{"path": "src/localbrain/templates/atlassian.html", "state": "registry-backed"}],
+      "visible_consumers": [{"path": "src/localbrain/templates/atlassian-connections.html", "state": "registry-backed"}],
       "sources": [{"kind": "schema-check", "field": "external_source_instances.provider_kind"}, {"kind": "python-constants", "path": "src/localbrain/external_access.py", "names": ["PROVIDER_MCP_GATEWAY", "PROVIDER_ATLASSIAN_CLOUD"]}]
     },
     {
@@ -102,10 +102,10 @@
       "default": null,
       "fallbacks": {"null": {"action": "reject"}, "unknown": {"action": "label", "label": "알 수 없는 서비스"}, "invalid": {"action": "reject"}, "future": {"action": "label", "label": "새 서비스"}},
       "producers": ["src/localbrain/external_access.py"],
-      "consumers": ["src/localbrain/atlassian_registration.py", "src/localbrain/templates/atlassian.html"],
+      "consumers": ["src/localbrain/atlassian_registration.py", "src/localbrain/templates/atlassian-connections.html"],
       "consequence": "Limits calls and identities to one Atlassian service.",
       "presentation": {"mode": "logical-label", "labels": {"jira": "Jira", "confluence": "Confluence"}, "help": null},
-      "visible_consumers": [{"path": "src/localbrain/templates/atlassian.html", "state": "registry-backed"}],
+      "visible_consumers": [],
       "sources": [{"kind": "schema-check", "field": "external_source_instances.service"}, {"kind": "python-constants", "path": "src/localbrain/external_access.py", "names": ["SERVICE_JIRA", "SERVICE_CONFLUENCE"]}]
     },
     {
@@ -118,10 +118,10 @@
       "default": 1,
       "fallbacks": {"null": {"action": "reject"}, "unknown": {"action": "reject"}, "invalid": {"action": "reject"}, "future": {"action": "reject"}},
       "producers": ["src/localbrain/external_access.py"],
-      "consumers": ["src/localbrain/atlassian_registration.py", "src/localbrain/templates/atlassian.html"],
+      "consumers": ["src/localbrain/atlassian_registration.py", "src/localbrain/templates/atlassian-connections.html"],
       "consequence": "Disabled connections cannot authorize external reads.",
       "presentation": {"mode": "logical-label", "labels": {"0": "사용 안 함", "1": "사용"}, "help": "사용 안 함으로 바꾸면 등록 정보는 유지되고 조회만 막힙니다."},
-      "visible_consumers": [{"path": "src/localbrain/templates/atlassian.html", "state": "registry-backed"}],
+      "visible_consumers": [{"path": "src/localbrain/templates/atlassian-connections.html", "state": "registry-backed"}],
       "sources": [{"kind": "schema-check", "field": "external_source_instances.enabled"}]
     },
     {
@@ -137,7 +137,7 @@
       "consumers": ["src/localbrain/external_access.py", "src/localbrain/atlassian_registration.py"],
       "consequence": "Only a current available observation can authorize a read.",
       "presentation": {"mode": "logical-label", "labels": {"available": "사용 가능", "unavailable": "사용 불가", "unauthorized": "권한 없음", "error": "확인 오류"}, "help": "마지막 명시적 연결 확인 결과입니다."},
-      "visible_consumers": [{"path": "src/localbrain/templates/atlassian.html", "state": "registry-backed"}],
+      "visible_consumers": [],
       "sources": [{"kind": "schema-check", "field": "external_source_capabilities.availability"}, {"kind": "python-constant", "path": "src/localbrain/external_access.py", "name": "AVAILABILITY_VALUES"}]
     },
     {
@@ -150,10 +150,10 @@
       "default": "unknown",
       "fallbacks": {"null": {"action": "label", "label": "확인 전"}, "unknown": {"action": "label", "label": "확인 전"}, "invalid": {"action": "reject"}, "future": {"action": "label", "label": "새 상태"}},
       "producers": ["src/localbrain/external_access.py"],
-      "consumers": ["src/localbrain/atlassian_registration.py", "src/localbrain/templates/atlassian.html", "src/localbrain/templates/atlassian-refresh.html"],
+      "consumers": ["src/localbrain/atlassian_registration.py", "src/localbrain/templates/atlassian-connections.html", "src/localbrain/templates/atlassian-refresh.html"],
       "consequence": "Combines registration, freshness, and availability before dispatch.",
       "presentation": {"mode": "logical-label", "labels": {"unknown": "확인 전", "current": "연결됨", "stale": "다시 확인 필요", "disabled": "사용 안 함", "unavailable": "사용 불가", "unauthorized": "권한 없음", "error": "확인 오류"}, "help": "현재 조회에 사용할 수 있는 연결인지 나타냅니다."},
-      "visible_consumers": [{"path": "src/localbrain/templates/atlassian.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-refresh.html", "state": "registry-backed"}],
+      "visible_consumers": [{"path": "src/localbrain/templates/atlassian-connections.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-refresh.html", "state": "registry-backed"}],
       "sources": [{"kind": "application", "path": "src/localbrain/external_access.py", "name": "capability_state"}]
     },
     {
@@ -527,18 +527,34 @@
     {
       "id": "atlassian-space.service",
       "subject": "atlassian-source-memory",
-      "physical_fields": ["atlassian_spaces.service", "atlassian_items.service"],
+      "physical_fields": ["atlassian_spaces.service", "atlassian_items.service", "atlassian_structure_references.service"],
       "values": ["jira", "confluence"],
       "enforcement": "schema-check",
       "axis": "Atlassian content service",
       "default": null,
       "fallbacks": {"null": {"action": "reject"}, "unknown": {"action": "label", "label": "알 수 없는 서비스"}, "invalid": {"action": "reject"}, "future": {"action": "label", "label": "새 서비스"}},
-      "producers": ["src/localbrain/atlassian.py", "src/localbrain/atlassian_registration.py"],
-      "consumers": ["src/localbrain/atlassian_browse.py", "src/localbrain/templates/atlassian.html", "src/localbrain/templates/atlassian-item.html", "src/localbrain/templates/search.html"],
-      "consequence": "Keeps Space and Item identity service-scoped.",
+      "producers": ["src/localbrain/atlassian.py", "src/localbrain/atlassian_registration.py", "src/localbrain/atlassian_structure_references.py"],
+      "consumers": ["src/localbrain/atlassian_browse.py", "src/localbrain/atlassian_structure_references.py", "src/localbrain/templates/atlassian.html", "src/localbrain/templates/atlassian-connections.html", "src/localbrain/templates/search.html"],
+      "consequence": "Keeps Space, Item, and URL-derived structure-reference identity service-scoped.",
       "presentation": {"mode": "logical-label", "labels": {"jira": "Jira", "confluence": "Confluence"}, "help": null},
-      "visible_consumers": [{"path": "src/localbrain/templates/atlassian.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-item.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/search.html", "state": "registry-backed"}],
-      "sources": [{"kind": "schema-check", "field": "atlassian_spaces.service"}, {"kind": "schema-check", "field": "atlassian_items.service"}, {"kind": "python-constant", "path": "src/localbrain/atlassian_browse.py", "name": "SERVICE_VALUES"}]
+      "visible_consumers": [{"path": "src/localbrain/templates/search.html", "state": "registry-backed"}],
+      "sources": [{"kind": "schema-check", "field": "atlassian_spaces.service"}, {"kind": "schema-check", "field": "atlassian_items.service"}, {"kind": "schema-check", "field": "atlassian_structure_references.service"}, {"kind": "python-constant", "path": "src/localbrain/atlassian_browse.py", "name": "SERVICE_VALUES"}]
+    },
+    {
+      "id": "atlassian-structure-reference.kind",
+      "subject": "atlassian-source-memory",
+      "physical_fields": ["atlassian_structure_references.reference_kind"],
+      "values": ["jira_project", "jira_board", "jira_filter", "jira_dashboard", "jira_service_portal", "jira_service_project", "confluence_space"],
+      "enforcement": "schema-check",
+      "axis": "URL-derived Atlassian structure family",
+      "default": null,
+      "fallbacks": {"null": {"action": "reject"}, "unknown": {"action": "reject"}, "invalid": {"action": "reject"}, "future": {"action": "reject"}},
+      "producers": ["src/localbrain/atlassian_structure_references.py"],
+      "consumers": ["src/localbrain/atlassian_structure_references.py", "src/localbrain/atlassian_browse.py"],
+      "consequence": "Selects stable semantic identity, family label, and read-only Explorer/Search projection without creating an Item or Space.",
+      "presentation": {"mode": "internal-only", "labels": {}, "help": null},
+      "visible_consumers": [],
+      "sources": [{"kind": "schema-check", "field": "atlassian_structure_references.reference_kind"}]
     },
     {
       "id": "atlassian-space.coverage",
@@ -550,10 +566,10 @@
       "default": "selected-content",
       "fallbacks": {"null": {"action": "reject"}, "unknown": {"action": "label", "label": "범위 알 수 없음"}, "invalid": {"action": "reject"}, "future": {"action": "label", "label": "새 관리 범위"}},
       "producers": ["src/localbrain/atlassian_registration.py"],
-      "consumers": ["src/localbrain/atlassian_registration.py", "src/localbrain/templates/atlassian.html", "src/localbrain/templates/atlassian-refresh.html"],
+      "consumers": ["src/localbrain/atlassian_registration.py", "src/localbrain/templates/atlassian-connections.html", "src/localbrain/templates/atlassian-refresh.html"],
       "consequence": "Selected content limits management to explicitly registered Items; full content permits Space-wide inventory.",
       "presentation": {"mode": "logical-label", "labels": {"selected-content": "선택한 항목만", "full-content": "Space 전체"}},
-      "visible_consumers": [{"path": "src/localbrain/templates/atlassian.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-refresh.html", "state": "registry-backed"}],
+      "visible_consumers": [{"path": "src/localbrain/templates/atlassian-connections.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-refresh.html", "state": "registry-backed"}],
       "sources": [{"kind": "schema-check", "field": "atlassian_spaces.coverage"}]
     },
     {
@@ -566,10 +582,10 @@
       "default": null,
       "fallbacks": {"null": {"action": "reject"}, "unknown": {"action": "label", "label": "알 수 없는 항목"}, "invalid": {"action": "reject"}, "future": {"action": "label", "label": "새 항목 유형"}},
       "producers": ["src/localbrain/atlassian.py"],
-      "consumers": ["src/localbrain/atlassian_browse.py", "src/localbrain/templates/atlassian.html", "src/localbrain/templates/atlassian-item.html", "src/localbrain/templates/search.html"],
+      "consumers": ["src/localbrain/atlassian_browse.py", "src/localbrain/templates/_atlassian-item-preview.html", "src/localbrain/templates/atlassian-item.html", "src/localbrain/templates/search.html"],
       "consequence": "Selects identity validation and detail semantics.",
       "presentation": {"mode": "logical-label", "labels": {"jira_issue": "Jira 티켓", "confluence_page": "Confluence Page"}, "help": null},
-      "visible_consumers": [{"path": "src/localbrain/templates/atlassian.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-item.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/search.html", "state": "registry-backed"}],
+      "visible_consumers": [{"path": "src/localbrain/templates/_atlassian-item-preview.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-item.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/search.html", "state": "registry-backed"}],
       "sources": [{"kind": "schema-check", "field": "atlassian_items.item_type"}, {"kind": "python-constant", "path": "src/localbrain/atlassian_browse.py", "name": "ITEM_TYPE_VALUES"}]
     },
     {
@@ -582,10 +598,10 @@
       "default": "reference",
       "fallbacks": {"null": {"action": "reject"}, "unknown": {"action": "label", "label": "범위 알 수 없음"}, "invalid": {"action": "reject"}, "future": {"action": "label", "label": "새 저장 범위"}},
       "producers": ["src/localbrain/atlassian.py"],
-      "consumers": ["src/localbrain/atlassian_browse.py", "src/localbrain/templates/atlassian.html", "src/localbrain/templates/atlassian-item.html", "src/localbrain/templates/atlassian-refresh.html", "src/localbrain/templates/search.html"],
+      "consumers": ["src/localbrain/atlassian_browse.py", "src/localbrain/templates/_atlassian-item-preview.html", "src/localbrain/templates/atlassian.html", "src/localbrain/templates/atlassian-item.html", "src/localbrain/templates/atlassian-refresh.html", "src/localbrain/templates/search.html"],
       "consequence": "Reference stores identity only, metadata stores bounded fields, indexed also stores approved normalized content.",
       "presentation": {"mode": "logical-label", "labels": {"reference": "링크만", "metadata": "기본 정보", "indexed": "본문 검색 가능"}, "help": "LocalBrain DB에 보관하는 정보의 범위입니다."},
-      "visible_consumers": [{"path": "src/localbrain/templates/atlassian.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-item.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-refresh.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/search.html", "state": "registry-backed"}],
+      "visible_consumers": [{"path": "src/localbrain/templates/_atlassian-item-preview.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-item.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-refresh.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/search.html", "state": "registry-backed"}],
       "sources": [{"kind": "schema-check", "field": "atlassian_items.coverage"}, {"kind": "python-constant", "path": "src/localbrain/atlassian.py", "name": "COVERAGE_VALUES"}]
     },
     {
@@ -598,27 +614,27 @@
       "default": "normal",
       "fallbacks": {"null": {"action": "reject"}, "unknown": {"action": "label", "label": "상태 알 수 없음"}, "invalid": {"action": "reject"}, "future": {"action": "label", "label": "새 관심 상태"}},
       "producers": ["src/localbrain/atlassian_browse.py"],
-      "consumers": ["src/localbrain/atlassian_browse.py", "src/localbrain/templates/atlassian.html", "src/localbrain/templates/search.html"],
+      "consumers": ["src/localbrain/atlassian_browse.py", "src/localbrain/templates/_atlassian-item-preview.html", "src/localbrain/templates/atlassian.html", "src/localbrain/templates/atlassian-item.html", "src/localbrain/templates/search.html"],
       "consequence": "Pinned sorts first; archived is hidden from ordinary browse unless explicitly requested.",
       "presentation": {"mode": "logical-label", "labels": {"normal": "일반", "pinned": "고정됨", "ignored": "관심 없음", "archived": "보관됨"}, "help": "로컬에서만 관리되는 관심 상태입니다."},
-      "visible_consumers": [{"path": "src/localbrain/templates/atlassian.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-item.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/search.html", "state": "registry-backed"}],
+      "visible_consumers": [{"path": "src/localbrain/templates/_atlassian-item-preview.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-item.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/search.html", "state": "registry-backed"}],
       "sources": [{"kind": "schema-check", "field": "atlassian_items.attention"}, {"kind": "python-constant", "path": "src/localbrain/atlassian.py", "name": "ATTENTION_VALUES"}]
     },
     {
       "id": "atlassian-item.url-role",
       "subject": "atlassian-source-memory",
-      "physical_fields": ["atlassian_item_urls.url_role"],
+      "physical_fields": ["atlassian_item_urls.url_role", "atlassian_structure_reference_urls.url_role"],
       "values": ["canonical", "alias"],
       "enforcement": "schema-check",
       "axis": "normalized URL identity role",
       "default": null,
       "fallbacks": {"null": {"action": "reject"}, "unknown": {"action": "reject"}, "invalid": {"action": "reject"}, "future": {"action": "reject"}},
-      "producers": ["src/localbrain/atlassian.py"],
-      "consumers": ["src/localbrain/atlassian.py"],
-      "consequence": "Canonical URL is the stable display target while aliases preserve observed identity.",
+      "producers": ["src/localbrain/atlassian.py", "src/localbrain/atlassian_structure_references.py"],
+      "consumers": ["src/localbrain/atlassian.py", "src/localbrain/atlassian_structure_references.py"],
+      "consequence": "Canonical URL is the stable display target while Item and structure-reference aliases preserve observed identity.",
       "presentation": {"mode": "internal-only", "labels": {}, "help": null},
       "visible_consumers": [],
-      "sources": [{"kind": "schema-check", "field": "atlassian_item_urls.url_role"}]
+      "sources": [{"kind": "schema-check", "field": "atlassian_item_urls.url_role"}, {"kind": "schema-check", "field": "atlassian_structure_reference_urls.url_role"}]
     },
     {
       "id": "atlassian-item.remote-outcome",
@@ -630,10 +646,10 @@
       "default": null,
       "fallbacks": {"null": {"action": "label", "label": "조회 전"}, "unknown": {"action": "label", "label": "결과 알 수 없음"}, "invalid": {"action": "reject"}, "future": {"action": "label", "label": "새 조회 결과"}},
       "producers": ["src/localbrain/atlassian.py", "src/localbrain/external_sync.py"],
-      "consumers": ["src/localbrain/atlassian.py", "src/localbrain/templates/atlassian-item.html", "src/localbrain/templates/atlassian-refresh.html"],
+      "consumers": ["src/localbrain/atlassian.py", "src/localbrain/templates/_atlassian-item-preview.html", "src/localbrain/templates/atlassian-item.html", "src/localbrain/templates/atlassian-refresh.html"],
       "consequence": "Failures retain prior known data and expose a bounded error state.",
       "presentation": {"mode": "logical-label", "labels": {"resolved": "조회됨", "unchanged": "변경 없음", "changed": "변경됨", "unavailable": "조회 불가", "not_found": "원격에서 찾을 수 없음", "error": "조회 오류"}, "help": "마지막으로 승인한 원격 조회의 결과입니다."},
-      "visible_consumers": [{"path": "src/localbrain/templates/atlassian-item.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-refresh.html", "state": "registry-backed"}],
+      "visible_consumers": [{"path": "src/localbrain/templates/_atlassian-item-preview.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-item.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-refresh.html", "state": "registry-backed"}],
       "sources": [{"kind": "schema-check", "field": "atlassian_item_remote_state.last_outcome"}, {"kind": "python-constant", "path": "src/localbrain/atlassian.py", "name": "OUTCOMES"}]
     },
     {
@@ -694,10 +710,10 @@
       "default": null,
       "fallbacks": {"null": {"action": "reject"}, "unknown": {"action": "label", "label": "분류"}, "invalid": {"action": "reject"}, "future": {"action": "label", "label": "새 분류"}},
       "producers": ["src/localbrain/atlassian_browse.py"],
-      "consumers": ["src/localbrain/atlassian_browse.py", "src/localbrain/templates/atlassian.html"],
+      "consumers": ["src/localbrain/atlassian_browse.py", "src/localbrain/templates/atlassian-item.html"],
       "consequence": "Topics may carry descriptions; Tags remain name-only.",
       "presentation": {"mode": "logical-label", "labels": {"topic": "Topic", "tag": "Tag"}, "help": "LocalBrain 안에서만 관리되는 분류입니다."},
-      "visible_consumers": [{"path": "src/localbrain/templates/atlassian.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-item.html", "state": "registry-backed"}],
+      "visible_consumers": [{"path": "src/localbrain/templates/atlassian-item.html", "state": "registry-backed"}],
       "sources": [{"kind": "schema-check", "field": "atlassian_classifications.kind"}, {"kind": "python-constant", "path": "src/localbrain/atlassian_browse.py", "name": "CLASSIFICATION_KINDS"}]
     },
     {
@@ -719,18 +735,18 @@
     {
       "id": "atlassian-evidence.source-channel",
       "subject": "atlassian-source-memory",
-      "physical_fields": ["atlassian_item_evidence.source_channel"],
+      "physical_fields": ["atlassian_item_evidence.source_channel", "atlassian_structure_reference_evidence.source_channel"],
       "values": ["visible_text", "approved_tool_result"],
       "enforcement": "schema-check",
       "axis": "evidence provenance channel",
       "default": null,
       "fallbacks": {"null": {"action": "reject"}, "unknown": {"action": "reject"}, "invalid": {"action": "reject"}, "future": {"action": "reject"}},
-      "producers": ["src/localbrain/atlassian_evidence.py"],
-      "consumers": ["src/localbrain/atlassian_evidence.py"],
+      "producers": ["src/localbrain/atlassian_evidence.py", "src/localbrain/atlassian_structure_references.py"],
+      "consumers": ["src/localbrain/atlassian_evidence.py", "src/localbrain/atlassian_structure_references.py"],
       "consequence": "Only visible text and explicitly approved tool results may produce evidence.",
       "presentation": {"mode": "internal-only", "labels": {}, "help": null},
       "visible_consumers": [],
-      "sources": [{"kind": "schema-check", "field": "atlassian_item_evidence.source_channel"}]
+      "sources": [{"kind": "schema-check", "field": "atlassian_item_evidence.source_channel"}, {"kind": "schema-check", "field": "atlassian_structure_reference_evidence.source_channel"}]
     },
     {
       "id": "atlassian-item.freshness",
@@ -742,10 +758,10 @@
       "default": "unknown",
       "fallbacks": {"null": {"action": "label", "label": "조회 전"}, "unknown": {"action": "label", "label": "조회 전"}, "invalid": {"action": "reject"}, "future": {"action": "label", "label": "새 상태"}},
       "producers": ["src/localbrain/atlassian.py"],
-      "consumers": ["src/localbrain/atlassian_browse.py", "src/localbrain/templates/atlassian.html", "src/localbrain/templates/search.html"],
+      "consumers": ["src/localbrain/atlassian_browse.py", "src/localbrain/templates/_atlassian-item-preview.html", "src/localbrain/templates/atlassian.html", "src/localbrain/templates/atlassian-item.html", "src/localbrain/templates/atlassian-refresh.html", "src/localbrain/templates/search.html"],
       "consequence": "Due and stale invite an explicit refresh; unavailable retains last-known facts.",
       "presentation": {"mode": "logical-label", "labels": {"unknown": "조회 전", "current": "최신", "due": "조회 권장", "stale": "다시 조회 필요", "unavailable": "조회 불가"}, "help": "마지막 승인 조회와 서비스별 주기를 기준으로 계산합니다."},
-      "visible_consumers": [{"path": "src/localbrain/templates/atlassian.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-item.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-refresh.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/search.html", "state": "registry-backed"}],
+      "visible_consumers": [{"path": "src/localbrain/templates/_atlassian-item-preview.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-item.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-refresh.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/search.html", "state": "registry-backed"}],
       "sources": [{"kind": "python-constant", "path": "src/localbrain/atlassian_browse.py", "name": "FRESHNESS_VALUES"}]
     },
     {
@@ -822,10 +838,10 @@
       "default": "claude",
       "fallbacks": {"null": {"action": "reject"}, "unknown": {"action": "label", "label": "알 수 없는 Runner"}, "invalid": {"action": "reject"}, "future": {"action": "label", "label": "새 Runner"}},
       "producers": ["src/localbrain/runner.py", "src/localbrain/external_sync.py"],
-      "consumers": ["src/localbrain/runner.py", "src/localbrain/templates/run.html", "src/localbrain/templates/atlassian.html", "src/localbrain/templates/atlassian-item.html", "src/localbrain/templates/atlassian-refresh.html"],
+      "consumers": ["src/localbrain/runner.py", "src/localbrain/templates/run.html", "src/localbrain/templates/_atlassian-item-preview.html", "src/localbrain/templates/atlassian-connections.html", "src/localbrain/templates/atlassian-item.html", "src/localbrain/templates/atlassian-refresh.html"],
       "consequence": "Selects the local CLI invocation contract.",
       "presentation": {"mode": "logical-label", "labels": {"claude": "Claude", "codex": "Codex"}, "help": "로컬 유지관리 실행에 사용한 도구입니다."},
-      "visible_consumers": [{"path": "src/localbrain/templates/run.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-item.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-refresh.html", "state": "registry-backed"}],
+      "visible_consumers": [{"path": "src/localbrain/templates/run.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/_atlassian-item-preview.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-connections.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-item.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-refresh.html", "state": "registry-backed"}],
       "sources": [{"kind": "python-constant", "path": "src/localbrain/external_sync.py", "name": "RUNNERS"}]
     },
     {
@@ -854,10 +870,10 @@
       "default": "prepared",
       "fallbacks": {"null": {"action": "reject"}, "unknown": {"action": "label", "label": "상태 알 수 없음"}, "invalid": {"action": "reject"}, "future": {"action": "label", "label": "새 실행 상태"}},
       "producers": ["src/localbrain/runner.py", "src/localbrain/external_sync.py"],
-      "consumers": ["src/localbrain/runner.py", "src/localbrain/templates/run.html", "src/localbrain/templates/workstream.html", "src/localbrain/templates/atlassian.html", "src/localbrain/templates/atlassian-item.html", "src/localbrain/templates/atlassian-refresh.html"],
+      "consumers": ["src/localbrain/runner.py", "src/localbrain/templates/run.html", "src/localbrain/templates/workstream.html", "src/localbrain/templates/_atlassian-item-preview.html", "src/localbrain/templates/atlassian-connections.html", "src/localbrain/templates/atlassian-item.html", "src/localbrain/templates/atlassian-refresh.html"],
       "consequence": "Controls polling, cancellation, finalization, and retained evidence.",
       "presentation": {"mode": "logical-label", "labels": {"prepared": "준비됨", "queued": "대기 중", "running": "실행 중", "cancelling": "중지 중", "cancelled": "중지됨", "completed": "완료", "partial": "일부 완료", "failed": "실패", "interrupted": "중단됨"}, "help": "로컬 유지관리 실행의 현재 또는 최종 상태입니다."},
-      "visible_consumers": [{"path": "src/localbrain/templates/run.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/workstream.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-item.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-refresh.html", "state": "registry-backed"}],
+      "visible_consumers": [{"path": "src/localbrain/templates/run.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/workstream.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/_atlassian-item-preview.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-connections.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-item.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/atlassian-refresh.html", "state": "registry-backed"}],
       "sources": [{"kind": "application", "path": "src/localbrain/runner.py"}, {"kind": "application", "path": "src/localbrain/external_sync.py"}]
     },
     {
@@ -944,17 +960,17 @@
       "id": "search-index.entity-type",
       "subject": "derived-retrieval-index",
       "physical_fields": ["search_index.entity_type"],
-      "values": ["session", "document", "atlassian_item"],
+      "values": ["session", "document", "atlassian_item", "atlassian_structure_reference"],
       "enforcement": "projection",
       "axis": "search projection owner",
       "default": null,
       "fallbacks": {"null": {"action": "reject"}, "unknown": {"action": "reject"}, "invalid": {"action": "reject"}, "future": {"action": "reject"}},
-      "producers": ["src/localbrain/retrieval.py", "src/localbrain/atlassian.py"],
-      "consumers": ["src/localbrain/retrieval.py", "src/localbrain/atlassian_browse.py"],
+      "producers": ["src/localbrain/retrieval.py", "src/localbrain/atlassian.py", "src/localbrain/atlassian_structure_references.py"],
+      "consumers": ["src/localbrain/retrieval.py", "src/localbrain/atlassian_browse.py", "src/localbrain/atlassian_structure_references.py"],
       "consequence": "Selects the source table and result route for a derived row.",
       "presentation": {"mode": "internal-only", "labels": {}, "help": null},
       "visible_consumers": [],
-      "sources": [{"kind": "application", "path": "src/localbrain/retrieval.py"}, {"kind": "application", "path": "src/localbrain/atlassian.py"}]
+      "sources": [{"kind": "application", "path": "src/localbrain/retrieval.py"}, {"kind": "application", "path": "src/localbrain/atlassian.py"}, {"kind": "application", "path": "src/localbrain/atlassian_structure_references.py"}]
     }
   ],
   "exclusions": [

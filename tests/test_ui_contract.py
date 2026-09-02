@@ -31,6 +31,29 @@ MAIN = ROOT / "src" / "localbrain" / "main.py"
 SCHEMA_SCRIPT = ROOT / "src" / "localbrain" / "static" / "schema-explorer.js"
 SCHEMA = ROOT / "src" / "localbrain" / "schema.sql"
 ATLASSIAN = ROOT / "src" / "localbrain" / "templates" / "atlassian.html"
+ATLASSIAN_ADD_FORM = (
+    ROOT / "src" / "localbrain" / "templates" / "_atlassian-add-form.html"
+)
+ATLASSIAN_ADD = (
+    ROOT / "src" / "localbrain" / "templates" / "atlassian-add.html"
+)
+ATLASSIAN_CONNECTIONS = (
+    ROOT / "src" / "localbrain" / "templates" / "atlassian-connections.html"
+)
+ATLASSIAN_PREVIEW = (
+    ROOT
+    / "src"
+    / "localbrain"
+    / "templates"
+    / "_atlassian-item-preview.html"
+)
+ATLASSIAN_REFERENCE_PREVIEW = (
+    ROOT
+    / "src"
+    / "localbrain"
+    / "templates"
+    / "_atlassian-reference-preview-content.html"
+)
 ATLASSIAN_SCRIPT = ROOT / "src" / "localbrain" / "static" / "atlassian.js"
 ATLASSIAN_REFRESH = (
     ROOT / "src" / "localbrain" / "templates" / "atlassian-refresh.html"
@@ -40,6 +63,9 @@ ATLASSIAN_REFRESH_SCRIPT = (
 )
 ATLASSIAN_ITEM = (
     ROOT / "src" / "localbrain" / "templates" / "atlassian-item.html"
+)
+ATLASSIAN_REFERENCE = (
+    ROOT / "src" / "localbrain" / "templates" / "atlassian-reference.html"
 )
 SEARCH = ROOT / "src" / "localbrain" / "templates" / "search.html"
 
@@ -80,12 +106,22 @@ class UiContractTests(unittest.TestCase):
         cls.main = MAIN.read_text(encoding="utf-8")
         cls.schema_script = SCHEMA_SCRIPT.read_text(encoding="utf-8")
         cls.atlassian = ATLASSIAN.read_text(encoding="utf-8")
+        cls.atlassian_add_form = ATLASSIAN_ADD_FORM.read_text(encoding="utf-8")
+        cls.atlassian_add = ATLASSIAN_ADD.read_text(encoding="utf-8")
+        cls.atlassian_connections = ATLASSIAN_CONNECTIONS.read_text(
+            encoding="utf-8"
+        )
+        cls.atlassian_preview = ATLASSIAN_PREVIEW.read_text(encoding="utf-8")
+        cls.atlassian_reference_preview = ATLASSIAN_REFERENCE_PREVIEW.read_text(
+            encoding="utf-8"
+        )
         cls.atlassian_script = ATLASSIAN_SCRIPT.read_text(encoding="utf-8")
         cls.atlassian_refresh = ATLASSIAN_REFRESH.read_text(encoding="utf-8")
         cls.atlassian_refresh_script = ATLASSIAN_REFRESH_SCRIPT.read_text(
             encoding="utf-8"
         )
         cls.atlassian_item = ATLASSIAN_ITEM.read_text(encoding="utf-8")
+        cls.atlassian_reference = ATLASSIAN_REFERENCE.read_text(encoding="utf-8")
         cls.search = SEARCH.read_text(encoding="utf-8")
 
     def test_component_rules_do_not_use_raw_colors(self):
@@ -119,8 +155,13 @@ class UiContractTests(unittest.TestCase):
             "HTTP(S) Item 또는 Space URL만 허용됩니다.",
             'value_help("atlassian-space.coverage")',
         ):
-            self.assertNotIn(removed_copy, self.atlassian)
-        self.assertIn("data-atlassian-url-preview", self.atlassian)
+            self.assertNotIn(removed_copy, self.atlassian_add_form)
+        self.assertIn("data-atlassian-url-preview", self.atlassian_add_form)
+        self.assertEqual(self.atlassian_add_form.count('name="url"'), 1)
+        self.assertIn('name="return_to"', self.atlassian_add_form)
+        self.assertNotIn('name="service"', self.atlassian_add_form)
+        self.assertNotIn("Provider", self.atlassian_add_form)
+        self.assertNotIn("Source Instance", self.atlassian_add_form)
 
     def test_component_rules_consume_semantic_design_roles(self):
         token_end = self.styles.index("\n}\n\n* { box-sizing")
@@ -269,92 +310,240 @@ class UiContractTests(unittest.TestCase):
             self.assertNotIn("/api/maintenance-runs", content)
             self.assertNotIn("실행 마커 생성", content)
 
-    def test_atlassian_registration_extends_inventory_without_hidden_refresh(self):
-        for marker in (
-            "data-atlassian-registration",
-            'action="/atlassian/register"',
+    def test_atlassian_add_and_connections_are_isolated_progressive_surfaces(self):
+        self.assertIn("data-atlassian-explorer", self.atlassian)
+        self.assertIn("data-atlassian-add-trigger", self.atlassian)
+        self.assertIn("data-atlassian-add-dialog", self.atlassian)
+        self.assertIn('<details class="atlassian-action-overflow">', self.atlassian)
+        self.assertIn(">Connections</a>", self.atlassian)
+        self.assertIn(
+            '{% include "_atlassian-add-form.html" %}', self.atlassian
+        )
+        self.assertIn('class="secondary-button" type="button" aria-label="Close Add"', self.atlassian)
+        self.assertNotIn("icon-button", self.atlassian)
+        self.assertLess(
+            self.atlassian.index("data-atlassian-add-trigger"),
+            self.atlassian.index("/atlassian/refresh?scope=all_known"),
+        )
+        for forbidden in (
+            'action="/atlassian/access"',
             'action="/atlassian/spaces/discover"',
             'action="/atlassian/spaces/register"',
-            "원격 조회 없음",
-            "원격 read 1회",
-            "일부 후보",
-            ">Browser</a>",
-            ">Add</a>",
+            "registered_scopes",
+            "selected_add_method",
+        ):
+            self.assertNotIn(forbidden, self.atlassian)
+
+        self.assertIn(
+            '{% include "_atlassian-add-form.html" %}', self.atlassian_add
+        )
+        self.assertNotIn("<dialog", self.atlassian_add)
+        self.assertIn('action="/atlassian/register"', self.atlassian_add_form)
+        self.assertEqual(self.atlassian_add_form.count('name="url"'), 1)
+        self.assertNotIn('name="service"', self.atlassian_add_form)
+        for forbidden in ("Provider", "runner", "binding_id", "site_id"):
+            self.assertNotIn(forbidden, self.atlassian_add_form)
+
+        for marker in (
+            "data-atlassian-connections",
             "등록된 Atlassian 범위",
-            "LocalBrain DB에 확정 저장된 Site와 Space만",
-            "URL로 추가",
-            "연결해서 찾기",
-            'name="target_domain"',
-            "조회할 Site",
-            "사용할 MCP 연결",
-            "실행 주체",
             "MCP 접근 관리",
-            "data-atlassian-url-preview",
-            'action="/atlassian/access"',
-            'value_label("external-source.provider"',
-            'value_label("atlassian-space.coverage"',
             "원격 접근 설정",
-            "atlassian.js",
+            "연결해서 찾기",
+            'action="/atlassian/access"',
+            'action="/atlassian/spaces/discover"',
+            'action="/atlassian/spaces/register"',
+            'name="site_id"',
+            'name="binding_id"',
+            'name="runner"',
+            'name="catalog_run"',
+            'name="candidate_key"',
+        ):
+            self.assertIn(marker, self.atlassian_connections)
+        for forbidden in (
+            "data-atlassian-explorer",
+            'action="/atlassian/register"',
+            'name="target_domain"',
+            'name="remote_id"',
+            'name="source_instance_id"',
+            'name="space_key"',
+            'name="name"',
+        ):
+            self.assertNotIn(forbidden, self.atlassian_connections)
+        self.assertNotIn("<main", self.atlassian_connections)
+        self.assertLess(
+            self.atlassian_connections.index("atlassian-scope-overview"),
+            self.atlassian_connections.index("atlassian-connection-management"),
+        )
+        self.assertLess(
+            self.atlassian_connections.index("atlassian-connection-management"),
+            self.atlassian_connections.index("atlassian-connections-tools"),
+        )
+        self.assertLess(
+            self.atlassian_connections.index("atlassian-connections-tools"),
+            self.atlassian_connections.index("atlassian-catalog-panel"),
+        )
+
+        for behavior in (
+            "/api/atlassian/registration-preview",
+            "new URLSearchParams({ url: value })",
+            "atlassianAddDialog.showModal()",
+            '"X-LocalBrain-Partial": "atlassian-add"',
+            "response.status === 422",
+            "syncAtlassianExplorerModal",
+            "clearAddFieldError",
+            'status.classList.remove("success", "warning", "error")',
+            "option.dataset.siteId !== targetSiteId",
+            'new Set(["queued", "running", "cancelling"])',
+        ):
+            self.assertIn(behavior, self.atlassian_script)
+        self.assertNotIn("new URLSearchParams({ url: value, service })", self.atlassian_script)
+        for rule in (
+            ".atlassian-add-dialog {",
+            ".atlassian-add-dialog::backdrop {",
+            ".atlassian-connections-layout {",
+            ".atlassian-connections-tools {",
+            "[data-atlassian-connections] .segmented-control a { color: var(--text-primary); }",
+            "[data-atlassian-connections] .table-count { color: var(--text-secondary); }",
+            ".lnb-item.active .nav-symbol { color: var(--text-inverse); }",
+            ".atlassian-hierarchy-heading {",
+            ".atlassian-hierarchy-tree a.active .atlassian-hierarchy-count { color: var(--text-info); }",
+            "width: min(var(--drawer-max-width), 100vw);",
+            "height: calc(100dvh - var(--atlassian-add-sheet-top, var(--shell-header-min-height-narrow)));",
+            ".atlassian-add-dialog-heading .secondary-button, .atlassian-add-form-actions .primary-button, .atlassian-add-form-actions .secondary-button { min-height: var(--control-min-height-touch); }",
+            '.atlassian-form input[aria-invalid="true"]',
+        ):
+            self.assertIn(rule, self.styles)
+        for behavior in (
+            "const syncAddSheetOffset = () => {",
+            'document.querySelector(".workspace-header")',
+            'style.setProperty("--atlassian-add-sheet-top"',
+            "if (atlassianAddDialog.open) syncAddSheetOffset();",
+            "const focusableInAdd = () =>",
+            'if (event.key !== "Tab") return;',
+            "last.focus();",
+            "first.focus();",
+        ):
+            self.assertIn(behavior, self.atlassian_script)
+        open_flow = self.atlassian_script.index("restoreTrigger = trigger;")
+        self.assertLess(
+            self.atlassian_script.index("syncAddSheetOffset();", open_flow),
+            self.atlassian_script.index("atlassianAddDialog.showModal();", open_flow),
+        )
+        self.assertIn("MAX_ATLASSIAN_FORM_BYTES = 160 * 1024", self.main)
+
+    def test_atlassian_local_sync_is_zero_input_and_preserves_explorer_state(self):
+        sync_form_start = self.atlassian.index(
+            '<form class="atlassian-sync-form"'
+        )
+        sync_form_end = self.atlassian.index("</form>", sync_form_start)
+        sync_form = self.atlassian[sync_form_start:sync_form_end]
+        self.assertIn('method="post" action="/atlassian/sync"', sync_form)
+        self.assertEqual(sync_form.count("<input"), 1)
+        self.assertIn('name="return_to"', sync_form)
+        for forbidden in (
+            'name="url"',
+            'name="service"',
+            'name="site_id"',
+            'name="binding_id"',
+            'name="runner"',
+        ):
+            self.assertNotIn(forbidden, sync_form)
+
+        sync_position = self.atlassian.index("data-atlassian-sync-form")
+        add_position = self.atlassian.index("data-atlassian-add-trigger")
+        more_position = self.atlassian.index("atlassian-action-overflow")
+        self.assertLess(sync_position, add_position)
+        self.assertLess(add_position, more_position)
+        self.assertLess(
+            self.atlassian.index("Refresh preview", more_position),
+            self.atlassian.index("Connections", more_position),
+        )
+        self.assertEqual(self.atlassian.count("data-atlassian-sync-status"), 1)
+        for marker in (
+            'id="atlassian-sync-result"',
+            'id="atlassian-sync-scope"',
+            "data-atlassian-explorer-toolbar",
+            "data-atlassian-hierarchy-rail",
+            "data-atlassian-hierarchy-compact",
+            "data-atlassian-results",
+            "session_projection_sources",
+            "source_outcomes",
+            "candidate_skips",
+            "Retry는 실패한 소스만 고르지 않고 같은 Sync로 전체 로컬 범위를 다시 확인합니다.",
+            "후보 건너뜀",
+            "소스 확인 불가",
+            "소스 실패",
+            "다른 탭에서 동기화 중",
+            "새로 반영할 로컬 근거가 없습니다.",
+            "data-atlassian-sync-focus-key=\"compact-hierarchy-summary\"",
         ):
             self.assertIn(marker, self.atlassian)
-        for retired_copy in (
-            "Source Instance / Site",
-            "Source Instance는 LocalBrain이 사용할 MCP 연결",
-            "Add / discover",
-            'name="source_name"',
-            'name="site_name"',
-            'name="title"',
+        self.assertEqual(
+            self.atlassian.count("data-atlassian-sync-announcement"), 1
+        )
+        sync_region_start = self.atlassian.index(
+            '<section id="atlassian-sync-result"'
+        )
+        sync_region_tag = self.atlassian[
+            sync_region_start:self.atlassian.index(">", sync_region_start)
+        ]
+        self.assertNotIn('role="', sync_region_tag)
+        self.assertNotIn('aria-live="', sync_region_tag)
+
+        for behavior in (
+            '"X-LocalBrain-Partial": "atlassian-local-evidence-sync"',
+            'destination.searchParams.delete("sync_receipt")',
+            "const captureSyncContinuity = () =>",
+            'const patchSyncInventory = (parsed, continuity, canonicalPath = "") =>',
+            "previewRequest?.abort();",
+            "requestGeneration += 1;",
+            "bindResultListScroll();",
+            "boundResultList?.removeEventListener",
+            "restoreSyncContinuity(continuity);",
+            "syncModal({ focus: false });",
+            'window.history.replaceState(historySnapshot(), "", canonicalPath || window.location.href);',
+            "pendingSyncAnnouncement",
+            "if (syncModalOwnerActive())",
+            "const renderSyncRefreshWarning = () =>",
+            "renderSyncRefreshWarning();",
+            'const refreshInventory = payload.report.status !== "busy";',
+            "if (!refreshInventory) {",
+            "activeFocusKey:",
+            "data-atlassian-sync-focus-key",
         ):
-            self.assertNotIn(retired_copy, self.atlassian)
-        for selected_toggle in (
-            """class="{% if selected_view == 'jira' %}selected{% endif %}" """,
-            """class="{% if selected_view == 'confluence' %}selected{% endif %}" """,
-            """class="{% if selected_mode == 'browse' %}selected{% endif %}" """,
-            """class="{% if selected_mode == 'setup' %}selected{% endif %}" """,
-        ):
-            self.assertIn(selected_toggle, self.atlassian)
+            self.assertIn(behavior, self.atlassian_script)
+        restore_start = self.atlassian_script.index(
+            "const restoreSyncContinuity = (continuity) =>"
+        )
+        restore_end = self.atlassian_script.index(
+            'const patchSyncInventory = (parsed, continuity, canonicalPath = "") =>', restore_start
+        )
         self.assertNotIn(
-            """class="{% if selected_view == 'jira' %}active{% endif %}" """,
-            self.atlassian,
+            "revealSelectedRow(selectedId())",
+            self.atlassian_script[restore_start:restore_end],
         )
-        for ordinary_behavior in (
-            "window.location.hash",
-            "focus({ preventScroll: true })",
-            "scrollIntoView({ block: \"center\" })",
-        ):
-            self.assertIn(ordinary_behavior, self.atlassian_script)
-        self.assertIn(
-            'new Set(["queued", "running", "cancelling"])',
-            self.atlassian_script,
+        self.assertLess(
+            self.atlassian_script.index("parsed = await fetchCurrentExplorerDocument(canonicalPath);"),
+            self.atlassian_script.index("const continuity = captureSyncContinuity();"),
         )
-        self.assertIn(
-            "window.setTimeout(poll, 1500)",
-            self.atlassian_script,
-        )
-        self.assertNotIn("/atlassian/spaces/discover", self.atlassian_script)
-        for preview_behavior in (
-            "/api/atlassian/registration-preview",
-            "syncDiscoveryConnections()",
-            "option.dataset.domain !== targetDomain",
+
+        for rule in (
+            ".atlassian-sync-form {",
+            ".atlassian-sync-region {",
+            ".atlassian-sync-region.state-working",
+            ".atlassian-sync-region.state-complete",
+            ".atlassian-sync-region.state-partial",
+            ".atlassian-sync-region.state-failed",
+            ".atlassian-sync-detail-scroll {",
+            "max-height: min(360px, 42vh);",
+            "grid-template-columns: repeat(3, minmax(0, 1fr));",
+            ".atlassian-action-overflow { grid-column: 1 / -1;",
+            ".atlassian-action-overflow a { min-height: var(--control-min-height-touch);",
+            ".atlassian-sync-refresh-warning {",
+            ".atlassian-explorer-results > [data-atlassian-results] {",
         ):
-            self.assertIn(preview_behavior, self.atlassian_script)
-        for connection_style in (
-            ".atlassian-scope-overview, .atlassian-add-flow, .atlassian-connection-management {",
-            ".atlassian-add-header {",
-            ".atlassian-scope-domain {",
-            ".atlassian-connection-management > summary {",
-            ".atlassian-connection-row > summary {",
-            ".atlassian-url-preview.warning {",
-            ".atlassian-add-columns {",
-            ".atlassian-access-method {",
-        ):
-            self.assertIn(connection_style, self.styles)
-        for responsive_rule in (
-            ".atlassian-add-columns { grid-template-columns: 1fr; }",
-            ".atlassian-candidate-row, .atlassian-record { grid-template-columns: 1fr; }",
-            ".atlassian-record-meta { justify-items: start; text-align: left; }",
-        ):
-            self.assertIn(responsive_rule, self.styles)
+            self.assertIn(rule, self.styles)
 
     def test_schema_extends_the_shell_and_explorer_family_without_custom_system(self):
         sources_position = self.base.index(">07</span><span>Sources</span>")
@@ -1258,14 +1447,15 @@ class UiContractTests(unittest.TestCase):
             "1 maintenance Run",
             "host-side read executor",
             "실패한",
+            'name="return_to"',
         ):
             self.assertIn(marker, self.atlassian_refresh)
-        for contextual in (
-            "/atlassian/refresh?scope=all_known",
-            "/atlassian/refresh?scope=space",
-            "/atlassian/refresh?scope=item",
-        ):
-            self.assertIn(contextual, self.atlassian)
+        self.assertIn(
+            "/atlassian/refresh?scope=all_known", self.atlassian
+        )
+        self.assertIn(
+            '"/atlassian/refresh?{}".format', self.main
+        )
         self.assertIn(
             "/atlassian/refresh?scope=workstream", self.workstream
         )
@@ -1286,20 +1476,52 @@ class UiContractTests(unittest.TestCase):
         ):
             self.assertIn(rule, self.styles)
 
-    def test_atlassian_knowledge_browse_keeps_source_regions_separate(self):
+    def test_atlassian_explorer_keeps_one_query_and_source_regions_separate(self):
         for marker in (
-            "LOCAL KNOWLEDGE BASE",
-            'name="source_instance_id"',
-            'name="coverage"',
-            'name="freshness"',
-            'name="attention"',
-            'name="topic_id"',
-            'name="tag_id"',
-            'name="workstream_id"',
-            "/atlassian/items/{{ item.id }}",
-            'target="_blank" rel="noreferrer"',
+            "LOCAL EXACT SEARCH",
+            'id="atlassian-query"',
+            'class="atlassian-filter-disclosure"',
+            'class="atlassian-hierarchy-tree"',
+            'class="atlassian-hierarchy-compact"',
+            "모든 도메인",
+            "소속 미확인",
+            "browse.hierarchy.sites",
+            "site.containers",
+            "kind-{{ container.kind }}",
+            "container.kind == 'url'",
+            "container.cue if selected_view == 'all' and container.cue else 'URL 기준'",
+            "elif selected_view == 'all' and container.cue",
+            'select name="coverage"',
+            'select name="freshness"',
+            'select name="attention"',
+            'select name="topic_id"',
+            'select name="tag_id"',
+            'select name="workstream_id"',
+            'href="{{ item.detail_url }}"',
+            'class="atlassian-explorer-list"',
+            '<li>',
         ):
             self.assertIn(marker, self.atlassian)
+        for removed_selector in (
+            'select name="source_instance_id"',
+            'select name="site_id"',
+            'select name="space_id"',
+            'select name="item_type"',
+        ):
+            self.assertNotIn(removed_selector, self.atlassian)
+        for removed_hierarchy in (
+            "browse.hierarchy.services",
+            "atlassian-hierarchy-service",
+            "All Sites",
+            "Unclassified",
+        ):
+            self.assertNotIn(removed_hierarchy, self.atlassian)
+        for shell_marker in (
+            "active_page == 'atlassian'",
+            'class="global-search-reserve"',
+            'class="global-search"',
+        ):
+            self.assertIn(shell_marker, self.base)
         for marker in (
             "REMOTE FACTS · LAST KNOWN",
             "LOCAL ONLY",
@@ -1319,14 +1541,232 @@ class UiContractTests(unittest.TestCase):
         ):
             self.assertIn(marker, self.search)
         for marker in (
-            ".atlassian-filter-form {",
-            ".atlassian-knowledge-row {",
+            ".atlassian-explorer-layout {",
+            ".atlassian-hierarchy-rail {",
+            ".atlassian-hierarchy-node-label {",
+            ".atlassian-filter-disclosure {",
+            ".atlassian-explorer-row {",
             ".atlassian-detail-grid {",
             ".atlassian-fact-grid {",
             ".atlassian-local-form {",
             ".atlassian-evidence-row, .atlassian-run-summary {",
         ):
             self.assertIn(marker, self.styles)
+
+    def test_atlassian_visible_copy_uses_link_document_and_honest_container_cues(self):
+        for marker in (
+            "'링크' if selected_view == 'jira'",
+            "'문서' if selected_view == 'wiki'",
+            "'링크/문서'",
+            "item.container_label or item.space_name or '소속 미확인'",
+            "item.container_kind == 'url'",
+            "URL 기준",
+        ):
+            self.assertIn(marker, self.atlassian)
+        for marker in (
+            "LOCAL ATLASSIAN PREVIEW",
+            "링크, 문서 또는 구조 참조를 선택하세요",
+            "item.container_label or item.space_name or '소속 미확인'",
+            "URL 기준 그룹",
+            "로컬 파생",
+        ):
+            self.assertIn(marker, self.atlassian_preview)
+        for marker in (
+            "LOCAL SOURCE {{ 'LINK' if item.service == 'jira' else 'DOCUMENT' }}",
+            "item.container_label or item.space_name or '소속 미확인'",
+            "URL 기준 그룹",
+            "로컬 파생",
+        ):
+            self.assertIn(marker, self.atlassian_item)
+        for marker in (
+            "도메인, 링크/문서 또는 Project/Space identity",
+            "알려진 링크/문서",
+            "조회할 링크/문서 선택",
+            "도메인별 {{ '링크' if selected_service == 'jira' else '문서' }} 합계",
+            "링크/문서 유형",
+        ):
+            self.assertIn(
+                marker,
+                self.atlassian_add_form
+                + self.atlassian_refresh
+                + self.atlassian_connections
+                + self.search,
+            )
+        for marker in (
+            'const serviceLabel = payload.service === "jira" ? "Jira" : "Wiki";',
+            'payload.service === "jira" ? "링크" : "문서"',
+            'syncBadge("새 링크/문서"',
+            "Atlassian 항목 preview를 불러오는 중입니다.",
+        ):
+            self.assertIn(marker, self.atlassian_script)
+        retired_visible_copy = {
+            self.atlassian_preview: (
+                "ITEM PREVIEW",
+                "ITEM NOT FOUND",
+                "이 Item",
+                "Unclassified",
+            ),
+            self.atlassian_item: (
+                "Atlassian Item",
+                "LOCAL SOURCE ITEM",
+                "이 Item",
+                "등록 Item",
+            ),
+            self.atlassian_refresh: (
+                "Known Items",
+                "조회할 Item 선택",
+                "Atlassian Item이 없습니다",
+                "연결된 Item만",
+            ),
+            self.atlassian_connections: ("Site별 Item", " items</span>"),
+            self.search: ("Item type",),
+        }
+        for surface, retired_markers in retired_visible_copy.items():
+            for marker in retired_markers:
+                self.assertNotIn(marker, surface)
+
+    def test_atlassian_preview_preserves_fallback_history_and_modal_contracts(self):
+        for marker in (
+            "data-atlassian-explorer",
+            "data-atlassian-selection-url",
+            "data-atlassian-entry-link",
+            "data-atlassian-entry-key",
+            "data-atlassian-item-link",
+            "data-atlassian-detail-status",
+            "aria-current=\"true\"",
+            '{% include "_atlassian-item-preview.html" %}',
+        ):
+            self.assertIn(marker, self.atlassian)
+        for marker in (
+            "data-atlassian-preview",
+            "data-preview-state",
+            "data-atlassian-detail-focus",
+            "data-atlassian-detail-close",
+            "REMOTE FACTS · LAST KNOWN",
+            "FOUND IN · LOCAL EVIDENCE",
+            "REFRESH HISTORY",
+            "Canonical URL",
+            "전체 상세 및 편집",
+        ):
+            self.assertIn(marker, self.atlassian_preview)
+        for forbidden in ('name="note"', "<form"):
+            self.assertNotIn(forbidden, self.atlassian_preview)
+        self.assertNotIn("data-atlassian-detail-status", self.atlassian_preview)
+        for behavior in (
+            "new AbortController()",
+            "requestGeneration",
+            '"X-LocalBrain-Partial": "atlassian-selection-preview"',
+            "Preview identity mismatch",
+            "window.history.pushState",
+            "persistHistoryPosition",
+            "bindResultListScroll();",
+            "boundResultList?.removeEventListener",
+            'window.addEventListener("popstate"',
+            ".inert = open",
+            'document.querySelector(".skip-link")',
+            'document.addEventListener("focusin"',
+            'event.key === "Escape"',
+            "focusableInPreview",
+            "window.location.assign(fallbackHref || target.href)",
+            'window.matchMedia("(max-width: 920px)")',
+        ):
+            self.assertIn(behavior, self.atlassian_script)
+        for rule in (
+            "grid-template-columns: var(--rail-filter-width) minmax(0, 1.08fr) minmax(0, 0.92fr);",
+            ".atlassian-item-preview {",
+            ".atlassian-explorer-enhanced.is-sheet-open .atlassian-item-preview {",
+            "background: var(--surface-scrim);",
+            ".atlassian-item-preview.state-empty { display: none; }",
+        ):
+            self.assertIn(rule, self.styles)
+
+    def test_atlassian_structure_references_extend_the_existing_explorer_family(self):
+        for marker in (
+            "browse.entries",
+            "entry.entity_kind == 'reference'",
+            'data-atlassian-entry-key="{{ entry.stable_key }}"',
+            'data-atlassian-reference-id="{{ entry.id }}"',
+            "구조 참조",
+            "split_count(site.item_count, site.reference_count",
+            "split_count(container.item_count, container.reference_count",
+            "새 구조 참조",
+            "도메인/서비스만 확인",
+            "new_structure_references",
+            "new_structure_evidence",
+        ):
+            self.assertIn(marker, self.atlassian)
+
+        for marker in (
+            "preview.selection_kind == 'reference'",
+            'data-selected-key=',
+            'data-atlassian-preview-content',
+            '_atlassian-reference-preview-content.html',
+        ):
+            self.assertIn(marker, self.atlassian_preview)
+
+        combined_reference = (
+            self.atlassian_reference_preview + self.atlassian_reference
+        )
+        for marker in (
+            "STRUCTURE REFERENCE",
+            "URL 기준 · Local evidence",
+            "Session/Local Context에서 URL 구조만 확인했습니다. Jira 링크/Wiki 문서·등록된 Project/Space·원격 조회 결과가 아닙니다.",
+            "reference.reference_identity",
+            "reference.normalized_domain",
+            "reference.evidence",
+            "근거 소스 확인 불가",
+        ):
+            self.assertIn(marker, combined_reference)
+        for forbidden in (
+            'name="note"',
+            'name="attention"',
+            "Refresh preview",
+            "Workstream",
+            "REMOTE FACTS",
+        ):
+            self.assertNotIn(forbidden, combined_reference)
+
+        self.assertIn(
+            "/atlassian/references/{{ result.entity_id }}", self.search
+        )
+        self.assertIn("atlassian_structure_reference", self.search)
+        for marker in (
+            "const entryLinks = () =>",
+            "const selectedKey = () =>",
+            "const selectionKeyFromUrl = (value) =>",
+            'destination.searchParams.delete("reference")',
+            '"X-LocalBrain-Partial": "atlassian-selection-preview"',
+            '"[data-atlassian-preview-content]"',
+            "payload.return_to",
+            "focusEntryKey",
+            "activeEntryKey",
+            'Boolean(active?.closest?.("[data-atlassian-detail-close]"))',
+            "refreshGeneration = requestGeneration",
+            "const refreshSourcePath = currentSyncReturnTo()",
+            "requestGeneration === refreshGeneration",
+            "previewRequest === null",
+            "currentSyncReturnTo() === refreshSourcePath",
+            "currentClose.remove()",
+            "panel.insertBefore(document.importNode(incomingClose, true), content)",
+        ):
+            self.assertIn(marker, self.atlassian_script)
+        self.assertIn(".atlassian-reference-authority {", self.styles)
+        self.assertIn(".context-back-link { min-height: var(--control-min-height);", self.styles)
+        self.assertIn(".context-back-link { min-height: var(--control-min-height-touch); }", self.styles)
+        self.assertIn(
+            ".atlassian-explorer-toolbar .segmented-control a, .atlassian-hierarchy-tree a { min-height: var(--control-min-height-touch); }",
+            self.styles,
+        )
+        self.assertIn(
+            ".atlassian-preview-facts a, .atlassian-reference-page .atlassian-fact-grid a { min-height: var(--control-min-height-touch); display: inline-flex; align-items: center; }",
+            self.styles,
+        )
+        self.assertIn(
+            ".atlassian-sync-summary .atlassian-sync-disclosure { color: var(--text-primary); }",
+            self.styles,
+        )
+        self.assertNotIn("Item 전용 필터", self.atlassian_reference_preview)
+        self.assertIn("filters.site_id", self.search)
 
 
 if __name__ == "__main__":

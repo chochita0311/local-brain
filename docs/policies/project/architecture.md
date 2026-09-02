@@ -55,8 +55,22 @@ Approved external sources through MCP Gateway
 - `src/localbrain/external_access.py`: stable external Source Instance registration, rebuildable capability observations, version-controlled Atlassian read policy, and fail-closed dispatch construction; it performs no external call
 - `src/localbrain/external_sync.py`: source-neutral external-sync manifest/result validation, atomic query-envelope preparation, approved host-dispatch evidence validation, and source-fact authority separation
 - `src/localbrain/atlassian.py`: stable External Resource-backed Site/Space/Item identity, scoped URL aliases, remote/local ownership, derived freshness, deterministic body normalization, and hash-gated FTS projection; it performs no external call
-- `src/localbrain/atlassian_browse.py`: local Atlassian inventory filters, grouped search, Item detail, user note/Topic/Tag mutation, and existing Workstream/Thread link projection; it performs no external or model call
-- `src/localbrain/atlassian_registration.py`: strict Jira/Confluence URL recognition, configured Site resolution, local-only Item/Space registration, inventory projection, and explicit one-call partial Space-candidate maintenance composition
+- `src/localbrain/atlassian_browse.py`: local Atlassian inventory filters,
+  grouped search, canonical-URL-owned Site-first hierarchy descriptors, Item
+  detail, user note/Topic/Tag mutation, and existing Workstream/Thread link
+  projection; it performs no external or model call
+- `src/localbrain/atlassian_evidence.py`: configured Site-scoped Item URL
+  recognition plus source-owned bounded scan/evidence reconciliation
+- `src/localbrain/atlassian_evidence_sync.py`: explicit persisted-only Session
+  projection and chunked Local Context Document evidence reconciliation,
+  strict Jira Issue/Confluence Page admission with normalized-domain local
+  Site/Item reuse, source-isolated transactions, commit-published resolver
+  overlays, fixed outcome reports, and process-local single-flight; it performs
+  no source, filesystem, external, model, or Refresh work
+- `src/localbrain/atlassian_registration.py`: strict Jira/Confluence URL
+  recognition, normalized-domain Site resolution, read-only URL container
+  descriptors, local-only Item/Space registration, inventory projection, and
+  explicit one-call partial Space-candidate maintenance composition
 - `src/localbrain/atlassian_refresh.py`: local Item/Space/Thread/Workstream/all-known scope resolution, freshness-aware preview, mixed-instance bounded Run preparation, and atomic validated result application
 - `src/localbrain/subagents.py`: lazy Claude Subsession compatibility discovery over the source-native `subagents/` directory
 - `src/localbrain/schema_explorer.py`: manifest-only Schema query normalization and read model; it never opens the runtime database
@@ -122,7 +136,7 @@ The current schema groups data into these responsibilities:
 | Indexed activity | `sessions`, `activity_events`, `session_reference_scans`, `session_reference_evidence`, `usage_records`, immutable usage price snapshots, `context_documents`, FTS5 search tables |
 | User organization | `workstreams`, `threads`, `checkpoints` |
 | Linkable resources | `local_resources`, `external_resources`, Workstream and Thread links |
-| Atlassian source memory | domain-first `atlassian_sites`, optional `atlassian_site_bindings`, access-optional `atlassian_spaces`, strict one-to-one `atlassian_items`, URL aliases, remote state, normalized content, local notes, reusable Topic/Tag assignments, source-backed evidence scans/sightings, and role-separated FTS rows |
+| Atlassian source memory | domain-first `atlassian_sites`, optional `atlassian_site_bindings`, access-optional `atlassian_spaces`, strict one-to-one `atlassian_items`, Item URL/remote/local/evidence owners, separate `atlassian_structure_references`, `atlassian_structure_reference_urls`, and `atlassian_structure_reference_evidence`, plus Item role rows and one bounded non-archived reference row in shared FTS |
 | Review workflow | `suggestions`, checkpoint resource snapshots, Thread resource matches |
 | Maintenance execution | `maintenance_runs`, source-neutral `external_sync_runs`, and artifacts under the runtime data directory |
 
@@ -147,6 +161,46 @@ Checkpoint records are versioned, user-confirmed resume states. Confirmation cap
 
 - Treat Atlassian URL evidence as a derived locator: retain the owning source identity, event/line/occurrence, observed URL, and only allowlisted bounded result fields, never a copied excerpt or opaque tool payload.
 - Treat source-neutral Session reference evidence as a separate derived projection from Activity Events, shared Resource metadata, remote content, and organization links. Retain only aggregate scan/version state plus deterministic target identity, event/line/ordinal, bounded observed identity, safe normalized destination, and approved tool-call outcome fields; never copy message excerpts or opaque tool payloads.
+- Route standard Atlassian URL-family recognition through one pure, versioned
+  locator owner before consumer-specific admission. The owner performs no
+  SQLite, filesystem, Provider, capability, runner, model, connected-discovery,
+  Refresh, or network work and returns only `item`, `structure`, `site`,
+  `unsupported`, or `unsafe`. Recognized output drops fragment and arbitrary
+  query but may retain the canonical allowlisted identity projection required
+  to distinguish a structure reference. RapidBoard `rapidView` is Board
+  identity; optional `projectKey` is only a grouping hint. Confluence keeps the
+  recognized deployment-context prefix and either a valid Space/Page path or
+  only canonical `pageId` on `pages/viewpage.action`. The Session adapter
+  groups recognized URL rows by the semantic domain/service/Item-or-reference
+  descriptor rather than whole locator spelling, retains the safe locator for
+  later reparse, and keeps structure/site as generic URL targets. The passed
+  foundation created no Atlassian structure-reference or Site row.
+- Explicit Atlassian local evidence Sync may consume that retained Session URL
+  projection without reopening its source. It merge-inserts only missing
+  Atlassian sightings, never advances or cleans Session-owned Atlassian scan
+  state, and records the safe normalized locator rather than claiming an
+  unavailable original spelling. Enabled, readable, ready Context Documents
+  use a finite chunked persisted-body pass and retain the deterministic first
+  bounded evidence set; only a complete pass may replace obsolete Document
+  sightings. Strict Jira Issue and Confluence Page locators are admitted even
+  without a pre-registered Site: the current source transaction may create one
+  normalized-domain Site and its Site-scoped URL Item, with no binding or
+  access state. A source-local resolver overlay is reused inside that source
+  and is published to the action-wide resolver only after commit; rollback
+  discards it. Explicit Sync Document currentness compares its persisted
+  content/source fingerprint, successful status, and extractor/resolver version
+  and does not reopen registered-Site fingerprint as an idempotency owner.
+- When that same explicit Sync receives a shared locator `structure` result, it
+  resolves or creates only the normalized-domain Site plus an independent stable
+  `(Site, service, reference kind, reference identity)` structure reference,
+  privacy-safe canonical/alias locator rows, and source-separated Session or
+  Document evidence. Session reconciliation remains merge-only; a complete
+  changed Document pass replaces only that Document's structure evidence. Loss
+  of the last evidence archives the reference and removes its FTS row but keeps
+  stable identity and URL history for direct inspection and later reuse. Optional
+  Project/Space hints drive read-only grouping consensus and never create a Space,
+  Item, binding, access, remote state, local edit, classification, or organization
+  row. A shared locator `site` result remains report-only and creates no entity.
 - Compose primary Session `관련 자료` only at the bounded SQLite read layer. It consumes existing evidence and explicit organization relations without hidden query expansion, writes, parsing, model work, or external I/O; the [Product Model](product.md#session-detail-and-related-evidence) owns group eligibility, ordering, counts, and disclosure behavior.
 - Map every successfully parsed Session JSONL to its normalized Session and
   reference contract in `source_files`. Reconcile changed paths independently,
@@ -286,7 +340,12 @@ Implemented in the current vertical slice:
 - source browsing for folders, files, and Apple Notes
 - context-aware full Document reading with an owning FOLDERS tree, bounded non-FOLDERS fallback, and source-preserving Markdown presentation
 - safe Markdown conversation reading for visible Session and Subsession user and assistant messages without Local Context source guessing
-- Atlassian stable source memory, bounded Session/Local Context URL evidence, default local browse plus explicit setup, grouped local search, Item detail, notes, Topic/Tag classification, exact Workstream/Thread links, explicit partial Space discovery, and explicit known-Item refresh previews without implicit remote ingestion or model calls
+- Atlassian stable source memory, bounded Session/Local Context URL evidence,
+  strict zero-configuration local Site/Item admission, Site-first Explorer
+  hierarchy with read-only canonical-URL container hints, grouped local search,
+  Item detail, notes, Topic/Tag classification, exact Workstream/Thread links,
+  explicit partial Space discovery, and explicit known-Item refresh previews
+  without implicit remote ingestion or model calls
 
 Open implementation work is tracked in the [Project Backlog](../../plans/project/backlog.md).
 
@@ -301,8 +360,54 @@ Open implementation work is tracked in the [Project Backlog](../../plans/project
 
 - External Source Instance registration is durable local state, while its latest capability observation is rebuildable operational state. Only version-controlled policy may map a logical operation to an external target.
 - Capability inspection is explicit. Application startup, browse, search, and ordinary local preview do not inspect or refresh external capabilities.
-- Atlassian page load, service switching, local URL preview and registration, access setup, connection editing, local inventory filtering, grouped search, detail reading, note/Topic/Tag edits, and Workstream/Thread link edits perform no external or model call. A valid URL resolves or creates the normalized-domain Site and Item/Space locally without a Source Instance, Provider, configuration reference, or capability. Optional access setup is a separate action that binds the registered Site to a real Source Instance only after the user supplies Provider and a validated Cloud ID or Gateway configuration alias; URL shape never selects Provider.
-- Atlassian FTS uses deterministic role rows under one stable Item ID: identity is always eligible, bounded metadata follows metadata/indexed coverage, normalized remote body follows indexed coverage, and local note/Topic/Tag text remains a separate local role. Search groups matching roles and resolves current relational Source, Site, coverage, freshness, and classification state before display.
+- Static Jira/Confluence URL classification is configured-domain independent and
+  local-only. It normalizes the bounded HTTP(S) host/path, rejects credentials
+  and REST endpoints, applies path/query Item identity before structure identity
+  and then Site-family root, and exposes no raw query or JQL. A parser result
+  grants no access or persistence authority by itself. Explicit evidence Sync
+  admits `item` into the passed Site/Item path and `structure` into separate
+  reference, privacy-safe URL, and source-evidence owners keyed by
+  Site/service/kind/identity; `site` remains report-only. Registration consumes
+  its separately approved Add families and may still persist its passed
+  Project/Space subset. The structure-reference path cannot reuse
+  `external_resources`, Item/Space/access/remote-state tables as authority.
+- Atlassian page load, service switching, local URL preview and registration,
+  access setup, connection editing, local inventory filtering, Site-first
+  hierarchy projection, grouped search, detail reading, note/Topic/Tag edits,
+  and Workstream/Thread link edits perform no external or model call. A valid
+  URL resolves or creates the normalized-domain Site and Item/Space locally
+  without a Source Instance, Provider, configuration reference, or capability.
+  Jira and Confluence on the same normalized domain reuse one Site; service is
+  an admission/access qualifier, not Site identity. Optional access setup is a
+  separate action that binds the registered Site to a real Source Instance only
+  after the user supplies Provider and a validated Cloud ID or Gateway
+  configuration alias; URL shape never selects Provider.
+- Atlassian local evidence Sync is one explicit zero-execution-input action over
+  already persisted Session-reference and Context Document state. It uses a
+  process-local non-blocking single-flight owner and one short transaction per
+  source. An `item` result for a strict Jira Issue or Confluence Page URL may
+  create or reuse a normalized-domain Site and Site-scoped normalized-URL Item
+  even from an empty inventory. A `structure` result may create or reuse that
+  Site plus a separately owned stable reference, privacy-safe locator, and
+  evidence; it creates no Item or Space. A `site` result is report-only. New
+  resolver state is source-local and enters the later-source action cache only
+  after the source transaction commits, so failure leaves no partial Site,
+  Item, structure reference, evidence, or cached nonexistent identity. The
+  action creates no binding or maintenance Run and calls no source
+  parser/importer, filesystem, Provider, capability, executor, runner, model,
+  connected discovery, or Refresh path. A bounded process-local receipt
+  supports POST/Redirect/GET but never becomes SQLite history or result
+  authority.
+- Atlassian Item FTS uses deterministic role rows under one stable Item ID:
+  identity is always eligible, bounded metadata follows metadata/indexed
+  coverage, normalized remote body follows indexed coverage, and local
+  note/Topic/Tag text remains a separate local role. Separately, each
+  non-archived structure reference owns at most one
+  `atlassian_structure_reference` row containing only reference identity,
+  generated family label, and privacy-safe locator. Last-evidence cleanup
+  archives the reference and removes that row. Shared Search keeps the two
+  entity types distinct and resolves their current relational owners before
+  display.
 - Accessible-Space discovery is a separately submitted maintenance Run, uses the selected Source Instance and Site, consumes at most one policy-authorized metadata search call, labels results as partial, and registers no candidate until explicit confirmation.
 - Atlassian refresh scope resolution and preview are local-only. Item, Space, Thread, Workstream, and all-known selections are bounded to already-known Items, default by derived freshness, show calculated reads, and cannot queue more than 20 reads. A mixed-instance selection remains one Run whose targets each carry their own pre-authorized Source Instance; single-instance manifests retain the original envelope shape.
 - Jira Space refresh reads only selected known Items. Confluence may explicitly enumerate one 200-Page catalog page for a registered Space; new Page identities become stale indexed-intent stubs, while body retrieval remains a later explicit selected batch.

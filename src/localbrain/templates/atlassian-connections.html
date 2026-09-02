@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block page_location %}Atlassian / Connections{% endblock %}
+{% block content %}
+  <div data-atlassian-registration data-atlassian-connections>
+    <section class="page-heading atlassian-connections-heading">
+      <div><p class="eyebrow">OPTIONAL ACCESS</p><h1>Atlassian Connections</h1><p class="heading-copy">등록된 Site의 MCP 접근, readiness, bounded Space discovery를 관리합니다.</p></div>
+      <a class="secondary-button button-link" href="/atlassian?view={{ selected_view }}">← Explorer</a>
+    </section>
+    <section class="section-toolbar atlassian-toolbar">
+      <nav class="segmented-control" aria-label="Atlassian connection service">
+        <a class="{% if selected_view == 'jira' %}selected{% endif %}" href="/atlassian/connections?view=jira" {% if selected_view == 'jira' %}aria-current="page"{% endif %}>Jira</a>
+        <a class="{% if selected_view == 'wiki' %}selected{% endif %}" href="/atlassian/connections?view=wiki" {% if selected_view == 'wiki' %}aria-current="page"{% endif %}>Wiki</a>
+      </nav>
+      <span class="table-count">{{ sites | length }} connections</span>
+    </section>
+    {% if notice %}<div class="atlassian-feedback success" role="status" tabindex="-1" data-registration-notice>{{ notice }}</div>{% endif %}
+
+    <div class="atlassian-connections-layout">
+        <section class="atlassian-scope-overview" aria-labelledby="atlassian-scope-title">
+          <div class="atlassian-section-heading"><div><p class="eyebrow">REGISTERED SCOPE</p><h2 id="atlassian-scope-title">등록된 Atlassian 범위</h2><p>로컬에 저장된 도메인과 Project/Space, 도메인별 {{ '링크' if selected_service == 'jira' else '문서' }} 합계만 표시합니다.</p></div><span class="table-count">{{ registered_scopes | length }} domains · {{ registered_scope_space_count }} projects/spaces</span></div>
+          {% if registered_scopes %}<div class="atlassian-scope-list">
+            {% for scope in registered_scopes %}<article class="atlassian-scope-domain">
+              <div class="atlassian-scope-domain-heading"><div><strong>{{ scope.display_name }}</strong><span>{{ scope.normalized_domain }}</span></div><span class="table-count">{{ scope.connections | length }} MCP · {{ scope.item_count }} {{ '링크' if selected_service == 'jira' else '문서' }}</span></div>
+              {% if scope.spaces %}<div class="atlassian-scope-spaces" aria-label="{{ scope.display_name }}에 등록된 Space">{% for space in scope.spaces %}<span><strong>{{ space.name }}</strong><small>{{ space.space_key or space.remote_id }} · {{ value_label("atlassian-space.coverage", space.coverage) }}</small></span>{% endfor %}</div>{% else %}<p class="atlassian-scope-empty">등록된 {{ '프로젝트' if selected_service == 'jira' else 'Space' }}가 없습니다.</p>{% endif %}
+            </article>{% endfor %}
+          </div>{% else %}<div class="atlassian-empty-state"><p>등록된 {{ 'Jira Site가' if selected_service == 'jira' else 'Confluence Site가' }} 없습니다.</p><span><a href="/atlassian/add">Add</a>에서 URL reference를 먼저 등록할 수 있습니다.</span></div>{% endif %}
+        </section>
+
+        <section class="atlassian-connection-management" aria-labelledby="atlassian-connections-list-title"{% if connection_error and connection_error_binding_id is none %} data-atlassian-form-error{% endif %}>
+          <div class="atlassian-section-heading"><div><p class="eyebrow">CONNECTION INVENTORY</p><h2 id="atlassian-connections-list-title">MCP 접근 관리</h2></div><span class="table-count">{{ sites | length }} connections</span></div>
+          {% if connection_error and connection_error_binding_id is none %}<div class="atlassian-feedback error" role="alert" tabindex="-1">{{ connection_error }}</div>{% endif %}
+          {% if sites %}<div class="atlassian-connection-list">
+            {% for site in sites %}<details class="atlassian-connection-row" id="atlassian-connection-{{ site.binding_id }}" tabindex="-1"{% if connection_error and connection_error_binding_id == site.binding_id %} open data-atlassian-form-error{% endif %}>
+              <summary><span class="atlassian-connection-summary"><strong>{{ site.source_display_name }}</strong><small>{{ site.site_display_name or site.normalized_domain }} · {{ site.normalized_domain }}</small></span><span class="atlassian-connection-state"><span class="status-badge neutral">{{ value_label("external-source.provider", site.provider_kind) }}</span><span class="status-badge {{ 'success' if site.enabled else 'danger' }}">{{ value_label("external-source.enabled", 1 if site.enabled else 0) }}</span><span class="status-badge neutral">{{ value_label("external-capability.state", site.capability_state) }}</span></span></summary>
+              {% if connection_error and connection_error_binding_id == site.binding_id %}<div class="atlassian-feedback error" role="alert" tabindex="-1">{{ connection_error }}</div>{% endif %}
+              <form class="atlassian-form atlassian-connection-edit" method="post" action="/atlassian/connections/{{ site.source_instance_id }}/sites/{{ site.site_id }}">
+                {% if not site.config_bound %}<label for="config-ref-{{ site.binding_id }}">연결 reference</label><input id="config-ref-{{ site.binding_id }}" name="config_ref" required maxlength="300" value="{% if connection_error_binding_id == site.binding_id %}{{ connection_form_state.get('config_ref', '') }}{% endif %}" placeholder="{{ 'Atlassian Cloud ID' if site.provider_kind == 'atlassian_cloud' else 'Gateway configuration alias' }}"><span class="field-help">한 번 바인딩한 reference는 다른 값으로 교체하지 않습니다.</span>{% else %}<p class="atlassian-bound-note">Provider와 바인딩 reference identity는 변경하지 않습니다.</p>{% endif %}
+                <label class="atlassian-check-label" for="connection-enabled-{{ site.binding_id }}"><input id="connection-enabled-{{ site.binding_id }}" name="enabled" type="checkbox" value="1" {% if (connection_error_binding_id == site.binding_id and connection_form_state.get('enabled') == '1') or (connection_error_binding_id != site.binding_id and site.enabled) %}checked{% endif %}><span>이 접근 경로 사용</span></label>
+                <button class="secondary-button" type="submit">연결 정보 저장</button>
+              </form>
+            </details>{% endfor %}
+          </div>{% else %}<p class="atlassian-inline-state neutral">아직 관리할 MCP 연결이 없습니다.</p>{% endif %}
+        </section>
+
+      <aside class="atlassian-connections-tools" aria-label="Connection tools">
+        <details class="editor-panel atlassian-connection-tool"{% if access_error or (not sites and registered_scopes) %} open{% endif %}{% if access_error %} data-atlassian-form-error{% endif %}>
+          <summary><span><strong>원격 접근 설정</strong><small>등록된 Site에 MCP binding 추가</small></span></summary>
+          <div class="editor-panel-body">{% if access_error %}<div class="atlassian-feedback error" role="alert" tabindex="-1">{{ access_error }}</div>{% endif %}
+            {% if registered_scopes %}<form class="atlassian-form" method="post" action="/atlassian/access"><input type="hidden" name="service" value="{{ selected_service }}"><label for="atlassian-access-site">Site</label><select id="atlassian-access-site" name="site_id" required><option value="">Site 선택</option>{% for scope in registered_scopes %}<option value="{{ scope.site_id }}" {% if access_form_state.get('site_id') == scope.site_id|string %}selected{% endif %}>{{ scope.normalized_domain }}</option>{% endfor %}</select><label for="atlassian-provider">Provider</label><select id="atlassian-provider" name="provider_kind" required><option value="">Provider 선택</option><option value="atlassian_cloud" {% if access_form_state.get('provider_kind') == 'atlassian_cloud' %}selected{% endif %}>{{ value_label("external-source.provider", "atlassian_cloud") }}</option><option value="mcp_gateway" {% if access_form_state.get('provider_kind') == 'mcp_gateway' %}selected{% endif %}>{{ value_label("external-source.provider", "mcp_gateway") }}</option></select><label for="atlassian-config-ref">연결 reference</label><input id="atlassian-config-ref" name="config_ref" required maxlength="300" value="{{ access_form_state.get('config_ref', '') }}"><button class="secondary-button" type="submit">접근 경로 연결</button></form>{% else %}<p class="atlassian-inline-state neutral">먼저 URL을 로컬에 등록해 Site를 만드세요.</p>{% endif %}</div>
+        </details>
+
+        <details class="editor-panel atlassian-connection-tool"{% if discovery_error %} open data-atlassian-form-error{% endif %}>
+          <summary><span><strong>연결해서 찾기</strong><small>bounded remote read 1회</small></span></summary>
+          <div class="editor-panel-body">{% if discovery_error %}<div class="atlassian-feedback error" role="alert" tabindex="-1">{{ discovery_error }}</div>{% endif %}
+            <form class="atlassian-form atlassian-discovery-form" method="post" action="/atlassian/spaces/discover">
+              <label for="atlassian-discovery-site"><span class="atlassian-step-number">1</span> Site</label><select id="atlassian-discovery-site" name="site_id" required data-atlassian-target-select><option value="">Site 선택</option>{% for scope in registered_scopes %}<option value="{{ scope.site_id }}" {% if discovery_form_state.get('site_id') == scope.site_id|string %}selected{% endif %}>{{ scope.display_name }} · {{ scope.normalized_domain }}</option>{% endfor %}</select>
+              <label for="atlassian-discovery-binding"><span class="atlassian-step-number">2</span> MCP 연결</label><select id="atlassian-discovery-binding" name="binding_id" required data-atlassian-connection-select><option value="">MCP 연결 선택</option>{% for site in sites %}<option value="{{ site.binding_id }}" data-site-id="{{ site.site_id }}" {% if not site.enabled or site.capability_state != 'current' %}disabled{% endif %} {% if discovery_form_state.get('binding_id') == site.binding_id|string %}selected{% endif %}>{{ site.display_name }} · {{ value_label("external-source.provider", site.provider_kind) }} · {{ value_label("external-capability.state", site.capability_state) }}</option>{% endfor %}</select>
+              <label for="atlassian-discovery-runner"><span class="atlassian-step-number">3</span> 실행 주체</label><select id="atlassian-discovery-runner" name="runner"><option value="claude" {% if discovery_form_state.get('runner', 'claude') == 'claude' %}selected{% endif %}>{{ value_label("maintenance.runner", "claude") }}</option><option value="codex" {% if discovery_form_state.get('runner') == 'codex' %}selected{% endif %}>{{ value_label("maintenance.runner", "codex") }}</option></select>
+              <button class="secondary-button" type="submit">후보 조회 Run 시작</button>
+            </form>{% if not external_executor_ready %}<p class="atlassian-inline-state warning">승인된 host-side read executor가 연결되지 않았습니다.</p>{% endif %}
+          </div>
+        </details>
+      </aside>
+
+      {% if catalog_error or catalog or candidate_error %}<section id="atlassian-catalog-results" class="atlassian-catalog-panel" aria-labelledby="space-catalog-title" data-catalog-run="{{ catalog.run_id if catalog else '' }}" data-catalog-status="{{ catalog.status if catalog else '' }}" tabindex="-1"{% if catalog_error or candidate_error %} data-atlassian-form-error{% endif %}>
+        <div class="atlassian-section-heading"><div><p class="eyebrow">SPACE DISCOVERY</p><h2 id="space-catalog-title">후보 조회 결과</h2></div>{% if catalog %}<a class="text-link" href="/runs/{{ catalog.run_id }}">Run 보기</a>{% endif %}</div>
+        {% if candidate_error %}<div class="atlassian-feedback error" role="alert" tabindex="-1">{{ candidate_error }}</div>{% elif catalog_error %}<div class="atlassian-feedback error" role="alert" tabindex="-1">{{ catalog_error }}</div>{% endif %}
+        {% if catalog %}<div class="atlassian-catalog-summary"><span class="status-badge {{ 'success' if catalog.status in ['completed', 'partial'] else ('danger' if catalog.status == 'failed' else 'info') }}">{{ value_label("maintenance.status", catalog.status) }}</span><span>일부 후보 결과 · {{ catalog.candidates | length }}개</span>{% if catalog.status in ['queued', 'running', 'cancelling'] %}<a href="/atlassian/connections?view={{ selected_view }}&amp;catalog_run={{ catalog.run_id }}#atlassian-catalog-results">상태 새로고침</a>{% endif %}</div>
+          {% if catalog.candidates %}<div class="atlassian-candidate-list">{% for candidate in catalog.candidates %}<form class="atlassian-candidate-row" method="post" action="/atlassian/spaces/register"><input type="hidden" name="catalog_run" value="{{ catalog.run_id }}"><input type="hidden" name="candidate_key" value="{{ candidate.key }}"><div><strong>{{ candidate.name }}</strong><span class="mono">{{ candidate.key }}</span></div><button class="secondary-button" type="submit">이 Space 등록</button></form>{% endfor %}</div>
+          {% elif catalog.status in ['completed', 'partial'] %}<p class="atlassian-inline-state neutral">이 bounded 조회에서 등록 가능한 Space 후보를 찾지 못했습니다.</p>{% endif %}
+        {% endif %}
+      </section>{% endif %}
+    </div>
+  </div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', path='/atlassian.js') }}?v={{ asset_version | default('dev') }}" defer></script>{% endblock %}

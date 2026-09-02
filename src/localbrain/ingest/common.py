@@ -6,8 +6,8 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
 
-EVIDENCE_EXTRACTOR_VERSION = "localbrain.atlassian-evidence.v1"
-REFERENCE_EXTRACTOR_VERSION = "localbrain.session-reference.v2"
+EVIDENCE_EXTRACTOR_VERSION = "localbrain.atlassian-evidence.v4"
+REFERENCE_EXTRACTOR_VERSION = "localbrain.session-reference.v3"
 URL_PATTERN = re.compile(r"https?://[^\s<>'\"`]+", re.IGNORECASE)
 MARKDOWN_LINK_PATTERN = re.compile(
     r"\[[^\]]*\]\((?P<target>[^)\s]+\.md(?:#[^)]*)?)\)",

@@ -250,6 +250,14 @@ Constraints: 64-character source fingerprint; bounded extractor and error values
 - Consumers: the bounded FEAT-0073 read projection and FEAT-0074 primary Session `관련 자료` rail. The rail maps evidence to `MCP 조회`, `MCP 조회 실패`, `사용자 메시지에서 언급`, `Agent 응답에서 언급`, or `도구 결과에서 확인`, uses `observed_identity` before shared Resource titles, orders retained direct targets by their oldest `observed_at` with deterministic source-location fallback, and keeps the direct target under its strongest group when an explicit organization relation also exists. Read counts use distinct completed resource-read call IDs; mention and observation counts use distinct normalized source locations.
 - Relations and deletion: required Session FK plus an optional target FK selected by `target_kind`. Session, exact Context Document target, or configured Atlassian Item deletion cascades the now-unresolvable derived row. The edge points from evidence to the shared target, so evidence reconciliation never deletes or mutates the Document, External Resource/Item, remote content, note, classification, Thread, or Workstream.
 - Recovery: rescan the authoritative Session source while its exact eligible Document and configured Atlassian Item targets remain resolvable. Generic safe URLs are rebuilt from the Session source without creating shared Resource rows.
+- Atlassian descriptor projection remains a generic `url` target until an exact
+  configured Item resolves. For recognized Item, structure, or Site families,
+  `target_key` hashes the canonical semantic domain/service/kind/identity tuple
+  rather than the whole safe URL. Locator spelling and non-authoritative
+  container hint do not enter grouping. `normalized_url` retains only the
+  canonical allowlisted safe locator needed for later deterministic reparse;
+  RapidBoard can retain positive `rapidView` and one validated `projectKey`
+  hint, while raw query, JQL, and unrelated parameters are discarded.
 - DDL ownership: complete fresh definition and `idx_session_reference_evidence_session`, `idx_session_reference_evidence_document`, and `idx_session_reference_evidence_atlassian` in `schema.sql`; ordinary idempotent schema application adds them to compatible older databases.
 
 | Column | Contract |
@@ -261,13 +269,13 @@ Constraints: 64-character source fingerprint; bounded extractor and error values
 | `source_line` | positive `INTEGER NOT NULL`; source JSONL location. |
 | `evidence_ordinal` | positive `INTEGER NOT NULL`; normalized occurrence within the source location. |
 | `target_kind` | `TEXT NOT NULL`; checked to `url`, `context_document`, or `atlassian_item`. |
-| `target_key` | non-empty `TEXT NOT NULL` up to 300 characters; opaque deterministic grouping key, never display copy. |
+| `target_key` | non-empty `TEXT NOT NULL` up to 300 characters; opaque deterministic grouping key, never display copy. Generic URL grouping hashes the whole safe URL; a recognized Atlassian Item/structure/Site URL hashes its canonical semantic descriptor so locator aliases and container hints cannot split identity. |
 | `context_document_id` | nullable FK to `context_documents.id`, `ON DELETE CASCADE`; required only for `context_document`. |
 | `external_resource_id` | nullable FK to `atlassian_items.external_resource_id`, `ON DELETE CASCADE`; required only for `atlassian_item`. |
 | `evidence_kind` | `TEXT NOT NULL`; checked to `user_mention`, `assistant_mention`, `tool_result`, or `resource_read`. |
 | `read_outcome` | nullable `TEXT`; `success` or `failure` and required only for `resource_read`. |
 | `observed_identity` | non-empty `TEXT NOT NULL` up to 500 characters; bounded Session-facing issue key, file identity, or safe host/path identity. |
-| `normalized_url` | nullable non-empty `TEXT` up to 8,000 characters; required for URL and Atlassian targets and prohibited for Context Documents. It contains only approved normalized safe destination data. |
+| `normalized_url` | nullable non-empty `TEXT` up to 8,000 characters; required for URL and Atlassian targets and prohibited for Context Documents. It contains only approved normalized safe destination data. Generic URLs contain no query; a recognized Atlassian descriptor may retain only its canonical bounded identity-query projection and optional approved grouping hint. |
 | `tool_name` | nullable non-empty `TEXT` up to 200 characters; required only for approved tool-result and resource-read evidence. |
 | `tool_call_id` | nullable non-empty `TEXT` up to 500 characters; required only for approved tool-result and completed resource-read correlation. |
 | `observed_at` | nullable `TEXT`; source event/result time when available. |

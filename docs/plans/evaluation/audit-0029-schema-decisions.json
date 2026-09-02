@@ -3,13 +3,13 @@
   "review_status": "complete",
   "manifest": {
     "path": "src/localbrain/schema-presentation.json",
-    "sha256": "cd8404e5f167fb9f3b9055923b2a7ca272ea2ade896eb8c62cbb1b90eb5b4f07",
+    "sha256": "ff9c3ec65bf7c9a0834addd183ac01f5826faf57848c7bbf30cd688b57814df2",
     "expected": {
-      "tables": 39,
-      "columns": 427,
-      "indexes": 38,
-      "physical_relations": 49,
-      "application_relations": 24
+      "tables": 42,
+      "columns": 458,
+      "indexes": 44,
+      "physical_relations": 54,
+      "application_relations": 25
     }
   },
   "decision_defaults": {
@@ -68,6 +68,9 @@
     "atlassian_item_classifications": {"decision": "keep", "risk": "high", "rationale": "Required user-confirmed Item-to-Topic/Tag membership; the classification-first index serves current browse filters while cascading ownership removes only local assignments."},
     "atlassian_evidence_scans": {"decision": "keep", "risk": "medium", "rationale": "Required source/extractor/configured-Site freshness boundary so unchanged eligible local inputs skip parsing while contract or configuration changes re-evaluate without remote access."},
     "atlassian_item_evidence": {"decision": "keep", "risk": "medium", "rationale": "Required derived source-separated URL sightings with exact Session/Document location and stable Item identity; it avoids excerpt and opaque provider-payload duplication."},
+    "atlassian_structure_references": {"decision": "keep", "risk": "high", "rationale": "Required stable Site/service-scoped identity for standard Atlassian Project, Board, filter, dashboard, portal, and Space URL references; evidence loss archives rather than renumbers the direct-history owner."},
+    "atlassian_structure_reference_urls": {"decision": "keep", "risk": "high", "rationale": "Required privacy-safe canonical and alias locator ownership for a stable structure reference; exact canonical choice and alias history are not equivalent after delete-and-recreate."},
+    "atlassian_structure_reference_evidence": {"decision": "keep", "risk": "medium", "rationale": "Required derived source-separated Session/Document sightings for reference availability, lifecycle, grouping-hint consensus, and bounded provenance without copying source text."},
     "suggestions": {"decision": "keep", "risk": "high", "rationale": "Required generated review queue and accepted/rejected history; refresh semantics explicitly preserve protected decisions."},
     "checkpoints": {"decision": "keep", "risk": "high", "rationale": "Confirmed snapshots remain non-rebuildable; FEAT-0030 added the Workstream/version index without transforming any snapshot row."},
     "checkpoint_resource_refs": {"decision": "keep", "risk": "high", "rationale": "Historical resource snapshots remain required; FEAT-0030 removed the redundant named index while preserving the four-column UNIQUE autoindex."},
@@ -142,6 +145,14 @@
     "atlassian_item_evidence.first_observed_at": {"decision": "defer", "risk": "medium", "defer": "canonical-timestamp-contract", "rationale": "First local evidence reconciliation uses Python ISO text within the shared unresolved timestamp contract."},
     "atlassian_item_evidence.last_observed_at": {"decision": "defer", "risk": "medium", "defer": "canonical-timestamp-contract", "rationale": "Latest evidence reconciliation participates in ordering and uses Python ISO text."},
     "atlassian_item_evidence.updated_at": {"decision": "defer", "risk": "medium", "defer": "canonical-timestamp-contract", "rationale": "Evidence row updates use Python ISO text beside SQLite defaults."},
+    "atlassian_structure_references.created_at": {"decision": "defer", "risk": "medium", "defer": "canonical-timestamp-contract", "rationale": "Stable structure-reference creation uses the SQLite default while reconciliation uses application timestamps elsewhere."},
+    "atlassian_structure_references.updated_at": {"decision": "defer", "risk": "medium", "defer": "canonical-timestamp-contract", "rationale": "Structure-reference updates share the unresolved SQLite and application timestamp text contract."},
+    "atlassian_structure_reference_urls.first_observed_at": {"decision": "defer", "risk": "medium", "defer": "canonical-timestamp-contract", "rationale": "First safe-locator observation must remain comparable with source-owned application timestamps."},
+    "atlassian_structure_reference_urls.last_observed_at": {"decision": "defer", "risk": "medium", "defer": "canonical-timestamp-contract", "rationale": "Latest safe-locator observation participates in ordering under the unresolved timestamp contract."},
+    "atlassian_structure_reference_evidence.observed_at": {"decision": "defer", "risk": "high", "defer": "canonical-timestamp-contract", "rationale": "Observed Session or Document time can originate from multiple source timestamp shapes."},
+    "atlassian_structure_reference_evidence.first_observed_at": {"decision": "defer", "risk": "medium", "defer": "canonical-timestamp-contract", "rationale": "First reference-evidence reconciliation uses application ISO text within the shared timestamp contract."},
+    "atlassian_structure_reference_evidence.last_observed_at": {"decision": "defer", "risk": "medium", "defer": "canonical-timestamp-contract", "rationale": "Latest successful reference-evidence reconciliation participates in availability and evidence ordering."},
+    "atlassian_structure_reference_evidence.updated_at": {"decision": "defer", "risk": "medium", "defer": "canonical-timestamp-contract", "rationale": "Reference-evidence updates use application ISO text beside SQLite defaults."},
     "suggestions.created_at": {"decision": "defer", "risk": "medium", "defer": "canonical-timestamp-contract", "rationale": "Queue ordering mixes default and application-written time shapes."},
     "suggestions.resolved_at": {"decision": "defer", "risk": "medium", "defer": "canonical-timestamp-contract", "rationale": "Review chronology is non-rebuildable and needs preservation-aware normalization."},
     "checkpoints.confirmed_at": {"decision": "defer", "risk": "high", "defer": "canonical-timestamp-contract", "rationale": "Human-confirmed chronology is non-rebuildable and must not be rewritten without a canonical parser and backup."},
@@ -227,6 +238,9 @@
     "atlassian_item_classifications": ["tests/test_atlassian_browse.py"],
     "atlassian_evidence_scans": ["tests/test_atlassian_evidence.py", "tests/test_parsers.py"],
     "atlassian_item_evidence": ["tests/test_atlassian_evidence.py", "tests/test_parsers.py"],
+    "atlassian_structure_references": ["tests/test_atlassian_structure_references.py", "tests/test_atlassian_evidence_sync.py", "tests/test_atlassian_browse.py"],
+    "atlassian_structure_reference_urls": ["tests/test_atlassian_structure_references.py", "tests/test_atlassian_evidence_sync.py"],
+    "atlassian_structure_reference_evidence": ["tests/test_atlassian_structure_references.py", "tests/test_atlassian_evidence_sync.py"],
     "suggestions": ["tests/test_runner.py", "tests/test_workstreams.py"],
     "checkpoints": ["tests/test_workstreams.py", "tests/test_schema_migrations.py"],
     "checkpoint_resource_refs": ["tests/test_workstreams.py", "tests/test_schema_migrations.py"],
@@ -237,14 +251,14 @@
   "audit_dimensions": {
     "unused_fields": ["FEAT-0032 removed the supported unused Activity Event metadata field after all-null preflight"],
     "duplicated_facts": ["Session/event counts retained as rebuildable summary caches", "Session reference evidence stores only bounded observed identity and source location rather than copying Activity Event text or shared target content", "External capability JSON is the canonical minimal logical-operation projection rather than duplicated Source Instance identity", "The external-sync relational row is a bounded query projection derived atomically from the versioned detailed Run manifest"],
-    "wrong_ownership": ["No existing table owner move proposed; all 39 objects have exactly one Data Model subject owner, including separate user-owned Session pins, source-neutral Session reference evidence, and the Atlassian domain-first Site, explicit access binding, source-specific evidence, and local-classification extensions."],
-    "polymorphic_referential_gaps": ["All 24 application relations retained; add_link validates live targets, historical unresolved links are intentional, and projection/source correlations have explicit cleanup"],
+    "wrong_ownership": ["No existing table owner move proposed; all 42 objects have exactly one Data Model subject owner, including separate user-owned Session pins, source-neutral Session reference evidence, and the Atlassian domain-first Site, explicit access binding, Item evidence, stable structure-reference identity/URL ownership, structure evidence, and local-classification extensions."],
+    "polymorphic_referential_gaps": ["All 25 application relations retained; add_link validates live targets, historical unresolved links are intentional, and projection/source correlations—including the stable structure-reference Search projection—have explicit cleanup"],
     "identifier_inconsistencies": ["INTEGER local identities and TEXT stable/source/run identities retained by authority boundary; polymorphic entity_id remains TEXT by contract"],
-    "missing_or_redundant_indexes": ["FEAT-0030 removed three proven redundant names and added query-prefix indexes; FEAT-0045 adds external-sync prefixes; FEAT-0046 adds Site, Space, Item, URL, canonical-URL, and freshness query coverage; FEAT-0047 adds Item, Session-location, and Document-location evidence prefixes; FEAT-0050 adds the classification-first membership prefix used by Topic/Tag browse filters; FEAT-0062 adds Source-first Site-binding lookup coverage; FEAT-0072 adds Session-target grouping plus Document and Atlassian target lifecycle prefixes."],
+    "missing_or_redundant_indexes": ["FEAT-0030 removed three proven redundant names and added query-prefix indexes; FEAT-0045 adds external-sync prefixes; FEAT-0046 adds Site, Space, Item, URL, canonical-URL, and freshness query coverage; FEAT-0047 adds Item, Session-location, and Document-location evidence prefixes; FEAT-0050 adds the classification-first membership prefix used by Topic/Tag browse filters; FEAT-0062 adds Source-first Site-binding lookup coverage; FEAT-0072 adds Session-target grouping plus Document and Atlassian target lifecycle prefixes; FEAT-0083 adds Site/kind reference lookup, canonical/alias ownership, and reference/Session/Document evidence prefixes."],
     "timestamp_inconsistency": ["canonical-timestamp-contract"],
-    "status_and_type_constraints": ["closed-vocabulary-constraints", "FEAT-0072 directly constrains reference scan state, target kind, evidence kind, read outcome, target/FK shape, completed tool identity, and the 100-target boundary; FEAT-0044 constrains provider, service, enabled, and capability availability; FEAT-0031 resolved Usage attribution and FEAT-0035 resolved Session class/index policy"],
-    "stable_data_in_json": ["Session reference target, evidence, outcome, source location, and counts are relational and retain no copied message or opaque tool JSON; External capability JSON retains only canonical sorted logical-operation names; the external-sync envelope owns query fields; Atlassian metadata and normalized documents are bounded versioned payloads while Site, Space, Item, URL, version, hash, coverage, attention, freshness, and source evidence identity remain relational."],
-    "deletion_behavior": ["Session reference scan/evidence rows cascade from their Session and exact target without deleting the target; Session pin rows cascade only when their owning Session is deleted; the external-sync extension cascades with its maintenance parent; Atlassian Site descendants restrict accidental Site deletion while access binding and nullable Source Instance pointers can be removed without deleting local identity; source deletion clears only derived evidence; explicit External Resource purge cascades source-specific Item extensions; unavailable results retain last-known state."],
-    "fresh_vs_compatible_drift": ["Idempotent schema application creates the FEAT-0072 Session reference tables and indexes, FEAT-0058 Session pin table, and FEAT-0044/0045/0046/0047/0050/0062 additive tables; the backup-backed External Resource rebuild removes only global URL uniqueness while preserving rows and polymorphic relations; the backup-backed Atlassian repair makes legacy Site access optional and backfills bindings plus Item/Space access ownership; canonical-timestamp-contract remains deferred."]
+    "status_and_type_constraints": ["closed-vocabulary-constraints", "FEAT-0083 constrains structure-reference service/kind pairing, canonical/alias URL role, evidence source channel, source shape, and bounded identity/locator values; FEAT-0072 directly constrains reference scan state, target kind, evidence kind, read outcome, target/FK shape, completed tool identity, and the 100-target boundary; FEAT-0044 constrains provider, service, enabled, and capability availability; FEAT-0031 resolved Usage attribution and FEAT-0035 resolved Session class/index policy"],
+    "stable_data_in_json": ["Session reference target, evidence, outcome, source location, and counts are relational and retain no copied message or opaque tool JSON; External capability JSON retains only canonical sorted logical-operation names; the external-sync envelope owns query fields; Atlassian metadata and normalized documents are bounded versioned payloads while Site, Space, Item, URL, structure-reference identity, canonical/alias safe locators, reference evidence, version, hash, coverage, attention, freshness, and source evidence identity remain relational."],
+    "deletion_behavior": ["Session reference scan/evidence rows cascade from their Session and exact target without deleting the target; Session pin rows cascade only when their owning Session is deleted; the external-sync extension cascades with its maintenance parent; Atlassian Site descendants restrict accidental Site deletion while access binding and nullable Source Instance pointers can be removed without deleting local identity; structure evidence cascades with its source but loss of all evidence archives rather than deletes the stable structure reference or its canonical/alias URLs; explicit External Resource purge cascades source-specific Item extensions; unavailable results retain last-known state."],
+    "fresh_vs_compatible_drift": ["Idempotent schema application creates the FEAT-0072 Session reference tables and indexes, FEAT-0058 Session pin table, FEAT-0083 structure-reference identity/URL/evidence tables and indexes, and FEAT-0044/0045/0046/0047/0050/0062 additive tables; the backup-backed External Resource rebuild removes only global URL uniqueness while preserving rows and polymorphic relations; the backup-backed Atlassian repair makes legacy Site access optional and backfills bindings plus Item/Space access ownership; canonical-timestamp-contract remains deferred."]
   }
 }

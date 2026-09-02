@@ -37,7 +37,7 @@ Each table contains:
 | `foreign_keys` | Table-local physical target, columns, and update/delete behavior. |
 | `semantics` | Purpose/authority, lifecycle contract and class, rebuildability code, producers, consumers, deletion effect, recovery path, DDL/migration ownership, and documented constraints. |
 
-The current baseline has nine subjects, 35 ordinary tables plus one FTS5 object, 383 effective columns, 33 explicit indexes, 40 physical relations, and 24 application relations. Count changes are accepted only with the implementation and semantic owners updated together.
+The current baseline has nine subjects, 41 ordinary tables plus one FTS5 object, 458 effective columns, 44 explicit indexes, 54 physical relations, and 25 application relations. Count changes are accepted only with the implementation and semantic owners updated together.
 
 ## Determinism And Failure
 

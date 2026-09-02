@@ -62,10 +62,14 @@
       <div class="workspace-shell">
         <header class="workspace-header">
           <span class="page-location">{% block page_location %}LocalBrain{% endblock %}</span>
-          <form class="global-search" action="/search" method="get">
-            <label class="sr-only" for="global-query">전체 검색</label>
-            <input id="global-query" name="q" type="search" placeholder="세션, 질문, 문서 통합 검색" value="{{ query | default('') }}">
-          </form>
+          {% if active_page == 'atlassian' %}
+            <span class="global-search-reserve" aria-hidden="true"></span>
+          {% else %}
+            <form class="global-search" action="/search" method="get">
+              <label class="sr-only" for="global-query">전체 검색</label>
+              <input id="global-query" name="q" type="search" placeholder="세션, 질문, 문서 통합 검색" value="{{ query | default('') }}">
+            </form>
+          {% endif %}
           <a class="search-link {% if active_page == 'search' %}active{% endif %}" href="/search" {% if active_page == 'search' %}aria-current="page"{% endif %}>Search</a>
         </header>
         <main class="app-main" id="main-content" tabindex="-1">

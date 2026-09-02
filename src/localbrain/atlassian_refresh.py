@@ -13,6 +13,7 @@ from .atlassian import (
     resolve_atlassian_site_access,
     set_atlassian_item_axes,
 )
+from .atlassian_browse import project_atlassian_item_container
 from .external_access import ExternalAccessError, capability_state
 from .external_sync import (
     RESULT_SCHEMA_VERSION,
@@ -89,7 +90,7 @@ def _scope_identity(
         return {
             "kind": scope_kind,
             "id": None,
-            "label": "All known Atlassian items",
+            "label": "알려진 모든 Atlassian 링크/문서",
             "return_to": "/atlassian",
         }
     normalized_id = _integer(scope_id, "scope_id")
@@ -271,7 +272,7 @@ def _item_rows(
     ).fetchall()
     by_id = {int(row["id"]): dict(row) for row in rows}
     if set(by_id) != set(normalized_ids):
-        _fail("item-not-found", "A selected Atlassian Item was not found")
+        _fail("item-not-found", "선택한 Atlassian 링크/문서를 찾지 못했습니다")
     items = []
     capability_cache = {}
     for item_id in normalized_ids:
@@ -299,7 +300,7 @@ def _item_rows(
                 item["service"], item["coverage"]
             )
             item["selectable"] = False
-            items.append(item)
+            items.append(project_atlassian_item_container(item))
             continue
         source_id = int(item["source_instance_id"])
         if source_id not in capability_cache:
@@ -321,7 +322,7 @@ def _item_rows(
             and item["capability_state"] == "current"
             and item["canonical_url"]
         )
-        items.append(item)
+        items.append(project_atlassian_item_container(item))
     return items
 
 
@@ -627,7 +628,7 @@ def prepare_atlassian_refresh_run(
     if not set(selected).issubset(by_id):
         _fail(
             "selection-outside-scope",
-            "Selected Items are outside the refresh scope",
+            "선택한 링크/문서가 Refresh 범위를 벗어났습니다",
         )
     targets = []
     selected_calls = 0
@@ -636,7 +637,7 @@ def prepare_atlassian_refresh_run(
         if not item["selectable"]:
             _fail(
                 "target-unavailable",
-                "A selected Item cannot be refreshed with current capability",
+                "선택한 링크/문서를 현재 연결 상태로 Refresh할 수 없습니다",
             )
         target = build_item_refresh_target(item)
         targets.append(target)

@@ -7,6 +7,7 @@ from unittest.mock import patch
 from localbrain.config import Settings
 from localbrain import db
 from localbrain.ingest import scanner
+from localbrain.ingest.common import REFERENCE_EXTRACTOR_VERSION
 from localbrain.main import (
     _session_sync_event_stream,
     scan_sources_page,
@@ -1151,6 +1152,28 @@ root = "{company}"
                         },
                         reference_unowned_before,
                     )
+                    self.assertEqual(
+                        connection.execute(
+                            """
+                            SELECT reference_contract_version
+                            FROM source_files WHERE source_id = ?
+                            """,
+                            (source_id,),
+                        ).fetchone()[0],
+                        REFERENCE_EXTRACTOR_VERSION,
+                    )
+
+                self.assertEqual(
+                    REFERENCE_EXTRACTOR_VERSION,
+                    "localbrain.session-reference.v3",
+                )
+                with patch.object(
+                    scanner,
+                    "reconcile_session_references",
+                    wraps=scanner.reconcile_session_references,
+                ) as reconcile_references:
+                    scanner.scan_session_sources()
+                self.assertEqual(reconcile_references.call_count, 0)
 
     def test_existing_current_parser_state_backfills_session_contract_without_repair(self):
         with tempfile.TemporaryDirectory() as temporary:

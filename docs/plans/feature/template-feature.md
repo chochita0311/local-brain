@@ -93,8 +93,8 @@
 - Existing flows or features that must remain intact.
 
 ## Harness Trace
-- Active spec doc: `[spec-0000-title](../spec/spec-0000-title.md)`
-- Active run: `[run-YYYYMMDD-01](../run/run-YYYYMMDD-01-title.md)`
+- Spec doc: `[spec-0000-title](../spec/spec-0000-title.md)`
+- Run: `[run-YYYYMMDD-01](../run/run-YYYYMMDD-01-title.md)`
 - Execution profile:
 - Latest evaluator report: `[eval-0000-title](../evaluation/eval-0000-title.md)`
 - Latest fix note: `[fix-0000-title](../fix/fix-0000-title.md)`

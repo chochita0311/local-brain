@@ -20,7 +20,7 @@ A family never mixes modes. Runtime code loads `src/localbrain/value-registry.js
 | Usage and cost records | 5 | 1 | [Open](value-dictionaries/usage-and-cost-records.md) |
 | Local Context corpus | 4 | 1 | [Open](value-dictionaries/local-context-corpus.md) |
 | Work organization and resources | 6 | 1 | [Open](value-dictionaries/work-organization-and-resources.md) |
-| Atlassian source memory | 14 | 0 | [Open](value-dictionaries/atlassian-source-memory.md) |
+| Atlassian source memory | 15 | 0 | [Open](value-dictionaries/atlassian-source-memory.md) |
 | Review and resume continuity | 4 | 1 | [Open](value-dictionaries/review-and-resume-continuity.md) |
 | Maintenance execution | 8 | 1 | [Open](value-dictionaries/maintenance-execution.md) |
 | Derived retrieval index | 1 | 1 | [Open](value-dictionaries/derived-retrieval-index.md) |

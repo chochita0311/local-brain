@@ -6,6 +6,7 @@ import asyncio
 from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import patch
+from urllib.parse import urlencode
 
 from starlette.requests import Request
 from localbrain.atlassian import (
@@ -285,6 +286,61 @@ class AtlassianRefreshTests(unittest.TestCase):
         self.assertEqual(workstream["selected_calls"], 3)
         self.assertEqual(thread["target_count"], 2)
         self.assertTrue(all(item["freshness"] == "unknown" for item in thread["items"]))
+
+    def test_refresh_projects_url_containers_and_persisted_space_precedence(self):
+        initial = refresh_preview(
+            self.connection,
+            scope_kind="all_known",
+            scope_id=None,
+        )
+        by_id = {item["id"]: item for item in initial["items"]}
+        self.assertEqual(
+            (
+                by_id[self.jira_item["external_resource_id"]]["container_kind"],
+                by_id[self.jira_item["external_resource_id"]]["container_label"],
+                by_id[self.jira_item["external_resource_id"]]["container_service"],
+                by_id[self.jira_item["external_resource_id"]]["container_cue"],
+            ),
+            ("url", "REF", "jira", "Jira · URL 기준"),
+        )
+        self.assertEqual(
+            (
+                by_id[self.wiki_item["external_resource_id"]]["container_kind"],
+                by_id[self.wiki_item["external_resource_id"]]["container_label"],
+                by_id[self.wiki_item["external_resource_id"]]["container_service"],
+                by_id[self.wiki_item["external_resource_id"]]["container_cue"],
+            ),
+            ("url", "TEAM", "confluence", "Wiki · URL 기준"),
+        )
+
+        space = register_atlassian_space(
+            self.connection,
+            site_id=self.wiki_item["site_id"],
+            source_instance_id=self.wiki_source["id"],
+            service="confluence",
+            name="Persisted Wiki Space",
+            space_key="TEAM",
+            canonical_url="https://wiki.refresh.test/spaces/TEAM",
+        )
+        self.connection.execute(
+            "UPDATE atlassian_items SET space_id = ? WHERE external_resource_id = ?",
+            (space["id"], self.wiki_item["external_resource_id"]),
+        )
+
+        projected = refresh_preview(
+            self.connection,
+            scope_kind="item",
+            scope_id=self.wiki_item["external_resource_id"],
+        )["items"][0]
+        self.assertEqual(
+            (
+                projected["container_kind"],
+                projected["container_label"],
+                projected["container_structural_scope"],
+                projected["space_name"],
+            ),
+            ("space", "Persisted Wiki Space", None, "Persisted Wiki Space"),
+        )
 
     def test_mixed_source_selection_prepares_one_run_and_keeps_single_source_compatibility(self):
         item_ids = [
@@ -729,6 +785,9 @@ class AtlassianRefreshTests(unittest.TestCase):
     def test_no_script_preview_is_local_and_unavailable_start_preserves_selection(self):
         prior_executor = app.state.external_read_executor
         app.state.external_read_executor = None
+        return_to = "/atlassian?view=jira&item={}".format(
+            self.jira_item["external_resource_id"]
+        )
         try:
             with patch(
                 "localbrain.main.connect", return_value=self.connection
@@ -740,13 +799,21 @@ class AtlassianRefreshTests(unittest.TestCase):
                     page=1,
                     retry=None,
                     run_id=None,
+                    return_to=return_to,
                 )
                 failed_response = asyncio.run(
                     atlassian_start_refresh(
                         self._request(
                             "POST",
-                            "scope=all_known&item_id={}&runner=claude".format(
-                                self.jira_item["external_resource_id"]
+                            urlencode(
+                                {
+                                    "scope": "all_known",
+                                    "item_id": self.jira_item[
+                                        "external_resource_id"
+                                    ],
+                                    "runner": "claude",
+                                    "return_to": return_to,
+                                }
                             ),
                         )
                     )
@@ -757,11 +824,29 @@ class AtlassianRefreshTests(unittest.TestCase):
         self.assertEqual(preview_response.status_code, 200)
         preview_body = preview_response.body.decode("utf-8")
         self.assertIn("LOCAL PREVIEW", preview_body)
-        self.assertIn("All known Atlassian items", preview_body)
+        self.assertIn("알려진 모든 Atlassian 링크/문서", preview_body)
+        self.assertIn(
+            'href="/atlassian?view=jira&amp;item={}"'.format(
+                self.jira_item["external_resource_id"]
+            ),
+            preview_body,
+        )
+        self.assertIn(
+            'name="return_to" value="/atlassian?view=jira&amp;item={}"'.format(
+                self.jira_item["external_resource_id"]
+            ),
+            preview_body,
+        )
         self.assertEqual(failed_response.status_code, 422)
         failed_body = failed_response.body.decode("utf-8")
         self.assertIn("host-side read executor", failed_body)
         self.assertIn(
             'value="{}"'.format(self.jira_item["external_resource_id"]),
+            failed_body,
+        )
+        self.assertIn(
+            'name="return_to" value="/atlassian?view=jira&amp;item={}"'.format(
+                self.jira_item["external_resource_id"]
+            ),
             failed_body,
         )

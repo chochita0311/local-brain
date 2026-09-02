@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block page_location %}Atlassian / Add{% endblock %}
+{% block content %}
+  <section class="page-heading">
+    <div><p class="eyebrow">LOCAL ONLY</p><h1>Add Atlassian URL</h1><p class="heading-copy">URL 하나로 Jira 또는 Confluence reference를 시작합니다.</p></div>
+  </section>
+  <section class="atlassian-add-page" aria-labelledby="atlassian-add-page-title" data-atlassian-registration>
+    <div class="atlassian-section-heading"><div><p class="eyebrow">ADD TO LOCALBRAIN</p><h2 id="atlassian-add-page-title">Atlassian URL</h2></div><span class="status-badge neutral">No remote read</span></div>
+    {% include "_atlassian-add-form.html" %}
+  </section>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', path='/atlassian.js') }}?v={{ asset_version | default('dev') }}" defer></script>{% endblock %}

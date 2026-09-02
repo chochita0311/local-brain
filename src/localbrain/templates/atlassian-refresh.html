@@ -3,7 +3,7 @@
 {% block page_location %}Atlassian refresh{% endblock %}
 {% block content %}
   <div class="atlassian-refresh-page" data-atlassian-refresh data-call-budget="{{ preview.call_budget }}" data-executor-ready="{{ 'true' if external_executor_ready else 'false' }}">
-    <a class="back-link" href="{{ preview.scope.return_to }}">원래 컨텍스트로 돌아가기</a>
+    <a class="back-link" href="{{ return_to }}">원래 컨텍스트로 돌아가기</a>
     <section class="page-heading atlassian-refresh-heading">
       <div>
         <p class="eyebrow">EXPLICIT REMOTE REFRESH</p>
@@ -35,7 +35,7 @@
           <span class="status-badge {{ 'success' if run_result.status == 'completed' else ('danger' if run_result.status == 'failed' else ('warning' if run_result.status == 'partial' else 'info')) }}">{{ value_label("maintenance.status", run_result.status) }}</span>
           <span>{{ value_label("external-sync.service", run_result.service) }} · {{ run_result.targets | length }} targets · {{ run_result.run_id }}</span>
           {% if run_result.status in ['queued', 'running', 'cancelling'] %}
-            <a href="/atlassian/refresh?scope={{ scope_kind }}{% if scope_id %}&id={{ scope_id }}{% endif %}&page={{ page }}&run={{ run_result.run_id }}">상태 새로고침</a>
+            <a href="/atlassian/refresh?scope={{ scope_kind }}{% if scope_id %}&id={{ scope_id }}{% endif %}&page={{ page }}&run={{ run_result.run_id }}&return_to={{ return_to_encoded }}">상태 새로고침</a>
           {% endif %}
         </div>
         {% if run_result.targets %}
@@ -49,14 +49,14 @@
           </div>
         {% endif %}
         {% if run_result.retry_item_ids %}
-          <a class="secondary-button button-link" href="/atlassian/refresh?scope={{ scope_kind }}{% if scope_id %}&id={{ scope_id }}{% endif %}&page={{ page }}&retry={{ run_result.retry_item_ids | join(',') }}">실패한 {{ run_result.retry_item_ids | length }}개만 다시 preview</a>
+          <a class="secondary-button button-link" href="/atlassian/refresh?scope={{ scope_kind }}{% if scope_id %}&id={{ scope_id }}{% endif %}&page={{ page }}&retry={{ run_result.retry_item_ids | join(',') }}&return_to={{ return_to_encoded }}">실패한 {{ run_result.retry_item_ids | length }}개만 다시 preview</a>
         {% endif %}
       </section>
     {% endif %}
 
     <section class="atlassian-refresh-summary" aria-label="Refresh 범위 요약">
       <div>
-        <span>Known Items</span>
+        <span>알려진 링크/문서</span>
         <strong>{{ preview.target_count }}</strong>
       </div>
       <div>
@@ -77,12 +77,13 @@
       <input type="hidden" name="scope" value="{{ scope_kind }}">
       {% if scope_id %}<input type="hidden" name="scope_id" value="{{ scope_id }}">{% endif %}
       <input type="hidden" name="page" value="{{ page }}">
+      <input type="hidden" name="return_to" value="{{ return_to }}">
 
       <section class="atlassian-refresh-targets" aria-labelledby="refresh-targets-title">
         <div class="atlassian-section-heading">
           <div>
             <p class="eyebrow">LOCAL PREVIEW</p>
-            <h2 id="refresh-targets-title">조회할 Item 선택</h2>
+            <h2 id="refresh-targets-title">조회할 링크/문서 선택</h2>
           </div>
           <span class="status-badge neutral">preview는 원격 조회 없음</span>
         </div>
@@ -107,7 +108,7 @@
                     <span class="status-badge neutral">{{ value_label("atlassian-item.coverage", item.coverage) }}</span>
                     <span class="status-badge {{ 'warning' if item.freshness in ['due', 'stale'] else ('danger' if item.freshness == 'unavailable' else ('success' if item.freshness == 'current' else 'neutral')) }}">{{ value_label("atlassian-item.freshness", item.freshness) }}</span>
                   </span>
-                  <span>{{ item.source_name }} · {{ item.normalized_domain }}{% if item.space_name %} · {{ item.space_name }}{% endif %}</span>
+                  <span>{{ 'Jira 링크' if item.service == 'jira' else 'Wiki 문서' }} · {{ item.source_name }} · {{ item.normalized_domain }}{% if item.container_label or item.space_name %} · {{ item.container_label or item.space_name }}{% if item.container_kind == 'url' %} · URL 기준{% endif %}{% endif %}</span>
                   <span class="atlassian-url">{{ item.canonical_url }}</span>
                 </span>
                 <span class="atlassian-refresh-row-meta">
@@ -121,8 +122,8 @@
           </div>
         {% else %}
           <div class="atlassian-empty-state">
-            <p>이 범위에 알려진 Atlassian Item이 없습니다.</p>
-            <span>Thread와 Workstream은 직접 연결된 Item만 포함하며 all-known은 회사 전체 목록이 아닙니다.</span>
+            <p>이 범위에 알려진 Atlassian 링크/문서가 없습니다.</p>
+            <span>Thread와 Workstream은 직접 연결된 링크/문서만 포함하며 all-known은 회사 전체 목록이 아닙니다.</span>
           </div>
         {% endif %}
 

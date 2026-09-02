@@ -507,10 +507,18 @@ Every persisted or user-visible derived state has one semantic family and a text
 | External Source Instance capability | `unknown` or `stale` | warning | identity remains visible; remote action unavailable pending inspection |
 | External Source Instance capability | `disabled` or `unavailable` | neutral | local inventory remains visible; remote action unavailable |
 | External Source Instance capability | `unauthorized` or `error` | danger | bounded reason and recovery context remain visible |
-| Atlassian Item freshness | `current` | success | last successful check remains visible |
-| Atlassian Item freshness | `due` or `stale` | warning | advisory label; never implies an automatic refresh |
-| Atlassian Item freshness | `unknown` | neutral | no successful check evidence |
-| Atlassian Item freshness | `unavailable` | danger | last-known local record remains visible |
+| Atlassian link/document freshness | `current` | success | last successful check remains visible |
+| Atlassian link/document freshness | `due` or `stale` | warning | advisory label; never implies an automatic refresh |
+| Atlassian link/document freshness | `unknown` | neutral | no successful check evidence |
+| Atlassian link/document freshness | `unavailable` | danger | last-known local record remains visible |
+| Atlassian local Sync outcome | `new` | success | newly registered local link/document count; source units remain separate |
+| Atlassian local Sync outcome | `reused` | info | existing local link/document or evidence reused without remote confirmation |
+| Atlassian local Sync outcome | `skipped` | neutral | bounded excluded-source or target reason remains inspectable |
+| Atlassian local Sync outcome | `unavailable` | warning | prior evidence remains; source synchronization or retry guidance stays visible |
+| Atlassian local Sync outcome | `failed` | danger | bounded local failure and same-action retry remain visible |
+| Atlassian URL-derived structure reference | `available` | success | current local Session or Local Context evidence remains visible beside the stable URL-derived provenance cue |
+| Atlassian URL-derived structure reference | `unavailable` | warning | retained reference remains visible while its current local evidence source cannot be read |
+| Atlassian URL-derived structure reference | `archived` | neutral | direct history remains inspectable after all owning evidence has disappeared; default inventory and Search exclude it |
 
 ### Derived And Transient UI States
 
@@ -568,6 +576,11 @@ Running and working indicators may animate with motion tokens. Under `prefers-re
 ### Search And Filters
 
 - Global search remains available from the shared header.
+- Atlassian is the bounded exception that replaces the shared-header query
+  with one surface-local query while its route is active. The shared header
+  keeps its normal height, navigation alignment, and surrounding geometry so
+  entering or leaving Atlassian does not read as a shell replacement. No
+  Atlassian state may expose both query owners at once.
 - Page search and filters preserve the user's query and selection when navigating between list and detail views whenever the route supports it.
 - A zero-result state distinguishes “no data exists” from “no data matches these filters.”
 - Filter rails become in-flow controls before they reduce the primary content column below a readable width.
@@ -600,7 +613,38 @@ Running and working indicators may animate with motion tokens. Under `prefers-re
 - **Workstream hierarchy:** Workstream identity and status lead; Threads, checkpoint state, linked resources, Suggestions, and Runs follow in that order of responsibility.
 - **Browse and inventory:** headings, filters, counts, rows or cards, and bounded empty states form one scan path. A desktop Pinned Session list keeps its normal left card inset while its rows and boundaries own a `--space-section` right inset independent of the scrollbar lane; narrow in-flow presentation drops the extra inset with the nested scroller.
 - **Detail and read:** title and source metadata precede the body; evidence and actions stay adjacent without shrinking the reading column. A primary Session's `관련 자료` rail presents direct evidence before explicit organization, keeps its title free of a duplicate aggregate count while retaining relationship-group totals, preserves the `연결된 작업` exploration lane with a zero total when no organization-only material remains, shows up to 100 retained rows per group initially, groups material kinds into one alphabetically ordered heading each, and orders direct references within a kind by their oldest source occurrence. The rail uses a descending heading scale from rail title to relationship group to material kind and ends each material-kind section with a stronger boundary while individual items rely on spacing instead of row rules. On desktop, its material content owns a `--space-section` right inset independent of the scrollbar lane while the normal left inset remains `--space-card`; compact in-flow presentation drops the extra right inset with the nested scroller. Retained overflow uses one reversible disclosure whose collapse control follows the expanded rows in DOM, visual, and keyboard-focus order. On desktop, the rail stays viewport-bounded and its material body scrolls independently while the document continues to own the primary reading scroll.
-- **Explorer:** source rail, tree, and preview preserve selection context; panes collapse into sequential regions on narrow screens.
+- **Explorer:** hierarchy, inventory, and preview preserve selection context;
+  panes collapse into sequential regions on narrow screens. Local Contexts use
+  source/directory/document containment. Atlassian keeps `All`, `Jira`, and
+  `Wiki` as reversible top scopes, then begins the hierarchy at `모든 도메인`
+  followed by normalized Site domain without repeating Service as a parent. Each Site uses only
+  persisted Project/Space children, deterministic canonical-URL container
+  hints, and one honest `소속 미확인` child. Persisted containment and
+  read-only URL hints remain visibly distinguishable when labels collide; Jira
+  and Wiki remain distinguishable in `All` through a compact non-color-only cue.
+  A URL hint never visually claims a confirmed or persisted Space, and the
+  hierarchy does not imply a nested Confluence Page or Jira issue tree. `Wiki`
+  remains a presentation label for stored Confluence identity. Wide layouts
+  keep hierarchy, one mixed list of links/documents and URL-derived structure
+  references, and the selected entity's read-first detail adjacent with
+  intentional scroll ownership. Compact layouts keep the list primary and move
+  hierarchy/detail into bounded disclosures. Narrow layouts are list-first
+  with explicit sheets or sequential destinations. Unsupported pane state
+  normalizes at breakpoint changes without hiding the selected link/document
+  or structure reference, losing the mutually exclusive selection, or losing
+  the matching full-detail destination. Structure-reference detail remains
+  read-only and keeps its URL-derived provenance and availability/lifecycle
+  state separate from Item editing, Refresh, and Connections authority.
+- **Atlassian action separation:** local evidence Sync, one-URL manual Add,
+  optional Connections and connected discovery, and remote Refresh are four
+  distinct actions. Their labels, prerequisites, progress, completion, and
+  recovery must not imply the same I/O or consequence. Local Browse, search,
+  detail, Add, and Sync never require remote readiness.
+- **Atlassian ordinary terminology:** Jira-only context uses `링크`, Wiki-only
+  context uses `문서`, and mixed context uses `링크/문서` across Explorer,
+  Add, preview, full detail, Sync, Connections, Refresh, shared Search, and live
+  announcements. `Item` remains an internal schema/API/diagnostic term and may
+  remain in historical artifacts, but it is not ordinary task copy.
 - **Execution:** configuration, queued/running state, output, artifacts, and terminal result remain distinguishable throughout the Run lifecycle.
 - **Provenance cue:** imported source, inferred relation, user confirmation, and unavailable evidence use stable labels and placement across screen families.
 
@@ -657,10 +701,10 @@ Any durable change to visual DNA, primitive families, semantic roles, shell geom
 | Family | Current surfaces | Durable constraints |
 |---|---|---|
 | Overview and dashboard | Dashboard, Sessions Dashboard | summary must lead to underlying Workstreams, Sessions, Sources, or evidence; metrics are not decorative |
-| Browse and inventory | Workstreams, Sessions, Projects, Sources, Atlassian, Search | supports filtering, long labels, empty results, source identity, and stable row/card metadata |
+| Browse and inventory | Workstreams, Sessions, Projects, Sources, Search | supports filtering, long labels, empty results, source identity, and stable row/card metadata |
 | Detail and read | Session, Subsession, Document, local Resource | prioritizes readable body width, source metadata, deep links, and long technical content |
 | Workstream workspace | Workstream detail | preserves Workstream → Thread → evidence hierarchy and separates confirmed organization from Suggestions |
-| Explorer | Local Contexts, Schema | preserves source or subject selection, tree or table orientation, progressive preview, unreadable, missing, and diagram-unavailable states |
+| Explorer | Atlassian, Local Contexts, Schema | preserves source or subject selection, hierarchy/tree/table orientation, progressive preview, unreadable, missing, honestly unassigned, and diagram-unavailable states; each surface uses only containment its product model owns, and Atlassian keeps top service scopes outside its domain-first hierarchy |
 | Run and console | maintenance Run | represents the complete Run lifecycle, cancellation, output, artifacts, and terminal result |
 
 New routes fit one of these families or justify a constitution change. A new feature does not create a new visual family merely because its data is new.

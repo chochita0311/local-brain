@@ -8,13 +8,13 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 ## `search-index.entity-type`
 
 - Physical field or projection: `search_index.entity_type`
-- Allowed values: `session`, `document`, `atlassian_item`
+- Allowed values: `session`, `document`, `atlassian_item`, `atlassian_structure_reference`
 - Enforcement: `projection`
 - Logical axis: search projection owner
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/retrieval.py`, `src/localbrain/atlassian.py`
-- Consumers: `src/localbrain/retrieval.py`, `src/localbrain/atlassian_browse.py`
+- Producers: `src/localbrain/retrieval.py`, `src/localbrain/atlassian.py`, `src/localbrain/atlassian_structure_references.py`
+- Consumers: `src/localbrain/retrieval.py`, `src/localbrain/atlassian_browse.py`, `src/localbrain/atlassian_structure_references.py`
 - Consequence: Selects the source table and result route for a derived row.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.

@@ -14,12 +14,12 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Default: `claude`
 - Fallbacks: `null`: reject; `unknown`: label → 알 수 없는 Runner; `invalid`: reject; `future`: label → 새 Runner
 - Producers: `src/localbrain/runner.py`, `src/localbrain/external_sync.py`
-- Consumers: `src/localbrain/runner.py`, `src/localbrain/templates/run.html`, `src/localbrain/templates/atlassian.html`, `src/localbrain/templates/atlassian-item.html`, `src/localbrain/templates/atlassian-refresh.html`
+- Consumers: `src/localbrain/runner.py`, `src/localbrain/templates/run.html`, `src/localbrain/templates/_atlassian-item-preview.html`, `src/localbrain/templates/atlassian-connections.html`, `src/localbrain/templates/atlassian-item.html`, `src/localbrain/templates/atlassian-refresh.html`
 - Consequence: Selects the local CLI invocation contract.
 - Presentation mode: `logical-label`
 - Labels: `claude` → Claude; `codex` → Codex
 - Help: 로컬 유지관리 실행에 사용한 도구입니다.
-- Visible consumer inventory: `src/localbrain/templates/run.html` (registry-backed); `src/localbrain/templates/atlassian.html` (registry-backed); `src/localbrain/templates/atlassian-item.html` (registry-backed); `src/localbrain/templates/atlassian-refresh.html` (registry-backed)
+- Visible consumer inventory: `src/localbrain/templates/run.html` (registry-backed); `src/localbrain/templates/_atlassian-item-preview.html` (registry-backed); `src/localbrain/templates/atlassian-connections.html` (registry-backed); `src/localbrain/templates/atlassian-item.html` (registry-backed); `src/localbrain/templates/atlassian-refresh.html` (registry-backed)
 
 ## `maintenance.task-type`
 
@@ -46,12 +46,12 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Default: `prepared`
 - Fallbacks: `null`: reject; `unknown`: label → 상태 알 수 없음; `invalid`: reject; `future`: label → 새 실행 상태
 - Producers: `src/localbrain/runner.py`, `src/localbrain/external_sync.py`
-- Consumers: `src/localbrain/runner.py`, `src/localbrain/templates/run.html`, `src/localbrain/templates/workstream.html`, `src/localbrain/templates/atlassian.html`, `src/localbrain/templates/atlassian-item.html`, `src/localbrain/templates/atlassian-refresh.html`
+- Consumers: `src/localbrain/runner.py`, `src/localbrain/templates/run.html`, `src/localbrain/templates/workstream.html`, `src/localbrain/templates/_atlassian-item-preview.html`, `src/localbrain/templates/atlassian-connections.html`, `src/localbrain/templates/atlassian-item.html`, `src/localbrain/templates/atlassian-refresh.html`
 - Consequence: Controls polling, cancellation, finalization, and retained evidence.
 - Presentation mode: `logical-label`
 - Labels: `prepared` → 준비됨; `queued` → 대기 중; `running` → 실행 중; `cancelling` → 중지 중; `cancelled` → 중지됨; `completed` → 완료; `partial` → 일부 완료; `failed` → 실패; `interrupted` → 중단됨
 - Help: 로컬 유지관리 실행의 현재 또는 최종 상태입니다.
-- Visible consumer inventory: `src/localbrain/templates/run.html` (registry-backed); `src/localbrain/templates/workstream.html` (registry-backed); `src/localbrain/templates/atlassian.html` (registry-backed); `src/localbrain/templates/atlassian-item.html` (registry-backed); `src/localbrain/templates/atlassian-refresh.html` (registry-backed)
+- Visible consumer inventory: `src/localbrain/templates/run.html` (registry-backed); `src/localbrain/templates/workstream.html` (registry-backed); `src/localbrain/templates/_atlassian-item-preview.html` (registry-backed); `src/localbrain/templates/atlassian-connections.html` (registry-backed); `src/localbrain/templates/atlassian-item.html` (registry-backed); `src/localbrain/templates/atlassian-refresh.html` (registry-backed)
 
 ## `maintenance.refresh-suggestions`
 

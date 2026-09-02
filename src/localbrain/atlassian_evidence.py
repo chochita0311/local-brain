@@ -2,16 +2,19 @@ import hashlib
 import json
 import re
 import sqlite3
+import unicodedata
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Iterable, Optional, Sequence
-from urllib.parse import parse_qs, urlsplit
+from typing import Iterable, Mapping, Optional, Sequence
+from urllib.parse import unquote_to_bytes
 
 from .atlassian import (
-    AtlassianContractError,
     NormalizedAtlassianUrl,
     create_or_reuse_atlassian_stub,
-    normalize_atlassian_url,
+)
+from .atlassian_locators import (
+    atlassian_item_container_hint,
+    describe_atlassian_url,
 )
 from .ingest.common import (
     EVIDENCE_EXTRACTOR_VERSION,
@@ -21,15 +24,11 @@ from .ingest.common import (
 from .workstreams import utc_now
 
 
-JIRA_PATH_PATTERN = re.compile(
-    r"/(?:browse|issues)/([A-Z][A-Z0-9_]*-\d+)(?:/|$)",
-    re.IGNORECASE,
-)
-CONFLUENCE_PAGE_PATTERN = re.compile(
-    r"/(?:wiki/)?(?:spaces/[^/]+/)?pages/(\d+)(?:/|$)",
-    re.IGNORECASE,
-)
 MAX_SOURCE_EVIDENCE = 500
+MAX_CONTAINER_HINT_CODE_POINTS = 300
+MAX_STRUCTURAL_SCOPE_CODE_POINTS = 320
+JIRA_CONTAINER_PREFIX = "url:jira:"
+CONFLUENCE_CONTAINER_PREFIX = "url:confluence:"
 
 
 @dataclass(frozen=True)
@@ -40,6 +39,32 @@ class RecognizedAtlassianItemUrl:
     normalized: NormalizedAtlassianUrl
     observed_remote_id: Optional[str]
     observed_remote_key: Optional[str]
+    container_structural_scope: Optional[str] = None
+    container_label: Optional[str] = None
+
+
+@dataclass(frozen=True)
+class StrictAtlassianItemUrl:
+    service: str
+    normalized: NormalizedAtlassianUrl
+    observed_remote_id: Optional[str]
+    observed_remote_key: Optional[str]
+    container_structural_scope: Optional[str]
+    container_label: Optional[str]
+
+
+@dataclass(frozen=True)
+class StrictAtlassianItemUrlResult:
+    recognized: Optional[StrictAtlassianItemUrl]
+    reason_code: Optional[str]
+    normalized_url: Optional[str]
+
+
+@dataclass(frozen=True)
+class ScopedAtlassianItemUrl:
+    recognized: Optional[RecognizedAtlassianItemUrl]
+    reason_code: Optional[str]
+    normalized_url: Optional[str]
 
 
 @contextmanager
@@ -87,9 +112,9 @@ def document_evidence_source_fingerprint(content_hash: str) -> str:
     return _hash_payload({"kind": "document", "content_hash": content_hash})
 
 
-def configured_atlassian_site_fingerprint(
+def configured_atlassian_site_scope_snapshot(
     connection: sqlite3.Connection,
-) -> str:
+) -> tuple[dict[tuple[str, str], tuple[int, ...]], str]:
     rows = connection.execute(
         """
         SELECT atlassian_sites.id AS site_id,
@@ -113,54 +138,275 @@ def configured_atlassian_site_fingerprint(
         ORDER BY atlassian_sites.id, scoped_sites.service
         """
     ).fetchall()
-    return _hash_payload([dict(row) for row in rows])
+    scope: dict[tuple[str, str], list[int]] = {}
+    for row in rows:
+        key = (str(row["normalized_domain"]), str(row["service"]))
+        scope.setdefault(key, []).append(int(row["site_id"]))
+    frozen_scope = {
+        key: tuple(dict.fromkeys(site_ids))
+        for key, site_ids in scope.items()
+    }
+    return frozen_scope, _hash_payload([dict(row) for row in rows])
 
 
-def _service_identity(
-    normalized: NormalizedAtlassianUrl,
-) -> Optional[tuple[str, Optional[str], Optional[str]]]:
-    parsed = urlsplit(normalized.normalized_url)
-    path = parsed.path or "/"
-    query = parse_qs(parsed.query)
+def configured_atlassian_site_fingerprint(
+    connection: sqlite3.Connection,
+) -> str:
+    _scope, fingerprint = configured_atlassian_site_scope_snapshot(connection)
+    return fingerprint
 
-    jira_match = JIRA_PATH_PATTERN.search(path)
-    jira_key = jira_match.group(1).upper() if jira_match else None
-    if jira_key is None:
-        for name in ("selectedIssue", "issueKey", "key"):
-            values = query.get(name) or query.get(name.lower())
-            if not values:
-                continue
-            candidate = values[0].strip().upper()
-            if re.fullmatch(r"[A-Z][A-Z0-9_]*-\d+", candidate):
-                jira_key = candidate
-                break
-    if jira_key is not None and "/rest/" not in path.lower():
-        return "jira", None, jira_key
 
-    page_match = CONFLUENCE_PAGE_PATTERN.search(path)
-    page_id = page_match.group(1) if page_match else None
-    if page_id is None:
-        for name in ("pageId", "pageid"):
-            values = query.get(name)
-            if values and values[0].strip().isdigit():
-                page_id = values[0].strip()
-                break
-    if page_id is not None and "/rest/" not in path.lower():
-        return "confluence", page_id, None
+def configured_atlassian_sync_scope_snapshot(
+    connection: sqlite3.Connection,
+) -> tuple[
+    dict[tuple[str, str], tuple[int, ...]],
+    dict[tuple[int, str], Optional[int]],
+    str,
+    dict[str, tuple[int, ...]],
+]:
+    with _atomic(connection, "atlassian_sync_scope_snapshot"):
+        scope, fingerprint = configured_atlassian_site_scope_snapshot(
+            connection
+        )
+        rows = connection.execute(
+            """
+            SELECT atlassian_site_bindings.site_id,
+                   external_source_instances.service,
+                   external_source_instances.id AS source_instance_id
+            FROM atlassian_site_bindings
+            JOIN external_source_instances
+              ON external_source_instances.id =
+                 atlassian_site_bindings.source_instance_id
+            WHERE external_source_instances.enabled = 1
+            ORDER BY atlassian_site_bindings.site_id,
+                     external_source_instances.service,
+                     external_source_instances.id
+            """
+        ).fetchall()
+        site_rows = connection.execute(
+            """
+            SELECT id, normalized_domain
+            FROM atlassian_sites
+            ORDER BY normalized_domain, id
+            """
+        ).fetchall()
+    candidates: dict[tuple[int, str], list[int]] = {}
+    for row in rows:
+        key = (int(row["site_id"]), str(row["service"]))
+        candidates.setdefault(key, []).append(int(row["source_instance_id"]))
+    choices = {
+        (site_id, service): (
+            candidates.get((site_id, service), [None])[0]
+            if len(candidates.get((site_id, service), ())) == 1
+            else None
+        )
+        for (_domain, service), site_ids in scope.items()
+        for site_id in site_ids
+    }
+    domain_sites: dict[str, list[int]] = {}
+    for row in site_rows:
+        domain_sites.setdefault(str(row["normalized_domain"]), []).append(
+            int(row["id"])
+        )
+    return (
+        scope,
+        choices,
+        fingerprint,
+        {key: tuple(value) for key, value in domain_sites.items()},
+    )
+
+
+def _validated_confluence_container(value: Optional[str]) -> Optional[str]:
+    if value is None or re.search(r"%(?![0-9A-Fa-f]{2})", value):
+        return None
+    try:
+        decoded = unquote_to_bytes(value).decode("utf-8", errors="strict")
+    except UnicodeDecodeError:
+        return None
+    normalized = unicodedata.normalize("NFKC", decoded)
+    if (
+        not normalized
+        or not normalized.strip()
+        or normalized in {".", ".."}
+        or len(normalized) > MAX_CONTAINER_HINT_CODE_POINTS
+        or "/" in normalized
+        or "\\" in normalized
+        or any(unicodedata.category(character).startswith("C") for character in normalized)
+    ):
+        return None
+    return normalized
+
+
+def normalize_atlassian_structural_scope(value: object) -> Optional[str]:
+    if value in (None, ""):
+        return None
+    normalized = str(value)
+    if len(normalized) > MAX_STRUCTURAL_SCOPE_CODE_POINTS:
+        return None
+    if normalized == "unclassified":
+        return normalized
+    if normalized.startswith(JIRA_CONTAINER_PREFIX):
+        project_key = normalized[len(JIRA_CONTAINER_PREFIX) :].upper()
+        if (
+            len(project_key) <= MAX_CONTAINER_HINT_CODE_POINTS
+            and re.fullmatch(r"[A-Z][A-Z0-9_]*", project_key)
+        ):
+            return JIRA_CONTAINER_PREFIX + project_key
+        return None
+    if normalized.startswith(CONFLUENCE_CONTAINER_PREFIX):
+        segment = unicodedata.normalize(
+            "NFKC", normalized[len(CONFLUENCE_CONTAINER_PREFIX) :]
+        )
+        if (
+            segment
+            and segment.strip()
+            and segment not in {".", ".."}
+            and len(segment) <= MAX_CONTAINER_HINT_CODE_POINTS
+            and "/" not in segment
+            and "\\" not in segment
+            and not any(
+                unicodedata.category(character).startswith("C")
+                for character in segment
+            )
+        ):
+            return CONFLUENCE_CONTAINER_PREFIX + segment
     return None
+
+
+def structural_scope_service(value: Optional[str]) -> Optional[str]:
+    if value and value.startswith(JIRA_CONTAINER_PREFIX):
+        return "jira"
+    if value and value.startswith(CONFLUENCE_CONTAINER_PREFIX):
+        return "confluence"
+    return None
+
+
+def recognize_strict_atlassian_item_url(
+    url: str,
+) -> StrictAtlassianItemUrlResult:
+    locator = describe_atlassian_url(url)
+    if locator.kind == "unsafe":
+        return StrictAtlassianItemUrlResult(None, "unsafe-url", None)
+    if locator.kind != "item":
+        return StrictAtlassianItemUrlResult(
+            None,
+            "unsupported-locator",
+            locator.safe_locator_url,
+        )
+    assert locator.service is not None
+    assert locator.normalized_domain is not None
+    assert locator.canonical_base_url is not None
+    assert locator.safe_locator_url is not None
+    assert locator.item_identity is not None
+    container_label = atlassian_item_container_hint(url)
+    container_scope = None
+    if container_label is not None:
+        container_scope = (
+            JIRA_CONTAINER_PREFIX
+            if locator.service == "jira"
+            else CONFLUENCE_CONTAINER_PREFIX
+        ) + container_label
+    normalized = NormalizedAtlassianUrl(
+        observed_url=url.strip(),
+        normalized_url=locator.safe_locator_url,
+        normalized_domain=locator.normalized_domain,
+        canonical_base_url=locator.canonical_base_url,
+    )
+    return StrictAtlassianItemUrlResult(
+        StrictAtlassianItemUrl(
+            service=locator.service,
+            normalized=normalized,
+            observed_remote_id=(
+                locator.item_identity
+                if locator.item_identity_kind == "confluence_page"
+                else None
+            ),
+            observed_remote_key=(
+                locator.item_identity
+                if locator.item_identity_kind == "jira_issue"
+                else None
+            ),
+            container_structural_scope=container_scope,
+            container_label=container_label,
+        ),
+        None,
+        locator.safe_locator_url,
+    )
+
+
+def atlassian_url_container_hint(url: Optional[str]) -> Optional[dict]:
+    if not url:
+        return None
+    result = recognize_strict_atlassian_item_url(str(url))
+    recognized = result.recognized
+    if recognized is None or recognized.container_structural_scope is None:
+        return None
+    return {
+        "structural_scope": recognized.container_structural_scope,
+        "label": recognized.container_label,
+        "service": recognized.service,
+    }
+
+
+def recognize_atlassian_item_url_in_scope(
+    url: str,
+    scope: Mapping[tuple[str, str], Sequence[int]],
+) -> ScopedAtlassianItemUrl:
+    strict = recognize_strict_atlassian_item_url(url)
+    if strict.recognized is None:
+        return ScopedAtlassianItemUrl(
+            None,
+            strict.reason_code,
+            strict.normalized_url,
+        )
+    locator = strict.recognized
+    normalized = locator.normalized
+    service = locator.service
+    site_ids = tuple(
+        dict.fromkeys(
+            int(site_id)
+            for site_id in scope.get(
+                (normalized.normalized_domain, service), ()
+            )
+        )
+    )
+    if not site_ids:
+        return ScopedAtlassianItemUrl(
+            None,
+            "unconfigured-domain",
+            normalized.normalized_url,
+        )
+    if len(site_ids) != 1:
+        return ScopedAtlassianItemUrl(
+            None,
+            "ambiguous-site",
+            normalized.normalized_url,
+        )
+    return ScopedAtlassianItemUrl(
+        RecognizedAtlassianItemUrl(
+            source_instance_id=None,
+            site_id=site_ids[0],
+            service=service,
+            normalized=normalized,
+            observed_remote_id=locator.observed_remote_id,
+            observed_remote_key=locator.observed_remote_key,
+            container_structural_scope=locator.container_structural_scope,
+            container_label=locator.container_label,
+        ),
+        None,
+        normalized.normalized_url,
+    )
 
 
 def recognize_configured_atlassian_item_url(
     connection: sqlite3.Connection, url: str
 ) -> Optional[RecognizedAtlassianItemUrl]:
-    try:
-        normalized = normalize_atlassian_url(url)
-    except AtlassianContractError:
+    strict = recognize_strict_atlassian_item_url(url)
+    if strict.recognized is None:
         return None
-    identity = _service_identity(normalized)
-    if identity is None:
-        return None
-    service, remote_id, remote_key = identity
+    locator = strict.recognized
+    normalized = locator.normalized
+    service = locator.service
     rows = connection.execute(
         """
         SELECT DISTINCT atlassian_sites.id AS site_id
@@ -209,8 +455,10 @@ def recognize_configured_atlassian_item_url(
         site_id=int(row["site_id"]),
         service=service,
         normalized=normalized,
-        observed_remote_id=remote_id,
-        observed_remote_key=remote_key,
+        observed_remote_id=locator.observed_remote_id,
+        observed_remote_key=locator.observed_remote_key,
+        container_structural_scope=locator.container_structural_scope,
+        container_label=locator.container_label,
     )
 
 
@@ -288,6 +536,7 @@ def _record_scan(
     document_id: Optional[int] = None,
     error_code: Optional[str] = None,
     error_message: Optional[str] = None,
+    extractor_version: str = EVIDENCE_EXTRACTOR_VERSION,
 ) -> None:
     existing = _scan_row(
         connection,
@@ -299,7 +548,7 @@ def _record_scan(
     values = (
         source_fingerprint,
         site_fingerprint,
-        EVIDENCE_EXTRACTOR_VERSION,
+        extractor_version,
         status,
         error_code,
         error_message[:500] if error_message else None,
@@ -331,6 +580,24 @@ def _record_scan(
     )
 
 
+def record_document_evidence_scan(
+    connection: sqlite3.Connection,
+    *,
+    document_id: int,
+    source_fingerprint: str,
+    site_fingerprint: str,
+    extractor_version: str = EVIDENCE_EXTRACTOR_VERSION,
+) -> None:
+    _record_scan(
+        connection,
+        document_id=document_id,
+        source_fingerprint=source_fingerprint,
+        site_fingerprint=site_fingerprint,
+        status="ok",
+        extractor_version=extractor_version,
+    )
+
+
 def _source_predicate(
     session_id: Optional[int],
     source_path: Optional[str],
@@ -346,7 +613,7 @@ def _source_predicate(
     return "document_id = ?", (document_id,)
 
 
-def _evidence_key(
+def atlassian_evidence_key(
     *,
     external_resource_id: int,
     session_id: Optional[int],
@@ -354,6 +621,7 @@ def _evidence_key(
     document_id: Optional[int],
     candidate: ParsedUrlEvidence,
     normalized_url: str,
+    extractor_version: str = EVIDENCE_EXTRACTOR_VERSION,
 ) -> str:
     return _hash_payload(
         {
@@ -366,7 +634,7 @@ def _evidence_key(
             "source_line": candidate.source_line,
             "url_ordinal": candidate.url_ordinal,
             "normalized_url": normalized_url,
-            "extractor_version": EVIDENCE_EXTRACTOR_VERSION,
+            "extractor_version": extractor_version,
         }
     )
 
@@ -399,11 +667,31 @@ def _reconcile_source_evidence(
                     source_instance_id=recognized.source_instance_id,
                     service=recognized.service,
                     site_id=recognized.site_id,
-                    url=candidate.observed_url,
+                    url=recognized.normalized.normalized_url,
                     observed_at=candidate.observed_at or now,
                 )
                 external_resource_id = int(item["external_resource_id"])
-                evidence_key = _evidence_key(
+                if (
+                    document_id is not None
+                    and candidate.observed_url
+                    != recognized.normalized.normalized_url
+                ):
+                    connection.execute(
+                        """
+                        UPDATE atlassian_item_urls
+                        SET observed_url = ?, last_observed_at = ?
+                        WHERE external_resource_id = ? AND site_id = ?
+                          AND normalized_url = ?
+                        """,
+                        (
+                            candidate.observed_url,
+                            candidate.observed_at or now,
+                            external_resource_id,
+                            recognized.site_id,
+                            recognized.normalized.normalized_url,
+                        ),
+                    )
+                evidence_key = atlassian_evidence_key(
                     external_resource_id=external_resource_id,
                     session_id=session_id,
                     source_path=source_path,
@@ -443,7 +731,11 @@ def _reconcile_source_evidence(
                         candidate.source_event_id,
                         candidate.source_line,
                         candidate.url_ordinal,
-                        candidate.observed_url,
+                        (
+                            candidate.observed_url
+                            if document_id is not None
+                            else recognized.normalized.normalized_url
+                        ),
                         recognized.normalized.normalized_url,
                         observed_remote_id,
                         candidate.observed_title,

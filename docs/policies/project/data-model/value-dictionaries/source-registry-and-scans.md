@@ -78,12 +78,12 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: label → 알 수 없는 연결 방식; `invalid`: reject; `future`: label → 새 연결 방식
 - Producers: `src/localbrain/external_access.py`
-- Consumers: `src/localbrain/atlassian_registration.py`, `src/localbrain/templates/atlassian.html`
+- Consumers: `src/localbrain/atlassian_registration.py`, `src/localbrain/templates/atlassian-connections.html`
 - Consequence: Selects the approved MCP dispatch adapter.
 - Presentation mode: `logical-label`
 - Labels: `mcp_gateway` → 회사 MCP Gateway; `atlassian_cloud` → 공식 Atlassian MCP
 - Help: 같은 사이트도 연결 방식별로 별도 등록됩니다.
-- Visible consumer inventory: `src/localbrain/templates/atlassian.html` (registry-backed)
+- Visible consumer inventory: `src/localbrain/templates/atlassian-connections.html` (registry-backed)
 
 ## `external-source.service`
 
@@ -94,12 +94,12 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: label → 알 수 없는 서비스; `invalid`: reject; `future`: label → 새 서비스
 - Producers: `src/localbrain/external_access.py`
-- Consumers: `src/localbrain/atlassian_registration.py`, `src/localbrain/templates/atlassian.html`
+- Consumers: `src/localbrain/atlassian_registration.py`, `src/localbrain/templates/atlassian-connections.html`
 - Consequence: Limits calls and identities to one Atlassian service.
 - Presentation mode: `logical-label`
 - Labels: `jira` → Jira; `confluence` → Confluence
 - Help: none
-- Visible consumer inventory: `src/localbrain/templates/atlassian.html` (registry-backed)
+- Visible consumer inventory: none.
 
 ## `external-source.enabled`
 
@@ -110,12 +110,12 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Default: `1`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
 - Producers: `src/localbrain/external_access.py`
-- Consumers: `src/localbrain/atlassian_registration.py`, `src/localbrain/templates/atlassian.html`
+- Consumers: `src/localbrain/atlassian_registration.py`, `src/localbrain/templates/atlassian-connections.html`
 - Consequence: Disabled connections cannot authorize external reads.
 - Presentation mode: `logical-label`
 - Labels: `0` → 사용 안 함; `1` → 사용
 - Help: 사용 안 함으로 바꾸면 등록 정보는 유지되고 조회만 막힙니다.
-- Visible consumer inventory: `src/localbrain/templates/atlassian.html` (registry-backed)
+- Visible consumer inventory: `src/localbrain/templates/atlassian-connections.html` (registry-backed)
 
 ## `external-capability.availability`
 
@@ -131,7 +131,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Presentation mode: `logical-label`
 - Labels: `available` → 사용 가능; `unavailable` → 사용 불가; `unauthorized` → 권한 없음; `error` → 확인 오류
 - Help: 마지막 명시적 연결 확인 결과입니다.
-- Visible consumer inventory: `src/localbrain/templates/atlassian.html` (registry-backed)
+- Visible consumer inventory: none.
 
 ## `external-capability.state`
 
@@ -142,12 +142,12 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Default: `unknown`
 - Fallbacks: `null`: label → 확인 전; `unknown`: label → 확인 전; `invalid`: reject; `future`: label → 새 상태
 - Producers: `src/localbrain/external_access.py`
-- Consumers: `src/localbrain/atlassian_registration.py`, `src/localbrain/templates/atlassian.html`, `src/localbrain/templates/atlassian-refresh.html`
+- Consumers: `src/localbrain/atlassian_registration.py`, `src/localbrain/templates/atlassian-connections.html`, `src/localbrain/templates/atlassian-refresh.html`
 - Consequence: Combines registration, freshness, and availability before dispatch.
 - Presentation mode: `logical-label`
 - Labels: `unknown` → 확인 전; `current` → 연결됨; `stale` → 다시 확인 필요; `disabled` → 사용 안 함; `unavailable` → 사용 불가; `unauthorized` → 권한 없음; `error` → 확인 오류
 - Help: 현재 조회에 사용할 수 있는 연결인지 나타냅니다.
-- Visible consumer inventory: `src/localbrain/templates/atlassian.html` (registry-backed); `src/localbrain/templates/atlassian-refresh.html` (registry-backed)
+- Visible consumer inventory: `src/localbrain/templates/atlassian-connections.html` (registry-backed); `src/localbrain/templates/atlassian-refresh.html` (registry-backed)
 
 ## Explicit Exclusions
 

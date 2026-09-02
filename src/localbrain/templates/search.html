@@ -6,7 +6,7 @@
     <div>
       <p class="eyebrow">SEARCH</p>
       <h1>{% if query %}“{{ query }}” 검색 결과{% else %}전체 검색{% endif %}</h1>
-      <p class="heading-copy">Claude·Codex 세션, Local Context, 저장된 Atlassian identity·기본 정보·검색 가능한 본문·로컬 분류를 검색합니다.</p>
+      <p class="heading-copy">Claude·Codex 세션, Local Context, 저장된 Atlassian 링크·문서와 URL 구조 참조를 검색합니다.</p>
     </div>
   </section>
 
@@ -21,7 +21,7 @@
         {% endfor %}
       </select>
     </label>
-    <details class="search-atlassian-filters" {% if selected_source == 'atlassian' or filters.service or filters.coverage or filters.freshness or filters.attention or filters.topic_id or filters.tag_id or filters.workstream_id %}open{% endif %}>
+    <details class="search-atlassian-filters" {% if selected_source == 'atlassian' or filters.service or filters.source_instance_id or filters.site_id or filters.space_id or filters.item_type or filters.coverage or filters.freshness or filters.attention or filters.topic_id or filters.tag_id or filters.workstream_id %}open{% endif %}>
       <summary>Atlassian 필터</summary>
       <div>
         <label><span>Service</span>
@@ -36,13 +36,13 @@
             {% for source in search_options.sources %}<option value="{{ source.id }}" {% if filters.source_instance_id == source.id %}selected{% endif %}>{{ source.display_name }}</option>{% endfor %}
           </select>
         </label>
-        <label><span>Site</span>
+        <label><span>도메인</span>
           <select name="site_id">
             <option value="">전체</option>
             {% for site in search_options.sites %}<option value="{{ site.id }}" {% if filters.site_id == site.id %}selected{% endif %}>{{ site.display_name or site.normalized_domain }}</option>{% endfor %}
           </select>
         </label>
-        <label><span>Space</span>
+        <label><span>Project/Space</span>
           <select name="space_id">
             <option value="">전체</option>
             {% for space in search_options.spaces %}<option value="{{ space.id }}" {% if filters.space_id == space.id %}selected{% endif %}>{{ space.name }}</option>{% endfor %}
@@ -54,7 +54,7 @@
             {% for value in ['reference', 'metadata', 'indexed'] %}<option value="{{ value }}" {% if filters.coverage == value %}selected{% endif %}>{{ value_label("atlassian-item.coverage", value) }}</option>{% endfor %}
           </select>
         </label>
-        <label><span>Item type</span>
+        <label><span>링크/문서 유형</span>
           <select name="item_type">
             <option value="">전체</option>
             {% for value in ['jira_issue', 'confluence_page'] %}<option value="{{ value }}" {% if filters.item_type == value %}selected{% endif %}>{{ value_label("atlassian-item.type", value) }}</option>{% endfor %}
@@ -100,13 +100,15 @@
     <p class="result-count">{{ results | length }}개 결과</p>
     <div class="search-results">
       {% for result in results %}
-        <a class="search-result" href="{% if result.entity_type == 'session' %}/sessions/{{ result.entity_id }}{% elif result.entity_type == 'document' %}/documents/{{ result.entity_id }}{% else %}/atlassian/items/{{ result.entity_id }}{% endif %}">
-            <div class="result-type {{ result.source_kind | replace(':', '-') }}">{% if result.entity_type == 'atlassian_item' %}{{ value_label("atlassian-space.service", result.source_kind.split(':')[-1]) }}{% else %}{{ value_label("source.kind", result.source_kind) }}{% endif %}</div>
+        <a class="search-result" href="{% if result.entity_type == 'session' %}/sessions/{{ result.entity_id }}{% elif result.entity_type == 'document' %}/documents/{{ result.entity_id }}{% elif result.entity_type == 'atlassian_structure_reference' %}/atlassian/references/{{ result.entity_id }}{% else %}/atlassian/items/{{ result.entity_id }}{% endif %}">
+            <div class="result-type {{ result.source_kind | replace(':', '-') }}">{% if result.entity_type == 'atlassian_structure_reference' %}{{ 'Jira' if result.service == 'jira' else 'Wiki' }} · 구조 참조{% elif result.entity_type == 'atlassian_item' %}{{ value_label("atlassian-space.service", result.source_kind.split(':')[-1]) }}{% else %}{{ value_label("source.kind", result.source_kind) }}{% endif %}</div>
             <div>
               <h2>{{ result.title }}</h2>
               <p class="path-line">{{ result.path }}</p>
               {% if result.entity_type == 'atlassian_item' %}
-                <p class="search-result-context">{{ result.source_name }} · {{ result.normalized_domain }}{% if result.space_name %} · {{ result.space_name }}{% endif %} · {{ value_label("atlassian-item.type", result.item_type) }} · {{ value_label("atlassian-item.coverage", result.coverage) }} · {{ value_label("atlassian-item.freshness", result.freshness) }}{% if result.attention != 'normal' %} · {{ value_label("atlassian-item.attention", result.attention) }}{% endif %} · matched {{ result.match_roles | join(', ') }}</p>
+                <p class="search-result-context">{{ 'Jira 링크' if result.source_kind.split(':')[-1] == 'jira' else 'Wiki 문서' }} · {{ result.source_name }} · {{ result.normalized_domain }}{% if result.container_label or result.space_name %} · {{ result.container_label or result.space_name }}{% if result.container_kind == 'url' %} · URL 기준{% endif %}{% endif %} · {{ value_label("atlassian-item.type", result.item_type) }} · {{ value_label("atlassian-item.coverage", result.coverage) }} · {{ value_label("atlassian-item.freshness", result.freshness) }}{% if result.attention != 'normal' %} · {{ value_label("atlassian-item.attention", result.attention) }}{% endif %} · matched {{ result.match_roles | join(', ') }}</p>
+              {% elif result.entity_type == 'atlassian_structure_reference' %}
+                <p class="search-result-context">{{ result.family_label }} · {{ result.normalized_domain }} · {{ result.provenance or 'URL 기준 · Local evidence' }} · {{ '근거 소스 확인 불가' if result.availability == 'unavailable' else 'Local evidence 확인됨' }} · matched {{ result.match_roles | join(', ') }}</p>
               {% endif %}
               <p class="result-excerpt">{{ result.excerpt }}</p>
             </div>
