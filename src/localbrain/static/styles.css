@@ -864,7 +864,22 @@ h1 { margin: var(--space-none); font-family: var(--type-display-font); font-size
   scrollbar-gutter: stable;
 }
 .pinned-session-list-content { padding-right: var(--space-section); }
-.pinned-session-list-content > a {
+.pinned-session-group + .pinned-session-group {
+  margin-top: var(--space-row-block);
+  padding-top: var(--space-row-block);
+  border-top: var(--border-width-control) solid var(--border-subtle);
+}
+.pinned-session-group-heading {
+  overflow: hidden;
+  margin: var(--space-none);
+  padding-bottom: var(--space-compact);
+  color: var(--text-primary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--type-label-size);
+  font-weight: var(--type-semibold);
+}
+.pinned-session-group-items > a {
   min-width: 0;
   display: grid;
   grid-template-columns: 28px minmax(0, 1fr);
@@ -873,8 +888,8 @@ h1 { margin: var(--space-none); font-family: var(--type-display-font); font-size
   padding: var(--space-row-block) var(--space-none);
   border-bottom: var(--border-width-control) solid var(--border-subtle);
 }
-.pinned-session-list-content > a:last-child { border-bottom: var(--border-width-none); }
-.pinned-session-list-content > a:hover strong { color: var(--text-link); }
+.pinned-session-group-items > a:last-child { border-bottom: var(--border-width-none); }
+.pinned-session-group-items > a:hover strong { color: var(--text-link); }
 .pinned-session-source {
   width: 28px;
   height: 28px;
@@ -891,10 +906,10 @@ h1 { margin: var(--space-none); font-family: var(--type-display-font); font-size
 .pinned-session-source.codex-company { color: var(--text-source-codex-company); background: var(--surface-source-codex-company); border: var(--border-width-control) solid var(--border-source-codex-company); }
 .pinned-session-copy { min-width: 0; }
 .pinned-session-copy strong,
-.pinned-session-copy > span,
+.pinned-session-branch,
 .pinned-session-copy small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pinned-session-copy strong { font-size: var(--type-label-size); }
-.pinned-session-copy > span { margin-top: var(--space-micro); color: var(--text-secondary); font-size: var(--type-micro-size); }
+.pinned-session-branch { margin-top: var(--space-micro); color: var(--text-secondary); font-size: var(--type-micro-size); }
 .pinned-session-copy small { margin-top: var(--space-compact); color: var(--text-tertiary); font-size: var(--type-micro-size); }
 .pinned-session-empty { display: grid; gap: var(--space-compact); padding: var(--space-row-block) var(--space-none); color: var(--text-secondary); font-size: var(--type-micro-size); }
 .pinned-session-empty strong { color: var(--text-primary); font-size: var(--type-label-size); }

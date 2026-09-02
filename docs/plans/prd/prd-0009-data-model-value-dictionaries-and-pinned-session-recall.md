@@ -6,7 +6,7 @@
 - Status: `passed`
 - Owner role: `human`
 - Created: `2026-07-24`
-- Updated: `2026-07-27`
+- Updated: `2026-09-02`
 - User review status: `confirmed`
 - Approval mode: `strict`
 - Canonical passed boundary: this PRD
@@ -132,7 +132,7 @@
 - Remove the generic `최근 컨텍스트` document panel from the Sessions inventory.
 - Use that secondary inventory region for a `Pinned Sessions` panel that provides direct access to pinned Session detail.
 - The pinned panel is global owner-curated recall, not a recency calculation and not an automatic recommendation.
-- Each pinned entry identifies Session title, Claude/Codex provenance, last activity, and enough workspace/path context to distinguish similar titles.
+- Each Project group identifies workspace/path context once, while each pinned entry identifies Session title, Claude/Codex provenance, optional Session-owned Git branch, and last activity.
 - Expose an accessible pin/unpin control from the Session row or an equally direct inventory affordance and from persisted Session detail.
 - On the Sessions inventory, reserve one stable trailing utility layer for every eligible Session row so title and metadata width, date position, and row height do not change according to whether Subsessions exist.
 - At desktop and laptop widths, move question and event counts into the utility layer's upper row and order that row as `질문 → 이벤트 → 날짜 → 핀`, with the pin at the outer corner. Keep the Subsession trigger anchored to the lower trailing edge only when children exist.
@@ -142,7 +142,7 @@
 - At narrow widths, preserve the same relative placement across rows but simplify before compressing the title. The pin remains at the upper trailing edge; question count, event count, and date may enter a wrapping metadata flow but keep that order, and the Subsession trigger remains at the lower trailing edge with the required touch target.
 - Pin/unpin completion preserves the current source filter, workspace filter, page, scroll/focus orientation, and Sessions/Projects inventory mode where applicable.
 - The empty state explains how to pin a Session and does not repopulate itself with recent documents or generated suggestions.
-- Expose every current pin without a silent item cap. Wide layouts use a `420px` bounded internal scroller, narrow layouts keep pins in ordinary document flow, and ordering follows displayed Session activity with `pinned_at DESC, session_id DESC` tie-breaks.
+- Expose every current pin without a silent item cap. Wide layouts use a `420px` bounded internal scroller and narrow layouts keep pins in ordinary document flow. Workspace groups place Git-backed Projects before non-Git paths and alphabetize each section; Sessions inside one group follow displayed Session activity with `pinned_at DESC, session_id DESC` tie-breaks.
 
 ### Session Detail Related Context
 
@@ -189,7 +189,7 @@ No open question remains inside the passed PRD-0009 boundary.
 - Only persisted primary work Sessions are pinnable. Subsessions and Maintenance Sessions remain ineligible.
 - Pinned Sessions is global across active Claude/Codex, workspace, and pagination filters.
 - Every current pin remains available. Wide layouts use a `420px` bounded internal scroller, while narrow layouts keep pins in ordinary document flow without a silent item cap.
-- Pins are ordered by displayed activity date (`last_event_at`, otherwise `started_at`) descending, with `pinned_at DESC, session_id DESC` tie-breaks. Manual ordering is not part of this boundary.
+- FEAT-0084 groups pins by current workspace identity, places Git-backed Projects before non-Git paths, alphabetizes each section, and preserves displayed-activity ordering with `pinned_at DESC, session_id DESC` tie-breaks inside each Project. Manual ordering is not part of this boundary.
 - “Reopen” means opening the LocalBrain Session detail. Native Claude or Codex process resume remains deferred to a separately approved Feature.
 
 ### Related Context
@@ -202,7 +202,7 @@ No open question remains inside the passed PRD-0009 boundary.
 
 ## Constraints
 
-- PRD-0009 and all five child Features are `passed`; later changes require their own approved boundary.
+- PRD-0009's original five child Features and the separate post-closure FEAT-0084 follow-up are `passed`; later changes require their own approved boundary.
 - Feature planning begins only after PRD approval, and only one approved Feature enters execution at a time unless the owner later authorizes otherwise.
 - Value dictionaries are durable policies, not one-time audit output. Every later bounded-value change updates its subject dictionary in the same approved implementation boundary.
 - Existing data-model subject ownership and generated Schema presentation remain authoritative in their current roles; the dictionary layer must link rather than duplicate full table catalogs.
@@ -240,6 +240,10 @@ The approved PRD was executed through these passed child Features:
 
 All five child Features passed in dependency order. FEAT-0061 covers `40` logical-label families and the current `72` ordinary consumer declarations as one bounded loop; no Feature split was required.
 
+An approved post-closure follow-up is tracked separately:
+
+6. [FEAT-0084: Project-Grouped Pinned Sessions](../feature/feat-0084-project-grouped-pinned-sessions.md) (`passed`) — groups global pinned recall by Git-first alphabetical Project headings and moves Session branch into row metadata.
+
 ## Closure Evidence
 
 - RUN-20260724-60, RUN-20260724-61, RUN-20260724-64, RUN-20260724-65, and RUN-20260724-66 passed in dependency order.
@@ -267,9 +271,9 @@ All five child Features passed in dependency order. FEAT-0061 covers `40` logica
 - `src/localbrain/queries.py`, `workstreams.py`, `main.py`, `templates/sessions.html`, `templates/session.html`, Session assets, and focused tests.
 - Design Constitution, Design Evaluation, Interaction Evaluation, privacy policy, and developer verification guidance.
 
-## Source Sync Status
+## Source Sync Status (2026-07-24 Review)
 
-- Sources checked this session: owner direction, current 34-table plus FTS5 Data Model entry and nine subject owners, fresh Session schema, current recent-document query and Sessions templates/routes, current workspace and Workstream/Thread relationships, PRD-0002, PRD-0006, PRD-0008, and visible-surface policies.
+- Sources checked for the original PRD review: owner direction, the then-current 34-table plus FTS5 Data Model entry and nine subject owners, fresh Session schema, current recent-document query and Sessions templates/routes, current workspace and Workstream/Thread relationships, PRD-0002, PRD-0006, PRD-0008, and visible-surface policies.
 - Source deltas: the value-dictionary boundary moved from PRD-0008 to PRD-0009; pinned Session recall and Session-scoped related context are added as independent lanes.
 - External recheck needed: `no` for PRD review. No external or model call is needed to plan or implement the initial local-only boundaries.
 
@@ -294,3 +298,5 @@ All five child Features passed in dependency order. FEAT-0061 covers `40` logica
 - `2026-07-27`: post-closure owner refinement orders Pinned Sessions by displayed activity date descending and removes the pin control's independent square background so pressed state does not recolor it and row hover remains continuous.
 - `2026-07-27`: post-closure Local Context review removed redundant source-type, readability, and enabled labels from every source-list row while keeping selected-source status visible.
 - `2026-07-27`: the owner directly verified the final local UI refinements; the prior browser-control availability gap is closed, and the former open-question section now records resolved decisions plus explicitly deferred follow-up scope.
+- `2026-09-02`: the owner approved FEAT-0084 as a separate post-closure boundary: Git-backed Project groups first, then non-Git path groups, alphabetically within each section, with Session activity ordering inside each Project and optional branch metadata replacing repeated Project copy.
+- `2026-09-02`: FEAT-0084 passed RUN-94 with derived workspace grouping, source/branch/date continuity, exact-width browser evidence, 65 focused tests, 482 full tests, and current privacy and schema-cleanup checks.

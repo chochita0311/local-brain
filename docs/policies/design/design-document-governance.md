@@ -173,6 +173,7 @@ A constitution change fails when:
 | 2026-08-29 | v15 | Reclassified Atlassian from Browse and inventory to the Explorer family; added its Site/Space/Unclassified hierarchy, one-query shell handoff, responsive list/detail composition, and distinct local Sync, Add, Connections/discovery, and remote Refresh presentation contracts. |
 | 2026-09-01 | v16 | Reframed Atlassian hierarchy as top service scopes followed by domain-first Site and persisted, canonical-URL-derived, or `소속 미확인` children; added non-color-only service/provenance cues and ordinary Jira-link, Wiki-document, and mixed terminology without changing internal Item identity. |
 | 2026-09-01 | v17 | Added explicit success, warning, and neutral mappings for available, unavailable, and archived Atlassian URL-derived structure references while preserving their separate URL-derived provenance cue. |
+| 2026-09-02 | v18 | Added the Project-grouped Pinned Sessions hierarchy: Git-first alphabetical workspace headings, activity-ordered Session rows, optional branch metadata, and single boundary ownership within the existing browse family. |
 
 ## Practical Summary
 

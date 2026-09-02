@@ -85,6 +85,7 @@ from .queries import (
 )
 from .session_pins import (
     SessionPinError,
+    group_pinned_sessions,
     list_all_pinned_sessions,
     pin_session as persist_session_pin,
     unpin_session as persist_session_unpin,
@@ -395,6 +396,7 @@ def sessions_page(
             return RedirectResponse(
                 url="/sessions?{}".format(urlencode(params)), status_code=303
             )
+        pinned_sessions = list_all_pinned_sessions(connection)
         page_context = {
             "request": request,
             "active_page": "sessions",
@@ -410,7 +412,8 @@ def sessions_page(
             "stats": dashboard_stats(connection, selected_source),
             "sessions": pagination["items"],
             "pagination": pagination,
-            "pinned_sessions": list_all_pinned_sessions(connection),
+            "pinned_sessions": pinned_sessions,
+            "pinned_session_groups": group_pinned_sessions(pinned_sessions),
             "sources": source_inventory(connection),
             "session_source_scopes": source_scopes,
             "projects": projects,
@@ -2459,6 +2462,7 @@ def projects_page(request: Request):
         projects = project_activity(connection)
         pagination = session_inventory_page(connection)
         source_scopes = session_source_scopes(connection)
+        pinned_sessions = list_all_pinned_sessions(connection)
         page_context = {
             "request": request,
             "active_page": "sessions",
@@ -2470,7 +2474,8 @@ def projects_page(request: Request):
             "stats": dashboard_stats(connection),
             "sessions": pagination["items"],
             "pagination": pagination,
-            "pinned_sessions": list_all_pinned_sessions(connection),
+            "pinned_sessions": pinned_sessions,
+            "pinned_session_groups": group_pinned_sessions(pinned_sessions),
             "sources": source_inventory(connection),
             "session_source_scopes": source_scopes,
             "projects": projects,

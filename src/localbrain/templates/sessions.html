@@ -7,12 +7,26 @@
 {% set project_total = project_count | default(project_items | length) %}
 {% set unavailable_project_total = missing_count | default(0) %}
 {% set pinned_items = pinned_sessions | default([]) %}
+{% set pinned_groups = pinned_session_groups | default([]) %}
 {% set source_scope_items = session_source_scopes | default([]) %}
 {% set selected_scope_label = selected_source_label | default(value_label("source.kind", selected_source) if selected_source != 'all' else '전체') %}
 {% set session_return_to = (request.url.path ~ (('?' ~ request.url.query) if request.url.query else '')) if request is defined else '/sessions' %}
 {% set session_pin_error = request.query_params.get('pin_error') if request is defined else none %}
 {% macro session_detail_url(session_id) -%}
   /sessions/{{ session_id }}{% if selected_source != 'all' or selected_workspace is not none %}?{% if selected_source != 'all' %}source={{ selected_source }}{% endif %}{% if selected_workspace is not none %}{% if selected_source != 'all' %}&{% endif %}workspace={{ selected_workspace }}{% endif %}{% endif %}
+{%- endmacro %}
+{% macro pinned_session_row(pinned_session) -%}
+  <a href="{{ session_detail_url(pinned_session.id) }}">
+    <span class="pinned-session-source {{ pinned_session.source_kind }}">
+      <span aria-hidden="true">{{ source_cue(pinned_session.source_kind, pinned_session.provider_kind, pinned_session.source_name) }}</span>
+      <span class="sr-only">{{ pinned_session.source_name }}</span>
+    </span>
+    <span class="pinned-session-copy">
+      <strong>{{ pinned_session.title }}</strong>
+      {% if pinned_session.git_branch %}<span class="pinned-session-branch" title="{{ pinned_session.git_branch }}">{{ pinned_session.git_branch }}</span>{% endif %}
+      <small><time datetime="{{ pinned_session.last_event_at or pinned_session.started_at }}" data-local-time>{{ pinned_session.last_event_at or pinned_session.started_at or '-' }}</time></small>
+    </span>
+  </a>
 {%- endmacro %}
 {% macro session_page_url(target_page) -%}
   /sessions?page={{ target_page }}{% if selected_source != 'all' %}&source={{ selected_source }}{% endif %}{% if selected_workspace is not none %}&workspace={{ selected_workspace }}{% endif %}
@@ -187,22 +201,29 @@
               <h2>Pinned Sessions</h2>
               <span>{{ pinned_items | length }}</span>
             </div>
-            {% if pinned_items %}
+            {% if pinned_groups %}
               <div class="pinned-session-list">
                 <div class="pinned-session-list-content">
-                  {% for pinned_session in pinned_items %}
-                    <a href="{{ session_detail_url(pinned_session.id) }}">
-                      <span class="pinned-session-source {{ pinned_session.source_kind }}">
-                        <span aria-hidden="true">{{ source_cue(pinned_session.source_kind, pinned_session.provider_kind, pinned_session.source_name) }}</span>
-                        <span class="sr-only">{{ pinned_session.source_name }}</span>
-                      </span>
-                      <span class="pinned-session-copy">
-                        <strong>{{ pinned_session.title }}</strong>
-                        <span>{{ pinned_session.workspace_name or pinned_session.workspace_path or pinned_session.cwd_raw or '작업 경로 없음' }}</span>
-                        <small><time datetime="{{ pinned_session.last_event_at or pinned_session.started_at }}" data-local-time>{{ pinned_session.last_event_at or pinned_session.started_at or '-' }}</time></small>
-                      </span>
-                    </a>
+                  {% for pinned_group in pinned_groups %}
+                    <section class="pinned-session-group">
+                      <h3 class="pinned-session-group-heading"{% if pinned_group.workspace_path %} title="{{ pinned_group.workspace_path }}"{% endif %}>{{ pinned_group.workspace_name }}</h3>
+                      <div class="pinned-session-group-items">
+                        {% for pinned_session in pinned_group.sessions %}
+                          {{ pinned_session_row(pinned_session) }}
+                        {% endfor %}
+                      </div>
+                    </section>
                   {% endfor %}
+                </div>
+              </div>
+            {% elif pinned_items %}
+              <div class="pinned-session-list">
+                <div class="pinned-session-list-content">
+                  <div class="pinned-session-group-items">
+                    {% for pinned_session in pinned_items %}
+                      {{ pinned_session_row(pinned_session) }}
+                    {% endfor %}
+                  </div>
                 </div>
               </div>
             {% else %}

@@ -72,6 +72,7 @@ class SessionPinUiTests(unittest.TestCase):
             "source_kind": "codex-company",
             "provider_kind": "codex",
             "source_name": "Codex Company",
+            "git_branch": None,
         }
         sessions = [
             self._session(1, pinned=True, children=[child]),
@@ -102,6 +103,29 @@ class SessionPinUiTests(unittest.TestCase):
                     **company_session,
                     "workspace_name": "Company Work",
                     "pinned_at": "2026-07-24T06:00:00+00:00",
+                },
+            ],
+            pinned_session_groups=[
+                {
+                    "workspace_name": "Company Work",
+                    "workspace_path": "/synthetic/company",
+                    "sessions": [
+                        {
+                            **company_session,
+                            "workspace_name": "Company Work",
+                            "pinned_at": "2026-07-24T06:00:00+00:00",
+                        }
+                    ],
+                },
+                {
+                    "workspace_name": "Synthetic Work",
+                    "workspace_path": "/synthetic/work",
+                    "sessions": [
+                        {
+                            **sessions[0],
+                            "workspace_name": "Synthetic Work",
+                        }
+                    ],
                 },
             ],
             sources=[],
@@ -159,6 +183,22 @@ class SessionPinUiTests(unittest.TestCase):
         self.assertIn('<span class="sr-only">Codex Company</span>', pinned_panel)
         self.assertNotIn('class="pinned-session-provenance"', pinned_panel)
         self.assertIn('class="pinned-session-list-content"', pinned_panel)
+        self.assertEqual(pinned_panel.count('class="pinned-session-group"'), 2)
+        self.assertLess(
+            pinned_panel.index(">Company Work</h3>"),
+            pinned_panel.index(">Synthetic Work</h3>"),
+        )
+        self.assertEqual(pinned_panel.count("Company Work"), 1)
+        self.assertEqual(pinned_panel.count("Synthetic Work"), 1)
+        self.assertIn(
+            '<span class="pinned-session-branch" title="feature/pins">feature/pins</span>',
+            pinned_panel,
+        )
+        company_group = pinned_panel[
+            pinned_panel.index(">Company Work</h3>"):
+            pinned_panel.index(">Synthetic Work</h3>")
+        ]
+        self.assertNotIn("pinned-session-branch", company_group)
         self.assertIn("data-local-time", pinned_panel)
 
         first_row = response[
@@ -209,6 +249,7 @@ class SessionPinUiTests(unittest.TestCase):
             },
             sessions=[],
             pinned_sessions=[],
+            pinned_session_groups=[],
             sources=[],
             projects=[],
         )
@@ -216,6 +257,34 @@ class SessionPinUiTests(unittest.TestCase):
         self.assertIn("고정한 Session이 없습니다", response)
         self.assertIn("목록이나 상세 화면의 핀 버튼", response)
         self.assertNotIn("최근 컨텍스트", response)
+
+    def test_pre_restart_route_context_keeps_existing_pins_visible(self):
+        environment = self._environment()
+        pinned_session = self._session(1, pinned=True, children=[])
+        response = environment.get_template("sessions.html").render(
+            request=self._request(),
+            active_page="sessions",
+            selected_source="all",
+            selected_workspace=None,
+            stats={
+                "sessions": 1,
+                "events": 8,
+                "active_workspaces": 1,
+                "missing_workspaces": 0,
+            },
+            sessions=[pinned_session],
+            pinned_sessions=[pinned_session],
+            sources=[],
+            projects=[],
+        )
+
+        pinned_panel = response[
+            response.index("data-pinned-sessions-panel"):
+            response.index("source-status-section")
+        ]
+        self.assertIn("Pinned session", pinned_panel)
+        self.assertIn("feature/pins", pinned_panel)
+        self.assertNotIn("고정한 Session이 없습니다", pinned_panel)
 
     def test_storage_error_stays_adjacent_to_truthful_control_state(self):
         environment = self._environment()
@@ -326,6 +395,8 @@ class SessionPinUiTests(unittest.TestCase):
             ".pinned-session-list-content { padding-right: var(--space-none); }",
             styles,
         )
+        self.assertIn(".pinned-session-group-heading {", styles)
+        self.assertIn(".pinned-session-group-items > a {", styles)
 
 
 if __name__ == "__main__":

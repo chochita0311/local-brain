@@ -1283,6 +1283,8 @@ class UiContractTests(unittest.TestCase):
             '<span class="sr-only">{{ session.source_name }} ·',
             'class="pinned-session-source {{ pinned_session.source_kind }}"',
             '<span class="sr-only">{{ pinned_session.source_name }}</span>',
+            'class="pinned-session-group-heading"',
+            'class="pinned-session-branch"',
             "child.source_name",
         ):
             self.assertIn(marker, self.sessions)

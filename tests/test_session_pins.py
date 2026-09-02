@@ -12,6 +12,7 @@ from localbrain.main import app, pin_session_page, unpin_session_page
 from localbrain.db import _run_compatible_migrations
 from localbrain.session_pins import (
     SessionPinError,
+    group_pinned_sessions,
     is_session_pinned,
     list_all_pinned_sessions,
     list_pinned_sessions,
@@ -69,9 +70,9 @@ def seed_sessions(connection: sqlite3.Connection) -> dict[str, int]:
             """
             INSERT INTO sessions(
                 source_id, workspace_id, external_id, source_path, cwd_raw,
-                title, started_at, last_event_at, session_class, session_role,
-                index_policy
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                title, started_at, last_event_at, git_branch, session_class,
+                session_role, index_policy
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 source_id,
@@ -82,6 +83,7 @@ def seed_sessions(connection: sqlite3.Connection) -> dict[str, int]:
                 title,
                 "2026-07-24T01:00:00+00:00",
                 "2026-07-24T02:00:00+00:00",
+                "feature/pins" if session_class == "work" else None,
                 session_class,
                 session_role,
                 "metadata_only" if session_class == "maintenance" else "full",
@@ -222,11 +224,89 @@ class SessionPinOperationTests(unittest.TestCase):
         self.assertIsNone(rows[0]["last_event_at"])
         self.assertEqual(rows[0]["started_at"], "2026-07-25T02:00:00+00:00")
         self.assertEqual(rows[0]["source_kind"], "claude")
+        self.assertEqual(rows[0]["git_branch"], "feature/pins")
         self.assertEqual(rows[0]["workspace_name"], "Synthetic Work")
         self.assertEqual(rows[0]["workspace_path"], "/synthetic/work")
+        self.assertEqual(rows[0]["workspace_git_root"], "/synthetic/work")
         self.assertEqual(rows[0]["workspace_exists_now"], 1)
         with self.assertRaisesRegex(SessionPinError, "between 1 and 100"):
             list_pinned_sessions(self.connection, limit=0)
+
+    def test_groups_git_projects_first_then_alphabetically_and_keeps_inner_activity_order(self):
+        source_id = self.connection.execute(
+            "SELECT id FROM sources WHERE kind = 'claude'"
+        ).fetchone()[0]
+
+        def workspace(name, *, git):
+            path = "/synthetic/{}".format(name.replace("/", "-"))
+            return self.connection.execute(
+                """
+                INSERT INTO workspaces(
+                    canonical_path, display_name, git_root, exists_now
+                ) VALUES (?, ?, ?, 1)
+                """,
+                (path, name, path if git else None),
+            ).lastrowid
+
+        def pinned(workspace_id, external_id, activity):
+            session_id = self.connection.execute(
+                """
+                INSERT INTO sessions(
+                    source_id, workspace_id, external_id, source_path, cwd_raw,
+                    title, started_at, last_event_at, git_branch
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    source_id,
+                    workspace_id,
+                    external_id,
+                    "/synthetic/{}.jsonl".format(external_id),
+                    "/synthetic/{}".format(external_id),
+                    external_id,
+                    "2026-07-20T01:00:00+00:00",
+                    activity,
+                    "feature/{}".format(external_id),
+                ),
+            ).lastrowid
+            pin_session(
+                self.connection,
+                session_id,
+                pinned_at="2026-07-24T03:00:00+00:00",
+            )
+            return session_id
+
+        alpha_workspace = workspace("alpha", git=True)
+        bravo_workspace = workspace("Bravo", git=True)
+        folder_workspace = workspace("folder/reference-notes", git=False)
+        alpha_old = pinned(
+            alpha_workspace, "alpha-old", "2026-07-22T02:00:00+00:00"
+        )
+        bravo = pinned(
+            bravo_workspace, "bravo", "2026-07-28T02:00:00+00:00"
+        )
+        alpha_new = pinned(
+            alpha_workspace, "alpha-new", "2026-07-29T02:00:00+00:00"
+        )
+        folder = pinned(
+            folder_workspace, "folder", "2026-07-30T02:00:00+00:00"
+        )
+
+        groups = group_pinned_sessions(list_all_pinned_sessions(self.connection))
+
+        self.assertEqual(
+            [group["workspace_name"] for group in groups],
+            ["alpha", "Bravo", "folder/reference-notes"],
+        )
+        self.assertEqual(
+            [row["id"] for row in groups[0]["sessions"]],
+            [alpha_new, alpha_old],
+        )
+        self.assertEqual([row["id"] for row in groups[1]["sessions"]], [bravo])
+        self.assertEqual(
+            [row["id"] for row in groups[2]["sessions"]], [folder]
+        )
+        self.assertTrue(groups[0]["is_git"])
+        self.assertFalse(groups[2]["is_git"])
 
     def test_all_pinned_list_has_no_silent_product_cap(self):
         source_id = self.connection.execute(

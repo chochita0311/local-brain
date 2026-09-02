@@ -1,5 +1,5 @@
 import sqlite3
-from typing import List, Optional
+from typing import Dict, Iterable, List, Optional
 
 from .workstreams import utc_now
 
@@ -84,12 +84,14 @@ _PINNED_SESSION_SELECT = """
             sessions.started_at,
             sessions.cwd_raw,
             sessions.source_path,
+            sessions.git_branch,
             sessions.workspace_id,
             sources.kind AS source_kind,
             sources.provider_kind,
             sources.name AS source_name,
             workspaces.display_name AS workspace_name,
             workspaces.canonical_path AS workspace_path,
+            workspaces.git_root AS workspace_git_root,
             workspaces.exists_now AS workspace_exists_now,
             session_pins.pinned_at
         FROM session_pins
@@ -125,3 +127,44 @@ def list_all_pinned_sessions(
     connection: sqlite3.Connection,
 ) -> List[sqlite3.Row]:
     return connection.execute(_PINNED_SESSION_SELECT).fetchall()
+
+
+def group_pinned_sessions(
+    rows: Iterable[sqlite3.Row],
+) -> List[Dict[str, object]]:
+    groups: Dict[str, Dict[str, object]] = {}
+    for row in rows:
+        workspace_id = row["workspace_id"]
+        cwd_raw = row["cwd_raw"]
+        if workspace_id is not None:
+            identity = "workspace:{:020d}".format(int(workspace_id))
+        elif cwd_raw:
+            identity = "cwd:{}".format(cwd_raw)
+        else:
+            identity = "unassigned"
+
+        group = groups.get(identity)
+        if group is None:
+            workspace_path = row["workspace_path"] or cwd_raw
+            group = {
+                "identity": identity,
+                "workspace_name": (
+                    row["workspace_name"]
+                    or workspace_path
+                    or "작업 경로 없음"
+                ),
+                "workspace_path": workspace_path,
+                "is_git": bool(row["workspace_git_root"]),
+                "sessions": [],
+            }
+            groups[identity] = group
+        group["sessions"].append(row)
+
+    return sorted(
+        groups.values(),
+        key=lambda group: (
+            0 if group["is_git"] else 1,
+            str(group["workspace_name"]).casefold(),
+            str(group["identity"]),
+        ),
+    )

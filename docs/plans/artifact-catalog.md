@@ -27,7 +27,7 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [PRD-0015: Atlassian Site-First URL Organization](prd/prd-0015-atlassian-site-first-url-organization.md) | `passed` | — |
 | [PRD-0016: Atlassian Standard URL Structure References](prd/prd-0016-atlassian-standard-url-recognition.md) | `passed` | — |
 
-## Features (83)
+## Features (84)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -114,8 +114,9 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [FEAT-0081: Atlassian Deterministic Site-First Hierarchy](feature/feat-0081-atlassian-deterministic-site-first-hierarchy.md) | `passed` | PRD-0015 |
 | [FEAT-0082: Atlassian Structure Reference Locator Foundation](feature/feat-0082-atlassian-static-url-locator-contract.md) | `passed` | PRD-0016 |
 | [FEAT-0083: Atlassian Structure Reference Sync And Explorer](feature/feat-0083-atlassian-structure-reference-sync-and-explorer.md) | `passed` | PRD-0016 |
+| [FEAT-0084: Project-Grouped Pinned Sessions](feature/feat-0084-project-grouped-pinned-sessions.md) | `passed` | prd-0009-data-model-value-dictionaries-and-pinned-session-recall |
 
-## Specs (87)
+## Specs (88)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -206,8 +207,9 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [SPEC-0081: Atlassian Deterministic Site-First Hierarchy](spec/spec-0081-atlassian-deterministic-site-first-hierarchy.md) | `approved` | FEAT-0081 |
 | [SPEC-0082: Atlassian Structure Reference Locator Foundation](spec/spec-0082-atlassian-static-url-locator-contract.md) | `approved` | FEAT-0082 |
 | [SPEC-0083: Atlassian Structure Reference Sync And Explorer](spec/spec-0083-atlassian-structure-reference-sync-and-explorer.md) | `approved` | FEAT-0083 |
+| [SPEC-0084: Project-Grouped Pinned Sessions](spec/spec-0084-project-grouped-pinned-sessions.md) | `approved` | feat-0084-project-grouped-pinned-sessions |
 
-## Runs (93)
+## Runs (94)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -304,8 +306,9 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [RUN-20260901-91: Atlassian Deterministic Site-First Hierarchy](run/run-20260901-91-atlassian-deterministic-site-first-hierarchy.md) | `complete` | FEAT-0081 |
 | [RUN-20260901-92: Atlassian Structure Reference Locator Foundation](run/run-20260901-92-atlassian-static-url-locator-contract.md) | `passed` | FEAT-0082 |
 | [RUN-20260901-93: Atlassian Structure Reference Sync And Explorer](run/run-20260901-93-atlassian-structure-reference-sync-and-explorer.md) | `passed` | FEAT-0083 |
+| [RUN-20260902-94: Project-Grouped Pinned Sessions](run/run-20260902-94-project-grouped-pinned-sessions.md) | `passed` | feat-0084-project-grouped-pinned-sessions |
 
-## Evaluations And Schema Audits (304)
+## Evaluations And Schema Audits (308)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -613,6 +616,10 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [EVAL-0083 Design: Atlassian Structure Reference Sync And Explorer](evaluation/eval-0083-design-atlassian-structure-reference-sync-and-explorer.md) | `complete` | FEAT-0083 |
 | [EVAL-0083 Functional: Atlassian Structure Reference Sync And Explorer](evaluation/eval-0083-functional-atlassian-structure-reference-sync-and-explorer.md) | `complete` | FEAT-0083 |
 | [EVAL-0083 UX: Atlassian Structure Reference Sync And Explorer](evaluation/eval-0083-ux-atlassian-structure-reference-sync-and-explorer.md) | `complete` | FEAT-0083 |
+| [EVAL-0084 Contract: Project-Grouped Pinned Sessions](evaluation/eval-0084-contract-project-grouped-pinned-sessions.md) | `complete` | FEAT-0084 |
+| [EVAL-0084 Design: Project-Grouped Pinned Sessions](evaluation/eval-0084-design-project-grouped-pinned-sessions.md) | `complete` | FEAT-0084 |
+| [EVAL-0084 Functional: Project-Grouped Pinned Sessions](evaluation/eval-0084-functional-project-grouped-pinned-sessions.md) | `complete` | FEAT-0084 |
+| [EVAL-0084 UX: Project-Grouped Pinned Sessions](evaluation/eval-0084-ux-project-grouped-pinned-sessions.md) | `complete` | FEAT-0084 |
 
 ## Fix Logs (22)
 
