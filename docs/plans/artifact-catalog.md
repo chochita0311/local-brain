@@ -6,7 +6,7 @@ Edit the owning artifact, then run `uv run python scripts/build-plan-artifact-ca
 
 Status and relation values are preserved from each owner artifact. `—` means the field is not declared or does not apply; historical Spec `passed` and Run `complete` values are legacy aliases preserved under [Execution Artifact Status](../policies/harness/execution-loop-governance.md#execution-artifact-status).
 
-## PRDs (16)
+## PRDs (17)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -26,8 +26,9 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [PRD-0014: Atlassian Explorer And Unified Retrieval](prd/prd-0014-atlassian-explorer-and-unified-retrieval.md) | `passed` | — |
 | [PRD-0015: Atlassian Site-First URL Organization](prd/prd-0015-atlassian-site-first-url-organization.md) | `passed` | — |
 | [PRD-0016: Atlassian Standard URL Structure References](prd/prd-0016-atlassian-standard-url-recognition.md) | `passed` | — |
+| [PRD-0017: Source-Backed Workflow Map And Workstream Lenses](prd/prd-0017-source-backed-workflow-map-and-workstream-lenses.md) | `approved` | — |
 
-## Features (84)
+## Features (89)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -115,8 +116,13 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [FEAT-0082: Atlassian Structure Reference Locator Foundation](feature/feat-0082-atlassian-static-url-locator-contract.md) | `passed` | PRD-0016 |
 | [FEAT-0083: Atlassian Structure Reference Sync And Explorer](feature/feat-0083-atlassian-structure-reference-sync-and-explorer.md) | `passed` | PRD-0016 |
 | [FEAT-0084: Project-Grouped Pinned Sessions](feature/feat-0084-project-grouped-pinned-sessions.md) | `passed` | prd-0009-data-model-value-dictionaries-and-pinned-session-recall |
+| [FEAT-0085: Workflow Episode And Direction Contract](feature/feat-0085-workflow-episode-and-direction-contract.md) | `passed` | PRD-0017: Source-Backed Workflow Map And Workstream Lenses |
+| [FEAT-0086: Deterministic Cross-Source Workflow Projection](feature/feat-0086-deterministic-cross-source-workflow-projection.md) | `passed` | PRD-0017: Source-Backed Workflow Map And Workstream Lenses |
+| [FEAT-0087: Session Workflow Focus Map](feature/feat-0087-session-workflow-focus-map.md) | `passed` | PRD-0017: Source-Backed Workflow Map And Workstream Lenses |
+| [FEAT-0088: Workflow Assertion And Correction Contract](feature/feat-0088-workflow-assertion-and-correction-contract.md) | `passed` | PRD-0017: Source-Backed Workflow Map And Workstream Lenses |
+| [FEAT-0089: Workflow Boundary Corrections](feature/feat-0089-workflow-boundary-corrections.md) | `passed` | PRD-0017: Source-Backed Workflow Map And Workstream Lenses |
 
-## Specs (88)
+## Specs (93)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -208,8 +214,13 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [SPEC-0082: Atlassian Structure Reference Locator Foundation](spec/spec-0082-atlassian-static-url-locator-contract.md) | `approved` | FEAT-0082 |
 | [SPEC-0083: Atlassian Structure Reference Sync And Explorer](spec/spec-0083-atlassian-structure-reference-sync-and-explorer.md) | `approved` | FEAT-0083 |
 | [SPEC-0084: Project-Grouped Pinned Sessions](spec/spec-0084-project-grouped-pinned-sessions.md) | `approved` | feat-0084-project-grouped-pinned-sessions |
+| [SPEC-0085: Workflow Episode And Direction Contract](spec/spec-0085-workflow-episode-and-direction-contract.md) | `approved` | FEAT-0085 |
+| [SPEC-0086: Deterministic Cross-Source Workflow Projection](spec/spec-0086-deterministic-cross-source-workflow-projection.md) | `approved` | FEAT-0086 |
+| [SPEC-0087: Session Workflow Focus Map](spec/spec-0087-session-workflow-focus-map.md) | `approved` | FEAT-0087 |
+| [SPEC-0088: Workflow Assertion And Correction Contract](spec/spec-0088-workflow-assertion-and-correction-contract.md) | `approved` | FEAT-0088 |
+| [SPEC-0089: Workflow Boundary Corrections](spec/spec-0089-workflow-boundary-corrections.md) | `approved` | FEAT-0089 |
 
-## Runs (94)
+## Runs (99)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -307,8 +318,13 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [RUN-20260901-92: Atlassian Structure Reference Locator Foundation](run/run-20260901-92-atlassian-static-url-locator-contract.md) | `passed` | FEAT-0082 |
 | [RUN-20260901-93: Atlassian Structure Reference Sync And Explorer](run/run-20260901-93-atlassian-structure-reference-sync-and-explorer.md) | `passed` | FEAT-0083 |
 | [RUN-20260902-94: Project-Grouped Pinned Sessions](run/run-20260902-94-project-grouped-pinned-sessions.md) | `passed` | feat-0084-project-grouped-pinned-sessions |
+| [RUN-20260914-95: Workflow Episode And Direction Contract](run/run-20260914-95-workflow-episode-and-direction-contract.md) | `passed` | FEAT-0085 |
+| [RUN-20260914-96: Deterministic Cross-Source Workflow Projection](run/run-20260914-96-deterministic-cross-source-workflow-projection.md) | `passed` | FEAT-0086 |
+| [RUN-20260914-97: Session Workflow Focus Map](run/run-20260914-97-session-workflow-focus-map.md) | `passed` | FEAT-0087 |
+| [RUN-20260914-98: Workflow Assertion And Correction Contract](run/run-20260914-98-workflow-assertion-and-correction-contract.md) | `passed` | FEAT-0088 |
+| [RUN-20260914-99: Workflow Boundary Corrections](run/run-20260914-99-workflow-boundary-corrections.md) | `passed` | FEAT-0089 |
 
-## Evaluations And Schema Audits (308)
+## Evaluations And Schema Audits (322)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -620,8 +636,22 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [EVAL-0084 Design: Project-Grouped Pinned Sessions](evaluation/eval-0084-design-project-grouped-pinned-sessions.md) | `complete` | FEAT-0084 |
 | [EVAL-0084 Functional: Project-Grouped Pinned Sessions](evaluation/eval-0084-functional-project-grouped-pinned-sessions.md) | `complete` | FEAT-0084 |
 | [EVAL-0084 UX: Project-Grouped Pinned Sessions](evaluation/eval-0084-ux-project-grouped-pinned-sessions.md) | `complete` | FEAT-0084 |
+| [EVAL-0085 Contract: Workflow Episode And Direction Contract](evaluation/eval-0085-contract-workflow-episode-and-direction-contract.md) | `complete` | FEAT-0085 |
+| [EVAL-0085 Functional: Workflow Episode And Direction Contract](evaluation/eval-0085-functional-workflow-episode-and-direction-contract.md) | `complete` | FEAT-0085 |
+| [EVAL-0086 Contract: Deterministic Cross-Source Workflow Projection](evaluation/eval-0086-contract-deterministic-cross-source-workflow-projection.md) | `complete` | FEAT-0086 |
+| [EVAL-0086 Functional: Deterministic Cross-Source Workflow Projection](evaluation/eval-0086-functional-deterministic-cross-source-workflow-projection.md) | `complete` | FEAT-0086 |
+| [EVAL-0087 Contract: Session Workflow Focus Map](evaluation/eval-0087-contract-session-workflow-focus-map.md) | `complete` | FEAT-0087 |
+| [EVAL-0087 Design: Session Workflow Focus Map](evaluation/eval-0087-design-session-workflow-focus-map.md) | `complete` | FEAT-0087 |
+| [EVAL-0087 Functional: Session Workflow Focus Map](evaluation/eval-0087-functional-session-workflow-focus-map.md) | `complete` | FEAT-0087 |
+| [EVAL-0087 UX: Session Workflow Focus Map](evaluation/eval-0087-ux-session-workflow-focus-map.md) | `complete` | FEAT-0087 |
+| [EVAL-0088 Contract: Workflow Assertion And Correction Contract](evaluation/eval-0088-contract-workflow-assertion-and-correction-contract.md) | `complete` | FEAT-0088 |
+| [EVAL-0088 Functional: Workflow Assertion And Correction Contract](evaluation/eval-0088-functional-workflow-assertion-and-correction-contract.md) | `complete` | FEAT-0088 |
+| [EVAL-0089 Contract: Workflow Boundary Corrections](evaluation/eval-0089-contract-workflow-boundary-corrections.md) | `complete` | FEAT-0089 |
+| [EVAL-0089 Design: Workflow Boundary Corrections](evaluation/eval-0089-design-workflow-boundary-corrections.md) | `complete` | FEAT-0089 |
+| [EVAL-0089 Functional: Workflow Boundary Corrections](evaluation/eval-0089-functional-workflow-boundary-corrections.md) | `complete` | FEAT-0089 |
+| [EVAL-0089 UX: Workflow Boundary Corrections](evaluation/eval-0089-ux-workflow-boundary-corrections.md) | `complete` | FEAT-0089 |
 
-## Fix Logs (22)
+## Fix Logs (23)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -647,6 +677,7 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [FIX-0068: Claude Session Candidate Discovery](fix/fix-0068-claude-session-candidate-discovery.md) | `complete` | feat-0068-multi-source-session-synchronization-and-health |
 | [FIX-0074: Related Material Evidence Density](fix/fix-0074-related-material-evidence-density.md) | `complete` | feat-0074-session-centric-related-materials-rail |
 | [FIX-0077: Atlassian Structural Scope Parity](fix/fix-0077-atlassian-structural-scope-parity.md) | `complete` | FEAT-0077 |
+| [FIX-0089: Workflow Correction Restoration Snapshot](fix/fix-0089-workflow-correction-restoration-snapshot.md) | `complete` | FEAT-0089 |
 
 ## Heuristic Backlogs (0)
 

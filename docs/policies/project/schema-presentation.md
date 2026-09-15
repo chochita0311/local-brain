@@ -8,7 +8,7 @@ This contract defines the deterministic, package-owned data consumed by LocalBra
 
 - `src/localbrain/schema.sql` owns fresh executable structure.
 - `src/localbrain/db.py` owns compatible structure and runtime-only indexes. Generation invokes its real structural path against SQLite `:memory:` with data migrations disabled.
-- `docs/policies/project/data-model.md` and its nine subject documents own order, subject ownership, lifecycle/recovery semantics, column explanations, application relations, and Mermaid definitions.
+- `docs/policies/project/data-model.md` and its ten subject documents own order, subject ownership, lifecycle/recovery semantics, column explanations, application relations, and Mermaid definitions.
 - `scripts/schema_presentation_builder.py` owns transformation and validation only.
 - `src/localbrain/schema-presentation.json` is committed derived output and is packaged with LocalBrain.
 - `src/localbrain/schema_presentation.py` is the only application loader. Consumers must not parse repository Markdown or introspect a runtime database as fallback.
@@ -37,7 +37,7 @@ Each table contains:
 | `foreign_keys` | Table-local physical target, columns, and update/delete behavior. |
 | `semantics` | Purpose/authority, lifecycle contract and class, rebuildability code, producers, consumers, deletion effect, recovery path, DDL/migration ownership, and documented constraints. |
 
-The current baseline has nine subjects, 41 ordinary tables plus one FTS5 object, 458 effective columns, 44 explicit indexes, 54 physical relations, and 25 application relations. Count changes are accepted only with the implementation and semantic owners updated together.
+The current baseline has ten subjects, 42 ordinary tables plus one FTS5 object, 477 effective columns, 46 explicit indexes, 57 physical relations, and 26 application relations. Count changes are accepted only with the implementation and semantic owners updated together.
 
 ## Determinism And Failure
 

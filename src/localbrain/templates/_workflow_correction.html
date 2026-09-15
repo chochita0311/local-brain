@@ -1,0 +1,57 @@
+{% macro assertion_summary(assertion) -%}
+  <article class="workflow-assertion-summary {{ assertion.resolution }}" data-workflow-assertion-summary data-workflow-assertion-id="{{ assertion.id }}" tabindex="-1">
+    <div class="workflow-assertion-heading">
+      <strong>{% if assertion.is_undo %}되돌림 · {% endif %}{{ assertion.assertion_kind_label }}</strong>
+      <span>{{ assertion.resolution_label }}</span>
+    </div>
+    <p>{{ assertion.before_meaning_label }} <span aria-hidden="true">→</span> {{ assertion.after_meaning_label }}</p>
+    {% if assertion.after_closure_reason %}<p>종료 사유 · {{ assertion.after_closure_reason_label }}</p>{% endif %}
+    {% if assertion.resolution_reason_label %}<p>{{ assertion.resolution_reason_label }}</p>{% endif %}
+    <small>{{ assertion.authority_label }} · 확인 #{{ assertion.id }}{% if assertion.note_present %} · 메모 기록됨{% endif %}</small>
+  </article>
+{%- endmacro %}
+
+{% macro correction_action(action, workflow, instance) -%}
+  {% set control_id = action.action_id ~ '-' ~ instance %}
+  <details class="workflow-correction-action{% if action.is_undo %} undo{% endif %}" data-workflow-correction-action data-workflow-boundary-kind="{{ action.boundary_kind }}" data-workflow-boundary-key="{{ action.boundary_key }}" data-workflow-correction-focus="{{ action.target_episode_key or action.source_episode_key }}">
+    <summary id="{{ control_id }}-summary">{{ action.display_label or action.action_label }}</summary>
+    <div class="workflow-correction-preview">
+      <p class="workflow-correction-scope">
+        <strong>{{ action.source_title }}</strong>
+        {% if action.target_title %}<span aria-hidden="true">→</span><strong>{{ action.target_title }}</strong>{% endif %}
+      </p>
+      <dl>
+        <div><dt>현재</dt><dd>{{ action.before_meaning_label }} · {{ action.before_authority_label }}</dd></div>
+        <div><dt>변경 후</dt><dd>{{ action.after_meaning_label }}{% if action.is_close %} · <span data-workflow-close-reason-preview>{{ action.selected_close_reason_label }}</span>{% endif %} · {{ action.after_authority_label }}</dd></div>
+      </dl>
+      {% if action.supersedes_assertion_id %}<p class="workflow-correction-history">현재 확인 #{{ action.supersedes_assertion_id }}을 지우지 않고 새 이력으로 대체합니다.</p>{% else %}<p class="workflow-correction-history">원래 관측·후보 근거는 그대로 두고 사용자 확인 이력을 추가합니다.</p>{% endif %}
+      <form action="{{ workflow.correction_destination }}" method="post" class="workflow-correction-form" data-workflow-correction-form aria-labelledby="{{ control_id }}-summary">
+        <fieldset>
+          <input type="hidden" name="action" value="{{ action.action }}">
+          <input type="hidden" name="expected_revision" value="{{ action.expected_revision }}">
+          {% if action.is_undo %}
+            <input type="hidden" name="assertion_id" value="{{ action.assertion_id }}">
+          {% else %}
+            <input type="hidden" name="source_episode_key" value="{{ action.source_episode_key }}">
+            {% if action.target_episode_key %}<input type="hidden" name="target_episode_key" value="{{ action.target_episode_key }}">{% endif %}
+            {% if action.expected_active_assertion_id %}<input type="hidden" name="expected_active_assertion_id" value="{{ action.expected_active_assertion_id }}">{% endif %}
+          {% endif %}
+          {% if action.is_close %}
+            <label for="{{ control_id }}-reason">종료 사유</label>
+            <select id="{{ control_id }}-reason" name="close_reason" required data-workflow-close-reason>
+              {% for reason in action.close_reason_options %}<option value="{{ reason.value }}"{% if reason.selected %} selected{% endif %}>{{ reason.label }}{% if reason.current %} (현재){% endif %}</option>{% endfor %}
+            </select>
+            <label for="{{ control_id }}-note">메모 <span>선택 · 1,000자 이하</span></label>
+            <textarea id="{{ control_id }}-note" name="note" maxlength="1000" rows="3"></textarea>
+          {% endif %}
+          <div class="workflow-correction-form-actions">
+            <button type="submit" class="primary-button">{{ action.action_label }} 확인</button>
+            <button type="button" class="secondary-button" data-workflow-correction-cancel>취소</button>
+          </div>
+        </fieldset>
+        <p class="workflow-correction-form-feedback" data-workflow-correction-form-feedback role="status" aria-live="polite" hidden></p>
+        <a class="workflow-correction-reload" data-workflow-correction-reload href="/sessions/{{ workflow.requested_session_id }}/workflow" hidden>새로 고쳐 현재 흐름 확인</a>
+      </form>
+    </div>
+  </details>
+{%- endmacro %}

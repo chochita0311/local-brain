@@ -26,9 +26,9 @@ class ValueRegistryContractTests(unittest.TestCase):
     def setUpClass(cls):
         cls.registry = load_value_registry()
 
-    def test_registry_covers_nine_subjects_and_current_required_inventories(self):
-        self.assertEqual(len(self.registry["subjects"]), 9)
-        self.assertEqual(len(self.registry["families"]), 60)
+    def test_registry_covers_ten_subjects_and_current_required_inventories(self):
+        self.assertEqual(len(self.registry["subjects"]), 10)
+        self.assertEqual(len(self.registry["families"]), 66)
         self.assertFalse(checker.validate_registry(ROOT, self.registry))
         self.assertFalse(checker.check_documents(ROOT))
         self.assertFalse(

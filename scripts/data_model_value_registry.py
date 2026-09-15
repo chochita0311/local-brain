@@ -34,6 +34,7 @@ REQUIRED_BOOLEAN_FIELDS = {
     "local_resources.exists_now",
     "maintenance_runs.refresh_suggestions",
     "maintenance_runs.mcp_budget_exceeded",
+    "workflow_assertions.is_undo",
 }
 
 REQUIRED_APPLICATION_FAMILIES = {
@@ -365,7 +366,7 @@ def render_entry(registry: Mapping[str, Any]) -> str:
         _generated_notice(),
         "# Data Model Value Dictionaries",
         "",
-        "This index projects the executable bounded-value authority into nine "
+        "This index projects the executable bounded-value authority into ten "
         "subject-owned dictionaries. The existing subject catalogs continue to "
         "own tables, columns, relationships, lifecycle, deletion, and recovery.",
         "",

@@ -10,10 +10,15 @@ Priority meaning:
 
 ## Current Focus
 
-- [ ] Exercise multiple real Workstreams through repeated context switches and record model gaps locally.
-- [ ] Build the unified cross-source Workstream timeline.
-- [ ] Add historical path aliases and repository identity reconciliation.
-- [ ] Improve source-aware matching and batch Suggestion review as connected source use expands.
+This section is a priority projection only. Completion state is owned by the
+single linked checkbox in the detailed backlog below.
+
+- [Review the passed Session Workflow Focus in real use](#workflow-focus-real-use-review),
+  then [select the next Workstream candidate boundary](#workstream-candidate-next-boundary).
+- [Reconcile historical paths and repository identity](#path-and-repository-identity).
+- Improve [source-aware matching](#source-aware-matching) and
+  [batch Suggestion review](#batch-suggestion-review) as connected source use
+  expands.
 
 ## P0 - Privacy And Repository Boundary
 
@@ -37,9 +42,26 @@ Priority meaning:
 
 - [ ] Validate the boundary between Workstream, Thread, Project, Context Source, Document, Session, and external Resource through daily use.
 - [ ] Add Workstream and Thread merge, split, archive, move, and restore operations without losing history.
-- [ ] Build a unified Workstream timeline across Sessions, documents, Git, tickets, wiki pages, and conversations.
+<a id="workflow-focus-real-use-review"></a>
+
+- [ ] Exercise the passed
+  deterministic Session Workflow Focus and boundary corrections across
+  multiple real efforts and repeated context switches; record where the
+  reconstructed story or correction choices are insufficient.
+
+<a id="workstream-candidate-next-boundary"></a>
+
+- [ ] Use product-review
+  evidence to define and approve a reviewable cross-source Workstream candidate
+  discovery boundary before deciding the later Lens, Atlas, topic-terrain, or
+  Qwen boundary.
 - [ ] Track Resource freshness, last verification time, evidence, confidence, and review state separately.
-- [ ] Canonicalize and deduplicate file paths, repository remotes, tickets, wiki pages, and conversation messages.
+<a id="path-and-repository-identity"></a>
+
+- [ ] Add historical path aliases and
+  repository identity reconciliation so moved folders and renamed repositories
+  retain mappings; canonicalize and deduplicate current file paths and
+  repository remotes alongside tickets, wiki pages, and conversation messages.
 - [ ] Preserve many-to-many Session and Document mappings with relationship-specific evidence.
 - [ ] Keep shared Workstream Resources distinct from Thread-specific Resources in the model and review UI.
 - [ ] Define checkpoint supersession and comparison semantics.
@@ -54,15 +76,21 @@ Priority meaning:
 - [ ] Handle Apple Notes nested folders, duplicate titles, account changes, protected notes, attachments, and deletions.
 - [ ] Add text search and filters within a selected source while preserving its tree.
 - [ ] Decide how removed sources retain historical relationships while appearing unavailable.
-- [ ] Add historical path aliases so moved folders and renamed repositories keep existing mappings.
 
 ## P1 - Sessions And Retrieval
 
 - [ ] Validate Claude and Codex parsers against format changes and malformed or partially written JSONL.
 - [ ] Decide which additional subagent metadata is useful without importing nested events.
 - [ ] Decide which tool-result fields are valuable enough to index without adding opaque payload noise or excessive volume.
-- [ ] Improve source-aware matching and explain why each Session or Document was suggested.
-- [ ] Add batch review, filters, sorting, and clear pending, accepted, rejected, restored, and superseded states.
+<a id="source-aware-matching"></a>
+
+- [ ] Improve source-aware matching and
+  explain why each Session or Document was suggested.
+
+<a id="batch-suggestion-review"></a>
+
+- [ ] Add batch review, filters, sorting,
+  and clear pending, accepted, rejected, restored, and superseded states.
 - [ ] Measure retrieval precision and missed-resource rates with synthetic local fixtures before changing ranking rules.
 
 ## P1 - External Sources

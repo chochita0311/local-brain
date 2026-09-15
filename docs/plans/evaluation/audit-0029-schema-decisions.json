@@ -3,13 +3,13 @@
   "review_status": "complete",
   "manifest": {
     "path": "src/localbrain/schema-presentation.json",
-    "sha256": "ff9c3ec65bf7c9a0834addd183ac01f5826faf57848c7bbf30cd688b57814df2",
+    "sha256": "5a9f4b8d58d9147c8daa5177af66fd92ac261c4d2c142c4a77e2689db4253544",
     "expected": {
-      "tables": 42,
-      "columns": 458,
-      "indexes": 44,
-      "physical_relations": 54,
-      "application_relations": 25
+      "tables": 43,
+      "columns": 477,
+      "indexes": 46,
+      "physical_relations": 57,
+      "application_relations": 26
     }
   },
   "decision_defaults": {
@@ -45,6 +45,7 @@
     "session_pins": {"decision": "keep", "risk": "high", "rationale": "Required non-rebuildable owner recall intent for eligible primary work Sessions; row presence, one-to-one cascade ownership, and database-backup recovery remain separate from source-derived Session facts."},
     "session_reference_scans": {"decision": "keep", "risk": "medium", "rationale": "Required aggregate source/extractor freshness and 100-target bound for one primary work Session; it keeps failed reconciliation stale rather than guessing from detail reads."},
     "session_reference_evidence": {"decision": "keep", "risk": "medium", "rationale": "Required source-neutral privacy-minimized Session reference locations and completed read outcomes; it separates Session-facing evidence from Activity Event content, shared target metadata, and user organization."},
+    "workflow_assertions": {"decision": "keep", "risk": "high", "rationale": "Required non-rebuildable append-only owner correction ledger; stable Episode boundary identity, exact before/after meaning, supersession, and optional note cannot be recovered from source Sessions or deterministic candidates."},
     "usage_price_snapshots": {"decision": "keep", "risk": "medium", "rationale": "Required immutable price provenance cited by Usage Records; RESTRICT deletion protects historical calculation evidence."},
     "usage_model_prices": {"decision": "keep", "risk": "medium", "rationale": "Required versioned Decimal price inputs, including approved long-context tiers, under passed PRD-0004."},
     "usage_records": {"decision": "keep", "risk": "high", "rationale": "The Usage Record table and frozen attribution remain required; FEAT-0031 restores the three-value compatible CHECK through backup-backed exact-value preservation without absorbing deferred timestamp metadata."},
@@ -94,6 +95,7 @@
     "sessions.ended_at": {"decision": "defer", "risk": "medium", "defer": "canonical-timestamp-contract", "rationale": "Multiple source parsers supply timestamp strings without a repository-wide canonical format."},
     "sessions.last_event_at": {"decision": "defer", "risk": "high", "defer": "canonical-timestamp-contract", "rationale": "This source-derived string drives indexes, lexical ordering, parent views, and activity attribution across adapters."},
     "sessions.imported_at": {"decision": "defer", "risk": "medium", "defer": "canonical-timestamp-contract", "rationale": "Python ISO values replace a SQLite-format default and lack one canonical storage rule."},
+    "workflow_assertions.created_at": {"decision": "defer", "risk": "high", "defer": "canonical-timestamp-contract", "rationale": "Append-only assertion chronology and active-chain history use application-normalized UTC text and must join the repository-wide canonical timestamp contract."},
     "activity_events.occurred_at": {"decision": "defer", "risk": "high", "defer": "canonical-timestamp-contract", "rationale": "Source-derived event times feed activity calculations across parser formats."},
     "usage_price_snapshots.created_at": {"decision": "defer", "risk": "medium", "defer": "canonical-timestamp-contract", "rationale": "Code-seeded timestamp text should follow the same eventual immutable timestamp contract."},
     "usage_records.occurred_at": {"decision": "defer", "risk": "high", "defer": "canonical-timestamp-contract", "rationale": "Usage period assignment parses source-derived time strings and depends on timezone-safe normalization."},
@@ -215,6 +217,7 @@
     "session_pins": ["tests/test_session_pins.py"],
     "session_reference_scans": ["tests/test_session_reference_schema.py"],
     "session_reference_evidence": ["tests/test_session_reference_schema.py"],
+    "workflow_assertions": ["tests/test_workflow_assertions.py"],
     "usage_price_snapshots": ["tests/test_usage_contract.py"],
     "usage_model_prices": ["tests/test_usage_contract.py"],
     "usage_records": ["tests/test_usage_contract.py", "tests/test_usage_dashboard.py", "tests/test_activity_attribution.py", "tests/test_schema_migrations.py"],
@@ -251,14 +254,14 @@
   "audit_dimensions": {
     "unused_fields": ["FEAT-0032 removed the supported unused Activity Event metadata field after all-null preflight"],
     "duplicated_facts": ["Session/event counts retained as rebuildable summary caches", "Session reference evidence stores only bounded observed identity and source location rather than copying Activity Event text or shared target content", "External capability JSON is the canonical minimal logical-operation projection rather than duplicated Source Instance identity", "The external-sync relational row is a bounded query projection derived atomically from the versioned detailed Run manifest"],
-    "wrong_ownership": ["No existing table owner move proposed; all 42 objects have exactly one Data Model subject owner, including separate user-owned Session pins, source-neutral Session reference evidence, and the Atlassian domain-first Site, explicit access binding, Item evidence, stable structure-reference identity/URL ownership, structure evidence, and local-classification extensions."],
-    "polymorphic_referential_gaps": ["All 25 application relations retained; add_link validates live targets, historical unresolved links are intentional, and projection/source correlations—including the stable structure-reference Search projection—have explicit cleanup"],
+    "wrong_ownership": ["No existing table owner move proposed; all 43 manifest objects have exactly one Data Model subject owner, including the dedicated user-owned Workflow assertion ledger, Session pins, source-neutral Session reference evidence, and the Atlassian domain-first Site, explicit access binding, Item evidence, stable structure-reference identity/URL ownership, structure evidence, and local-classification extensions."],
+    "polymorphic_referential_gaps": ["All 26 application relations retained; stable Episode-key assertion resolution, add_link target validation, intentional historical unresolved links, and projection/source correlations—including the stable structure-reference Search projection—have explicit lifecycle rules"],
     "identifier_inconsistencies": ["INTEGER local identities and TEXT stable/source/run identities retained by authority boundary; polymorphic entity_id remains TEXT by contract"],
-    "missing_or_redundant_indexes": ["FEAT-0030 removed three proven redundant names and added query-prefix indexes; FEAT-0045 adds external-sync prefixes; FEAT-0046 adds Site, Space, Item, URL, canonical-URL, and freshness query coverage; FEAT-0047 adds Item, Session-location, and Document-location evidence prefixes; FEAT-0050 adds the classification-first membership prefix used by Topic/Tag browse filters; FEAT-0062 adds Source-first Site-binding lookup coverage; FEAT-0072 adds Session-target grouping plus Document and Atlassian target lifecycle prefixes; FEAT-0083 adds Site/kind reference lookup, canonical/alias ownership, and reference/Session/Document evidence prefixes."],
+    "missing_or_redundant_indexes": ["FEAT-0030 removed three proven redundant names and added query-prefix indexes; FEAT-0045 adds external-sync prefixes; FEAT-0046 adds Site, Space, Item, URL, canonical-URL, and freshness query coverage; FEAT-0047 adds Item, Session-location, and Document-location evidence prefixes; FEAT-0050 adds the classification-first membership prefix used by Topic/Tag browse filters; FEAT-0062 adds Source-first Site-binding lookup coverage; FEAT-0072 adds Session-target grouping plus Document and Atlassian target lifecycle prefixes; FEAT-0083 adds Site/kind reference lookup, canonical/alias ownership, and reference/Session/Document evidence prefixes; FEAT-0088 adds source/target Episode-key chronology prefixes for active assertion overlay."],
     "timestamp_inconsistency": ["canonical-timestamp-contract"],
     "status_and_type_constraints": ["closed-vocabulary-constraints", "FEAT-0083 constrains structure-reference service/kind pairing, canonical/alias URL role, evidence source channel, source shape, and bounded identity/locator values; FEAT-0072 directly constrains reference scan state, target kind, evidence kind, read outcome, target/FK shape, completed tool identity, and the 100-target boundary; FEAT-0044 constrains provider, service, enabled, and capability availability; FEAT-0031 resolved Usage attribution and FEAT-0035 resolved Session class/index policy"],
     "stable_data_in_json": ["Session reference target, evidence, outcome, source location, and counts are relational and retain no copied message or opaque tool JSON; External capability JSON retains only canonical sorted logical-operation names; the external-sync envelope owns query fields; Atlassian metadata and normalized documents are bounded versioned payloads while Site, Space, Item, URL, structure-reference identity, canonical/alias safe locators, reference evidence, version, hash, coverage, attention, freshness, and source evidence identity remain relational."],
-    "deletion_behavior": ["Session reference scan/evidence rows cascade from their Session and exact target without deleting the target; Session pin rows cascade only when their owning Session is deleted; the external-sync extension cascades with its maintenance parent; Atlassian Site descendants restrict accidental Site deletion while access binding and nullable Source Instance pointers can be removed without deleting local identity; structure evidence cascades with its source but loss of all evidence archives rather than deletes the stable structure reference or its canonical/alias URLs; explicit External Resource purge cascades source-specific Item extensions; unavailable results retain last-known state."],
-    "fresh_vs_compatible_drift": ["Idempotent schema application creates the FEAT-0072 Session reference tables and indexes, FEAT-0058 Session pin table, FEAT-0083 structure-reference identity/URL/evidence tables and indexes, and FEAT-0044/0045/0046/0047/0050/0062 additive tables; the backup-backed External Resource rebuild removes only global URL uniqueness while preserving rows and polymorphic relations; the backup-backed Atlassian repair makes legacy Site access optional and backfills bindings plus Item/Space access ownership; canonical-timestamp-contract remains deferred."]
+    "deletion_behavior": ["Workflow assertions retain stable Episode keys and history while Session lookup aids use SET NULL; Session reference scan/evidence rows cascade from their Session and exact target without deleting the target; Session pin rows cascade only when their owning Session is deleted; the external-sync extension cascades with its maintenance parent; Atlassian Site descendants restrict accidental Site deletion while access binding and nullable Source Instance pointers can be removed without deleting local identity; structure evidence cascades with its source but loss of all evidence archives rather than deletes the stable structure reference or its canonical/alias URLs; explicit External Resource purge cascades source-specific Item extensions; unavailable results retain last-known state."],
+    "fresh_vs_compatible_drift": ["Idempotent schema application creates the FEAT-0088 Workflow assertion ledger and indexes, FEAT-0072 Session reference tables and indexes, FEAT-0058 Session pin table, FEAT-0083 structure-reference identity/URL/evidence tables and indexes, and FEAT-0044/0045/0046/0047/0050/0062 additive tables; the backup-backed External Resource rebuild removes only global URL uniqueness while preserving rows and polymorphic relations; the backup-backed Atlassian repair makes legacy Site access optional and backfills bindings plus Item/Space access ownership; canonical-timestamp-contract remains deferred."]
   }
 }

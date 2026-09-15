@@ -12,7 +12,7 @@ Keep reusable law here. Do not add implementation sequencing, migration notes, p
 
 - **Product type:** local-first developer work-context hub and personal continuity workspace.
 - **Primary user:** one developer, PM, or analyst organizing their own sessions, projects, documents, sources, Workstreams, and maintenance activity.
-- **Primary jobs:** resume interrupted work, organize evidence into Workstreams and Threads, inspect source activity, search local context, review Suggestions, and monitor maintenance Runs.
+- **Primary jobs:** resume interrupted work, reconstruct a Session-backed work flow, organize evidence into Workstreams and Threads, inspect source activity, search local context, review Suggestions, and monitor maintenance Runs.
 - **Interaction character:** workflow-heavy and read-heavy. The interface must support fast scanning and sustained detail reading without separating evidence from state.
 - **Device priority:** desktop-first local browser UI. Narrow viewports preserve access and comprehension but do not redefine the product as mobile-first.
 - **Technical constraints:** FastAPI, server-rendered Jinja2, small JSON interactions, SQLite and FTS5, locally served assets, no external CDN, and no interface that implies unsupported backend behavior.
@@ -529,6 +529,20 @@ Every persisted or user-visible derived state has one semantic family and a text
 - Empty uses neutral treatment, a concise explanation, and at most one primary recovery action.
 - Disabled controls retain their label and use disabled action tokens and opacity.
 - Focus and selection remain visible independently of hover.
+- Workflow Focus `selected` uses a brand boundary plus the visible `선택됨`
+  label and `aria-pressed`; `related-path` uses emphasized directional edges,
+  while unrelated retained context may use muted opacity without disappearing.
+- Workflow Focus `unconnected` and `partial` use neutral and warning treatment
+  with explicit explanatory text and retained/observed totals. Neither is a
+  persisted lifecycle state, and `unconnected` never means completed.
+- Workflow Focus `missing`, `ineligible`, and `unexpected-error` use bounded
+  neutral, warning, and danger treatment respectively, always with a local
+  Session or Sessions destination and no implied source refresh.
+- Workflow Focus `user-confirmed` uses a persistent structural boundary and
+  explicit authority text on the affected Episode or relation; color, glow, or
+  transient success feedback never carries confirmation alone. A correction
+  failure leaves the prior map visible and places recovery beside its owning
+  form.
 
 Running and working indicators may animate with motion tokens. Under `prefers-reduced-motion: reduce`, they become static labeled indicators and transitions resolve with `--duration-instant`.
 
@@ -609,44 +623,122 @@ Running and working indicators may animate with motion tokens. Under `prefers-re
 
 ## 10. Core UI Patterns
 
-- **Persistent shell:** navigation and header remain visually stable across route changes; only the active location and contextual actions change.
-- **Workstream hierarchy:** Workstream identity and status lead; Threads, checkpoint state, linked resources, Suggestions, and Runs follow in that order of responsibility.
-- **Browse and inventory:** headings, filters, counts, rows or cards, and bounded empty states form one scan path. Pinned Sessions uses one compact workspace heading per group, places Git-backed Project groups before non-Git path groups, alphabetizes within those sections, and keeps Session activity ordering inside each group. The heading owns repeated Project/path context; each row retains source, title, optional Session branch, and activity date without an empty branch placeholder. Group boundaries and row boundaries have single ownership rather than forming a double divider. A desktop Pinned Session list keeps its normal left card inset while its grouped rows and boundaries own a `--space-section` right inset independent of the scrollbar lane; narrow in-flow presentation drops the extra inset with the nested scroller.
-- **Detail and read:** title and source metadata precede the body; evidence and actions stay adjacent without shrinking the reading column. A primary Session's `관련 자료` rail presents direct evidence before explicit organization, keeps its title free of a duplicate aggregate count while retaining relationship-group totals, preserves the `연결된 작업` exploration lane with a zero total when no organization-only material remains, shows up to 100 retained rows per group initially, groups material kinds into one alphabetically ordered heading each, and orders direct references within a kind by their oldest source occurrence. The rail uses a descending heading scale from rail title to relationship group to material kind and ends each material-kind section with a stronger boundary while individual items rely on spacing instead of row rules. On desktop, its material content owns a `--space-section` right inset independent of the scrollbar lane while the normal left inset remains `--space-card`; compact in-flow presentation drops the extra right inset with the nested scroller. Retained overflow uses one reversible disclosure whose collapse control follows the expanded rows in DOM, visual, and keyboard-focus order. On desktop, the rail stays viewport-bounded and its material body scrolls independently while the document continues to own the primary reading scroll.
-- **Explorer:** hierarchy, inventory, and preview preserve selection context;
-  panes collapse into sequential regions on narrow screens. Local Contexts use
-  source/directory/document containment. Atlassian keeps `All`, `Jira`, and
-  `Wiki` as reversible top scopes, then begins the hierarchy at `모든 도메인`
-  followed by normalized Site domain without repeating Service as a parent. Each Site uses only
-  persisted Project/Space children, deterministic canonical-URL container
-  hints, and one honest `소속 미확인` child. Persisted containment and
-  read-only URL hints remain visibly distinguishable when labels collide; Jira
-  and Wiki remain distinguishable in `All` through a compact non-color-only cue.
-  A URL hint never visually claims a confirmed or persisted Space, and the
-  hierarchy does not imply a nested Confluence Page or Jira issue tree. `Wiki`
-  remains a presentation label for stored Confluence identity. Wide layouts
-  keep hierarchy, one mixed list of links/documents and URL-derived structure
-  references, and the selected entity's read-first detail adjacent with
-  intentional scroll ownership. Compact layouts keep the list primary and move
-  hierarchy/detail into bounded disclosures. Narrow layouts are list-first
-  with explicit sheets or sequential destinations. Unsupported pane state
-  normalizes at breakpoint changes without hiding the selected link/document
-  or structure reference, losing the mutually exclusive selection, or losing
-  the matching full-detail destination. Structure-reference detail remains
-  read-only and keeps its URL-derived provenance and availability/lifecycle
-  state separate from Item editing, Refresh, and Connections authority.
-- **Atlassian action separation:** local evidence Sync, one-URL manual Add,
-  optional Connections and connected discovery, and remote Refresh are four
-  distinct actions. Their labels, prerequisites, progress, completion, and
-  recovery must not imply the same I/O or consequence. Local Browse, search,
-  detail, Add, and Sync never require remote readiness.
-- **Atlassian ordinary terminology:** Jira-only context uses `링크`, Wiki-only
-  context uses `문서`, and mixed context uses `링크/문서` across Explorer,
-  Add, preview, full detail, Sync, Connections, Refresh, shared Search, and live
-  announcements. `Item` remains an internal schema/API/diagnostic term and may
-  remain in historical artifacts, but it is not ordinary task copy.
-- **Execution:** configuration, queued/running state, output, artifacts, and terminal result remain distinguishable throughout the Run lifecycle.
-- **Provenance cue:** imported source, inferred relation, user confirmation, and unavailable evidence use stable labels and placement across screen families.
+### Persistent Shell
+
+- Navigation and header remain visually stable across route changes; only the
+  active location and contextual actions change.
+
+### Workstream Hierarchy
+
+- Workstream identity and status lead; Threads, checkpoint state, linked
+  resources, Suggestions, and Runs follow in that order of responsibility.
+
+### Browse And Inventory
+
+- Headings, filters, counts, rows or cards, and bounded empty states form one
+  scan path.
+- Pinned Sessions uses one compact workspace heading per group, places
+  Git-backed Project groups before non-Git path groups, alphabetizes within
+  those sections, and keeps Session activity ordering inside each group. The
+  heading owns repeated Project/path context; each row retains source, title,
+  optional Session branch, and activity date without an empty branch
+  placeholder. Group boundaries and row boundaries have single ownership
+  rather than forming a double divider.
+- A desktop Pinned Session list keeps its normal left card inset while its
+  grouped rows and boundaries own a `--space-section` right inset independent
+  of the scrollbar lane; narrow in-flow presentation drops the extra inset with
+  the nested scroller.
+
+### Detail And Read
+
+- Title and source metadata precede the body; evidence and actions stay
+  adjacent without shrinking the reading column.
+- A primary Session's `관련 자료` rail presents direct evidence before explicit
+  organization, keeps its title free of a duplicate aggregate count while
+  retaining relationship-group totals, preserves the `연결된 작업` exploration
+  lane with a zero total when no organization-only material remains, shows up
+  to 100 retained rows per group initially, groups material kinds into one
+  alphabetically ordered heading each, and orders direct references within a
+  kind by their oldest source occurrence.
+- The rail uses a descending heading scale from rail title to relationship
+  group to material kind and ends each material-kind section with a stronger
+  boundary while individual items rely on spacing instead of row rules.
+- On desktop, its material content owns a `--space-section` right inset
+  independent of the scrollbar lane while the normal left inset remains
+  `--space-card`; compact in-flow presentation drops the extra right inset with
+  the nested scroller. Retained overflow uses one reversible disclosure whose
+  collapse control follows the expanded rows in DOM, visual, and keyboard-focus
+  order. On desktop, the rail stays viewport-bounded and its material body
+  scrolls independently while the document continues to own the primary
+  reading scroll.
+
+### Explorer
+
+- Hierarchy, inventory, and preview preserve selection context; panes collapse
+  into sequential regions on narrow screens.
+- Local Contexts use source/directory/document containment.
+- Atlassian keeps `All`, `Jira`, and `Wiki` as reversible top scopes, then
+  begins the hierarchy at `모든 도메인` followed by normalized Site domain
+  without repeating Service as a parent. Each Site uses only persisted
+  Project/Space children, deterministic canonical-URL container hints, and one
+  honest `소속 미확인` child.
+- Persisted containment and read-only URL hints remain visibly distinguishable
+  when labels collide; Jira and Wiki remain distinguishable in `All` through a
+  compact non-color-only cue. A URL hint never visually claims a confirmed or
+  persisted Space, and the hierarchy does not imply a nested Confluence Page or
+  Jira issue tree. `Wiki` remains a presentation label for stored Confluence
+  identity.
+- Wide layouts keep hierarchy, one mixed list of links/documents and
+  URL-derived structure references, and the selected entity's read-first detail
+  adjacent with intentional scroll ownership. Compact layouts keep the list
+  primary and move hierarchy/detail into bounded disclosures. Narrow layouts
+  are list-first with explicit sheets or sequential destinations.
+- Unsupported pane state normalizes at breakpoint changes without hiding the
+  selected link/document or structure reference, losing the mutually exclusive
+  selection, or losing the matching full-detail destination.
+- Structure-reference detail remains read-only and keeps its URL-derived
+  provenance and availability/lifecycle state separate from Item editing,
+  Refresh, and Connections authority.
+
+### Atlassian Action Separation
+
+- Local evidence Sync, one-URL manual Add, optional Connections and connected
+  discovery, and remote Refresh are four distinct actions. Their labels,
+  prerequisites, progress, completion, and recovery must not imply the same I/O
+  or consequence. Local Browse, search, detail, Add, and Sync never require
+  remote readiness.
+
+### Atlassian Ordinary Terminology
+
+- Jira-only context uses `링크`, Wiki-only context uses `문서`, and mixed
+  context uses `링크/문서` across Explorer, Add, preview, full detail, Sync,
+  Connections, Refresh, shared Search, and live announcements. `Item` remains
+  an internal schema/API/diagnostic term and may remain in historical artifacts,
+  but it is not ordinary task copy.
+
+### Execution
+
+- Configuration, queued/running state, output, artifacts, and terminal result
+  remain distinguishable throughout the Run lifecycle.
+
+### Workflow Focus
+
+- Episode cards form a stable time-directed spine and fixed branch lanes;
+  evidence remains grouped inside the selected Episode's adjacent Trace.
+  Selection may illuminate ancestry and descendants but does not move nodes.
+  Wide direction is left-to-right, compact direction is top-to-bottom, and
+  narrow/no-script/render-failure presentation uses the complete textual
+  lineage.
+- Canvas controls follow the technical-content zoom/reset/fit and
+  scroll-ownership contract. Consequential corrections live in contextual
+  Trace disclosures, show exact before/after and supersession before one
+  explicit submit, and become sequential ordinary forms at narrow widths; they
+  do not use a modal, canvas gesture, or hidden optimistic mutation.
+
+### Provenance Cues
+
+- Imported source, inferred relation, user confirmation, and unavailable
+  evidence use stable labels and placement across screen families.
 
 ## 11. Mobile Evolution Rules
 
@@ -704,7 +796,7 @@ Any durable change to visual DNA, primitive families, semantic roles, shell geom
 | Browse and inventory | Workstreams, Sessions, Projects, Sources, Search | supports filtering, long labels, empty results, source identity, and stable row/card metadata |
 | Detail and read | Session, Subsession, Document, local Resource | prioritizes readable body width, source metadata, deep links, and long technical content |
 | Workstream workspace | Workstream detail | preserves Workstream → Thread → evidence hierarchy and separates confirmed organization from Suggestions |
-| Explorer | Atlassian, Local Contexts, Schema | preserves source or subject selection, hierarchy/tree/table orientation, progressive preview, unreadable, missing, honestly unassigned, and diagram-unavailable states; each surface uses only containment its product model owns, and Atlassian keeps top service scopes outside its domain-first hierarchy |
+| Explorer | Atlassian, Local Contexts, Schema, Session Workflow Focus | preserves source, subject, or Episode selection; hierarchy/tree/table/time orientation; progressive preview or Trace; unreadable, missing, honestly unassigned, unconnected, partial, and diagram-unavailable states; each surface uses only containment its product model owns, Workflow Focus keeps artifacts subordinate to Episodes on fixed lanes, and Atlassian keeps top service scopes outside its domain-first hierarchy |
 | Run and console | maintenance Run | represents the complete Run lifecycle, cancellation, output, artifacts, and terminal result |
 
 New routes fit one of these families or justify a constitution change. A new feature does not create a new visual family merely because its data is new.

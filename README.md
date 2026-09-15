@@ -19,6 +19,11 @@ The current MVP runs as a FastAPI web application on the local machine. A native
 - Maintain versioned checkpoints and review reversible resource Suggestions.
 - Run Claude maintenance tasks for resource organization, checkpoint drafting, and priority review.
 - Inspect source-aware Session inventory, pinned recall, related evidence, and token or estimated-cost history.
+- Open `작업 흐름` from an eligible primary Session to inspect a deterministic
+  Episode lineage, bounded branches, relation reasons, and grouped source
+  evidence. Contextual Trace controls can preview and append reversible
+  user-confirmed boundary corrections without changing Sessions or source
+  evidence. The first Focus Map and correction path use no AI model.
 - Explore the packaged data model, subject ERDs, and table contracts from the read-only **System > Schema** surface.
 
 Detailed behavior belongs to the [Product Model](docs/policies/project/product.md), while implementation and I/O boundaries belong to [Project Architecture](docs/policies/project/architecture.md).

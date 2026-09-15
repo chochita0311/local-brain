@@ -3,7 +3,7 @@
 ## Metadata
 - ID: `spec-0000`
 - Status: `draft`
-- Run ID:
+- Run: `[run-YYYYMMDD-00-title](../run/run-YYYYMMDD-00-title.md)`
 - Attempt:
 - Parent Feature: `[feat-0000-title](../feature/feat-0000-title.md)`
 - Parent PRD: `[prd-0000-title](../prd/prd-0000-title.md)`

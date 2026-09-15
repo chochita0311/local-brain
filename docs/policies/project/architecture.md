@@ -120,13 +120,13 @@ The [Project Roadmap](../../plans/project/roadmap.md) and [Project Backlog](../.
 
 ## Persistence Model
 
-The complete effective-schema map, physical and application relationships, lifecycle/recovery classifications, and nine subject catalogs are owned by [Data Model](data-model.md). This section keeps only the architectural grouping and cross-layer behavior.
+The complete effective-schema map, physical and application relationships, lifecycle/recovery classifications, and ten subject catalogs are owned by [Data Model](data-model.md). This section keeps only the architectural grouping and cross-layer behavior.
 
 The packaged consumer form is owned by [Schema Presentation](schema-presentation.md). Its generator applies fresh DDL and the compatible structural/index path only to SQLite `:memory:`, combines those facts with Data Model semantics, and emits derived JSON. Application consumers load that package data; they do not inspect a user database or repository Markdown.
 
 Bounded database values use `src/localbrain/value-registry.json` as their executable physical/logical/presentation authority. The generated [Value Dictionaries](data-model/value-dictionaries.md) remain the human-readable subject projection; runtime code loads the registry and never parses Markdown.
 
-`System > Schema` serves the read-only `/schema` Explorer from that package data. Optional `area` and `table` query values select one of the nine owner areas and one owned table; invalid state normalizes to the nearest valid overview. Server-rendered links and catalogs remain complete without JavaScript, while the route-scoped module preserves shell continuity, history, focus, strict locally packaged Mermaid rendering, and bounded presentation-only diagram zoom. The route has no SQLite connection, row preview, external asset, SQL, edit, or cleanup action.
+`System > Schema` serves the read-only `/schema` Explorer from that package data. Optional `area` and `table` query values select one of the ten owner areas and one owned table; invalid state normalizes to the nearest valid overview. Server-rendered links and catalogs remain complete without JavaScript, while the route-scoped module preserves shell continuity, history, focus, strict locally packaged Mermaid rendering, and bounded presentation-only diagram zoom. The route has no SQLite connection, row preview, external asset, SQL, edit, or cleanup action.
 
 The current schema groups data into these responsibilities:
 
@@ -134,6 +134,7 @@ The current schema groups data into these responsibilities:
 | --- | --- |
 | Source inventory | `sources`, `source_files`, `external_source_instances`, `external_source_capabilities`, `context_roots`, `workspaces` |
 | Indexed activity | `sessions`, `activity_events`, `session_reference_scans`, `session_reference_evidence`, `usage_records`, immutable usage price snapshots, `context_documents`, FTS5 search tables |
+| Workflow correction | append-only `workflow_assertions` keyed by stable Episode boundaries |
 | User organization | `workstreams`, `threads`, `checkpoints` |
 | Linkable resources | `local_resources`, `external_resources`, Workstream and Thread links |
 | Atlassian source memory | domain-first `atlassian_sites`, optional `atlassian_site_bindings`, access-optional `atlassian_spaces`, strict one-to-one `atlassian_items`, Item URL/remote/local/evidence owners, separate `atlassian_structure_references`, `atlassian_structure_reference_urls`, and `atlassian_structure_reference_evidence`, plus Item role rows and one bounded non-archived reference row in shared FTS |
@@ -211,6 +212,138 @@ Checkpoint records are versioned, user-confirmed resume states. Confirmation cap
   absolute and cwd-relative paths use its normalized-path index; basename
   references use its workspace/name index and preserve the existing exact-one
   ambiguity rule. The cache is request-local and never changes Context content.
+
+### Workflow Projection Contract
+
+- `workflow_projection.py` owns the versioned, pure descriptor boundary for
+  workflow Episodes, directional relations, reasons, and omission diagnostics.
+  Importing or calling this contract performs no SQLite, filesystem, source,
+  connector, network, model, embedding, or maintenance work.
+- One Episode corresponds only to an eligible primary work Session. Its opaque
+  key is derived from a length-delimited stable source key and source-native
+  Session ID; local row ID is carried only as the current `/sessions/{id}`
+  navigation destination. No Episode table or migration exists.
+- Observation time, activity, lifecycle, closure reason, and authority remain
+  separate descriptor fields. `sessions.ended_at` may extend the observation
+  bound but cannot infer lifecycle closure.
+- Relation normalization accepts only `continues`, `branches-from`, and
+  `merged-into`, requires a strictly later target plus at least one strong
+  source, organization, or user-assertion reason, and deterministically omits
+  self-edges, invalid values, unsupported authority/reason combinations, and
+  edges that would form a directed cycle. Workspace, Git, lexical, and temporal
+  signals are supporting evidence only.
+- Descriptor serialization is bounded and excludes source messages, document
+  bodies, opaque payloads, raw local paths, and source-native Session IDs. Later
+  database-backed producers must assemble this shape from already-normalized
+  facts without weakening the contract or persisting an inferred graph.
+
+### Workflow Focus Read Model
+
+- `workflow_focus.py` is the sole initial database-backed producer of the
+  versioned Session Focus payload. It accepts one local Session ID, validates
+  primary-work meaningful eligibility, and returns `ready`, `missing`, or
+  `ineligible` without adding a route or persistence owner.
+- The producer reads Session/source/workspace metadata, privacy-minimized direct
+  reference keys, user-authored organization links, current Related Materials,
+  direct-child metadata, and persisted Atlassian structure-reference identity.
+  It never selects Activity Event text, Context Document body, source path for
+  output, remote body, opaque payload, or search text.
+- Candidate admission is exact and conjunctive. Shared user Thread is
+  sufficient; otherwise shared reference or user Workstream must combine with
+  the documented workspace/Git fact. Classification sees at most 200 candidates
+  and uses stable strength, temporal-distance, observation, and Episode-key
+  ordering. Generated or accepted-suggestion membership may remain evidence but
+  is not directional authority in this baseline.
+- The relation producer creates adjacent `continues` candidates and nearest-
+  earlier `branches-from` candidates, selects at most one derived incoming edge
+  per Episode, emits no heuristic `merged-into`, and delegates forward-time,
+  reason, and acyclic validation to `workflow_projection.py`.
+- Stable outward traversal owns the 24-Episode, four-branch-root, and four-
+  Episodes-per-branch limits. Evidence assembly reuses the stricter Related
+  Materials destination boundary, groups source families with a five-item
+  presentation limit, and reports observed versus retained totals and
+  stale/partial state.
+- The entire call is a SQLite read projection. It performs no DML, schema work,
+  cache write, source parse, filesystem check, connector/capability operation,
+  Refresh, network request, model call, or background scheduling. Repeating it
+  against unchanged SQLite state returns the same semantic ordering.
+
+### Workflow Assertion Ledger And Overlay
+
+- `workflow_assertions.py` owns the only workflow-correction mutation and
+  overlay boundary. The `workflow_assertions` table is append-only application
+  state keyed by a digest of stable Episode identity; nullable Session foreign
+  keys are current lookup aids with `ON DELETE SET NULL`, and one unique
+  self-supersession link prevents a history fork.
+- The domain exposes exact create, undo, history, and overlay operations. Each
+  write recomputes the current overlay, compares an optimistic projection
+  revision, validates endpoints, forward time, incoming-boundary consistency,
+  cycles, tip closure, and active supersession, then appends inside one bounded
+  savepoint without committing its caller's outer transaction.
+- Focus first constructs the unchanged FEAT-0086 source and deterministic
+  candidate projection. Active user assertions then replace only the effective
+  selected relation pair or Episode lifecycle. The read model retains
+  `base_relations`, base lifecycle, resolution summaries, diagnostics, and a
+  deterministic revision so presentation and Trace can distinguish observed,
+  candidate, and user-confirmed authority.
+- Assertion rows survive Session deletion and projection rebuild. An absent or
+  newly incompatible endpoint makes the active assertion unresolved rather
+  than deleting it or weakening graph invariants; restoration of the same
+  source-scoped native identity can resolve it again.
+- These operations read or write only normalized SQLite state. They perform no
+  source-file, Git, connector, remote, Refresh, synchronization, model,
+  embedding, training, or Workstream-organization mutation.
+
+### Session Workflow Focus Route
+
+- `workflow_map.py` is the pure presentation adapter for one passed
+  `WorkflowFocusProjection`; `workflow_correction_view.py` adds registry-backed
+  active-assertion summaries, stable boundary identities, exact consequence
+  previews, and only currently valid actions without querying a second
+  authority. `GET /sessions/{id}/workflow` opens one SQLite connection, invokes
+  `workflow_focus_projection` once, closes that read scope, and then renders
+  only the returned payload. It has no detail-query fallback, source/body
+  access, connector, background task, model call, or write.
+- `workflow_session_is_eligible` shares the FEAT-0086 primary-work/full-index/
+  meaningful-activity predicate with Session detail. Its failure is isolated so
+  the existing Session route omits only the additive Workflow link and still
+  renders conversation, pin, Subsessions, and Related Materials.
+- `session-workflow.html` is the complete server fallback and Trace owner.
+  Every retained Episode, relation, reason, evidence group, availability, and
+  safe destination exists before enhancement. Its correction partial uses
+  ordinary forms and exposes exact before/after, endpoints, authority,
+  supersession, close reason, bounded note, cancel, and recovery controls before
+  JavaScript runs. Missing, ineligible, and unexpected projection states render
+  bounded local destinations with `404`, `422`, and `500` respectively; a
+  connected or unconnected ready projection is `200`.
+- `workflow_correction.py` owns the strict `application/x-www-form-urlencoded`
+  boundary for `POST /sessions/{id}/workflow/corrections`: at most 16 KiB and
+  eight fields, exact action-specific shapes, one optimistic projection
+  revision, bounded note, strict percent decoding, and same-origin Fetch
+  Metadata. The route reconstructs Focus and performs exactly one FEAT-0088
+  apply or undo inside one transaction. Success commits once; parse,
+  validation, conflict, and unexpected failure roll back completely and expose
+  only fixed local messages. Enhanced requests receive bounded JSON with
+  `200`, `409`, `422`, `400`, or `500`; ordinary forms receive a same-route
+  `303` on success or a server-rendered current map on failure.
+- `workflow-map.js` is a route-scoped fixed renderer. Observation order and
+  stable Episode keys determine positions; `continues` retains a lane and
+  `branches-from` allocates the next stable lane. It draws no force simulation
+  and persists no durable layout. Selection and bounded branch disclosure
+  change only DOM state; Episode selection pushes the target Session's canonical
+  Workflow route, and back/forward restores an in-payload focus without
+  recomputation. Immediately before an enhanced correction it records a
+  bounded, versioned, path-scoped one-shot restoration envelope in
+  `sessionStorage`; the following successful same-route render consumes and
+  removes it after restoring only selected Episode, branch/evidence disclosure,
+  scale, pan, Trace/page scroll, corrected-boundary focus, and a fixed result
+  code. Failure does not reload or replace the graph and re-enables only the
+  owning form.
+- The graph owns only modified wheel/pinch zoom and its bounded scroll region.
+  Ordinary wheel input remains with page or viewport scrolling. At the existing
+  `920px` breakpoint direction becomes vertical; at `700px` and below the
+  graphical viewport yields to the server lineage. Renderer failure does the
+  same while leaving controls disabled and Trace navigable.
 
 Original Claude and Codex JSONL remains the authoritative Session source. LocalBrain stores normalized searchable text, selected metadata, source paths, source line numbers, and deterministic IDs so the index can be rebuilt. Provider-native event and Usage identities are additionally source-key scoped when a noncanonical source such as Codex Company reuses the Codex adapter, preventing globally keyed descendants from colliding while preserving existing personal Codex IDs.
 

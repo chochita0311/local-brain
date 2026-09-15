@@ -3,7 +3,7 @@
 ## Metadata
 - ID: `fix-0000`
 - Status: `draft`
-- Run ID:
+- Run: `[run-YYYYMMDD-00-title](../run/run-YYYYMMDD-00-title.md)`
 - Attempt:
 - Feature: `[feat-0000-title](../feature/feat-0000-title.md)`
 - Spec: `[spec-0000-title](../spec/spec-0000-title.md)`

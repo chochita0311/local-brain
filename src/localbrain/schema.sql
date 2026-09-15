@@ -293,6 +293,224 @@ CREATE TABLE IF NOT EXISTS session_reference_evidence (
     )
 );
 
+CREATE TABLE IF NOT EXISTS workflow_assertions (
+    id INTEGER PRIMARY KEY,
+    boundary_key TEXT NOT NULL,
+    boundary_version INTEGER NOT NULL CHECK(boundary_version > 0),
+    boundary_kind TEXT NOT NULL
+        CHECK(boundary_kind IN ('relation', 'lifecycle')),
+    assertion_kind TEXT NOT NULL
+        CHECK(
+            assertion_kind IN (
+                'same-flow',
+                'split-here',
+                'merge-into',
+                'close',
+                'reopen'
+            )
+        ),
+    is_undo INTEGER NOT NULL DEFAULT 0 CHECK(is_undo IN (0, 1)),
+    source_episode_key TEXT NOT NULL,
+    target_episode_key TEXT,
+    source_session_id INTEGER
+        REFERENCES sessions(id) ON DELETE SET NULL,
+    target_session_id INTEGER
+        REFERENCES sessions(id) ON DELETE SET NULL,
+    before_meaning TEXT NOT NULL
+        CHECK(
+            before_meaning IN (
+                'relation:absent',
+                'relation:continues',
+                'relation:branches-from',
+                'relation:merged-into',
+                'lifecycle:unknown',
+                'lifecycle:open',
+                'lifecycle:closed'
+            )
+        ),
+    after_meaning TEXT NOT NULL
+        CHECK(
+            after_meaning IN (
+                'relation:absent',
+                'relation:continues',
+                'relation:branches-from',
+                'relation:merged-into',
+                'lifecycle:unknown',
+                'lifecycle:open',
+                'lifecycle:closed'
+            )
+        ),
+    before_closure_reason TEXT
+        CHECK(
+            before_closure_reason IS NULL
+            OR before_closure_reason IN (
+                'completed',
+                'abandoned',
+                'superseded',
+                'merged',
+                'other'
+            )
+        ),
+    after_closure_reason TEXT
+        CHECK(
+            after_closure_reason IS NULL
+            OR after_closure_reason IN (
+                'completed',
+                'abandoned',
+                'superseded',
+                'merged',
+                'other'
+            )
+        ),
+    note TEXT,
+    authority TEXT NOT NULL DEFAULT 'user-confirmed'
+        CHECK(authority IN ('user-confirmed')),
+    contract_version TEXT NOT NULL
+        DEFAULT 'localbrain.workflow-assertion.v1',
+    supersedes_assertion_id INTEGER UNIQUE
+        REFERENCES workflow_assertions(id) ON DELETE RESTRICT,
+    created_at TEXT NOT NULL,
+    UNIQUE(boundary_key, boundary_version),
+    CHECK(
+        length(boundary_key) = 64
+        AND boundary_key NOT GLOB '*[^0-9a-f]*'
+    ),
+    CHECK(
+        length(source_episode_key) = 72
+        AND substr(source_episode_key, 1, 8) = 'session:'
+        AND substr(source_episode_key, 9) NOT GLOB '*[^0-9a-f]*'
+    ),
+    CHECK(
+        target_episode_key IS NULL
+        OR (
+            length(target_episode_key) = 72
+            AND substr(target_episode_key, 1, 8) = 'session:'
+            AND substr(target_episode_key, 9) NOT GLOB '*[^0-9a-f]*'
+        )
+    ),
+    CHECK(
+        note IS NULL
+        OR (
+            length(note) BETWEEN 1 AND 1000
+            AND note = trim(note)
+        )
+    ),
+    CHECK(contract_version = 'localbrain.workflow-assertion.v1'),
+    CHECK(
+        (before_meaning = 'lifecycle:closed')
+        = (before_closure_reason IS NOT NULL)
+    ),
+    CHECK(
+        (after_meaning = 'lifecycle:closed')
+        = (after_closure_reason IS NOT NULL)
+    ),
+    CHECK(
+        (
+            boundary_kind = 'relation'
+            AND assertion_kind IN ('same-flow', 'split-here', 'merge-into')
+            AND target_episode_key IS NOT NULL
+            AND before_meaning LIKE 'relation:%'
+            AND after_meaning LIKE 'relation:%'
+            AND before_closure_reason IS NULL
+            AND after_closure_reason IS NULL
+        )
+        OR (
+            boundary_kind = 'lifecycle'
+            AND assertion_kind IN ('close', 'reopen')
+            AND target_episode_key IS NULL
+            AND target_session_id IS NULL
+            AND before_meaning LIKE 'lifecycle:%'
+            AND after_meaning LIKE 'lifecycle:%'
+        )
+    ),
+    CHECK(
+        (
+            is_undo = 0
+            AND (
+                (
+                    assertion_kind = 'same-flow'
+                    AND after_meaning = 'relation:continues'
+                )
+                OR (
+                    assertion_kind = 'split-here'
+                    AND before_meaning = 'relation:continues'
+                    AND after_meaning = 'relation:branches-from'
+                )
+                OR (
+                    assertion_kind = 'merge-into'
+                    AND after_meaning = 'relation:merged-into'
+                )
+                OR (
+                    assertion_kind = 'close'
+                    AND before_meaning IN (
+                        'lifecycle:unknown',
+                        'lifecycle:open',
+                        'lifecycle:closed'
+                    )
+                    AND after_meaning = 'lifecycle:closed'
+                )
+                OR (
+                    assertion_kind = 'reopen'
+                    AND before_meaning = 'lifecycle:closed'
+                    AND after_meaning = 'lifecycle:open'
+                )
+            )
+        )
+        OR (
+            is_undo = 1
+            AND (
+                (
+                    assertion_kind = 'same-flow'
+                    AND (
+                        before_meaning = 'relation:continues'
+                        OR after_meaning = 'relation:continues'
+                    )
+                )
+                OR (
+                    assertion_kind = 'split-here'
+                    AND (
+                        (
+                            before_meaning = 'relation:branches-from'
+                            AND after_meaning = 'relation:continues'
+                        )
+                        OR (
+                            before_meaning = 'relation:continues'
+                            AND after_meaning = 'relation:branches-from'
+                        )
+                    )
+                )
+                OR (
+                    assertion_kind = 'merge-into'
+                    AND (
+                        before_meaning = 'relation:merged-into'
+                        OR after_meaning = 'relation:merged-into'
+                    )
+                )
+                OR (
+                    assertion_kind = 'close'
+                    AND (
+                        before_meaning = 'lifecycle:closed'
+                        OR after_meaning = 'lifecycle:closed'
+                    )
+                )
+                OR (
+                    assertion_kind = 'reopen'
+                    AND (
+                        (
+                            before_meaning = 'lifecycle:open'
+                            AND after_meaning = 'lifecycle:closed'
+                        )
+                        OR (
+                            before_meaning = 'lifecycle:closed'
+                            AND after_meaning = 'lifecycle:open'
+                        )
+                    )
+                )
+            )
+        )
+    )
+);
+
 CREATE TABLE IF NOT EXISTS usage_price_snapshots (
     id TEXT PRIMARY KEY,
     label TEXT NOT NULL,
@@ -971,6 +1189,10 @@ CREATE INDEX IF NOT EXISTS idx_session_reference_evidence_document
     ON session_reference_evidence(context_document_id, session_id);
 CREATE INDEX IF NOT EXISTS idx_session_reference_evidence_atlassian
     ON session_reference_evidence(external_resource_id, session_id);
+CREATE INDEX IF NOT EXISTS idx_workflow_assertions_source_created
+    ON workflow_assertions(source_episode_key, created_at DESC, id DESC);
+CREATE INDEX IF NOT EXISTS idx_workflow_assertions_target_created
+    ON workflow_assertions(target_episode_key, created_at DESC, id DESC);
 CREATE INDEX IF NOT EXISTS idx_usage_records_session_time
     ON usage_records(session_id, occurred_at);
 CREATE INDEX IF NOT EXISTS idx_usage_records_source_time

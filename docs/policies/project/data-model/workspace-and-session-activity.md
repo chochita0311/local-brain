@@ -287,6 +287,40 @@ Constraints: 64-character source fingerprint; bounded extractor and error values
 
 Constraints: exact target-kind/FK/normalized-URL parity; exact evidence-kind/read-outcome/tool identity parity; positive locations; bounded paths, identities, URLs, tool fields, and extractor version; unique 64-character evidence key. The producer retains at most 100 target keys per Session and at most 50 deterministic evidence locations per retained target. Explicit indexes: `idx_session_reference_evidence_session` for target grouping and stable evidence order, `idx_session_reference_evidence_document`, and `idx_session_reference_evidence_atlassian` for target lifecycle and reverse diagnostics.
 
+## Derived Workflow Episode And Relations
+
+- This subject adds no table, index, migration, or value-registry family. The
+  versioned `workflow_projection.py` descriptors are in-memory, fully
+  rebuildable views over approved normalized facts.
+- One Episode is eligible only when its source row is a primary work Session.
+  Its opaque stable key hashes the length-delimited `sources.kind` and
+  `sessions.external_id`; `sessions.id` remains the current local navigation
+  identity and is excluded from the rebuild-stable key. The descriptor never
+  serializes the source-native ID or a source path.
+- Earliest and latest observation bounds may use valid `started_at`, first and
+  last Activity Event time, and `ended_at`. These bounds do not own activity,
+  lifecycle, closure, or authority state, and `ended_at` does not imply closure.
+- Directional relations are normalized outside persistence. They retain only
+  `continues`, `branches-from`, or `merged-into` with bounded reason identities,
+  strict forward time, at least one strong reason, and no directed cycle.
+  Invalid candidates become bounded omission diagnostics rather than rows.
+- Recovery is recomputation from retained normalized Session identity and
+  approved evidence. Restoring or re-synchronizing source data may reproduce
+  the Episode identity, while a changed local Session row ID may change only its
+  navigation destination. There is no persisted inferred graph to restore or
+  purge.
+- The initial Focus read model adds no physical relationship. It admits a
+  persisted Session only when `session_class=work`, `session_role=primary`,
+  `index_policy=full`, and existing Event/Usage evidence keeps it meaningful.
+  Candidate discovery reads `workspace_id`, current `workspaces.git_root`,
+  Session-owned `git_branch`, privacy-minimized reference target keys, and
+  exact user organization membership; it does not read Activity Event text.
+- Direct-child rows contribute only a bounded `session` evidence family with
+  their current local destination and source key. They retain their existing
+  subordinate ownership and never become Episode peers. The Focus projection
+  has no lifecycle row, foreign key, cascade, migration, restore action, or
+  purge action of its own.
+
 ## Subject Recovery Boundary
 
 Session source files can recreate Workspaces, Sessions, Activity Events, Session reference scan state, and Session reference evidence, but current project resolution, exact target availability, and self-referential parent IDs may differ if local paths or source sets change. They cannot recreate Session pins. Preserve `cwd_raw`, `parent_external_id`, and Session branch evidence. Restore the database, not only source files, when pin intent, curated polymorphic links, or exact stable IDs matter.

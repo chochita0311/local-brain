@@ -203,6 +203,27 @@ Constraints: uniqueness of `path`; resource-type vocabulary is application-enfor
 
 Constraints: resource type and generic exact-URL reuse are application-enforced. URL is deliberately not globally unique because different Source Instances and future source-specific extensions can observe the same locator independently. Explicit indexes: none.
 
+## Derived Workflow Focus Consumption
+
+- The workflow Focus read model creates no Workstream, Thread, link, Resource,
+  or graph row. It may show all current reviewed memberships and their related
+  Resources as evidence, but only Session links whose `linked_by` is exactly
+  `user` can participate in the initial directional candidate matrix.
+- A shared user Thread is one strong exact relation signal. A shared user
+  Workstream needs the approved second direct-reference or Git-root signal;
+  Workstream membership alone never establishes workflow direction. Accepted
+  or generated links remain inspectable organization evidence without becoming
+  implicit direction authority.
+- Resource resolution reuses the bounded Session Related Materials consumer, so
+  missing local targets and unsafe or unavailable external destinations retain
+  their existing state. Resource title and safe destination may be projected;
+  local path detail, body, summary, and opaque payload are not serialized into
+  the workflow result.
+- Deleting or changing organization state naturally changes the next derived
+  Focus read. No inverse edge, cached graph, cleanup row, or additional recovery
+  mechanism exists; database backup remains the authority for restoring user
+  organization intent.
+
 ## Subject Recovery Boundary
 
 Database backup is the recovery authority for organization and resources. Source rows may be rescanned and external/local locators may still exist, but neither operation recreates user intent, stable polymorphic identities, relation types, accepted suggestions, or Thread placement.

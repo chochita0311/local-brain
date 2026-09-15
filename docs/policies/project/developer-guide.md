@@ -153,7 +153,7 @@ uv run python scripts/build-schema-presentation.py check
 ### Data Model Value Dictionaries
 
 - `src/localbrain/value-registry.json` is the executable authority for bounded physical values, logical axes, complete presentation modes, fallbacks, labels, and visible-consumer inventory.
-- [Value Dictionaries](data-model/value-dictionaries.md) and its nine subject companions are generated projections. Runtime templates and handlers use `localbrain.value_registry`; they do not parse Markdown.
+- [Value Dictionaries](data-model/value-dictionaries.md) and its ten subject companions are generated projections. Runtime templates and handlers use `localbrain.value_registry`; they do not parse Markdown.
 - A family uses exactly one complete mode: `direct`, `logical-label`, or `internal-only`. If any allowed value needs interpretation, map the complete family. Missing values never fall back to raw tokens.
 - After changing a covered schema constraint, application constant, derived family, boolean-like field, mapping, or visible consumer, rebuild and check:
 

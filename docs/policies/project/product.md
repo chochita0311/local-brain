@@ -118,7 +118,139 @@ The same Resource may relate to multiple Threads. Relationship-specific evidence
   visibly. Each direct-child row shows its source-native external ID and aligns
   question, event, and date metadata in the Sessions inventory reading order. A
   child detail keeps explicit orientation back to its eligible primary parent.
-- A persisted primary Session detail projects a bounded `관련 자료` rail from existing local data. `이 세션의 참조` uses source-neutral Session reference evidence and Session-observed identity for explicit Markdown/URL mentions and approved MCP read outcomes; `연결된 작업` follows only Documents or Resources sharing an explicit user-managed Thread or Workstream. A target in both groups remains once under the direct group, and successful reads take precedence over failure-only attempts. Each group owns an independent total and shows up to 100 retained rows initially. When the rail contains related state, the `연결된 작업` heading and its zero total remain visible even when no organization-only target remains, preserving that exploration path. Material kinds appear once as alphabetically ordered sections, while direct references within each kind follow their oldest source occurrence so the rail progresses with the conversation. URL token boundaries exclude prose after an unmatched closing delimiter without removing valid non-ASCII URL paths. Retained overflow remains available through a reversible native disclosure whose collapse control follows the expanded rows in DOM, visual, and keyboard-focus order. Direct evidence retains the 100-target safety boundary with observed-versus-retained partial copy, while explicit organization lookup is independently bounded. Same workspace, directory, repository, path, and global recency never generate a candidate or fallback. Missing local paths and unsafe external destinations remain visible but inactive; unresolved polymorphic targets are omitted with a bounded count. Loading the projection reads only bounded SQLite identity/evidence metadata, copies no content body, writes no relationship, and starts no source parse, model, embedding, remote, capability, scan, or maintenance work. A projection error never blocks the conversation. At widths through `920px`, the rail follows Session identity and orientation in document order and precedes the conversation; Subsession detail has no rail and its evidence is not rolled up.
+- A persisted primary Session detail projects a bounded `관련 자료` rail from
+  existing local data. `이 세션의 참조` uses source-neutral Session reference
+  evidence and Session-observed identity for explicit Markdown/URL mentions and
+  approved MCP read outcomes; `연결된 작업` follows only Documents or Resources
+  sharing an explicit user-managed Thread or Workstream. A target in both
+  groups remains once under the direct group, and successful reads take
+  precedence over failure-only attempts.
+- Each group owns an independent total and shows up to 100 retained rows
+  initially. When the rail contains related state, the `연결된 작업` heading and
+  its zero total remain visible even when no organization-only target remains,
+  preserving that exploration path. Material kinds appear once as
+  alphabetically ordered sections, while direct references within each kind
+  follow their oldest source occurrence so the rail progresses with the
+  conversation.
+- URL token boundaries exclude prose after an unmatched closing delimiter
+  without removing valid non-ASCII URL paths. Retained overflow remains
+  available through a reversible native disclosure whose collapse control
+  follows the expanded rows in DOM, visual, and keyboard-focus order. Direct
+  evidence retains the 100-target safety boundary with observed-versus-retained
+  partial copy, while explicit organization lookup is independently bounded.
+- Same workspace, directory, repository, path, and global recency never
+  generate a candidate or fallback. Missing local paths and unsafe external
+  destinations remain visible but inactive; unresolved polymorphic targets are
+  omitted with a bounded count. Loading the projection reads only bounded
+  SQLite identity/evidence metadata, copies no content body, writes no
+  relationship, and starts no source parse, model, embedding, remote,
+  capability, scan, or maintenance work. A projection error never blocks the
+  conversation.
+- At widths through `920px`, the rail follows Session identity and orientation
+  in document order and precedes the conversation. Subsession detail has no rail
+  and its evidence is not rolled up.
+
+### Workflow Episode And Direction
+
+- A workflow Episode is a rebuildable descriptor of one eligible primary work
+  Session, not a new persisted resource or a replacement for the Session. Its
+  stable derived key hashes the length-delimited source key and source-native
+  Session ID; the current local Session ID remains navigation only. Subsessions
+  remain evidence owned by their primary Session rather than peer Episodes.
+- Episode observation bounds use the earliest and latest valid source-backed
+  timestamps. Activity (`active`, `quiet`, `unknown`), lifecycle (`open`,
+  `closed`, `unknown`), closure reason, and authority are separate axes. A
+  Session ending is an observation and never proves that its work closed.
+- Direction is intentionally limited to `continues`, `branches-from`, and
+  `merged-into`. A retained relation must move strictly forward in observation
+  time, avoid self-edges and directed cycles, and cite at least one strong
+  reason: a direct source relation, a shared reference, explicit Thread or
+  Workstream membership, or a user assertion. Workspace, Git, lexical, temporal,
+  and similar proximity can support a relation but cannot establish one alone.
+- Candidate, explicit-organization, and user-confirmed authority remain visibly
+  distinct. Invalid or insufficient relations are omitted with bounded
+  diagnostics; LocalBrain does not silently upgrade a candidate into user
+  organization or invent intent, outcome, next action, or closure.
+- The versioned Episode and direction contract is a pure in-memory projection.
+  It reads no database or source, performs no remote or model work, persists
+  nothing, and changes no existing Session, Workstream, or navigation behavior.
+- The database-backed source and candidate Focus projection is derived on
+  demand and read-only. It always returns an eligible selected Episode, then admits at most
+  200 relation candidates through exact shared user Thread membership, or a
+  documented combination of shared direct reference, user Workstream,
+  workspace, and observed Git facts. One broad Workstream, workspace, Git root,
+  branch, title, wording, or nearby time never creates a line alone.
+- `continues` joins adjacent time-ordered Episodes inside one qualifying exact
+  set. `branches-from` requires the same non-empty observed Git root, different
+  non-empty observed branches, and a shared direct reference or user
+  organization owner; it remains a deterministic candidate, not a claim about
+  Git ancestry. A later return to `main`, `master`, or another branch name does
+  not infer `merged-into`.
+- A Focus result contains at most 24 Episodes, four outward side-branch roots,
+  four Episodes reached within one side branch, and five expanded evidence
+  items per source family. Candidate, Episode, branch, and evidence totals keep
+  truncation visible. Jira, Wiki, Local Context, local/external Resources,
+  Workstream/Thread memberships, and direct Subsessions attach as evidence;
+  they do not become peer workflow nodes.
+- Opening or recomputing Focus consumes only current normalized SQLite state.
+  Stale or unavailable evidence stays labeled, and the read starts no Session
+  synchronization, source scan, body parse, external discovery, Atlassian Sync
+  or Refresh, model, embedding, or database write.
+- An eligible primary Session detail exposes one additive `작업 흐름` link to
+  `/sessions/{id}/workflow`. The separate Focus surface keeps Episodes on a
+  stable time-directed spine, places bounded side branches on deterministic
+  lanes, and keeps Jira, Wiki, Local Context, Resource, organization, and
+  Subsession records inside the selected Episode's evidence constellation and
+  Trace rather than turning them into peer nodes. Selecting an Episode updates
+  its canonical Workflow URL and reveals its supported ancestry, descendants,
+  adjacent directions, complete reason list, and safe source destinations.
+- Focus rendering is progressive enhancement over a server-rendered lineage.
+  Wide layouts use a left-to-right time axis, compact layouts use the same
+  relations top-to-bottom, and narrow, no-script, or render-failure states keep
+  the text lineage and Trace usable. An unconnected Session remains a valid
+  one-Episode result and never implies completion. Missing, ineligible,
+  partial, stale, unavailable, and unexpected-error states preserve an honest
+  local return path.
+- Focus browsing remains read-only. A contextual correction form can append a
+  user-confirmed relation or lifecycle assertion only after showing the exact
+  consequence; it does not create or rename Workstreams, rewrite a candidate or
+  its reasons, refresh a source, generate a summary, or use Qwen, embeddings, or
+  another model. Existing Session conversation, pin, metadata, Subsession, and
+  Related Materials behavior stays authoritative and unchanged.
+
+### Workflow Assertion And Correction
+
+- Consequential workflow correction belongs to one dedicated local assertion
+  ledger, not to Sessions, candidate relations, Workstream/Thread membership,
+  or Suggestions. It targets stable Episode keys and retains nullable current
+  Session IDs only as lookup aids.
+- The exact initial actions are `same-flow`, `split-here`, `merge-into`,
+  `close`, and `reopen`. Close always requires one explicit reason:
+  `completed`, `abandoned`, `superseded`, `merged`, or `other`; inactivity,
+  Session end, and age never imply closure.
+- User-confirmed assertions overlay the derived Focus projection after source
+  and deterministic candidate assembly. They control the effective selected
+  boundary while the complete base relation, evidence reasons, and base
+  lifecycle stay available for Trace.
+- Action, correction, reopen, and undo are append-only superseding records.
+  Undo applies only to the current record in one boundary chain and restores
+  the prior effective meaning without deleting history. Missing source Episodes
+  retain unresolved assertions for later deterministic re-resolution.
+- Mutation is explicit, local, revision-checked, and atomic. It never writes a
+  source file or external system, starts Refresh or synchronization, changes
+  Workstream organization, or calls Qwen, an embedding service, or another
+  model.
+- The selected Episode or relation Trace offers only currently valid actions.
+  Each ordinary form exposes the exact before/after meaning, affected Episodes,
+  user-confirmed authority, and supersession consequence before submission;
+  choosing or cancelling a disclosure performs no write.
+- Success reprojects the same bounded Focus and highlights the corrected
+  boundary while restoring the selected Episode, branch disclosures, evidence
+  disclosures, scale, pan, Trace and page scroll, and meaningful keyboard
+  focus. A stale revision or validation failure keeps the prior map in place,
+  restores the owning controls, and offers an explicit reload path. Narrow and
+  no-script presentations retain the same sequential form and fixed result
+  language.
 
 ### Git And Project Attribution
 

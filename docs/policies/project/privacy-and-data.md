@@ -53,6 +53,54 @@ An in-app Task Runner stream remains a private Run artifact used for the Run Con
 
 Recognized provider-internal Codex guardian JSONL follows the same content boundary without becoming a LocalBrain Run: LocalBrain retains only its normalized Session metadata, parent relation, and direct Usage Records. Approval-review prompts and decisions, including embedded Session history, remain outside Activity Events, search, question counts, and ordinary Session/Subsession presentation.
 
+Workflow Episode and direction descriptors are ephemeral derived state. Their
+opaque Episode key hashes only the length-delimited stable source key and
+source-native Session ID, while serialized output excludes that native ID,
+source paths, messages, document bodies, excerpts, and opaque provider payloads.
+The pure contract persists no graph, reads no local or external source, and
+starts no connector, model, embedding, scan, or maintenance work. Any later
+projection may use only already-approved normalized metadata and evidence under
+their existing retention rules.
+
+The database-backed workflow Focus projection follows the same local boundary.
+It may read normalized Session/source/workspace identity, privacy-minimized
+reference keys, user organization links, bounded Related Materials, direct-child
+metadata, and persisted Atlassian structure-reference identity. Serialized
+reasons hash Git roots and never include a repository path, native Session ID,
+source path, message or document body, excerpt, search text, opaque payload, or
+credential. Safe external destinations already admitted by the Related
+Materials contract may remain navigable evidence. The projection writes no
+graph or cache and triggers no filesystem, connector, network, Refresh, model,
+embedding, or synchronization operation.
+
+Workflow assertions are private, user-owned runtime state in the local
+database. They retain opaque stable Episode keys, optional current Session row
+IDs, exact bounded relation/lifecycle values, supersession identity, UTC action
+time, and an optional trimmed note of at most 1,000 code points. The optional
+note is private local text and stays out of tracked fixtures, logs, telemetry,
+prompts, and external requests. Assertions copy no Session message,
+Document body, source path, native Session ID, opaque provider payload, or
+credential. Session deletion nulls only lookup aids; it cannot delete the
+ledger. Create, correction, reopen, undo, history, and projection overlay
+perform no source, connector, network, model, embedding, training, Refresh, or
+external-system operation.
+
+The Session Workflow Focus route serializes only that bounded projection plus
+local presentation labels and correction metadata. The correction POST accepts
+only exact bounded form fields; its optional note enters only the private
+assertion ledger, and fixed error responses never reflect a submitted note,
+exception, source-native identity, raw path, body, or connector detail. Its
+browser controller derives coordinates and transient interaction state in
+memory. For one enhanced success reload it may place only version, route path,
+expiry, selected opaque Episode key, bounded disclosure keys, scale, pan,
+scroll coordinates, opaque boundary focus, and a fixed result code in
+`sessionStorage`; it stores no title, note, evidence content, URL destination,
+source identity, native Session ID, or path, and consumes and removes the
+record once. Focus changes and corrections fetch no second Session or source
+body; evidence links use only destinations already admitted by the Focus
+projection. Tracked route tests, browser fixtures, and screenshots use
+synthetic records only.
+
 Removing a source from LocalBrain must be distinguished from deleting the original local file or note. The application must not delete an original source as a side effect of unregistering or purging its index.
 
 General backup, user-facing restore, retention, purge, encryption, and broader schema-recovery controls remain open work tracked in the [Project Backlog](../../plans/project/backlog.md); a migration-specific recovery copy does not close that wider requirement.

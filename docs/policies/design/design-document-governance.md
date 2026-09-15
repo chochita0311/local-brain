@@ -174,6 +174,7 @@ A constitution change fails when:
 | 2026-09-01 | v16 | Reframed Atlassian hierarchy as top service scopes followed by domain-first Site and persisted, canonical-URL-derived, or `소속 미확인` children; added non-color-only service/provenance cues and ordinary Jira-link, Wiki-document, and mixed terminology without changing internal Item identity. |
 | 2026-09-01 | v17 | Added explicit success, warning, and neutral mappings for available, unavailable, and archived Atlassian URL-derived structure references while preserving their separate URL-derived provenance cue. |
 | 2026-09-02 | v18 | Added the Project-grouped Pinned Sessions hierarchy: Git-first alphabetical workspace headings, activity-ordered Session rows, optional branch metadata, and single boundary ownership within the existing browse family. |
+| 2026-09-14 | v19 | Extended the Explorer family with Session Workflow Focus: fixed time and branch lanes, Episode selection/path states, adjacent evidence Trace, technical-canvas input ownership, complete narrow/no-script/render-failure lineage fallback, and contextual correction previews with persistent user-confirmed authority and stable orientation restoration. |
 
 ## Practical Summary
 

@@ -456,6 +456,7 @@ def _direct_item(
         "identity": identity,
         "detail": detail,
         "evidence": evidence,
+        "observed_at": raw_item.get("observed_at"),
         "organization": [],
     }
 

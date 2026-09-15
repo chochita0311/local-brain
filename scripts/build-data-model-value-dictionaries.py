@@ -20,7 +20,7 @@ def main() -> int:
         except RegistryCheckError as error:
             print(error)
             return 1
-        print("Built the Data Model value-dictionary entrance and 9 subject dictionaries.")
+        print("Built the Data Model value-dictionary entrance and 10 subject dictionaries.")
         return 0
 
     errors = check_documents()
@@ -28,7 +28,7 @@ def main() -> int:
         for error in errors:
             print(f"ERROR: {error}")
         return 1
-    print("Data Model value registry and 9 generated dictionaries are current.")
+    print("Data Model value registry and 10 generated dictionaries are current.")
     return 0
 
 

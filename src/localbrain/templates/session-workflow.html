@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+{% from "_source_cue.html" import source_cue %}
+{% from "_workflow_correction.html" import assertion_summary, correction_action %}
+{% block title %}{% if workflow.status == 'ready' %}{{ workflow.selected_episode.title }} · 작업 흐름{% else %}작업 흐름{% endif %} · LocalBrain{% endblock %}
+{% block page_location %}Session workflow{% endblock %}
+{% block content %}
+  <section class="workflow-page" data-workflow-map data-workflow-status="{{ workflow.status }}"{% if workflow.status == 'ready' %} data-selected-episode-key="{{ workflow.selected_episode.episode_key }}" aria-busy="false"{% endif %}>
+    {% if workflow.status == 'ready' %}
+      <nav class="detail-backlinks" aria-label="작업 흐름 탐색">
+        <a class="back-link" href="{{ workflow.session_destination }}">Session 상세로 돌아가기</a>
+        <a class="back-link" href="/sessions">Sessions 목록</a>
+      </nav>
+
+      <header class="workflow-heading">
+        <div class="session-source large {{ workflow.selected_episode.source_key }}"><span aria-hidden="true">{{ source_cue(workflow.selected_episode.source_key, workflow.selected_episode.source_key, workflow.selected_episode.source_key) }}</span><span class="sr-only">{{ workflow.selected_episode.source_key }} Session</span></div>
+        <div>
+          <p class="eyebrow">SOURCE-BACKED WORKFLOW FOCUS</p>
+          <h1>{{ workflow.selected_episode.title }}</h1>
+          <p class="heading-copy">흩어진 흔적에서 이 Session으로 이어진 방향과 근거를 재구성합니다.</p>
+        </div>
+        <span class="status-badge neutral">규칙 기반 + 사용자 교정</span>
+      </header>
+
+      <section class="metric-band compact workflow-metrics" aria-label="작업 흐름 투영 요약">
+        <div class="metric"><strong>{{ workflow.episode_retained_total }}</strong><span>Episodes{% if workflow.episode_observed_total > workflow.episode_retained_total %} / {{ workflow.episode_observed_total }} 관측{% endif %}</span></div>
+        <div class="metric"><strong>{{ workflow.relations | length }}</strong><span>방향 관계</span></div>
+        <div class="metric"><strong>{{ workflow.branch_root_retained_total }}</strong><span>Branches{% if workflow.branch_root_observed_total > workflow.branch_root_retained_total %} / {{ workflow.branch_root_observed_total }} 관측{% endif %}</span></div>
+        <div class="metric"><strong>{{ workflow.selected_episode.evidence_retained_total }}</strong><span>선택 Episode 자료</span></div>
+      </section>
+
+      {% if workflow.partial %}
+        <p class="workflow-notice warning" role="status"><strong>일부만 표시합니다.</strong> 안정적인 탐색을 위해 관측 후보와 branch, 자료를 정해진 상한 안에서 유지했습니다. 각 숫자는 관측/표시 범위를 구분합니다.</p>
+      {% endif %}
+      {% if workflow.unconnected %}
+        <p class="workflow-notice neutral" role="status"><strong>연결 근거를 찾지 못했습니다.</strong> 이 Session과 자료는 유효하지만, 지원되는 이전 또는 다음 Episode 관계는 만들지 않았습니다. 완료된 업무라는 뜻은 아닙니다.</p>
+      {% endif %}
+      <p id="workflow-correction-feedback" class="workflow-correction-feedback{% if workflow_correction_feedback %} {{ workflow_correction_feedback.kind }}{% endif %}" data-workflow-correction-feedback role="status" aria-live="polite"{% if not workflow_correction_feedback %} hidden{% endif %}>{% if workflow_correction_feedback %}{{ workflow_correction_feedback.message }}{% endif %}</p>
+
+      <div class="workflow-layout">
+        <section class="workflow-map-panel" aria-labelledby="workflow-map-title" data-workflow-render-state="fallback">
+          <header class="workflow-panel-heading">
+            <div>
+              <p class="eyebrow">FLOW SPINE</p>
+              <h2 id="workflow-map-title">시간과 branch 방향</h2>
+              <p><span class="workflow-map-wide-hint">Episode를 선택하면 이어진 경로가 밝아집니다. Ctrl/Cmd + 휠 또는 트랙패드 핀치로 확대할 수 있습니다.</span><span class="workflow-map-narrow-hint">아래 세로 흐름에서 Episode와 모든 관계 근거를 확인할 수 있습니다.</span></p>
+            </div>
+            <div class="workflow-map-actions">
+              <span class="status-badge neutral" data-workflow-layout-label>텍스트 흐름 사용 가능</span>
+              <div class="workflow-zoom-controls" role="group" aria-label="작업 흐름 맵 확대/축소" data-workflow-zoom-controls>
+                <button type="button" data-workflow-zoom-out aria-label="작업 흐름 맵 축소" aria-controls="workflow-map-viewport" disabled>−</button>
+                <button type="button" class="workflow-zoom-value" data-workflow-zoom-reset aria-label="현재 배율 100%, 100%로 재설정" aria-controls="workflow-map-viewport" disabled>100%</button>
+                <button type="button" data-workflow-zoom-in aria-label="작업 흐름 맵 확대" aria-controls="workflow-map-viewport" disabled>+</button>
+                <button type="button" class="workflow-zoom-fit" data-workflow-zoom-fit aria-label="작업 흐름 맵 전체 맞춤" aria-controls="workflow-map-viewport" disabled>맞춤</button>
+              </div>
+            </div>
+          </header>
+          <div class="workflow-map-viewport" id="workflow-map-viewport" data-workflow-viewport tabindex="0" aria-label="작업 흐름 맵. 방향키로 Episode 사이를 이동할 수 있습니다.">
+            <p class="workflow-render-message" data-workflow-render-message>그래픽을 준비하기 전에도 아래 텍스트 흐름과 Trace를 사용할 수 있습니다.</p>
+            <div class="workflow-map-scaler" data-workflow-scaler>
+              <div class="workflow-map-stage" data-workflow-stage data-orientation="wide">
+                <div class="workflow-time-axis" data-workflow-time-axis aria-hidden="true"><span>과거</span><i></i><span>최근</span></div>
+                <svg class="workflow-edge-layer" data-workflow-edge-layer aria-label="Episode 방향 관계"></svg>
+                <ol class="workflow-episode-layer" aria-label="작업 Episode">
+                  {% for item in workflow.episodes %}
+                    <li class="workflow-episode-position" data-workflow-episode-position data-episode-key="{{ item.episode_key }}">
+                      <article class="workflow-episode-card{% if item.selected %} is-selected{% endif %}{% if item.user_confirmed %} is-user-confirmed{% endif %}" data-workflow-episode-card data-workflow-authority="{{ item.authority }}" data-workflow-lifecycle="{{ item.lifecycle_state }}">
+                        <button type="button" class="workflow-episode-select" data-workflow-episode data-workflow-destination="{{ item.workflow_destination }}" aria-pressed="{{ 'true' if item.selected else 'false' }}" aria-controls="workflow-trace-{{ loop.index }}">
+                          <span class="workflow-episode-topline"><span class="session-source {{ item.source_key }}" aria-hidden="true">{{ source_cue(item.source_key, item.source_key, item.source_key) }}</span><span>{{ item.source_key }}</span><span class="workflow-selected-label" data-workflow-selected-label{% if not item.selected %} hidden{% endif %}>선택됨</span></span>
+                          <strong>{{ item.title }}</strong>
+                          <span class="workflow-episode-meta">
+                            {% if item.last_observed_at or item.observed_start_at %}<time datetime="{{ item.last_observed_at or item.observed_start_at }}" data-local-time>{{ item.last_observed_at or item.observed_start_at }}</time>{% else %}<span>관측 시간 없음</span>{% endif %}
+                            {% if item.git_branch %}<code>{{ item.git_branch }}</code>{% endif %}
+                          </span>
+                          <span class="workflow-episode-evidence">자료 {{ item.evidence_retained_total }}{% if item.evidence_partial %}+{% endif %} · {{ item.authority_label }}{% if item.lifecycle_state == 'closed' %} · 종료{% endif %}</span>
+                        </button>
+                        <button type="button" class="workflow-branch-toggle" data-workflow-branch-toggle aria-expanded="false" hidden>branch 펼치기</button>
+                      </article>
+                    </li>
+                  {% endfor %}
+                </ol>
+              </div>
+            </div>
+          </div>
+          <noscript><p class="workflow-no-script">스크립트 없이 아래의 텍스트 흐름과 Trace를 이용할 수 있습니다.</p></noscript>
+          <details class="workflow-lineage-fallback" data-workflow-fallback open>
+            <summary>텍스트 흐름과 전체 근거</summary>
+            <div class="workflow-lineage-content">
+              <ol class="workflow-lineage-episodes">
+                {% for item in workflow.episodes %}
+                  <li{% if item.selected %} class="current"{% endif %}>
+                    <a href="{{ item.workflow_destination }}"><strong>{{ item.title }}</strong><span>{{ item.source_key }} · {% if item.selected %}선택됨 · {% endif %}{% if item.last_observed_at or item.observed_start_at %}<time datetime="{{ item.last_observed_at or item.observed_start_at }}" data-local-time>{{ item.last_observed_at or item.observed_start_at }}</time>{% else %}관측 시간 없음{% endif %}</span></a>
+                  </li>
+                {% endfor %}
+              </ol>
+              <div class="workflow-lineage-relations">
+                <h3>관계와 근거</h3>
+                {% for relation in workflow.relations %}
+                  <article>
+                    <p><strong>{{ relation.source_title }}</strong> <span>{{ relation.label }}</span> <strong>{{ relation.target_title }}</strong></p>
+                    <p>{{ relation.authority_label }}{% if relation.user_confirmed %} · 사용자 확인 경계{% endif %}</p>
+                    <ul>{% for reason in relation.reasons %}<li>{{ reason.label }} · <code>{{ reason.kind }}</code> · {{ reason.identity }}</li>{% endfor %}</ul>
+                    {% if relation.active_assertion %}{{ assertion_summary(relation.active_assertion) }}{% endif %}
+                    {% for action in relation.correction_actions %}{{ correction_action(action, workflow, 'fallback-' ~ loop.index) }}{% endfor %}
+                  </article>
+                {% else %}
+                  <p>지원되는 방향 관계가 없습니다.</p>
+                {% endfor %}
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <aside class="workflow-trace" aria-labelledby="workflow-trace-title" data-workflow-trace>
+          <header class="workflow-trace-heading">
+            <div><p class="eyebrow">TRACE</p><h2 id="workflow-trace-title">선택한 Episode의 근거</h2></div>
+            <button type="button" class="workflow-trace-return" data-workflow-trace-return hidden>Episode로 돌아가기</button>
+          </header>
+          <div class="workflow-trace-scroll">
+            {% for item in workflow.episodes %}
+              <section class="workflow-trace-panel" id="workflow-trace-{{ loop.index }}" data-workflow-episode-trace="{{ item.episode_key }}"{% if not item.selected %} hidden{% endif %}>
+                <div class="workflow-trace-title">
+                  <span class="session-source {{ item.source_key }}" aria-hidden="true">{{ source_cue(item.source_key, item.source_key, item.source_key) }}</span>
+                  <div><span>{{ item.source_key }} · {{ item.authority_label }}</span><h3>{{ item.title }}</h3></div>
+                </div>
+                <dl class="workflow-trace-facts">
+                  <div><dt>마지막 관측</dt><dd>{% if item.last_observed_at or item.observed_start_at %}<time datetime="{{ item.last_observed_at or item.observed_start_at }}" data-local-time>{{ item.last_observed_at or item.observed_start_at }}</time>{% else %}없음{% endif %}</dd></div>
+                  <div><dt>Workspace</dt><dd>{{ item.workspace_name or '관측되지 않음' }}</dd></div>
+                  <div><dt>Git branch</dt><dd>{{ item.git_branch or '관측되지 않음' }}</dd></div>
+                  <div><dt>Lifecycle</dt><dd>{{ item.lifecycle_label }}{% if item.closure_reason %} · {{ item.closure_reason_label }}{% endif %}</dd></div>
+                </dl>
+                <a class="button-link secondary-button workflow-session-destination" href="{{ item.destination }}">Session 대화 열기</a>
+
+                {% if item.active_lifecycle_assertion or item.detached_relation_assertions %}
+                  <section class="workflow-trace-section" aria-labelledby="workflow-assertions-{{ loop.index }}">
+                    <div class="workflow-trace-section-heading"><h4 id="workflow-assertions-{{ loop.index }}">사용자 확인 이력</h4><span>{{ (1 if item.active_lifecycle_assertion else 0) + (item.detached_relation_assertions | length) }}</span></div>
+                    <div class="workflow-assertion-list">
+                      {% if item.active_lifecycle_assertion %}{{ assertion_summary(item.active_lifecycle_assertion) }}{% endif %}
+                      {% for assertion in item.detached_relation_assertions %}
+                        {{ assertion_summary(assertion) }}
+                        {% if assertion.undo_action %}{{ correction_action(assertion.undo_action, workflow, 'detached-' ~ loop.index) }}{% endif %}
+                      {% endfor %}
+                    </div>
+                  </section>
+                {% endif %}
+
+                {% if item.correction_actions %}
+                  <section class="workflow-trace-section workflow-correction-section" aria-labelledby="workflow-corrections-{{ loop.index }}">
+                    <div class="workflow-trace-section-heading"><h4 id="workflow-corrections-{{ loop.index }}">이 Episode 교정</h4><span>확인 후 반영</span></div>
+                    <div class="workflow-correction-list">
+                      {% for action in item.correction_actions %}{{ correction_action(action, workflow, 'episode-' ~ loop.index) }}{% endfor %}
+                    </div>
+                  </section>
+                {% endif %}
+
+                <section class="workflow-trace-section" aria-labelledby="workflow-relations-{{ loop.index }}">
+                  <div class="workflow-trace-section-heading"><h4 id="workflow-relations-{{ loop.index }}">방향 관계</h4><span>{{ item.relations | length }}</span></div>
+                  <div class="workflow-trace-relations">
+                    {% for relation in item.relations %}
+                      <button type="button" data-workflow-relation-target="{{ relation.relation_id }}">
+                        <span>{{ relation.label }}</span>
+                        <strong>{% if relation.source_episode_key == item.episode_key %}{{ relation.target_title }}{% else %}{{ relation.source_title }}{% endif %}</strong>
+                        <small>{{ relation.authority_label }} · 근거 {{ relation.reasons | length }}</small>
+                      </button>
+                    {% else %}
+                      <p class="workflow-trace-empty">지원되는 이전 또는 다음 Episode 관계가 없습니다.</p>
+                    {% endfor %}
+                  </div>
+                </section>
+
+                <section class="workflow-trace-section" aria-labelledby="workflow-evidence-{{ loop.index }}">
+                  <div class="workflow-trace-section-heading"><h4 id="workflow-evidence-{{ loop.index }}">자료 constellation</h4><span>{{ item.evidence_retained_total }}{% if item.evidence_observed_total > item.evidence_retained_total %} / {{ item.evidence_observed_total }}{% endif %}</span></div>
+                  <div class="workflow-evidence-groups">
+                    {% for group in item.evidence_groups %}
+                      <details class="workflow-evidence-group" data-workflow-disclosure-key="evidence:{{ item.episode_key }}:{{ group.source_family }}"{% if loop.first %} open{% endif %}>
+                        <summary><span>{{ group.label }}</span><small>{{ group['items'] | length }} 표시{% if group.observed_total > (group['items'] | length) %} / {{ group.observed_total }} 관측{% endif %}{% if group.stale %} · 마지막 관측{% endif %}</small></summary>
+                        <div class="workflow-evidence-list">
+                          {% for evidence in group['items'] %}
+                            {% if evidence.destination %}<a class="workflow-evidence-item" href="{{ evidence.destination }}"{% if evidence.destination.startswith('http') %} rel="noopener noreferrer external"{% endif %}>{% else %}<div class="workflow-evidence-item unavailable">{% endif %}
+                              <span class="session-source {{ evidence.source_family }}" aria-hidden="true">{{ source_cue(evidence.source_family, evidence.source_family, evidence.source_label) }}</span>
+                              <span class="workflow-evidence-copy"><strong>{{ evidence.identity }}</strong><small>{{ evidence.kind_label }} · {{ evidence.authority_label }}</small><small>{{ evidence.admission_labels | join(' · ') }}{% if evidence.observed_at %} · <time datetime="{{ evidence.observed_at }}" data-local-time>{{ evidence.observed_at }}</time>{% endif %}</small></span>
+                              <span class="workflow-evidence-state {{ evidence.availability }}">{{ evidence.availability_label }}</span>
+                            {% if evidence.destination %}</a>{% else %}</div>{% endif %}
+                          {% else %}
+                            <p class="workflow-trace-empty">표시할 수 있는 자료가 없습니다.</p>
+                          {% endfor %}
+                        </div>
+                      </details>
+                    {% else %}
+                      <p class="workflow-trace-empty">이 Episode에 연결된 자료가 없습니다.</p>
+                    {% endfor %}
+                  </div>
+                </section>
+              </section>
+            {% endfor %}
+
+            {% for relation in workflow.relations %}
+              <section class="workflow-trace-panel workflow-relation-trace{% if relation.user_confirmed %} is-user-confirmed{% endif %}" data-workflow-relation-trace="{{ relation.relation_id }}" data-workflow-boundary-key="{{ relation.boundary_key }}" hidden>
+                <p class="eyebrow">RELATION TRACE</p>
+                <h3>{{ relation.label }}</h3>
+                <p class="workflow-relation-direction"><strong>{{ relation.source_title }}</strong><span aria-hidden="true">→</span><strong>{{ relation.target_title }}</strong></p>
+                <dl class="workflow-trace-facts">
+                  <div><dt>Authority</dt><dd>{{ relation.authority_label }}</dd></div>
+                  <div><dt>Relation</dt><dd><code>{{ relation.kind }}</code></dd></div>
+                  <div><dt>출발 관측</dt><dd><time datetime="{{ relation.source_observed_at }}" data-local-time>{{ relation.source_observed_at or '없음' }}</time></dd></div>
+                  <div><dt>도착 관측</dt><dd><time datetime="{{ relation.target_observed_at }}" data-local-time>{{ relation.target_observed_at or '없음' }}</time></dd></div>
+                </dl>
+                {% if relation.active_assertion %}
+                  <section class="workflow-trace-section">
+                    <div class="workflow-trace-section-heading"><h4>현재 사용자 확인</h4><span>#{{ relation.active_assertion.id }}</span></div>
+                    {{ assertion_summary(relation.active_assertion) }}
+                  </section>
+                {% endif %}
+                <div class="workflow-relation-endpoints">
+                  <button type="button" data-workflow-episode-target="{{ relation.source_episode_key }}">출발 Episode 선택</button>
+                  <button type="button" data-workflow-episode-target="{{ relation.target_episode_key }}">도착 Episode 선택</button>
+                </div>
+                <section class="workflow-trace-section">
+                  <div class="workflow-trace-section-heading"><h4>이 관계를 만든 근거</h4><span>{{ relation.reasons | length }}</span></div>
+                  <ol class="workflow-reason-list">
+                    {% for reason in relation.reasons %}
+                      <li><strong>{{ reason.label }}</strong><code>{{ reason.kind }}</code><span>{{ reason.identity }}</span>{% if reason.observed_at %}<time datetime="{{ reason.observed_at }}" data-local-time>{{ reason.observed_at }}</time>{% endif %}</li>
+                    {% else %}
+                      <li>표시할 근거가 없습니다.</li>
+                    {% endfor %}
+                  </ol>
+                </section>
+                {% if relation.active_assertion and relation.base_reasons %}
+                  <section class="workflow-trace-section workflow-base-reasons">
+                    <div class="workflow-trace-section-heading"><h4>원래 후보 근거</h4><span>{{ relation.base_reasons | length }}</span></div>
+                    <ol class="workflow-reason-list">
+                      {% for reason in relation.base_reasons %}<li><strong>{{ reason.label }}</strong><code>{{ reason.kind }}</code><span>{{ reason.identity }}</span>{% if reason.observed_at %}<time datetime="{{ reason.observed_at }}" data-local-time>{{ reason.observed_at }}</time>{% endif %}</li>{% endfor %}
+                    </ol>
+                  </section>
+                {% endif %}
+                {% if relation.correction_actions %}
+                  <section class="workflow-trace-section workflow-correction-section">
+                    <div class="workflow-trace-section-heading"><h4>이 관계 교정</h4><span>확인 후 반영</span></div>
+                    <div class="workflow-correction-list">
+                      {% for action in relation.correction_actions %}{{ correction_action(action, workflow, 'relation-' ~ loop.index) }}{% endfor %}
+                    </div>
+                  </section>
+                {% endif %}
+              </section>
+            {% endfor %}
+          </div>
+        </aside>
+      </div>
+
+      <script type="application/json" data-workflow-projection>{{ workflow.client_projection | tojson }}</script>
+      <p class="sr-only" data-workflow-live-status role="status" aria-live="polite" aria-atomic="true"></p>
+    {% else %}
+      <nav class="detail-backlinks" aria-label="작업 흐름 탐색"><a class="back-link" href="{{ workflow.destination }}">{{ workflow.destination_label }}</a></nav>
+      <section class="workflow-state-panel {{ workflow.status }}" aria-labelledby="workflow-state-title">
+        <p class="eyebrow">WORKFLOW FOCUS</p>
+        <h1 id="workflow-state-title">{{ workflow.title }}</h1>
+        <p>{{ workflow.message }}</p>
+        <a class="button-link secondary-button" href="{{ workflow.destination }}">{{ workflow.destination_label }}</a>
+      </section>
+    {% endif %}
+  </section>
+{% endblock %}
+{% block scripts %}
+  {% if workflow.status == 'ready' %}<script type="module" src="{{ url_for('static', path='/workflow-map.js') }}?v={{ asset_version | default('dev') }}"></script>{% endif %}
+{% endblock %}

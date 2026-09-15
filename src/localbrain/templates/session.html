@@ -28,7 +28,10 @@
       <p class="heading-copy path-copy">{{ session.workspace_path or session.cwd_raw or session.source_path }}</p>
     </div>
     {% if not parent and session.session_role == 'primary' %}
-      <div class="session-heading-action">{{ session_pin_control(session, session_return_to, 'detail') }}</div>
+      <div class="session-heading-action">
+        {% if workflow_available %}<a class="button-link secondary-button session-workflow-link" href="/sessions/{{ session.id }}/workflow">작업 흐름</a>{% endif %}
+        {{ session_pin_control(session, session_return_to, 'detail') }}
+      </div>
     {% endif %}
   </section>
 

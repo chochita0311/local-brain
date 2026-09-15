@@ -1,23 +1,68 @@
 # Project Roadmap
 
-Status: Phase 1 complete; Phase 2 core vertical slice implemented; Phase 4 Atlassian structure-reference product delivered
+Status: Phase 1 complete; Phase 2 deterministic Session Workflow Focus and correction chain delivered; Workstream candidate discovery is the next planning boundary; Phase 4 Atlassian structure-reference product delivered
 
-Last reviewed: 2026-09-01
+Last reviewed: 2026-09-15
 
 ## Current Direction
 
-LocalBrain is validating the Workstream and Thread workflow as a local web application while expanding approved external connectors one bounded read-only source at a time. Desktop packaging remains later.
+### Current Validation State
 
-The design-system realignment of the current screen families is complete and accepted. PRD-0014 and FEAT-0075 through FEAT-0080 remain the passed Atlassian Explorer baseline. PRD-0015 and FEAT-0081 also remain the passed bounded follow-up for domain-first hierarchy, strict empty-inventory local Sync admission, and ordinary link/document terminology. PRD-0016 is passed after its dependency-ordered standard-URL structure-reference chain completed: FEAT-0082 owns semantic taxonomy, query-safe Session projection, and identity precedence; FEAT-0083 owns durable structure-reference Sync and Explorer/Search behavior. No Atlassian Feature is currently in-loop. AI retrieval remains deferred without an approved Feature.
+LocalBrain is validating how to move from manually maintained Workstream and
+Thread organization toward a source-backed directional Workflow Map while
+expanding approved external connectors one bounded read-only source at a time.
+The existing Workstream product remains current behavior while the delivered
+Session Workflow Focus and correction path is evaluated through real use. The
+delivered map is a useful Session Lineage surface, not yet the intended
+Workstream discovery or replacement experience.
+
+### Delivered Baselines
+
+The design-system realignment of the current screen families is complete and
+accepted. [PRD-0017](../prd/prd-0017-source-backed-workflow-map-and-workstream-lenses.md)
+defines the upper product boundary for a source-backed Workflow Map. Its first
+approved chain, FEAT-0085 through FEAT-0089, passed in dependency order and
+delivered the Episode/direction contract, bounded cross-source projection,
+Session Focus map, append-only assertion ledger, and contextual corrections.
+PRD-0014 and FEAT-0075 through FEAT-0080
+remain the passed Atlassian Explorer baseline. PRD-0015 and FEAT-0081 also
+remain the passed bounded follow-up for domain-first hierarchy, strict
+empty-inventory local Sync admission, and ordinary link/document terminology.
+PRD-0016 is passed after its dependency-ordered standard-URL
+structure-reference chain completed: FEAT-0082 owns semantic taxonomy,
+query-safe Session projection, and identity precedence; FEAT-0083 owns durable
+structure-reference Sync and Explorer/Search behavior.
+
+### Next Approval Decision
+
+No Feature is currently in-loop. The next product-planning decision is a bounded
+Workstream Candidate Discovery and Review increment: derive provisional,
+many-to-many work candidates from source-backed evidence, explain why evidence
+was grouped, and require explicit user promotion rather than silently changing
+the current Workstream hierarchy.
+
+### Explicitly Deferred
+
+Workstream Lens composition, Atlas, topic terrain, AI retrieval, Workflow Map
+model use, and desktop packaging remain deferred without separately approved
+Features.
 
 Near-term priorities:
 
-1. Use several real Workstreams through repeated daily context switches and evaluate whether Thread and checkpoint fields are sufficient.
-2. Add the unified cross-source Workstream timeline and historical path reconciliation.
-3. Improve source-aware matching, review ergonomics, and source controls.
-4. Exercise the completed Site-first Explorer, Add, local Sync, Connections,
+1. Define and review the smallest Workstream Candidate Discovery boundary,
+   including evidence admission, candidate confidence and explanation, and
+   rename, merge, split, ignore, and promote controls.
+2. Use the passed deterministic Session Workflow Focus and corrections across
+   several real efforts and record where its reconstructed story, branch choice,
+   or evidence coverage is insufficient.
+3. Evaluate topic terrain or Qwen only if the deterministic baseline exposes a
+   measurable semantic-orientation gap that explicit evidence cannot resolve.
+4. Improve source-aware matching, review ergonomics, and source controls.
+5. Exercise the completed Site-first Explorer, Add, local Sync, Connections,
    and explicit Refresh workflow through repeated daily use.
-5. Evaluate pinned Session recall and deterministic related context through repeated work resumption before expanding into native process resume or user-curated context relations.
+6. Evaluate pinned Session recall and deterministic related context through
+   repeated work resumption before expanding into native process resume or
+   user-curated context relations.
 
 Detailed implementation tasks and unresolved decisions live in the [Project Backlog](backlog.md). Durable product and technical contracts live under [Policies](../../README.md#policies).
 
@@ -108,6 +153,16 @@ Remaining:
 Completed planning increment:
 
 - [PRD-0009: Data Model Value Dictionaries And Pinned Session Recall](../prd/prd-0009-data-model-value-dictionaries-and-pinned-session-recall.md) (`passed`; FEAT-0057 through FEAT-0061 `passed`)
+
+Open planning increment:
+
+- [PRD-0017: Source-Backed Workflow Map And Workstream Lenses](../prd/prd-0017-source-backed-workflow-map-and-workstream-lenses.md)
+  (`approved`; FEAT-0085 through FEAT-0089 passed in dependency order for
+  deterministic Session-anchored projection, all-current-source evidence
+  admission, Focus-first map interaction, reversible corrections, and no
+  required AI model; product review retained this as Session Lineage and
+  returned Workstream Candidate Discovery to planning before any lens, Atlas,
+  or model boundary)
 
 Exit criteria:
 

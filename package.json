@@ -10,7 +10,8 @@
   "scripts": {
     "build:mermaid": "node scripts/build-mermaid-assets.mjs build",
     "check:mermaid": "node scripts/build-mermaid-assets.mjs check",
-    "test:mermaid": "node scripts/test-mermaid-assets.mjs"
+    "test:mermaid": "node scripts/test-mermaid-assets.mjs",
+    "test:workflow-map": "node --test tests/workflow-map.test.mjs"
   },
   "dependencies": {
     "@mermaid-js/layout-elk": "0.2.2",

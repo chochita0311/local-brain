@@ -246,7 +246,7 @@ async function main() {
       current.documentWidth <= current.clientWidth,
       `Document overflow at ${viewport.width}: ${current.documentWidth}`,
     );
-    assert(current.subjectCount === 9, `Incomplete subject navigation at ${viewport.width}`);
+    assert(current.subjectCount === 10, `Incomplete subject navigation at ${viewport.width}`);
     assert(current.diagramState === "rendered", `Diagram unavailable at ${viewport.width}`);
     assert(current.layoutState === "elk", `ELK layout missing at ${viewport.width}`);
     assert(current.layoutStatus === "직각 관계 배치", `ELK label mismatch at ${viewport.width}`);
@@ -352,7 +352,7 @@ async function main() {
     diagramState: "unavailable",
   });
   const blockedState = await state();
-  assert(blockedState.subjectCount === 9, "Mermaid failure removed subject navigation");
+  assert(blockedState.subjectCount === 10, "Mermaid failure removed subject navigation");
   assert(blockedState.tableCount === 2, "Mermaid failure removed the textual table index");
   await cdp.send("Network.setBlockedURLs", { urls: [] });
 
@@ -364,7 +364,7 @@ async function main() {
   const noScriptState = await state();
   assert(noScriptState.currentTable === "source_files", "No-script current table missing");
   assert(noScriptState.detailTable === "source_files", "No-script table detail missing");
-  assert(noScriptState.subjectCount === 9, "No-script subject links missing");
+  assert(noScriptState.subjectCount === 10, "No-script subject links missing");
   await cdp.send("Emulation.setScriptExecutionDisabled", { value: false });
 
   await navigate("/schema?area=private-query-value&table=another-private-value");

@@ -1111,6 +1111,7 @@ def session_reference_projection(
                 "external_resource_id": strongest["external_resource_id"],
                 "identity": strongest["observed_identity"],
                 "destination": destination,
+                "observed_at": first_occurrence["observed_at"],
                 "evidence": evidence,
                 "rank": _evidence_rank(
                     evidence[0]["kind"], evidence[0]["outcome"]

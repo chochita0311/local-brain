@@ -1,15 +1,15 @@
 {
   "baseline": {
-    "explicit_index_count": 44,
+    "explicit_index_count": 46,
     "fts5_table_count": 1,
     "id": "localbrain-data-model-2026-09-01",
-    "ordinary_table_count": 41,
-    "physical_foreign_key_count": 54,
+    "ordinary_table_count": 42,
+    "physical_foreign_key_count": 57,
     "sources": [
       {
         "path": "src/localbrain/schema.sql",
         "role": "fresh-schema-truth",
-        "sha256": "4812d0a7287fde4bf518990dfce7a9512fa427fe163e5ef65c324be749e69f3f"
+        "sha256": "b200e125b552c30645b16f2b7b50d23dcc015d624cadd1d5da135b89543869fd"
       },
       {
         "path": "src/localbrain/db.py",
@@ -19,7 +19,7 @@
       {
         "path": "docs/policies/project/data-model.md",
         "role": "semantic-truth",
-        "sha256": "0921056a1a7a88267256cf04fa14ca5505e02a81ee9691b200eea957db3326d9"
+        "sha256": "08462d39d1b8cde0f9812b1fe54e5d7075a937973348894ce5d1d1fb9483fd01"
       },
       {
         "path": "docs/policies/project/data-model/source-registry-and-scans.md",
@@ -29,7 +29,7 @@
       {
         "path": "docs/policies/project/data-model/workspace-and-session-activity.md",
         "role": "semantic-truth",
-        "sha256": "574aab0c36e08886c651b4537dc3e9540834ccd5e1b55c870e9583a1febdb7b5"
+        "sha256": "fe9413f5cb6955357275cdce85be38b1927d4ece4a07889607ac63dbad5175e3"
       },
       {
         "path": "docs/policies/project/data-model/usage-and-cost-records.md",
@@ -44,7 +44,7 @@
       {
         "path": "docs/policies/project/data-model/work-organization-and-resources.md",
         "role": "semantic-truth",
-        "sha256": "5115f68879d102a4a4ce8d75f47fe05ebc8afca99077413e8ca2de8836926f3a"
+        "sha256": "07624bbfc16fcefe0bd450b0b4927f4bfe52ba969c28de4d1590e920655855a2"
       },
       {
         "path": "docs/policies/project/data-model/atlassian-source-memory.md",
@@ -62,16 +62,21 @@
         "sha256": "ae8b6639e05e0815537a2cf28c29fb217e5b7a355dc2f3a0557a4d464c0a0d0f"
       },
       {
+        "path": "docs/policies/project/data-model/workflow-assertions.md",
+        "role": "semantic-truth",
+        "sha256": "6db9f64ad89b3814fc6fd6e184f93b56b5d1007f32d3d3afb580893d1a4f0ad4"
+      },
+      {
         "path": "docs/policies/project/data-model/derived-retrieval-index.md",
         "role": "semantic-truth",
         "sha256": "18334a8e453b40377e190ede2f7ac9faca046e7f5698508d22ff0f9382973d46"
       }
     ],
-    "subject_count": 9
+    "subject_count": 10
   },
   "derived": true,
   "global": {
-    "mermaid": "erDiagram\n    SOURCES { integer id PK }\n    SOURCE_FILES { integer id PK }\n    EXTERNAL_SOURCE_INSTANCES { integer id PK }\n    EXTERNAL_SOURCE_CAPABILITIES { integer source_instance_id PK }\n    WORKSPACES { integer id PK }\n    SESSIONS { integer id PK }\n    ACTIVITY_EVENTS { string id PK }\n    SESSION_PINS { integer session_id PK }\n    SESSION_REFERENCE_SCANS { integer session_id PK }\n    SESSION_REFERENCE_EVIDENCE { integer id PK }\n    USAGE_PRICE_SNAPSHOTS { string id PK }\n    USAGE_MODEL_PRICES { string snapshot_model PK }\n    USAGE_RECORDS { string id PK }\n    CONTEXT_ROOTS { integer id PK }\n    CONTEXT_DOCUMENTS { integer id PK }\n    WORKSTREAMS { integer id PK }\n    THREADS { integer id PK }\n    WORKSTREAM_LINKS { integer id PK }\n    THREAD_LINKS { integer id PK }\n    LOCAL_RESOURCES { integer id PK }\n    EXTERNAL_RESOURCES { integer id PK }\n    ATLASSIAN_SITES { integer id PK }\n    ATLASSIAN_SITE_BINDINGS { integer id PK }\n    ATLASSIAN_SPACES { integer id PK }\n    ATLASSIAN_ITEMS { integer external_resource_id PK }\n    ATLASSIAN_ITEM_URLS { integer id PK }\n    ATLASSIAN_ITEM_REMOTE_STATE { integer external_resource_id PK }\n    ATLASSIAN_ITEM_CONTENT { integer external_resource_id PK }\n    ATLASSIAN_ITEM_LOCAL_STATE { integer external_resource_id PK }\n    ATLASSIAN_CLASSIFICATIONS { integer id PK }\n    ATLASSIAN_ITEM_CLASSIFICATIONS { integer external_resource_id PK integer classification_id PK }\n    ATLASSIAN_EVIDENCE_SCANS { integer id PK }\n    ATLASSIAN_ITEM_EVIDENCE { integer id PK }\n    ATLASSIAN_STRUCTURE_REFERENCES { integer id PK }\n    ATLASSIAN_STRUCTURE_REFERENCE_URLS { integer id PK }\n    ATLASSIAN_STRUCTURE_REFERENCE_EVIDENCE { integer id PK }\n    SUGGESTIONS { integer id PK }\n    CHECKPOINTS { integer id PK }\n    CHECKPOINT_RESOURCE_REFS { integer id PK }\n    MAINTENANCE_RUNS { string id PK }\n    EXTERNAL_SYNC_RUNS { string maintenance_run_id PK }\n    SEARCH_INDEX { string entity_key \"derived\" }\n\n    SOURCES ||--o{ SOURCE_FILES : \"physical CASCADE\"\n    SOURCES ||--o{ SESSIONS : \"physical CASCADE\"\n    SOURCES ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    SOURCES ||--o{ CONTEXT_DOCUMENTS : \"physical CASCADE\"\n    SESSIONS o|--o{ SOURCE_FILES : \"physical SET_NULL mapping\"\n    EXTERNAL_SOURCE_INSTANCES ||--o| EXTERNAL_SOURCE_CAPABILITIES : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_SITES : \"physical SET_NULL compatibility\"\n    EXTERNAL_SOURCE_INSTANCES ||--o{ ATLASSIAN_SITE_BINDINGS : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_SPACES : \"physical SET_NULL access\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_ITEMS : \"physical SET_NULL access\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ EXTERNAL_SYNC_RUNS : \"physical SET_NULL\"\n    WORKSPACES o|--o{ SESSIONS : \"physical SET_NULL\"\n    WORKSPACES o|--o{ CONTEXT_DOCUMENTS : \"physical SET_NULL\"\n    MAINTENANCE_RUNS o|--o| SESSIONS : \"physical SET_NULL unique\"\n    SESSIONS o|--o{ SESSIONS : \"physical parent SET_NULL\"\n    SESSIONS ||--o{ ACTIVITY_EVENTS : \"physical CASCADE\"\n    SESSIONS ||--o| SESSION_PINS : \"physical CASCADE\"\n    SESSIONS ||--o| SESSION_REFERENCE_SCANS : \"physical CASCADE\"\n    SESSIONS ||--o{ SESSION_REFERENCE_EVIDENCE : \"physical CASCADE\"\n    SESSIONS ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    USAGE_PRICE_SNAPSHOTS ||--o{ USAGE_MODEL_PRICES : \"physical RESTRICT\"\n    USAGE_PRICE_SNAPSHOTS ||--o{ USAGE_RECORDS : \"physical RESTRICT\"\n    CONTEXT_ROOTS o|--o{ CONTEXT_DOCUMENTS : \"physical SET_NULL\"\n    WORKSTREAMS ||--o{ THREADS : \"physical CASCADE\"\n    WORKSTREAMS ||--o{ WORKSTREAM_LINKS : \"physical CASCADE\"\n    WORKSTREAMS ||--o{ CHECKPOINTS : \"physical CASCADE\"\n    WORKSTREAMS o|--o{ MAINTENANCE_RUNS : \"physical SET_NULL\"\n    MAINTENANCE_RUNS ||--o| EXTERNAL_SYNC_RUNS : \"physical CASCADE\"\n    EXTERNAL_RESOURCES ||--o| ATLASSIAN_ITEMS : \"physical CASCADE 1:1\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_SITE_BINDINGS : \"physical CASCADE\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_SPACES : \"physical RESTRICT\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_ITEMS : \"physical RESTRICT\"\n    ATLASSIAN_SPACES o|--o{ ATLASSIAN_ITEMS : \"physical SET_NULL\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_URLS : \"physical composite CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_REMOTE_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_CONTENT : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_LOCAL_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_CLASSIFICATIONS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    SESSIONS ||--o{ ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE composite unique\"\n    CONTEXT_DOCUMENTS ||--o| ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE unique\"\n    SESSIONS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    CONTEXT_DOCUMENTS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_STRUCTURE_REFERENCES : \"physical RESTRICT\"\n    ATLASSIAN_STRUCTURE_REFERENCES ||--o{ ATLASSIAN_STRUCTURE_REFERENCE_URLS : \"physical composite CASCADE\"\n    ATLASSIAN_STRUCTURE_REFERENCES ||--o{ ATLASSIAN_STRUCTURE_REFERENCE_EVIDENCE : \"physical CASCADE\"\n    SESSIONS ||--o{ ATLASSIAN_STRUCTURE_REFERENCE_EVIDENCE : \"physical CASCADE\"\n    CONTEXT_DOCUMENTS ||--o{ ATLASSIAN_STRUCTURE_REFERENCE_EVIDENCE : \"physical CASCADE\"\n    CONTEXT_DOCUMENTS ||--o{ SESSION_REFERENCE_EVIDENCE : \"physical CASCADE target\"\n    ATLASSIAN_ITEMS ||--o{ SESSION_REFERENCE_EVIDENCE : \"physical CASCADE target\"\n    THREADS ||--o{ THREAD_LINKS : \"physical CASCADE\"\n    THREADS o|--o{ CHECKPOINT_RESOURCE_REFS : \"physical SET_NULL\"\n    CHECKPOINTS ||--o{ CHECKPOINT_RESOURCE_REFS : \"physical CASCADE\"\n\n    SOURCE_FILES ||..o| SESSIONS : \"app source_path\"\n    SOURCE_FILES ||..o| CONTEXT_DOCUMENTS : \"app path\"\n    WORKSPACES o|..o{ USAGE_RECORDS : \"app frozen snapshot\"\n    WORKSTREAM_LINKS }o..o| SESSIONS : \"app session target\"\n    WORKSTREAM_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document target\"\n    WORKSTREAM_LINKS }o..o| WORKSPACES : \"app project target\"\n    WORKSTREAM_LINKS }o..o| EXTERNAL_RESOURCES : \"app external target\"\n    WORKSTREAM_LINKS }o..o| LOCAL_RESOURCES : \"app local target\"\n    THREAD_LINKS }o..o| SESSIONS : \"app session target\"\n    THREAD_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document target\"\n    THREAD_LINKS }o..o| WORKSPACES : \"app project target\"\n    THREAD_LINKS }o..o| EXTERNAL_RESOURCES : \"app external target\"\n    THREAD_LINKS }o..o| LOCAL_RESOURCES : \"app local target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| SESSIONS : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| CONTEXT_DOCUMENTS : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| WORKSPACES : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| EXTERNAL_RESOURCES : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| LOCAL_RESOURCES : \"app snapshot target\"\n    SUGGESTIONS }o..o| WORKSTREAMS : \"app target\"\n    SUGGESTIONS }o..o| THREADS : \"app target\"\n    SUGGESTIONS }o..o| MAINTENANCE_RUNS : \"app origin\"\n    SEARCH_INDEX }o..o| SESSIONS : \"app projection\"\n    SEARCH_INDEX }o..o| CONTEXT_DOCUMENTS : \"app projection\"\n    SEARCH_INDEX }o..o| ATLASSIAN_ITEMS : \"app indexed projection\"\n    SEARCH_INDEX o|..o| ATLASSIAN_STRUCTURE_REFERENCES : \"app indexed projection\"\n"
+    "mermaid": "erDiagram\n    SOURCES { integer id PK }\n    SOURCE_FILES { integer id PK }\n    EXTERNAL_SOURCE_INSTANCES { integer id PK }\n    EXTERNAL_SOURCE_CAPABILITIES { integer source_instance_id PK }\n    WORKSPACES { integer id PK }\n    SESSIONS { integer id PK }\n    ACTIVITY_EVENTS { string id PK }\n    SESSION_PINS { integer session_id PK }\n    SESSION_REFERENCE_SCANS { integer session_id PK }\n    SESSION_REFERENCE_EVIDENCE { integer id PK }\n    USAGE_PRICE_SNAPSHOTS { string id PK }\n    USAGE_MODEL_PRICES { string snapshot_model PK }\n    USAGE_RECORDS { string id PK }\n    CONTEXT_ROOTS { integer id PK }\n    CONTEXT_DOCUMENTS { integer id PK }\n    WORKSTREAMS { integer id PK }\n    THREADS { integer id PK }\n    WORKSTREAM_LINKS { integer id PK }\n    THREAD_LINKS { integer id PK }\n    LOCAL_RESOURCES { integer id PK }\n    EXTERNAL_RESOURCES { integer id PK }\n    ATLASSIAN_SITES { integer id PK }\n    ATLASSIAN_SITE_BINDINGS { integer id PK }\n    ATLASSIAN_SPACES { integer id PK }\n    ATLASSIAN_ITEMS { integer external_resource_id PK }\n    ATLASSIAN_ITEM_URLS { integer id PK }\n    ATLASSIAN_ITEM_REMOTE_STATE { integer external_resource_id PK }\n    ATLASSIAN_ITEM_CONTENT { integer external_resource_id PK }\n    ATLASSIAN_ITEM_LOCAL_STATE { integer external_resource_id PK }\n    ATLASSIAN_CLASSIFICATIONS { integer id PK }\n    ATLASSIAN_ITEM_CLASSIFICATIONS { integer external_resource_id PK integer classification_id PK }\n    ATLASSIAN_EVIDENCE_SCANS { integer id PK }\n    ATLASSIAN_ITEM_EVIDENCE { integer id PK }\n    ATLASSIAN_STRUCTURE_REFERENCES { integer id PK }\n    ATLASSIAN_STRUCTURE_REFERENCE_URLS { integer id PK }\n    ATLASSIAN_STRUCTURE_REFERENCE_EVIDENCE { integer id PK }\n    SUGGESTIONS { integer id PK }\n    CHECKPOINTS { integer id PK }\n    CHECKPOINT_RESOURCE_REFS { integer id PK }\n    MAINTENANCE_RUNS { string id PK }\n    EXTERNAL_SYNC_RUNS { string maintenance_run_id PK }\n    WORKFLOW_ASSERTIONS { integer id PK string boundary_key UK integer boundary_version UK string source_episode_key string target_episode_key integer supersedes_assertion_id FK }\n    SEARCH_INDEX { string entity_key \"derived\" }\n\n    SOURCES ||--o{ SOURCE_FILES : \"physical CASCADE\"\n    SOURCES ||--o{ SESSIONS : \"physical CASCADE\"\n    SOURCES ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    SOURCES ||--o{ CONTEXT_DOCUMENTS : \"physical CASCADE\"\n    SESSIONS o|--o{ SOURCE_FILES : \"physical SET_NULL mapping\"\n    EXTERNAL_SOURCE_INSTANCES ||--o| EXTERNAL_SOURCE_CAPABILITIES : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_SITES : \"physical SET_NULL compatibility\"\n    EXTERNAL_SOURCE_INSTANCES ||--o{ ATLASSIAN_SITE_BINDINGS : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_SPACES : \"physical SET_NULL access\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_ITEMS : \"physical SET_NULL access\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ EXTERNAL_SYNC_RUNS : \"physical SET_NULL\"\n    WORKSPACES o|--o{ SESSIONS : \"physical SET_NULL\"\n    WORKSPACES o|--o{ CONTEXT_DOCUMENTS : \"physical SET_NULL\"\n    MAINTENANCE_RUNS o|--o| SESSIONS : \"physical SET_NULL unique\"\n    SESSIONS o|--o{ SESSIONS : \"physical parent SET_NULL\"\n    SESSIONS ||--o{ ACTIVITY_EVENTS : \"physical CASCADE\"\n    SESSIONS ||--o| SESSION_PINS : \"physical CASCADE\"\n    SESSIONS ||--o| SESSION_REFERENCE_SCANS : \"physical CASCADE\"\n    SESSIONS ||--o{ SESSION_REFERENCE_EVIDENCE : \"physical CASCADE\"\n    SESSIONS ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    USAGE_PRICE_SNAPSHOTS ||--o{ USAGE_MODEL_PRICES : \"physical RESTRICT\"\n    USAGE_PRICE_SNAPSHOTS ||--o{ USAGE_RECORDS : \"physical RESTRICT\"\n    CONTEXT_ROOTS o|--o{ CONTEXT_DOCUMENTS : \"physical SET_NULL\"\n    WORKSTREAMS ||--o{ THREADS : \"physical CASCADE\"\n    WORKSTREAMS ||--o{ WORKSTREAM_LINKS : \"physical CASCADE\"\n    WORKSTREAMS ||--o{ CHECKPOINTS : \"physical CASCADE\"\n    WORKSTREAMS o|--o{ MAINTENANCE_RUNS : \"physical SET_NULL\"\n    MAINTENANCE_RUNS ||--o| EXTERNAL_SYNC_RUNS : \"physical CASCADE\"\n    EXTERNAL_RESOURCES ||--o| ATLASSIAN_ITEMS : \"physical CASCADE 1:1\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_SITE_BINDINGS : \"physical CASCADE\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_SPACES : \"physical RESTRICT\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_ITEMS : \"physical RESTRICT\"\n    ATLASSIAN_SPACES o|--o{ ATLASSIAN_ITEMS : \"physical SET_NULL\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_URLS : \"physical composite CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_REMOTE_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_CONTENT : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_LOCAL_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_CLASSIFICATIONS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    SESSIONS ||--o{ ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE composite unique\"\n    CONTEXT_DOCUMENTS ||--o| ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE unique\"\n    SESSIONS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    CONTEXT_DOCUMENTS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_STRUCTURE_REFERENCES : \"physical RESTRICT\"\n    ATLASSIAN_STRUCTURE_REFERENCES ||--o{ ATLASSIAN_STRUCTURE_REFERENCE_URLS : \"physical composite CASCADE\"\n    ATLASSIAN_STRUCTURE_REFERENCES ||--o{ ATLASSIAN_STRUCTURE_REFERENCE_EVIDENCE : \"physical CASCADE\"\n    SESSIONS ||--o{ ATLASSIAN_STRUCTURE_REFERENCE_EVIDENCE : \"physical CASCADE\"\n    CONTEXT_DOCUMENTS ||--o{ ATLASSIAN_STRUCTURE_REFERENCE_EVIDENCE : \"physical CASCADE\"\n    CONTEXT_DOCUMENTS ||--o{ SESSION_REFERENCE_EVIDENCE : \"physical CASCADE target\"\n    ATLASSIAN_ITEMS ||--o{ SESSION_REFERENCE_EVIDENCE : \"physical CASCADE target\"\n    SESSIONS o|--o{ WORKFLOW_ASSERTIONS : \"physical source lookup SET_NULL\"\n    SESSIONS o|--o{ WORKFLOW_ASSERTIONS : \"physical target lookup SET_NULL\"\n    WORKFLOW_ASSERTIONS o|--o| WORKFLOW_ASSERTIONS : \"physical supersedes RESTRICT\"\n    THREADS ||--o{ THREAD_LINKS : \"physical CASCADE\"\n    THREADS o|--o{ CHECKPOINT_RESOURCE_REFS : \"physical SET_NULL\"\n    CHECKPOINTS ||--o{ CHECKPOINT_RESOURCE_REFS : \"physical CASCADE\"\n\n    SOURCE_FILES ||..o| SESSIONS : \"app source_path\"\n    SOURCE_FILES ||..o| CONTEXT_DOCUMENTS : \"app path\"\n    WORKSPACES o|..o{ USAGE_RECORDS : \"app frozen snapshot\"\n    WORKSTREAM_LINKS }o..o| SESSIONS : \"app session target\"\n    WORKSTREAM_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document target\"\n    WORKSTREAM_LINKS }o..o| WORKSPACES : \"app project target\"\n    WORKSTREAM_LINKS }o..o| EXTERNAL_RESOURCES : \"app external target\"\n    WORKSTREAM_LINKS }o..o| LOCAL_RESOURCES : \"app local target\"\n    THREAD_LINKS }o..o| SESSIONS : \"app session target\"\n    THREAD_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document target\"\n    THREAD_LINKS }o..o| WORKSPACES : \"app project target\"\n    THREAD_LINKS }o..o| EXTERNAL_RESOURCES : \"app external target\"\n    THREAD_LINKS }o..o| LOCAL_RESOURCES : \"app local target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| SESSIONS : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| CONTEXT_DOCUMENTS : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| WORKSPACES : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| EXTERNAL_RESOURCES : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| LOCAL_RESOURCES : \"app snapshot target\"\n    SUGGESTIONS }o..o| WORKSTREAMS : \"app target\"\n    SUGGESTIONS }o..o| THREADS : \"app target\"\n    SUGGESTIONS }o..o| MAINTENANCE_RUNS : \"app origin\"\n    WORKFLOW_ASSERTIONS }o..o{ SESSIONS : \"app stable Episode identity\"\n    SEARCH_INDEX }o..o| SESSIONS : \"app projection\"\n    SEARCH_INDEX }o..o| CONTEXT_DOCUMENTS : \"app projection\"\n    SEARCH_INDEX }o..o| ATLASSIAN_ITEMS : \"app indexed projection\"\n    SEARCH_INDEX o|..o| ATLASSIAN_STRUCTURE_REFERENCES : \"app indexed projection\"\n"
   },
   "relationships": {
     "application": [
@@ -226,6 +231,14 @@
         "source_table": "thread_links",
         "target_cardinality": "o|",
         "target_table": "workspaces"
+      },
+      {
+        "enforcement": "application",
+        "label": "app stable Episode identity",
+        "source_cardinality": "}o",
+        "source_table": "workflow_assertions",
+        "target_cardinality": "o{",
+        "target_table": "sessions"
       },
       {
         "enforcement": "application",
@@ -972,6 +985,45 @@
       },
       {
         "enforcement": "sqlite-foreign-key",
+        "on_delete": "SET NULL",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "source_session_id"
+        ],
+        "source_table": "workflow_assertions",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "sessions"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "SET NULL",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "target_session_id"
+        ],
+        "source_table": "workflow_assertions",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "sessions"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
+        "on_delete": "RESTRICT",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "supersedes_assertion_id"
+        ],
+        "source_table": "workflow_assertions",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "workflow_assertions"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
         "on_delete": "CASCADE",
         "on_update": "NO ACTION",
         "source_columns": [
@@ -1090,6 +1142,15 @@
       "table_ids": [
         "maintenance_runs",
         "external_sync_runs"
+      ]
+    },
+    {
+      "document": "docs/policies/project/data-model/workflow-assertions.md",
+      "id": "workflow-assertions",
+      "label": "Workflow assertions",
+      "mermaid": "erDiagram\n    SESSIONS { integer id PK }\n    WORKFLOW_ASSERTIONS {\n        integer id PK\n        string boundary_key UK\n        integer boundary_version UK\n        string boundary_kind\n        string assertion_kind\n        boolean is_undo\n        string source_episode_key\n        string target_episode_key\n        integer source_session_id FK\n        integer target_session_id FK\n        integer supersedes_assertion_id FK\n    }\n\n    SESSIONS o|--o{ WORKFLOW_ASSERTIONS : \"physical source lookup SET_NULL\"\n    SESSIONS o|--o{ WORKFLOW_ASSERTIONS : \"physical target lookup SET_NULL\"\n    WORKFLOW_ASSERTIONS o|--o| WORKFLOW_ASSERTIONS : \"physical supersedes RESTRICT\"\n",
+      "table_ids": [
+        "workflow_assertions"
       ]
     },
     {
@@ -7663,6 +7724,289 @@
         "schema_ownership": "fresh definition and two query indexes in `schema.sql`; idempotent schema application plus `db.py` index convergence create the same table and indexes on compatible databases without rewriting existing Run rows."
       },
       "subject_id": "maintenance-execution"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "`INTEGER PRIMARY KEY`; stable local assertion-history identity and supersession target.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "boundary_key",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "64-character `TEXT NOT NULL`; SHA-256 over a length-delimited boundary kind and stable Episode key(s).",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "boundary_version",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "positive `INTEGER NOT NULL`; next monotonic version within one boundary key.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "boundary_kind",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; exactly `relation` or `lifecycle`.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "assertion_kind",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; exactly `same-flow`, `split-here`, `merge-into`, `close`, or `reopen`. Undo retains the kind it reverses.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "0",
+          "name": "is_undo",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "checked `INTEGER NOT NULL DEFAULT 0`; `1` marks an explicit superseding reversal and `0` an ordinary assertion.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "source_episode_key",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; exact current FEAT-0085 `session:` plus 64-character digest identity. For lifecycle this is the selected Episode.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "target_episode_key",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`; required exact Episode key for relation boundaries and absent for lifecycle boundaries.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "source_session_id",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable FK to `sessions.id`, `ON DELETE SET NULL`; current navigation/lookup aid, never durable identity.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "target_session_id",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable FK to `sessions.id`, `ON DELETE SET NULL`; relation-target lookup aid and always absent for lifecycle rows.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "before_meaning",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "exact checked relation or lifecycle meaning before this record applied.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "after_meaning",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "exact checked relation or lifecycle meaning after this record applied.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "before_closure_reason",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable checked close reason; present if and only if `before_meaning` is `lifecycle:closed`.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "after_closure_reason",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable checked close reason; present if and only if `after_meaning` is `lifecycle:closed`.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "note",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable trimmed user text from 1 through 1,000 code points; empty input is normalized to absent.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "'user-confirmed'",
+          "name": "authority",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL DEFAULT 'user-confirmed'`; the sole durable assertion authority.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "'localbrain.workflow-assertion.v1'",
+          "name": "contract_version",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; exactly `localbrain.workflow-assertion.v1`.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "supersedes_assertion_id",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable unique self-FK, `ON DELETE RESTRICT`; exact prior active row reversed or replaced.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "created_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "`TEXT NOT NULL`; application-normalized UTC action time.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [
+          "boundary_version > 0",
+          "boundary_kind IN ('relation', 'lifecycle')",
+          "assertion_kind IN ( 'same-flow', 'split-here', 'merge-into', 'close', 'reopen' )",
+          "is_undo IN (0, 1)",
+          "before_meaning IN ( 'relation:absent', 'relation:continues', 'relation:branches-from', 'relation:merged-into', 'lifecycle:unknown', 'lifecycle:open', 'lifecycle:closed' )",
+          "after_meaning IN ( 'relation:absent', 'relation:continues', 'relation:branches-from', 'relation:merged-into', 'lifecycle:unknown', 'lifecycle:open', 'lifecycle:closed' )",
+          "before_closure_reason IS NULL OR before_closure_reason IN ( 'completed', 'abandoned', 'superseded', 'merged', 'other' )",
+          "after_closure_reason IS NULL OR after_closure_reason IN ( 'completed', 'abandoned', 'superseded', 'merged', 'other' )",
+          "authority IN ('user-confirmed')",
+          "length(boundary_key) = 64 AND boundary_key NOT GLOB '*[^0-9a-f]*'",
+          "length(source_episode_key) = 72 AND substr(source_episode_key, 1, 8) = 'session:' AND substr(source_episode_key, 9) NOT GLOB '*[^0-9a-f]*'",
+          "target_episode_key IS NULL OR ( length(target_episode_key) = 72 AND substr(target_episode_key, 1, 8) = 'session:' AND substr(target_episode_key, 9) NOT GLOB '*[^0-9a-f]*' )",
+          "note IS NULL OR ( length(note) BETWEEN 1 AND 1000 AND note = trim(note) )",
+          "contract_version = 'localbrain.workflow-assertion.v1'",
+          "(before_meaning = 'lifecycle:closed') = (before_closure_reason IS NOT NULL)",
+          "(after_meaning = 'lifecycle:closed') = (after_closure_reason IS NOT NULL)",
+          "( boundary_kind = 'relation' AND assertion_kind IN ('same-flow', 'split-here', 'merge-into') AND target_episode_key IS NOT NULL AND before_meaning LIKE 'relation:%' AND after_meaning LIKE 'relation:%' AND before_closure_reason IS NULL AND after_closure_reason IS NULL ) OR ( boundary_kind = 'lifecycle' AND assertion_kind IN ('close', 'reopen') AND target_episode_key IS NULL AND target_session_id IS NULL AND before_meaning LIKE 'lifecycle:%' AND after_meaning LIKE 'lifecycle:%' )",
+          "( is_undo = 0 AND ( ( assertion_kind = 'same-flow' AND after_meaning = 'relation:continues' ) OR ( assertion_kind = 'split-here' AND before_meaning = 'relation:continues' AND after_meaning = 'relation:branches-from' ) OR ( assertion_kind = 'merge-into' AND after_meaning = 'relation:merged-into' ) OR ( assertion_kind = 'close' AND before_meaning IN ( 'lifecycle:unknown', 'lifecycle:open', 'lifecycle:closed' ) AND after_meaning = 'lifecycle:closed' ) OR ( assertion_kind = 'reopen' AND before_meaning = 'lifecycle:closed' AND after_meaning = 'lifecycle:open' ) ) ) OR ( is_undo = 1 AND ( ( assertion_kind = 'same-flow' AND ( before_meaning = 'relation:continues' OR after_meaning = 'relation:continues' ) ) OR ( assertion_kind = 'split-here' AND ( ( before_meaning = 'relation:branches-from' AND after_meaning = 'relation:continues' ) OR ( before_meaning = 'relation:continues' AND after_meaning = 'relation:branches-from' ) ) ) OR ( assertion_kind = 'merge-into' AND ( before_meaning = 'relation:merged-into' OR after_meaning = 'relation:merged-into' ) ) OR ( assertion_kind = 'close' AND ( before_meaning = 'lifecycle:closed' OR after_meaning = 'lifecycle:closed' ) ) OR ( assertion_kind = 'reopen' AND ( ( before_meaning = 'lifecycle:open' AND after_meaning = 'lifecycle:closed' ) OR ( before_meaning = 'lifecycle:closed' AND after_meaning = 'lifecycle:open' ) ) ) ) )"
+        ],
+        "documented": "`UNIQUE(boundary_key, boundary_version)` and unique nullable",
+        "primary_key": [
+          "id"
+        ],
+        "unique": [
+          [
+            "boundary_key",
+            "boundary_version"
+          ],
+          [
+            "supersedes_assertion_id"
+          ]
+        ]
+      },
+      "foreign_keys": [
+        {
+          "on_delete": "RESTRICT",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "supersedes_assertion_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "workflow_assertions"
+        },
+        {
+          "on_delete": "SET NULL",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "target_session_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "sessions"
+        },
+        {
+          "on_delete": "SET NULL",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "source_session_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "sessions"
+        }
+      ],
+      "id": "workflow_assertions",
+      "indexes": [
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "source_episode_key"
+            },
+            {
+              "descending": true,
+              "name": "created_at"
+            },
+            {
+              "descending": true,
+              "name": "id"
+            }
+          ],
+          "name": "idx_workflow_assertions_source_created",
+          "partial": false,
+          "unique": false
+        },
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "target_episode_key"
+            },
+            {
+              "descending": true,
+              "name": "created_at"
+            },
+            {
+              "descending": true,
+              "name": "id"
+            }
+          ],
+          "name": "idx_workflow_assertions_target_created",
+          "partial": false,
+          "unique": false
+        }
+      ],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/workflow-assertions.md",
+      "semantics": {
+        "class": "User-curated and non-rebuildable",
+        "class_contract": "User intent or registration is authoritative and requires database backup for full recovery.",
+        "consumers": "`workflow_assertions.py` resolves active chains, returns bounded history, computes optimistic projection revisions, and overlays effective relation/lifecycle state after FEAT-0086 candidate production. `workflow_correction_view.py` presents active state and exact contextual transitions; the Session Workflow Focus correction POST is the first product mutation consumer. Focus GET remains a read consumer.",
+        "deletion_effect": "nullable `source_session_id` and `target_session_id` reference current `sessions.id` with `ON DELETE SET NULL`. `supersedes_assertion_id` is a nullable unique self-FK with `ON DELETE RESTRICT`, preventing two chain successors and destructive history removal. `source_episode_key`, optional `target_episode_key`, and `boundary_key` remain after lookup loss and are the application authority for later re-resolution.",
+        "documented_constraints": "`UNIQUE(boundary_key, boundary_version)` and unique nullable",
+        "lifecycle_contract": "user-curated and non-rebuildable. Initial action, correction, reopen, and undo each append one next boundary version. An active row is the row with no successor referencing it. Ordinary product behavior never updates or deletes history, and assertion state requires database backup for recovery.",
+        "producers": "validated, user-initiated operations in `workflow_assertions.py`. Session ingestion, source reconciliation, Suggestions, Workstream organization, connectors, and models never write the table.",
+        "purpose_and_authority": "append-only local ledger of one user-confirmed workflow relation or lifecycle boundary transition. It records the exact before/after state and supersession history used to overlay the deterministic Session Focus projection; it never rewrites the base candidate or its reasons.",
+        "rebuildability": "non-rebuildable",
+        "recovery_path": "restore the LocalBrain database backup. Restoring or rescanning Claude/Codex source files can re-resolve the same stable Episode key but cannot reconstruct user notes, correction order, supersession, or undo history.",
+        "schema_ownership": "complete fresh definition plus `idx_workflow_assertions_source_created` and `idx_workflow_assertions_target_created` in `schema.sql`; normal idempotent schema application creates the absent table and indexes on a compatible older database without rewriting existing rows. No backup-backed repair or runtime- only index is required."
+      },
+      "subject_id": "workflow-assertions"
     },
     {
       "columns": [

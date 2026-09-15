@@ -28,8 +28,8 @@ def validate_value_registry(registry: Mapping[str, Any]) -> None:
     subjects = registry.get("subjects")
     families = registry.get("families")
     exclusions = registry.get("exclusions")
-    if not isinstance(subjects, list) or len(subjects) != 9:
-        raise ValueRegistryError("value registry must declare nine subjects")
+    if not isinstance(subjects, list) or len(subjects) != 10:
+        raise ValueRegistryError("value registry must declare ten subjects")
     if not isinstance(families, list) or not families:
         raise ValueRegistryError("value registry has no families")
     if not isinstance(exclusions, list) or not exclusions:
