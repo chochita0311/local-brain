@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko">
+<html lang="ko"{% if active_page == 'auto-work' %} class="auto-work-root"{% endif %}>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -29,6 +29,11 @@
           </div>
           <div class="nav-group">
             <span class="nav-group-label">Workspace</span>
+            {% if auto_work_available %}
+            <a class="lnb-item {% if active_page == 'auto-work' %}active{% endif %}" href="/auto-work" {% if active_page == 'auto-work' %}aria-current="page"{% endif %}>
+              <span class="nav-symbol" aria-hidden="true">AW</span><span>자동 작업</span>
+            </a>
+            {% endif %}
             <a class="lnb-item {% if active_page == 'workstreams' %}active{% endif %}" href="/workstreams" {% if active_page == 'workstreams' %}aria-current="page"{% endif %}>
               <span class="nav-symbol" aria-hidden="true">03</span><span>Workstreams</span>
             </a>

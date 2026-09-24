@@ -3,6 +3,8 @@ import queue
 import re
 import secrets
 import sqlite3
+import subprocess
+import sys
 import threading
 import time
 from collections import OrderedDict
@@ -24,6 +26,8 @@ from pydantic import BaseModel, Field
 from starlette.concurrency import run_in_threadpool
 
 from .config import settings
+from .auto_work import preview_page
+from .session_affinity import affinity_page
 from .contexts import (
     add_apple_notes_source,
     add_context_file,
@@ -258,6 +262,63 @@ templates.env.globals["asset_version"] = max(
 )
 templates.env.globals["value_label"] = display_value_label
 templates.env.globals["value_help"] = visible_value_help
+templates.env.globals["auto_work_available"] = True
+
+
+def _auto_work_local_request(request: Request):
+    if request.url.hostname not in {"localhost", "127.0.0.1", "::1"}:
+        raise HTTPException(status_code=400, detail="Local access required")
+    if request.headers.get("sec-fetch-site", "").lower() == "cross-site":
+        raise HTTPException(status_code=400, detail="Local access required")
+
+
+@app.get("/auto-work", response_class=HTMLResponse)
+def auto_work_page(request: Request):
+    _auto_work_local_request(request)
+    params = request.query_params
+    if params.get("mode") != "sample":
+        return templates.TemplateResponse("affinity-map.html", {
+            "request": request, "active_page": "auto-work",
+            "mapview": affinity_page(settings.database_path, settings.data_dir, params=params),
+        }, headers={"Cache-Control": "no-store, private", "X-Content-Type-Options": "nosniff"})
+    preview = preview_page(settings.database_path, settings.data_dir,
+                           page=params.get("page", "1"), flow=params.get("flow"),
+                           view=params.get("view", "flows"), evidence_page=params.get("evidence_page", "1"))
+    notices = {"updated": "현재 데이터로 분석 결과를 갱신했습니다. 분류 품질은 아직 미평가입니다.",
+               "failed": "분석을 완료하지 못했습니다. 유효한 이전 결과는 유지됩니다. 다시 시도할 수 있습니다.",
+               "busy": "이미 분석 중입니다. 잠시 후 이 화면을 새로고침해 주세요."}
+    notice = params.get("notice")
+    return templates.TemplateResponse("auto-work.html", {
+        "request": request, "active_page": "auto-work", "preview": preview,
+        "notice": notices.get(notice), "notice_failed": notice == "failed",
+    }, headers={"Cache-Control": "no-store, private", "X-Content-Type-Options": "nosniff"})
+
+
+def _refresh_auto_work():
+    try:
+        result = subprocess.run(
+            [sys.executable, "-B", "-m", "localbrain.auto_work", "--database", str(settings.database_path),
+             "--data-dir", str(settings.data_dir)],
+            stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            timeout=300, start_new_session=True,
+        )
+        return "updated" if result.returncode == 0 else "busy" if result.returncode == 3 else "failed"
+    except (OSError, subprocess.TimeoutExpired):
+        return "failed"
+
+
+@app.post("/auto-work/refresh")
+async def auto_work_refresh(request: Request):
+    _auto_work_local_request(request)
+    origin = request.headers.get("origin")
+    if origin != "{}://{}".format(request.url.scheme, request.url.netloc):
+        raise HTTPException(status_code=400, detail="Same-origin submission required")
+    async for chunk in request.stream():
+        if chunk:
+            raise HTTPException(status_code=400, detail="This action takes no input")
+    notice = await run_in_threadpool(_refresh_auto_work)
+    return RedirectResponse("/auto-work?mode=sample&notice=" + notice, status_code=303,
+                            headers={"Cache-Control": "no-store, private"})
 
 
 @app.get("/", response_class=HTMLResponse)

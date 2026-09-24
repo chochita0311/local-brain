@@ -321,6 +321,29 @@ Constraints: exact target-kind/FK/normalized-URL parity; exact evidence-kind/rea
   has no lifecycle row, foreign key, cascade, migration, restore action, or
   purge action of its own.
 
+## Derived Workstream Candidate Contract
+
+- `workstream_candidates.py` adds only immutable derived descriptors. There is
+  no candidate table, index, migration, schema/value-registry entry, cache, or
+  database-backed discovery read in this contract.
+- One seed has two canonical artifact identities and at least two distinct
+  primary-work/full-index Session identities with direct supporting references
+  to both. Local row IDs serve navigation, not rebuild-stable identity. The
+  source owner must resolve Document/Item/Resource aliases before supplying a
+  fact; the existing row-ID-based reference target keys are not reused as stable
+  candidate identities.
+- Membership is many-to-many and retains candidate-specific evidence. Global
+  Episode directions, Workstream/Thread links, and workflow assertions are
+  separate owners. Supporting reference timestamps own candidate observation
+  bounds; Session ending, import time, and inactivity cannot close a candidate.
+- Recovery is normalization of retained canonical facts. Restored identities
+  reproduce the seed key; evidence changes update membership revision while
+  labels, local navigation IDs, and source freshness remain separate. Missing
+  anchors cause abstention and do not authorize deletion or reassignment of any
+  future user review state.
+- Privacy, serialized evidence samples, and partial coverage follow the
+  [candidate architecture contract](../architecture.md#workstream-candidate-contract).
+
 ## Subject Recovery Boundary
 
 Session source files can recreate Workspaces, Sessions, Activity Events, Session reference scan state, and Session reference evidence, but current project resolution, exact target availability, and self-referential parent IDs may differ if local paths or source sets change. They cannot recreate Session pins. Preserve `cwd_raw`, `parent_external_id`, and Session branch evidence. Restore the database, not only source files, when pin intent, curated polymorphic links, or exact stable IDs matter.

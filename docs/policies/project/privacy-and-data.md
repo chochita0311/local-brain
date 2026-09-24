@@ -62,6 +62,191 @@ starts no connector, model, embedding, scan, or maintenance work. Any later
 projection may use only already-approved normalized metadata and evidence under
 their existing retention rules.
 
+Workstream candidate descriptors follow the same private, ephemeral boundary.
+Their pure normalizer accepts only supplied canonical metadata/reference facts
+and proposed pairs. Artifact scope/identity and source occurrence identity are
+hashed before serialization; raw paths, source-native Session/occurrence IDs,
+bodies, excerpts, opaque payloads, and extra input fields are not copied.
+Attributed bounded titles, Session source keys, local Session destinations,
+opaque evidence keys, observation/source states, and coverage may be returned.
+Candidate/membership authority remains inferred, distinct from source evidence.
+Unknown timestamps and partial coverage never become fabricated progress or
+global discovery claims. No candidate, review assertion, organization link,
+cache, or feedback label is persisted by this contract, and no source, remote,
+model, synchronization, or filesystem operation occurs. Its fixtures and
+validation use synthetic data only.
+
+The isolated work-reconstruction experiment is a separate, explicit bounded-text
+boundary; it does not relax the metadata-only Focus or candidate contracts.
+It accepts only a supplied fixture or an explicit existing database plus frozen
+source/time/record manifest. After the owner selects current LocalBrain data,
+the operator may resolve that named database from its configuration and explicitly
+prepare a bounded chronological sample through the selected cutoff. There is no
+default-open behavior on import, help, ordinary app entry, or command invocation.
+Independent expectations are required for quality scoring; an explicit unassessed
+execution check may retain unknowns but may never generate its own answer key.
+Eligibility/permission checks
+precede selected indexed-text reads; raw tool payloads, native source files,
+metadata/reference-only bodies, disabled sources, and source-body payloads are
+excluded. It performs no initialization, migration, synchronization, connector,
+model, external request, source mutation, or legacy cleanup.
+
+Private manifest values, expectations, evidence spans, generated labels, and
+detailed results remain on the local machine outside Git and hosted-agent
+inputs/tool output. Default command output is fixed status codes only; even
+non-identifying aggregate sharing is explicit. All command-generated output,
+including supplied-fixture results, belongs in a new owner-only directory outside
+the repository, with an explicit owner/expiry and a bounded complete report.
+Reruns cannot overwrite it. Task scratch is removed on completion/failure/cancel;
+retained results need owner-managed expiry cleanup because no scheduler is added.
+No full database copy or permanent archive is created. Synthetic tests alone
+cannot establish private extraction quality or approve production transition.
+The [experiment Feature](../../plans/feature/feat-0095-bounded-work-reconstruction-experiment.md)
+owns the exact trial caps and limited review budget.
+
+The separately approved [full-Session simulation](../../plans/feature/feat-0097-replayable-session-simulation.md)
+removes those sampling limits only for its explicit CLI. It accounts for all
+stored Sessions and reads all nonempty user/assistant message content of
+primary/full work Sessions through a read-only SQLite connection. Maintenance,
+subsession, metadata-only and non-message content remain excluded. No new source
+ingestion or context-document body expansion is implied. Unknown dates do not
+exclude otherwise admissible content.
+
+Its explicitly selected private directory outside Git owns a source-bound
+inventory/cache SQLite file, an ownership marker, progress, the current report
+and at most one previous report. Locators, attributed titles, hashes, vectors
+and inferred memberships are private; complete raw message bodies are not
+copied. The cache expires after 30 inactive days, enforced on the next execution;
+status rejects expired state. Purge removes only this owner's derived files
+under its writer lock and retains the minimal ownership marker/lock. There is
+no background cleanup scheduler or source-file deletion. Current inventory
+replacement removes unused vectors; successful model replacement prunes old
+namespaces. Interrupted work retains checkpoints until resumed or purged.
+
+Only explicit local model inference is admitted, with verified already-installed
+asset fingerprints, local-files-only loading, no remote code, offline/telemetry
+controls and a Python outbound-socket guard. These controls are not an OS-level
+network sandbox. No training, asset download, external inference or write to
+Foundry state occurs. CLI output is fixed codes unless `--show-counts` explicitly
+opts into aggregate disclosure. Model/library output is suppressed; private
+results remain local. This simulation does not change the old sampled comparator or
+authorize production organization, correction, migration or legacy retirement.
+
+The separately approved full-history affinity viewer consumes this same finite
+owner without creating another private store. A shared lock guards passive reads;
+owner, expiry, source binding, bounded report shape and whole-source freshness are
+checked before display. Exact quoted spans are independently verified against
+current original records. Only one derived index may live in process memory,
+invalidated by report or source DB/WAL changes; browser history holds viewport/
+Trace coordinates and edge visibility, not evidence. GET never renews expiry, deletes artifacts, starts
+model work, ingests or changes organization. Missing/stale/expired/invalid results
+are explicit, not replaced by the previous sample. No private screenshot, title,
+quote or inventory enters tracked/browser-test evidence; fixtures are synthetic.
+
+The separately approved [work-context model trial](../../plans/feature/feat-0098-local-work-context-inference.md)
+may install the pinned public Qwen3-4B and separately approved Qwen3-8B assets
+into distinct explicitly selected owned model directories outside Git.
+Unknown models, unpinned revisions and mismatched existing ownership are rejected;
+installing the comparison does not replace or purge the baseline.
+Installation takes no private-source arguments,
+uses no authentication token, and contacts only the official public model host
+and its asset delivery endpoints. Foundry code/assets are not modified. The
+installation's content-addressed asset cache is its durable model storage;
+verified assets are retained for reuse independently of evaluation expiry.
+Interrupted public downloads are resumable installation state, not source data.
+Optional Xet transport uses a new empty private task-owned directory, selected
+before the client import, with chunk/shard caches disabled. Its public transfer
+diagnostics are temporary: remove only the verified task-owned scratch after the
+installer process exits. Durable model assets must not depend on that directory.
+
+Inference is a separate operation with offline/telemetry controls, an outbound
+Python socket guard, local-files-only safetensors and no remote code. The initial
+evaluation accepts only repository-owned synthetic cases, not a database path.
+Quoted outputs and model identity stay in an owner/lock-protected private report
+and per-case checkpoint with 30-day inactivity expiry; unknown files prevent
+cleanup or adoption. Fixed CLI diagnostics disclose no prompts/output. Every
+thinking-mode response discards reasoning tokens without decoding or persistence;
+only counts and the final answer are retained. Staged inference uses validated
+source quotes, never reasoning traces or invented summaries as new evidence. Every
+classified/selected-strategy decision selects a bounded answer code against original
+context; only explicitly selected source evidence is projected into output.
+Its trace contains span IDs, inferred categories and unit numbers, not private
+prompt copies or hidden reasoning. Sentence enumeration imposes a finite packet
+bound and refuses overflow rather than dropping source content. These inferred
+choices carry no confirmation or instruction authority. Every
+field retains its exact quote, speaker and locator; a valid quote does not prove
+semantic entailment, completion or user confirmation. The synthetic quality
+gate precedes any separately implemented private-corpus consumer. No training,
+external inference, automatic source access or legacy/organization write occurs.
+
+The separately approved evidence-first strategy uses semantic labels to assess
+literal source facts and membership before projecting units/relations. Only
+selected original spans become citations; relationships automatically abstain
+when the model judges support missing or conflicting. This is not a guarantee
+that all unsupported interpretations are recognized. No user-confirmation tasks
+or source/organization writes are added. Its
+content-free trace records derived span IDs, semantic assessments and withholding
+reasons, never hidden reasoning or invented summaries as evidence. Synthetic
+evaluation retains completed refusals and semantic failures for replay in the
+same finite-lived evaluation owner. Changed/corrupt observations refuse reuse;
+at most one extra incomplete-case attempt follows a clean interruption, while an
+unclean in-flight crash refuses restart. The holdout prerequisite reads only a
+complete same-candidate synthetic report and revalidates its observations/gates;
+it neither discovers a private source nor grants production admission.
+
+The separately invoked protocol diagnostic admits only its repository-owned
+synthetic fixtures and the existing pinned 8B model. It shares the evaluation
+directory ownership, exclusive lock, atomic checkpoints and finite expiry, but
+keeps completed failures for replay and refuses changed configurations instead
+of overwriting unexpired observations. Reports may contain those synthetic
+prompts and final short answers, never private source text or hidden reasoning.
+The command accepts no database, private input or holdout argument. Rendering
+hashes, code token IDs and resource counters support diagnosis; completion never
+authorizes a production consumer or relaxes model admission.
+
+The separately invoked role-formulation comparison likewise accepts only its
+frozen synthetic suite. It retains the same source attribution, installed-model
+offline boundary and expiring evaluation owner; its recorded prompts, focused
+spans, relation quotes and answer/token audits contain synthetic evidence only.
+No reasoning traces are requested or retained. Every actual choice attempt is
+reserved in the checkpoint, including choices inside the unchanged relation
+pipeline. Completed incorrect/refused observations are preserved; changed config,
+corruption, exhausted budgets or unknown in-flight duration cannot silently reset
+the comparison. No private-input/DB/holdout path or product mutation is added.
+
+The separately approved source-claim adapter trial uses one frozen installed-8B
+candidate on synthetic records only. Native identity, source revision, speaker
+and coordinates come from the host; model interpretations and scoped fulfillment
+judgments retain distinct inferred provenance. It shares the evaluation-store
+owner/lock/atomic/30-day inactive retention rules in a new namespace, without
+adopting old reports. Completed invalid, refused and semantically wrong outputs
+remain available for generation-free replay; changed configurations, corrupted
+checkpoints, expired trials or unclean in-flight reservations cannot reset the
+same trial. Caught interruptions consume their reserved attempt rather than retry
+it. Default CLI diagnostics contain no source/output text. Original holdout is
+reachable only after revalidated same-candidate development gates and a primary
+semantic review receipt; it is still synthetic, never a private input path.
+No training, download, private source/DB access, Foundry write, product consumer,
+organization mutation or legacy deletion follows from the trial.
+
+The previous-sample Auto Work viewer is a narrow local consumer of the
+experimental extraction contract. A single `auto-work-preview/current.json`
+under the configured runtime directory retains an owner/version, seven-day
+expiry, bounded frozen manifest, digest, sample counts and extraction output.
+It does not retain full source bodies, native files, a DB copy, source paths,
+credentials, or a report history. This is purpose-owned product preview state,
+not task scratch; refresh atomically replaces only valid owned output and a
+subsequent visit removes expired owned output. Unknown files are never overwritten.
+
+The viewer reads only current eligible indexed spans for provenance checks and
+local presentation, then renders escaped evidence without browser storage or
+external requests. GET starts no extraction; an explicit same-origin local
+refresh uses fixed configured source paths and unchanged caps in an isolated
+command. Responses are private/no-store, errors are bounded fixed messages,
+and private content, group labels, counts and screenshots never enter hosted
+agent output. Tracked fixtures and browser evidence remain synthetic. Neither
+viewing nor refreshing changes Workstream/Thread, source, or legacy state.
+
 The database-backed workflow Focus projection follows the same local boundary.
 It may read normalized Session/source/workspace identity, privacy-minimized
 reference keys, user organization links, bounded Related Materials, direct-child

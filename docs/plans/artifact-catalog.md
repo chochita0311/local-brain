@@ -28,7 +28,7 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [PRD-0016: Atlassian Standard URL Structure References](prd/prd-0016-atlassian-standard-url-recognition.md) | `passed` | — |
 | [PRD-0017: Source-Backed Workflow Map And Workstream Lenses](prd/prd-0017-source-backed-workflow-map-and-workstream-lenses.md) | `approved` | — |
 
-## Features (89)
+## Features (104)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -121,8 +121,23 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [FEAT-0087: Session Workflow Focus Map](feature/feat-0087-session-workflow-focus-map.md) | `passed` | PRD-0017: Source-Backed Workflow Map And Workstream Lenses |
 | [FEAT-0088: Workflow Assertion And Correction Contract](feature/feat-0088-workflow-assertion-and-correction-contract.md) | `passed` | PRD-0017: Source-Backed Workflow Map And Workstream Lenses |
 | [FEAT-0089: Workflow Boundary Corrections](feature/feat-0089-workflow-boundary-corrections.md) | `passed` | PRD-0017: Source-Backed Workflow Map And Workstream Lenses |
+| [FEAT-0090: Workstream Candidate Discovery Contract](feature/feat-0090-workstream-candidate-discovery-contract.md) | `passed` | PRD-0017 |
+| [FEAT-0091: Deterministic Workstream Candidate Projection](feature/feat-0091-deterministic-workstream-candidate-projection.md) | `superseded` | PRD-0017 |
+| [FEAT-0092: Workstream Candidate Evidence Review](feature/feat-0092-workstream-candidate-evidence-review.md) | `superseded` | PRD-0017 |
+| [FEAT-0093: Workstream Candidate Review And Promotion Contract](feature/feat-0093-workstream-candidate-review-and-promotion-contract.md) | `superseded` | PRD-0017 |
+| [FEAT-0094: Workstream Candidate Correction And Promotion](feature/feat-0094-workstream-candidate-correction-and-promotion.md) | `superseded` | PRD-0017 |
+| [FEAT-0095: Bounded Work Reconstruction Experiment](feature/feat-0095-bounded-work-reconstruction-experiment.md) | `blocked` | PRD-0017 |
+| [FEAT-0096: Auto Work Inspection](feature/feat-0096-auto-work-inspection.md) | `passed` | PRD-0017 |
+| [FEAT-0097: Replayable Full-Session Simulation](feature/feat-0097-replayable-session-simulation.md) | `passed` | PRD-0017 |
+| [FEAT-0098: Local Work Context Inference](feature/feat-0098-local-work-context-inference.md) | `blocked` | PRD-0017 |
+| [FEAT-0099: Source Claims And Work State Projection](feature/feat-0099-source-claims-and-work-state-projection.md) | `passed` | PRD-0017 |
+| [FEAT-0100: Source Claim Extraction And Binding Trial](feature/feat-0100-source-claim-extraction-and-binding-trial.md) | `blocked` | PRD-0017 |
+| [FEAT-0101: Full-History Affinity Inspection Contract](feature/feat-0101-full-history-affinity-inspection-contract.md) | `passed` | PRD-0017 |
+| [FEAT-0102: Full-History Affinity Map](feature/feat-0102-full-history-affinity-map.md) | `superseded` | PRD-0017 |
+| [FEAT-0103: Direct-Context Work Relation Trial](feature/feat-0103-direct-context-work-relation-trial.md) | `draft` | PRD-0017 |
+| [FEAT-0104: Temporal Affinity Flow](feature/feat-0104-temporal-affinity-flow.md) | `passed` | PRD-0017 |
 
-## Specs (93)
+## Specs (103)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -219,8 +234,18 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [SPEC-0087: Session Workflow Focus Map](spec/spec-0087-session-workflow-focus-map.md) | `approved` | FEAT-0087 |
 | [SPEC-0088: Workflow Assertion And Correction Contract](spec/spec-0088-workflow-assertion-and-correction-contract.md) | `approved` | FEAT-0088 |
 | [SPEC-0089: Workflow Boundary Corrections](spec/spec-0089-workflow-boundary-corrections.md) | `approved` | FEAT-0089 |
+| [SPEC-0090: Workstream Candidate Discovery Contract](spec/spec-0090-workstream-candidate-discovery-contract.md) | `approved` | FEAT-0090 |
+| [SPEC-0095: Bounded Work Reconstruction Experiment](spec/spec-0095-bounded-work-reconstruction-experiment.md) | `approved` | FEAT-0095 |
+| [SPEC-0096: Auto Work Inspection](spec/spec-0096-auto-work-inspection.md) | `approved` | FEAT-0096 |
+| [SPEC-0097: Replayable Full-Session Simulation](spec/spec-0097-replayable-session-simulation.md) | `approved` | FEAT-0097 |
+| [SPEC-0098: Local Work Context Inference](spec/spec-0098-local-work-context-inference.md) | `approved` | FEAT-0098 |
+| [SPEC-0099: Source Claims And Work State Projection](spec/spec-0099-source-claims-and-work-state-projection.md) | `approved` | FEAT-0099 |
+| [SPEC-0100: Source Claim Extraction And Binding Trial](spec/spec-0100-source-claim-extraction-and-binding-trial.md) | `approved` | FEAT-0100 |
+| [SPEC-0101: Full-History Affinity Inspection Contract](spec/spec-0101-full-history-affinity-inspection-contract.md) | `approved` | FEAT-0101 |
+| [SPEC-0102: Full-History Affinity Map](spec/spec-0102-full-history-affinity-map.md) | `superseded` | FEAT-0102 |
+| [SPEC-0104: Temporal Affinity Flow](spec/spec-0104-temporal-affinity-flow.md) | `approved` | FEAT-0104 |
 
-## Runs (99)
+## Runs (117)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -323,8 +348,26 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [RUN-20260914-97: Session Workflow Focus Map](run/run-20260914-97-session-workflow-focus-map.md) | `passed` | FEAT-0087 |
 | [RUN-20260914-98: Workflow Assertion And Correction Contract](run/run-20260914-98-workflow-assertion-and-correction-contract.md) | `passed` | FEAT-0088 |
 | [RUN-20260914-99: Workflow Boundary Corrections](run/run-20260914-99-workflow-boundary-corrections.md) | `passed` | FEAT-0089 |
+| [RUN-20260915-100: Workstream Candidate Discovery Contract](run/run-20260915-100-workstream-candidate-discovery-contract.md) | `returned-to-planning` | FEAT-0090 |
+| [RUN-20260915-101: Bounded Work Reconstruction Experiment](run/run-20260915-101-bounded-work-reconstruction-experiment.md) | `blocked` | FEAT-0095 |
+| [RUN-20260916-102: Auto Work Inspection](run/run-20260916-102-auto-work-inspection.md) | `passed` | FEAT-0096 |
+| [RUN-20260922-103: Replayable Full-Session Simulation](run/run-20260922-103-replayable-session-simulation.md) | `returned-to-planning` | FEAT-0097 |
+| [RUN-20260923-104: Local Work Context Inference](run/run-20260923-104-local-work-context-inference.md) | `blocked` | FEAT-0098 |
+| [RUN-20260923-105: Work Context Strategy Comparison](run/run-20260923-105-work-context-strategy-comparison.md) | `blocked` | FEAT-0098 |
+| [RUN-20260923-106: Work Context Model-Size Comparison](run/run-20260923-106-work-context-model-size-comparison.md) | `blocked` | FEAT-0098 |
+| [RUN-20260923-107: Source-Selected Work Extraction](run/run-20260923-107-source-selected-work-extraction.md) | `blocked` | FEAT-0098 |
+| [RUN-20260923-108: Work Context Protocol Diagnostic](run/run-20260923-108-work-context-protocol-diagnostic.md) | `passed` | FEAT-0098 |
+| [RUN-20260923-109: Evidence-First Work Context](run/run-20260923-109-evidence-first-work-context.md) | `blocked` | FEAT-0098 |
+| [RUN-20260923-110: Work Role Formulation Comparison](run/run-20260923-110-work-role-formulation-comparison.md) | `passed` | FEAT-0098 |
+| [RUN-20260923-111: Source Claims And Work State Projection](run/run-20260923-111-source-claims-and-work-state-projection.md) | `passed` | FEAT-0099 |
+| [RUN-20260923-112: Source Claim Extraction And Binding Trial](run/run-20260923-112-source-claim-extraction-and-binding-trial.md) | `blocked` | FEAT-0100 |
+| [RUN-20260923-113: Full-History Simulation Replay](run/run-20260923-113-full-history-simulation-replay.md) | `passed` | FEAT-0097 |
+| [RUN-20260923-114: Full-History Affinity Inspection](run/run-20260923-114-full-history-affinity-inspection.md) | `passed` | FEAT-0101 |
+| [RUN-20260923-115: Full-History Affinity Map](run/run-20260923-115-full-history-affinity-map.md) | `passed` | FEAT-0102 |
+| [RUN-20260924-116: Temporal Affinity Flow](run/run-20260924-116-temporal-affinity-flow.md) | `passed` | FEAT-0104 |
+| [RUN-20260924-117: Continuous Affinity Canvas](run/run-20260924-117-continuous-affinity-canvas.md) | `passed` | FEAT-0104 |
 
-## Evaluations And Schema Audits (322)
+## Evaluations And Schema Audits (348)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -650,6 +693,32 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [EVAL-0089 Design: Workflow Boundary Corrections](evaluation/eval-0089-design-workflow-boundary-corrections.md) | `complete` | FEAT-0089 |
 | [EVAL-0089 Functional: Workflow Boundary Corrections](evaluation/eval-0089-functional-workflow-boundary-corrections.md) | `complete` | FEAT-0089 |
 | [EVAL-0089 UX: Workflow Boundary Corrections](evaluation/eval-0089-ux-workflow-boundary-corrections.md) | `complete` | FEAT-0089 |
+| [EVAL-0090 Contract: Workstream Candidate Discovery Contract](evaluation/eval-0090-contract-workstream-candidate-discovery-contract.md) | `complete` | FEAT-0090 |
+| [EVAL-0090 Functional: Workstream Candidate Discovery Contract](evaluation/eval-0090-functional-workstream-candidate-discovery-contract.md) | `complete` | FEAT-0090 |
+| [EVAL-0095 Contract: Bounded Work Reconstruction Experiment](evaluation/eval-0095-contract-bounded-work-reconstruction-experiment.md) | `complete` | FEAT-0095 |
+| [EVAL-0095 Functional: Bounded Work Reconstruction Experiment](evaluation/eval-0095-functional-bounded-work-reconstruction-experiment.md) | `complete` | FEAT-0095 |
+| [EVAL-0096: Contract — Auto Work Inspection](evaluation/eval-0096-contract-auto-work-inspection.md) | `complete` | FEAT-0096 |
+| [EVAL-0096: Design — Auto Work Inspection](evaluation/eval-0096-design-auto-work-inspection.md) | `complete` | FEAT-0096 |
+| [EVAL-0096: Functional — Auto Work Inspection](evaluation/eval-0096-functional-auto-work-inspection.md) | `complete` | FEAT-0096 |
+| [EVAL-0096: UX Heuristic — Auto Work Inspection](evaluation/eval-0096-ux-auto-work-inspection.md) | `complete` | FEAT-0096 |
+| [EVAL-0097: Replayable Session Simulation — Contract](evaluation/eval-0097-contract-replayable-session-simulation.md) | `complete` | FEAT-0097 |
+| [EVAL-0097: Replayable Session Simulation — Functional](evaluation/eval-0097-functional-replayable-session-simulation.md) | `complete` | FEAT-0097 |
+| [EVAL-0098: Local Work Context Inference — Contract](evaluation/eval-0098-contract-local-work-context-inference.md) | `complete` | FEAT-0098 |
+| [EVAL-0098: Local Work Context Inference — Functional](evaluation/eval-0098-functional-local-work-context-inference.md) | `complete` | FEAT-0098 |
+| [EVAL-0099: Source Claims And Work State — Contract](evaluation/eval-0099-contract-source-claims-and-work-state-projection.md) | `complete` | FEAT-0099 |
+| [EVAL-0099: Source Claims And Work State — Functional](evaluation/eval-0099-functional-source-claims-and-work-state-projection.md) | `complete` | FEAT-0099 |
+| [EVAL-0100: Source Claim Extraction And Binding Trial — Contract](evaluation/eval-0100-contract-source-claim-extraction-and-binding-trial.md) | `complete` | FEAT-0100 |
+| [EVAL-0100: Source Claim Extraction And Binding Trial — Functional](evaluation/eval-0100-functional-source-claim-extraction-and-binding-trial.md) | `complete` | FEAT-0100 |
+| [EVAL-0101: Full-History Affinity Inspection — Contract](evaluation/eval-0101-contract-full-history-affinity-inspection.md) | `complete` | FEAT-0101 |
+| [EVAL-0101: Full-History Affinity Inspection — Functional](evaluation/eval-0101-functional-full-history-affinity-inspection.md) | `complete` | FEAT-0101 |
+| [EVAL-0102: Full-History Affinity Map — Contract](evaluation/eval-0102-contract-full-history-affinity-map.md) | `complete` | FEAT-0102 |
+| [EVAL-0102: Full-History Affinity Map — Design](evaluation/eval-0102-design-full-history-affinity-map.md) | `complete` | FEAT-0102 |
+| [EVAL-0102: Full-History Affinity Map — Functional](evaluation/eval-0102-functional-full-history-affinity-map.md) | `complete` | FEAT-0102 |
+| [EVAL-0102: Full-History Affinity Map — UX](evaluation/eval-0102-ux-full-history-affinity-map.md) | `complete` | FEAT-0102 |
+| [EVAL-0104 Contract: Temporal Affinity Flow](evaluation/eval-0104-contract-temporal-affinity-flow.md) | `complete` | FEAT-0104 |
+| [EVAL-0104 Design: Temporal Affinity Flow](evaluation/eval-0104-design-temporal-affinity-flow.md) | `complete` | FEAT-0104 |
+| [EVAL-0104 Functional: Temporal Affinity Flow](evaluation/eval-0104-functional-temporal-affinity-flow.md) | `complete` | FEAT-0104 |
+| [EVAL-0104 UX: Temporal Affinity Flow](evaluation/eval-0104-ux-temporal-affinity-flow.md) | `complete` | FEAT-0104 |
 
 ## Fix Logs (23)
 

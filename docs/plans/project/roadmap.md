@@ -1,8 +1,100 @@
 # Project Roadmap
 
-Status: Phase 1 complete; Phase 2 deterministic Session Workflow Focus and correction chain delivered; Workstream candidate discovery is the next planning boundary; Phase 4 Atlassian structure-reference product delivered
+## Current Increment — 2026-09-24
 
-Last reviewed: 2026-09-15
+The owner stopped implementation and calculations after inspecting the delivered
+continuous map. Keep it available for observation; the
+[design-plan handoff](../design/workflow-map-design-plan.md#handoff-to-next-track)
+owns the resume boundary. Session documentation and publication are not approval
+to launch the next model trial or production transition.
+
+Owner review returned the freeform map's visual direction to planning. The
+current [FEAT-0104 temporal correction](../feature/feat-0104-temporal-affinity-flow.md)
+uses actual left-to-right time, similarity strands, activity gaps and period
+evidence, with interactive neighborhood zoom. RUN-117 corrects RUN-116's map
+paging: one continuous scrollable canvas, independent text pages and stable
+cross-page connections/camera. It reuses the reader
+without re-embedding, new training, identity inference or organization changes.
+RUN-115 below is historical technical evidence, not acceptance of its geometry.
+
+The owner-requested
+[relation-first planning review](../design/workflow-map-design-plan.md#relation-first-inspection-track)
+is complete. The owner's subsequent continuous-through-UI authorization delivered
+real replay verification (RUN-113), the passed whole-history reader under
+[FEAT-0101](../feature/feat-0101-full-history-affinity-inspection-contract.md)
+(RUN-114), and the passed
+[FEAT-0102](../feature/feat-0102-full-history-affinity-map.md) observation map
+(RUN-115). The local screen now supports group/subgroup/Session/evidence
+inspection, stable zoom/history and complete native fallback. The independent
+[FEAT-0103](../feature/feat-0103-direct-context-work-relation-trial.md) proposes one
+direct-context relation trial with a fixed stop, not another open-ended extractor
+iteration. That trial remains draft and unexecuted. Affinity inspection no
+longer waits for complete claim/state extraction, but it does not claim enduring
+areas, same-work lineage or replacement viability. Current policies and old trial
+failures remain unchanged.
+
+### Preceding Evidence And Remaining Gaps
+
+[FEAT-0098](../feature/feat-0098-local-work-context-inference.md) installs and
+evaluates the approved local Qwen3-4B model for quoted work-context extraction and
+continuity judgments. Installation/runtime checks passed, but its development
+quality gate failed (goal omission and incomplete grounding). Private processing
+remains blocked after the same-model reasoning/staged comparison also fails
+admission (3/4 and 2/4 automated cases, with additional semantic errors). Holdout
+is untouched. The approved Qwen3-8B comparison in RUN-106 is now also complete:
+installation succeeded, but thinking passes 1/4 and staging 2/4 fixed cases.
+The owner approved the bounded extraction/protocol redesign in RUN-107. It compares
+source-selected inference mechanics without changing embeddings or downloading
+another model. Both baselines and existing admission criteria are retained.
+RUN-107 is now complete but also admission-blocked: source-choice mechanics
+stabilize output structure, not goal extraction/association. Its three candidates
+pass 3/4, 2/4 and 3/4 content cases; holdout/private execution remain unperformed.
+The subsequent owner-requested
+[method review](../research/workflow-reconstruction-method-review.md) is complete.
+Its controlled protocol/semantic diagnostic was subsequently approved and
+completed under [RUN-108](../run/run-20260923-108-work-context-protocol-diagnostic.md).
+All 288 conditions and zero-generation replay complete, but meaning labels do
+not remove unsupported continuity. That diagnostic PASS leaves model admission
+blocked. The owner-approved evidence-first follow-up now also completes under
+[RUN-109](../run/run-20260923-109-evidence-first-work-context.md): 3/4 original
+development and 4/12 new composition passes, with field-role confusion and false
+continuation surviving the same-model audit. Both gates fail. Contract/replay
+pass, but no holdout or private run is admitted. A matched direct-role/property
+comparison was the next proposed bounded decision. The owner has now approved
+that synthetic diagnostic under
+[RUN-110](../run/run-20260923-110-work-role-formulation-comparison.md), now complete.
+Direct role sets improve exact matches (15/32 versus 8/32 order conditions), but
+omit claims and keep completed work pending; a relation control still falsely
+continues topic-only work. No extractor is admitted. The subsequent owner-approved
+structure review is complete and proposes
+[FEAT-0099: Source Claims And Work State Projection](../feature/feat-0099-source-claims-and-work-state-projection.md)
+instead of continuing prompt/choice variants. The owner then approved its pure
+synthetic implementation under [RUN-111](../run/run-20260923-111-source-claims-and-work-state-projection.md),
+now `passed`: 50 tests and full 900-test regression (one optional skip). It projects
+reported state from supplied claims/bindings; it neither extracts them nor admits
+a model. The subsequent adapter review produced
+[FEAT-0100](../feature/feat-0100-source-claim-extraction-and-binding-trial.md),
+subsequently approved and completed under
+[RUN-112](../run/run-20260923-112-source-claim-extraction-and-binding-trial.md).
+Its model-aware adapter and zero-generation replay pass their contract, but all
+28 extractions are protocol-rejected and conditioned binding fully passes only
+3/28. No end-to-end call is eligible, so all quality gates fail and the original
+holdout remains unconsumed. The subsequent output/evidence-interface review
+produced the planning split above; no automatic new trial or private job follows.
+No production persistence or UI change belongs to that completed Run.
+Production area/effort identity and replacement remain later evaluated boundaries.
+[FEAT-0097](../feature/feat-0097-replayable-session-simulation.md) completed the
+full-Session affinity backfill and actual zero-encoding unchanged/grouping-only
+replay. The read consumer revalidates report freshness before display.
+Enduring work areas and subordinate outcome-oriented work are separate levels;
+semantic communities do not prove temporal lineage. The earlier bounded
+model-free sample is a comparator. A stable time-axis map with evidence zoom,
+implemented under FEAT-0104, is available now; semantic quality, stable identity,
+automatic updates and finite legacy retirement remain downstream increments.
+
+Status: Phase 1 complete; Phase 2 whole-history affinity inspection delivered under passed FEAT-0101/0104 and further development stopped by owner; previous sample and Session Focus/corrections retained, relation trial draft and replacement quality outstanding; Phase 4 Atlassian structure-reference product delivered
+
+Last reviewed: 2026-09-24
 
 ## Current Direction
 
@@ -13,17 +105,30 @@ Thread organization toward a source-backed directional Workflow Map while
 expanding approved external connectors one bounded read-only source at a time.
 The existing Workstream product remains current behavior while the delivered
 Session Workflow Focus and correction path is evaluated through real use. The
-delivered map is a useful Session Lineage surface, not yet the intended
+earlier Session Focus map is a useful Session Lineage surface, not yet the intended
 Workstream discovery or replacement experience.
+The separate default Auto Work surface now provides whole-history temporal
+affinity inspection as described in [Current Increment](#current-increment--2026-09-24).
+The owner rejected reference-pair proliferation and repeated candidate review/
+promotion. The current replan targets automatically usable and maintained
+outcome-level flows, with corrections as exceptions. Existing organization is
+protected temporarily for development/transition validation and recovery, not
+the mandatory final hierarchy or permanent storage. Retiring unused/orphaned
+legacy data, obsolete tables, and expired backups is part of the
+[transition endpoint](../prd/prd-0017-source-backed-workflow-map-and-workstream-lenses.md#legacy-transition-boundary).
 
 ### Delivered Baselines
 
 The design-system realignment of the current screen families is complete and
 accepted. [PRD-0017](../prd/prd-0017-source-backed-workflow-map-and-workstream-lenses.md)
-defines the upper product boundary for a source-backed Workflow Map. Its first
+is the approved analysis/validation planning boundary for automatic reconstruction. Its first
 approved chain, FEAT-0085 through FEAT-0089, passed in dependency order and
 delivered the Episode/direction contract, bounded cross-source projection,
 Session Focus map, append-only assertion ledger, and contextual corrections.
+FEAT-0090 retains its tested pure pair contract, but
+[RUN-20260915-100](../run/run-20260915-100-workstream-candidate-discovery-contract.md)
+returned to planning after the owner rejected its product-level continuation.
+Neither that contract nor the Focus map establishes useful automatic grouping.
 PRD-0014 and FEAT-0075 through FEAT-0080
 remain the passed Atlassian Explorer baseline. PRD-0015 and FEAT-0081 also
 remain the passed bounded follow-up for domain-first hierarchy, strict
@@ -33,30 +138,52 @@ structure-reference chain completed: FEAT-0082 owns semantic taxonomy,
 query-safe Session projection, and identity precedence; FEAT-0083 owns durable
 structure-reference Sync and Explorer/Search behavior.
 
-### Next Approval Decision
+### Remaining Validation After Resumption
 
-No Feature is currently in-loop. The next product-planning decision is a bounded
-Workstream Candidate Discovery and Review increment: derive provisional,
-many-to-many work candidates from source-backed evidence, explain why evidence
-was grouped, and require explicit user promotion rather than silently changing
-the current Workstream hierarchy.
+FEAT-0091 through FEAT-0094 remain superseded. The owner approved
+[FEAT-0095: Bounded Work Reconstruction Experiment](../feature/feat-0095-bounded-work-reconstruction-experiment.md),
+and [RUN-20260915-101](../run/run-20260915-101-bounded-work-reconstruction-experiment.md)
+implemented its minimal non-model extractor, matched metadata/text comparison,
+scoring, and read-only local command. Synthetic technical checks passed; the
+owner selected current LocalBrain data through now, and bounded preparation plus
+an unassessed private comparison succeeded. Feature/Run remain `blocked` on
+independent quality evidence, not DB/period selection.
+
+The owner then approved [Auto Work inspection](../feature/feat-0096-auto-work-inspection.md)
+before that verdict. Its previous-sample view at `/auto-work?mode=sample` exposes
+groups, source evidence, unassigned wording, and sampled coverage. The narrow
+[UI Run](../run/run-20260916-102-auto-work-inspection.md) verifies presentation
+and transport, not semantic reconstruction quality. Post-run review can now use
+the actual local screen; no whole-sample assignment or approval queue is required.
+
+Its independent quality gap remains open, but it is not a blocker on the
+separately passed full-history reader and temporal observation map. Production
+identity/update/correction ownership, replacement overview/detail and legacy
+cutover still require their own relevant quality and transition evidence.
+FEAT-0103 is the separately proposed relation trial, not an active calculation;
+existing 4B/8B failures do not require more downloads or routine owner labeling.
 
 ### Explicitly Deferred
 
-Workstream Lens composition, Atlas, topic terrain, AI retrieval, Workflow Map
-model use, and desktop packaging remain deferred without separately approved
-Features.
+Global Atlas rendering, topic terrain, AI retrieval, new source adapters, model
+execution beyond the explicitly approved trials, and desktop packaging remain deferred without separately approved
+Features. Automatic overview/flow detail and replacement of manual organization
+are proposed core outcomes, not post-promotion extras.
 
-Near-term priorities:
+Priorities after an owner-requested resumption (not active execution):
 
-1. Define and review the smallest Workstream Candidate Discovery boundary,
-   including evidence admission, candidate confidence and explanation, and
-   rename, merge, split, ignore, and promote controls.
+1. Prepare independent local assessment for the now-executed bounded experiment,
+   then measure goal coverage, false grouping,
+   fragmentation, stability, and correction burden without existing organization.
+   Keep partial or failing local evidence distinct from synthetic technical PASS;
+   no whole-sample naming/assignment task should be imposed on the owner.
 2. Use the passed deterministic Session Workflow Focus and corrections across
    several real efforts and record where its reconstructed story, branch choice,
    or evidence coverage is insufficient.
-3. Evaluate topic terrain or Qwen only if the deterministic baseline exposes a
-   measurable semantic-orientation gap that explicit evidence cannot resolve.
+3. Review the separately proposed direct-context relation boundary against the
+   completed 4B/8B extraction evidence before selecting another trial. Do not
+   repeat unchanged comparisons, make a candidate-review UI a prerequisite, or
+   treat affinity grouping as proof of work continuity.
 4. Improve source-aware matching, review ergonomics, and source controls.
 5. Exercise the completed Site-first Explorer, Add, local Sync, Connections,
    and explicit Refresh workflow through repeated daily use.
@@ -99,7 +226,8 @@ Work:
 Exit criteria:
 
 - source inventory and access constraints are documented without exposing private inventory in Git
-- representative Workstreams fit the Workstream and Thread model without ambiguity
+- representative work can be expressed at outcome and contribution levels
+  without forcing it into manually maintained containers
 - persistence policy is explicit for each source type
 - MVP inputs and exclusions are agreed
 
@@ -144,8 +272,11 @@ Delivered:
 
 Remaining:
 
-- Workstream and Thread merge, split, move, and archive operations
-- unified cross-source Workstream timeline
+- automatic outcome-level reconstruction and low-burden exception correction
+- controlled treatment of legacy Workstream/Thread merge, split, move, and
+  archive needs during replacement, followed by finite-retention expiry and
+  eligible unused-data/table cleanup; no independent expansion of manual forms
+- a unified cross-source flow history and direct resumption path
 - historical path alias and repository identity reconciliation
 - stronger source-aware suggestion scoring and batch review
 - clearer current goal, blocker, next-action, and checkpoint-freshness presentation
@@ -157,17 +288,20 @@ Completed planning increment:
 Open planning increment:
 
 - [PRD-0017: Source-Backed Workflow Map And Workstream Lenses](../prd/prd-0017-source-backed-workflow-map-and-workstream-lenses.md)
-  (`approved`; FEAT-0085 through FEAT-0089 passed in dependency order for
-  deterministic Session-anchored projection, all-current-source evidence
-  admission, Focus-first map interaction, reversible corrections, and no
-  required AI model; product review retained this as Session Lineage and
-  returned Workstream Candidate Discovery to planning before any lens, Atlas,
-  or model boundary)
+  (`approved` for bounded analysis/validation planning; Session Focus/corrections
+  remain delivered and FEAT-0091–0094 are superseded. FEAT-0095 is implemented
+  with synthetic and unassessed current-data execution evidence, but blocked
+  on independent quality assessment;
+  production ownership and replacement UI wait for useful extraction evidence.)
 
 Exit criteria:
 
-- one Workstream can combine multiple folders, repositories, AI tools, and external references
-- a paused Workstream can be understood and resumed from one screen
+- one outcome-level flow combines supporting work across folders,
+  repositories, AI tools, and admitted external references
+- a flow can be understood and resumed without manual container setup or
+  routine approval; optional corrections preserve evidence and recovery
+- legacy transition transfers still-needed data and completes agreed
+  finite-retention cleanup, including storage reclamation and a minimal record
 - incorrect Suggestions can be corrected without data loss
 - the application is useful in daily work without external connector ingestion
 

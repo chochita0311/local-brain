@@ -10,11 +10,90 @@ Priority meaning:
 
 ## Current Focus
 
+The owner stopped further implementation and calculations after inspecting the
+continuous map. The [design-plan handoff](../design/workflow-map-design-plan.md#handoff-to-next-track)
+owns resumption; the open items below are not active jobs or newly approved work.
+
+Inspection target: the
+[relation-first inspection track](../design/workflow-map-design-plan.md#relation-first-inspection-track).
+FEAT-0101's whole-history reader and FEAT-0102's map passed after real replay
+verification, under the owner's continuous UI-delivery approval. The working
+screen's freeform geometry was returned to planning in owner review. The current
+[FEAT-0104](../feature/feat-0104-temporal-affinity-flow.md) correction now passes and makes actual
+time the left-to-right axis with curved similarity strands and period inspection.
+RUN-117 separates the continuous scrollable canvas from text-list pagination;
+changing a list page no longer hides connections or resets the view.
+FEAT-0103 remains an independent
+draft relation trial, not a map prerequisite or an active job. The checkboxes
+below own remaining work, not a routine classification queue.
+
+Retained quality blocker:
+[FEAT-0100's bounded extraction/binding trial](../feature/feat-0100-source-claim-extraction-and-binding-trial.md),
+completed under RUN-112 with contract/replay PASS and semantic Functional FAIL.
+All 28 extractions are protocol-rejected, conditioned binding fully passes 3/28,
+and every end-to-end call is prerequisite-skipped. The output/evidence-interface
+review produced the split above without repairing or relabeling these failures.
+Original holdout stays unconsumed. Private relationship inference and replacement
+still need quality evidence; affinity inspection needs its own data contract,
+not a complete claim/state extractor.
+
+Preceding foundation:
+[FEAT-0099's source-claim/state-projection foundation](../feature/feat-0099-source-claims-and-work-state-projection.md)
+passed under RUN-111. The owner approved its pure synthetic implementation; 50
+tests and full 900-test regression pass (one optional skip). This establishes
+state calculation given supplied claims/links, not the ability to extract them.
+No new model trial or private processing is authorized by this PASS.
+
+Admission boundary: [local work-context inference](../feature/feat-0098-local-work-context-inference.md),
+approved on 2026-09-23 after distinguishing semantic affinity from workflow
+continuity. Installation and runtime checks passed; the development quality gate
+failed on goal omission and incomplete grounding. The owner approved the
+same-model reasoning/staged comparison in RUN-105; it is now complete and both
+candidates fail admission (3/4 and 2/4 automated cases, plus field-level semantic
+errors). Holdout remains untouched and private whole-history execution is blocked.
+The approved Qwen3-8B comparison in RUN-106 is now complete and admission-blocked:
+thinking passes 1/4 cases and staging 2/4, with time/shape/grounding and abstention
+failures. The owner approved the extraction/protocol redesign in RUN-107, retaining
+the same synthetic expectations and separate semantic review. No additional model,
+embedding recomputation or private job belongs to this continuation.
+RUN-107 is complete and blocked on semantic extraction: its bounded variants
+pass 3/4, 2/4 and 3/4 content cases, with omissions or fragmented/misassigned work.
+That comparison ended without an admitted candidate or ongoing computation.
+Retain the existing full-population vectors and the earlier sampled comparator;
+model trial, actual corpus reconstruction and time-oriented UI are distinct gates.
+The owner-requested [method review](../research/workflow-reconstruction-method-review.md)
+is complete. The owner then approved its fixed-model diagnostic under
+[RUN-108](../run/run-20260923-108-work-context-protocol-diagnostic.md), now passed
+for diagnostic completeness only: 288 conditions plus zero-generation replay.
+Order/code sensitivity and unsupported continuity both remain; switching answer
+format alone does not admit an extractor. The owner-approved evidence-first
+follow-up in [RUN-109](../run/run-20260923-109-evidence-first-work-context.md) is
+now complete: original development passes 3/4, new composition 4/12. Field-role
+confusion and false continuation survive same-model audits. Both gates fail;
+failure-preserving replay passes. The next proposed decision was a matched
+direct-role versus independent-property comparison on new frozen controls,
+not more self-approval layers, training or another model. The owner has now
+approved that diagnostic under
+[RUN-110](../run/run-20260923-110-work-role-formulation-comparison.md), now complete.
+Direct roles pass 15/32 order conditions versus 8/32, but only 6/16 contexts in both
+orders; omissions, stale pending state and false continuity prevent admission.
+Stop prompt/choice variants. The subsequent approved contract review separates
+source claims from current-state reconciliation of a supported target; FEAT-0099
+above owns the resulting passed pure foundation.
+Production work-area grouping remains downstream. Full-history affinity
+inspection has now been delivered independently through the passed boundaries above.
+FEAT-0098's model admission is still blocked; RUN-112 above owns the completed
+failed candidate, not an automatic private job or another trial.
+
 This section is a priority projection only. Completion state is owned by the
 single linked checkbox in the detailed backlog below.
 
-- [Review the passed Session Workflow Focus in real use](#workflow-focus-real-use-review),
-  then [select the next Workstream candidate boundary](#workstream-candidate-next-boundary).
+- [Resolve the remaining work-identity and relation-quality gaps](#automatic-work-reconstruction)
+  only after resumption; the full-history reader and temporal map are delivered.
+  Preserve the delivered
+  [Auto Work inspection UI](../feature/feat-0096-auto-work-inspection.md) as a
+  labeled earlier sampled comparator. Keep the passed
+  [Session Workflow Focus](#workflow-focus-real-use-review) as supporting evidence.
 - [Reconcile historical paths and repository identity](#path-and-repository-identity).
 - Improve [source-aware matching](#source-aware-matching) and
   [batch Suggestion review](#batch-suggestion-review) as connected source use
@@ -40,8 +119,18 @@ single linked checkbox in the detailed backlog below.
 
 ## P1 - Information Model
 
-- [ ] Validate the boundary between Workstream, Thread, Project, Context Source, Document, Session, and external Resource through daily use.
-- [ ] Add Workstream and Thread merge, split, archive, move, and restore operations without losing history.
+- [ ] Validate the replacement's outcome-level flow and subordinate activity
+  against source roles and optional user corrections; do not require the owner
+  to maintain Workstream/Thread containers before value.
+- [ ] Define safe treatment of existing Workstream/Thread merge, split, archive,
+  move, and restore needs in the controlled transition; do not independently
+  build more manual organization UI from this legacy backlog item.
+- [ ] Complete [time-bounded legacy retention and retirement](../prd/prd-0017-source-backed-workflow-map-and-workstream-lenses.md#legacy-transition-boundary)
+  during replacement development: fix retention/expiry and cleanup scope,
+  transfer still-needed data, verify ownership and consumers, then retire
+  eligible unused/orphaned data, obsolete tables, and expired backups. Verify
+  integrity and reclaimed storage; keep a minimal cleanup record, not permanent
+  full copies. This is a transition-level decision, not per-record confirmation.
 <a id="workflow-focus-real-use-review"></a>
 
 - [ ] Exercise the passed
@@ -50,11 +139,33 @@ single linked checkbox in the detailed backlog below.
   reconstructed story or correction choices are insufficient.
 
 <a id="workstream-candidate-next-boundary"></a>
+<a id="automatic-work-reconstruction"></a>
 
-- [ ] Use product-review
-  evidence to define and approve a reviewable cross-source Workstream candidate
-  discovery boundary before deciding the later Lens, Atlas, topic-terrain, or
-  Qwen boundary.
+- [ ] Decide the independent [FEAT-0103 direct-context relation trial](../feature/feat-0103-direct-context-work-relation-trial.md)
+  boundary: one frozen candidate with semantic gates and a stop rule. Preserve
+  FEAT-0098/0100 failures and their original holdout. A PASS permits proposing
+  real-context retrieval/relation validation, not automatic corpus or UI work.
+- [ ] Establish full-history work-area/effort identity and supported temporal
+  relationships after the relevant quality evidence, without a 60-Session cap.
+  This includes recognizable purpose-based names, compatible work across long
+  gaps, and justified separation or integration beyond nested similarity groups.
+  Detailed lifecycle reconstruction remains deferred; a failed model gate never
+  becomes a request to approve every classification. Pure supplied-input state
+  projection and synthetic pair success do not establish end-to-end identity.
+- [ ] Define and implement incremental product updates for newly imported or
+  changed Sessions after identity/quality admission. Explicit replay and vector
+  reuse already exist; automatic scheduling, stable identity reconciliation and
+  product refresh do not. Browsing must remain passive and require no routine
+  membership confirmation.
+- [ ] Complete scoped local validation of [FEAT-0095's approved reconstruction experiment](../feature/feat-0095-bounded-work-reconstruction-experiment.md).
+  The extractor/comparator, independent scorer, and read-only command have
+  synthetic technical evidence in RUN-20260915-101. The owner selected current
+  data through now; bounded preparation and unassessed private execution passed.
+  Independent expectations/quality remain missing, so Feature/Run stay blocked.
+  Prepare assessment without predicting the answer key or requiring whole-sample
+  manual organization, then measure local quality under the frozen caps.
+  FEAT-0091–0094 remain superseded; unrun/partial evidence is not viability or
+  production/UI authority. No legacy cleanup belongs to this experiment.
 - [ ] Track Resource freshness, last verification time, evidence, confidence, and review state separately.
 <a id="path-and-repository-identity"></a>
 
@@ -63,7 +174,9 @@ single linked checkbox in the detailed backlog below.
   retain mappings; canonicalize and deduplicate current file paths and
   repository remotes alongside tickets, wiki pages, and conversation messages.
 - [ ] Preserve many-to-many Session and Document mappings with relationship-specific evidence.
-- [ ] Keep shared Workstream Resources distinct from Thread-specific Resources in the model and review UI.
+- [ ] Preserve shared versus activity-specific Resource meaning in the
+  replacement and legacy mapping without making manual Thread ownership a
+  prerequisite.
 - [ ] Define checkpoint supersession and comparison semantics.
 - <a id="schema-audit-timestamp-contract"></a>[ ] Define one canonical UTC timestamp storage, parsing, precision, comparison, and legacy-preservation contract before normalizing mixed source, Python ISO, and SQLite timestamp text identified by FEAT-0029.
 - <a id="schema-audit-closed-vocabularies"></a>[ ] Decide and stage migration-safe physical `CHECK` constraints for the remaining bounded schema vocabularies. Preserve the passed PRD-0009 and FEAT-0057/FEAT-0061 executable value-registry contract; this item owns only the deferred physical schema changes.

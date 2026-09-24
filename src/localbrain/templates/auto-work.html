@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}자동 작업 · LocalBrain{% endblock %}
+{% block page_location %}자동 작업{% endblock %}
+{% block content %}
+<div class="auto-work" data-auto-work data-preview-state="{{ preview.state }}">
+  <nav class="affinity-tabs" aria-label="자동 작업 보기"><a href="/auto-work">전체 이력 지도</a><a href="/auto-work?mode=sample" aria-current="page">이전 표본 · 규칙 기반</a></nav>
+  <section class="page-heading">
+    <div><p class="eyebrow">SOURCE-BACKED WORK</p><h1>자동 작업</h1><p class="heading-copy">기록에서 추출한 작업과 그 근거를 살펴봅니다.</p></div>
+    <form action="/auto-work/refresh" method="post" data-auto-work-refresh>
+      <button class="secondary-button" type="submit" data-auto-work-refresh-button>결과 갱신</button>
+      <p class="auto-work-progress" data-auto-work-progress role="status" hidden>저장된 데이터에서 표본을 분석하고 있습니다. 기존 작업 구성은 바뀌지 않습니다.</p>
+    </form>
+  </section>
+  {% if notice %}<p class="workflow-notice {{ 'warning' if notice_failed else 'neutral' }}" role="status">{{ notice }}</p>{% endif %}
+  <p class="workflow-notice warning"><strong>규칙 기반 실험 · 품질 미평가</strong>자동으로 추정한 묶음이며 확정된 Workstream이 아닙니다. 승인하거나 직접 분류할 필요 없이 살펴볼 수 있습니다.</p>
+  {% if preview.state != 'ready' %}
+    <section class="empty-state" data-auto-work-empty><h2>{{ preview.title }}</h2><p>{{ preview.explanation }}</p><p><a href="/workstreams">기존 Workstreams 열기</a></p></section>
+  {% else %}
+    <section class="auto-work-overview" aria-label="분석 결과와 범위">
+      <div class="auto-work-summary">
+        <a href="{{ preview.flows_url }}"><strong>{{ preview.group_count }}</strong><span>추출된 작업 묶음</span></a>
+        <a href="{{ preview.unassigned_url }}#auto-work-detail"><strong>{{ preview.unassigned_count }}</strong><span>미분류 문장</span></a>
+        <div><strong>{{ preview.preparation.selected_sessions }} / {{ preview.preparation.eligible_sessions }}</strong><span>분석 표본 / 대상 세션</span></div>
+      </div>
+      <details class="auto-work-scope">
+        <summary>전체 기간에서 고른 표본입니다 · 분석 범위 보기</summary>
+        <dl>
+          <div><dt>기간 시작</dt><dd><time datetime="{{ preview.start }}" data-local-time>{{ preview.start }}</time></dd></div>
+          <div><dt>분석 기준</dt><dd><time datetime="{{ preview.created_at }}" data-local-time>{{ preview.created_at }}</time></dd></div>
+          <div><dt>표본 밖</dt><dd>{{ preview.preparation.outside_sample_sessions }}개 대상 세션</dd></div>
+          <div><dt>선택된 텍스트</dt><dd>{{ preview.record_count }}개 기록 중 {{ preview.assigned_record_count }}개에서 작업 문장 추출</dd></div>
+          <div><dt>생략·잘린 기록</dt><dd>{{ preview.preparation.omitted_or_truncated_records }}개</dd></div>
+          <div><dt>처리 범위</dt><dd>{% if preview.coverage.complete %}선택한 입력 처리 완료{% else %}일부만 처리됨 · 미확인 항목 {{ preview.coverage.unexamined }}개{% endif %}</dd></div>
+          <div><dt>결과 보관 기한</dt><dd><time datetime="{{ preview.expires_at }}" data-local-time>{{ preview.expires_at }}</time></dd></div>
+        </dl>
+        <p>최대 60개 기본 작업 세션에서 세션당 최대 32개 메시지의 앞 1,000자씩을 선택합니다. 관련 문서도 제한된 범위만 포함합니다. 전체 이력을 전부 분석한 결과가 아니며, 이 숫자들은 분류 정확도를 뜻하지 않습니다. 갱신 전까지 새 기록은 포함되지 않습니다.</p>
+      </details>
+    </section>
+    <div class="auto-work-layout">
+      <section class="auto-work-list" aria-label="작업 목록">
+        <div class="auto-work-list-heading"><h2>작업 묶음</h2><span>{{ preview.group_count }}개</span></div>
+        <nav class="auto-work-groups" aria-label="작업 선택">
+          {% for group in preview.groups %}
+          <a class="auto-work-group {% if preview.selected and preview.selected.id == group.id %}is-selected{% endif %}" href="{{ group.href }}#auto-work-detail" data-auto-work-group {% if preview.selected and preview.selected.id == group.id %}aria-current="true"{% endif %}>
+            <strong title="{{ group.title }}">{{ group.title }}</strong>
+            <span>세션 {{ group.sessions }}개 · 근거 {{ group.members }}개{% if preview.selected and preview.selected.id == group.id %} · 선택됨{% endif %}</span>
+          </a>
+          {% else %}<p class="auto-work-empty-copy">추출된 작업 묶음이 없습니다. 미분류 문장에서 분석의 한계를 확인할 수 있습니다.</p>{% endfor %}
+        </nav>
+        {% if preview.pages > 1 %}
+        <nav class="auto-work-pagination" aria-label="작업 목록 페이지">
+          {% if preview.previous %}<a class="secondary-button" href="{{ preview.previous }}">이전</a>{% endif %}
+          <span>{{ preview.page }} / {{ preview.pages }}</span>
+          {% if preview.next %}<a class="secondary-button" href="{{ preview.next }}" data-auto-work-next>다음</a>{% endif %}
+        </nav>
+        {% endif %}
+        <a class="auto-work-unassigned {% if preview.mode == 'unassigned' %}is-selected{% endif %}" href="{{ preview.unassigned_url }}#auto-work-detail" {% if preview.mode == 'unassigned' %}aria-current="true"{% endif %} data-auto-work-unassigned>미분류 문장 <span>{{ preview.unassigned_count }}개</span></a>
+      </section>
+      <section class="auto-work-detail" id="auto-work-detail" tabindex="-1" aria-label="선택한 작업과 근거">
+        {% if preview.mode == 'unassigned' %}
+          <p class="auto-work-kicker">미분류</p><h2>작업으로 연결하지 못한 문장</h2><p>목표나 소속을 판단하지 못한 내용입니다. 새로운 작업이나 확인 요청으로 만들지 않았습니다.</p>
+        {% elif preview.selected %}
+          <p class="auto-work-kicker">추정된 작업 · 상태 미확인</p><h2>{{ preview.selected.title }}</h2>
+          <dl class="auto-work-goal"><dt>완료 조건</dt><dd>{{ preview.selected.completion or '명시된 조건을 찾지 못했습니다.' }}</dd><dt>묶인 이유</dt><dd>규칙으로 추출한 대상과 변경 방향이 같고, 명시된 완료 조건이 충돌하지 않는 문장들입니다. 같은 실제 작업이라는 검증은 아직 하지 않았습니다.</dd></dl>
+          <h3>포함된 근거 <span>{{ preview.evidence_total }}개</span></h3>
+        {% elif preview.selection_missing %}
+          <h2>선택한 작업이 현재 결과에 없습니다</h2><p>목록에서 다른 작업을 선택해 주세요. 결과 갱신으로 묶음이 달라졌을 수 있습니다.</p>
+        {% else %}
+          <h2>아직 작업 목표를 추출하지 못했습니다</h2><p>작업이 없다는 뜻은 아닙니다. 미분류 문장에서 원문과 분석 한계를 살펴볼 수 있습니다.</p>
+        {% endif %}
+        <div class="auto-work-evidence">
+          {% for item in preview.evidence %}
+          <article data-auto-work-evidence>
+            <div class="auto-work-evidence-heading"><a href="{{ item.href }}">{{ item.title }}</a><span>{{ item.kind }} · {{ item.role }}</span></div>
+            <p class="auto-work-evidence-meta"><time datetime="{{ item.at }}" data-local-time>{{ item.at }}</time> · 원문 {{ item.start + 1 }}–{{ item.end }}자</p>
+            {% if item.reason %}<p class="auto-work-reason">{{ item.reason }}</p>{% endif %}
+            <blockquote>{{ item.wording }}</blockquote>
+          </article>
+          {% else %}{% if preview.mode == 'unassigned' %}<p>선택된 텍스트 안에는 미분류 문장이 없습니다. 전체 기록의 품질 통과를 의미하지는 않습니다.</p>{% endif %}{% endfor %}
+        </div>
+        {% if preview.evidence_pages > 1 %}
+        <nav class="auto-work-pagination" aria-label="근거 페이지">
+          {% if preview.evidence_previous %}<a class="secondary-button" href="{{ preview.evidence_previous }}#auto-work-detail">이전 근거</a>{% endif %}
+          <span>{{ preview.evidence_page }} / {{ preview.evidence_pages }} · 총 {{ preview.evidence_total }}개</span>
+          {% if preview.evidence_next %}<a class="secondary-button" href="{{ preview.evidence_next }}#auto-work-detail">다음 근거</a>{% endif %}
+        </nav>
+        {% endif %}
+      </section>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', path='/auto-work.js') }}?v={{ asset_version }}" defer></script>{% endblock %}

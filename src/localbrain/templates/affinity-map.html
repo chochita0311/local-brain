@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}흐름 지도 · LocalBrain{% endblock %}
+{% block page_location %}자동 작업 / 흐름 지도{% endblock %}
+{% block content %}
+<div class="affinity" data-affinity-root data-state="{{ mapview.state }}">
+  <nav class="affinity-tabs" aria-label="자동 작업 보기"><a href="/auto-work" aria-current="page">전체 이력 지도</a><a href="/auto-work?mode=sample">이전 표본 · 규칙 기반</a></nav>
+  <section class="page-heading affinity-heading">
+    <div><p class="eyebrow">WORK FLOW · TIME & SIMILARITY</p><h1>시간을 따라, 닮은 기록의 흐름</h1><p class="heading-copy">왼쪽에서 오른쪽으로 흐르는 기록을 확대하고, 그 순간의 원문을 살펴보세요.</p></div>
+    <span class="affinity-authority">유사도 기반 · 품질 미평가</span>
+  </section>
+  {% if mapview.state not in ['current', 'empty'] %}
+    <section class="workflow-notice {{ 'danger' if mapview.state == 'invalid' else 'neutral' if mapview.state == 'missing' else 'info' if mapview.state == 'busy' else 'warning' }} affinity-state" role="status">
+      <h2>{{ mapview.title }}</h2><p>{{ mapview.explanation }}</p>
+      {% if mapview.delta %}<p>근거 조각 추가 {{ mapview.delta.added }} · 변경 {{ mapview.delta.changed }} · 삭제 {{ mapview.delta.removed }}. 계산 시 세션 {{ mapview.coverage.total_sessions }} / 현재 {{ mapview.current_coverage.total_sessions }}.</p>{% endif %}
+      {% if mapview.state == 'selection-stale' %}<a class="secondary-button" href="{{ mapview.overview_url or '/auto-work' }}" data-affinity-link>현재 전체 지도 열기</a>{% else %}<a class="secondary-button" href="/auto-work">상태 다시 확인</a>{% endif %}
+      <p class="affinity-muted">준비·갱신: README의 전체 이력 시뮬레이션 명령. 방문만으로 모델 계산이나 데이터 변경은 하지 않습니다.</p>
+    </section>
+  {% else %}
+    <details class="affinity-coverage">
+      <summary><span><strong>{{ mapview.counts.groups }}</strong>개 유사 묶음 <span aria-hidden="true">·</span> <strong>{{ mapview.coverage.sessions_with_text }}</strong>개 세션의 메시지</span><span>전체 기록 범위 확인 ↗</span></summary>
+      <dl class="affinity-facts">
+        <div><dt>저장된 세션</dt><dd>{{ mapview.coverage.total_sessions }}개 · 분석 대상 {{ mapview.coverage.eligible_sessions }}개</dd></div>
+        <div><dt>분석한 텍스트</dt><dd>{{ mapview.coverage.chunks }}개 근거 조각 / {{ mapview.counts.vectors }}개 고유 벡터</dd></div>
+        <div><dt>묶음의 응집 범위</dt><dd>여러 세션 {{ mapview.counts.cross_session }}개 · 단일 세션 {{ mapview.counts.single_session }}개</dd></div>
+        <div><dt>겹침과 빈 기록</dt><dd>여러 묶음에 걸친 세션 {{ mapview.counts.overlap_sessions }}개 · 대상 메시지 없음 {{ mapview.coverage.sessions_without_text }}개</dd></div>
+        <div><dt>계산에서 제외</dt><dd>유지관리 {{ mapview.coverage['excluded-maintenance_sessions'] }} · 하위 세션 {{ mapview.coverage['excluded-subsession_sessions'] }} · 메타데이터만 {{ mapview.coverage['excluded-metadata-only_sessions'] }} · 원본 없음 {{ mapview.coverage['excluded-missing-source_sessions'] }}</dd></div>
+        <div><dt>계산 시점</dt><dd><time datetime="{{ mapview.created_at }}">{{ mapview.created_at[:19] | replace('T', ' ') }} UTC</time></dd></div>
+      </dl>
+      <p>저장된 전체 기간의 기본 작업 세션을 대상으로 합니다. 처음 60개만 고른 결과가 아닙니다. 묶음과 선은 의미적 유사도이며, 같은 업무·후속 작업·분기·완료를 확정하지 않습니다.</p>
+      <p>이름은 대표 세션의 제목입니다. 자동으로 정한 대분류명이 아닙니다. {{ mapview.model.model_id }} · {{ mapview.model.dimension }}차원 · 이웃 {{ mapview.parameters.neighbors }} · 유사도 기준 {{ mapview.parameters.similarity }}.</p>
+      <a href="{{ mapview.inventory_url }}" data-affinity-link>제외·빈 기록을 포함한 전체 세션 목록 →</a>
+    </details>
+    <nav class="affinity-breadcrumbs" aria-label="관찰 범위">
+      {% for crumb in mapview.crumbs %}{% if not loop.first %}<span aria-hidden="true">/</span>{% endif %}<a href="{{ crumb.href }}" data-affinity-link {% if loop.last %}aria-current="location"{% endif %}>{{ crumb.title }}</a>{% endfor %}
+    </nav>
+    {% if mapview.scope_title %}<p class="affinity-scope-title">지금 살펴보는 묶음 <strong>{{ mapview.scope_title }}</strong><span>대표 세션 제목</span></p>{% endif %}
+    <div class="affinity-layout">
+      <section class="affinity-observation" aria-label="유사도 지도와 목록">
+        <div class="affinity-toolbar">
+          <div><h2>{{ {'groups':'유사 묶음', 'subgroups':'묶음 안의 세부 군집', 'sessions':'주변 세션', 'inventory':'전체 기록 범위'}[mapview.level] }}</h2><span>{{ mapview.matched }} / {{ mapview.total }}개{% if mapview.level != 'inventory' %} · 하나의 연속 지도{% endif %}</span></div>
+          <form method="get" action="/auto-work" class="affinity-search" data-affinity-search>
+            {% for key, value in mapview.base.items() %}{% if key != 'page' %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endif %}{% endfor %}
+            <label class="sr-only" for="affinity-query">현재 범위의 모든 제목 검색</label><input id="affinity-query" name="q" type="search" maxlength="120" value="{{ mapview.q }}" placeholder="세션 제목으로 찾기"><button class="secondary-button" type="submit">찾기</button>
+          </form>
+        </div>
+        {% if mapview.level != 'inventory' and mapview.map_nodes %}
+        <div class="affinity-visual" data-affinity-visual hidden>
+          <div class="affinity-map-controls" aria-label="지도 조작">
+            <button type="button" class="secondary-button" data-map-action="out" aria-label="지도 축소">−</button><output data-map-zoom aria-live="off">100%</output><button type="button" class="secondary-button" data-map-action="in" aria-label="지도 확대">+</button>
+            <button type="button" class="secondary-button" data-map-action="fit">전체 기간</button><button type="button" class="secondary-button" data-map-action="reset">초기화</button>
+            <button type="button" class="secondary-button" data-map-action="lens" disabled>선택 주변 확대</button>
+          </div>
+          <div class="affinity-time-navigation" aria-label="시간 이동">
+            <button type="button" class="secondary-button" data-map-action="earlier" aria-label="더 이전 시간으로 이동">←</button>
+            <output data-map-window aria-live="off"></output>
+            <button type="button" class="secondary-button" data-map-action="later" aria-label="더 이후 시간으로 이동">→</button>
+          </div>
+          <div class="affinity-canvas" data-affinity-canvas tabindex="0" role="region" aria-label="시간 흐름 지도. 방향키로 이동, 더하기와 빼기로 확대 축소, 0으로 초기화" aria-describedby="affinity-map-help"></div>
+          <div class="affinity-map-caption"><span data-map-edge-count></span><label><input type="checkbox" data-map-all-edges> 연결 모두 보기</label></div>
+          <p class="affinity-map-help" id="affinity-map-help">좌우 스크롤: 시간 이동 · 위아래 스크롤: 다른 묶음 · 드래그로도 이동 · Ctrl/⌘ + 스크롤로 확대. 곡선은 유사 묶음, 점 크기는 근거 수, 점선은 중간 기록 없음입니다. 점을 누르면 그 시기의 원문이 열립니다. 묶음 사이 연결은 유사도이며 업무의 합류·분기를 뜻하지 않습니다.{% if mapview.timeline.unknown_occurrences %} ? 표시는 시간 미확인 기록입니다.{% endif %}</p>
+        </div>
+        <p class="affinity-render-status" data-affinity-render-status role="status" hidden>지도를 표시하지 못했습니다. 아래 목록에서 동일한 전체 범위와 원문을 볼 수 있습니다.</p>
+        <script type="application/json" data-affinity-graph>{{ {'nodes':mapview.map_nodes, 'edges':mapview.edges, 'timeline':mapview.timeline, 'period':mapview.period, 'scope':mapview.map_scope} | tojson }}</script>
+        {% endif %}
+        <details class="affinity-list" data-affinity-list open>
+          <summary>목록으로 탐색 <span>{{ mapview.nodes | length }} / {{ mapview.matched }}개{% if mapview.pages > 1 %} · 목록 {{ mapview.page }} / {{ mapview.pages }}쪽{% endif %}</span></summary>
+          <div class="affinity-list-grid">
+            {% for node in mapview.nodes %}
+            {% if mapview.level == 'inventory' %}
+            <article class="affinity-list-item"><strong>{{ node.title }}</strong><span>{{ {'eligible':'분석 대상' if node.has_text else '대상 메시지 없음','excluded-maintenance':'제외 · 유지관리','excluded-subsession':'제외 · 하위 세션','excluded-metadata-only':'제외 · 메타데이터만','excluded-missing-source':'제외 · 원본 없음'}[node.status] }}{% if node.has_text %} · {{ node.membership_count }}개 묶음에 포함{% endif %}</span></article>
+            {% else %}
+            <a class="affinity-list-item {% if node.selected %}is-selected{% endif %}" href="{{ node.href }}#affinity-inspector" data-affinity-link data-affinity-node="{{ node.id }}" {% if node.selected %}aria-current="true"{% endif %}>
+              <strong>{{ node.title }}</strong><span>{% if node.kind != 'session' %}세션 {{ node.sessions }}개 · {% endif %}근거 {{ node.occurrences }}개{% if node.selected %} · 선택됨{% endif %}</span>
+              <span>{{ node.first[:10] if node.first else '시간 미확인' }}{% if node.last and node.last != node.first %} — {{ node.last[:10] }}{% endif %}</span>
+            </a>
+            {% endif %}
+            {% else %}<p class="affinity-no-results">{% if mapview.q %}이 제목과 일치하는 항목이 없습니다. 검색어를 지우면 전체 범위로 돌아갑니다.{% else %}현재 범위에 분석할 메시지가 없습니다. 기록이 없는 경우와 제외된 경우는 전체 기록 범위에서 구분할 수 있습니다.{% endif %}</p>{% endfor %}
+          </div>
+          {% if mapview.pages > 1 %}<nav class="auto-work-pagination" aria-label="텍스트 목록 페이지" data-affinity-pagination tabindex="-1">{% if mapview.previous %}<a class="secondary-button" href="{{ mapview.previous }}" data-affinity-link data-affinity-page>목록 이전</a>{% endif %}<span>{{ mapview.page }} / {{ mapview.pages }} · 총 {{ mapview.matched }}개</span>{% if mapview.next %}<a class="secondary-button" href="{{ mapview.next }}" data-affinity-link data-affinity-page data-affinity-next>목록 다음</a>{% endif %}</nav>{% endif %}
+        </details>
+      </section>
+      <aside class="affinity-inspector" id="affinity-inspector" tabindex="-1" aria-label="선택한 기록과 원문">
+        {% if mapview.selection %}
+        <div class="affinity-inspector-heading"><span class="eyebrow">{{ 'SESSION' if mapview.selection.kind == 'session' else 'SIMILARITY GROUP' }} · 선택됨</span><a href="{{ mapview.clear_url }}" data-affinity-link aria-label="선택 해제">닫기</a></div>
+        <h2>{{ mapview.selection.title }}</h2>
+        {% if mapview.selection.kind != 'session' %}<p class="affinity-muted">대표 세션 제목 · 대분류명 아님</p>{% endif %}
+        <p>세션 {{ mapview.selection.sessions }}개 · 근거 조각 {{ mapview.selection.occurrences }}개</p>
+        <p class="affinity-dates">관찰된 기간<br>{% if mapview.selection.first %}{{ mapview.selection.first[:10] }} — {{ mapview.selection.last[:10] }}{% else %}시간 미확인{% endif %}</p>
+        {% if mapview.selection.expand_href %}<a class="primary-button affinity-expand" href="{{ mapview.selection.expand_href }}" data-affinity-link data-affinity-expand>{{ '세부 묶음 펼치기' if mapview.level == 'groups' else '세션 가까이 보기' }} →</a>{% endif %}
+        <details class="affinity-periods" {% if mapview.period %}open{% endif %}>
+          <summary>시기별 관찰 · {{ mapview.selection.activity | length }}곳{% if mapview.period %} · 선택됨{% endif %}</summary>
+          <nav aria-label="원문 관찰 시기">
+            <a href="{{ mapview.selection.whole_href }}#affinity-inspector" data-affinity-link {% if not mapview.period %}aria-current="true"{% endif %}>전체 시기</a>
+            {% for period in mapview.selection.activity %}<a href="{{ period.href }}#affinity-inspector" data-affinity-link {% if period.period == mapview.period %}aria-current="true"{% endif %}>{{ period.first[:10] if period.first else '시간 미확인' }}{% if period.first and period.first[:10] != period.last[:10] %} — {{ period.last[:10] }}{% endif %} · 근거 {{ period.occurrences }}개</a>{% endfor %}
+          </nav>
+        </details>
+        <div class="affinity-evidence-heading"><h3>{{ '이 시기의 원문' if mapview.period else '원문 돋보기' }}</h3><span>{{ mapview.evidence_page }} / {{ mapview.evidence_pages }}</span></div>
+        {% for item in mapview.evidence %}
+        <article class="affinity-evidence" data-affinity-evidence>
+          <p class="affinity-evidence-meta">{{ '사용자' if item.role == 'user' else '어시스턴트' }} · {{ item.at[:10] if item.at else '시간 미확인' }} · {{ item.start + 1 }}–{{ item.end }}자</p>
+          {% if item.available %}
+          <a class="affinity-source" href="{{ item.href }}">{{ item.title }} ↗</a>
+          <blockquote>{{ item.wording }}</blockquote>
+          <a class="affinity-focus-link" href="{{ item.focus_href }}">세션 Focus 열기 →</a>
+          {% else %}<p class="workflow-notice warning">이 원문이 변경·삭제되었거나 분석 대상에서 제외되었습니다. 이전 문구나 대체 링크를 표시하지 않습니다.</p>{% endif %}
+        </article>{% endfor %}
+        {% if mapview.evidence_pages > 1 %}<nav class="affinity-evidence-pages" aria-label="원문 근거 페이지">{% if mapview.evidence_previous %}<a class="secondary-button" href="{{ mapview.evidence_previous }}#affinity-inspector" data-affinity-link>이전 근거</a>{% endif %}<span>총 {{ mapview.evidence_total }}개</span>{% if mapview.evidence_next %}<a class="secondary-button" href="{{ mapview.evidence_next }}#affinity-inspector" data-affinity-link>다음 근거</a>{% endif %}</nav>{% endif %}
+        {% else %}
+        <p class="eyebrow">EVIDENCE LENS</p><h2>흐름의 한 순간을 들여다보세요</h2><p class="affinity-muted">이름이나 곡선은 묶음 전체를, 곡선 위의 점은 그 시기의 기록을 선택합니다.</p>
+        <ol class="affinity-guide"><li><strong>시간을 따라</strong><span>닮은 기록이 언제 다시 나타나는지</span></li><li><strong>주변을 확대해</strong><span>연결된 곡선과 관찰 지점을 더 자세히</span></li><li><strong>원문에서</strong><span>누가 언제 무엇을 말했는지</span></li></ol>
+        <p class="affinity-muted">분류하거나 승인할 필요는 없습니다.<br>관찰만으로 기존 Workstream은 바뀌지 않습니다.</p>
+        {% endif %}
+      </aside>
+    </div>
+  {% endif %}
+  <p class="sr-only" role="status" data-affinity-navigation-status></p>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', path='/affinity-map.js') }}?v={{ asset_version }}" defer></script>{% endblock %}

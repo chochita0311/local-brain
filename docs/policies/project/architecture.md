@@ -35,6 +35,122 @@ Approved external sources through MCP Gateway
 
 ## Package Ownership
 
+- `work_state.py`: pure source-claim/reported-state projection: unchanged
+  synthetic-supplied v1 plus model-aware v2 provenance/lifecycle effects, governed
+  by [Source Claims And Work State](source-claims-and-work-state.md).
+  Separates exact anchors, attributed interpretations, scoped target bindings and
+  current state; preserves historical pending claims, partial order, corrections,
+  unresolved support and replay identities. The projector has no source reader,
+  model call, persistent ledger, automatic target discovery or product consumer.
+  It cannot certify the truth of a supplied interpretation or unblock admission.
+- `work_claims.py`, `work_claim_assessment.py`, `work_claim_trial.py`: separately
+  invoked synthetic-only extraction/binding adapter, conditional versus end-to-end
+  scoring and bounded failure-preserving evaluation. No private or UI consumer.
+  This adapter invokes the installed generative model during explicit trials;
+  it is separate from the pure state projector and the affinity-map producer.
+
+- `work_context_model.py`, `work_context.py`, `work_context_staged.py`,
+  `work_context_choices.py`, `work_context_classified.py`, `work_context_selected.py`, and
+  `work_context_evaluation.py`:
+  explicit public-model installation, independently verified offline generation,
+  exact quoted work-unit/pair-relation contracts and synthetic-only admission
+  evaluation. [SPEC-0098](../../plans/spec/spec-0098-local-work-context-inference.md)
+  owns the frozen model/prompt/output boundaries. The evaluation opens no source
+  DB and introduces no product consumer, training, organization write or automatic
+  inference. Quoted fields retain role and locator; validity is not entailment.
+  Staged inference validates intermediate source quotes and keeps full original
+  context; it never fills missing output evidence. Thinking-mode protocol strips
+  reasoning before decoding/storage. Strategy/stage/runtime identities separate
+  caches; development and holdout gates are independent.
+  MPS generation uses eager attention after the observed fused-path numerical
+  failure; the attention implementation is part of the runtime fingerprint.
+  The installer admits only the approved pinned 4B/8B catalog. Verification
+  resolves the owner and model-specific assets, and inference identity uses that
+  verified model; the historical 4B default must not label an 8B result.
+  The opt-in classified strategy separates model-selected source roles and work
+  membership from serialization. Its finite answer-code decoder constrains syntax,
+  not truth; source spans are not work-unit boundaries. Original context and
+  explicit model-selected citations feed the existing quote validators. Unknown
+  membership, ambiguous spans and packet/case bounds fail without source loss
+  being disguised as complete reconstruction. No private producer consumes it yet.
+  The separate selected strategy chooses whole-conversation anchors before their
+  field evidence through the same bounded decoder; it preserves anchors without
+  silently filling missing citations or changing the classified comparator.
+  The opt-in `work_context_evidence.py` strategy assesses literal source facets
+  before grouping independently resumable outcomes. Pairwise anchor/membership
+  checks refuse ambiguous bridges; unit audits inspect proposed fields against
+  original records. Continuation requires model-selected goal support,
+  compatible scope and explicit linkage, with automatic uncertainty on support
+  the model judges missing or conflicting. This does not guarantee recognition
+  of semantic errors. Only model-selected facts are serialized. Its semantic
+  label decoder explicitly admits up to 32 characters while legacy default codes
+  remain bounded to eight; both keep the eight-token/EOS grammar.
+  Evidence evaluation has failure-preserving, hashed terminal observations,
+  changed-config/corrupt-cache refusal and bounded incomplete-case retries.
+  Original development and compositional gates are separate. Holdout requires a
+  complete identity-matched report whose observations/split scores are revalidated;
+  primary semantic review remains required. No product consumer is admitted by
+  valid syntax, automatic withholding or same-model auditing alone.
+
+- `work_context_diagnostic.py`: opt-in fixed-model synthetic protocol diagnosis,
+  separate from extraction/admission and any product producer. Its frozen matrix
+  independently controls option order and numeric mapping; label/text responses
+  keep the same source context and alternative meanings. Semantic, protocol and
+  literal-citation results are distinct. Prompt/template hashes and actual answer
+  token IDs make rendering auditable. Completed wrong/invalid/refused observations
+  remain cached, changed configurations refuse reuse, and cumulative attempt/time
+  budgets survive clean interruption. An unclean in-flight reservation blocks
+  automatic restart. Diagnostic completeness never grants model admission.
+  No database, holdout, new dependency, model or UI is involved.
+
+- `work_role_comparison.py`: a separate matched synthetic formulation diagnostic.
+  It reuses unchanged evidence-first facet definitions and relation inference,
+  contrasting independent questions with one complete role-set decision. Compound
+  roles, identical focused spans with different later context, and canonical/
+  reversed option orders remain explicit. Scoring compares role sets per context,
+  not incompatible raw call counts; relationship controls are scored separately.
+  An execution meter wraps existing `choose` without changing the decoder or
+  historical strategies. Every choice reserves cumulative call/time accounting;
+  incomplete observations have bounded attempts, while completed refusals/errors
+  are hashed and replayed. Existing private evaluation storage ownership applies.
+  Prompt/template/token audits are synthetic diagnostics, not private-source
+  discovery, model admission, training or a product producer.
+
+- `session_simulation.py`, `session_simulation_model.py`, and
+  `session_simulation_graph.py`: explicitly invoked full-Session experiment;
+  source-read-only inventory, separately owned replayable cache, verified local
+  embeddings and experimental two-resolution affinity communities. The
+  [simulation Spec](../../plans/spec/spec-0097-replayable-session-simulation.md)
+  owns the command/report contract. No app-startup hook, source migration,
+  production identity or causal-lineage inference is introduced.
+  Source messages are exhaustively chunked (1,800 characters by default), encoded,
+  and linked by thresholded cosine nearest-neighbor similarity. Weighted Louvain
+  first forms coarse communities, then runs within each parent to form finer
+  communities. These are nested similarity groups, not two successive
+  work-identity merges. Disconnected components and singletons remain explicit;
+  one Session can contribute chunks to several groups. Group counts are derived,
+  not a fixed number of Workstreams.
+  Inventory uses bounded character read-ahead with unchanged exhaustive chunk
+  boundaries. The ordered v2 grouping engine canonicalizes node and neighbor
+  insertion for each Louvain pass, including nested communities; fixed RNG seed
+  alone does not guarantee cross-process replay. Every cosine-distance batch is
+  validated for finite, valid values. Grouping version changes do not invalidate
+  otherwise compatible cached embedding vectors.
+
+- `session_affinity.py`: passive whole-history simulation consumer. It validates
+  the existing source-bound owner under a shared nonblocking lock and rechecks
+  the full admitted source manifest. One process-memory index is invalidated by
+  report or source DB/WAL file changes; it creates no second runtime owner,
+  persistent corpus, model call or organization table. Snapshot-scoped coarse
+  groups, subgroups and occurrence-preserving Session evidence have complete
+  paged text access; a separate whole-scope map projection aggregates actual
+  undirected affinity across text-page boundaries. Exact quotes
+  are independently resolved from current original records. Stale/expired/
+  invalid output never presents old evidence as current and triggers no work.
+  [SPEC-0101](../../plans/spec/spec-0101-full-history-affinity-inspection-contract.md)
+  owns bounds and states. Group labels are representative Session titles, not
+  generated category names or confirmed work identities.
+
 - `src/localbrain/main.py`: FastAPI routes, request models, and application composition
 - `src/localbrain/db.py` and `schema.sql`: connection lifecycle, fresh schema, compatible startup migrations, and explicitly approved backup-backed structural repair
 - `src/localbrain/ingest/`: source parsing, normalization, scanning, and deduplication
@@ -50,6 +166,21 @@ Approved external sources through MCP Gateway
 - `src/localbrain/usage.py`: immutable price snapshots, model normalization, and per-Usage-Record estimated-cost calculation
 - `src/localbrain/usage_queries.py`: Sessions Dashboard scope normalization, summary, MTD, history buckets, freshness, and limitation states
 - `src/localbrain/workstreams.py`: Workstreams, Threads, checkpoints, resources, links, Suggestions, and retrieval mappings
+- `src/localbrain/workstream_candidates.py`: pure candidate identity, supplied
+  pair/member validation, revisions, evidence/time/coverage descriptors, and
+  bounded serialization; no database discovery or organization mutation
+- `src/localbrain/work_reconstruction.py`: isolated experimental text extraction,
+  semantic grouping, exact synthetic corrections, and metadata-only comparator
+- `src/localbrain/work_reconstruction_scoring.py`: independent expectation
+  validation, integer quality measures, and identity/assignment replay measures
+- `src/localbrain/work_reconstruction_input.py`: explicit manifest validation and
+  bounded read-only access to already-indexed selected records
+- `src/localbrain/work_reconstruction_preparation.py`: explicitly invoked,
+  prediction-independent chronological sampling, frozen manifests, omission
+  accounting, and unknown-assessment placeholders; no independent answer key
+- `src/localbrain/work_reconstruction_experiment.py` and
+  `scripts/experiment-work-reconstruction.py`: opt-in local comparison command,
+  supervised resource bounds, and private owner/expiry-bound result publication
 - `src/localbrain/retrieval.py`: deterministic candidate selection and evidence preparation
 - `src/localbrain/runner.py`: maintenance Run preparation, execution, streaming, and structured result processing
 - `src/localbrain/external_access.py`: stable external Source Instance registration, rebuildable capability observations, version-controlled Atlassian read policy, and fail-closed dispatch construction; it performs no external call
@@ -236,6 +367,129 @@ Checkpoint records are versioned, user-confirmed resume states. Confirmation cap
   bodies, opaque payloads, raw local paths, and source-native Session IDs. Later
   database-backed producers must assemble this shape from already-normalized
   facts without weakening the contract or persisting an inferred graph.
+
+### Workstream Candidate Contract
+
+- `workstream_candidates.py` owns `localbrain.workstream-candidate.v1`.
+  Producers supply canonical artifact/Session/reference facts and proposed
+  pairs. The module validates their evidence; it neither enumerates a corpus
+  nor resolves a URL, path, Site, or alias through I/O.
+- Artifact keys hash kind, source scope, and canonical identity with length
+  delimiters. Producers map Context Documents to stable source plus relative
+  path, Jira/Wiki Items to normalized Site plus canonical issue key/Page ID,
+  and other existing Resources to their canonical path/URL namespace. Known
+  Resource aliases use the resolved Document/Item owner. SQLite IDs and raw
+  Session-reference target keys containing row IDs are not stable identities.
+- Session keys reuse `workflow_episode_key`; the factory validates primary
+  work/full-index and supplied meaningful Event/Usage evidence. Reference keys
+  hash the Episode, artifact, and source-native occurrence identity. Each member
+  independently supports both anchors through mentions or successful reads.
+- Identical facts/pairs collapse; conflicting facts with one stable identity
+  are excluded with fixed diagnostics. Weak, missing, disabled, container, or
+  insufficient evidence cannot be repaired through title, workspace, existing
+  organization, a mixed Session, or transitive graph membership.
+- Candidate identity hashes contract version and sorted anchors. Membership
+  revision observes all admitted supporting references, including those beyond
+  the response sample. A separate result revision includes presentation,
+  coverage, source state, and diagnostics. Source change may invalidate an
+  inferred candidate but never transfers future user assertions to another key.
+- Hard input/output bounds raise `CandidateLimitError` instead of returning an
+  order-dependent prefix. Evidence and overlap samples retain complete totals
+  for the supplied scope. Coverage defaults to partial and cannot claim global
+  discovery. Exact shapes, bounds, and producer duties are specified in
+  [SPEC-0090](../../plans/spec/spec-0090-workstream-candidate-discovery-contract.md).
+- Import, normalization, and serialization perform no application I/O and own
+  no table, cache, route, scheduled work, model, or current product consumer.
+
+### Isolated Work Reconstruction Experiment
+
+- The `work_reconstruction*` modules own only the versioned experimental
+  `localbrain.work-reconstruction.v1` shape. Their only app consumer is the
+  explicitly approved Auto Work inspection adapter below. They have no schema,
+  migration, schedule, production identity, or assertion-ledger ownership.
+- Extraction consumes supplied bounded text. Evidence keys and offsets retain
+  source attribution; normalized goal identity is separate from wording, labels,
+  revisions, and experimental exact-scope corrections. Unknown goals and
+  lifecycle remain unknown. Shared references cannot force a semantic merge.
+- The comparator receives metadata and admitted record spans, never body text.
+  It enumerates all qualifying bounded pairs through the unchanged candidate
+  normalizer. Local canonical keys use Context source/relative-path and
+  Atlassian Site/remote identity, not raw row-based target keys.
+- Private input requires an explicit existing database and frozen source/time/
+  record manifest. A read-only URI, query-only transaction, and SQLite authorizer
+  prohibit mutation, attachment, and extension loading. Eligibility is checked
+  before bounded body selections and hash verification. No application database
+  helper, source parser, connector, model, or external operation is used.
+- Once the owner selects current LocalBrain data, the operator may resolve its
+  configured database without asking for a manual path. Explicit preparation
+  samples the approved existing-history scope before prediction, keeps
+  per-snapshot omissions in the manifest, and revalidates hashes/permissions
+  through the same adapter. `--unassessed` leaves every quality answer unknown;
+  it is execution evidence only, never generated truth or a viability gate pass.
+- Each analysis/admission worker is a spawn-free supervised process on macOS or
+  Linux. Its own peak RSS covers that single-process worker tree; an in-worker
+  watcher and parent completion check enforce the memory bound, and the parent
+  enforces wall time and reaps cancelled/failed workers. Unavailable monitoring
+  fails closed; the command does not inspect unrelated processes.
+- Results and independent expectations stay local. New owner-only output outside
+  the repository is bounded, never overwrites an existing result, and records
+  its owner and expiry. The tool adds no retention scheduler or whole-DB copy.
+  Quality and stability measurements do not automatically approve viability.
+- Exact shapes and verification gates belong to
+  [SPEC-0095](../../plans/spec/spec-0095-bounded-work-reconstruction-experiment.md).
+
+### Auto Work Inspection Read Model
+
+`GET /auto-work` defaults to the passed `session_affinity.py` consumer. The
+server renders complete native text navigation and exact evidence; optional
+`affinity-map.js` draws a viewport-bounded temporal SVG and owns zoom/pan plus cancellable
+same-route navigation. History retains only viewport/Trace coordinates and edge
+visibility preferences and text-list disclosure, not evidence. Reader `v2`
+separates 24-row `nodes` from full matching-scope `map_nodes` and edges. Map
+scope includes snapshot/hierarchy/search, never a text/evidence page or selection.
+Native scroll extents move a sticky SVG viewport; horizontal movement traverses
+time and vertical movement reaches every strand. List paging keeps geometry and
+camera. Initial inspection is 200%; whole-time fit is 100%. Adjacency indexing
+avoids per-knot whole-edge scans and repeated all-node sorting.
+Selection never changes the layout input. The read model derives a common UTC
+domain before search/paging, at most 64 day-multiple activity periods per strand,
+exact occurrence counts and existing-edge witness dates. Optional `period`
+selection filters original evidence without changing snapshot identity or storage.
+At the selected hierarchy level, each knot aggregates one group's occurrences
+within one time period, not a single embedding point or a distinct Session.
+Knot radius grows logarithmically with occurrence count and is capped; it is not
+a cohesion, confidence or importance score. A group observed in only one period
+can therefore remain a lone point even after both grouping stages. Neither the
+generative work-context trials nor the source-claim/state projector feeds this
+reader. The earlier rule-based sample is a separate consumer, not a third merge.
+Unknown times stay outside the dated plane. The renderer locks x to time and
+uses deterministic affinity ordering/vertical attraction, curved strands and
+explicit empty-period gaps; dates and labels remain readable under zoom. A
+selected-neighborhood lens and short reduced-motion-aware camera transitions
+provide observation rather than editing or perpetual physics.
+Browsing cannot invoke the producer. See
+[SPEC-0104](../../plans/spec/spec-0104-temporal-affinity-flow.md).
+
+The separate `auto_work.py` preview adapter consumes the experimentally verified
+preparation/extraction shape, not the Focus projection. `GET /auto-work?mode=sample` reads
+one owner-checked, 10-MiB-bounded, seven-day runtime file, revalidates current
+source eligibility and frozen hashes through the read-only input adapter, and
+binds displayed wording to admitted spans. Server-side pages expose every group
+and unassigned statement with constructed local source destinations. Unknown
+assessment remains unknown. It owns no DB table, production flow ID or correction.
+
+`POST /auto-work/refresh` requires same-origin loopback access and an empty body.
+It redirects back to the labeled sample mode, never refreshes the full-history map.
+The server invokes the explicit preview command in a separate subprocess with
+fixed configured input paths, quiet output and a 300-second outer timeout;
+preparation and extraction retain their own 120-second/512-MiB limits. An
+advisory lock makes refresh single-flight. Atomic, owner-only replacement retains
+the prior valid result on failure; staging is removed on every write outcome.
+Expired valid owned output is removed on a subsequent visit under that lock.
+There is no startup/GET analysis, background job, source sync, model, migration,
+or organization write. The sidebar link is capability-gated during mixed-version
+template/server updates; a server restart activates the new route. Exact viewer
+contract: [SPEC-0096](../../plans/spec/spec-0096-auto-work-inspection.md).
 
 ### Workflow Focus Read Model
 

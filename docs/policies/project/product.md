@@ -218,6 +218,99 @@ The same Resource may relate to multiple Threads. Relationship-specific evidence
   another model. Existing Session conversation, pin, metadata, Subsession, and
   Related Materials behavior stays authoritative and unchanged.
 
+### Workstream Candidate Contract
+
+- A provisional Workstream candidate is a versioned, in-memory descriptor of
+  one proposed pair of canonical artifacts supported by at least two distinct
+  eligible primary work Sessions. The pure contract validates supplied facts
+  and pairs; it has no database-discovery or candidate-review consumer. The
+  [candidate follow-up chain](../../plans/feature/feat-0090-workstream-candidate-discovery-contract.md)
+  was superseded, not admitted as the replacement experience.
+- Every member independently references both artifacts. A Session may support
+  several candidates through different evidence, and shared Sessions/artifacts
+  do not transitively merge their boundaries. Existing organization is not a
+  prerequisite and cannot stand in for direct reference evidence.
+- Artifact aliases count once. Disabled, unresolved, ambiguous, or container
+  anchors cannot qualify; failed-read-only evidence cannot create membership.
+  Retained stale/missing evidence keeps its source-state labels.
+- The seed key is independent of labels, local row IDs, and later members.
+  Membership revision records evidence changes separately from source freshness
+  and presentation. Provisional labels are attributed source metadata or an
+  explicit unnamed fallback, never an inferred goal or confirmed Workstream.
+- Candidate observation spans and latest known references use supporting
+  reference times only. Missing time stays unknown; Session end and import time
+  do not prove progress, a single causal tip, or completion.
+- Source observations and inferred membership retain separate authority.
+  Coverage refers to the supplied facts and defaults to partial. Hard bounds
+  fail explicitly; bounded reference/overlap samples retain full counts.
+- The contract changes no current screen, source, global Focus assertion,
+  Workstream, Thread, link, or Suggestion. It grants no durable review or
+  promotion authority and has no model, remote, or persistence operation.
+
+### Isolated Work Reconstruction Experiment
+
+The explicit local experiment compares the unchanged reference-pair contract
+with a minimal deterministic Korean/English goal extractor. It groups exact
+normalized subject/change and compatible completion criteria, keeps activity
+phases subordinate, attributes source wording, and leaves unsupported meaning
+unassigned. It requires no routine create/name/assign/accept/promote action.
+This is a measured prototype, not a general semantic understanding capability.
+
+Comparison scores use separate source-bound expectations, not generated labels
+as truth. Processing coverage, synthetic correctness, local quality, and product
+viability remain distinct; missing private evidence cannot authorize replacement
+UI. After explicit current-data scope selection, the command can freeze a bounded
+chronological sample across existing history. Its unassessed execution check
+creates no answer key and cannot claim accuracy or useful automatic grouping.
+Population/sample counts and incomplete text stay distinct from quality.
+
+The comparison command changes no Workstream/Thread, Suggestion, assertion,
+or source. The user-managed product rules above remain runtime truth until an
+approved transition replaces them. The [approved experiment](../../plans/feature/feat-0095-bounded-work-reconstruction-experiment.md)
+owns trial bounds and acceptance; [PRD-0017](../../plans/prd/prd-0017-source-backed-workflow-map-and-workstream-lenses.md)
+owns the replacement direction and finite legacy-retention/retirement plan.
+This experiment performs neither transition nor cleanup.
+
+### Auto Work Inspection
+
+`자동 작업`, immediately above Workstreams in the sidebar, is a read-only
+inspection destination. Its default full-history affinity map observes prepared
+coarse groups, finer subgroups and Session evidence without creating Workstream
+identity or an approval queue. Actual message time runs left-to-right; curved
+strands and their activity knots expose recurring similar material. Empty periods
+are dashed, not continuous work duration. Unknown dates stay unplaced. The map
+does not expose raw embedding points: each knot combines a group's chunk
+occurrences within one period. Its capped size reflects occurrence volume,
+not distinct Session count or grouping quality. Coarse and within-parent finer
+similarity groups are already applied; their meaning is not a verified enduring
+work area or common task. Selection
+preserves geometry; matching strands and connections share one continuous map,
+independent of the text list's 24-item pages. Horizontal scrolling traverses time,
+vertical scrolling reaches other strands, and list paging preserves the camera.
+A period knot filters exact evidence to that observed interval,
+and explicit neighborhood zoom or hierarchy expansion brings context closer.
+Time-anchored undirected edges express similarity only, not a causal branch/merge. Representative
+Session titles, observed dates, exact quotes, overlap, fragmentation, exclusions
+and complete paginated access keep uncertainty visible. All admitted indexed
+history is covered, not a first-60 sample. Viewing is passive; source changes,
+invalid/expired results and obsolete selections are explicit recoverable states.
+The map consumes the existing 30-day simulation owner, never a new private corpus.
+
+The separately labeled previous-sample view presents unassessed rule-based
+output. It presents all inferred
+groups and unassigned statements through bounded pages, literal source/span
+evidence, and the actual chronological sample boundary. It is not a quality
+verdict, replacement Workstream inventory, or approval/promotion queue.
+
+Ordinary browse revalidates the frozen local evidence; it never starts analysis.
+Its `결과 갱신` explicitly prepares the currently stored eligible history through
+now under the existing experiment caps, excluding manual organization from the
+grouping arm. It uses no model, remote call, source rescan, or organization write.
+One private result is retained for seven days and atomically replaced on a
+successful refresh; failure keeps the previous valid result. Expired or changed
+evidence is not displayed as current. This owner-approved inspection increment
+may precede quality assessment; production replacement still cannot.
+
 ### Workflow Assertion And Correction
 
 - Consequential workflow correction belongs to one dedicated local assertion

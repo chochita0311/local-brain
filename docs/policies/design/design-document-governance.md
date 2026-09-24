@@ -175,6 +175,10 @@ A constitution change fails when:
 | 2026-09-01 | v17 | Added explicit success, warning, and neutral mappings for available, unavailable, and archived Atlassian URL-derived structure references while preserving their separate URL-derived provenance cue. |
 | 2026-09-02 | v18 | Added the Project-grouped Pinned Sessions hierarchy: Git-first alphabetical workspace headings, activity-ordered Session rows, optional branch metadata, and single boundary ownership within the existing browse family. |
 | 2026-09-14 | v19 | Extended the Explorer family with Session Workflow Focus: fixed time and branch lanes, Episode selection/path states, adjacent evidence Trace, technical-canvas input ownership, complete narrow/no-script/render-failure lineage fallback, and contextual correction previews with persistent user-confirmed authority and stable orientation restoration. |
+| 2026-09-16 | v20 | Added the owner-approved Auto Work destination immediately above Workstreams, using existing browse/read composition, shell geometry and tokens, with explicit unassessed authority and sample/availability states. Manual Workstream hierarchy is unchanged. |
+| 2026-09-23 | v21 | Extended Auto Work with a full-history affinity Explorer: settled undirected constellation, selection-preserving evidence Trace, explicit expansion and complete textual navigation. Mapped freshness/availability independently from semantic quality; retained the labeled sampled comparator and unchanged shell. |
+| 2026-09-24 | v22 | Corrected Auto Work to a left-to-right observed-time flow canvas: similarity strands, activity knots, explicit unobserved gaps/unknown times, period inspection and neighborhood zoom. Curves never confer work lineage; native shell, tokens, selection continuity and fallback remain. |
+| 2026-09-24 | v23 | Clarified continuous Auto Work canvas ownership: text pagination cannot partition map membership/connections or camera; native bounded scrolling and visible time navigation reveal offscreen time and strands. Clarified the existing knot aggregate and capped occurrence-volume meaning without changing rendering or grouping. |
 
 ## Practical Summary
 

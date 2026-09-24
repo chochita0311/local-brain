@@ -440,10 +440,10 @@ date after the title and source-native identifier.
 
 ### Navigation Model
 
-The persistent navigation has three groups and eight stable destinations:
+The persistent navigation has three groups and nine stable destinations:
 
 - **Overview:** Dashboard, Sessions Dashboard
-- **Workspace:** Workstreams, Sessions, Atlassian, Local Contexts
+- **Workspace:** 자동 작업, Workstreams, Sessions, Atlassian, Local Contexts
 - **System:** Sources, Schema
 
 Active navigation uses text, surface, and an accent indicator. Narrow navigation preserves every destination, supports horizontal scrolling, and keeps the active item visible.
@@ -527,6 +527,15 @@ Every persisted or user-visible derived state has one semantic family and a text
 - Loading uses a bounded skeleton or progress region on `--surface-muted`.
 - Scanning or working uses info treatment and explicit working text.
 - Empty uses neutral treatment, a concise explanation, and at most one primary recovery action.
+- Auto Work uses warning plus `품질 미평가` for inferred experimental groups;
+  this is not a work lifecycle or confirmation state. Sample coverage, unassigned
+  wording, expired/changed evidence and refresh failures remain separate labels.
+- Full-history affinity uses neutral `current`/`empty`/`missing`, info `busy`,
+  warning `stale`/`expired`/`selection-stale`/`unavailable`, and danger `invalid`
+  treatment with explicit text. `current` means source-revalidated, not correct
+  work organization. Similarity edges are undirected; group labels are source
+  examples, never confirmed categories. Selection uses brand plus `선택됨` and
+  `aria-current`, independently of source origin or inferred authority.
 - Disabled controls retain their label and use disabled action tokens and opacity.
 - Focus and selection remain visible independently of hover.
 - Workflow Focus `selected` uses a brand boundary plus the visible `선택됨`
@@ -674,6 +683,23 @@ Running and working indicators may animate with motion tokens. Under `prefers-re
 
 ### Explorer
 
+- Auto Work's full-history affinity view is a temporal flow canvas beside
+  original evidence: actual message time runs left-to-right on one shared scale,
+  while similarity groups form curved, inspectable strands. Each knot aggregates
+  one strand's source occurrences in a period. Its capped size encodes occurrence
+  volume, not distinct Sessions, cohesion, confidence or importance. Knots encode
+  observed activity, not planned duration; empty intervals use interrupted/dashed traces.
+  Unknown time stays explicitly unplaced. Vertical proximity and cross-strand
+  curves are affinity only, never causal branch/merge arrows or confirmed identity.
+  Group → subgroup → Session is observational scope, not a persisted work hierarchy.
+  Selection preserves geometry; expansion and neighborhood zoom are explicit.
+  Pan/zoom/fit/reset, a period evidence lens, and keyboard paths accompany complete
+  paginated text navigation. The canvas is continuous: list pages never partition its matching strands or
+  connections, nor reset its camera. Native bounded scrolling and visible time
+  navigation reveal offscreen time and rows without shrinking labels.
+  Motion confirms camera/focus changes and respects
+  reduced motion; there is no perpetual jitter. Ordinary page scroll is not
+  captured by zoom. The sampled comparator remains separately labeled.
 - Hierarchy, inventory, and preview preserve selection context; panes collapse
   into sequential regions on narrow screens.
 - Local Contexts use source/directory/document containment.
@@ -793,10 +819,10 @@ Any durable change to visual DNA, primitive families, semantic roles, shell geom
 | Family | Current surfaces | Durable constraints |
 |---|---|---|
 | Overview and dashboard | Dashboard, Sessions Dashboard | summary must lead to underlying Workstreams, Sessions, Sources, or evidence; metrics are not decorative |
-| Browse and inventory | Workstreams, Sessions, Projects, Sources, Search | supports filtering, long labels, empty results, source identity, and stable row/card metadata |
+| Browse and inventory | 자동 작업, Workstreams, Sessions, Projects, Sources, Search | supports filtering, long labels, empty results, source identity, and stable row/card metadata; Auto Work keeps inferred groups separate from user-defined Workstreams and uses source-backed adjacent or sequential detail |
 | Detail and read | Session, Subsession, Document, local Resource | prioritizes readable body width, source metadata, deep links, and long technical content |
 | Workstream workspace | Workstream detail | preserves Workstream → Thread → evidence hierarchy and separates confirmed organization from Suggestions |
-| Explorer | Atlassian, Local Contexts, Schema, Session Workflow Focus | preserves source, subject, or Episode selection; hierarchy/tree/table/time orientation; progressive preview or Trace; unreadable, missing, honestly unassigned, unconnected, partial, and diagram-unavailable states; each surface uses only containment its product model owns, Workflow Focus keeps artifacts subordinate to Episodes on fixed lanes, and Atlassian keeps top service scopes outside its domain-first hierarchy |
+| Explorer | Auto Work full-history affinity, Atlassian, Local Contexts, Schema, Session Workflow Focus | preserves source, subject, or Episode selection; hierarchy/tree/table/time orientation; progressive preview or Trace; unreadable, missing, honestly unassigned, unconnected, partial, and diagram-unavailable states; affinity remains undirected observation rather than persisted work identity, Workflow Focus keeps artifacts subordinate to Episodes on fixed lanes, and Atlassian keeps top service scopes outside its domain-first hierarchy |
 | Run and console | maintenance Run | represents the complete Run lifecycle, cancellation, output, artifacts, and terminal result |
 
 New routes fit one of these families or justify a constitution change. A new feature does not create a new visual family merely because its data is new.
