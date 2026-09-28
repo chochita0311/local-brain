@@ -108,6 +108,16 @@ class ParsedReferenceCandidate:
 
 
 @dataclass(frozen=True)
+class ParsedSkillObservation:
+    native_event_id: str
+    skill_name: str
+    signal_kind: str
+    source_line: int
+    occurred_at: Optional[str] = None
+    skill_locator: Optional[str] = None
+
+
+@dataclass(frozen=True)
 class ApprovedResourceCall:
     tool_name: str
     tool_call_id: str
@@ -154,6 +164,7 @@ class ParsedSession:
     session_role: str = "primary"
     parent_external_id: Optional[str] = None
     usage_records: List[ParsedUsageRecord] = field(default_factory=list)
+    skill_observations: List[ParsedSkillObservation] = field(default_factory=list)
     url_evidence: List[ParsedUrlEvidence] = field(default_factory=list)
     reference_candidates: List[ParsedReferenceCandidate] = field(default_factory=list)
 

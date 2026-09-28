@@ -1,12 +1,13 @@
 # Project Roadmap
 
-## Current Increment — 2026-09-24
+## Workflow-Map Track — 2026-09-24
 
-The owner stopped implementation and calculations after inspecting the delivered
+The owner stopped implementation and calculations on the workflow-map track after inspecting the delivered
 continuous map. Keep it available for observation; the
 [design-plan handoff](../design/workflow-map-design-plan.md#handoff-to-next-track)
-owns the resume boundary. Session documentation and publication are not approval
-to launch the next model trial or production transition.
+owns that track's resume boundary. Later approved Sessions Dashboard → Insights
+work is tracked separately under [PRD-0018](../prd/prd-0018-personal-ai-use-improvement-insights.md).
+Documentation and publication do not approve another workflow-map model trial or production transition.
 
 Owner review returned the freeform map's visual direction to planning. The
 current [FEAT-0104 temporal correction](../feature/feat-0104-temporal-affinity-flow.md)
@@ -204,7 +205,7 @@ Recently completed cross-surface reconciliation:
 | 0. Discovery and constraints | Verify source availability, policy, and representative workflows | Ongoing as new source types are added |
 | 1. Local activity foundation | Reliably collect and inspect local activity | Complete |
 | 2. Workstream and resume MVP | Find and resume interrupted work | Core vertical slice implemented |
-| 3. Activity insights | Add reproducible usage, cost, workflow, and skill intelligence | Usage and cost dashboard implemented; workflow intelligence planned |
+| 3. Activity insights | Add reproducible usage, cost, workflow, and skill intelligence | Usage/cost and skill ranking implemented; personal-improvement evidence and guide foundations passed synthetic checks; analysis UI implemented without a live model report; wider workflow intelligence planned |
 | 4. External read-only sources | Connect approved ticket, conversation, Git, and document systems | Atlassian local vertical slice, Site-first follow-up, and standard-URL structure references implemented; connected validation and other sources planned |
 | 5. Context reconciliation | Produce reviewable current context while preserving uncertainty | Planned |
 | 6. Handoff and controlled actions | Support low-friction AI handoff and explicitly approved actions | Planned |
@@ -312,7 +313,8 @@ Exit criteria:
 Planning tracks:
 
 - [PRD-0004: Session Usage And Cost Dashboard](../prd/prd-0004-session-usage-and-cost-dashboard.md) (`passed`)
-- [PRD-0005: Workflow And Skill Intelligence](../prd/prd-0005-workflow-and-skill-intelligence.md) (`draft`)
+- [PRD-0005: Workflow And Skill Intelligence](../prd/prd-0005-workflow-and-skill-intelligence.md) (`approved`; first skill-ranking increment passed FEAT-0105/0106 evaluation, later workflow intelligence remains proposed)
+- [PRD-0018: Personal AI-Use Improvement Insights](../prd/prd-0018-personal-ai-use-improvement-insights.md) (`approved`; FEAT-0107/0108 foundation checks and RUN-122 guide integration passed, FEAT-0110 executable UI delivered with live-provider evidence still open)
 
 Executed PRD-0004 Features:
 

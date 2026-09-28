@@ -25,6 +25,7 @@ SUBSESSION_DETAIL = ROOT / "src" / "localbrain" / "templates" / "subsession.html
 SOURCE_CUE = ROOT / "src" / "localbrain" / "templates" / "_source_cue.html"
 CONVERSATION = ROOT / "src" / "localbrain" / "templates" / "_conversation.html"
 SESSIONS_DASHBOARD = ROOT / "src" / "localbrain" / "templates" / "sessions_dashboard.html"
+SESSION_INSIGHTS = ROOT / "src" / "localbrain" / "templates" / "session_insights.html"
 SCHEMA_EXPLORER = ROOT / "src" / "localbrain" / "templates" / "schema.html"
 WORKSTREAM = ROOT / "src" / "localbrain" / "templates" / "workstream.html"
 MAIN = ROOT / "src" / "localbrain" / "main.py"
@@ -101,6 +102,7 @@ class UiContractTests(unittest.TestCase):
         )
         cls.source_cue = SOURCE_CUE.read_text(encoding="utf-8")
         cls.sessions_dashboard = SESSIONS_DASHBOARD.read_text(encoding="utf-8")
+        cls.session_insights = SESSION_INSIGHTS.read_text(encoding="utf-8")
         cls.schema_explorer = SCHEMA_EXPLORER.read_text(encoding="utf-8")
         cls.workstream = WORKSTREAM.read_text(encoding="utf-8")
         cls.main = MAIN.read_text(encoding="utf-8")
@@ -630,26 +632,24 @@ class UiContractTests(unittest.TestCase):
             'usage.limitations',
             'aria-label="Usage breakdown"',
             'class="analysis-panel usage-breakdown-panel"',
-            'class="analysis-panel usage-trust-panel"',
             'usage.breakdown.primary_rows',
             'usage.breakdown.overflow_rows',
-            'usage.freshness.sources',
-            'How estimated cost is calculated',
+            'class="usage-partial-label"',
         ):
             self.assertIn(marker, self.sessions_dashboard)
+        self.assertNotIn('class="analysis-panel usage-trust-panel"', self.sessions_dashboard)
+        self.assertNotIn('<span>Source</span>', self.sessions_dashboard)
+        self.assertNotIn('<span>Range</span>', self.sessions_dashboard)
         self.assertNotIn("Projected month end", self.sessions_dashboard)
         self.assertNotIn("usage.projection", self.sessions_dashboard)
         self.assertNotIn("Allocation", self.sessions_dashboard)
         self.assertNotIn("budget", self.sessions_dashboard.lower())
         self.assertNotIn("quota", self.sessions_dashboard.lower())
 
-        for copy in (
+        self.assertNotIn(
             "usage record{% if item.usage_record_count != 1 %}s{% endif %} priced",
-            "selected usage record{% if source.selected_usage_record_count != 1 %}s{% endif %}",
-            "Selected usage records",
-            "each usage record is first observed",
-        ):
-            self.assertIn(copy, self.sessions_dashboard)
+            self.sessions_dashboard,
+        )
         self.assertNotIn("usage facts", self.sessions_dashboard.lower())
         self.assertNotIn("facts priced", self.sessions_dashboard.lower())
         self.assertNotIn("each fact", self.sessions_dashboard.lower())
@@ -659,14 +659,27 @@ class UiContractTests(unittest.TestCase):
             self.styles,
         )
 
+    def test_skill_insights_keeps_reciprocal_navigation_and_one_ranking_header(self):
+        self.assertIn('href="/sessions-dashboard/insights">Insights</a>',
+                      self.sessions_dashboard)
+        self.assertIn('href="/sessions-dashboard">Usage &amp; Cost</a>',
+                      self.session_insights)
+        self.assertEqual(self.session_insights.count('<thead><tr><th scope="col">'), 1)
+        self.assertIn('<th scope="col">스킬</th><th scope="col">횟수</th>'
+                      '<th scope="col">마지막 사용</th>', self.session_insights)
+        self.assertIn('insights.ranking', self.session_insights)
+        self.assertIn('data-local-date-time-stacked', self.session_insights)
+        self.assertIn("insights.top and insights.coverage.state == 'not_scanned'",
+                      self.session_insights)
+        self.assertIn('.session-insights-layout { grid-template-columns: minmax(0, 1fr); }',
+                      self.styles)
+
     def test_usage_dashboard_source_identity_is_registry_driven_and_readable(self):
         for marker in (
             "{% for control in usage.controls.sources %}",
             "{{ control.label }}",
             "usage.scope.source_label",
-            "source.provider_kind",
-            'value_label("source.scan-status", source.scan_status)',
-            "source.scan_error",
+            'class="segmented-control usage-source-control"',
         ):
             self.assertIn(marker, self.sessions_dashboard)
         self.assertNotIn("control.value == 'all' else", self.sessions_dashboard)
@@ -674,9 +687,9 @@ class UiContractTests(unittest.TestCase):
             ".usage-source-control { max-width: 100%; overflow-x: auto;",
             self.styles,
         )
-        self.assertIn(".usage-source-control a { flex: 0 0 auto; }", self.styles)
+        self.assertIn(".usage-source-control a:not(.selected) + a:not(.selected)::before", self.styles)
 
-    def test_usage_dashboard_renders_company_scope_and_retained_source_health(self):
+    def test_usage_dashboard_renders_company_scope_without_freshness_strip(self):
         connection = sqlite3.connect(":memory:")
         connection.row_factory = sqlite3.Row
         connection.executescript(SCHEMA.read_text(encoding="utf-8"))
@@ -707,9 +720,12 @@ class UiContractTests(unittest.TestCase):
         self.assertIn('data-usage-value="codex-company"', html)
         self.assertIn(">Codex Company</a>", html)
         self.assertIn("DAILY · CODEX COMPANY", html)
-        self.assertIn('class="source-indicator codex"', html)
-        self.assertIn("Latest source result · 경로 확인 필요", html)
-        self.assertIn("existing data was retained", html)
+        self.assertNotIn("Data freshness", html)
+        self.assertNotIn("Coverage &amp; freshness", html)
+        self.assertEqual(
+            usage["freshness"]["sources"][0]["scan_error"],
+            "This source was not synchronized; existing data was retained.",
+        )
 
     def test_usage_dashboard_does_not_render_month_end_projection(self):
         connection = sqlite3.connect(":memory:")
@@ -749,7 +765,7 @@ class UiContractTests(unittest.TestCase):
         self.assertIn("No usage indexed", html)
         self.assertIn("2026-06-19 – 2026-07-18", html)
         self.assertEqual(html.count('class="overview-metric unavailable"'), 2)
-        self.assertIn('/sessions-dashboard?view=weekly&source=all&metric=tokens', html)
+        self.assertIn('/sessions-dashboard?view=weekly&source=all&metric=cost', html)
         self.assertIn('aria-current="page"', html)
 
     def test_usage_dashboard_scope_switches_replace_only_the_dashboard(self):
@@ -773,7 +789,7 @@ class UiContractTests(unittest.TestCase):
             "restoreUsageScroll(scrollY)",
             "focus({ preventScroll: true })",
             '[data-usage-control="source"][aria-current="page"]',
-            "[source, metric, breakdown]",
+            "[source, from && to ? `${from} – ${to}` : null, metric, breakdown]",
             "window.location.assign(destination.href)",
         ):
             self.assertIn(behavior, self.script)

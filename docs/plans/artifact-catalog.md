@@ -6,7 +6,7 @@ Edit the owning artifact, then run `uv run python scripts/build-plan-artifact-ca
 
 Status and relation values are preserved from each owner artifact. `—` means the field is not declared or does not apply; historical Spec `passed` and Run `complete` values are legacy aliases preserved under [Execution Artifact Status](../policies/harness/execution-loop-governance.md#execution-artifact-status).
 
-## PRDs (17)
+## PRDs (18)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -14,7 +14,7 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [PRD-0002: Session Browsing And Subsession Organization](prd/prd-0002-session-browsing-and-subsession-organization.md) | `passed` | — |
 | [PRD-0003: Data Model Visibility And Schema Cleanup](prd/prd-0003-data-model-visibility-and-schema-cleanup.md) | `passed` | — |
 | [PRD-0004: Session Usage And Cost Dashboard](prd/prd-0004-session-usage-and-cost-dashboard.md) | `passed` | — |
-| [PRD-0005: Workflow And Skill Intelligence](prd/prd-0005-workflow-and-skill-intelligence.md) | `draft` | — |
+| [PRD-0005: Workflow And Skill Intelligence](prd/prd-0005-workflow-and-skill-intelligence.md) | `approved` | — |
 | [PRD-0006: Markdown Reading And Context Continuity](prd/prd-0006-markdown-reading-and-context-continuity.md) | `passed` | — |
 | [PRD-0007: Atlassian Source Memory And Explicit Refresh](prd/prd-0007-atlassian-source-memory-and-refresh.md) | `passed` | — |
 | [PRD-0008: Connected Atlassian Validation And Schema ERD Routing](prd/prd-0008-connected-atlassian-validation-and-schema-erd-routing.md) | `passed` | — |
@@ -27,8 +27,9 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [PRD-0015: Atlassian Site-First URL Organization](prd/prd-0015-atlassian-site-first-url-organization.md) | `passed` | — |
 | [PRD-0016: Atlassian Standard URL Structure References](prd/prd-0016-atlassian-standard-url-recognition.md) | `passed` | — |
 | [PRD-0017: Source-Backed Workflow Map And Workstream Lenses](prd/prd-0017-source-backed-workflow-map-and-workstream-lenses.md) | `approved` | — |
+| [PRD-0018: Personal AI-Use Improvement Insights](prd/prd-0018-personal-ai-use-improvement-insights.md) | `approved` | — |
 
-## Features (104)
+## Features (110)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -136,8 +137,14 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [FEAT-0102: Full-History Affinity Map](feature/feat-0102-full-history-affinity-map.md) | `superseded` | PRD-0017 |
 | [FEAT-0103: Direct-Context Work Relation Trial](feature/feat-0103-direct-context-work-relation-trial.md) | `draft` | PRD-0017 |
 | [FEAT-0104: Temporal Affinity Flow](feature/feat-0104-temporal-affinity-flow.md) | `passed` | PRD-0017 |
+| [FEAT-0105: Skill Observation And Retention](feature/feat-0105-skill-observation-retention.md) | `passed` | PRD-0005 |
+| [FEAT-0106: First Session Insights View](feature/feat-0106-first-session-insights-view.md) | `passed` | PRD-0005 |
+| [FEAT-0107: Personal Insight Evidence Manifest](feature/feat-0107-personal-insight-evidence-manifest.md) | `passed` | PRD-0018 |
+| [FEAT-0108: Personal Improvement Guide And Finding Contract](feature/feat-0108-personal-improvement-guide-and-finding-contract.md) | `passed` | PRD-0018 |
+| [FEAT-0109: Insights Analyzer Screen Preview](feature/feat-0109-insights-analyzer-screen-preview.md) | `passed` | PRD-0018 |
+| [FEAT-0110: Executable Personal Insight Runs](feature/feat-0110-executable-personal-insight-runs.md) | `passed` | PRD-0018 |
 
-## Specs (103)
+## Specs (109)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -244,8 +251,14 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [SPEC-0101: Full-History Affinity Inspection Contract](spec/spec-0101-full-history-affinity-inspection-contract.md) | `approved` | FEAT-0101 |
 | [SPEC-0102: Full-History Affinity Map](spec/spec-0102-full-history-affinity-map.md) | `superseded` | FEAT-0102 |
 | [SPEC-0104: Temporal Affinity Flow](spec/spec-0104-temporal-affinity-flow.md) | `approved` | FEAT-0104 |
+| [SPEC-0105: Skill Observation And Retention](spec/spec-0105-skill-observation-retention.md) | `approved` | FEAT-0105 |
+| [SPEC-0106: First Session Insights View](spec/spec-0106-first-session-insights-view.md) | `approved` | FEAT-0106 |
+| [SPEC-0107: Personal Insight Evidence Manifest](spec/spec-0107-personal-insight-evidence-manifest.md) | `approved` | FEAT-0107 |
+| [SPEC-0108: Personal Improvement Guide And Finding Contract](spec/spec-0108-personal-improvement-guide-and-finding-contract.md) | `approved` | FEAT-0108 |
+| [SPEC-0109: Insights Analyzer Screen Preview](spec/spec-0109-insights-analyzer-screen-preview.md) | `approved` | FEAT-0109 |
+| [SPEC-0110: Executable Personal Insight Runs](spec/spec-0110-executable-personal-insight-runs.md) | — | FEAT-0110 |
 
-## Runs (117)
+## Runs (124)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -366,8 +379,15 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [RUN-20260923-115: Full-History Affinity Map](run/run-20260923-115-full-history-affinity-map.md) | `passed` | FEAT-0102 |
 | [RUN-20260924-116: Temporal Affinity Flow](run/run-20260924-116-temporal-affinity-flow.md) | `passed` | FEAT-0104 |
 | [RUN-20260924-117: Continuous Affinity Canvas](run/run-20260924-117-continuous-affinity-canvas.md) | `passed` | FEAT-0104 |
+| [RUN-20260927-118: Personal Insight Evidence Manifest](run/run-20260927-118-personal-insight-evidence-manifest.md) | `passed` | FEAT-0107 |
+| [RUN-20260928-119: Insights Analyzer Screen Preview](run/run-20260928-119-insights-analyzer-screen-preview.md) | `passed` | FEAT-0109 |
+| [RUN-20260928-120: Executable Personal Insight Runs](run/run-20260928-120-executable-personal-insight-runs.md) | `passed` | FEAT-0110 |
+| [RUN-20260928-121: Personal Improvement Guide And Finding Contract](run/run-20260928-121-personal-improvement-guide-and-finding-contract.md) | `passed` | FEAT-0108 |
+| [RUN-20260928-122: Guided Personal Insight Result Integration](run/run-20260928-122-guided-personal-insight-result-integration.md) | `passed` | FEAT-0110 |
+| [RUN-20260928-123: Skill Observation And Retention](run/run-20260928-123-skill-observation-retention.md) | `passed` | FEAT-0105 |
+| [RUN-20260928-124: First Session Insights View](run/run-20260928-124-first-session-insights-view.md) | `passed` | FEAT-0106 |
 
-## Evaluations And Schema Audits (348)
+## Evaluations And Schema Audits (369)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -719,6 +739,27 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [EVAL-0104 Design: Temporal Affinity Flow](evaluation/eval-0104-design-temporal-affinity-flow.md) | `complete` | FEAT-0104 |
 | [EVAL-0104 Functional: Temporal Affinity Flow](evaluation/eval-0104-functional-temporal-affinity-flow.md) | `complete` | FEAT-0104 |
 | [EVAL-0104 UX: Temporal Affinity Flow](evaluation/eval-0104-ux-temporal-affinity-flow.md) | `complete` | FEAT-0104 |
+| [EVAL-0105 Contract: Skill Observation And Retention](evaluation/eval-0105-contract-skill-observation-retention.md) | `complete` | FEAT-0105 |
+| [EVAL-0105 Functional: Skill Observation And Retention](evaluation/eval-0105-functional-skill-observation-retention.md) | `complete` | FEAT-0105 |
+| [EVAL-0106 Contract: First Session Insights View](evaluation/eval-0106-contract-first-session-insights-view.md) | `complete` | FEAT-0106 |
+| [EVAL-0106 Design: First Session Insights View](evaluation/eval-0106-design-first-session-insights-view.md) | `complete` | FEAT-0106 |
+| [EVAL-0106 Functional: First Session Insights View](evaluation/eval-0106-functional-first-session-insights-view.md) | `complete` | FEAT-0106 |
+| [EVAL-0106 UX: First Session Insights View](evaluation/eval-0106-ux-first-session-insights-view.md) | `complete` | FEAT-0106 |
+| [EVAL-0107: Personal Insight Evidence Contract](evaluation/eval-0107-contract-personal-insight-evidence-manifest.md) | `complete` | FEAT-0107 |
+| [EVAL-0107 Functional: Personal Insight Evidence Manifest](evaluation/eval-0107-functional-personal-insight-evidence-manifest.md) | `complete` | FEAT-0107 |
+| [EVAL-0108 Contract: Personal Improvement Guide And Finding Contract](evaluation/eval-0108-contract-personal-improvement-guide-and-finding-contract.md) | `complete` | FEAT-0108 |
+| [EVAL-0108 Functional: Personal Improvement Guide And Finding Contract](evaluation/eval-0108-functional-personal-improvement-guide-and-finding-contract.md) | `complete` | FEAT-0108 |
+| [EVAL-0109 Design: Insights Analyzer Screen Preview](evaluation/eval-0109-design-insights-analyzer-screen-preview.md) | `complete` | FEAT-0109 |
+| [EVAL-0109 Functional: Insights Analyzer Screen Preview](evaluation/eval-0109-functional-insights-analyzer-screen-preview.md) | `complete` | FEAT-0109 |
+| [EVAL-0109 UX: Insights Analyzer Screen Preview](evaluation/eval-0109-ux-insights-analyzer-screen-preview.md) | `complete` | FEAT-0109 |
+| [EVAL-0110 Contract: Executable Personal Insight Runs](evaluation/eval-0110-contract-executable-personal-insight-runs.md) | `complete` | FEAT-0110 |
+| [EVAL-0110 Contract: Guided Result Integration](evaluation/eval-0110-contract-guided-result-integration.md) | `complete` | FEAT-0110 |
+| [EVAL-0110 Design: Executable Personal Insight Runs](evaluation/eval-0110-design-executable-personal-insight-runs.md) | `complete` | FEAT-0110 |
+| [EVAL-0110 Design: Guided Result Integration](evaluation/eval-0110-design-guided-result-integration.md) | `complete` | FEAT-0110 |
+| [EVAL-0110 Functional: Executable Personal Insight Runs](evaluation/eval-0110-functional-executable-personal-insight-runs.md) | `complete` | FEAT-0110 |
+| [EVAL-0110 Functional: Guided Result Integration](evaluation/eval-0110-functional-guided-result-integration.md) | `complete` | FEAT-0110 |
+| [EVAL-0110 UX Heuristic: Executable Personal Insight Runs](evaluation/eval-0110-ux-executable-personal-insight-runs.md) | `complete` | FEAT-0110 |
+| [EVAL-0110 UX Heuristic: Guided Result Integration](evaluation/eval-0110-ux-guided-result-integration.md) | `complete` | FEAT-0110 |
 
 ## Fix Logs (23)
 

@@ -1175,7 +1175,7 @@ root = "{company}"
                     scanner.scan_session_sources()
                 self.assertEqual(reconcile_references.call_count, 0)
 
-    def test_existing_current_parser_state_backfills_session_contract_without_repair(self):
+    def test_missing_session_contract_triggers_skill_backfill_without_usage_repair(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             settings = self._settings(root)
@@ -1198,7 +1198,10 @@ root = "{company}"
                     )
                     connection.commit()
                 events = []
-                report = scanner.scan_session_sources(progress=events.append)
+                with patch.object(
+                    scanner, "_store_parsed_usage", wraps=scanner._store_parsed_usage
+                ) as store_usage:
+                    report = scanner.scan_session_sources(progress=events.append)
                 with db.connect() as connection:
                     stored_version = connection.execute(
                         """
@@ -1215,8 +1218,9 @@ root = "{company}"
             for event in events
             if event["type"] == "source_plan" and event["source_key"] == "codex"
         )
-        self.assertEqual(plan["repair_kinds"], [])
-        self.assertEqual(report["summary"]["imported"], 0)
+        self.assertEqual(plan["repair_kinds"], ["session"])
+        self.assertEqual(report["summary"]["imported"], 1)
+        self.assertEqual(store_usage.call_count, 0)
         self.assertEqual(stored_version, scanner.CODEX_SESSION_CONTRACT_VERSION)
 
     def test_session_sync_progress_is_bounded_ordered_and_callback_safe(self):

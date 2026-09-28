@@ -33,6 +33,7 @@ from ..session_references import (
     reconcile_session_references,
     session_reference_scan_is_current,
 )
+from ..skill_observations import store_skill_observations
 from ..usage import (
     UsagePersistenceCache,
     reconcile_usage_record_contract,
@@ -490,7 +491,7 @@ def _remove_stale_sessions(
 
 
 def _parsed_session_is_meaningful(parsed: ParsedSession) -> bool:
-    return bool(parsed.events or parsed.usage_records)
+    return bool(parsed.events or parsed.usage_records or parsed.skill_observations)
 
 
 def _session_eligibility_repair_required(
@@ -511,6 +512,14 @@ def _session_eligibility_repair_required(
               AND NOT EXISTS (
                   SELECT 1 FROM usage_records
                   WHERE usage_records.session_id = sessions.id
+              )
+              AND NOT EXISTS (
+                  SELECT 1 FROM skill_observations
+                  JOIN sources AS skill_sources
+                    ON skill_sources.kind = skill_observations.source_key
+                  WHERE skill_sources.id = sessions.source_id
+                    AND skill_observations.external_session_id = sessions.external_id
+                    AND skill_observations.state = 'observed'
               )
             LIMIT 1
             """,
@@ -909,17 +918,6 @@ def _scan_session_source(
         for path in root.rglob("*.jsonl")
         if path_filter is None or path_filter(root, path)
     )
-    if session_contract_version is not None:
-        connection.execute(
-            """
-            UPDATE source_files
-            SET session_contract_version = ?
-            WHERE source_id = ?
-              AND session_contract_version IS NULL
-              AND usage_contract_version = ?
-            """,
-            (session_contract_version, source_id, usage_contract_version),
-        )
     session_contract_repair_required = bool(
         session_contract_version is not None
         and connection.execute(
@@ -1225,6 +1223,12 @@ def _scan_session_source(
                         usage_cache=usage_cache,
                     )
             current_session_id = session_id
+            store_skill_observations(
+                connection,
+                source_key=source_key,
+                provider_kind=effective_provider_kind,
+                parsed=parsed,
+            )
             if refresh_atlassian_evidence:
                 reconcile_session_evidence(
                     connection,
@@ -1341,6 +1345,17 @@ def _scan_session_source(
             )
     _remove_empty_session_candidates(connection, source_id, empty_candidates)
     _reconcile_session_parents(connection, source_id, effective_provider_kind)
+    connection.execute(
+        """
+        UPDATE skill_observations SET state = 'corrected'
+        WHERE source_key = ? AND state = 'observed'
+          AND external_session_id IN (
+              SELECT external_id FROM sessions
+              WHERE source_id = ? AND session_class = 'maintenance'
+          )
+        """,
+        (source_key, source_id),
+    )
     connection.execute(
         "UPDATE sources SET last_scanned_at = ? WHERE id = ?", (utc_now(), source_id)
     )

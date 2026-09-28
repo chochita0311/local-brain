@@ -10,9 +10,14 @@ Priority meaning:
 
 ## Current Focus
 
-The owner stopped further implementation and calculations after inspecting the
-continuous map. The [design-plan handoff](../design/workflow-map-design-plan.md#handoff-to-next-track)
-owns resumption; the open items below are not active jobs or newly approved work.
+The owner stopped further implementation and calculations on the workflow-map
+track after inspecting the continuous map. The
+[design-plan handoff](../design/workflow-map-design-plan.md#handoff-to-next-track)
+owns resumption of that track; the open items below are not active jobs or newly
+approved work. Separately approved Sessions Dashboard → Insights work is tracked
+under [PRD-0018](../prd/prd-0018-personal-ai-use-improvement-insights.md): its
+evidence and guide foundations passed synthetic checks, while the first actual
+model report and review workflow remain unobserved or unresolved.
 
 Inspection target: the
 [relation-first inspection track](../design/workflow-map-design-plan.md#relation-first-inspection-track).

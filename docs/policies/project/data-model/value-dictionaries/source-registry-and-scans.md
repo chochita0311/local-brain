@@ -19,7 +19,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Presentation mode: `logical-label`
 - Labels: `claude` → Claude; `codex` → Codex; `codex-company` → Codex Company; `context` → Local Context
 - Help: 어디에서 가져온 기록인지 나타냅니다.
-- Visible consumer inventory: `src/localbrain/templates/sources.html` (registry-backed); `src/localbrain/templates/sessions.html` (registry-backed); `src/localbrain/templates/session.html` (registry-backed); `src/localbrain/templates/sessions_dashboard.html` (registry-backed); `src/localbrain/templates/search.html` (registry-backed)
+- Visible consumer inventory: `src/localbrain/templates/sources.html` (registry-backed); `src/localbrain/templates/sessions.html` (registry-backed); `src/localbrain/templates/session.html` (registry-backed); `src/localbrain/templates/search.html` (registry-backed)
 
 ## `source.provider-kind`
 
@@ -51,7 +51,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Presentation mode: `logical-label`
 - Labels: `completed` → 완료; `empty` → 비어 있음; `unavailable` → 경로 확인 필요; `configuration_error` → 설정 확인 필요; `scan_failed` → 동기화 실패
 - Help: 마지막 동기화 시도에서 이 소스가 처리된 결과입니다.
-- Visible consumer inventory: `src/localbrain/templates/sessions.html` (registry-backed); `src/localbrain/templates/sessions_dashboard.html` (registry-backed); `src/localbrain/templates/sources.html` (registry-backed)
+- Visible consumer inventory: `src/localbrain/templates/sessions.html` (registry-backed); `src/localbrain/templates/sources.html` (registry-backed)
 
 ## `source-file.status`
 
@@ -67,7 +67,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Presentation mode: `logical-label`
 - Labels: `ok` → 최신; `stale` → 다시 동기화 필요; `error` → 동기화 오류
 - Help: 로컬 원본을 마지막으로 읽은 결과입니다.
-- Visible consumer inventory: `src/localbrain/templates/sessions_dashboard.html` (registry-backed)
+- Visible consumer inventory: none.
 
 ## `external-source.provider`
 

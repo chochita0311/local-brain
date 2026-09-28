@@ -67,6 +67,7 @@ This is an explicit LocalBrain syntax allowlist. Obsidian and third-party plugin
 
 - Source-local resolution is optional and available only when the consumer supplies one immutable context built from a selected indexed Document and exactly one enabled FOLDERS `context_root_id`.
 - Sessions, Subsessions, standalone file sources, and Apple Notes omit this context; their relative links and wikilinks remain readable and explicitly unresolved.
+- A locally generated personal-improvement report may supply an exact allowlist of `/sessions/{id}` routes from its frozen evidence manifest. Only those routes become local anchors in that report; source-authored Markdown without this allowlist keeps the unresolved behavior above. The renderer accepts no arbitrary application route through this exception.
 - Standard relative Markdown paths start from the current Document directory. Path-bearing wikilinks start from the owning source root. Pathless wikilinks resolve only when exactly one title or basename stem matches inside that source.
 - Absolute paths, root escapes after percent-decoding and normalization, `file:`, `obsidian:`, executable protocols, and schemes other than HTTP or HTTPS are disabled.
 - Resolved internal links expose only `/documents/{id}` plus a verified stable heading or block fragment; source filesystem paths do not enter `href` output.

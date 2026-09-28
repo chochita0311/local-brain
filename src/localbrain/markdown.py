@@ -579,6 +579,13 @@ def _render_link_open(renderer, tokens, idx, options, env) -> str:
         close_tags.append("span")
         return '<span class="markdown-reference markdown-reference-missing" data-reference-state="missing">'
 
+    if decoded in env.get("trusted_session_routes", ()):
+        token.attrSet("href", decoded)
+        token.attrSet("class", "markdown-reference markdown-reference-internal")
+        token.attrSet("data-reference-state", "resolved")
+        close_tags.append("a")
+        return renderer.renderToken(tokens, idx, options, env)
+
     context = env.get("reference_context")
     if context is None:
         close_tags.append("span")
@@ -822,6 +829,7 @@ def render_markdown(
     source: str,
     *,
     reference_context: Optional[MarkdownReferenceContext] = None,
+    trusted_session_routes: Optional[set[str]] = None,
     _embed_depth: int = 0,
     _embed_stack: Tuple[int, ...] = (),
 ) -> MarkdownRenderResult:
@@ -844,6 +852,10 @@ def render_markdown(
         embed_stack = (reference_context.current_document_id,)
     env = {
         "reference_context": reference_context,
+        "trusted_session_routes": frozenset(
+            route for route in (trusted_session_routes or ())
+            if isinstance(route, str) and re.fullmatch(r"/sessions/[1-9][0-9]*", route)
+        ),
         "anchor_source": render_source,
         "embed_depth": _embed_depth,
         "embed_stack": embed_stack,

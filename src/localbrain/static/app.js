@@ -10,9 +10,21 @@ function formatLocalTime(value) {
   }).format(date);
 }
 
+function formatCompactLocalDateTime(value) {
+  if (!value) return value;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  const twoDigits = (part) => String(part).padStart(2, "0");
+  return `${date.getFullYear()}.${twoDigits(date.getMonth() + 1)}.${twoDigits(date.getDate())} ${twoDigits(date.getHours())}:${twoDigits(date.getMinutes())}`;
+}
+
 function formatLocalTimes(root = document) {
   root.querySelectorAll("[data-local-time]").forEach((element) => {
     element.textContent = formatLocalTime(element.getAttribute("datetime") || element.textContent);
+  });
+
+  root.querySelectorAll("[data-local-date-time-stacked]").forEach((element) => {
+    element.textContent = formatCompactLocalDateTime(element.getAttribute("datetime") || element.textContent).replace(" ", "\n");
   });
 
   root.querySelectorAll("[data-local-epoch]").forEach((element) => {
@@ -41,9 +53,11 @@ if (usageDashboardStatus) {
 
   const announceUsageScope = (dashboard) => {
     const source = dashboard.querySelector('[data-usage-control="source"][aria-current="page"]')?.textContent.trim();
+    const from = dashboard.querySelector('[data-usage-date-form] input[name="from"]')?.value;
+    const to = dashboard.querySelector('[data-usage-date-form] input[name="to"]')?.value;
     const metric = dashboard.querySelector('[data-usage-control="metric"][aria-current="page"]')?.textContent.trim();
     const breakdown = dashboard.querySelector('[data-usage-control="breakdown"][aria-current="page"]')?.textContent.trim();
-    usageDashboardStatus.textContent = [source, metric, breakdown].filter(Boolean).join(" · ")
+    usageDashboardStatus.textContent = [source, from && to ? `${from} – ${to}` : null, metric, breakdown].filter(Boolean).join(" · ")
       + " 보기로 전환했습니다.";
   };
 
@@ -54,6 +68,7 @@ if (usageDashboardStatus) {
       scrollY = window.scrollY,
       focusControl = null,
       focusValue = null,
+      focusDateField = null,
     } = {},
   ) => {
     usageDashboardRequest?.abort();
@@ -93,6 +108,11 @@ if (usageDashboardStatus) {
       if (focusControl && focusValue) {
         adoptedDashboard
           .querySelector(`[data-usage-control="${focusControl}"][data-usage-value="${focusValue}"]`)
+          ?.focus({ preventScroll: true });
+      }
+      if (focusDateField) {
+        adoptedDashboard
+          .querySelector(`[data-usage-date-form] input[name="${focusDateField}"]`)
           ?.focus({ preventScroll: true });
       }
       announceUsageScope(adoptedDashboard);
@@ -141,6 +161,56 @@ if (usageDashboardStatus) {
       focusControl: link.dataset.usageControl,
       focusValue: link.dataset.usageValue,
     });
+  });
+
+  const applyUsageDates = (form, changedField = null, showValidation = false) => {
+    const fromInput = form.querySelector('input[name="from"]');
+    const toInput = form.querySelector('input[name="to"]');
+    if (!fromInput || !toInput) return;
+
+    if (fromInput.value && toInput.value && fromInput.value > toInput.value) {
+      if (changedField === "from") toInput.value = fromInput.value;
+      else fromInput.value = toInput.value;
+    }
+    if (!form.checkValidity()) {
+      if (showValidation) form.reportValidity();
+      return;
+    }
+
+    const destination = new URL(form.action, window.location.href);
+    destination.search = new URLSearchParams(new FormData(form)).toString();
+    if (destination.href === window.location.href) return;
+
+    const scrollY = window.scrollY;
+    window.history.replaceState(
+      { ...window.history.state, usageDashboard: true, usageScrollY: scrollY },
+      "",
+    );
+    loadUsageDashboard(destination, {
+      pushHistory: true,
+      scrollY,
+      focusDateField: changedField,
+    });
+  };
+
+  document.addEventListener("change", (event) => {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement) || input.type !== "date") return;
+    const form = input.closest("[data-usage-date-form]");
+    if (!form || !currentUsageDashboard()?.contains(form)) return;
+    if (!input.value) {
+      input.value = input.defaultValue;
+      return;
+    }
+    applyUsageDates(form, input.name);
+  });
+
+  document.addEventListener("submit", (event) => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement) || !form.matches("[data-usage-date-form]")) return;
+    if (!currentUsageDashboard()?.contains(form)) return;
+    event.preventDefault();
+    applyUsageDates(form, null, true);
   });
 
   window.addEventListener("popstate", (event) => {
@@ -1376,4 +1446,23 @@ if (runConsole) {
       cancelButton.disabled = false;
     }
   });
+}
+
+const activeInsightRun = document.querySelector("[data-insight-active-run-id]");
+
+if (activeInsightRun) {
+  const runId = activeInsightRun.dataset.insightActiveRunId;
+  const refreshInsightRun = async () => {
+    try {
+      const current = await requestJson(`/api/insight-runs/${runId}`, { cache: "no-store" });
+      if (["queued", "running"].includes(current.status)) {
+        window.setTimeout(refreshInsightRun, 2000);
+      } else {
+        window.location.reload();
+      }
+    } catch (_error) {
+      window.setTimeout(refreshInsightRun, 5000);
+    }
+  };
+  window.setTimeout(refreshInsightRun, 1200);
 }

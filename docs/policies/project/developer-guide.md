@@ -6,7 +6,7 @@
 - Python 3.9 or later
 - `uv` for dependency and virtual environment management
 - Claude CLI only for Claude-backed maintenance Runs
-- Codex CLI only when selecting Codex for external synchronization
+- Codex CLI for personal improvement analysis Runs or when selecting Codex for external synchronization
 
 ## Setup And Run
 
@@ -60,10 +60,16 @@ LocalBrain reads these environment variables at process startup:
 | `LOCALBRAIN_CODEX_ROOT` | `~/.codex/sessions` | One-time personal Codex root seed when `session-sources.toml` is first absent |
 | `LOCALBRAIN_CLAUDE_BIN` | resolved from `PATH` | Claude CLI executable used by the Task Runner |
 | `LOCALBRAIN_CODEX_BIN` | resolved from `PATH` | Codex CLI executable available to source-neutral external synchronization |
+| `LOCALBRAIN_INSIGHT_CODEX_HOME` | `CODEX_HOME`, then existing `~/.codex-company`, then `~/.codex` | Codex profile home for new personal improvement analysis Runs |
+| `LOCALBRAIN_INSIGHT_CODEX_MODEL` | `gpt-6-astra` | Model identifier frozen for new personal improvement analysis Runs |
 | `LOCALBRAIN_MCP_CALL_BUDGET` | `20` | Advisory legacy-task budget and hard selected-request ceiling for external synchronization |
 | `LOCALBRAIN_TIMEZONE` | system IANA timezone, then `UTC` | Local calendar boundaries for usage and activity reports |
 
 Do not place secrets in tracked environment files. See [Privacy And Data Handling](privacy-and-data.md) before changing data locations or persistence behavior.
+
+### Personal Improvement Analysis
+
+The Insights analyzer currently uses Codex CLI. `LOCALBRAIN_INSIGHT_CODEX_HOME` takes priority over `CODEX_HOME`; without either setting, an existing `~/.codex-company` home is preferred to `~/.codex`. A new Run freezes that home, selected model, exact prompt, versioned core guide, and selected playbook versions and digests. Changing environment settings or the package guide affects future Runs only. The guide sources are `src/localbrain/personal_insight_guides/`; private evidence, prompts, responses, validated results, diagnostics, and reports are kept under `<LOCALBRAIN_DATA_DIR>/personal-insight-runs/<id>/`, outside Git. An explicit Run start sends selected Session excerpts to the configured model service; opening the screen or a past report does not.
 
 Application startup creates `<LOCALBRAIN_DATA_DIR>/session-sources.toml` with
 mode `0600` when it is first absent. The file is the established local AI

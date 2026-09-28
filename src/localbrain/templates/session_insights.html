@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% block title %}Session Insights · LocalBrain{% endblock %}
+{% block page_location %}Sessions Dashboard{% endblock %}
+{% block content %}
+  <section class="page-heading session-insights-heading">
+    <div>
+      <p class="eyebrow">INSIGHTS</p>
+      <h1>Sessions Dashboard</h1>
+      <p class="heading-copy">사용한 스킬과 세션을 바탕으로 업무 개선 기회를 살펴봅니다.</p>
+    </div>
+    <a class="secondary-button" href="/sessions-dashboard">Usage &amp; Cost</a>
+  </section>
+
+  {% if insights.coverage.state == 'partial' %}
+    <p class="session-insights-coverage" role="status">세션 기록 일부가 아직 새 집계 기준으로 동기화되지 않았습니다. 현재 확인된 {{ insights.coverage.current_file_count }} / {{ insights.coverage.file_count }}개 파일의 결과입니다. <a href="/sessions">Sessions에서 동기화</a></p>
+  {% elif insights.top and insights.coverage.state == 'not_scanned' %}
+    <p class="session-insights-coverage" role="status">이전에 기록한 스킬 사용은 유지되고 있지만 현재 확인할 세션 파일이 없습니다. <a href="/sessions">Sessions에서 동기화</a></p>
+  {% endif %}
+
+  <div class="session-insights-layout">
+    <div class="session-insights-skill-column">
+      {% if insights.top %}
+        <section class="analysis-panel session-insights-leader" aria-labelledby="session-insights-leader-title">
+          <div>
+            <p class="eyebrow">MOST USED SKILL</p>
+            <h2 id="session-insights-leader-title">{{ insights.top.name }}</h2>
+            <p>전체 {{ insights.ranking | length }}개 스킬 중 가장 많이 사용했습니다.</p>
+          </div>
+          <strong><span>{{ "{:,}".format(insights.top.use_count) }}</span>회</strong>
+        </section>
+
+        <section class="analysis-panel session-insights-ranking" aria-label="스킬 사용 목록">
+          <table class="session-insights-skill-table">
+            <caption class="sr-only">사용 횟수 순으로 정렬한 스킬 목록</caption>
+            <colgroup><col class="session-insights-skill-name-col"><col class="session-insights-skill-count-col"><col class="session-insights-skill-last-used-col"></colgroup>
+            <thead><tr><th scope="col">스킬</th><th scope="col">횟수</th><th scope="col">마지막 사용</th></tr></thead>
+            <tbody>
+              {% for item in insights.ranking %}
+                <tr>
+                  <th scope="row" title="{{ item.name }}">{{ item.name }}</th>
+                  <td class="session-insights-count">{{ "{:,}".format(item.use_count) }}회</td>
+                  <td class="session-insights-last-used">{% if item.last_used_at %}<time datetime="{{ item.last_used_at }}" data-local-date-time-stacked>{{ item.last_used_at }}</time>{% else %}<span>시간 정보 없음</span>{% endif %}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </section>
+      {% else %}
+        <section class="analysis-panel session-insights-empty" role="status">
+          <h2>{% if insights.coverage.state == 'not_scanned' %}아직 수집된 스킬 기록이 없습니다{% elif insights.coverage.state == 'partial' %}현재까지 확인된 스킬 사용이 없습니다{% else %}확인된 스킬 사용이 없습니다{% endif %}</h2>
+          <p>{% if insights.coverage.state == 'not_scanned' %}<a href="/sessions">Sessions에서 동기화</a>하면 명시적 스킬 사용을 집계합니다.{% elif insights.coverage.state == 'partial' %}남은 세션을 동기화하면 순위에 반영됩니다.{% else %}동기화된 세션에서 명시적 스킬 로드 기록이 발견되지 않았습니다.{% endif %}</p>
+        </section>
+      {% endif %}
+    </div>
+
+    <div class="session-insights-work-column">
+      <section class="analysis-panel session-insights-analyzer" aria-labelledby="session-insights-analyzer-title">
+        <div class="session-insights-analyzer-heading">
+          <div>
+            <p class="eyebrow">WORK IMPROVEMENT</p>
+            <h2 id="session-insights-analyzer-title">업무 개선 분석기</h2>
+            <p>업무 세션에서 반복되는 방식과 마찰을 근거로 살펴보고, 시도할 변화를 보고서로 남깁니다.</p>
+          </div>
+        </div>
+        {% if form_error %}<p class="session-insights-form-error" role="alert">{{ form_error }}</p>{% endif %}
+        {% if runner_choices %}
+          <form action="/sessions-dashboard/insights/runs" method="post" class="session-insights-run-form">
+            <div class="session-insights-run-settings">
+              <span>분석 실행기</span>
+              <strong><span>{{ runner_choices[0].label }}</span><span>{{ runner_choices[0].model }}</span></strong>
+              <input type="hidden" name="runner" value="{{ runner_choices[0].runner }}">
+              <span>실행할 때 이 프로필과 모델이 Run에 기록됩니다.</span>
+            </div>
+            <div class="session-insights-analyzer-paths">
+              <div class="session-insights-analyzer-path">
+                <p class="session-insights-analyzer-step">01 · 질문하기</p>
+                <h3>궁금한 점에서 시작</h3>
+                <p>내 AI 활용이나 업무 방식에서 궁금한 점을 세션 근거로 살펴봅니다.</p>
+                <label class="session-insights-question-label" for="session-insights-question">분석할 질문</label>
+                <textarea id="session-insights-question" name="question" rows="3" maxlength="2000" placeholder="예: 결과를 다시 설명해 달라고 자주 묻는 이유는 뭘까?">{{ question_draft }}</textarea>
+                <button class="primary-button session-insights-run-action" type="submit" name="mode" value="ask">질문 분석</button>
+              </div>
+              <div class="session-insights-analyzer-path">
+                <p class="session-insights-analyzer-step">02 · 스스로 찾기</p>
+                <h3>질문 없이 발견</h3>
+                <p>반복된 작업, 놓친 검토, 더 나은 요청 방식 등 개선 기회를 살펴봅니다.</p>
+                <button class="secondary-button session-insights-run-action" type="submit" name="mode" value="discover">개선 기회 찾기</button>
+              </div>
+            </div>
+            <p class="session-insights-run-notice"><strong>실행 전 확인</strong> 선택된 업무 세션 발췌를 {{ runner_choices[0].profile }} 프로필의 Codex CLI를 통해 모델 서비스로 보냅니다. 한 번에 최대 100개 세션·300개 발췌를 분석하며 토큰 사용량이 클 수 있습니다. 다시 실행하면 새 Run이 생성됩니다.</p>
+          </form>
+        {% else %}
+          <p class="session-insights-form-error" role="status">Codex CLI 또는 Codex 프로필을 찾을 수 없습니다. Codex CLI와 CODEX_HOME을 확인한 뒤 다시 열어 주세요.</p>
+        {% endif %}
+      </section>
+
+      <section class="analysis-panel session-insights-run-history" aria-labelledby="session-insights-run-history-title">
+        <div class="session-insights-run-history-heading">
+          <div>
+            <p class="eyebrow">ANALYSIS HISTORY</p>
+            <h2 id="session-insights-run-history-title">개선 Run 이력</h2>
+            <p>각 실행의 상태와 보고서를 다시 열 수 있습니다.</p>
+          </div>
+        </div>
+        {% if insight_runs %}
+          <div class="session-insights-run-list" aria-label="개선 Run 목록">
+            {% for item in insight_runs %}
+              <a class="session-insights-run-row {% if selected_run and item.id == selected_run.id %}is-current{% endif %}" href="/sessions-dashboard/insights?run={{ item.id }}{% if request.query_params.get('before') %}&amp;before={{ request.query_params.get('before') }}{% endif %}#session-insights-run-detail" {% if selected_run and item.id == selected_run.id %}aria-current="true"{% endif %}>
+                <span class="session-insights-run-summary-main"><strong>{{ item.title or (item.question if item.mode == 'ask' else '개선 기회 찾기') }}</strong><span>{{ value_label("insight-run.mode", item.mode) }} · {{ value_label("insight-run.runner", item.runner) }} / {{ item.resolved_model or item.model }}</span></span>
+                <span class="session-insights-run-row-meta"><time datetime="{{ item.created_at }}" data-local-date-time-stacked>{{ item.created_at }}</time><span class="session-insights-status session-insights-status-{{ item.status }}">{{ value_label("insight-run.status", item.status) }}</span></span>
+              </a>
+            {% endfor %}
+          </div>
+          {% if has_more_runs %}<a class="session-insights-older-runs" href="/sessions-dashboard/insights?before={{ next_before }}#session-insights-run-history-title">이전 Run 보기</a>{% endif %}
+        {% else %}
+          <p class="session-insights-history-empty">아직 실행한 분석이 없습니다. 질문하거나 개선 기회를 찾아보세요.</p>
+        {% endif %}
+      </section>
+
+      {% if selected_run %}
+        <section class="analysis-panel session-insights-run-detail" id="session-insights-run-detail" aria-labelledby="session-insights-run-detail-title" {% if selected_run.status in ('queued', 'running') %}data-insight-active-run-id="{{ selected_run.id }}"{% endif %}>
+          <div class="session-insights-run-detail-heading">
+            <div>
+              <p class="eyebrow">RUN REPORT</p>
+              <h2 id="session-insights-run-detail-title">{{ selected_run.title or (selected_run.question if selected_run.mode == 'ask' else '개선 기회 찾기') }}</h2>
+              <p><span class="session-insights-status session-insights-status-{{ selected_run.status }}">{{ value_label("insight-run.status", selected_run.status) }}</span> · {{ value_label("insight-run.runner", selected_run.runner) }} / {{ selected_run.resolved_model or selected_run.model }} · <time datetime="{{ selected_run.created_at }}" data-local-date-time-stacked>{{ selected_run.created_at }}</time></p>
+            </div>
+            {% if report_html %}<a class="secondary-button" href="/sessions-dashboard/insights/runs/{{ selected_run.id }}/download">Markdown 다운로드</a>{% endif %}
+          </div>
+          <div class="session-insights-run-facts">
+            <span>세션 {{ selected_coverage.selected_sessions }}개 · 발췌 {{ selected_coverage.selected_excerpts }}개</span>
+            {% if selected_usage %}
+              {% if selected_usage.input_tokens is defined or selected_usage.output_tokens is defined %}
+                <span>입력 {{ "{:,}".format(selected_usage.input_tokens or 0) }} · 출력 {{ "{:,}".format(selected_usage.output_tokens or 0) }} tokens</span>
+              {% endif %}
+              {% if selected_usage.total_cost_usd is defined %}<span>실행기 보고 비용 ${{ "%.2f"|format(selected_usage.total_cost_usd) }}</span>{% endif %}
+            {% endif %}
+            <span>가이드 {{ selected_run.guide_version }}</span>
+          </div>
+          <details class="session-insights-run-settings-detail">
+            <summary>실행 범위와 설정</summary>
+            <dl>
+              <div><dt>선택 모델</dt><dd>{{ selected_run.model }}</dd></div>
+              <div><dt>Codex 프로필</dt><dd>{{ selected_settings.profile }}</dd></div>
+              <div><dt>실제 모델</dt><dd>{{ selected_run.resolved_model or ('실행기 응답 대기' if selected_run.status in ('queued', 'running') else '실행기에서 확인되지 않음') }}</dd></div>
+              <div><dt>추론 수준</dt><dd>{{ selected_settings.reasoning_effort }}</dd></div>
+              <div><dt>도구</dt><dd>사용 안 함</dd></div>
+              <div><dt>대화 기록</dt><dd>세션으로 저장 안 함</dd></div>
+              <div><dt>근거</dt><dd>업무 세션 {{ selected_coverage.selected_sessions }}개 · 발췌 {{ selected_coverage.selected_excerpts }}개</dd></div>
+              <div><dt>실행 규격</dt><dd>{{ selected_settings.policy_version }}</dd></div>
+            </dl>
+          </details>
+          {% if report_html %}
+            {% if reference_states and (reference_states.stale or reference_states.unavailable) %}
+              <p class="session-insights-evidence-notice" role="status">인용한 세션 근거 중 {{ reference_states.stale }}개가 변경되었고 {{ reference_states.unavailable }}개를 현재 찾을 수 없습니다. 보고서에는 실행 당시 발췌가 남아 있습니다.</p>
+            {% elif reference_states is none %}
+              <p class="session-insights-evidence-notice" role="status">현재 세션 근거 상태를 확인하지 못했습니다. 저장된 보고서는 그대로 볼 수 있습니다.</p>
+            {% endif %}
+            <article class="session-insights-rendered-report markdown-body">{{ report_html }}</article>
+          {% elif selected_run.status in ('queued', 'running') %}
+            <div class="session-insights-progress" role="status" aria-live="polite">
+              <p>{{ '분석을 준비하고 있습니다.' if selected_run.status == 'queued' else '선택한 세션을 분석하고 있습니다.' }}</p>
+              <p>화면을 닫아도 실행 이력에 상태가 남습니다. 완료되면 이 화면이 갱신됩니다.</p>
+              <form action="/sessions-dashboard/insights/runs/{{ selected_run.id }}/cancel" method="post"><button class="secondary-button" type="submit">실행 중지</button></form>
+            </div>
+          {% else %}
+            <div class="session-insights-progress" role="status"><p>{{ selected_run.error or '보고서가 생성되지 않았습니다.' }}</p></div>
+          {% endif %}
+          <div class="session-insights-run-detail-footer">
+            <span>Run {{ selected_run.id }} · 원본은 로컬 비공개 저장소에 보관됩니다.</span>
+            {% if selected_run.status not in ('queued', 'running') %}
+              <form action="/sessions-dashboard/insights/runs" method="post">
+                <input type="hidden" name="runner" value="{{ selected_run.runner }}">
+                <input type="hidden" name="question" value="{{ selected_run.question or '' }}">
+                <button class="secondary-button" type="submit" name="mode" value="{{ selected_run.mode }}">새 Run으로 다시 분석</button>
+              </form>
+            {% endif %}
+          </div>
+        </section>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

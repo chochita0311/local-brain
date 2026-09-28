@@ -3,10 +3,10 @@
 ## Metadata
 
 - ID: `prd-0005`
-- Status: `draft`
+- Status: `approved`
 - Owner role: `human`
 - Created: `2026-07-18`
-- Updated: `2026-07-18`
+- Updated: `2026-09-27`
 
 ## Request Summary
 
@@ -19,6 +19,8 @@
 
 - Analyze Claude Code and Codex Session history to understand what work occurred, which tools and file types were used, when activity was concentrated, which topics or errors repeated, and which processes could become reusable skills.
 - Show frequently used skills separately from inferred skill candidates.
+- Show a complete, descending list of observed skill-use counts with the most-used skill first. Keep a use counted after its local Session disappears, and add only newly observed uses when an older Session resumes.
+- Use the skill ranking as the first part of a future Session-evidence-based view that identifies frequent questions, recurring work patterns, possible skills, and opportunities to improve how work is done.
 - Keep the insight experience understandable rather than turning raw activity volume into a productivity score.
 - Treat cavemem as a reference implementation, not a LocalBrain connector or data source.
 - Remove architecture and roadmap language that made cavemem appear to be an intended LocalBrain source; that durable boundary was aligned on 2026-07-18.
@@ -39,9 +41,13 @@
 - [Project Backlog](../project/backlog.md): Session-derived workflow and skill metrics, topic-analysis mechanism, evidence thresholds, and dashboard work.
 - [Design Evaluation](../../policies/design/design-evaluation.md): dashboard hierarchy, readability, containment, source-use discipline, and rendered evidence.
 - [Interaction Evaluation](../../policies/experience/interaction-evaluation.md): scope transitions, browse-to-evidence continuity, selection, disclosure, and feedback.
-- [PRD-0004](prd-0004-session-usage-and-cost-dashboard.md): sibling draft for token usage and monetary observability.
+- [PRD-0004](prd-0004-session-usage-and-cost-dashboard.md): passed sibling scope for token usage and monetary observability.
+- [Official OpenAI Build skills documentation](https://learn.chatgpt.com/docs/build-skills): Codex skill activation can be explicit or implicit and selected skills load their full instructions; it does not define LocalBrain's source-log counting signal.
 
-### Current Implementation References
+### Planning-Baseline Implementation References
+
+These references describe the source state inspected before the first skill-ranking
+increment. The linked child Features and current code own its later implementation.
 
 - `src/localbrain/ingest/claude.py` and `src/localbrain/ingest/codex.py`: current normalization of messages and tool names from authoritative local Session JSONL.
 - `src/localbrain/ingest/common.py`: Parsed Session and Activity Event contracts, maintenance classification, and deterministic identity.
@@ -51,11 +57,13 @@
 - `src/localbrain/workstreams.py` and related routes: current reviewable Suggestion and evidence-link behavior.
 - `tests/`: synthetic Session parsing, parentage, maintenance exclusion, retrieval, query, route, and UI contract evidence.
 
-## Current Findings
+## Planning-Baseline Findings
 
 - LocalBrain already collects Claude and Codex Sessions directly and preserves authoritative source identity, timestamps, messages, tool names, Project relations, primary or subsession roles, and maintenance classification.
 - The current parser intentionally omits opaque tool inputs and result payloads. As a result, current normalized data cannot yet reproduce touched-file, file-extension, error, stack-trace, attempted-solution, or command-sequence reports without a new bounded signal contract.
 - Current `dashboard_stats`, `top_tools`, Project activity, and context-switch queries provide early descriptive signals but do not define active work duration, repeated workflow identity, topic classification, error equivalence, skill invocation, or evidence thresholds.
+- At the planning baseline, `activity_events` retained tool names but not skill identities from Claude `Skill` tool inputs or Codex-generated `<skill>` records. Its rows are replaced when a Session is refreshed and deleted with that Session, so it could not own the requested lifetime count.
+- A bounded local Codex source inspection found generated `<skill>` message records with native IDs and turn IDs, but also a case where a skill was applied after its `SKILL.md` was read directly without a generated `<skill>` message. The former signal alone therefore undercounts some actual uses; file reads alone can also include inspection or editing rather than use. This informed the first increment's explicit admitted-signal rule and coverage state.
 - Cavemem's useful reference contribution is its low-friction capture model, explicit capture coverage, database and worker health, and behavior-report categories. Its database, JSONL export, worker, embedding pipeline, and viewer are not LocalBrain product dependencies.
 - Source session start and end timestamps can include idle time or incomplete lifecycle coverage. Raw wall-clock duration must not be presented as focused work time without an inactivity rule and source caveat.
 - Tool frequency, prompt count, token count, file access, and active hours are activity indicators rather than outcome or productivity scores.
@@ -68,6 +76,13 @@
 - Preserve useful tacit knowledge such as recurring errors, repeated questions, file relationships, solution paths, and workflow sequences while keeping source evidence and uncertainty visible.
 
 ## Confirmed Scope
+
+### First Increment Boundary
+
+- Deliver the `Insights` destination and the observed skill-use ranking first. The initial view shows the leading skill and the complete descending list of skills with recorded use.
+- Show the first ranking over all observed time, independently of Usage & Cost's date and metric controls, without a separate period label.
+- Backfill currently available Claude and Codex Session sources once, then add only distinct new observations when changed or resumed Sessions are synchronized. Preserve already observed use after ordinary source disappearance.
+- Keep the Usage & Cost route's initial query path independent of Insights analysis. Defer repeated-question analysis, workflow-pattern detection, improvement suggestions, and automatic skill actions to separately reviewed later Features.
 
 ### Direct Source And Signal Contract
 
@@ -123,15 +138,15 @@
 ### Explicit Skill Usage
 
 - Record a skill as used only when LocalBrain can identify an explicit invocation or another approved source-backed usage signal.
+- For the first increment, admit a Claude `Skill` tool invocation with a native call ID and skill name, or a Codex-generated `<skill>` load record with a native message ID and skill name. A literal `$skill` mention and a direct `SKILL.md` file read do not count. Retain source coverage so an incomplete sync is distinguishable from an observed zero, without requiring an explainer line in the ranking view.
+- List every skill with at least one observed use, including skills no longer installed. Do not add currently installed skills with zero observed uses to this list.
+- Sum observed-use counts under the same normalized skill name across Claude Code, Codex, and Codex Company for the displayed ranking, while retaining each observation's original source and locator for provenance.
+- Retain each distinct, once-observed skill use as a historical observation after its local Session or source file disappears. Source disappearance alone does not subtract an observed use; the first view does not expose Session evidence.
+- Count a newly observed invocation from a resumed Session once, even if the Session was imported before. Repeated scans, retries, file moves, and replayed source records must not add the same invocation again.
+- Derive the ranked display from bounded, individually identified skill-use observations, without rereading every Session transcript on each dashboard visit. A stored total is not the only evidence for a count.
 - Show frequently used skills separately from inferred skill candidates.
-- For explicit skill usage, show at minimum:
-  - stable skill identity and readable name
-  - invocation count
-  - distinct Session count
-  - Project or Workstream distribution when known
-  - last-used time
-  - source coverage or missing-signal caveat
-  - evidence links
+- Keep the first list compact: show a readable skill name, observed-use count, and last recorded use time, highest count first. The last-use time comes from the newest admitted observation timestamp, not the latest sync. Keep source and native Session identity in the data contract, but omit row-level source and Session detail from the first view.
+- Distinct Session count and Project or Workstream distribution may be added in a later Workflow Intelligence view once their scope and evidence rules are approved.
 - Do not infer skill success, quality, or impact from invocation count alone.
 - Keep model, source, status, and skill identity as separate visual and semantic roles.
 
@@ -152,7 +167,8 @@
 
 ### Information Architecture
 
-- Keep Workflow Intelligence separate from the PRD-0004 Usage and Cost Overview, either as a clearly labeled local view or another bounded surface chosen during Feature review.
+- Place broader Workflow Intelligence in a peer `Insights` view within the Sessions Dashboard family. In the Usage & Cost heading, replace the redundant `세션 보기` action with an `Insights` navigation button; the persistent LNB already links to `Sessions`. In the Insights heading, provide a reciprocal `Usage & Cost` action. This pair switches between the two views like tabs without adding a separate tab row. Give each view its own route and load its data only when selected, preserving the fast initial usage overview. The owner confirmed this navigation on 2026-09-27.
+- Make the observed-skill ranking the first bounded section of Insights: show the most-used skill immediately and the complete descending list beneath it. Add frequent questions, recurring work patterns, and reviewable improvement or skill suggestions as later sections when their evidence contracts are approved. Do not introduce a narrow left or right rail for the list.
 - The primary reading order is:
   - period, source, Project, or Workstream scope
   - concise personal workflow summary
@@ -184,13 +200,15 @@
 - Mandatory external embeddings, external AI analysis, or network enrichment.
 - A new multi-user identity, authorization, synchronization, or cloud architecture.
 - Token and monetary reporting already owned by PRD-0004.
-- Feature, Spec, schema, parser, query, template, or implementation work before this draft boundary is approved.
 
 ## Uncertainty
 
 - Define the active-time idle threshold, minimum segment length, overlapping Session behavior, and source-specific fallback when no reliable Session end exists.
-- Confirm whether the first product release covers both Claude and Codex or begins with a Claude-first evidence set while retaining a source-neutral contract; source rollout must follow actual file, error, and skill-signal coverage rather than assuming parity.
+- The first skill-ranking release covers available Claude and Codex source files; future workflow-signal rollout must follow actual file and error evidence coverage rather than assuming parity.
 - Determine which Claude and Codex records provide reliable file-operation, tool-result, error, and explicit skill-invocation evidence without retaining excessive raw payloads.
+- The owner chose explicit load/invocation records only for the first release: Claude `Skill` tool-use IDs and Codex-generated `<skill>` message IDs. Direct `SKILL.md` reads and literal `$skill` mentions are excluded. Define replay and duplicate handling from native IDs, and disclose that some actual uses may have no admitted source signal.
+- The owner chose same-name aggregation across sources for the displayed ranking. Preserve source-specific identity beneath that presentation group for later provenance work; the first view shows only the combined count.
+- Define correction semantics for a previously counted observation when a parser error is fixed or a source record is later rewritten, while preserving the requested count after ordinary source disappearance.
 - Decide whether error evidence stores only a deterministic signature and bounded excerpt or also a local pointer that rereads the authoritative source on demand.
 - Define when a later action qualifies as an applied solution and when an error can be considered resolved rather than merely followed by different activity.
 - Choose initial topic analysis between deterministic rules, a local model, or an explicitly approved model path. General external analysis is not authorized.
@@ -199,9 +217,9 @@
 - Decide whether analysis uses primary work Sessions only, attributes direct subsession activity to its parent, or exposes separately scoped child activity. Maintenance activity should not silently affect personal workflow interpretation.
 - Decide whether Project and Workstream distribution uses only source-time relations or later user-confirmed organization as an additional view.
 - Decide whether a reviewed insight may be exported as a personal retrospective or Wiki draft in a later Feature; no external destination or write behavior is currently approved.
-- Choose the final entry interaction: a local `Workflow Insights` view under Sessions Dashboard, a separate route, or another bounded dashboard-family surface.
+- The first `Insights` route is `/sessions-dashboard/insights`, paired with `/sessions-dashboard` through reciprocal heading actions; later navigation changes require a separate review.
 
-These items may remain open while the PRD is `draft`, but each must be resolved before a dependent Feature is approved for Spec handoff.
+These items may remain open at the PRD level, but each must be resolved before a dependent Feature is approved for Spec handoff.
 
 ## User-Visible Flows And Interaction Expectations
 
@@ -233,7 +251,7 @@ These items may remain open while the PRD is `draft`, but each must be resolved 
 ## Constraints
 
 - Explicit human direction and the approved PRD boundary govern scope.
-- Claude and Codex source files remain authoritative. Workflow signals, clusters, topics, signatures, and skill candidates are derived and rebuildable.
+- Claude and Codex source files remain authoritative for extraction while present. Once-observed explicit skill uses are retained as historical local facts when a source disappears, with unavailable original evidence clearly distinguished from currently inspectable evidence. Other workflow signals, clusters, topics, signatures, and skill candidates remain derived and rebuildable.
 - LocalBrain remains local-first and single-user; analysis runs without requiring cavemem or an external service.
 - Captured and derived facts preserve source identity, Session identity, time, and evidence references.
 - Generated insight never becomes user-confirmed fact or a created skill without an explicit review and later approved action.
@@ -241,7 +259,7 @@ These items may remain open while the PRD is `draft`, but each must be resolved 
 - Raw tool inputs and outputs remain bounded by the minimum signal needed for the approved analysis and by [Privacy And Data Handling](../../policies/project/privacy-and-data.md).
 - The likely execution model begins with one or more `foundation-contract` Features for signal, duration, error, topic, workflow, and skill identity, followed by `fullstack-product` Features for insight and review surfaces.
 - Visible Features require Contract, Design, Functional, and UX Heuristic evaluation as applicable, including evidence navigation, long content, empty, partial, stale, and responsive states at representative `1440`, `920`, `700`, and `320` widths.
-- This PRD remains planning-only while `draft`. Feature creation, Spec work, parser or schema changes, and implementation require the repository's human approval gates.
+- The owner accepted this upper boundary and directed the first increment on 2026-09-27. Feature, Spec, and implementation boundaries still follow the repository's separate approval gates.
 
 ## Acceptance Envelope
 
@@ -251,6 +269,7 @@ These items may remain open while the PRD is `draft`, but each must be resolved 
 - Raw activity volume is never labeled or ranked as productivity, performance, quality, or business value.
 - Repeated errors, questions, workflows, and knowledge candidates link to representative source-backed evidence and distinguish observation from inference.
 - Explicit skill use and inferred skill candidates remain separate in data, wording, status, and presentation.
+- Reimporting or reopening a Session adds only distinct new skill uses, and deleting its local file does not reduce the historical observed-use total or leave a broken evidence link presented as current.
 - Every skill candidate states recurrence evidence, confidence, source limitations, likely benefit, and overlap with existing skills when available.
 - Skill candidates are reversible and reviewable and cannot create, install, publish, or modify a skill without a separately approved action.
 - The insight surface remains usable without cavemem installed and contains no cavemem source, import, connector, or compatibility behavior.
@@ -260,7 +279,14 @@ These items may remain open while the PRD is `draft`, but each must be resolved 
 
 ## Candidate Features
 
+The first skill-ranking increment has passed its foundation and product
+evaluations in [RUN-123](../run/run-20260928-123-skill-observation-retention.md)
+and [RUN-124](../run/run-20260928-124-first-session-insights-view.md).
+Unlinked entries below remain proposals.
+
 - `Session Insight Signal Contract` (`foundation`, `data`): define active segments, tool operations, file facts, error signatures, solution relations, topic facts, explicit skill events, provenance, and analysis freshness.
+- [Skill Observation And Retention](../feature/feat-0105-skill-observation-retention.md) (`foundation`, `data`; `passed`): source-backed invocation identity, idempotent incremental capture, retained history after Session removal, correction, and evidence availability independently of the broader insight signals.
+- [First Session Insights View](../feature/feat-0106-first-session-insights-view.md) (`product`, `fullstack`; `passed`): observed-use ranking and reciprocal navigation with Usage & Cost.
 - `Personal Workflow Report` (`product`, `fullstack`): present period-scoped activity concentration, tools, file types, topics, Projects or Workstreams, and context-switching signals without productivity scoring.
 - `Repeated Pattern Contract` (`foundation`, `data`): define error, question, workflow, recurrence, confidence, and evidence-link semantics independently of presentation.
 - `Repeated Error And Workflow Insights` (`product`, `fullstack`): consume the approved pattern contract and expose evidence-backed review surfaces.
@@ -268,7 +294,7 @@ These items may remain open while the PRD is `draft`, but each must be resolved 
 - `Reviewable Skill Suggestions` (`product`, `fullstack`): compare repeated workflows with existing skills and provide reversible, evidence-backed candidates without creating skill files.
 - `Reviewed Insight Export` (`product`, deferred candidate): export a user-reviewed retrospective or documentation draft through a separately approved local or external boundary.
 
-Feature documents are not created from this draft PRD until the human owner accepts its boundary. Signal contracts must be approved before product Features rely on duration, topic, error, workflow, or skill facts.
+The owner accepted the PRD boundary on 2026-09-27 and directed the first skill-ranking increment. Signal contracts must be approved before product Features rely on duration, topic, error, workflow, or skill facts.
 
 ## Source Map
 
@@ -288,3 +314,9 @@ Feature documents are not created from this draft PRD until the human owner acce
 - `2026-07-18`: fixed cavemem's role as reference-only and excluded database or JSONL import, source adapter, connector, compatibility, worker, viewer, embedding, and runtime dependency behavior.
 - `2026-07-18`: separated observed activity, normalized facts, inferred patterns, user-confirmed interpretation, explicit skill use, and inferred skill candidates to preserve provenance and reviewability.
 - `2026-07-18`: kept active-time rules, source evidence coverage, topic mechanism, error-resolution semantics, suggestion thresholds, subsession scope, installed-skill lookup, and export behavior open for human review.
+- `2026-09-27`: the owner requested a simple ranked skill-use list, lifetime retention after a Session disappears, and incremental counting when an older Session resumes. The owner confirmed that the complete list includes observed-use skills only, regardless of current installation. The initial compact inline recommendation was superseded when the owner clarified the intended future page: Session-backed analysis of frequent questions, work patterns, needed skills, and improvement opportunities. The proposed view is Insights with skill ranking first; signal admission, source identity, and correction remain open before approval.
+- `2026-09-27`: the owner chose the existing `세션 보기` heading-action position for the Insights entry because `Sessions` already exists in the LNB, then confirmed reciprocal, tab-like view switching. The extra tab row is dropped; the Insights heading will offer a Usage & Cost return action.
+- `2026-09-27`: after the navigation and first-increment scope were presented, the owner directed work to proceed. This accepts the PRD boundary for feature planning, with only the first skill-ranking increment now selected for implementation; later pattern and suggestion features retain their own feature-review gates.
+- `2026-09-27`: the owner chose to sum skill-use counts by the same name across Claude and Codex sources in the visible ranking; individual source observations remain distinct evidence.
+- `2026-09-27`: the owner chose explicit source load/invocation signals for counting and excluded direct `SKILL.md` file reads because they can represent inspection or editing. Coverage remains a visible limit of the first ranking.
+- `2026-09-27`: the owner removed the `All time` and signal-coverage explainer line and the source/Session row disclosure from the first Insights view. Historical counts remain in storage, and incomplete synchronization still has a bounded state notice.

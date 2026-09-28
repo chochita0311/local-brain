@@ -216,14 +216,20 @@ class UsageDashboardTests(unittest.TestCase):
         )
         self.assertEqual(result["summary"][1]["value"], "680")
         self.assertEqual(result["summary"][1]["detail"], "4 usage records")
-        self.assertTrue(any("3 of 4" in item for item in result["limitations"]))
+        self.assertFalse(any("Estimated cost covers" in item for item in result["limitations"]))
         self.assertTrue(all("usage facts" not in item for item in result["limitations"]))
         self.assertEqual(result["breakdown"]["mode"], "source")
         self.assertEqual(
             [(row["label"], row["tokens"]) for row in result["breakdown"]["rows"]],
             [("Codex", 510), ("Claude", 170)],
         )
-        self.assertEqual(result["breakdown"]["rows"][0]["share_label"], "75.0%")
+        self.assertEqual(result["scope"]["metric"], "cost")
+        self.assertEqual(result["breakdown"]["rows"][0]["share_label"], "79.2%")
+        tokens = usage_dashboard_data(
+            self.connection, metric="tokens", timezone_name="UTC",
+            today=date(2026, 7, 18),
+        )
+        self.assertEqual(tokens["breakdown"]["rows"][0]["share_label"], "75.0%")
 
     def test_usage_record_count_copy_handles_singular_values(self):
         self._seed_usage()
@@ -296,7 +302,7 @@ class UsageDashboardTests(unittest.TestCase):
         )
         self.assertEqual(
             all_usage["breakdown"]["compatible_total_label"],
-            all_usage["summary"][1]["value"],
+            all_usage["summary"][0]["value"],
         )
 
         invalid = usage_dashboard_data(
@@ -415,6 +421,7 @@ class UsageDashboardTests(unittest.TestCase):
         cumulative = usage_dashboard_data(
             self.connection,
             view="cumulative",
+            metric="tokens",
             timezone_name="UTC",
             today=date(2026, 7, 18),
         )
@@ -490,7 +497,11 @@ class UsageDashboardTests(unittest.TestCase):
         )
         self.assertEqual(unpriced["summary"][0]["value"], "Unavailable")
         self.assertEqual(unpriced["history"][0]["value_label"], "$0.0000")
-        self.assertTrue(any("0 of 1" in item for item in unpriced["limitations"]))
+        self.assertEqual(
+            unpriced["summary"][0]["detail"],
+            "0 of 1 usage record priced · trend estimate",
+        )
+        self.assertFalse(unpriced["limitations"])
 
     def test_model_and_project_breakdowns_preserve_raw_and_snapshot_identity(self):
         self._seed_usage()

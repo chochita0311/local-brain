@@ -19,7 +19,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Presentation mode: `logical-label`
 - Labels: `direct` → 이 Session만; `includes_children` → 하위 Session 포함
 - Help: 토큰 합계에 포함된 Session 범위입니다.
-- Visible consumer inventory: `src/localbrain/templates/sessions_dashboard.html` (registry-backed)
+- Visible consumer inventory: none.
 
 ## `usage.capability-state`
 
@@ -35,7 +35,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Presentation mode: `logical-label`
 - Labels: `complete` → 완전함; `partial` → 일부만 있음; `malformed` → 형식 오류
 - Help: 원본 사용량 필드가 계산에 충분한지 나타냅니다.
-- Visible consumer inventory: `src/localbrain/templates/sessions_dashboard.html` (registry-backed)
+- Visible consumer inventory: none.
 
 ## `usage.calculation-state`
 
@@ -51,7 +51,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Presentation mode: `logical-label`
 - Labels: `priced` → 비용 계산됨; `unpriced` → 가격 정보 없음; `partial` → 일부만 계산됨; `failed` → 계산 실패
 - Help: 비용은 실제 청구액이 아닌 현재 가격표 기반 추정치입니다.
-- Visible consumer inventory: `src/localbrain/templates/sessions_dashboard.html` (registry-backed)
+- Visible consumer inventory: none.
 
 ## `usage.attribution-basis`
 
@@ -67,7 +67,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Presentation mode: `logical-label`
 - Labels: `git_root` → Git 루트 일치; `workspace_path` → 작업 경로 일치; `unassigned` → Project 미지정
 - Help: 사용량을 Project에 연결한 근거입니다.
-- Visible consumer inventory: `src/localbrain/templates/sessions_dashboard.html` (registry-backed)
+- Visible consumer inventory: none.
 
 ## `usage.freshness`
 
@@ -83,7 +83,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Presentation mode: `logical-label`
 - Labels: `current` → 최신; `stale` → 다시 동기화 필요; `error` → 동기화 오류; `not_synchronized` → 동기화 전
 - Help: 사용량 원본의 최근 동기화 상태입니다.
-- Visible consumer inventory: `src/localbrain/templates/sessions_dashboard.html` (registry-backed)
+- Visible consumer inventory: none.
 
 ## Explicit Exclusions
 

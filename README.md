@@ -19,6 +19,11 @@ The current MVP runs as a FastAPI web application on the local machine. A native
 - Maintain versioned checkpoints and review reversible resource Suggestions.
 - Run Claude maintenance tasks for resource organization, checkpoint drafting, and priority review.
 - Inspect source-aware Session inventory, pinned recall, related evidence, and token or estimated-cost history.
+- Compare Sessions Dashboard usage by source and Daily, Weekly, or Monthly range; Monthly shows each month's total. Estimated cost uses dated OpenAI and Anthropic model rates, including GPT-6 Astra and Sol. Codex Standard/Fast is selected from recorded thread settings when available; early GPT-5.6 Priority prices use a marked historical 2x estimate. Spark uses an explicitly labeled ccusage 20.0.17 GPT-5.3-Codex proxy, and historical GPT-5.6 or GPT-5.5 Fast requests above 272K input tokens use a separate labeled ccusage-style long-context estimate where no applicable Fast rate was published. The USD amount is an API-equivalent trend estimate, not a subscription charge; other models without their own published rate remain unpriced, and unsupported model/tier/context combinations remain partial. Zero-token Codex snapshots are omitted from dashboard totals, partial pricing coverage remains marked, and source synchronization details remain on Sources.
+- Change either Sessions Dashboard calendar date to show that period immediately; the history chart skips empty dates before the first and after the last value in a custom range, with daily labels at both ends and each month's 1st and 15th.
+- Cost history opens first; the chart switch places Cost before Tokens, and bar-top labels use whole-number compact values.
+- Compare Source, Model, and Project composition in one table with shared column headings for Tokens, Cost, Sessions, and share; expand the list to see additional groups.
+- Switch the Sessions Dashboard heading between Usage & Cost and Insights. Insights ranks every skill with an observed explicit load across Claude Code and Codex sources, shows each skill's last recorded use, sums matching names, and retains counts after a local Session file disappears. Direct `SKILL.md` reads do not count. The adjacent improvement analyzer accepts a question or discovers opportunities from bounded primary-work Session excerpts. One explicit click starts one analysis-only Codex CLI Run; its status, observed usage, source-backed Markdown report, repeatable download, and earlier Runs remain available in Insights. Reanalysis creates a new Run.
 - Open `작업 흐름` from an eligible primary Session to inspect a deterministic
   Episode lineage, bounded branches, relation reasons, and grouped source
   evidence. Contextual Trace controls can preview and append reversible
@@ -30,7 +35,7 @@ Detailed behavior belongs to the [Product Model](docs/policies/project/product.m
 
 ## Quick Start
 
-LocalBrain currently targets macOS and requires Python 3.9 or later and [uv](https://docs.astral.sh/uv/). Claude CLI is required only for Claude-backed maintenance Runs; Codex CLI is required only when Codex is selected for external synchronization.
+LocalBrain currently targets macOS and requires Python 3.9 or later and [uv](https://docs.astral.sh/uv/). Claude CLI is required for Claude-backed maintenance Runs; Codex CLI is required for personal improvement analysis Runs and when selected for external synchronization.
 
 From the project root, install the Python dependencies and start LocalBrain:
 
@@ -40,6 +45,10 @@ uv run --no-sync uvicorn localbrain.main:app --host 127.0.0.1 --port 8000
 ```
 
 Open `http://127.0.0.1:8000`. The local database is created automatically on first startup. Stop the server with `Ctrl+C`.
+
+### Run a personal improvement analysis
+
+Open **Sessions Dashboard → Insights**, enter a question and select **질문 분석**, or select **개선 기회 찾기** without a question. Starting a Run sends selected local Session excerpts to the model service through Codex CLI and may use substantial tokens. The report appears below the Run list when complete. Use **Markdown 다운로드** to save a copy for a separate work Session; repeating an analysis creates a new Run and preserves the earlier report. The default model is `gpt-6-astra`; the profile and model chosen for each Run are retained with its history. See the [Developer Guide](docs/policies/project/developer-guide.md#personal-improvement-analysis) for profile and model configuration.
 
 ### Explore The Full-History Affinity Map
 

@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional
 from .common import (
     ApprovedResourceCall,
     ParsedEvent,
+    ParsedSkillObservation,
     ParsedSession,
     ParsedUsageRecord,
     approved_resource_call,
@@ -21,10 +22,11 @@ from .common import (
     visible_reference_candidates,
     visible_url_evidence,
 )
+from ..official_pricing import select_snapshot
 
 
-CLAUDE_USAGE_CONTRACT_VERSION = "claude-message-usage-v2-source-repair"
-CLAUDE_SESSION_CONTRACT_VERSION = "claude-session-v1"
+CLAUDE_USAGE_CONTRACT_VERSION = "claude-message-usage-v3-official-pricing"
+CLAUDE_SESSION_CONTRACT_VERSION = "claude-session-v2-skill-observations"
 
 
 def _message_content(record: Dict[str, Any]) -> Any:
@@ -72,6 +74,7 @@ def _claude_usage_record(
     cache_write_source = usage.get("cache_creation_input_tokens")
     cache_creation = usage.get("cache_creation")
     nested_cache_write = None
+    one_hour_cache_write = None
     if isinstance(cache_creation, dict):
         cache_values = [
             cache_creation.get("ephemeral_1h_input_tokens", 0),
@@ -82,6 +85,7 @@ def _claude_usage_record(
             for value in cache_values
         ):
             nested_cache_write = sum(cache_values)
+            one_hour_cache_write = cache_values[0]
         else:
             nested_cache_write = "malformed"
     if cache_write_source is None:
@@ -106,6 +110,8 @@ def _claude_usage_record(
         component_states["cache_write_source"] = "aggregate"
     cache_write_tokens, cache_write_state = token_value(cache_write_source)
     component_states["cache_write_tokens"] = cache_write_state
+    if one_hour_cache_write is not None:
+        component_states["cache_write_1h_tokens"] = one_hour_cache_write
     malformed = malformed or cache_write_state == "malformed"
 
     cache_read_source = usage.get("cache_read_input_tokens", 0)
@@ -170,6 +176,7 @@ def _claude_usage_record(
         ),
         capability_state=capability_state,
         capability=component_states,
+        price_snapshot_id=select_snapshot("claude", raw_model, timestamp),
     )
 
 
@@ -181,6 +188,7 @@ def parse_claude_session(path: Path) -> ParsedSession:
     first_user_text = ""
     timestamps: List[str] = []
     events: List[ParsedEvent] = []
+    skill_observations: List[ParsedSkillObservation] = []
     usage_by_record: Dict[str, ParsedUsageRecord] = {}
     url_evidence = []
     reference_candidates = []
@@ -336,6 +344,26 @@ def parse_claude_session(path: Path) -> ParsedSession:
                     tool_name = item.get("name")
                     if isinstance(tool_name, str):
                         tool_use_id = item.get("id")
+                        tool_input = item.get("input")
+                        if (
+                            tool_name == "Skill"
+                            and isinstance(tool_use_id, str)
+                            and tool_use_id.strip()
+                            and isinstance(tool_input, dict)
+                            and isinstance(tool_input.get("skill"), str)
+                            and tool_input["skill"].strip()
+                        ):
+                            skill_observations.append(
+                                ParsedSkillObservation(
+                                    native_event_id=tool_use_id.strip(),
+                                    skill_name=tool_input["skill"].strip(),
+                                    signal_kind="claude_skill_tool",
+                                    source_line=line_number,
+                                    occurred_at=(
+                                        timestamp if isinstance(timestamp, str) else None
+                                    ),
+                                )
+                            )
                         if isinstance(tool_use_id, str):
                             call = approved_resource_call(
                                 tool_name, tool_use_id, item.get("input")
@@ -382,6 +410,7 @@ def parse_claude_session(path: Path) -> ParsedSession:
         session_role="subsession" if is_subsession else "primary",
         parent_external_id=parent_external_id,
         usage_records=list(usage_by_record.values()),
+        skill_observations=skill_observations,
         url_evidence=url_evidence,
         reference_candidates=reference_candidates,
     )

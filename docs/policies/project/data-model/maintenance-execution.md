@@ -1,8 +1,8 @@
-# Maintenance Execution
+# Run Execution
 
-<!-- schema-objects: maintenance_runs, external_sync_runs -->
+<!-- schema-objects: maintenance_runs, external_sync_runs, personal_insight_runs -->
 
-This subject owns the Task Runner's durable lifecycle, budgets, process metadata, artifact references, structured result, summary, and failure evidence. It does not own the artifact file contents or accepted organization changes.
+This subject owns durable local Run history. Maintenance and personal-insight Runs have separate tables and artifact roots; neither table is a parent of the other. The subject does not own artifact file contents or accepted organization changes.
 
 [Value Dictionary](value-dictionaries/maintenance-execution.md) owns this subject's bounded physical/logical/presentation mappings.
 
@@ -26,6 +26,13 @@ erDiagram
         string service
         string requested_scope_kind
         integer selected_target_count
+    }
+    PERSONAL_INSIGHT_RUNS {
+        string id PK
+        string mode
+        string status
+        string runner
+        string model
     }
     EXTERNAL_SOURCE_INSTANCES { integer id PK }
     SESSIONS { integer id PK string maintenance_run_id }
@@ -106,6 +113,48 @@ Constraints: fresh and upgraded databases include the optional Workstream foreig
 
 Constraints: the database enforces one-to-one parent ownership, both physical relations, non-negative selected count, and the scope vocabulary. The producer additionally enforces that only `external_source_sync` parents receive this row and that every projected value equals the validated manifest. Explicit indexes: `idx_external_sync_runs_source_instance`, `idx_external_sync_runs_scope`.
 
+### `personal_insight_runs`
+
+- Purpose and authority: one deliberate question or discovery analysis, with its own identity, frozen runner/model, evidence coverage, guide version, status, observed usage, and private report reference.
+- Lifecycle: append-only operational history; repeating an analysis creates a new ID. Terminal rows are retained until the owner explicitly deletes them through a future deletion action. The app never treats an analysis Run as a Workstream or ordinary work Session.
+- Producers: `personal_insight_runs.py` freezes a bounded primary-work evidence manifest, writes private artifacts, invokes the selected no-tools local CLI, validates the structured result against frozen source IDs, writes the Markdown report, and records a terminal status.
+- Consumers: Sessions Dashboard → Insights list/detail, status polling, cancellation, report download, and startup interruption reconciliation. The report is a separate-work-Session handoff artifact, not an automatic task.
+- Relations and deletion: no physical FK to `sessions`, `maintenance_runs`, or `workstreams`. This preserves historical evidence when indexed Session rows disappear and prevents an analysis conversation from becoming new behavioral evidence.
+- Recovery: restore both this database table and `personal-insight-runs/<id>/` under the private runtime data directory. The row alone cannot reproduce its frozen excerpts, prompt, model response, locally validated result, or Markdown report. Missing artifacts appear unavailable; a restart marks active Runs interrupted without silently re-calling a model.
+- DDL ownership: fresh idempotent definition and `idx_personal_insight_runs_created` / `idx_personal_insight_runs_status` in `schema.sql`; no rewrite of older rows is needed.
+
+| Column | Contract |
+| --- | --- |
+| `id` | `TEXT PRIMARY KEY`; unique `ins-` Run identity. |
+| `mode` | checked `ask` or `discover`. |
+| `question` | nullable bounded user question; absent for discovery. |
+| `status` | checked queued, running, completed, no-finding, failed, cancelled, or interrupted lifecycle. |
+| `runner` | checked Codex CLI executor. The selected local profile is frozen in `settings_json`. |
+| `model` | selected model identifier or CLI alias frozen before launch. |
+| `resolved_model` | observed exact model identifier when emitted by the CLI. |
+| `settings_json` | frozen Codex home/profile, high reasoning effort, no-tools, native-session-persistence, network-tool, filesystem, structured-result, and policy-version settings; selected core/playbook versions, SHA-256 digests, and route reason. |
+| `guide_version` | selected core-guide version. |
+| `evidence_version` | frozen evidence-manifest contract identity. |
+| `evidence_path` | private frozen selected-Session evidence file. |
+| `prompt_path` | private exact instruction and evidence sent to the runner. |
+| `response_path` | private structured model result file. |
+| `report_path` | private Markdown report; only this file is a user-facing download. |
+| `stream_path` | private bounded CLI event stream. |
+| `stderr_path` | private bounded process diagnostic stream. |
+| `coverage_json` | frozen selected and eligible Session/message counts. |
+| `usage_json` | nullable observed runner token and cost fields; not a projected ordinary work Session. |
+| `title` | nullable bounded generated report title. |
+| `error` | nullable bounded terminal failure reason. |
+| `pid` | nullable active local process ID, cleared at terminal status. |
+| `created_at` | UTC creation timestamp. |
+| `started_at` | nullable UTC process start timestamp. |
+| `completed_at` | nullable UTC terminal timestamp. |
+| `updated_at` | UTC last status change timestamp. |
+
+Constraints: `mode`, `status`, and `runner` use SQLite `CHECK` vocabularies; artifact paths, versions, and coverage are required. The independent Run identity has no Session or maintenance FK. Explicit indexes: `idx_personal_insight_runs_created`, `idx_personal_insight_runs_status`.
+
+The report's source value is also kept as private `validated-result.json` in the same Run artifact directory. It is an internal artifact with a deterministic path and no separate table column or user-facing download. The exact prompt preserves the selected guide text used for that Run, so later package revisions do not rewrite its evidence or explanation.
+
 ## Subject Recovery Boundary
 
-SQLite restores the Run state machine, external-sync query projection, and references; runtime storage restores the actual execution evidence. Neither is committed to Git. Restart reconciliation marks an abandoned active Run interrupted, finalizes the selected runner's linked Session, and retains already observed Usage Records; it does not silently resume a process, re-call a provider, or mutate Workstream organization.
+SQLite restores both independent Run state machines, the external-sync query projection, and references; runtime storage restores the actual execution evidence. Neither is committed to Git. Restart reconciliation marks an abandoned active Run interrupted. Maintenance Runs finalize their linked Sessions and retain observed Usage Records; personal-insight Runs use ephemeral CLI sessions and retain their own observed usage. Neither silently resumes a process, re-calls a provider, or mutates Workstream organization.

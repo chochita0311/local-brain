@@ -69,6 +69,54 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Help: none
 - Visible consumer inventory: none.
 
+## `skill-observation.provider-kind`
+
+- Physical field or projection: `skill_observations.provider_kind`
+- Allowed values: `claude`, `codex`
+- Enforcement: `schema-check`
+- Logical axis: skill-load source adapter
+- Default: `NULL`
+- Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
+- Producers: `src/localbrain/ingest/scanner.py`
+- Consumers: `src/localbrain/skill_observations.py`
+- Consequence: Retains the original Claude or Codex parser family even when the current Source row is unavailable.
+- Presentation mode: `internal-only`
+- Labels: none; the family is not visible on ordinary screens.
+- Help: none
+- Visible consumer inventory: none.
+
+## `skill-observation.signal-kind`
+
+- Physical field or projection: `skill_observations.signal_kind`
+- Allowed values: `claude_skill_tool`, `codex_skill_context`
+- Enforcement: `schema-check`
+- Logical axis: explicit skill-load signal
+- Default: `NULL`
+- Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
+- Producers: `src/localbrain/ingest/claude.py`, `src/localbrain/ingest/codex.py`
+- Consumers: `src/localbrain/skill_observations.py`
+- Consequence: Separates native Claude Skill calls from Codex-generated skill context without inferring use from file reads or mentions.
+- Presentation mode: `internal-only`
+- Labels: none; the family is not visible on ordinary screens.
+- Help: none
+- Visible consumer inventory: none.
+
+## `skill-observation.state`
+
+- Physical field or projection: `skill_observations.state`
+- Allowed values: `observed`, `corrected`
+- Enforcement: `schema-check`
+- Logical axis: historical observation validity
+- Default: `observed`
+- Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
+- Producers: `src/localbrain/skill_observations.py`, `src/localbrain/ingest/scanner.py`
+- Consumers: `src/localbrain/skill_observations.py`
+- Consequence: Only observed rows enter the ranking; maintenance or later proven-invalid records remain inspectable without counting.
+- Presentation mode: `internal-only`
+- Labels: none; the family is not visible on ordinary screens.
+- Help: none
+- Visible consumer inventory: none.
+
 ## `session-reference-scan.status`
 
 - Physical field or projection: `session_reference_scans.status`

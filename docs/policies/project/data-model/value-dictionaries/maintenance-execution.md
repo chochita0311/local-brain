@@ -133,6 +133,54 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Help: 각 대상의 승인된 원격 조회 결과입니다.
 - Visible consumer inventory: `src/localbrain/templates/atlassian-refresh.html` (registry-backed)
 
+## `insight-run.mode`
+
+- Physical field or projection: `personal_insight_runs.mode`
+- Allowed values: `ask`, `discover`
+- Enforcement: `schema-check`
+- Logical axis: personal analysis entry path
+- Default: `NULL`
+- Fallbacks: `null`: reject; `unknown`: label → 분석 방식 확인 필요; `invalid`: reject; `future`: label → 새 분석 방식
+- Producers: `src/localbrain/personal_insight_runs.py`
+- Consumers: `src/localbrain/personal_insight_runs.py`, `src/localbrain/templates/session_insights.html`
+- Consequence: Separates question-led analysis from owner-requested discovery.
+- Presentation mode: `logical-label`
+- Labels: `ask` → 질문 분석; `discover` → 개선 기회 찾기
+- Help: 이 Run을 시작한 방식입니다.
+- Visible consumer inventory: `src/localbrain/templates/session_insights.html` (registry-backed)
+
+## `insight-run.status`
+
+- Physical field or projection: `personal_insight_runs.status`
+- Allowed values: `queued`, `running`, `completed`, `no_finding`, `failed`, `cancelled`, `interrupted`
+- Enforcement: `schema-check`
+- Logical axis: personal analysis lifecycle
+- Default: `queued`
+- Fallbacks: `null`: reject; `unknown`: label → 상태 확인 필요; `invalid`: reject; `future`: label → 새 상태
+- Producers: `src/localbrain/personal_insight_runs.py`
+- Consumers: `src/localbrain/personal_insight_runs.py`, `src/localbrain/templates/session_insights.html`
+- Consequence: Controls report availability, polling, cancellation, and failure recovery.
+- Presentation mode: `logical-label`
+- Labels: `queued` → 대기 중; `running` → 분석 중; `completed` → 완료; `no_finding` → 발견 없음; `failed` → 실패; `cancelled` → 중지됨; `interrupted` → 중단됨
+- Help: 개인 개선 분석의 실행 상태입니다.
+- Visible consumer inventory: `src/localbrain/templates/session_insights.html` (registry-backed)
+
+## `insight-run.runner`
+
+- Physical field or projection: `personal_insight_runs.runner`
+- Allowed values: `codex`
+- Enforcement: `schema-check`
+- Logical axis: personal analysis runner
+- Default: `NULL`
+- Fallbacks: `null`: reject; `unknown`: label → 실행기 확인 필요; `invalid`: reject; `future`: label → 새 실행기
+- Producers: `src/localbrain/personal_insight_runs.py`
+- Consumers: `src/localbrain/personal_insight_runs.py`, `src/localbrain/templates/session_insights.html`
+- Consequence: Identifies the Codex CLI data-transfer path; settings freeze the local profile.
+- Presentation mode: `logical-label`
+- Labels: `codex` → Codex CLI
+- Help: 이 분석에 사용한 로컬 실행기입니다.
+- Visible consumer inventory: `src/localbrain/templates/session_insights.html` (registry-backed)
+
 ## Explicit Exclusions
 
 | Pattern | Owner | Reason |

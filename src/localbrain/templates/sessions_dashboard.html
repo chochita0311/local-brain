@@ -3,23 +3,32 @@
 {% block page_location %}Sessions Dashboard{% endblock %}
 {% block content %}
   {% macro breakdown_row(item) -%}
-    <div class="usage-breakdown-row">
-      <div class="usage-breakdown-identity">
-        <strong>{% if item.provider_kind %}<i class="source-indicator {{ item.provider_kind }}" aria-hidden="true"></i>{% endif %}{{ item.label }}</strong>
-        {% if usage.scope.breakdown == 'model' and item.raw_models %}<small>Raw: {{ item.raw_models | join(', ') }}</small>{% elif usage.scope.breakdown == 'project' %}<small>{{ 'No Project attribution at observation time' if item.key == 'unassigned' else 'First-observation Project snapshot' }}</small>{% else %}<small>Source provenance</small>{% endif %}
-      </div>
-      <dl class="usage-breakdown-values">
-        <div><dt>Tokens</dt><dd>{{ item.tokens_label }}</dd></div>
-        <div><dt>Est. cost</dt><dd>{{ item.cost_label }}</dd></div>
-        <div><dt>Sessions</dt><dd>{{ item.session_count }}</dd></div>
-        <div><dt>{{ usage.scope.metric | title }} share</dt><dd>{{ item.share_label }}</dd></div>
-        <div><dt>Last activity</dt><dd>{% if item.last_activity_at %}<time datetime="{{ item.last_activity_at.isoformat() }}" data-local-time>{{ item.last_activity_at.isoformat() }}</time>{% else %}Unavailable{% endif %}</dd></div>
-      </dl>
-      <div class="usage-breakdown-evidence">
-        {% if item.evidence_url %}<a class="text-link" href="{{ item.evidence_url }}">{{ item.evidence_label }}</a>{% else %}<small>{{ item.evidence_note }}</small>{% endif %}
-        <small>{{ item.priced_record_count }}/{{ item.usage_record_count }} usage record{% if item.usage_record_count != 1 %}s{% endif %} priced</small>
-      </div>
-    </div>
+    <tr>
+      <th class="usage-breakdown-identity" scope="row"{% if usage.scope.breakdown == 'model' and item.raw_models %} title="Raw: {{ item.raw_models | join(', ') }}"{% endif %}>
+        <span class="usage-breakdown-label">{% if item.provider_kind %}<i class="source-indicator {{ item.provider_kind }}" aria-hidden="true"></i>{% endif %}<span>{{ item.label }}</span></span>
+        {% if usage.scope.breakdown == 'model' and item.raw_models %}<span class="sr-only">Raw: {{ item.raw_models | join(', ') }}</span>{% endif %}
+      </th>
+      <td>{{ item.tokens_label }}</td>
+      <td>{{ item.cost_label }}</td>
+      <td>{{ item.session_count }}</td>
+      <td>{{ item.share_label }}</td>
+    </tr>
+  {%- endmacro %}
+
+  {% macro breakdown_table(rows, show_header=true) -%}
+    <table class="usage-breakdown-table{% if not show_header %} usage-breakdown-extra-table{% endif %}">
+      <colgroup><col><col><col><col><col></colgroup>
+      <thead>
+        <tr>
+          <th scope="col"><span{% if not show_header %} class="sr-only"{% endif %}>{{ usage.scope.breakdown | title }}</span></th>
+          <th scope="col"><span{% if not show_header %} class="sr-only"{% endif %}>Tokens</span></th>
+          <th scope="col"><span{% if not show_header %} class="sr-only"{% endif %}>Cost</span></th>
+          <th scope="col"><span{% if not show_header %} class="sr-only"{% endif %}>Sessions</span></th>
+          <th scope="col"><span{% if not show_header %} class="sr-only"{% endif %}>{{ usage.scope.metric | title }} share</span></th>
+        </tr>
+      </thead>
+      <tbody>{% for item in rows %}{{ breakdown_row(item) }}{% endfor %}</tbody>
+    </table>
   {%- endmacro %}
 
   <p class="sr-only" data-usage-dashboard-status aria-live="polite"></p>
@@ -31,13 +40,12 @@
       <h1>Sessions Dashboard</h1>
       <p class="heading-copy">등록된 로컬 AI 소스의 사용량, 추정 비용, 활동 흐름을 같은 범위에서 확인합니다.</p>
     </div>
-    <a class="secondary-button" href="/sessions">세션 보기</a>
+    <a class="secondary-button" href="/sessions-dashboard/insights">Insights</a>
   </section>
 
   <section class="usage-scope-toolbar" aria-label="Usage scope">
     <div class="usage-scope-groups">
       <div class="usage-scope-group">
-        <span>Source</span>
         <nav class="segmented-control usage-source-control" aria-label="Source filter">
           {% for control in usage.controls.sources %}
             <a class="{% if usage.scope.source == control.value %}selected{% endif %}" href="{{ control.url }}" data-usage-scope-link data-usage-control="source" data-usage-value="{{ control.value }}" {% if usage.scope.source == control.value %}aria-current="page"{% endif %}>{{ control.label }}</a>
@@ -45,29 +53,27 @@
         </nav>
       </div>
       <div class="usage-scope-group">
-        <span>Range</span>
-        <nav class="segmented-control" aria-label="History range">
+        <nav class="segmented-control usage-range-control" aria-label="History range">
           {% for control in usage.controls.views %}
             <a class="{% if usage.scope.view == control.value %}selected{% endif %}" href="{{ control.url }}" data-usage-scope-link data-usage-control="view" data-usage-value="{{ control.value }}" {% if usage.scope.view == control.value %}aria-current="page"{% endif %}>{{ control.label }}</a>
           {% endfor %}
         </nav>
       </div>
     </div>
-    <form class="usage-date-form" action="/sessions-dashboard" method="get">
+    <form class="usage-date-form" action="/sessions-dashboard" method="get" data-usage-date-form>
       <input type="hidden" name="view" value="{{ usage.scope.view }}">
       <input type="hidden" name="source" value="{{ usage.scope.source }}">
       <input type="hidden" name="metric" value="{{ usage.scope.metric }}">
       <input type="hidden" name="breakdown" value="{{ usage.scope.breakdown }}">
       <label>
-        <span>From</span>
-        <input type="date" name="from" value="{{ usage.scope.input_from }}" required>
+        <span class="sr-only">Start date</span>
+        <input type="date" name="from" value="{{ usage.scope.from_iso }}" required>
       </label>
+      <span class="usage-date-separator" aria-hidden="true">–</span>
       <label>
-        <span>To</span>
-        <input type="date" name="to" value="{{ usage.scope.input_to }}" required>
+        <span class="sr-only">End date</span>
+        <input type="date" name="to" value="{{ usage.scope.to_iso }}" required>
       </label>
-      <button class="secondary-button" type="submit">Apply</button>
-      {% if usage.scope.custom or usage.scope.validation_message %}<a class="text-link" href="{{ usage.clear_date_url }}">Clear</a>{% endif %}
     </form>
   </section>
 
@@ -78,22 +84,10 @@
   <section class="overview-metrics usage-summary" aria-label="Selected period usage summary">
     {% for metric in usage.summary %}
       <div class="overview-metric {% if metric.state == 'unavailable' %}unavailable{% endif %}">
-        <span>{{ metric.label }}</span>
+        <span>{{ metric.label }}{% if metric.label == 'Cost' and 0 < usage.aggregate.priced_record_count < usage.aggregate.usage_record_count %}<em class="usage-partial-label">Partial</em>{% endif %}</span>
         <strong>{{ metric.value }}</strong>
-        <small>{{ metric.detail }}</small>
       </div>
     {% endfor %}
-  </section>
-
-  <section class="usage-context-strip" aria-label="Usage context">
-    <div><span>MTD tokens</span><strong>{{ usage.month_to_date.tokens_label }}</strong></div>
-    <div><span>MTD estimated cost</span><strong>{{ usage.month_to_date.cost_label }}</strong></div>
-    <div><span>Selected period</span><strong>{{ usage.scope.from_iso }} – {{ usage.scope.to_iso }}</strong><small>{{ usage.scope.timezone }}</small></div>
-    <div>
-      <span>Data freshness</span>
-      <strong class="usage-freshness {{ usage.freshness.status }}">{{ value_label("usage.freshness", usage.freshness.status) }}</strong>
-      {% if usage.freshness.last_synchronized_at %}<time datetime="{{ usage.freshness.last_synchronized_at }}" data-local-time>{{ usage.freshness.last_synchronized_at }}</time>{% else %}<small>Not synchronized yet</small>{% endif %}
-    </div>
   </section>
 
   <article class="analysis-panel usage-history-panel">
@@ -117,7 +111,7 @@
       </div>
     {% elif not usage.history_has_values %}
       <div class="usage-chart-empty" role="status">
-        <h3>{{ 'Estimated cost unavailable' if usage.scope.metric == 'cost' else 'Token history unavailable' }}</h3>
+        <h3>{{ 'Cost unavailable' if usage.scope.metric == 'cost' else 'Token history unavailable' }}</h3>
         <p>선택한 사용량은 있지만 이 지표를 계산할 수 있는 정규화 값이 없습니다.</p>
       </div>
     {% else %}
@@ -125,7 +119,7 @@
         <div class="usage-history-chart" style="--usage-history-columns: {{ usage.history | length }}">
           {% for item in usage.history %}
             <div class="usage-history-column" role="img" aria-label="{{ item.date.isoformat() }} · {{ item.value_label }}">
-              <span class="usage-history-value">{{ item.value_label if item.value > 0 else '' }}</span>
+              <span class="usage-history-value">{{ item.bar_label if item.value > 0 else '' }}</span>
               <div class="usage-history-track">{% if item.value > 0 %}<i style="height: {{ item.bar_percent }}%"></i>{% endif %}</div>
               <time datetime="{{ item.date.isoformat() }}">{% if item.show_label %}{{ item.label }}{% endif %}</time>
             </div>
@@ -146,7 +140,6 @@
       <div>
         <p class="eyebrow">COMPOSITION</p>
         <h2>{{ usage.breakdown.title }}</h2>
-        <p>{{ usage.breakdown.subtitle }} · compatible {{ usage.scope.metric }} total {{ usage.breakdown.compatible_total_label }}</p>
       </div>
       <nav class="segmented-control usage-breakdown-control" aria-label="Usage breakdown">
         {% for control in usage.controls.breakdowns %}
@@ -155,81 +148,21 @@
       </nav>
     </header>
     {% if usage.breakdown.rows %}
-      <div class="usage-breakdown-list">
-        {% for item in usage.breakdown.primary_rows %}{{ breakdown_row(item) }}{% endfor %}
+      <div class="usage-breakdown-scroll" tabindex="0" aria-label="Scrollable usage composition">
+        {{ breakdown_table(usage.breakdown.primary_rows) }}
+        {% if usage.breakdown.overflow_rows %}
+          <details class="usage-breakdown-overflow">
+            <summary><span class="usage-breakdown-show-more">Show {{ usage.breakdown.overflow_rows | length }} more</span><span class="usage-breakdown-show-less">Show less</span></summary>
+            {{ breakdown_table(usage.breakdown.overflow_rows, false) }}
+          </details>
+        {% endif %}
       </div>
-      {% if usage.breakdown.overflow_rows %}
-        <details class="usage-breakdown-overflow">
-          <summary>Show {{ usage.breakdown.overflow_rows | length }} more</summary>
-          <div class="usage-breakdown-list">
-            {% for item in usage.breakdown.overflow_rows %}{{ breakdown_row(item) }}{% endfor %}
-          </div>
-        </details>
-      {% endif %}
     {% else %}
       <div class="usage-chart-empty" role="status">
         <h3>No composition to show</h3>
         <p>선택한 범위에 분해할 수 있는 사용량이 없습니다.</p>
       </div>
     {% endif %}
-  </article>
-
-  <article class="analysis-panel usage-trust-panel">
-    <header class="usage-trust-heading">
-      <div>
-        <p class="eyebrow">TRUST</p>
-        <h2>Coverage &amp; freshness</h2>
-        <p>선택한 숫자가 어디까지 계산되고 언제 갱신됐는지 확인합니다.</p>
-      </div>
-      <span class="usage-trust-state {{ usage.freshness.status }}">{{ value_label("usage.freshness", usage.freshness.status) }}</span>
-    </header>
-    {% if usage.has_usage and usage.freshness.status in ['stale', 'error'] %}
-      <p class="usage-retained-notice" role="status">Previously calculated usage remains visible. Source synchronization needs attention.</p>
-    {% endif %}
-    <div class="usage-trust-grid">
-      <section>
-        <h3>Source synchronization</h3>
-        {% if usage.freshness.sources %}
-          <div class="usage-trust-list">
-            {% for source in usage.freshness.sources %}
-              <div class="usage-source-trust-row">
-                <strong><i class="source-indicator {{ source.provider_kind }}" aria-hidden="true"></i>{{ source.name or value_label("source.kind", source.kind) }}</strong>
-                <span class="usage-freshness {{ source.status }}">{{ value_label("usage.freshness", source.status) }}</span>
-                {% if source.scan_status %}<small>Latest source result · {{ value_label("source.scan-status", source.scan_status) }}</small>{% endif %}
-                <small>Last successful {% if source.last_successful_at %}<time datetime="{{ source.last_successful_at }}" data-local-time>{{ source.last_successful_at }}</time>{% else %}unavailable{% endif %}</small>
-                <small>{{ source.selected_usage_record_count }} selected usage record{% if source.selected_usage_record_count != 1 %}s{% endif %}</small>
-                {% if source.error_count or source.stale_count %}<small>{{ value_label("source-file.status", "error") }} {{ source.error_count }} · {{ value_label("source-file.status", "stale") }} {{ source.stale_count }}</small>{% endif %}
-                {% if source.scan_error %}<small class="usage-source-trust-error">{{ source.scan_error }}</small>{% endif %}
-              </div>
-            {% endfor %}
-          </div>
-        {% else %}
-          <p class="inline-empty">No synchronized Session sources yet.</p>
-        {% endif %}
-      </section>
-      <section>
-        <h3>Calculation coverage</h3>
-        <dl class="usage-calculation-list">
-          <div><dt>Selected usage records</dt><dd>{{ usage.aggregate.usage_record_count }}</dd></div>
-          <div><dt>Token coverage</dt><dd>{{ usage.aggregate.token_covered_record_count }} / {{ usage.aggregate.usage_record_count }}</dd></div>
-          <div><dt>Estimated-price coverage</dt><dd>{{ usage.aggregate.priced_record_count }} / {{ usage.aggregate.usage_record_count }}</dd></div>
-          <div title="{{ value_help("usage.calculation-state") }}"><dt>Price states</dt><dd>{% for value, count in usage.aggregate.calculation_states | dictsort %}{% if not loop.first %} · {% endif %}{{ value_label("usage.calculation-state", value) }} {{ count }}{% else %}계산 기록 없음{% endfor %}</dd></div>
-          <div title="{{ value_help("usage.capability-state") }}"><dt>Source field coverage</dt><dd>{% for value, count in usage.aggregate.capability_states | dictsort %}{% if not loop.first %} · {% endif %}{{ value_label("usage.capability-state", value) }} {{ count }}{% else %}확인할 기록 없음{% endfor %}</dd></div>
-          <div title="{{ value_help("usage.aggregation-scope") }}"><dt>Aggregation scope</dt><dd>{% for value, count in usage.aggregate.aggregation_scopes | dictsort %}{% if not loop.first %} · {% endif %}{{ value_label("usage.aggregation-scope", value) }} {{ count }}{% else %}확인할 기록 없음{% endfor %}</dd></div>
-          <div title="{{ value_help("usage.attribution-basis") }}"><dt>Project attribution</dt><dd>{% for value, count in usage.aggregate.attribution_bases | dictsort %}{% if not loop.first %} · {% endif %}{{ value_label("usage.attribution-basis", value) }} {{ count }}{% else %}확인할 기록 없음{% endfor %}</dd></div>
-          <div><dt>Last calculation</dt><dd>{% if usage.last_calculated_at %}<time datetime="{{ usage.last_calculated_at }}" data-local-time>{{ usage.last_calculated_at }}</time>{% else %}Unavailable{% endif %}</dd></div>
-        </dl>
-      </section>
-    </div>
-    <details class="usage-price-disclosure">
-      <summary>How estimated cost is calculated</summary>
-      <div>
-        <p>Stored token components are priced once with the model-specific snapshot attached when each usage record is first observed. This is a trend estimate, not billed spend.</p>
-        <p>Unsupported models or incomplete token components remain unavailable and are excluded from compatible cost shares.</p>
-        <strong>Active snapshots</strong>
-        <span>{{ usage.snapshot_labels | join(', ') if usage.snapshot_labels else 'No priced snapshot in this selection' }}</span>
-      </div>
-    </details>
   </article>
   </div>
 {% endblock %}

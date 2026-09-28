@@ -16,10 +16,18 @@ Spec, Run, and Evaluation document owns its own detailed status and history.
 
 ## Open Planning Boundaries
 
-- Development is stopped at the owner's request after the continuous-map
-  inspection. No new model run or product change is active. The
+- The workflow-map track is paused at the owner's request after the continuous-map
+  inspection. The
   [design-plan handoff](design/workflow-map-design-plan.md#handoff-to-next-track)
-  owns the resume boundary; documentation review and publication do not reopen it.
+  owns its resume boundary. The separately approved Sessions Dashboard → Insights
+  track has since implemented a skill ranking and analysis-only Run UI. The
+  ranking's [FEAT-0105](feature/feat-0105-skill-observation-retention.md) and
+  [FEAT-0106](feature/feat-0106-first-session-insights-view.md) passed their
+  formal evaluations under [PRD-0005](prd/prd-0005-workflow-and-skill-intelligence.md).
+  [PRD-0018](prd/prd-0018-personal-ai-use-improvement-insights.md) owns the
+  remaining analyzer decisions. FEAT-0107 and FEAT-0108 passed synthetic
+  foundation checks; no actual personal improvement model Run has been executed
+  in this review.
 - Inspection increment: owner review corrected the freeform constellation to
   [FEAT-0104 temporal affinity flow](feature/feat-0104-temporal-affinity-flow.md)
   (RUN-117): one horizontally scrollable time canvas, activity gaps, curved
@@ -106,7 +114,9 @@ Spec, Run, and Evaluation document owns its own detailed status and history.
   owns its UI/transport verification and local handoff; it does not pass FEAT-0095.
   Global Atlas rendering and terrain remain separate later choices.
 - [PRD-0005: Workflow And Skill Intelligence](prd/prd-0005-workflow-and-skill-intelligence.md)
-  is `draft` and must not enter Feature or execution work before approval.
+  remains `approved` for later workflow-intelligence proposals; its bounded
+  first skill-ranking increment passed FEAT-0105/0106. The separate improvement
+  analyzer is owned by PRD-0018.
 - [PRD-0010: Atlassian UI And Interaction Reconciliation](prd/prd-0010-atlassian-ui-and-interaction-reconciliation.md)
   is an approved incremental boundary that remains open for later owner
   observations. Its current child Features are passed:
@@ -117,10 +127,23 @@ Spec, Run, and Evaluation document owns its own detailed status and history.
 
 ## Execution State And Trial History
 
-No calculation or implementation Run is active. The completed map boundary is
-[RUN-117](run/run-20260924-117-continuous-affinity-canvas.md); the records below
-preserve earlier outcomes and unresolved admission gates, not a queue to resume
+The workflow-map track has no active calculation or implementation Run; its
+completed boundary is [RUN-117](run/run-20260924-117-continuous-affinity-canvas.md).
+The separate Insights track passed [RUN-118](run/run-20260927-118-personal-insight-evidence-manifest.md),
+[RUN-119](run/run-20260928-119-insights-analyzer-screen-preview.md),
+[RUN-120](run/run-20260928-120-executable-personal-insight-runs.md), and
+[RUN-121](run/run-20260928-121-personal-improvement-guide-and-finding-contract.md),
+and [RUN-122](run/run-20260928-122-guided-personal-insight-result-integration.md)
+within their recorded evidence limits. RUN-120 did not invoke a model; RUN-121
+completed the detailed guide, and RUN-122 connected it to new executable Runs
+with synthetic and browser checks. The records below preserve
+earlier outcomes and unresolved admission gates, not a queue to resume
 automatically. Historical test counts apply to their named Runs.
+
+The first skill-ranking increment passed [RUN-123](run/run-20260928-123-skill-observation-retention.md)
+and [RUN-124](run/run-20260928-124-first-session-insights-view.md) using
+synthetic ingestion and browser evidence. These checks did not execute the
+personal-improvement model.
 
 - [RUN-20260923-112](run/run-20260923-112-source-claim-extraction-and-binding-trial.md):
   `blocked` on quality after the completed source-claim adapter and one frozen

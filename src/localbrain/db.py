@@ -129,9 +129,17 @@ def init_db() -> None:
         if atlassian_site_access_needs_repair:
             _repair_atlassian_site_access_contract(connection)
         _run_compatible_migrations(connection)
-        from .usage import ensure_default_price_snapshot
+        from .usage import (
+            ensure_default_price_snapshot,
+            ensure_official_price_snapshots,
+            price_existing_partial_fast_long_context_records,
+            price_existing_unpriced_spark_records,
+        )
 
         ensure_default_price_snapshot(connection)
+        ensure_official_price_snapshots(connection)
+        price_existing_unpriced_spark_records(connection)
+        price_existing_partial_fast_long_context_records(connection)
         if not usage_contract_exists:
             connection.execute(
                 """
@@ -2005,10 +2013,10 @@ def _migrate_context_roots(connection: sqlite3.Connection) -> None:
 
 
 @contextmanager
-def transaction() -> Generator[sqlite3.Connection, None, None]:
+def transaction(*, immediate: bool = False) -> Generator[sqlite3.Connection, None, None]:
     connection = connect()
     try:
-        connection.execute("BEGIN")
+        connection.execute("BEGIN IMMEDIATE" if immediate else "BEGIN")
         yield connection
         connection.commit()
     except Exception:

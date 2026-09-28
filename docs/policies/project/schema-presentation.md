@@ -21,7 +21,7 @@ The top-level `schema` is exactly `localbrain.schema-presentation.v1` and `deriv
 | --- | --- |
 | `baseline` | Baseline ID, current object/relation/index/subject counts, and repository-relative source roles plus SHA-256 digests. No generation timestamp is stored. |
 | `global.mermaid` | Exact reviewed global Mermaid definition from Data Model. |
-| `subjects` | Nine ordered entries with stable kebab-case `id`, display `label`, repository-relative semantic `document`, ordered `table_ids`, and exact focused `mermaid`. |
+| `subjects` | Ten ordered entries with stable kebab-case `id`, display `label`, repository-relative semantic `document`, ordered `table_ids`, and exact focused `mermaid`. |
 | `tables` | Ordered table/FTS catalogs grouped by subject order. Each table occurs exactly once. |
 | `relationships.physical` | SQLite-FK facts derived from `PRAGMA foreign_key_list`, including source/target columns and update/delete actions. |
 | `relationships.application` | Dotted global-ERD relations parsed from semantic truth, including source/target tables, cardinalities, label, and application enforcement. |
@@ -37,7 +37,7 @@ Each table contains:
 | `foreign_keys` | Table-local physical target, columns, and update/delete behavior. |
 | `semantics` | Purpose/authority, lifecycle contract and class, rebuildability code, producers, consumers, deletion effect, recovery path, DDL/migration ownership, and documented constraints. |
 
-The current baseline has ten subjects, 42 ordinary tables plus one FTS5 object, 477 effective columns, 46 explicit indexes, 57 physical relations, and 26 application relations. Count changes are accepted only with the implementation and semantic owners updated together.
+The current baseline has ten subjects, 43 ordinary tables plus one FTS5 object, 490 effective columns, 49 explicit indexes, 57 physical relations, and 28 application relations. Count changes are accepted only with the implementation and semantic owners updated together.
 
 ## Determinism And Failure
 

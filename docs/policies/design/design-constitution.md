@@ -363,6 +363,7 @@ Components consume semantic roles only. Color, type, spacing, radius, elevation,
   --elevation-outline: 0 0 0 var(--border-width-control) var(--border-default);
   --elevation-navigation-active: inset var(--border-width-accent) 0 0 var(--border-brand);
   --elevation-filter-active: inset var(--border-width-focus) 0 0 var(--border-brand), var(--elevation-card);
+  --elevation-current-record: inset var(--border-width-focus) 0 var(--text-link);
   --state-disabled-opacity: var(--opacity-disabled);
   --state-muted-opacity: var(--opacity-muted);
 
@@ -423,7 +424,7 @@ Pinned cards, detail headings, and Subsession projections uses `CL` for Claude,
 Codex Company provenance tokens. Configured source names remain in accessible
 text, so color or initials never carry account identity alone. Ordinary cards,
 Pinned cards, detail headings, and detail Subsession rows omit that name visually;
-source controls, composition, and trust surfaces continue to expose configured
+source controls and composition continue to expose configured
 readable labels where comparison requires them. Detail Subsession rows preserve
 the inventory-family scan order of question count, event count, then activity
 date after the title and source-native identifier.

@@ -1,9 +1,15 @@
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+try:
+    import tomllib
+except ModuleNotFoundError:  # pragma: no cover - Python 3.9/3.10
+    import tomli as tomllib
+
 from .common import (
     ApprovedResourceCall,
     ParsedEvent,
+    ParsedSkillObservation,
     ParsedSession,
     ParsedUsageRecord,
     approved_resource_call,
@@ -21,17 +27,15 @@ from .common import (
     visible_reference_candidates,
     visible_url_evidence,
 )
-from ..usage import (
-    CODEX_FAST_TIERED_PRICE_SNAPSHOT_ID,
-    CODEX_FAST_TIERED_SPARK_PRICE_SNAPSHOT_ID,
-)
+from ..official_pricing import select_snapshot
 
 
-CODEX_USAGE_CONTRACT_VERSION = (
+CODEX_USAGE_IDENTITY_VERSION = (
     "codex-last-token-usage-v7-fast-context-tier-response-message-fallback-guardian-spark-price"
 )
+CODEX_USAGE_CONTRACT_VERSION = "codex-last-token-usage-v8-official-dated-service-tier"
 CODEX_SESSION_CONTRACT_VERSION = (
-    "codex-session-v3-response-message-fallback-user-prompt-guardian"
+    "codex-session-v4-response-message-fallback-user-prompt-guardian-skill-observations"
 )
 CODEX_GUARDIAN_TITLE = "Codex guardian"
 
@@ -44,6 +48,29 @@ CODEX_AUTO_REVIEW_FALLBACKS = (
     ("2025-09-15", "gpt-5-codex"),
     ("2025-08-07", "gpt-5"),
 )
+
+
+def _config_service_tier(path: Path) -> tuple:
+    """Use the source home's current setting for unmarked historical events."""
+    source_root = next(
+        (
+            parent.parent
+            for parent in path.parents
+            if parent.name in {"sessions", "archived_sessions"}
+        ),
+        path.parent,
+    )
+    try:
+        with (source_root / "config.toml").open("rb") as handle:
+            config = tomllib.load(handle)
+    except (OSError, tomllib.TOMLDecodeError):
+        return "standard", "unmarked_default_assumption"
+    value = config.get("service_tier") if isinstance(config, dict) else None
+    if value in {"priority", "fast"}:
+        return "fast", "config_fallback"
+    if value in {"default", "standard"}:
+        return "standard", "config_fallback"
+    return "standard", "unmarked_default_assumption"
 
 
 def _codex_generated_user_context(text: str) -> bool:
@@ -63,6 +90,29 @@ def _codex_generated_user_context(text: str) -> bool:
     return value.startswith("<environment_context>") and value.endswith(
         "</environment_context>"
     )
+
+
+def _codex_loaded_skill(text: str) -> Optional[tuple]:
+    value = text.strip()
+    if not (
+        value.startswith("<skill>\n<name>")
+        and value.endswith("\n</skill>")
+    ):
+        return None
+    lines = value.splitlines()
+    if (
+        len(lines) < 4
+        or not lines[1].endswith("</name>")
+        or not lines[2].endswith("</path>")
+    ):
+        return None
+    name = lines[1][len("<name>") : -len("</name>")].strip()
+    if not lines[2].startswith("<path>"):
+        return None
+    locator = lines[2][len("<path>") : -len("</path>")].strip()
+    if not name or not locator or len(name) > 160 or len(locator) > 4096:
+        return None
+    return name, locator
 
 
 def _resolved_codex_model(
@@ -153,6 +203,8 @@ def _codex_usage_record(
     turn_id: Optional[str],
     raw_model: Optional[str],
     previous_usage: Dict[str, int],
+    service_tier: str,
+    service_tier_source: str,
 ) -> Optional[ParsedUsageRecord]:
     info = payload.get("info")
     if not isinstance(info, dict):
@@ -221,6 +273,8 @@ def _codex_usage_record(
     normalized_model, model_resolution = _resolved_codex_model(raw_model, timestamp)
     component_states["usage_source"] = usage_source
     component_states["model_resolution"] = model_resolution
+    component_states["service_tier"] = service_tier
+    component_states["service_tier_source"] = service_tier_source
 
     total_tokens = None
     if None not in (input_tokens, output_tokens, cache_read_tokens):
@@ -256,14 +310,22 @@ def _codex_usage_record(
 
     record_identity = stable_id(
         "codex-usage-record",
-        CODEX_USAGE_CONTRACT_VERSION,
+        CODEX_USAGE_IDENTITY_VERSION,
         external_id,
         turn_id or "unscoped",
         line_number,
     )
+    price_snapshot_id = select_snapshot(
+        "codex", normalized_model, timestamp, service_tier,
+        context_input_tokens=(
+            input_tokens + cache_read_tokens
+            if input_tokens is not None and cache_read_tokens is not None
+            else None
+        ),
+    )
     return ParsedUsageRecord(
         usage_record_id=stable_id(
-            "codex-usage", CODEX_USAGE_CONTRACT_VERSION, external_id, record_identity
+            "codex-usage", CODEX_USAGE_IDENTITY_VERSION, external_id, record_identity
         ),
         source_record_id=str(record_identity),
         source_line=line_number,
@@ -283,11 +345,7 @@ def _codex_usage_record(
         capability_state=capability_state,
         capability=component_states,
         normalized_model=normalized_model,
-        price_snapshot_id=(
-            CODEX_FAST_TIERED_SPARK_PRICE_SNAPSHOT_ID
-            if normalized_model == "gpt-5.3-codex-spark"
-            else CODEX_FAST_TIERED_PRICE_SNAPSHOT_ID
-        ),
+        price_snapshot_id=price_snapshot_id,
     )
 
 
@@ -297,6 +355,7 @@ def parse_codex_session(path: Path) -> ParsedSession:
     first_user_text = ""
     timestamps: List[str] = []
     events: List[ParsedEvent] = []
+    skill_observations: List[ParsedSkillObservation] = []
     usage_by_record: Dict[str, ParsedUsageRecord] = {}
     url_evidence = []
     reference_candidates = []
@@ -316,6 +375,9 @@ def parse_codex_session(path: Path) -> ParsedSession:
     event_message_texts = {"user": set(), "assistant": set()}
     replay_second = _codex_subagent_replay_second(path)
     skip_subagent_replay = replay_second is not None
+    fallback_service_tier, fallback_tier_source = _config_service_tier(path)
+    current_service_tier = fallback_service_tier
+    current_tier_source = fallback_tier_source
 
     def append_message_event(
         *,
@@ -412,6 +474,26 @@ def parse_codex_session(path: Path) -> ParsedSession:
                 session_meta_seen = True
             continue
 
+        if record_type == "thread_settings_applied" or (
+            record_type == "event_msg"
+            and payload.get("type") == "thread_settings_applied"
+        ):
+            settings = payload.get("thread_settings")
+            value = settings.get("service_tier") if isinstance(settings, dict) else None
+            model_value = settings.get("model") if isinstance(settings, dict) else None
+            if isinstance(model_value, str) and model_value.strip():
+                current_model = model_value.strip()
+            if value in {"priority", "fast"}:
+                current_service_tier = "fast"
+                current_tier_source = "thread_settings_applied"
+            elif value in {"default", "standard"}:
+                current_service_tier = "standard"
+                current_tier_source = "thread_settings_applied"
+            else:
+                current_service_tier = fallback_service_tier
+                current_tier_source = "config_after_unmarked_setting"
+            continue
+
         if record_type == "turn_context":
             if not cwd:
                 cwd = payload.get("cwd") or cwd
@@ -448,6 +530,8 @@ def parse_codex_session(path: Path) -> ParsedSession:
                     current_turn_id,
                     current_model,
                     previous_total_usage,
+                    current_service_tier,
+                    current_tier_source,
                 )
                 _update_previous_total_usage(previous_total_usage, payload)
                 if usage_record:
@@ -481,6 +565,23 @@ def parse_codex_session(path: Path) -> ParsedSession:
             text = text_from_content(payload.get("content"))
             if not text:
                 continue
+            native_id = payload.get("id")
+            loaded_skill = _codex_loaded_skill(text) if role == "user" else None
+            if (
+                loaded_skill is not None
+                and isinstance(native_id, str)
+                and native_id.strip()
+            ):
+                skill_observations.append(
+                    ParsedSkillObservation(
+                        native_event_id=native_id.strip(),
+                        skill_name=loaded_skill[0],
+                        skill_locator=loaded_skill[1],
+                        signal_kind="codex_skill_context",
+                        source_line=line_number,
+                        occurred_at=timestamp if isinstance(timestamp, str) else None,
+                    )
+                )
             metadata = payload.get("internal_chat_message_metadata_passthrough")
             turn_value = metadata.get("turn_id") if isinstance(metadata, dict) else None
             response_messages.append(
@@ -637,6 +738,7 @@ def parse_codex_session(path: Path) -> ParsedSession:
         session_role=session_role,
         parent_external_id=parent_external_id,
         usage_records=list(usage_by_record.values()),
+        skill_observations=skill_observations,
         url_evidence=url_evidence,
         reference_candidates=reference_candidates,
     )

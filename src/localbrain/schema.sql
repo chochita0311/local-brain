@@ -149,6 +149,29 @@ CREATE TABLE IF NOT EXISTS activity_events (
     UNIQUE(session_id, sequence, event_type, source_line)
 );
 
+CREATE TABLE IF NOT EXISTS skill_observations (
+    id TEXT PRIMARY KEY,
+    source_key TEXT NOT NULL,
+    provider_kind TEXT NOT NULL
+        CHECK(provider_kind IN ('claude', 'codex')),
+    external_session_id TEXT NOT NULL,
+    native_event_id TEXT NOT NULL,
+    skill_name TEXT NOT NULL CHECK(length(trim(skill_name)) BETWEEN 1 AND 160),
+    skill_group_key TEXT NOT NULL CHECK(length(skill_group_key) > 0),
+    skill_locator TEXT CHECK(
+        skill_locator IS NULL OR length(skill_locator) BETWEEN 1 AND 4096
+    ),
+    signal_kind TEXT NOT NULL CHECK(
+        signal_kind IN ('claude_skill_tool', 'codex_skill_context')
+    ),
+    source_line INTEGER NOT NULL CHECK(source_line > 0),
+    occurred_at TEXT,
+    state TEXT NOT NULL DEFAULT 'observed'
+        CHECK(state IN ('observed', 'corrected')),
+    recorded_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(source_key, external_session_id, native_event_id, skill_group_key)
+);
+
 CREATE TABLE IF NOT EXISTS session_pins (
     session_id INTEGER PRIMARY KEY
         REFERENCES sessions(id) ON DELETE CASCADE,
@@ -1111,6 +1134,39 @@ CREATE TABLE IF NOT EXISTS maintenance_runs (
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS personal_insight_runs (
+    id TEXT PRIMARY KEY,
+    mode TEXT NOT NULL CHECK(mode IN ('ask', 'discover')),
+    question TEXT,
+    status TEXT NOT NULL CHECK(status IN ('queued', 'running', 'completed', 'no_finding', 'failed', 'cancelled', 'interrupted')),
+    runner TEXT NOT NULL CHECK(runner IN ('codex')),
+    model TEXT NOT NULL,
+    resolved_model TEXT,
+    settings_json TEXT NOT NULL,
+    guide_version TEXT NOT NULL,
+    evidence_version TEXT NOT NULL,
+    evidence_path TEXT NOT NULL,
+    prompt_path TEXT NOT NULL,
+    response_path TEXT NOT NULL,
+    report_path TEXT NOT NULL,
+    stream_path TEXT NOT NULL,
+    stderr_path TEXT NOT NULL,
+    coverage_json TEXT NOT NULL,
+    usage_json TEXT,
+    title TEXT,
+    error TEXT,
+    pid INTEGER,
+    created_at TEXT NOT NULL,
+    started_at TEXT,
+    completed_at TEXT,
+    updated_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_personal_insight_runs_created
+    ON personal_insight_runs(created_at DESC, id DESC);
+CREATE INDEX IF NOT EXISTS idx_personal_insight_runs_status
+    ON personal_insight_runs(status, updated_at DESC);
+
 CREATE TABLE IF NOT EXISTS external_sync_runs (
     maintenance_run_id TEXT PRIMARY KEY
         REFERENCES maintenance_runs(id) ON DELETE CASCADE,
@@ -1176,6 +1232,10 @@ CREATE INDEX IF NOT EXISTS idx_sessions_last_event
     ON sessions(last_event_at DESC);
 CREATE INDEX IF NOT EXISTS idx_sessions_workspace
     ON sessions(workspace_id, last_event_at DESC);
+CREATE INDEX IF NOT EXISTS idx_skill_observations_group
+    ON skill_observations(state, skill_group_key, occurred_at DESC);
+CREATE INDEX IF NOT EXISTS idx_skill_observations_source_session
+    ON skill_observations(source_key, external_session_id);
 CREATE INDEX IF NOT EXISTS idx_session_reference_evidence_session
     ON session_reference_evidence(
         session_id,
@@ -1197,6 +1257,8 @@ CREATE INDEX IF NOT EXISTS idx_usage_records_session_time
     ON usage_records(session_id, occurred_at);
 CREATE INDEX IF NOT EXISTS idx_usage_records_source_time
     ON usage_records(source_id, occurred_at);
+CREATE INDEX IF NOT EXISTS idx_usage_records_time
+    ON usage_records(occurred_at, id);
 CREATE INDEX IF NOT EXISTS idx_usage_records_model_time
     ON usage_records(model_name, occurred_at);
 CREATE INDEX IF NOT EXISTS idx_documents_mtime

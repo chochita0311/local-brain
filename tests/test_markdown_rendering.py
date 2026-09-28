@@ -72,6 +72,15 @@ second line with **strong**, *emphasis*, and `inline`.
         self.assertIn("onclick=&quot;steal()&quot;", result.html)
         self.assertIn("[script]", result.html)
 
+    def test_only_explicit_report_session_routes_become_local_links(self):
+        source = "[admitted](/sessions/12) [other](/sessions/13) [escape](/sessions/../admin)"
+        default = render_markdown(source)
+        self.assertNotIn('href="/sessions/12"', default.html)
+        result = render_markdown(source, trusted_session_routes={"/sessions/12", "/admin"})
+        self.assertIn('href="/sessions/12"', result.html)
+        self.assertNotIn('href="/sessions/13"', result.html)
+        self.assertNotIn('href="/admin"', result.html)
+
     def test_standard_images_render_as_non_fetching_deferred_markers(self):
         source = (
             '![Architecture **diagram**](https://example.test/private.png "title") '

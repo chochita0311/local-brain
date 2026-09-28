@@ -1,6 +1,6 @@
 # Workspace And Session Activity
 
-<!-- schema-objects: workspaces, sessions, activity_events, session_pins, session_reference_scans, session_reference_evidence -->
+<!-- schema-objects: workspaces, sessions, activity_events, skill_observations, session_pins, session_reference_scans, session_reference_evidence -->
 
 This subject owns current workspace identity, source-backed Session identity and hierarchy, historical working context, normalized activity events, Session classification, separate user-owned Session pin intent, and source-neutral derived evidence that a primary work Session referenced a target. Usage observations are owned separately. Atlassian Source Memory continues to own reusable Item identity and its legacy Session/Document URL sightings; generalized Session reference evidence owns only the Session-facing observed identity, outcome, and source location.
 
@@ -32,6 +32,14 @@ erDiagram
         integer sequence UK
         string event_type
     }
+    SKILL_OBSERVATIONS {
+        string id PK
+        string source_key
+        string external_session_id
+        string native_event_id
+        string skill_group_key
+        string state
+    }
     SESSION_PINS {
         integer session_id PK
         string pinned_at
@@ -62,6 +70,8 @@ erDiagram
     WORKSPACES o|--o{ SESSIONS : "physical SET_NULL"
     SESSIONS o|--o{ SESSIONS : "physical parent SET_NULL"
     SESSIONS ||--o{ ACTIVITY_EVENTS : "physical CASCADE"
+    SOURCES o|..o{ SKILL_OBSERVATIONS : "app retained source key"
+    SESSIONS o|..o{ SKILL_OBSERVATIONS : "app current native Session"
     SESSIONS ||--o| SESSION_PINS : "physical CASCADE"
     SESSIONS ||--o| SESSION_REFERENCE_SCANS : "physical CASCADE"
     SESSIONS ||--o{ SESSION_REFERENCE_EVIDENCE : "physical CASCADE"
@@ -106,8 +116,8 @@ Constraints: uniqueness of `canonical_path`. Explicit indexes: none.
   duplicated by LocalBrain.
 - Lifecycle: all Sessions are source-derived from meaningful retained native JSONL
   accepted by the owning provider's Session-candidate contract. Meaningful means
-  the parsed file contains at least one normalized Activity Event or direct Usage
-  Record; metadata-only stubs retain no Session or source-file projection and are
+  the parsed file contains at least one normalized Activity Event, direct Usage
+  Record, or admitted skill-load observation; metadata-only stubs retain no Session or source-file projection and are
   reconsidered on later syncs. Codex conversation ingestion prefers native
   `event_msg` user/assistant records per role and falls back to `response_item`
   message content only when the matching role and turn are absent. Response-only
@@ -136,7 +146,7 @@ Constraints: uniqueness of `canonical_path`. Explicit indexes: none.
   operational artifact only.
 - Producers: `ingest/scanner.py` plus Claude/Codex parsers create Sessions and Usage Records; parent reconciliation updates self-references and propagates maintenance policy to Claude or Codex children. `runner.py` synchronizes the selected native source after terminal and recovered Runs. Session projection freshness is independently versioned in `source_files`, so classification/parser changes can rebuild Sessions, Activity Events, and search without replacing Usage merely because the Session contract changed. `db.py` owns the classification/Run-link constraint repair.
 - Consumers: Session inventory/detail, dashboard counts, normalized activity, retrieval, Workstream linking/suggestions, Runner context, search projection, Usage Records, and Usage Dashboard denominators. Sessions inventory headline, rows, pagination, and Project grouping share the same `work` plus `primary` denominator with no age cutoff. A selected source matches the stable `sources.kind`, not `provider_kind`, so personal and company Codex remain statistically separate while sharing one adapter.
-- Relations and deletion: physical `source_id` cascades; optional `workspace_id`, `parent_session_id`, and unique `maintenance_run_id` set null. After a successful scan of a present source root, disappearance of one previously imported native JSONL or confirmation that it remains a zero-Event, zero-Usage stub is deletion authority for its normalized Session. Deleting that Session cascades `activity_events`, `usage_records`, derived `session_reference_scans` and `session_reference_evidence`, and the optional user-owned `session_pins` row; scanner also removes its search and source-file projection while preserving a present native stub. A wholly missing source root does not trigger the same stale-file reconciliation. Polymorphic links and checkpoint refs are application edges and can retain an unresolved historical ID.
+- Relations and deletion: physical `source_id` cascades; optional `workspace_id`, `parent_session_id`, and unique `maintenance_run_id` set null. After a successful scan of a present source root, disappearance of one previously imported native JSONL or confirmation that it remains a zero-Event, zero-Usage, zero-skill-observation stub is deletion authority for its normalized Session. Deleting that Session cascades `activity_events`, `usage_records`, derived `session_reference_scans` and `session_reference_evidence`, and the optional user-owned `session_pins` row; scanner also removes its search and source-file projection while preserving a present native stub. A wholly missing source root does not trigger the same stale-file reconciliation. `skill_observations` has no cascading FK and keeps admitted historical uses. Polymorphic links and checkpoint refs are application edges and can retain an unresolved historical ID.
 - Recovery: rescan the authoritative native source file and reconcile parents. Restoring only a Task Runner stream cannot rebuild a Session or Usage Record; restore the selected runner's native Claude or Codex JSONL and the Run ledger together. A full database rebuild cannot restore user-curated links, exact operational history, or confirmed review state without backup.
 - DDL ownership: fresh definition and `idx_sessions_last_event`, `idx_sessions_workspace` in `schema.sql`; compatible columns, backup-backed classification/Run-link table repair, and runtime-only `idx_sessions_class`, `idx_sessions_role`, `idx_sessions_parent` in `db.py`. Before that structural repair, startup preserves `localbrain.db-pre-maintenance-session-contract-v1.bak` and validates it with SQLite `quick_check`. An older additive layout may have the same approved columns in a different physical order; migration validates every name/type/null/default/key contract, copies values by canonical column name, and converges only the physical order.
 
@@ -156,7 +166,7 @@ Constraints: uniqueness of `canonical_path`. Explicit indexes: none.
 | `event_count` | `INTEGER NOT NULL DEFAULT 0`; normalized source event count. |
 | `user_message_count` | `INTEGER NOT NULL DEFAULT 0`; normalized user-message count. |
 | `assistant_message_count` | `INTEGER NOT NULL DEFAULT 0`; normalized assistant-message count. |
-| `session_class` | `TEXT NOT NULL DEFAULT 'work'`; checked to `work` or `maintenance`. `maintenance` owns non-work execution activity, including linked LocalBrain Runs and recognized provider-internal helpers. |
+| `session_class` | `TEXT NOT NULL DEFAULT 'work'`; checked to `work` or `maintenance` for rows in `sessions`. `maintenance` identifies retained non-work source Sessions, including linked maintenance Runs and recognized provider-internal helpers. Analysis-only `personal_insight_runs` create no `sessions` row and have no `session_class`. |
 | `session_role` | `TEXT NOT NULL DEFAULT 'primary'`; checked to `primary` or `subsession`. |
 | `parent_external_id` | nullable `TEXT`; source-backed parent identity retained even when unresolved. |
 | `parent_session_id` | nullable self-FK, `ON DELETE SET NULL`; resolved same-source parent. |
@@ -171,7 +181,7 @@ Constraints: `UNIQUE(source_id, external_id)`, unique nullable `maintenance_run_
 - Purpose and authority: normalized, ordered Session events used for conversation presentation, activity calculation, retrieval evidence, and tool/message counts without exposing raw event payload files.
 - Lifecycle: source-derived and rebuildable. Scanner replaces the Session's event set atomically during re-import. Canonical Claude and personal Codex event IDs retain their existing deterministic values; an additional source key reusing either provider scopes the stored event ID by that source key so identical native event identities can coexist.
 - Producers: `ingest/scanner.py` from normalized parser events.
-- Consumers: `queries.py` Session detail and counts, `activity.py` active-time attribution, and `retrieval.py` evidence loading. Primary Session `관련 자료` consumes the separate normalized reference-evidence projection rather than reparsing Activity Event text at request time; workspace membership alone is not a related-material relation. The projection adds no Session column or relationship row.
+- Consumers: `queries.py` Session detail and counts, `activity.py` active-time attribution, `retrieval.py` evidence loading, and `personal_insight_evidence.py` bounded read-only message sampling for later personal insight Runs. Primary Session `관련 자료` consumes the separate normalized reference-evidence projection rather than reparsing Activity Event text at request time; workspace membership alone is not a related-material relation. The projection adds no Session column or relationship row.
 - Relations and deletion: `session_id` cascades from `sessions`; replacement deletes prior rows before inserting the new normalized sequence.
 - Recovery: rescan the Session source. Opaque tool arguments/results are not indexed by default; a later concrete metadata requirement must introduce an explicit bounded contract rather than relying on an unused generic JSON slot.
 - DDL ownership: fresh definition in `schema.sql`; event ordering uses the leading `session_id, sequence` keys of the table's UNIQUE autoindex. Compatible migration removes the former redundant named index only after verifying that coverage and removes the legacy metadata column only when every value is `NULL`.
@@ -189,6 +199,36 @@ Constraints: `UNIQUE(source_id, external_id)`, unique nullable `maintenance_run_
 | `source_line` | `INTEGER NOT NULL`; source evidence location. |
 
 Constraints: `UNIQUE(session_id, sequence, event_type, source_line)`. Explicit indexes: none; SQLite owns the composite uniqueness autoindex used for Session event ordering.
+
+The personal insight evidence manifest is a private derived value, not a new database subject or retained observation ledger. Its v1 producer selects only nonblank user/assistant message Events from `work`, `primary`, `full` Claude/Codex Sessions at or before a supplied request time. Optional local dates filter Event occurrence time; undated Events cannot satisfy a bounded date. It selects at most 100 Sessions, 300 excerpts, 600 characters per excerpt, and 120,000 excerpt characters overall, reporting eligible totals, source coverage, selection method, and omissions. Each Event reference carries its current Session/Event IDs and SHA-256 digest of the complete normalized text. A later read reports a missing row as unavailable and a changed source, role, order, time, eligibility, or digest as stale. The value neither retains disappeared Session content nor claims current verification from a historical skill count. A later Run may freeze the value in its own private artifact owner; the producer itself persists nothing.
+
+### `skill_observations`
+
+- Purpose and authority: one explicit, source-backed skill load per native event. Claude assistant `Skill` calls and Codex-generated `<skill>` load messages are the first-release signals; direct `SKILL.md` reads, mentions, and inferred use are outside the count. This ledger records observed loading, not success or benefit.
+- Lifecycle: retained historical observation. A Session contract-version change reprocesses available native files once; later changed or resumed files insert only new native IDs. The producer checks the source key, native Session ID, and native event ID before insertion, including against earlier rows whose opaque ID included a name, so a rewritten name does not count the same event twice. A missing Session or source file does not retract a valid observation. Maintenance Sessions and children classified as maintenance through parent reconciliation are invalidated; a proven erroneous observation can be marked `corrected` without deleting other history. The readable name is preserved while all-time Insights groups trimmed, case-folded names across sources.
+- Producers: Claude/Codex parsers extract bounded signals; `ingest/scanner.py` and `skill_observations.py` persist them within the source scan transaction and reconcile maintenance exclusion. A targeted native-event correction can set an erroneous observation to `corrected` without making ordinary file disappearance a deletion signal.
+- Consumers: `skill_observations.py` all-time ranking with latest admitted event time and extraction-coverage projection for Session Insights. No tracked files means `not_scanned`; the view distinguishes an empty first sync from retained historical observations without current files. Any tracked file lacking the current extraction contract means `partial`, even when the current-file count is zero. Usage & Cost does not query this table.
+- Relations and deletion: `source_key` application-addresses current `sources.kind`; (`source_key`, `external_session_id`) may resolve to a current `sessions` row. Neither is an FK: ordinary source or Session deletion must not cascade into this ledger. Evidence links appear only after a successful current-row join.
+- Recovery: restore the database to retain observations whose native Session files have disappeared. Still-available files can be rescanned, but cannot reproduce lost historical events.
+- DDL ownership: fresh additive table and `idx_skill_observations_group`, `idx_skill_observations_source_session` in `schema.sql`; compatible startup creates the absent table without rewriting existing Session rows.
+
+| Column | Contract |
+| --- | --- |
+| `id` | `TEXT PRIMARY KEY`; opaque deterministic observation ID. Current inserts hash source key, native Session ID, and native event ID; earlier inserts may also include the normalized name. |
+| `source_key` | `TEXT NOT NULL`; stable local Source key, distinct for personal and company Codex. |
+| `provider_kind` | `TEXT NOT NULL`; checked to `claude` or `codex`, identifying the source parser family. |
+| `external_session_id` | `TEXT NOT NULL`; native Session identity for optional current-row lookup. |
+| `native_event_id` | `TEXT NOT NULL`; provider event identity, never a source-line surrogate. |
+| `skill_name` | `TEXT NOT NULL`; source-visible name, trimmed and limited to 160 characters. |
+| `skill_group_key` | `TEXT NOT NULL`; non-empty trimmed, case-folded name for cross-source display grouping. |
+| `skill_locator` | nullable `TEXT`; bounded Codex skill path when the generated load wrapper provides it. |
+| `signal_kind` | `TEXT NOT NULL`; checked to `claude_skill_tool` or `codex_skill_context`. |
+| `source_line` | positive `INTEGER NOT NULL`; source file line where the admitted event was observed. |
+| `occurred_at` | nullable `TEXT`; native event timestamp when available. |
+| `state` | `TEXT NOT NULL DEFAULT 'observed'`; checked to `observed` or `corrected`; only observed rows enter Insights. |
+| `recorded_at` | `TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; first local persistence time. |
+
+Constraints: `UNIQUE(source_key, external_session_id, native_event_id, skill_group_key)` plus an application-level native-event existence guard, bounded name/locator checks, positive source line, and checked provider/signal/state vocabularies. Explicit indexes: `idx_skill_observations_group` and `idx_skill_observations_source_session`.
 
 ### `session_pins`
 
@@ -346,4 +386,4 @@ Constraints: exact target-kind/FK/normalized-URL parity; exact evidence-kind/rea
 
 ## Subject Recovery Boundary
 
-Session source files can recreate Workspaces, Sessions, Activity Events, Session reference scan state, and Session reference evidence, but current project resolution, exact target availability, and self-referential parent IDs may differ if local paths or source sets change. They cannot recreate Session pins. Preserve `cwd_raw`, `parent_external_id`, and Session branch evidence. Restore the database, not only source files, when pin intent, curated polymorphic links, or exact stable IDs matter.
+Session source files can recreate Workspaces, Sessions, Activity Events, Session reference scan state, Session reference evidence, and skill observations only while those files remain available; current project resolution, exact target availability, and self-referential parent IDs may differ if local paths or source sets change. They cannot recreate Session pins or skill observations from vanished files. Preserve `cwd_raw`, `parent_external_id`, and Session branch evidence. Restore the database, not only source files, when pin intent, retained skill counts, curated polymorphic links, or exact stable IDs matter.
