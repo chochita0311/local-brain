@@ -13,7 +13,7 @@ This is the durable human entry point for LocalBrain's effective SQLite model. I
 - Effective explicitly named indexes: `51`
 - Focused subject areas: `10`
 - `schema.sql` SHA-256: `5ee4d0641d93701074a9a3111a918f6052c8de8bb0beb93429b9ad33ff8c8964`
-- `db.py` SHA-256: `c9c41b2ccaa8ddc173ad9ea33fe6331f6d417501258f0db2bf0c0d75fee63a4f`
+- `db.py` SHA-256: `5bcc5ab41d0c6d2494269cb730afe21ae668b28aa77a680e4d90938af71139d6`
 
 SQLite primary-key and uniqueness autoindexes and FTS5 shadow tables are implementation internals and are not counted as primary objects or explicitly named indexes. Validation applies `schema.sql` only to an in-memory database; no user database or runtime row is read.
 
@@ -147,6 +147,7 @@ erDiagram
     SOURCE_FILES ||..o| SESSIONS : "app source_path"
     SOURCES o|..o{ SKILL_OBSERVATIONS : "app retained source key"
     SESSIONS o|..o{ SKILL_OBSERVATIONS : "app current native Session"
+    PERSONAL_INSIGHT_RUNS o|..o| SESSIONS : "app usage accounting"
     SOURCE_FILES ||..o| CONTEXT_DOCUMENTS : "app path"
     WORKSPACES o|..o{ USAGE_RECORDS : "app frozen snapshot"
     WORKSTREAM_LINKS }o..o| SESSIONS : "app session target"
@@ -198,6 +199,7 @@ erDiagram
 
 ### Application-enforced relationships
 
+- `personal_insight_runs` may own one metadata-only accounting Session through the frozen source and `sessions.external_id = localbrain-insight:<Run ID>`. Ordinary Sessions have no such owner. This application projection has no physical Run FK or cascade and does not create a `maintenance_runs` relationship; [Maintenance Execution](data-model/maintenance-execution.md#personal_insight_runs) owns its lifecycle.
 - `workstream_links`, `thread_links`, and `checkpoint_resource_refs` store `entity_type` plus text `entity_id`. Types map to `session` → `sessions`, `document` → `context_documents`, `project` → `workspaces`, `external` → `external_resources`, and `local` → `local_resources`. SQLite cannot enforce those targets.
 - New Workstream and Thread links pass `_validate_entity`; Session links additionally require a primary work Session. Checkpoint references snapshot already validated links but do not revalidate historical targets.
 - `suggestions.target_type` plus `target_id` addresses a Workstream or Thread. `origin_run_id` identifies the maintenance Run that generated structured suggestions when present.

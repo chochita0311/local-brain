@@ -199,6 +199,10 @@ class UiContractTests(unittest.TestCase):
         self.assertIsNone(re.search(r"(?:transition|animation)[^;]*\b\d+m?s\b", component_rules))
 
     def test_semantic_foundation_includes_provenance_and_responsive_contracts(self):
+        # The available width can be below 320px when a classic scrollbar is present.
+        root_rule = re.search(r"^html\s*\{([^}]+)\}", self.styles, re.MULTILINE).group(1)
+        self.assertIn("min-width: min(var(--viewport-min-width), 100%)", root_rule)
+        self.assertNotIn("overflow", root_rule)
         for token in (
             "--surface-source-claude",
             "--surface-source-codex",

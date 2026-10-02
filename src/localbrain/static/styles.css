@@ -291,7 +291,7 @@
 
 * { box-sizing: border-box; }
 
-html { min-width: var(--viewport-min-width); background: var(--page-bg); }
+html { min-width: min(var(--viewport-min-width), 100%); background: var(--page-bg); }
 
 body {
   margin: var(--space-none);
@@ -1315,6 +1315,10 @@ a.search-result:hover { background: var(--surface-subtle); }
 .session-insights-run-detail-heading p:last-child { margin: var(--space-control-gap) var(--space-none) var(--space-none); color: var(--text-secondary); font-size: var(--type-body-small-size); }
 .session-insights-run-detail-heading time { white-space: pre-line; }
 .session-insights-run-facts { display: flex; flex-wrap: wrap; gap: var(--space-control-gap) var(--space-card); padding-top: var(--space-row-block); color: var(--text-secondary); font-size: var(--type-caption-size); }
+.session-insights-run-scope { margin-top: var(--space-card); color: var(--text-secondary); font-size: var(--type-body-small-size); overflow-wrap: anywhere; }
+.session-insights-run-scope strong { color: var(--text-primary); }
+.session-insights-run-scope p { margin: var(--space-control-gap) var(--space-none) var(--space-none); }
+.session-insights-run-legacy-note { color: var(--text-secondary); font-size: var(--type-body-small-size); }
 .session-insights-run-settings-detail { padding: var(--space-row-block) var(--space-none); color: var(--text-secondary); font-size: var(--type-body-small-size); }
 .session-insights-run-settings-detail summary { width: fit-content; color: var(--text-link); cursor: pointer; }
 .session-insights-run-settings-detail dl { display: grid; gap: var(--space-control-gap); margin: var(--space-row-block) var(--space-none) var(--space-none); }
@@ -2791,7 +2795,6 @@ a.workflow-evidence-item:hover strong { color: var(--text-link); text-decoration
 }
 
 /* Auto Work extends the browse/read family; all presentation uses shared roles. */
-html.auto-work-root { min-width: min(var(--viewport-min-width), 100%); }
 .auto-work { min-width: 0; font-size: var(--type-body-small-size); }
 .auto-work .page-heading { align-items: flex-start; }
 .auto-work .page-heading form { max-width: var(--rail-context-width); }

@@ -194,6 +194,7 @@ def _pick_events(
     ranked: list[tuple[int, int, int, str, dict[str, Any], set[str]]] = []
     for index, raw in enumerate(cursor):
         row = dict(raw)
+        row["message_index"] = index
         if index in spread_positions:
             spread.append((row, set()))
         if not terms:
@@ -406,6 +407,7 @@ def build_insight_evidence_manifest(
                         "session_id": session["session_id"],
                         "event_id": event["id"],
                         "sequence": event["sequence"],
+                        "message_index": event["message_index"],
                         "role": event["role"],
                         "occurred_at": event["occurred_at"],
                         "text_revision": sha256(event["text"].encode("utf-8")).hexdigest(),
@@ -428,6 +430,7 @@ def build_insight_evidence_manifest(
                         "session_id": session["session_id"],
                         "session_url": f"/sessions/{session['session_id']}",
                         "events": events,
+                        "message_count": session["message_count"],
                     }
                 )
                 source = coverage_by_source[session["source_key"]]
@@ -483,6 +486,10 @@ def build_insight_evidence_manifest(
                 "selected_sessions": len(included_sessions),
                 "selected_excerpts": selected_excerpts,
                 "excerpt_characters": total_chars,
+                "truncated_excerpts": sum(
+                    event["excerpt_start"] != 0 or event["excerpt_end"] != event["text_length"]
+                    for session in included_sessions for event in session["events"]
+                ),
                 "eligible_undated_messages": sum(row["unknown_time_count"] for row in eligible),
                 "undated_messages_excluded": undated_excluded,
                 "selected_undated_messages": unknown_selected_times,

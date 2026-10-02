@@ -426,7 +426,14 @@ def _remove_stale_sessions(
                 row["path"]
             )
     rows = connection.execute(
-        "SELECT id, source_path FROM sessions WHERE source_id = ?",
+        """SELECT id, source_path FROM sessions WHERE source_id = ?
+        AND NOT (
+            sessions.session_class = 'maintenance'
+            AND sessions.index_policy = 'metadata_only'
+            AND sessions.external_id IN (
+                SELECT 'localbrain-insight:' || id FROM personal_insight_runs
+            )
+        )""",
         (source_id,),
     ).fetchall()
     for row in rows:

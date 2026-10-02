@@ -117,6 +117,7 @@ from .session_reading import conversation_event_views
 from .session_sources import load_and_reconcile_session_sources
 from .skill_observations import skill_insights_data
 from .personal_insight_evidence import resolve_insight_evidence_reference
+from .personal_insight_usage import insight_usage_cost
 from .personal_insight_runs import (
     cancel_insight_run,
     get_insight_run,
@@ -433,6 +434,8 @@ def _session_insights_response(
                         for field in ("evidence_ids", "counterevidence_ids")
                         for ref in finding.get(field, [])
                     }
+                    cited.update(result.get("selection_evidence_ids", []))
+                    cited.update(result.get("additional_evidence", {}).get("evidence_ids", []))
                     reference_states = {"current": 0, "stale": 0, "unavailable": 0}
                     for ref in cited:
                         event = admitted.get(ref)
@@ -455,6 +458,7 @@ def _session_insights_response(
         selected_settings = (
             json.loads(selected["settings_json"]) if selected else None
         )
+        selected_cost = insight_usage_cost(connection, selected["id"]) if selected else None
     return templates.TemplateResponse(
         "session_insights.html",
         {
@@ -467,6 +471,7 @@ def _session_insights_response(
             "report_html": report_html,
             "selected_coverage": selected_coverage,
             "selected_usage": selected_usage,
+            "selected_cost": selected_cost,
             "selected_settings": selected_settings,
             "reference_states": reference_states,
             "has_more_runs": has_more,

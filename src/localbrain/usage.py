@@ -469,14 +469,14 @@ def ensure_official_price_snapshots(connection: sqlite3.Connection) -> None:
                 + (
                     "2026-09-26"
                     if spec in (*SPARK_PROXY_SPECS, *FAST_LONG_CONTEXT_PROXY_SPECS)
-                    else INSPECTED_ON
+                    else spec.inspected_on
                 )
                 + ")",
                 OFFICIAL_CALCULATOR_VERSION,
                 (
                     "2026-09-26T00:00:00Z"
                     if spec in (*SPARK_PROXY_SPECS, *FAST_LONG_CONTEXT_PROXY_SPECS)
-                    else INSPECTED_ON + "T00:00:00Z"
+                    else spec.inspected_on + "T00:00:00Z"
                 ),
             )
             for spec in price_specs
@@ -498,8 +498,10 @@ def ensure_official_price_snapshots(connection: sqlite3.Connection) -> None:
     )
 
 
-def price_existing_unpriced_spark_records(connection: sqlite3.Connection) -> int:
-    """Apply the selected ccusage proxy to retained Spark token observations."""
+def _price_existing_unpriced_codex_records(
+    connection: sqlite3.Connection, model_name: str
+) -> int:
+    """Price retained observations only when their frozen evidence is sufficient."""
     rows = connection.execute(
         """
         SELECT usage_records.id, usage_records.source_record_id,
@@ -513,11 +515,11 @@ def price_existing_unpriced_spark_records(connection: sqlite3.Connection) -> int
         FROM usage_records
         JOIN sources ON sources.id = usage_records.source_id
         WHERE sources.provider_kind = 'codex'
-          AND usage_records.model_name = 'gpt-5.3-codex-spark'
+          AND usage_records.model_name = ?
           AND usage_records.calculation_state = 'unpriced'
           AND usage_records.price_snapshot_id = ?
         """,
-        (UNAVAILABLE_SNAPSHOT_ID,),
+        (model_name, UNAVAILABLE_SNAPSHOT_ID),
     ).fetchall()
     if not rows:
         return 0
@@ -534,13 +536,18 @@ def price_existing_unpriced_spark_records(connection: sqlite3.Connection) -> int
         if tier not in {"standard", "fast"}:
             continue
         snapshot_id = select_snapshot(
-            "codex", "gpt-5.3-codex-spark", row["occurred_at"], tier
+            "codex", model_name, row["occurred_at"], tier,
+            context_input_tokens=(
+                row["input_tokens"] + row["cache_read_tokens"]
+                if row["input_tokens"] is not None and row["cache_read_tokens"] is not None
+                else None
+            ),
         )
         if snapshot_id == UNAVAILABLE_SNAPSHOT_ID:
             continue
-        price = _price_row(connection, snapshot_id, "gpt-5.3-codex-spark")
+        price = _price_row(connection, snapshot_id, model_name)
         if price is None:
-            raise RuntimeError("Spark proxy price snapshot is unavailable")
+            raise RuntimeError("Selected Codex price snapshot is unavailable")
         record = ParsedUsageRecord(
             usage_record_id=row["id"],
             source_record_id=row["source_record_id"],
@@ -568,16 +575,26 @@ def price_existing_unpriced_spark_records(connection: sqlite3.Connection) -> int
         UPDATE usage_records
         SET calculation_state = 'priced', estimated_cost_usd = ?,
             price_snapshot_id = ?, calculator_version = ?, calculated_at = ?
-        WHERE id = ? AND model_name = 'gpt-5.3-codex-spark'
+        WHERE id = ? AND model_name = ?
           AND calculation_state = 'unpriced' AND price_snapshot_id = ?
         """,
         [
             (cost, snapshot_id, OFFICIAL_CALCULATOR_VERSION, calculated_at,
-             record_id, UNAVAILABLE_SNAPSHOT_ID)
+             record_id, model_name, UNAVAILABLE_SNAPSHOT_ID)
             for cost, snapshot_id, calculated_at, record_id in updates
         ],
     )
     return cursor.rowcount
+
+
+def price_existing_unpriced_spark_records(connection: sqlite3.Connection) -> int:
+    """Apply the selected ccusage proxy to retained Spark token observations."""
+    return _price_existing_unpriced_codex_records(connection, "gpt-5.3-codex-spark")
+
+
+def price_existing_unpriced_sol_6_1_records(connection: sqlite3.Connection) -> int:
+    """Fill missing Sol 6.1 estimates without repricing historical priced usage."""
+    return _price_existing_unpriced_codex_records(connection, "gpt-6.1-sol")
 
 
 def price_existing_partial_fast_long_context_records(
@@ -716,6 +733,10 @@ def calculate_estimated_cost(
         return "partial", None
     context_input_tokens = record.input_tokens + (record.cache_read_tokens or 0)
     long_context = threshold is not None and context_input_tokens > threshold
+    if long_context and record.capability.get("context_scope") == "turn_total":
+        # A CLI turn total can contain several requests. It cannot select each
+        # request's long-context rate merely from the sum of their inputs.
+        return "partial", None
 
     def selected_rate(base_column: str, long_context_column: str) -> Optional[str]:
         return (
@@ -1174,7 +1195,16 @@ def reconcile_usage_record_contract(
         DELETE FROM usage_records
         WHERE source_id = ?
           AND id NOT IN (SELECT id FROM expected_usage_record_ids)
+          AND session_id NOT IN (
+              SELECT sessions.id FROM sessions
+              WHERE sessions.source_id = ?
+                AND sessions.session_class = 'maintenance'
+                AND sessions.index_policy = 'metadata_only'
+                AND sessions.external_id IN (
+                    SELECT 'localbrain-insight:' || id FROM personal_insight_runs
+                )
+          )
         """,
-        (source_id,),
+        (source_id, source_id),
     )
     connection.execute("DELETE FROM expected_usage_record_ids")

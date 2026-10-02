@@ -19,17 +19,19 @@ from .personal_insight_evidence import (
     build_insight_evidence_manifest,
 )
 from .personal_insight_guidance import (
-    CORE_VERSION,
+    SuppliedMessageRequestError,
     build_guide_bundle,
     guide_text,
+    report_version_for_guide,
     result_schema,
     validate_guided_result,
 )
+from .personal_insight_usage import insight_usage_source, recover_insight_usage, store_insight_usage
 from .runner import runner_executable
 from .workstreams import utc_now
 
 
-RUNNER_POLICY_VERSION = "personal-insight-cli-v1"
+RUNNER_POLICY_VERSION = "personal-insight-cli-v3-bootstrap"
 MAX_REPORT_CHARS = 100_000
 _RUN_ID_RE = re.compile(r"\Ains-[0-9a-f]{16}\Z")
 _TYPE_LABELS = {
@@ -64,6 +66,24 @@ _tasks: dict[str, asyncio.Task] = {}
 _processes: dict[str, asyncio.subprocess.Process] = {}
 _shutting_down = False
 
+
+def _sampling_description(manifest: dict) -> str:
+    method = manifest["selection"]["method"]
+    if method == "source_month_spread_v1":
+        return (
+            "출처와 최근 활동 월별로 세션을 나누어 고르게 뽑고, 같은 그룹에서는 최근 세션을 먼저 선택했습니다. "
+            "각 세션의 처음·중간·마지막 메시지를 발췌했습니다. 프로젝트별 균등 배분이나 전체 업무의 중요도 순위는 아닙니다. "
+            "같은 자료로 다시 실행하면 비슷한 후보가 나올 수 있습니다."
+        )
+    if method == "fts70_plus_source_month_spread_v1":
+        return (
+            "질문과 단어가 맞는 세션을 검색한 뒤 출처·최근 활동 월별 표본으로 보완했습니다. "
+            "질문 단어가 있는 메시지를 우선 발췌하고, 없으면 처음·중간·마지막 메시지를 선택했습니다. "
+            "검색어 일치나 표본 포함이 업무의 중요도를 뜻하지는 않습니다."
+        )
+    return "이 실행은 별도로 구성한 표본을 사용했습니다. 선택된 자료 범위 안에서만 해석해야 합니다."
+
+
 def runner_choices() -> list[dict[str, str]]:
     """Resolve the local Codex profile once and freeze it with a Run."""
     configured = os.environ.get("LOCALBRAIN_INSIGHT_CODEX_HOME") or os.environ.get("CODEX_HOME")
@@ -88,10 +108,11 @@ def _runner_settings(choice: dict[str, str]) -> dict[str, Any]:
         "codex_home": choice["codex_home"],
         "profile": choice["profile"],
         "reasoning_effort": "high",
+        "service_tier": "standard",
         "tools": "disabled",
         "native_session_persistence": False,
         "network_tools": False,
-        "filesystem_access": "run-artifacts-read-only",
+        "filesystem_access": "run-artifacts-and-cli-read-only",
         "structured_result": True,
     }
 
@@ -171,6 +192,7 @@ def _prompt(manifest: dict, guide_bundle: dict) -> str:
             {
                 "source_key": session["source_key"],
                 "session_id": session["session_id"],
+                "message_count": session.get("message_count"),
                 "events": [
                     {
                         "evidence_id": "{}:{}".format(event["source_key"], event["event_id"]),
@@ -178,7 +200,9 @@ def _prompt(manifest: dict, guide_bundle: dict) -> str:
                         "occurred_at": event["occurred_at"],
                         "excerpt": event["excerpt"],
                         "excerpt_start": event["excerpt_start"],
+                        "excerpt_end": event["excerpt_end"],
                         "text_length": event["text_length"],
+                        "message_index": event.get("message_index"),
                     }
                     for event in session["events"]
                 ],
@@ -213,6 +237,7 @@ def prepare_insight_run(connection, *, mode: str, question: str | None, runner: 
     guide_bundle = build_guide_bundle(manifest)
     guide_metadata = {
         "core_version": guide_bundle["core_version"],
+        "report_version": guide_bundle["report_version"],
         "core_sha256": guide_bundle["core_sha256"],
         "route_reason": guide_bundle["route_reason"],
         "playbooks": [
@@ -220,7 +245,11 @@ def prepare_insight_run(connection, *, mode: str, question: str | None, runner: 
             for item in guide_bundle["playbooks"]
         ],
     }
-    runner_settings = {**_runner_settings(choices[runner]), "guide": guide_metadata}
+    runner_settings = {
+        **_runner_settings(choices[runner]), "guide": guide_metadata,
+        "sampling_description": _sampling_description(manifest),
+    }
+    runner_settings["usage_source_key"] = insight_usage_source(connection, runner_settings)["kind"]
     run_id = "ins-" + uuid.uuid4().hex[:16]
     root = _run_root(run_id)
     root.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -238,6 +267,10 @@ def prepare_insight_run(connection, *, mode: str, question: str | None, runner: 
     try:
         _write_private(paths["evidence_path"], json.dumps(manifest, ensure_ascii=False, indent=2))
         _write_private(paths["prompt_path"], _prompt(manifest, guide_bundle))
+        _write_private(root / "response-schema.json", json.dumps(result_schema(
+            [item["id"] for item in guide_bundle["playbooks"]],
+            report_version=report_version_for_guide(guide_bundle),
+        ), ensure_ascii=False))
         now = utc_now()
         connection.execute(
             """INSERT INTO personal_insight_runs(
@@ -276,18 +309,32 @@ def _update(run_id: str, **values) -> None:
 
 
 def _runner_args(run: dict, executable: str) -> list[str]:
+    # Startup filesystem helpers re-exec Codex inside the restricted profile.
+    # On macOS the launcher symlink can remain blocked even when its target is readable.
+    executable = str(Path(executable).expanduser().resolve())
+    filesystem = (
+        'permissions.external-sync.filesystem={":minimal"="read",'
+        '":workspace_roots"={"."="read"},' + json.dumps(executable) + '="read"}'
+    )
     root = _run_root(run["id"])
     schema_path = root / "response-schema.json"
     guide = json.loads(run["settings_json"])["guide"]
-    schema = result_schema([item["id"] for item in guide["playbooks"]])
-    _write_private(schema_path, json.dumps(schema, ensure_ascii=False))
+    schema = result_schema(
+        [item["id"] for item in guide["playbooks"]], report_version=report_version_for_guide(guide)
+    )
+    if schema_path.is_file():
+        if json.loads(schema_path.read_text(encoding="utf-8")) != schema:
+            raise ValueError("분석 응답 규격이 실행 기록과 일치하지 않습니다.")
+    else:
+        _write_private(schema_path, json.dumps(schema, ensure_ascii=False))
     return [
         executable, "exec", "--json", "--ephemeral", "--ignore-user-config",
         "--ignore-rules", "--skip-git-repo-check", "-C", str(root),
         "-m", run["model"],
         "-c", 'model_reasoning_effort="high"',
+        "-c", 'service_tier="default"',
         "-c", 'default_permissions="external-sync"',
-        "-c", 'permissions.external-sync.filesystem={":minimal"="read",":workspace_roots"={"."="read"}}',
+        "-c", filesystem,
         "-c", "permissions.external-sync.network.enabled=false",
         "-c", 'web_search="disabled"',
         "-c", 'shell_environment_policy.inherit="none"',
@@ -298,9 +345,15 @@ def _runner_args(run: dict, executable: str) -> list[str]:
 
 def _validate_result(value: Any, manifest: dict, run: dict) -> dict:
     guide = json.loads(run["settings_json"])["guide"]
-    if guide["core_version"] != run["guide_version"] or run["guide_version"] != CORE_VERSION:
+    if guide["core_version"] != run["guide_version"]:
         raise ValueError("분석 가이드 버전이 실행 기록과 일치하지 않습니다.")
-    return validate_guided_result(value, manifest, guide)
+    try:
+        return validate_guided_result(value, manifest, guide)
+    except SuppliedMessageRequestError as error:
+        raise ValueError(
+            "이미 전문이 제공된 메시지를 다시 요청해 보고서를 만들지 못했습니다. "
+            "실행 기록과 사용량은 보존되며 자동으로 다시 실행하지 않습니다."
+        ) from error
 
 
 def _plain(value: str) -> str:
@@ -328,9 +381,40 @@ def _render_report(run: dict, manifest: dict, result: dict) -> str:
         ),
         "",
     ]
+    execution_notes = []
+    if "selection_reason" in result:
+        execution_notes, lines = lines[2:], lines[:2]
     if run["question"]:
         lines.extend(["## 질문", "", _plain(run["question"]), ""])
     lines.extend(["## 요약", "", _plain(result["summary"]), ""])
+    if "selection_reason" in result:
+        lines.extend([
+            "## 이번에 살펴본 범위", "",
+            "확인 가능한 업무 세션 {}개 중 {}개, 메시지 {}개 중 {}개 발췌를 살펴봤습니다.".format(
+                coverage["eligible_sessions"], coverage["selected_sessions"],
+                coverage["eligible_messages"], coverage["selected_excerpts"],
+            ), "",
+            "- 발췌에 포함된 시간: {} ~ {} (UTC)".format(
+                coverage.get("selected_first_at") or "미상", coverage.get("selected_last_at") or "미상"
+            ),
+            "- 시간 미상 발췌: {}개".format(coverage.get("selected_undated_messages", 0)),
+        ])
+        if "truncated_excerpts" in coverage:
+            lines.append("- 일부만 제공된 메시지: {}개".format(coverage["truncated_excerpts"]))
+        for source, counts in coverage.get("sources", {}).items():
+            lines.append("- {}: 세션 {} / {}개, 발췌 {} / 메시지 {}개".format(
+                _plain(source), counts["selected_sessions"], counts["eligible_sessions"],
+                counts["selected_excerpts"], counts["eligible_messages"],
+            ))
+        lines.extend(["", _sampling_description(manifest), "", "## 이 후보를 살펴본 이유", "",
+                      _plain(result["selection_reason"]), ""])
+        for ref in result["selection_evidence_ids"]:
+            event = lookup[ref]
+            lines.extend([
+                "- [관련 세션 {}](/sessions/{}) · {}".format(event["session_id"], event["session_id"], _plain(event["role"])),
+                "  > " + _plain(event["excerpt"]).replace("  \n", "  \n  > "),
+            ])
+        lines.append("")
     if result["findings"]:
         for index, finding in enumerate(result["findings"], 1):
             lines.extend([
@@ -341,6 +425,7 @@ def _render_report(run: dict, manifest: dict, result: dict) -> str:
                 ),
                 "- 결과 확인: 아직 사용자 확인 전", "",
                 "**관련 목표**  ", _plain(finding["owner_goal"]), "",
+                *(["**이 유형을 고른 이유**  ", _plain(finding["type_reason"]), ""] if "type_reason" in finding else []),
                 "**관찰**  ", _plain(finding["observation"]), "",
                 "**다른 설명**  ", _plain(finding["alternative"]), "",
                 "**반대 사례 상태**  ", _COUNTEREXAMPLE_LABELS[finding["counterexample_status"]], "",
@@ -385,9 +470,23 @@ def _render_report(run: dict, manifest: dict, result: dict) -> str:
             request = result["additional_evidence"]
             lines.extend([
                 "현재 표본만으로는 제안을 확정할 수 없습니다.", "",
+                _plain(result["no_finding_reason"]), "",
                 "- 필요한 근거: {}".format(_EVIDENCE_REQUEST_LABELS[request["kind"]]),
-                "- 확인 질문: " + _plain(request["question"]),
             ])
+            if request.get("message_requests"):
+                lines.extend(["", "실행 당시 범위에서 다음 메시지만 더 필요합니다. 이미 제공된 전문은 요청에서 제외했습니다.", ""])
+                for target in request["message_requests"]:
+                    anchor = lookup[target["anchor_evidence_id"]]
+                    lines.extend([
+                        "- [세션 {}](/sessions/{}) · 범위 내 {}번째 메시지의 전문".format(
+                            anchor["session_id"], anchor["session_id"], target["message_index"] + 1,
+                        ),
+                        "  - 위치를 찾을 기준: {}번째 메시지 ({})".format(anchor["message_index"] + 1, _plain(anchor["role"])),
+                        "  > " + _plain(anchor["excerpt"]).replace("  \n", "  \n  > "),
+                    ])
+                lines.extend(["", "번호는 실행 당시 선택 범위의 사용자·AI 메시지 순서입니다. 현재 세션이 바뀌었다면 기준 발췌로 위치를 확인해 주세요."])
+            else:
+                lines.append("- 확인 질문: " + _plain(request["question"]))
             if request["evidence_ids"]:
                 lines.append("- 관련 발췌: " + ", ".join(
                     "[{}](/sessions/{})".format(_plain(ref), lookup[ref]["session_id"])
@@ -400,19 +499,23 @@ def _render_report(run: dict, manifest: dict, result: dict) -> str:
     omissions = manifest["coverage"]["omission_reasons"]
     if omissions:
         lines.extend(["표본 제한: " + ", ".join(_plain(item) for item in omissions), ""])
+    if execution_notes:
+        lines.extend(["## 실행 기록", "", *execution_notes])
     report = "\n".join(lines).strip() + "\n"
     if len(report) > MAX_REPORT_CHARS:
         raise ValueError("보고서가 허용 길이를 벗어났습니다.")
     return report
 
 
-async def _consume_stream(stream, path: Path) -> tuple[dict | None, dict | None, str | None]:
+async def _consume_stream(stream, path: Path, run: dict) -> tuple[dict | None, dict | None, str | None]:
     final_event = None
     usage = None
     resolved_model = None
     written = 0
+    source_line = 0
     with _open_private_binary(path) as output:
         while line := await stream.readline():
+            source_line += 1
             if written < 8_000_000:
                 output.write(line[: max(0, 8_000_000 - written)])
                 written += min(len(line), max(0, 8_000_000 - written))
@@ -420,6 +523,12 @@ async def _consume_stream(stream, path: Path) -> tuple[dict | None, dict | None,
                 event = json.loads(line)
             except (UnicodeDecodeError, json.JSONDecodeError):
                 continue
+            if not isinstance(event, dict):
+                continue
+            if isinstance(event.get("model"), str):
+                resolved_model = event["model"]
+            elif isinstance(event.get("message"), dict) and isinstance(event["message"].get("model"), str):
+                resolved_model = event["message"]["model"]
             if event.get("type") == "result":
                 final_event = event
                 if isinstance(event.get("usage"), dict):
@@ -428,10 +537,12 @@ async def _consume_stream(stream, path: Path) -> tuple[dict | None, dict | None,
                         usage["total_cost_usd"] = event["total_cost_usd"]
             elif event.get("type") == "turn.completed" and isinstance(event.get("usage"), dict):
                 usage = event["usage"]
-            if isinstance(event.get("model"), str):
-                resolved_model = event["model"]
-            elif isinstance(event.get("message"), dict) and isinstance(event["message"].get("model"), str):
-                resolved_model = event["message"]["model"]
+                output.flush()
+                with transaction() as connection:
+                    store_insight_usage(
+                        connection, {**run, "resolved_model": resolved_model}, usage,
+                        observed_at=utc_now(), source_line=source_line,
+                    )
     return final_event, usage, resolved_model
 
 
@@ -469,6 +580,8 @@ async def _execute(run_id: str) -> None:
         codex_home = Path(runner_settings["codex_home"])
         if not codex_home.is_dir():
             raise RuntimeError("선택한 Codex 프로필을 찾을 수 없습니다.")
+        with connect() as connection:
+            insight_usage_source(connection, runner_settings)
         args = _runner_args(run, executable)
         prompt = Path(run["prompt_path"]).read_text(encoding="utf-8")
         process = await asyncio.create_subprocess_exec(
@@ -478,11 +591,12 @@ async def _execute(run_id: str) -> None:
             env={**os.environ, "CODEX_HOME": str(codex_home), "LOCALBRAIN_INSIGHT_RUN_ID": run_id},
         )
         _processes[run_id] = process
-        _update(run_id, status="running", started_at=utc_now(), pid=process.pid)
+        run["started_at"] = utc_now()
+        _update(run_id, status="running", started_at=run["started_at"], pid=process.pid)
         process.stdin.write(prompt.encode("utf-8"))
         await process.stdin.drain()
         process.stdin.close()
-        stdout_task = asyncio.create_task(_consume_stream(process.stdout, Path(run["stream_path"])))
+        stdout_task = asyncio.create_task(_consume_stream(process.stdout, Path(run["stream_path"]), run))
         stderr_task = asyncio.create_task(_consume_stderr(process.stderr, Path(run["stderr_path"])))
         return_code = await process.wait()
         (final_event, usage, event_model), _ = await asyncio.gather(stdout_task, stderr_task)
@@ -510,7 +624,6 @@ async def _execute(run_id: str) -> None:
         _update(
             run_id, status="completed" if result["outcome"] == "findings" else "no_finding",
             title=result["title"][:160], resolved_model=resolved_model,
-            usage_json=json.dumps(usage, ensure_ascii=False) if usage else None,
             pid=None, completed_at=utc_now(), error=None,
         )
     except asyncio.CancelledError:
@@ -533,6 +646,17 @@ async def _execute(run_id: str) -> None:
     except Exception as error:
         _update(run_id, status="failed", pid=None, completed_at=utc_now(), error=str(error)[:1000])
     finally:
+        if process and process.returncode is None:
+            process.terminate()
+            try:
+                await asyncio.wait_for(process.wait(), timeout=5)
+            except asyncio.TimeoutError:
+                process.kill()
+                await process.wait()
+        await asyncio.gather(
+            *(task for task in (stdout_task, stderr_task) if task),
+            return_exceptions=True,
+        )
         _processes.pop(run_id, None)
 
 
@@ -570,6 +694,7 @@ def reconcile_interrupted_insight_runs() -> None:
                WHERE status IN ('queued', 'running')""",
             (utc_now(), utc_now()),
         )
+        recover_insight_usage(connection)
 
 
 async def shutdown_insight_runs() -> None:

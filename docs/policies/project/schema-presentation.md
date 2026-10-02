@@ -37,7 +37,7 @@ Each table contains:
 | `foreign_keys` | Table-local physical target, columns, and update/delete behavior. |
 | `semantics` | Purpose/authority, lifecycle contract and class, rebuildability code, producers, consumers, deletion effect, recovery path, DDL/migration ownership, and documented constraints. |
 
-The current baseline has ten subjects, 43 ordinary tables plus one FTS5 object, 490 effective columns, 49 explicit indexes, 57 physical relations, and 28 application relations. Count changes are accepted only with the implementation and semantic owners updated together.
+The current baseline has ten subjects, 44 ordinary tables plus one FTS5 object, 515 effective columns, 51 explicit indexes, 57 physical relations, and 29 application relations. Count changes are accepted only with the implementation and semantic owners updated together.
 
 ## Determinism And Failure
 
@@ -70,7 +70,7 @@ Successfully rendered diagrams start at their existing `100%` width and expose b
 
 ## Privacy And Packaging
 
-Only schema identifiers and approved semantic text enter the manifest. Runtime rows, configured or source paths, source names, document/session content, URLs, credentials, Run artifacts, and machine state are prohibited. Repository-relative owner paths and source hashes are allowed provenance.
+Only schema identifiers and approved semantic text enter the manifest. Runtime rows, configured or source paths, source names, document/session content, private or runtime URLs, credentials, Run artifacts, and machine state are prohibited. Repository-relative owner paths and source hashes are allowed provenance. Reviewed public documentation citations in repository-owned semantic text are also allowed; the schema-presentation test pins their exact URLs. This exception does not admit imported URLs or fetch anything during generation, loading, or page rendering.
 
 The wheel must contain `localbrain/schema-presentation.json` and `localbrain/schema_presentation.py`. An installed package must load them with the repository, Node, runtime database, and network unavailable.
 

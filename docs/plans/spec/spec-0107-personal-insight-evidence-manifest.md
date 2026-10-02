@@ -33,6 +33,8 @@ Provide a read-only, versioned value producer for a bounded sample of currently 
 
 ## Manifest And Reference Review
 
+- The 2026-09-29 consumer correction adds optional v1 metadata without changing selection: Session `message_count`, event `message_index` (zero-based position among eligible messages in the frozen scope, before sampling), and coverage `truncated_excerpts`. Old manifests may omit these values. Positions are not raw event sequence and must not be recomputed against current data when reviewing a frozen request.
+
 - The value includes `version`, normalized input scope with resolved UTC date bounds, selection method and lexical-match state, generation time, coverage, omission reasons, and `sessions` with ordered `events`. The event reference carries source key, provider kind, current Session ID, Activity Event ID, role, occurrence time, sequence, complete-text digest, excerpt, offsets, and a `/sessions/{id}` destination. It contains no native source path or external Session ID.
 - `resolve_insight_evidence_reference` rereads the current Session and Event with the same IDs. It returns `current` only when source key, provider kind, eligibility, event role, and full-text digest still agree. Missing Session or Event is `unavailable`; a present but changed or newly ineligible row is `stale`. Resolution returns status and a Session destination when the Session exists, not a replacement excerpt. It never rewrites a frozen manifest.
 - A future Run artifact owner may retain the manifest privately outside Git. This module creates no retention owner and does not persist it.

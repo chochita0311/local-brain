@@ -18,11 +18,18 @@ from localbrain.ingest.scanner import (
     _scan_session_source,
     _store_session,
 )
+from localbrain.official_pricing import (
+    FAST_LONG_CONTEXT_PROXY_SPECS, PRICE_SPECS, SPARK_PROXY_SPECS,
+    UNAVAILABLE_SNAPSHOT_ID,
+)
 from localbrain.usage import (
     CODEX_FAST_PRICE_SNAPSHOT_ID,
     CODEX_FAST_TIERED_PRICE_SNAPSHOT_ID,
     CODEX_FAST_TIERED_SPARK_PRICE_SNAPSHOT_ID,
-    CONTEXT_TIER_CALCULATOR_VERSION,
+    CODEX_FAST_TIERED_ASTRA_INITIAL_PRICE_SNAPSHOT_ID,
+    CODEX_FAST_TIERED_ASTRA_PRICE_SNAPSHOT_ID,
+    CODEX_FAST_TIERED_SOL_PRICE_SNAPSHOT_ID,
+    OFFICIAL_CALCULATOR_VERSION,
     DEFAULT_PRICE_SNAPSHOT_ID,
     ensure_default_price_snapshot,
     reconcile_usage_record_contract,
@@ -104,7 +111,7 @@ class UsageContractTests(unittest.TestCase):
         stored = self.connection.execute("SELECT * FROM usage_records").fetchone()
         self.assertEqual(stored["calculation_state"], "priced")
         self.assertEqual(stored["estimated_cost_usd"], "0.001134000000")
-        self.assertEqual(stored["price_snapshot_id"], DEFAULT_PRICE_SNAPSHOT_ID)
+        self.assertEqual(stored["price_snapshot_id"], "official-anthropic-claude-sonnet-4-6-20260217-v1")
 
     def test_claude_prefers_positive_nested_cache_breakdown_over_zero_aggregate(self):
         path = self._write_jsonl(
@@ -249,7 +256,8 @@ class UsageContractTests(unittest.TestCase):
             """
         ).fetchone()
         self.assertEqual(stored["records"], 2)
-        self.assertAlmostEqual(stored["cost"], 0.023)
+        # Unmarked fixtures use Standard: (600 * $5 + 400 * $0.5 + 200 * $30) / 1M.
+        self.assertAlmostEqual(stored["cost"], 0.0092)
         self.assertEqual(stored["min_version"], CODEX_USAGE_CONTRACT_VERSION)
         self.assertEqual(stored["max_version"], CODEX_USAGE_CONTRACT_VERSION)
 
@@ -372,18 +380,18 @@ class UsageContractTests(unittest.TestCase):
 
         self.assertEqual(
             [row["estimated_cost_usd"] for row in rows],
-            ["0.287000000000", "0.571002000000", "0.025000000000"],
+            ["0.143500000000", "0.285501000000", "0.012500000000"],
         )
         self.assertTrue(
             all(
                 row["price_snapshot_id"]
-                == CODEX_FAST_TIERED_PRICE_SNAPSHOT_ID
+                == "official-openai-gpt-5-6-sol-standard-20260709-v1"
                 for row in rows
             )
         )
         self.assertTrue(
             all(
-                row["calculator_version"] == CONTEXT_TIER_CALCULATOR_VERSION
+                row["calculator_version"] == OFFICIAL_CALCULATOR_VERSION
                 for row in rows
             )
         )
@@ -515,6 +523,10 @@ class UsageContractTests(unittest.TestCase):
                     },
                 },
                 {
+                    "type": "thread_settings_applied",
+                    "payload": {"thread_settings": {"service_tier": "fast"}},
+                },
+                {
                     "type": "event_msg",
                     "timestamp": "2026-08-03T01:44:02Z",
                     "payload": {
@@ -550,7 +562,7 @@ class UsageContractTests(unittest.TestCase):
         )
         self.assertEqual(
             row["price_snapshot_id"],
-            CODEX_FAST_TIERED_SPARK_PRICE_SNAPSHOT_ID,
+            "ccusage-20-0-17-spark-fast-proxy-20260926-v1",
         )
         self.assertEqual(row["calculation_state"], "priced")
         self.assertEqual(row["estimated_cost_usd"], "0.410597600000")
@@ -669,6 +681,10 @@ class UsageContractTests(unittest.TestCase):
                     },
                 },
                 {
+                    "type": "thread_settings_applied",
+                    "payload": {"thread_settings": {"service_tier": "fast"}},
+                },
+                {
                     "type": "event_msg",
                     "timestamp": "2026-07-18T02:02:00Z",
                     "payload": {
@@ -695,7 +711,7 @@ class UsageContractTests(unittest.TestCase):
             record.capability["model_resolution"], "dated_auto_review_fallback"
         )
         self.assertEqual(
-            record.price_snapshot_id, CODEX_FAST_TIERED_PRICE_SNAPSHOT_ID
+            record.price_snapshot_id, "official-openai-gpt-5-5-fast-20260423-v1"
         )
 
         _store_session(self.connection, self.codex_source_id, "codex", parsed)
@@ -705,7 +721,7 @@ class UsageContractTests(unittest.TestCase):
         self.assertEqual(stored["raw_model"], "codex-auto-review")
         self.assertEqual(stored["model_name"], "gpt-5.5")
         self.assertEqual(
-            stored["price_snapshot_id"], CODEX_FAST_TIERED_PRICE_SNAPSHOT_ID
+            stored["price_snapshot_id"], "official-openai-gpt-5-5-fast-20260423-v1"
         )
 
     def test_contract_repair_applies_explicit_price_snapshot_and_preserves_project(self):
@@ -1416,6 +1432,13 @@ class UsageContractTests(unittest.TestCase):
                     CODEX_FAST_PRICE_SNAPSHOT_ID,
                     CODEX_FAST_TIERED_PRICE_SNAPSHOT_ID,
                     CODEX_FAST_TIERED_SPARK_PRICE_SNAPSHOT_ID,
+                    CODEX_FAST_TIERED_ASTRA_INITIAL_PRICE_SNAPSHOT_ID,
+                    CODEX_FAST_TIERED_ASTRA_PRICE_SNAPSHOT_ID,
+                    CODEX_FAST_TIERED_SOL_PRICE_SNAPSHOT_ID,
+                    UNAVAILABLE_SNAPSHOT_ID,
+                } | {
+                    spec.snapshot_id
+                    for spec in (*PRICE_SPECS, *SPARK_PROXY_SPECS, *FAST_LONG_CONTEXT_PROXY_SPECS)
                 },
             )
             columns = {

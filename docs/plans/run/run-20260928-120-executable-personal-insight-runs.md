@@ -44,3 +44,5 @@ The local browser's analysis-start click was rejected by automatic approval revi
 ## Later Correction
 
 The documentation review found that this product Run had been marked passed before the fuller FEAT-0108 guide and finding contract had been completed. FEAT-0107 and FEAT-0108 subsequently passed synthetic foundation evaluations. [RUN-122](run-20260928-122-guided-personal-insight-result-integration.md) records the post-Run consumer correction, including source-linked report rendering. This historical RUN-120 status remains a first-increment implementation result with partial live-provider coverage, not evidence of an actual personal analysis Run.
+
+The owner subsequently identified the missing Usage & Cost integration. The original no-Usage projection boundary above was inconsistent with PRD-0018 and is superseded by the explicitly requested correction in [RUN-125](run-20260928-125-personal-insight-usage-accounting.md). RUN-120 does not establish acceptance of analysis cost accounting.

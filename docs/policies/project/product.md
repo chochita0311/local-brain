@@ -80,7 +80,7 @@ The complete storage and disclosure contract is owned by [Privacy And Data Handl
 | `Source Item` | Imported item retaining source identity and freshness |
 | `Session` | One source-backed Claude or Codex primary or child session |
 | `Activity Event` | Normalized prompt, tool call, error, file action, or other event |
-| `Usage Record` | One source-backed Claude usage record or positive Codex direct event delta, with cumulative fallback when direct usage is absent, plus explicit component, model, normalizer version, capability, and immutable trend-cost provenance |
+| `Usage Record` | One source-backed usage observation: a Claude record, positive Codex direct event delta with cumulative fallback when direct usage is absent, or retained ephemeral analysis CLI summary; includes explicit component semantics, model, normalizer version, capability, and immutable trend-cost provenance |
 | `Resource` | Linkable session, document, path, project, ticket, message, or URL |
 | `Suggestion` | Reversible proposed resource link or checkpoint draft |
 | `Checkpoint` | Versioned, user-confirmed resume state with a resource snapshot |
@@ -103,8 +103,9 @@ The same Resource may relate to multiple Threads. Relationship-specific evidence
 - Claude cache creation prefers a positive internally consistent ephemeral breakdown over a contradictory zero aggregate. Codex usage prefers every positive direct `last_token_usage` event, uses Session-cumulative subtraction only when the direct event value is absent, excludes copied spawned or forked replay prefixes, and ignores repeated zero deltas.
 - Session synchronization owns normalizer-version repair. A changed Usage
   contract automatically reparses every current file for the affected source and
-  transactionally replaces only that source's derived Usage Record set with the
+  transactionally replaces only that source's native Usage Record set with the
   complete file union while retaining historical price and Project snapshots.
+  Independently recorded ephemeral-analysis accounting is preserved.
   It does not replace unchanged Session, Activity Event, search, or reference
   evidence merely because Usage pricing or normalization changed. Users do not
   manage this with an aggregate-reset button.
@@ -626,7 +627,9 @@ Insights may include context switching, tool usage, project and topic distributi
 
 The first Session Insights view is reached from the Sessions Dashboard heading and returns to Usage & Cost from the same position. It shows the most-used explicitly loaded skill and every skill with an observed use in one descending list, with each skill's last recorded use time after its count. Matching names sum across Claude Code, Codex, and Codex Company. Counts survive ordinary local Session disappearance. The count includes Claude `Skill` calls and Codex-generated `<skill>` loads; direct `SKILL.md` reads are outside this signal coverage. The ranking omits row-level source and Session disclosure. When tracked Session files exist but any lack the current skill-extraction contract, Insights shows partial synchronization coverage, including when none have reached the new contract yet. If historical counts remain but no current Session file is tracked, Insights identifies the retained history and missing current source coverage.
 
-The adjacent personal improvement analyzer starts only when the owner submits a question or asks it to discover opportunities. It uses bounded, source-linked primary work Session excerpts, a versioned core guide, and up to four selected category playbooks to produce one analysis-only report through the selected Codex CLI profile. The report may offer at most three source-backed findings, say that no actionable finding was supported, or ask for bounded additional evidence. A suggested change remains unconfirmed until the owner checks its effect in later work. Each retry is a new Run; reports remain private and downloadable for use in a separate work Session. The analyzer does not continue into work, edit files, or admit its own explanation as future behavioral evidence. Its observed runner usage is shown on its own Run rather than inferred from a normal Session.
+The adjacent personal improvement analyzer starts only when the owner submits a question or asks it to discover opportunities. It uses bounded, source-linked primary work Session excerpts, a versioned core guide, and all eleven category playbooks to produce one analysis-only report through the selected Codex CLI profile. The user's goal and observed friction determine the category; source vocabulary alone does not exclude a type. The report shows the supplied scope and explains candidate/type selection, then may offer at most three source-backed findings, say that no actionable finding was supported, or request specific missing evidence without requesting messages already supplied in full.
+
+A suggested change remains unconfirmed until the owner checks its effect in later work. Each retry is a new Run; reports remain private and downloadable for use in a separate work Session. The analyzer does not continue into work, edit files, or admit its own explanation as future behavioral evidence. Observed runner usage enters Usage & Cost once through a metadata-only accounting projection, independently of report success. The selected Run shows its stored estimate and calculation basis; its analysis conversation remains outside ordinary Sessions and future analysis evidence.
 
 ## Current Scope
 

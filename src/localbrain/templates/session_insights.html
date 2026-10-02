@@ -88,6 +88,12 @@
               </div>
             </div>
             <p class="session-insights-run-notice"><strong>실행 전 확인</strong> 선택된 업무 세션 발췌를 {{ runner_choices[0].profile }} 프로필의 Codex CLI를 통해 모델 서비스로 보냅니다. 한 번에 최대 100개 세션·300개 발췌를 분석하며 토큰 사용량이 클 수 있습니다. 다시 실행하면 새 Run이 생성됩니다.</p>
+            <details class="session-insights-run-settings-detail">
+              <summary>어떤 자료를 살펴보나요?</summary>
+              <p>등록된 Claude·Codex의 업무 세션에서 사용자와 AI의 메시지를 일부 발췌합니다. 분석 Run, 유지보수, 하위 에이전트 대화는 제외합니다.</p>
+              <p>질문 없이 찾을 때는 출처와 최근 활동 월별로 나누어 뽑고, 같은 그룹에서는 최근 세션을 먼저 선택합니다. 각 세션의 처음·중간·마지막 메시지를 최대 600자씩 살펴봅니다. 질문 분석은 질문 단어가 있는 자료를 우선합니다.</p>
+              <p>프로젝트별로 균등하게 뽑거나 전체 업무의 중요도를 매기지는 않습니다. 같은 자료에서는 비슷한 후보가 다시 나올 수 있습니다. 실행 후 실제 범위와 후보를 고른 이유를 보고서에서 확인할 수 있습니다.</p>
+            </details>
           </form>
         {% else %}
           <p class="session-insights-form-error" role="status">Codex CLI 또는 Codex 프로필을 찾을 수 없습니다. Codex CLI와 CODEX_HOME을 확인한 뒤 다시 열어 주세요.</p>
@@ -135,15 +141,37 @@
               {% endif %}
               {% if selected_usage.total_cost_usd is defined %}<span>실행기 보고 비용 ${{ "%.2f"|format(selected_usage.total_cost_usd) }}</span>{% endif %}
             {% endif %}
+            {% if selected_cost and selected_cost.cost_label %}
+              <span>추정 비용 {{ selected_cost.cost_label }}</span>
+            {% elif selected_cost %}
+              <span>추정 비용 미산정 · {{ value_label("usage.calculation-state", selected_cost.calculation_state) }}</span>
+            {% else %}
+              <span>추정 비용 미산정 · 사용량 {% if selected_run.status in ('queued', 'running') %}수신 대기{% else %}기록 없음{% endif %}</span>
+            {% endif %}
             <span>가이드 {{ selected_run.guide_version }}</span>
           </div>
+          <div class="session-insights-run-scope">
+            <strong>이번 분석의 자료 범위</strong>
+            <p>확인 가능한 업무 세션 {{ selected_coverage.eligible_sessions }}개 중 {{ selected_coverage.selected_sessions }}개 · 메시지 {{ "{:,}".format(selected_coverage.eligible_messages) }}개 중 {{ selected_coverage.selected_excerpts }}개 발췌</p>
+            {% if selected_settings.sampling_description %}<p>{{ selected_settings.sampling_description }}</p>{% endif %}
+          </div>
           <details class="session-insights-run-settings-detail">
-            <summary>실행 범위와 설정</summary>
+            <summary>출처·기간과 실행 설정</summary>
             <dl>
+              <div><dt>발췌된 시간</dt><dd>{% if selected_coverage.selected_first_at %}<time datetime="{{ selected_coverage.selected_first_at }}" data-local-date-time-stacked>{{ selected_coverage.selected_first_at }}</time> ~ <time datetime="{{ selected_coverage.selected_last_at }}" data-local-date-time-stacked>{{ selected_coverage.selected_last_at }}</time>{% else %}시간 미상{% endif %} · 시간 미상 발췌 {{ selected_coverage.selected_undated_messages }}개</dd></div>
+              {% for source, counts in selected_coverage.sources.items() %}
+                <div><dt>{{ source }}</dt><dd>세션 {{ counts.selected_sessions }} / {{ counts.eligible_sessions }}개 · 발췌 {{ counts.selected_excerpts }} / 메시지 {{ "{:,}".format(counts.eligible_messages) }}개</dd></div>
+              {% endfor %}
+              {% if selected_coverage.truncated_excerpts is defined %}<div><dt>일부만 제공</dt><dd>{{ selected_coverage.truncated_excerpts }}개 메시지 · 나머지 발췌는 전문 제공</dd></div>{% endif %}
               <div><dt>선택 모델</dt><dd>{{ selected_run.model }}</dd></div>
               <div><dt>Codex 프로필</dt><dd>{{ selected_settings.profile }}</dd></div>
               <div><dt>실제 모델</dt><dd>{{ selected_run.resolved_model or ('실행기 응답 대기' if selected_run.status in ('queued', 'running') else '실행기에서 확인되지 않음') }}</dd></div>
               <div><dt>추론 수준</dt><dd>{{ selected_settings.reasoning_effort }}</dd></div>
+              <div><dt>비용 기준</dt><dd>가격표로 환산한 추정치이며 실제 청구액이 아닙니다.</dd></div>
+              {% if selected_cost %}
+                <div><dt>계산 상태</dt><dd>{{ value_label("usage.calculation-state", selected_cost.calculation_state) }}</dd></div>
+                <div><dt>적용 가격표</dt><dd>{{ selected_cost.price_label or '확인되지 않음' }}</dd></div>
+              {% endif %}
               <div><dt>도구</dt><dd>사용 안 함</dd></div>
               <div><dt>대화 기록</dt><dd>세션으로 저장 안 함</dd></div>
               <div><dt>근거</dt><dd>업무 세션 {{ selected_coverage.selected_sessions }}개 · 발췌 {{ selected_coverage.selected_excerpts }}개</dd></div>
@@ -151,6 +179,9 @@
             </dl>
           </details>
           {% if report_html %}
+            {% if selected_run.guide_version in ('personal-improvement-core-v1', 'personal-improvement-core-v2', 'personal-improvement-core-v3') %}
+              <p class="session-insights-run-legacy-note">이전 가이드의 보고서입니다. 후보·유형을 고른 이유는 별도 항목으로 기록되지 않았습니다.</p>
+            {% endif %}
             {% if reference_states and (reference_states.stale or reference_states.unavailable) %}
               <p class="session-insights-evidence-notice" role="status">인용한 세션 근거 중 {{ reference_states.stale }}개가 변경되었고 {{ reference_states.unavailable }}개를 현재 찾을 수 없습니다. 보고서에는 실행 당시 발췌가 남아 있습니다.</p>
             {% elif reference_states is none %}

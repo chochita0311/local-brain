@@ -1,5 +1,7 @@
 # FEAT-0029 Schema Integrity And Cleanup Decisions
 
+This narrative preserves the 2026-07-19 closeout snapshot, including its inventory, dispositions and verification evidence. Later schema additions are recorded in the [current decision source](audit-0029-schema-decisions.json) and [generated current ledger](audit-0029-schema-object-ledger.md); their live totals do not replace the historical counts below.
+
 ## Result
 
 - Audit result: `complete`; all four owner-reviewed cleanup boundaries are implemented, including FEAT-0037's Maintenance Run Workstream FK parity repair.

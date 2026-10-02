@@ -42,6 +42,7 @@ erDiagram
     MAINTENANCE_RUNS ||--o| EXTERNAL_SYNC_RUNS : "physical CASCADE"
     EXTERNAL_SOURCE_INSTANCES o|--o{ EXTERNAL_SYNC_RUNS : "physical SET_NULL"
     MAINTENANCE_RUNS o|--o| SESSIONS : "physical SET_NULL unique"
+    PERSONAL_INSIGHT_RUNS o|..o| SESSIONS : "app usage accounting"
     MAINTENANCE_RUNS o|..o{ SUGGESTIONS : "app origin"
 ```
 
@@ -118,8 +119,8 @@ Constraints: the database enforces one-to-one parent ownership, both physical re
 - Purpose and authority: one deliberate question or discovery analysis, with its own identity, frozen runner/model, evidence coverage, guide version, status, observed usage, and private report reference.
 - Lifecycle: append-only operational history; repeating an analysis creates a new ID. Terminal rows are retained until the owner explicitly deletes them through a future deletion action. The app never treats an analysis Run as a Workstream or ordinary work Session.
 - Producers: `personal_insight_runs.py` freezes a bounded primary-work evidence manifest, writes private artifacts, invokes the selected no-tools local CLI, validates the structured result against frozen source IDs, writes the Markdown report, and records a terminal status.
-- Consumers: Sessions Dashboard → Insights list/detail, status polling, cancellation, report download, and startup interruption reconciliation. The report is a separate-work-Session handoff artifact, not an automatic task.
-- Relations and deletion: no physical FK to `sessions`, `maintenance_runs`, or `workstreams`. This preserves historical evidence when indexed Session rows disappear and prevents an analysis conversation from becoming new behavioral evidence.
+- Consumers: Sessions Dashboard → Insights list/detail, status polling, cancellation, report download, and startup interruption reconciliation. The report is a separate-work-Session handoff artifact, not an automatic task. `personal_insight_usage.py` also feeds observed analysis usage into Usage & Cost independently of report success.
+- Relations and deletion: no physical FK to `sessions`, `maintenance_runs`, or `workstreams`. This preserves historical evidence when indexed Session rows disappear. A metadata-only Maintenance Session with deterministic external ID `localbrain-insight:<Run ID>` is an application-level accounting projection, with no events, search content, workspace, or conversation. Native synchronization preserves it. The analysis conversation remains excluded from behavioral evidence.
 - Recovery: restore both this database table and `personal-insight-runs/<id>/` under the private runtime data directory. The row alone cannot reproduce its frozen excerpts, prompt, model response, locally validated result, or Markdown report. Missing artifacts appear unavailable; a restart marks active Runs interrupted without silently re-calling a model.
 - DDL ownership: fresh idempotent definition and `idx_personal_insight_runs_created` / `idx_personal_insight_runs_status` in `schema.sql`; no rewrite of older rows is needed.
 
@@ -129,10 +130,10 @@ Constraints: the database enforces one-to-one parent ownership, both physical re
 | `mode` | checked `ask` or `discover`. |
 | `question` | nullable bounded user question; absent for discovery. |
 | `status` | checked queued, running, completed, no-finding, failed, cancelled, or interrupted lifecycle. |
-| `runner` | checked Codex CLI executor. The selected local profile is frozen in `settings_json`. |
+| `runner` | checked Codex CLI executor. The selected local profile and exact registered usage Source key are frozen in `settings_json`. |
 | `model` | selected model identifier or CLI alias frozen before launch. |
 | `resolved_model` | observed exact model identifier when emitted by the CLI. |
-| `settings_json` | frozen Codex home/profile, high reasoning effort, no-tools, native-session-persistence, network-tool, filesystem, structured-result, and policy-version settings; selected core/playbook versions, SHA-256 digests, and route reason. |
+| `settings_json` | frozen Codex home/profile, registered usage Source key, Standard service tier, high reasoning effort, no-tools, native-session-persistence, network-tool, filesystem, structured-result, and policy-version settings; selected core/playbook versions, SHA-256 digests, and route reason. |
 | `guide_version` | selected core-guide version. |
 | `evidence_version` | frozen evidence-manifest contract identity. |
 | `evidence_path` | private frozen selected-Session evidence file. |
@@ -142,7 +143,7 @@ Constraints: the database enforces one-to-one parent ownership, both physical re
 | `stream_path` | private bounded CLI event stream. |
 | `stderr_path` | private bounded process diagnostic stream. |
 | `coverage_json` | frozen selected and eligible Session/message counts. |
-| `usage_json` | nullable observed runner token and cost fields; not a projected ordinary work Session. |
+| `usage_json` | nullable observed CLI usage summary, stored before report validation and retained after failure or cancellation; its normalized tokens and estimate are also projected into canonical Usage Records without an ordinary work Session. |
 | `title` | nullable bounded generated report title. |
 | `error` | nullable bounded terminal failure reason. |
 | `pid` | nullable active local process ID, cleared at terminal status. |
@@ -157,4 +158,4 @@ The report's source value is also kept as private `validated-result.json` in the
 
 ## Subject Recovery Boundary
 
-SQLite restores both independent Run state machines, the external-sync query projection, and references; runtime storage restores the actual execution evidence. Neither is committed to Git. Restart reconciliation marks an abandoned active Run interrupted. Maintenance Runs finalize their linked Sessions and retain observed Usage Records; personal-insight Runs use ephemeral CLI sessions and retain their own observed usage. Neither silently resumes a process, re-calls a provider, or mutates Workstream organization.
+SQLite restores both independent Run state machines, the external-sync query projection, and references; runtime storage restores the actual execution evidence. Neither is committed to Git. Restart reconciliation marks an abandoned active Run interrupted. Maintenance Runs finalize their linked Sessions and retain observed Usage Records; personal-insight Runs use ephemeral CLI sessions and retain their own observed usage plus a metadata-only usage-accounting projection. Startup recovers unaccounted retained observations idempotently. Neither silently resumes a process, re-calls a provider, or mutates Workstream organization.

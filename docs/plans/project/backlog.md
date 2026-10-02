@@ -16,8 +16,12 @@ track after inspecting the continuous map. The
 owns resumption of that track; the open items below are not active jobs or newly
 approved work. Separately approved Sessions Dashboard → Insights work is tracked
 under [PRD-0018](../prd/prd-0018-personal-ai-use-improvement-insights.md): its
-evidence and guide foundations passed synthetic checks, while the first actual
-model report and review workflow remain unobserved or unresolved.
+first increment now has owner-started no-finding and finding reports in addition
+to its foundation and bounded guide checks. The
+[closeout review](../feature/feat-0110-executable-personal-insight-runs.md#first-increment-closeout-review)
+records the initial usable behavior and defects. The owner-approved [closeout corrections](../run/run-20261002-137-insight-closeout-corrections.md) resolve cost visibility, narrow-screen containment, stale regression expectations and missing GPT-6.1 Sol pricing. The next owner-use step is a
+bounded application trial; [Insights follow-ups](#personal-improvement-insights)
+remain separate from actual benefit or approval of another product increment.
 
 Inspection target: the
 [relation-first inspection track](../design/workflow-map-design-plan.md#relation-first-inspection-track).
@@ -230,6 +234,13 @@ single linked checkbox in the detailed backlog below.
 - <a id="markdown-image-and-attachment-rendering"></a>[ ] Add safe Markdown image and attachment rendering after PRD-0006's core text and Obsidian-syntax reader stabilizes, covering source-contained relative assets, missing files, root-escape rejection, remote-loading policy, responsive containment, and safe fallbacks for unsupported embeds.
 
 ## P2 - Dashboard And Workflow
+
+### Personal Improvement Insights
+
+- [ ] Evaluate one report's bounded intervention in ordinary work and retain the owner's judgment before proposing persistent adoption. More findings or repeated analysis alone do not establish benefit; the [current product boundary](../prd/prd-0018-personal-ai-use-improvement-insights.md#first-increment-and-next-use) owns the approved next-use scope.
+- [ ] Select a later bounded analyzer increment from the [remaining PRD decisions](../prd/prd-0018-personal-ai-use-improvement-insights.md#uncertainty-and-decisions-needed-before-dependent-features): review/adoption history, model/reasoning controls, project/source/date selection, targeted evidence expansion, explicit work-location save or proactive discovery. None is an active implementation job.
+
+### Other Dashboard Work
 
 - [ ] Replace generic counts with a current-work view of Thread state, recent changes, blockers, next actions, and stale checkpoints.
 - [ ] Show cross-source evidence and freshness without copying full sensitive content into overview screens.

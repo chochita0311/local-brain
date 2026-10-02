@@ -26,7 +26,7 @@
 - Generated Mermaid definitions and table catalogs are the same deterministic representation used by later product consumers; a separate hand-maintained application ERD is prohibited.
 - Generation is deterministic, and a check mode fails when committed or packaged presentation output is stale, incomplete, malformed, or inconsistent with the schema or durable docs.
 - The generated output is explicitly derived. `schema.sql` and `db.py` remain executable truth, while the data-model documents remain semantic truth.
-- The packaged manifest contains no row values, runtime paths, source names, document content, URLs, credentials, Run artifacts, or machine-specific state.
+- The packaged manifest contains no row values, runtime paths, source names, document content, private or runtime URLs, credentials, Run artifacts, or machine-specific state. The owner's 2026-10-02 closeout correction admits only reviewed public documentation citations from repository-owned semantic text, with exact URLs pinned by the schema tests; [Schema Presentation](../../policies/project/schema-presentation.md#privacy-and-packaging) owns this provenance boundary.
 - An installed LocalBrain package can load the manifest without access to repository docs, Node.js, a runtime database, or the network.
 - No application route or visible navigation is added by this Feature.
 

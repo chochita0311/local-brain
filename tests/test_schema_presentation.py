@@ -31,15 +31,15 @@ class SchemaPresentationBuildTests(unittest.TestCase):
         self.assertEqual(manifest["schema"], "localbrain.schema-presentation.v1")
         self.assertIs(manifest["derived"], True)
         self.assertEqual(len(manifest["subjects"]), 10)
-        self.assertEqual(len(manifest["tables"]), 43)
+        self.assertEqual(len(manifest["tables"]), 45)
         self.assertEqual(
-            sum(len(table["columns"]) for table in manifest["tables"]), 477
+            sum(len(table["columns"]) for table in manifest["tables"]), 515
         )
         self.assertEqual(
-            sum(len(table["indexes"]) for table in manifest["tables"]), 46
+            sum(len(table["indexes"]) for table in manifest["tables"]), 51
         )
         self.assertEqual(len(manifest["relationships"]["physical"]), 57)
-        self.assertEqual(len(manifest["relationships"]["application"]), 26)
+        self.assertEqual(len(manifest["relationships"]["application"]), 29)
 
         owned = [
             table_id
@@ -48,7 +48,8 @@ class SchemaPresentationBuildTests(unittest.TestCase):
         ]
         table_ids = [table["id"] for table in manifest["tables"]]
         self.assertEqual(owned, table_ids)
-        self.assertEqual(len(set(owned)), 43)
+        self.assertEqual(len(set(owned)), 45)
+        self.assertTrue({"personal_insight_runs", "skill_observations"}.issubset(owned))
 
         required_semantics = {
             "purpose_and_authority",
@@ -177,11 +178,20 @@ Constraints: first constraint
             ):
                 builder.check_manifest(output, ROOT)
 
-    def test_serialized_manifest_excludes_runtime_and_network_values(self):
+    def test_serialized_manifest_excludes_runtime_values_and_unreviewed_urls(self):
         serialized = builder.manifest_bytes(ROOT).decode("utf-8")
         self.assertNotIn("/Users/", serialized)
         self.assertNotIn("http://", serialized)
-        self.assertNotIn("https://", serialized)
+        # Reviewed public citations in code-owned semantics are provenance, not runtime URLs.
+        public_citations = {
+            "https://developers.openai.com/api/docs/pricing",
+            "https://openai.com/api-fast-mode/",
+            "https://platform.claude.com/docs/en/about-claude/pricing",
+            "https://github.com/ccusage/ccusage/blob/v20.0.17/rust/crates/ccusage/src/pricing.rs",
+            "https://developers.openai.com/api/docs/models/gpt-6.1-sol",
+            "https://developers.openai.com/api/docs/changelog",
+        }
+        self.assertEqual(set(re.findall(r'https://[^\s)"\\]+', serialized)), public_citations)
         for source in self.manifest["baseline"]["sources"]:
             self.assertFalse(Path(source["path"]).is_absolute(), source["path"])
 

@@ -258,7 +258,7 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [SPEC-0109: Insights Analyzer Screen Preview](spec/spec-0109-insights-analyzer-screen-preview.md) | `approved` | FEAT-0109 |
 | [SPEC-0110: Executable Personal Insight Runs](spec/spec-0110-executable-personal-insight-runs.md) | — | FEAT-0110 |
 
-## Runs (124)
+## Runs (137)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -386,8 +386,21 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [RUN-20260928-122: Guided Personal Insight Result Integration](run/run-20260928-122-guided-personal-insight-result-integration.md) | `passed` | FEAT-0110 |
 | [RUN-20260928-123: Skill Observation And Retention](run/run-20260928-123-skill-observation-retention.md) | `passed` | FEAT-0105 |
 | [RUN-20260928-124: First Session Insights View](run/run-20260928-124-first-session-insights-view.md) | `passed` | FEAT-0106 |
+| [RUN-20260928-125: Personal Insight Usage Accounting](run/run-20260928-125-personal-insight-usage-accounting.md) | `passed` | FEAT-0110 |
+| [RUN-20260928-126: Personal Insight Guide Behavior](run/run-20260928-126-personal-insight-guide-behavior.md) | `passed` | FEAT-0108 |
+| [RUN-20260929-127: Personal Insight Context Comparison](run/run-20260929-127-personal-insight-context-comparison.md) | `returned-to-spec` | FEAT-0108 |
+| [RUN-20260929-128: Personal Insight Selection Contract](run/run-20260929-128-personal-insight-selection-contract.md) | `passed` | FEAT-0108 |
+| [RUN-20260929-129: Personal Insight Scope And Requests](run/run-20260929-129-personal-insight-scope-and-requests.md) | `passed` | FEAT-0110 |
+| [RUN-20260929-130: Personal Insight Requested Context](run/run-20260929-130-personal-insight-requested-context.md) | `passed` | FEAT-0108 |
+| [RUN-20261001-131: Personal Insight Decision Threshold](run/run-20261001-131-personal-insight-decision-threshold.md) | `passed` | FEAT-0108 |
+| [RUN-20261001-132: Personal Insight Explanation Question](run/run-20261001-132-personal-insight-explanation-question.md) | `passed` | FEAT-0108 |
+| [RUN-20261001-133: Personal Insight Explanation Trial](run/run-20261001-133-personal-insight-explanation-trial.md) | `passed` | FEAT-0108 |
+| [RUN-20261001-134: Personal Insight Application Handoff](run/run-20261001-134-personal-insight-application-handoff.md) | `passed` | FEAT-0108 |
+| [RUN-20261001-135: Personal Insight CLI Startup](run/run-20261001-135-personal-insight-cli-startup.md) | `passed` | FEAT-0110 |
+| [RUN-20261002-136: Personal Insight Proposal Follow-through](run/run-20261002-136-personal-insight-proposal-follow-through.md) | `passed` | FEAT-0108 |
+| [RUN-20261002-137: Insight Closeout Corrections](run/run-20261002-137-insight-closeout-corrections.md) | `passed` | FEAT-0110 |
 
-## Evaluations And Schema Audits (369)
+## Evaluations And Schema Audits (399)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -747,21 +760,51 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [EVAL-0106 UX: First Session Insights View](evaluation/eval-0106-ux-first-session-insights-view.md) | `complete` | FEAT-0106 |
 | [EVAL-0107: Personal Insight Evidence Contract](evaluation/eval-0107-contract-personal-insight-evidence-manifest.md) | `complete` | FEAT-0107 |
 | [EVAL-0107 Functional: Personal Insight Evidence Manifest](evaluation/eval-0107-functional-personal-insight-evidence-manifest.md) | `complete` | FEAT-0107 |
+| [EVAL-0108 Contract: Application Handoff](evaluation/eval-0108-contract-application-handoff.md) | `complete` | FEAT-0108 |
+| [EVAL-0108 Contract: Context Comparison](evaluation/eval-0108-contract-context-comparison.md) | `complete` | FEAT-0108 |
+| [EVAL-0108 Contract: Decision Threshold](evaluation/eval-0108-contract-decision-threshold.md) | `complete` | FEAT-0108 |
+| [EVAL-0108 Contract: Explanation Question](evaluation/eval-0108-contract-explanation-question.md) | `complete` | FEAT-0108 |
+| [EVAL-0108 Contract: Explanation Trial](evaluation/eval-0108-contract-explanation-trial.md) | `complete` | FEAT-0108 |
+| [EVAL-0108 Contract: Guide Behavior](evaluation/eval-0108-contract-guide-behavior.md) | `complete` | FEAT-0108 |
 | [EVAL-0108 Contract: Personal Improvement Guide And Finding Contract](evaluation/eval-0108-contract-personal-improvement-guide-and-finding-contract.md) | `complete` | FEAT-0108 |
+| [EVAL-0108 Contract: Proposal Follow-through](evaluation/eval-0108-contract-proposal-follow-through.md) | `complete` | FEAT-0108 |
+| [EVAL-0108 Contract: Requested Context](evaluation/eval-0108-contract-requested-context.md) | `complete` | FEAT-0108 |
+| [EVAL-0108 Contract: Selection Contract](evaluation/eval-0108-contract-selection-contract.md) | `complete` | FEAT-0108 |
+| [EVAL-0108 Functional: Application Handoff](evaluation/eval-0108-functional-application-handoff.md) | `complete` | FEAT-0108 |
+| [EVAL-0108 Functional: Context Comparison](evaluation/eval-0108-functional-context-comparison.md) | `complete` | FEAT-0108 |
+| [EVAL-0108 Functional: Decision Threshold](evaluation/eval-0108-functional-decision-threshold.md) | `complete` | FEAT-0108 |
+| [EVAL-0108 Functional: Explanation Question](evaluation/eval-0108-functional-explanation-question.md) | `complete` | FEAT-0108 |
+| [EVAL-0108 Functional: Explanation Trial](evaluation/eval-0108-functional-explanation-trial.md) | `complete` | FEAT-0108 |
+| [EVAL-0108 Functional: Guide Behavior](evaluation/eval-0108-functional-guide-behavior.md) | `complete` | FEAT-0108 |
 | [EVAL-0108 Functional: Personal Improvement Guide And Finding Contract](evaluation/eval-0108-functional-personal-improvement-guide-and-finding-contract.md) | `complete` | FEAT-0108 |
+| [EVAL-0108 Functional: Proposal Follow-through](evaluation/eval-0108-functional-proposal-follow-through.md) | `complete` | FEAT-0108 |
+| [EVAL-0108 Functional: Requested Context](evaluation/eval-0108-functional-requested-context.md) | `complete` | FEAT-0108 |
+| [EVAL-0108 Functional: Selection Contract](evaluation/eval-0108-functional-selection-contract.md) | `complete` | FEAT-0108 |
 | [EVAL-0109 Design: Insights Analyzer Screen Preview](evaluation/eval-0109-design-insights-analyzer-screen-preview.md) | `complete` | FEAT-0109 |
 | [EVAL-0109 Functional: Insights Analyzer Screen Preview](evaluation/eval-0109-functional-insights-analyzer-screen-preview.md) | `complete` | FEAT-0109 |
 | [EVAL-0109 UX: Insights Analyzer Screen Preview](evaluation/eval-0109-ux-insights-analyzer-screen-preview.md) | `complete` | FEAT-0109 |
+| [EVAL-0110 Contract: CLI Startup](evaluation/eval-0110-contract-cli-startup.md) | `complete` | FEAT-0110 |
+| [EVAL-0110 Contract: Closeout Corrections](evaluation/eval-0110-contract-closeout-corrections.md) | `complete` | FEAT-0110 |
 | [EVAL-0110 Contract: Executable Personal Insight Runs](evaluation/eval-0110-contract-executable-personal-insight-runs.md) | `complete` | FEAT-0110 |
 | [EVAL-0110 Contract: Guided Result Integration](evaluation/eval-0110-contract-guided-result-integration.md) | `complete` | FEAT-0110 |
+| [EVAL-0110 Contract: Insight Usage Accounting](evaluation/eval-0110-contract-insight-usage-accounting.md) | `complete` | FEAT-0110 |
+| [EVAL-0110 Contract: Scope And Requests](evaluation/eval-0110-contract-scope-and-requests.md) | `complete` | FEAT-0110 |
+| [EVAL-0110 Design: Closeout Corrections](evaluation/eval-0110-design-closeout-corrections.md) | `complete` | FEAT-0110 |
 | [EVAL-0110 Design: Executable Personal Insight Runs](evaluation/eval-0110-design-executable-personal-insight-runs.md) | `complete` | FEAT-0110 |
 | [EVAL-0110 Design: Guided Result Integration](evaluation/eval-0110-design-guided-result-integration.md) | `complete` | FEAT-0110 |
+| [EVAL-0110 Design: Scope And Requests](evaluation/eval-0110-design-scope-and-requests.md) | `complete` | FEAT-0110 |
+| [EVAL-0110 Functional: CLI Startup](evaluation/eval-0110-functional-cli-startup.md) | `complete` | FEAT-0110 |
+| [EVAL-0110 Functional: Closeout Corrections](evaluation/eval-0110-functional-closeout-corrections.md) | `complete` | FEAT-0110 |
 | [EVAL-0110 Functional: Executable Personal Insight Runs](evaluation/eval-0110-functional-executable-personal-insight-runs.md) | `complete` | FEAT-0110 |
 | [EVAL-0110 Functional: Guided Result Integration](evaluation/eval-0110-functional-guided-result-integration.md) | `complete` | FEAT-0110 |
+| [EVAL-0110 Functional: Insight Usage Accounting](evaluation/eval-0110-functional-insight-usage-accounting.md) | `complete` | FEAT-0110 |
+| [EVAL-0110 Functional: Scope And Requests](evaluation/eval-0110-functional-scope-and-requests.md) | `complete` | FEAT-0110 |
+| [EVAL-0110 UX: Closeout Corrections](evaluation/eval-0110-ux-closeout-corrections.md) | `complete` | FEAT-0110 |
 | [EVAL-0110 UX Heuristic: Executable Personal Insight Runs](evaluation/eval-0110-ux-executable-personal-insight-runs.md) | `complete` | FEAT-0110 |
 | [EVAL-0110 UX Heuristic: Guided Result Integration](evaluation/eval-0110-ux-guided-result-integration.md) | `complete` | FEAT-0110 |
+| [EVAL-0110 Ux-Heuristic: Scope And Requests](evaluation/eval-0110-ux-heuristic-scope-and-requests.md) | `complete` | FEAT-0110 |
 
-## Fix Logs (23)
+## Fix Logs (24)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -788,6 +831,7 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [FIX-0074: Related Material Evidence Density](fix/fix-0074-related-material-evidence-density.md) | `complete` | feat-0074-session-centric-related-materials-rail |
 | [FIX-0077: Atlassian Structural Scope Parity](fix/fix-0077-atlassian-structural-scope-parity.md) | `complete` | FEAT-0077 |
 | [FIX-0089: Workflow Correction Restoration Snapshot](fix/fix-0089-workflow-correction-restoration-snapshot.md) | `complete` | FEAT-0089 |
+| [FIX-0108: Output Review Scope](fix/fix-0108-output-review-scope.md) | `complete` | FEAT-0108 |
 
 ## Heuristic Backlogs (0)
 

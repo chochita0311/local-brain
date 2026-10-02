@@ -38,6 +38,7 @@ class PriceSpec:
     long_cache_read_rate: Optional[str]
     long_cache_write_rate: Optional[str]
     source_ref: str
+    inspected_on: str = INSPECTED_ON
 
     @property
     def price_row(self) -> tuple:
@@ -69,6 +70,8 @@ def _openai(
     fast_factor: str = "2",
     fast_long_context: bool = True,
     source_ref: str,
+    cache_read_rate: Optional[str] = None,
+    inspected_on: str = INSPECTED_ON,
 ) -> Tuple[PriceSpec, PriceSpec]:
     base_input = Decimal(input_rate)
     base_output = Decimal(output_rate)
@@ -90,7 +93,10 @@ def _openai(
                 effective_on=effective_on,
                 input_rate=_money(short_input),
                 output_rate=_money(short_output),
-                cache_read_rate=_money(short_input / Decimal(10)),
+                cache_read_rate=_money(
+                    Decimal(cache_read_rate) * factor
+                    if cache_read_rate is not None else short_input / Decimal(10)
+                ),
                 # Codex JSONL does not report cache writes separately.
                 cache_write_rate=None,
                 long_context_threshold=272_000,
@@ -103,7 +109,10 @@ def _openai(
                     else None
                 ),
                 long_cache_read_rate=(
-                    _money(short_input / Decimal(5)) if long_supported else None
+                    _money(
+                        Decimal(cache_read_rate) * factor * 2
+                        if cache_read_rate is not None else short_input / Decimal(5)
+                    ) if long_supported else None
                 ),
                 long_cache_write_rate=None,
                 source_ref=(
@@ -121,6 +130,7 @@ def _openai(
                         else ""
                     )
                 ),
+                inspected_on=inspected_on,
             )
         )
     return specs[0], specs[1]
@@ -201,6 +211,14 @@ PRICE_SPECS = (
     *_openai(
         "gpt-6-luna", "2026-09-22", "0.1", "0.5",
         source_ref="https://developers.openai.com/api/docs/models/gpt-6-luna",
+    ),
+    *_openai(
+        "gpt-6.1-sol", "2026-09-29", "2", "10", cache_read_rate="0.10",
+        source_ref=(
+            "https://developers.openai.com/api/docs/models/gpt-6.1-sol; "
+            + OPENAI_CHANGELOG_URL
+        ),
+        inspected_on="2026-10-02",
     ),
     _claude("claude-haiku-4-5-20251001", "2025-10-01", "1", "5"),
     _claude("claude-sonnet-4-6", "2026-02-17", "3", "15"),

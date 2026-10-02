@@ -104,6 +104,22 @@ class PersonalInsightEvidenceTests(unittest.TestCase):
         self.assertEqual(result["sessions"], [])
         self.assertIn("no_eligible_messages", result["coverage"]["omission_reasons"])
 
+    def test_positions_describe_scoped_messages_before_sampling(self):
+        session_id = self.add_session("codex-company", "positioned")
+        self.add_event(session_id, 5, "tool data", event_type="tool_call")
+        self.add_event(session_id, 10, "outside", occurred_at="2026-09-25T00:00:00Z")
+        self.add_event(session_id, 11, "   ")
+        for i in range(5):
+            self.add_event(session_id, 20 + i * 10, "x" * 601 if i == 2 else f"message {i}")
+        selected = self.manifest(date_from="2026-09-28", date_to="2026-09-28")
+        session = selected["sessions"][0]
+        self.assertEqual(session["message_count"], 5)
+        self.assertEqual([event["message_index"] for event in session["events"]], [0, 2, 4])
+        self.assertEqual([event["sequence"] for event in session["events"]], [20, 40, 60])
+        self.assertEqual(selected["coverage"]["truncated_excerpts"], 1)
+        self.assertEqual(selected["coverage"]["selected_excerpts"], 3)
+        self.assertEqual(selected["coverage"]["eligible_messages"], 5)
+
     def test_primary_work_messages_and_local_date_boundaries(self):
         claude = self.add_session("claude-code", "claude-work")
         codex = self.add_session("codex-company", "codex-work")

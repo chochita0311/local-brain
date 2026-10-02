@@ -64,6 +64,7 @@ erDiagram
     CONTEXT_DOCUMENTS { integer id PK }
     ATLASSIAN_ITEMS { integer external_resource_id PK }
     MAINTENANCE_RUNS { string id PK }
+    PERSONAL_INSIGHT_RUNS { string id PK }
     USAGE_RECORDS { string id PK integer session_id FK }
 
     SOURCES ||--o{ SESSIONS : "physical CASCADE"
@@ -79,6 +80,7 @@ erDiagram
     ATLASSIAN_ITEMS ||--o{ SESSION_REFERENCE_EVIDENCE : "physical CASCADE target"
     SESSIONS ||--o{ USAGE_RECORDS : "physical CASCADE"
     MAINTENANCE_RUNS o|--o| SESSIONS : "physical SET_NULL unique"
+    PERSONAL_INSIGHT_RUNS o|..o| SESSIONS : "app usage accounting"
 ```
 
 ## Catalog
@@ -114,7 +116,7 @@ Constraints: uniqueness of `canonical_path`. Explicit indexes: none.
   normalization behavior. An in-app Task Runner Run is represented by the selected
   runner's persisted native primary Session, linked to the Run ledger rather than
   duplicated by LocalBrain.
-- Lifecycle: all Sessions are source-derived from meaningful retained native JSONL
+- Lifecycle: native Sessions are source-derived from meaningful retained native JSONL
   accepted by the owning provider's Session-candidate contract. Meaningful means
   the parsed file contains at least one normalized Activity Event, direct Usage
   Record, or admitted skill-load observation; metadata-only stubs retain no Session or source-file projection and are
@@ -144,10 +146,11 @@ Constraints: uniqueness of `canonical_path`. Explicit indexes: none.
   Run-linked primary and its resolved child Sessions keep metadata while
   maintenance index/event policy is restricted; the private Runner stream is an
   operational artifact only.
-- Producers: `ingest/scanner.py` plus Claude/Codex parsers create Sessions and Usage Records; parent reconciliation updates self-references and propagates maintenance policy to Claude or Codex children. `runner.py` synchronizes the selected native source after terminal and recovered Runs. Session projection freshness is independently versioned in `source_files`, so classification/parser changes can rebuild Sessions, Activity Events, and search without replacing Usage merely because the Session contract changed. `db.py` owns the classification/Run-link constraint repair.
+  Ephemeral personal insight executions are a bounded exception: a retained CLI usage observation creates a metadata-only Maintenance Session accounting parent with identity `localbrain-insight:<Run ID>`. It contains no conversation, events, search entry, workspace, or native source-file registration. The independent Run is its application owner; native-source disappearance does not delete this accounting projection.
+- Producers: `ingest/scanner.py` plus Claude/Codex parsers create Sessions and Usage Records; parent reconciliation updates self-references and propagates maintenance policy to Claude or Codex children. `runner.py` synchronizes the selected native source after terminal and recovered Runs. Session projection freshness is independently versioned in `source_files`, so classification/parser changes can rebuild Sessions, Activity Events, and search without replacing Usage merely because the Session contract changed. `db.py` owns the classification/Run-link constraint repair. `personal_insight_usage.py` separately creates insight accounting parents and canonical Usage Records from observed ephemeral CLI usage.
 - Consumers: Session inventory/detail, dashboard counts, normalized activity, retrieval, Workstream linking/suggestions, Runner context, search projection, Usage Records, and Usage Dashboard denominators. Sessions inventory headline, rows, pagination, and Project grouping share the same `work` plus `primary` denominator with no age cutoff. A selected source matches the stable `sources.kind`, not `provider_kind`, so personal and company Codex remain statistically separate while sharing one adapter.
 - Relations and deletion: physical `source_id` cascades; optional `workspace_id`, `parent_session_id`, and unique `maintenance_run_id` set null. After a successful scan of a present source root, disappearance of one previously imported native JSONL or confirmation that it remains a zero-Event, zero-Usage, zero-skill-observation stub is deletion authority for its normalized Session. Deleting that Session cascades `activity_events`, `usage_records`, derived `session_reference_scans` and `session_reference_evidence`, and the optional user-owned `session_pins` row; scanner also removes its search and source-file projection while preserving a present native stub. A wholly missing source root does not trigger the same stale-file reconciliation. `skill_observations` has no cascading FK and keeps admitted historical uses. Polymorphic links and checkpoint refs are application edges and can retain an unresolved historical ID.
-- Recovery: rescan the authoritative native source file and reconcile parents. Restoring only a Task Runner stream cannot rebuild a Session or Usage Record; restore the selected runner's native Claude or Codex JSONL and the Run ledger together. A full database rebuild cannot restore user-curated links, exact operational history, or confirmed review state without backup.
+- Recovery: rescan the authoritative native source file and reconcile parents. Restoring only a Task Runner stream cannot rebuild a Session or Usage Record; restore the selected runner's native Claude or Codex JSONL and the Run ledger together. The insight accounting exception is recoverable from the independent Run ledger plus retained usage summaries or CLI usage events. A full database rebuild cannot restore user-curated links, exact operational history, or confirmed review state without backup.
 - DDL ownership: fresh definition and `idx_sessions_last_event`, `idx_sessions_workspace` in `schema.sql`; compatible columns, backup-backed classification/Run-link table repair, and runtime-only `idx_sessions_class`, `idx_sessions_role`, `idx_sessions_parent` in `db.py`. Before that structural repair, startup preserves `localbrain.db-pre-maintenance-session-contract-v1.bak` and validates it with SQLite `quick_check`. An older additive layout may have the same approved columns in a different physical order; migration validates every name/type/null/default/key contract, copies values by canonical column name, and converges only the physical order.
 
 | Column | Contract |
@@ -156,7 +159,7 @@ Constraints: uniqueness of `canonical_path`. Explicit indexes: none.
 | `source_id` | `INTEGER NOT NULL` FK to `sources.id`, `ON DELETE CASCADE`. |
 | `workspace_id` | nullable `INTEGER` FK to `workspaces.id`, `ON DELETE SET NULL`. |
 | `external_id` | `TEXT NOT NULL`; source-scoped Session or subsession identity. |
-| `source_path` | `TEXT NOT NULL`; authoritative native Claude or Codex JSONL path. |
+| `source_path` | `TEXT NOT NULL`; authoritative native Claude/Codex JSONL path, or the private stream path for an insight accounting parent. |
 | `cwd_raw` | nullable `TEXT`; historical working directory exactly as normalized from source evidence. |
 | `git_branch` | nullable `TEXT`; branch observed in authoritative Session metadata. |
 | `title` | `TEXT NOT NULL`; normalized display title. |
@@ -166,7 +169,7 @@ Constraints: uniqueness of `canonical_path`. Explicit indexes: none.
 | `event_count` | `INTEGER NOT NULL DEFAULT 0`; normalized source event count. |
 | `user_message_count` | `INTEGER NOT NULL DEFAULT 0`; normalized user-message count. |
 | `assistant_message_count` | `INTEGER NOT NULL DEFAULT 0`; normalized assistant-message count. |
-| `session_class` | `TEXT NOT NULL DEFAULT 'work'`; checked to `work` or `maintenance` for rows in `sessions`. `maintenance` identifies retained non-work source Sessions, including linked maintenance Runs and recognized provider-internal helpers. Analysis-only `personal_insight_runs` create no `sessions` row and have no `session_class`. |
+| `session_class` | `TEXT NOT NULL DEFAULT 'work'`; checked to `work` or `maintenance` for rows in `sessions`. `maintenance` identifies retained non-work source Sessions, including linked maintenance Runs and recognized provider-internal helpers. An analysis-only `personal_insight_runs` row has no Session class; its optional usage-accounting parent is `maintenance` with `metadata_only` indexing and is excluded from ordinary Sessions. |
 | `session_role` | `TEXT NOT NULL DEFAULT 'primary'`; checked to `primary` or `subsession`. |
 | `parent_external_id` | nullable `TEXT`; source-backed parent identity retained even when unresolved. |
 | `parent_session_id` | nullable self-FK, `ON DELETE SET NULL`; resolved same-source parent. |
@@ -200,7 +203,7 @@ Constraints: `UNIQUE(source_id, external_id)`, unique nullable `maintenance_run_
 
 Constraints: `UNIQUE(session_id, sequence, event_type, source_line)`. Explicit indexes: none; SQLite owns the composite uniqueness autoindex used for Session event ordering.
 
-The personal insight evidence manifest is a private derived value, not a new database subject or retained observation ledger. Its v1 producer selects only nonblank user/assistant message Events from `work`, `primary`, `full` Claude/Codex Sessions at or before a supplied request time. Optional local dates filter Event occurrence time; undated Events cannot satisfy a bounded date. It selects at most 100 Sessions, 300 excerpts, 600 characters per excerpt, and 120,000 excerpt characters overall, reporting eligible totals, source coverage, selection method, and omissions. Each Event reference carries its current Session/Event IDs and SHA-256 digest of the complete normalized text. A later read reports a missing row as unavailable and a changed source, role, order, time, eligibility, or digest as stale. The value neither retains disappeared Session content nor claims current verification from a historical skill count. A later Run may freeze the value in its own private artifact owner; the producer itself persists nothing.
+The personal insight evidence manifest is a private derived value, not a new database subject or retained observation ledger. Its v1 producer selects only nonblank user/assistant message Events from `work`, `primary`, `full` Claude/Codex Sessions at or before a supplied request time. Optional local dates filter Event occurrence time; undated Events cannot satisfy a bounded date. It selects at most 100 Sessions, 300 excerpts, 600 characters per excerpt, and 120,000 excerpt characters overall, reporting eligible totals, source coverage, selection method, and omissions. Each Event reference carries its current Session/Event IDs and SHA-256 digest of the complete normalized text. Additive v1 metadata records each Session's eligible message count, each excerpt's zero-based position within that frozen scoped list, and the truncated-excerpt count. These positions support precise missing-message requests without changing selection or treating raw event sequence as a message index. Older frozen manifests may omit them. A later read reports a missing row as unavailable and a changed source, role, order, time, eligibility, or digest as stale. The value neither retains disappeared Session content nor claims current verification from a historical skill count. A later Run may freeze the value in its own private artifact owner; the producer itself persists nothing.
 
 ### `skill_observations`
 

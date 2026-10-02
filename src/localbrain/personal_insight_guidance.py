@@ -10,29 +10,26 @@ from typing import Any
 from .personal_insight_evidence import MANIFEST_VERSION
 
 
-CORE_VERSION = "personal-improvement-core-v2"
-PLAYBOOK_VERSION = "v1"
-REPORT_VERSION = "personal-improvement-report-v2"
+CORE_VERSION = "personal-improvement-core-v8"
+REPORT_VERSION = "personal-improvement-report-v3"
+LEGACY_REPORT_VERSION = "personal-improvement-report-v2"
+REPORT_VERSIONS = {
+    "personal-improvement-core-v2": LEGACY_REPORT_VERSION,
+    "personal-improvement-core-v3": LEGACY_REPORT_VERSION,
+    "personal-improvement-core-v4": REPORT_VERSION,
+    "personal-improvement-core-v5": REPORT_VERSION,
+    "personal-improvement-core-v6": REPORT_VERSION,
+    "personal-improvement-core-v7": REPORT_VERSION,
+    CORE_VERSION: REPORT_VERSION,
+}
 GUIDE_ROOT = Path(__file__).with_name("personal_insight_guides")
-MAX_SELECTED_PLAYBOOKS = 4
 
-PLAYBOOKS = (
-    ("task_framing", ("goal", "audience", "scope", "brief", "목표", "결과물", "요구사항", "범위")),
-    ("request_feedback", ("prompt", "answer", "format", "feedback", "질문", "답변", "형식", "수정")),
-    ("context_recovery", ("context", "resume", "handoff", "맥락", "이전", "기억", "재개", "인수")),
-    ("repeatable_procedure", ("repeat", "routine", "automation", "반복", "자동화", "템플릿", "절차", "스크립트")),
-    ("learning_explanation", ("why", "explain", "understand", "왜", "설명", "이해", "개념", "배우")),
-    ("verification_rework", ("verify", "test", "wrong", "검증", "확인", "오류", "틀렸", "재작업")),
-    ("information_access", ("search", "source", "lookup", "검색", "자료", "출처", "문서", "접근")),
-    ("decision_memory", ("decision", "choice", "decide", "결정", "선택", "근거", "판단")),
-    ("task_fit_effort", ("cost", "token", "slow", "비용", "토큰", "시간", "모델", "효율")),
-    ("personal_value", ("priority", "value", "outcome", "우선순위", "목적", "성과", "가치")),
-    ("assistant_configuration", ("skill", "harness", "agents.md", "설정", "스킬", "에이전트")),
+PLAYBOOK_IDS = (
+    "task_framing", "request_feedback", "context_recovery", "repeatable_procedure",
+    "learning_explanation", "verification_rework", "information_access", "decision_memory",
+    "task_fit_effort", "personal_value", "assistant_configuration",
 )
-PLAYBOOK_IDS = tuple(item[0] for item in PLAYBOOKS)
-FALLBACK_IDS = (
-    "task_framing", "request_feedback", "learning_explanation", "personal_value"
-)
+PLAYBOOK_VERSIONS = {item: "v4" if item == "request_feedback" else "v1" for item in PLAYBOOK_IDS}
 
 HANDOFF_FIELDS = (
     "goal", "proposed_change", "scope", "constraints", "first_steps", "success_check"
@@ -50,12 +47,16 @@ RESULT_FIELDS = (
 REQUEST_FIELDS = ("kind", "question", "evidence_ids")
 
 
+class SuppliedMessageRequestError(ValueError):
+    """The model requested a message that was already supplied in full."""
+
+
 def _resource(path: Path) -> tuple[str, str]:
     content = path.read_text(encoding="utf-8")
     return content, sha256(content.encode("utf-8")).hexdigest()
 
 
-def _routing_text(manifest: dict) -> tuple[str, str]:
+def _validate_manifest_scope(manifest: dict) -> None:
     scope = manifest.get("scope")
     if manifest.get("version") != MANIFEST_VERSION or not isinstance(scope, dict):
         raise ValueError("unsupported evidence manifest for improvement guidance")
@@ -67,52 +68,30 @@ def _routing_text(manifest: dict) -> tuple[str, str]:
         raise ValueError("ask guidance requires a question")
     if mode == "discover" and question is not None:
         raise ValueError("discover guidance does not accept a question")
-    excerpts = []
-    for session in manifest.get("sessions", []):
-        for event in session.get("events", []):
-            if event.get("role") == "user" and isinstance(event.get("excerpt"), str):
-                excerpts.append(event["excerpt"])
-    return (question or "").casefold(), "\n".join(excerpts).casefold()
 
 
 def select_playbooks(manifest: dict) -> tuple[list[str], str]:
-    """Use bounded lexical routing, not an inference that a pattern exists."""
-    question, excerpts = _routing_text(manifest)
-    question_matches = []
-    excerpt_matches = []
-    for index, (playbook_id, cues) in enumerate(PLAYBOOKS):
-        question_hits = sum(cue in question for cue in cues)
-        excerpt_hits = sum(cue in excerpts for cue in cues)
-        if question_hits:
-            question_matches.append((-question_hits, -excerpt_hits, index, playbook_id))
-        elif excerpt_hits:
-            excerpt_matches.append((-excerpt_hits, index, playbook_id))
-    selected = [item[-1] for item in sorted(question_matches)]
-    selected.extend(item[-1] for item in sorted(excerpt_matches))
-    selected = selected[:MAX_SELECTED_PLAYBOOKS]
-    reason = "question_priority_then_user_excerpts" if question_matches else "user_excerpts"
-    if not selected:
-        selected = list(FALLBACK_IDS)
-        reason = "broad_fallback_no_lexical_cue"
-    return selected, reason
+    """Admit the bounded catalogue; quoted vocabulary must not exclude a type."""
+    _validate_manifest_scope(manifest)
+    return list(PLAYBOOK_IDS), "owner_goal_and_observed_friction"
 
 
 def build_guide_bundle(manifest: dict) -> dict[str, Any]:
     selected, reason = select_playbooks(manifest)
-    core, core_digest = _resource(GUIDE_ROOT / "core-v2.md")
+    core, core_digest = _resource(GUIDE_ROOT / "core-v8.md")
     playbooks = []
     for playbook_id in selected:
-        content, digest = _resource(
-            GUIDE_ROOT / "playbooks" / f"{playbook_id}-v1.md"
-        )
+        version = PLAYBOOK_VERSIONS[playbook_id]
+        content, digest = _resource(GUIDE_ROOT / "playbooks" / f"{playbook_id}-{version}.md")
         playbooks.append({
             "id": playbook_id,
-            "version": PLAYBOOK_VERSION,
+            "version": version,
             "sha256": digest,
             "content": content,
         })
     return {
         "core_version": CORE_VERSION,
+        "report_version": REPORT_VERSION,
         "core_sha256": core_digest,
         "core": core,
         "playbooks": playbooks,
@@ -130,15 +109,28 @@ def _string_property() -> dict[str, Any]:
     return {"type": "string"}
 
 
-def result_schema(selected_ids: list[str]) -> dict[str, Any]:
+def report_version_for_guide(bundle: dict) -> str:
+    version = REPORT_VERSIONS.get(bundle.get("core_version"))
+    if version is None or bundle.get("report_version", version) != version:
+        raise ValueError("unsupported or mismatched personal improvement guide/report version")
+    return version
+
+
+def result_schema(selected_ids: list[str], *, report_version: str = REPORT_VERSION) -> dict[str, Any]:
     if not selected_ids or any(item not in PLAYBOOK_IDS for item in selected_ids):
         raise ValueError("result schema requires selected playbooks")
+    if report_version not in {REPORT_VERSION, LEGACY_REPORT_VERSION}:
+        raise ValueError("unsupported personal improvement report schema")
+    current = report_version == REPORT_VERSION
+    finding_fields = FINDING_FIELDS + (("type_reason",) if current else ())
+    result_fields = RESULT_FIELDS + (("selection_reason", "selection_evidence_ids") if current else ())
+    request_fields = REQUEST_FIELDS + (("message_requests",) if current else ())
     handoff = {
         "type": "object", "additionalProperties": False,
         "properties": {name: _string_property() for name in HANDOFF_FIELDS},
         "required": list(HANDOFF_FIELDS),
     }
-    finding_properties = {name: _string_property() for name in FINDING_FIELDS}
+    finding_properties = {name: _string_property() for name in finding_fields}
     finding_properties.update({
         "title": _string_property(),
         "type_id": {"type": "string", "enum": selected_ids},
@@ -149,15 +141,15 @@ def result_schema(selected_ids: list[str]) -> dict[str, Any]:
         "handoff": handoff,
         "outcome_state": {"type": "string", "enum": ["not_confirmed"]},
     })
-    properties = {name: _string_property() for name in RESULT_FIELDS}
+    properties = {name: _string_property() for name in result_fields}
     properties.update({
-        "result_version": {"type": "string", "enum": [REPORT_VERSION]},
+        "result_version": {"type": "string", "enum": [report_version]},
         "outcome": {"type": "string", "enum": ["findings", "no_actionable_finding", "needs_evidence"]},
         "findings": {
             "type": "array",
             "items": {
                 "type": "object", "additionalProperties": False,
-                "properties": finding_properties, "required": list(FINDING_FIELDS),
+                "properties": finding_properties, "required": list(finding_fields),
             },
         },
         "additional_evidence": {
@@ -170,12 +162,25 @@ def result_schema(selected_ids: list[str]) -> dict[str, Any]:
                 "question": _string_property(),
                 "evidence_ids": {"type": "array", "items": {"type": "string"}},
             },
-            "required": list(REQUEST_FIELDS),
+            "required": list(request_fields),
         },
     })
+    if current:
+        properties["selection_evidence_ids"] = {"type": "array", "items": {"type": "string"}}
+        properties["additional_evidence"]["properties"]["message_requests"] = {
+            "type": "array",
+            "items": {
+                "type": "object", "additionalProperties": False,
+                "properties": {
+                    "anchor_evidence_id": {"type": "string"},
+                    "message_index": {"type": "integer"},
+                },
+                "required": ["anchor_evidence_id", "message_index"],
+            },
+        }
     return {
         "type": "object", "additionalProperties": False,
-        "properties": properties, "required": list(RESULT_FIELDS),
+        "properties": properties, "required": list(result_fields),
     }
 
 
@@ -195,11 +200,56 @@ def _references(value: Any, lookup: dict[str, int], *, maximum: int, field: str)
     return value
 
 
+def _validate_message_requests(request: dict, manifest: dict) -> None:
+    targets = request["message_requests"]
+    if not isinstance(targets, list) or len(targets) > 5:
+        raise ValueError("message requests must be a bounded list")
+    if request["kind"] != "conversation_neighbors":
+        if targets:
+            raise ValueError("only conversation requests may target messages")
+        return
+    if not targets:
+        raise ValueError("conversation requests must identify missing messages")
+    anchors = {
+        f"{event['source_key']}:{event['event_id']}": (session, event)
+        for session in manifest["sessions"] for event in session["events"]
+    }
+    seen = set()
+    for target in targets:
+        if not isinstance(target, dict) or set(target) != {"anchor_evidence_id", "message_index"}:
+            raise ValueError("invalid conversation message target")
+        ref, index = target["anchor_evidence_id"], target["message_index"]
+        if not isinstance(ref, str) or ref not in request["evidence_ids"]:
+            raise ValueError("message target must use an admitted request anchor")
+        session, anchor = anchors[ref]
+        count = session.get("message_count")
+        if (
+            type(count) is not int or type(index) is not int or not 0 <= index < count
+            or type(anchor.get("message_index")) is not int
+            or not 0 <= anchor["message_index"] < count
+        ):
+            raise ValueError("message target must fall within the frozen positioned scope")
+        identity = (session["session_id"], index)
+        if identity in seen:
+            raise ValueError("duplicate conversation message target")
+        seen.add(identity)
+        for event in session["events"]:
+            if event.get("message_index") != index:
+                continue
+            if event.get("excerpt_start") == 0 and len(event["excerpt"]) == event.get("text_length"):
+                raise SuppliedMessageRequestError("requested message was already supplied in full")
+
+
 def validate_guided_result(value: Any, manifest: dict, bundle: dict) -> dict:
     """Return a strict, locally identified report value from one model result."""
-    if not isinstance(value, dict) or set(value) != set(RESULT_FIELDS):
+    version = report_version_for_guide(bundle)
+    current = version == REPORT_VERSION
+    finding_fields = FINDING_FIELDS + (("type_reason",) if current else ())
+    result_fields = RESULT_FIELDS + (("selection_reason", "selection_evidence_ids") if current else ())
+    request_fields = REQUEST_FIELDS + (("message_requests",) if current else ())
+    if not isinstance(value, dict) or set(value) != set(result_fields):
         raise ValueError("invalid personal improvement result fields")
-    if value["result_version"] != REPORT_VERSION:
+    if value["result_version"] != version:
         raise ValueError("unsupported personal improvement result version")
     for field in ("title", "summary", "limits"):
         _required_text(value[field], maximum=8000, field=field)
@@ -213,7 +263,7 @@ def validate_guided_result(value: Any, manifest: dict, bundle: dict) -> dict:
         raise ValueError("invalid improvement finding count")
     if (outcome == "findings") != bool(findings):
         raise ValueError("finding count does not match improvement outcome")
-    if outcome == "no_actionable_finding":
+    if outcome == "no_actionable_finding" or (current and outcome == "needs_evidence"):
         _required_text(value["no_finding_reason"], maximum=8000, field="no_finding_reason")
 
     lookup = {
@@ -221,8 +271,13 @@ def validate_guided_result(value: Any, manifest: dict, bundle: dict) -> dict:
         for session in manifest["sessions"] for event in session["events"]
     }
     selected_ids = {item["id"] for item in bundle["playbooks"]}
+    if current:
+        _required_text(value["selection_reason"], maximum=2000, field="selection_reason")
+        _references(value["selection_evidence_ids"], lookup, maximum=5, field="selection_evidence_ids")
+        if outcome in {"findings", "needs_evidence"} and not value["selection_evidence_ids"]:
+            raise ValueError("a selected candidate must cite its evidence")
     request = value["additional_evidence"]
-    if not isinstance(request, dict) or set(request) != set(REQUEST_FIELDS):
+    if not isinstance(request, dict) or set(request) != set(request_fields):
         raise ValueError("invalid additional evidence request")
     if request["kind"] not in {
         "none", "conversation_neighbors", "independent_session", "owner_goal", "outcome"
@@ -234,12 +289,14 @@ def validate_guided_result(value: Any, manifest: dict, bundle: dict) -> dict:
     if outcome == "needs_evidence":
         if request["kind"] == "none" or not request["question"].strip():
             raise ValueError("an evidence request needs a bounded question")
-    elif request != {"kind": "none", "question": "", "evidence_ids": []}:
+    elif request != {"kind": "none", "question": "", "evidence_ids": [], **({"message_requests": []} if current else {})}:
         raise ValueError("only a needs-evidence outcome may request more evidence")
+    if current:
+        _validate_message_requests(request, manifest)
 
     identified = []
     for index, finding in enumerate(findings, 1):
-        if not isinstance(finding, dict) or set(finding) != set(FINDING_FIELDS):
+        if not isinstance(finding, dict) or set(finding) != set(finding_fields):
             raise ValueError("invalid improvement finding fields")
         if finding["type_id"] not in selected_ids:
             raise ValueError("finding type was not selected for this Run")
@@ -254,6 +311,8 @@ def validate_guided_result(value: Any, manifest: dict, bundle: dict) -> dict:
             }:
                 continue
             _required_text(finding[field], maximum=160 if field == "title" else 4000, field=field)
+        if current:
+            _required_text(finding["type_reason"], maximum=1000, field="type_reason")
         evidence_ids = _references(finding["evidence_ids"], lookup, maximum=12, field="evidence_ids")
         if not evidence_ids:
             raise ValueError("finding must cite selected evidence")

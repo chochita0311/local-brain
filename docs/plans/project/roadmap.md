@@ -109,7 +109,7 @@ Session Workflow Focus and correction path is evaluated through real use. The
 earlier Session Focus map is a useful Session Lineage surface, not yet the intended
 Workstream discovery or replacement experience.
 The separate default Auto Work surface now provides whole-history temporal
-affinity inspection as described in [Current Increment](#current-increment--2026-09-24).
+affinity inspection as described in [Workflow-Map Track](#workflow-map-track--2026-09-24).
 The owner rejected reference-pair proliferation and repeated candidate review/
 promotion. The current replan targets automatically usable and maintained
 outcome-level flows, with corrections as exceptions. Existing organization is
@@ -205,7 +205,7 @@ Recently completed cross-surface reconciliation:
 | 0. Discovery and constraints | Verify source availability, policy, and representative workflows | Ongoing as new source types are added |
 | 1. Local activity foundation | Reliably collect and inspect local activity | Complete |
 | 2. Workstream and resume MVP | Find and resume interrupted work | Core vertical slice implemented |
-| 3. Activity insights | Add reproducible usage, cost, workflow, and skill intelligence | Usage/cost and skill ranking implemented; personal-improvement evidence and guide foundations passed synthetic checks; analysis UI implemented without a live model report; wider workflow intelligence planned |
+| 3. Activity insights | Add reproducible usage, cost, workflow, and skill intelligence | Usage/cost, skill ranking and deliberate analysis/report/download flow implemented; bounded guide evaluation and owner-started question reports observed; application benefit and wider workflow intelligence remain open |
 | 4. External read-only sources | Connect approved ticket, conversation, Git, and document systems | Atlassian local vertical slice, Site-first follow-up, and standard-URL structure references implemented; connected validation and other sources planned |
 | 5. Context reconciliation | Produce reviewable current context while preserving uncertainty | Planned |
 | 6. Handoff and controlled actions | Support low-friction AI handoff and explicitly approved actions | Planned |
@@ -314,7 +314,7 @@ Planning tracks:
 
 - [PRD-0004: Session Usage And Cost Dashboard](../prd/prd-0004-session-usage-and-cost-dashboard.md) (`passed`)
 - [PRD-0005: Workflow And Skill Intelligence](../prd/prd-0005-workflow-and-skill-intelligence.md) (`approved`; first skill-ranking increment passed FEAT-0105/0106 evaluation, later workflow intelligence remains proposed)
-- [PRD-0018: Personal AI-Use Improvement Insights](../prd/prd-0018-personal-ai-use-improvement-insights.md) (`approved`; FEAT-0107/0108 foundation checks and RUN-122 guide integration passed, FEAT-0110 executable UI delivered with live-provider evidence still open)
+- [PRD-0018: Personal AI-Use Improvement Insights](../prd/prd-0018-personal-ai-use-improvement-insights.md) (`approved`; first analysis/report/download increment delivered with core-v8 guide evaluation and owner-started no-finding/finding reports; [RUN-137](../run/run-20261002-137-insight-closeout-corrections.md) resolves closeout cost-display, shared-layout and stale-test issues plus missing GPT-6.1 Sol pricing; actual intervention benefit and later increments remain open)
 
 Executed PRD-0004 Features:
 

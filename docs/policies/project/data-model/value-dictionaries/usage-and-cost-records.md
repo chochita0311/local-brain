@@ -13,7 +13,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: token aggregation boundary
 - Default: `direct`
 - Fallbacks: `null`: reject; `unknown`: label → 범위 알 수 없음; `invalid`: reject; `future`: label → 새 집계 범위
-- Producers: `src/localbrain/ingest/claude.py`, `src/localbrain/ingest/codex.py`
+- Producers: `src/localbrain/ingest/claude.py`, `src/localbrain/ingest/codex.py`, `src/localbrain/personal_insight_usage.py`
 - Consumers: `src/localbrain/usage_queries.py`
 - Consequence: Prevents child-token double counting.
 - Presentation mode: `logical-label`
@@ -29,7 +29,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: source usage completeness
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: label → 확인 필요; `invalid`: reject; `future`: label → 새 상태
-- Producers: `src/localbrain/ingest/claude.py`, `src/localbrain/ingest/codex.py`
+- Producers: `src/localbrain/ingest/claude.py`, `src/localbrain/ingest/codex.py`, `src/localbrain/personal_insight_usage.py`
 - Consumers: `src/localbrain/usage_queries.py`
 - Consequence: Incomplete or malformed facts reduce coverage confidence.
 - Presentation mode: `logical-label`
@@ -46,12 +46,12 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: label → 계산 상태 알 수 없음; `invalid`: reject; `future`: label → 새 계산 상태
 - Producers: `src/localbrain/usage.py`
-- Consumers: `src/localbrain/usage_queries.py`, `src/localbrain/templates/sessions_dashboard.html`
+- Consumers: `src/localbrain/usage_queries.py`, `src/localbrain/templates/sessions_dashboard.html`, `src/localbrain/personal_insight_usage.py`, `src/localbrain/templates/session_insights.html`
 - Consequence: Only priced records contribute an estimated cost value.
 - Presentation mode: `logical-label`
 - Labels: `priced` → 비용 계산됨; `unpriced` → 가격 정보 없음; `partial` → 일부만 계산됨; `failed` → 계산 실패
-- Help: 비용은 실제 청구액이 아닌 현재 가격표 기반 추정치입니다.
-- Visible consumer inventory: none.
+- Help: 비용은 실제 청구액이 아닌 기록된 가격표 기반 추정치입니다.
+- Visible consumer inventory: `src/localbrain/templates/session_insights.html` (registry-backed)
 
 ## `usage.attribution-basis`
 
@@ -61,7 +61,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: Project attribution evidence
 - Default: `unassigned`
 - Fallbacks: `null`: reject; `unknown`: label → 근거 알 수 없음; `invalid`: reject; `future`: label → 새 귀속 근거
-- Producers: `src/localbrain/db.py`
+- Producers: `src/localbrain/db.py`, `src/localbrain/usage.py`
 - Consumers: `src/localbrain/usage_queries.py`
 - Consequence: Explains how an immutable usage snapshot was assigned to a Project.
 - Presentation mode: `logical-label`

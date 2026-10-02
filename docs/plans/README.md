@@ -25,9 +25,11 @@ Spec, Run, and Evaluation document owns its own detailed status and history.
   [FEAT-0106](feature/feat-0106-first-session-insights-view.md) passed their
   formal evaluations under [PRD-0005](prd/prd-0005-workflow-and-skill-intelligence.md).
   [PRD-0018](prd/prd-0018-personal-ai-use-improvement-insights.md) owns the
-  remaining analyzer decisions. FEAT-0107 and FEAT-0108 passed synthetic
-  foundation checks; no actual personal improvement model Run has been executed
-  in this review.
+  remaining analyzer decisions. FEAT-0107/0108 foundations and the executable
+  FEAT-0110 first increment are delivered. Owner-started question Runs now
+  produced both no-finding and finding reports. The
+  [first-increment closeout](feature/feat-0110-executable-personal-insight-runs.md#first-increment-closeout-review)
+  records the initial findings; [RUN-137](run/run-20261002-137-insight-closeout-corrections.md) closes the cost-display, shared-layout and stale-test issues and adds missing Sol pricing. Actual intervention benefit and later review-state features remain open.
 - Inspection increment: owner review corrected the freeform constellation to
   [FEAT-0104 temporal affinity flow](feature/feat-0104-temporal-affinity-flow.md)
   (RUN-117): one horizontally scrollable time canvas, activity gaps, curved
@@ -144,6 +146,13 @@ The first skill-ranking increment passed [RUN-123](run/run-20260928-123-skill-ob
 and [RUN-124](run/run-20260928-124-first-session-insights-view.md) using
 synthetic ingestion and browser evidence. These checks did not execute the
 personal-improvement model.
+
+Subsequent Insights corrections cover usage accounting (RUN-125), selection and
+evidence requests (RUN-128/129), concrete application handoffs (RUN-134), live
+CLI startup (RUN-135), and existing-proposal follow-through (RUN-136). Two
+owner-started question Runs now supply live no-finding/finding reports. The
+[closeout review](feature/feat-0110-executable-personal-insight-runs.md#first-increment-closeout-review)
+is followed by [RUN-137](run/run-20261002-137-insight-closeout-corrections.md), which resolves the reported cost-display/layout/test issues and missing GPT-6.1 Sol pricing. The [follow-up backlog](project/backlog.md#personal-improvement-insights) owns remaining work; older Runs retain their original evidence limits.
 
 - [RUN-20260923-112](run/run-20260923-112-source-claim-extraction-and-binding-trial.md):
   `blocked` on quality after the completed source-claim adapter and one frozen
