@@ -119,7 +119,7 @@ Constraints: uniqueness of `canonical_path`. Explicit indexes: none.
 - Lifecycle: native Sessions are source-derived from meaningful retained native JSONL
   accepted by the owning provider's Session-candidate contract. Meaningful means
   the parsed file contains at least one normalized Activity Event, direct Usage
-  Record, or admitted skill-load observation; metadata-only stubs retain no Session or source-file projection and are
+  Record, or admitted skill observation; metadata-only stubs retain no Session or source-file projection and are
   reconsidered on later syncs. Codex conversation ingestion prefers native
   `event_msg` user/assistant records per role and falls back to `response_item`
   message content only when the matching role and turn are absent. Response-only
@@ -207,31 +207,32 @@ The personal insight evidence manifest is a private derived value, not a new dat
 
 ### `skill_observations`
 
-- Purpose and authority: one explicit, source-backed skill load per native event. Claude assistant `Skill` calls and Codex-generated `<skill>` load messages are the first-release signals; direct `SKILL.md` reads, mentions, and inferred use are outside the count. This ledger records observed loading, not success or benefit.
-- Lifecycle: retained historical observation. A Session contract-version change reprocesses available native files once; later changed or resumed files insert only new native IDs. The producer checks the source key, native Session ID, and native event ID before insertion, including against earlier rows whose opaque ID included a name, so a rewritten name does not count the same event twice. A missing Session or source file does not retract a valid observation. Maintenance Sessions and children classified as maintenance through parent reconciliation are invalidated; a proven erroneous observation can be marked `corrected` without deleting other history. The readable name is preserved while all-time Insights groups trimmed, case-folded names across sources.
-- Producers: Claude/Codex parsers extract bounded signals; `ingest/scanner.py` and `skill_observations.py` persist them within the source scan transaction and reconcile maintenance exclusion. A targeted native-event correction can set an erroneous observation to `corrected` without making ordinary file disappearance a deletion signal.
-- Consumers: `skill_observations.py` all-time ranking with latest admitted event time and extraction-coverage projection for Session Insights. No tracked files means `not_scanned`; the view distinguishes an empty first sync from retained historical observations without current files. Any tracked file lacking the current extraction contract means `partial`, even when the current-file count is zero. Usage & Cost does not query this table.
+- Purpose and authority: durable native calls/contexts, successful instruction reads, named conversation references and identifiable skill script executions. Names are established by source evidence within the Session; availability catalogs alone do not count. References are matched by identifiers without interpreting use wording or language. All observed evidence contributes to use/reference Session reach, not proof of application, success or benefit. Previously recorded declarations are retained as historical references; no new phrase-based declarations are extracted.
+- Lifecycle: retained historical observation. Parser-version upgrades backfill available files once; subsequent changed/resumed files insert only new events. Native events deduplicate by source, Session and event identity; read/mention/script events also include normalized skill identity. Earlier declaration identities guard equivalent mention replay, including corrections. Request identity remains provenance, with null scope allowed. Missing files/Source/Session rows do not retract evidence. Maintenance Sessions and reconciled children are invalidated, and targeted corrections remain supported. Insights counts each normalized skill at most once per source and native Session across all requests/signals. Constituent events remain in the ledger.
+- Producers: Claude/Codex parsers, `ingest/skill_loads.py` and `ingest/skill_usage.py` extract bounded signals; `ingest/scanner.py` and `skill_observations.py` persist them within the source scan transaction and reconcile maintenance exclusion. Native Codex turn IDs, Claude user UUIDs or retained user-message identity establish request scope. A targeted native-event correction can set erroneous evidence to `corrected` without making ordinary disappearance a deletion signal.
+- Consumers: `skill_observations.py` all-time use/reference Session ranking, latest admitted reference time and extraction coverage for Insights. Compatible `use_count` and `last_used_at` fields mean Session count and latest reference time. No files means `not_scanned`; stale parser contracts mean `partial`. Historical observations without current files remain distinguishable. Usage & Cost does not query this table.
 - Relations and deletion: `source_key` application-addresses current `sources.kind`; (`source_key`, `external_session_id`) may resolve to a current `sessions` row. Neither is an FK: ordinary source or Session deletion must not cascade into this ledger. Evidence links appear only after a successful current-row join.
 - Recovery: restore the database to retain observations whose native Session files have disappeared. Still-available files can be rescanned, but cannot reproduce lost historical events.
 - DDL ownership: fresh additive table and `idx_skill_observations_group`, `idx_skill_observations_source_session` in `schema.sql`; compatible startup creates the absent table without rewriting existing Session rows.
 
 | Column | Contract |
 | --- | --- |
-| `id` | `TEXT PRIMARY KEY`; opaque deterministic observation ID. Current inserts hash source key, native Session ID, and native event ID; earlier inserts may also include the normalized name. |
+| `id` | `TEXT PRIMARY KEY`; deterministic source/Session/event evidence identity; read/declaration/mention/script IDs also include normalized skill name. Existing opaque IDs are retained. |
 | `source_key` | `TEXT NOT NULL`; stable local Source key, distinct for personal and company Codex. |
 | `provider_kind` | `TEXT NOT NULL`; checked to `claude` or `codex`, identifying the source parser family. |
 | `external_session_id` | `TEXT NOT NULL`; native Session identity for optional current-row lookup. |
-| `native_event_id` | `TEXT NOT NULL`; provider event identity, never a source-line surrogate. |
+| `native_event_id` | native provider identity for calls/contexts/reads; `mention:` prefixes a native message ID or deterministic normalized message fallback; `script:` prefixes a native execution ID. Historical `declaration:` identities remain retained. |
 | `skill_name` | `TEXT NOT NULL`; source-visible name, trimmed and limited to 160 characters. |
 | `skill_group_key` | `TEXT NOT NULL`; non-empty trimmed, case-folded name for cross-source display grouping. |
-| `skill_locator` | nullable `TEXT`; bounded Codex skill path when the generated load wrapper provides it. |
-| `signal_kind` | `TEXT NOT NULL`; checked to `claude_skill_tool` or `codex_skill_context`. |
+| `skill_locator` | nullable bounded skill instruction path established by a native wrapper or literal completed read. |
+| `signal_kind` | native `claude_skill_tool`/`codex_skill_context`; provider-prefixed `skill_read`, `skill_mention`, `skill_script`; historical `skill_declaration`. Every observed kind can establish Session reach. |
 | `source_line` | positive `INTEGER NOT NULL`; source file line where the admitted event was observed. |
 | `occurred_at` | nullable `TEXT`; native event timestamp when available. |
-| `state` | `TEXT NOT NULL DEFAULT 'observed'`; checked to `observed` or `corrected`; only observed rows enter Insights. |
+| `request_key` | nullable bounded opaque request provenance; unknown scope remains null. Session counting does not depend on this field. |
+| `state` | `observed` or `corrected`, default `observed`; only observed evidence enters Insights. |
 | `recorded_at` | `TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; first local persistence time. |
 
-Constraints: `UNIQUE(source_key, external_session_id, native_event_id, skill_group_key)` plus an application-level native-event existence guard, bounded name/locator checks, positive source line, and checked provider/signal/state vocabularies. Explicit indexes: `idx_skill_observations_group` and `idx_skill_observations_source_session`.
+Constraints: `UNIQUE(source_key, external_session_id, native_event_id, skill_group_key)` plus application evidence guards, bounded fields and checked provider/signal/state values. Indexes: `idx_skill_observations_group` and `idx_skill_observations_source_session`. Startup extends the signal CHECK and optional legacy request field transactionally with exact retained-row parity. The Session-count change adds signal values without changing table/column/index counts.
 
 ### `session_pins`
 

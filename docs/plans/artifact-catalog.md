@@ -29,7 +29,7 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [PRD-0017: Source-Backed Workflow Map And Workstream Lenses](prd/prd-0017-source-backed-workflow-map-and-workstream-lenses.md) | `approved` | — |
 | [PRD-0018: Personal AI-Use Improvement Insights](prd/prd-0018-personal-ai-use-improvement-insights.md) | `approved` | — |
 
-## Features (110)
+## Features (113)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -143,8 +143,11 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [FEAT-0108: Personal Improvement Guide And Finding Contract](feature/feat-0108-personal-improvement-guide-and-finding-contract.md) | `passed` | PRD-0018 |
 | [FEAT-0109: Insights Analyzer Screen Preview](feature/feat-0109-insights-analyzer-screen-preview.md) | `passed` | PRD-0018 |
 | [FEAT-0110: Executable Personal Insight Runs](feature/feat-0110-executable-personal-insight-runs.md) | `passed` | PRD-0018 |
+| [FEAT-0111: Automatic Skill Load Observation](feature/feat-0111-automatic-skill-load-observation.md) | `passed` | PRD-0005 |
+| [FEAT-0112: Session Skill Use Estimate](feature/feat-0112-session-skill-use-estimate.md) | `passed` | PRD-0005 |
+| [FEAT-0113: Skill Reference Session Count](feature/feat-0113-skill-reference-session-count.md) | `passed` | PRD-0005 |
 
-## Specs (109)
+## Specs (112)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -257,8 +260,11 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [SPEC-0108: Personal Improvement Guide And Finding Contract](spec/spec-0108-personal-improvement-guide-and-finding-contract.md) | `approved` | FEAT-0108 |
 | [SPEC-0109: Insights Analyzer Screen Preview](spec/spec-0109-insights-analyzer-screen-preview.md) | `approved` | FEAT-0109 |
 | [SPEC-0110: Executable Personal Insight Runs](spec/spec-0110-executable-personal-insight-runs.md) | — | FEAT-0110 |
+| [SPEC-0111: Automatic Skill Load Observation](spec/spec-0111-automatic-skill-load-observation.md) | `approved` | FEAT-0111 |
+| [SPEC-0112: Session Skill Use Estimate](spec/spec-0112-session-skill-use-estimate.md) | `approved` | FEAT-0112 |
+| [SPEC-0113: Skill Reference Session Count](spec/spec-0113-skill-reference-session-count.md) | `approved` | FEAT-0113 |
 
-## Runs (137)
+## Runs (140)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -399,8 +405,11 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [RUN-20261001-135: Personal Insight CLI Startup](run/run-20261001-135-personal-insight-cli-startup.md) | `passed` | FEAT-0110 |
 | [RUN-20261002-136: Personal Insight Proposal Follow-through](run/run-20261002-136-personal-insight-proposal-follow-through.md) | `passed` | FEAT-0108 |
 | [RUN-20261002-137: Insight Closeout Corrections](run/run-20261002-137-insight-closeout-corrections.md) | `passed` | FEAT-0110 |
+| [RUN-138: Automatic Skill Load Observation](run/run-20261002-138-automatic-skill-load-observation.md) | `passed` | FEAT-0111 |
+| [RUN-139: Session Skill Use Estimate](run/run-20261003-139-session-skill-use-estimate.md) | `passed` | FEAT-0112 |
+| [RUN-140: Skill Reference Session Count](run/run-20261004-140-skill-reference-session-count.md) | `passed` | FEAT-0113 |
 
-## Evaluations And Schema Audits (399)
+## Evaluations And Schema Audits (405)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -803,6 +812,12 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [EVAL-0110 UX Heuristic: Executable Personal Insight Runs](evaluation/eval-0110-ux-executable-personal-insight-runs.md) | `complete` | FEAT-0110 |
 | [EVAL-0110 UX Heuristic: Guided Result Integration](evaluation/eval-0110-ux-guided-result-integration.md) | `complete` | FEAT-0110 |
 | [EVAL-0110 Ux-Heuristic: Scope And Requests](evaluation/eval-0110-ux-heuristic-scope-and-requests.md) | `complete` | FEAT-0110 |
+| [EVAL-0111 Contract: Automatic Skill Load Observation](evaluation/eval-0111-contract-automatic-skill-load-observation.md) | `complete` | FEAT-0111 |
+| [EVAL-0111 Design: Automatic Skill Load Observation](evaluation/eval-0111-design-automatic-skill-load-observation.md) | `complete` | FEAT-0111 |
+| [EVAL-0111 Functional: Automatic Skill Load Observation](evaluation/eval-0111-functional-automatic-skill-load-observation.md) | `complete` | FEAT-0111 |
+| [EVAL-0111 UX: Automatic Skill Load Observation](evaluation/eval-0111-ux-automatic-skill-load-observation.md) | `complete` | FEAT-0111 |
+| [EVAL-0112: Session Skill Use Estimate](evaluation/eval-0112-session-skill-use-estimate.md) | `complete` | FEAT-0112 |
+| [EVAL-0113: Skill Reference Session Count](evaluation/eval-0113-skill-reference-session-count.md) | `complete` | FEAT-0113 |
 
 ## Fix Logs (24)
 

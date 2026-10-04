@@ -102,7 +102,7 @@ class SkillObservationTests(unittest.TestCase):
             ),
             1,
         )
-        self.assertEqual(skill_insights_data(self.connection)["top"]["use_count"], 2)
+        self.assertEqual(skill_insights_data(self.connection)["top"]["use_count"], 1)
         renamed = parsed_session("old-session", "event-1")
         renamed.skill_observations[0] = ParsedSkillObservation(
             native_event_id="event-1",
@@ -122,7 +122,7 @@ class SkillObservationTests(unittest.TestCase):
         self.assertEqual(len(skill_insights_data(self.connection)["ranking"]), 1)
 
         self.connection.execute("DELETE FROM sessions WHERE external_id = 'old-session'")
-        self.assertEqual(skill_insights_data(self.connection)["top"]["use_count"], 2)
+        self.assertEqual(skill_insights_data(self.connection)["top"]["use_count"], 1)
         self.assertEqual(
             store_skill_observations(
                 self.connection,
@@ -140,7 +140,7 @@ class SkillObservationTests(unittest.TestCase):
             ),
             1,
         )
-        self.assertEqual(skill_insights_data(self.connection)["top"]["use_count"], 3)
+        self.assertEqual(skill_insights_data(self.connection)["top"]["use_count"], 2)
 
     def test_claude_and_codex_parsers_admit_explicit_signals_only(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -345,10 +345,10 @@ class SkillObservationTests(unittest.TestCase):
             })
             write_records()
             self.assertEqual(scan()[2], 0)
-            self.assertEqual(skill_insights_data(self.connection)["top"]["use_count"], 2)
+            self.assertEqual(skill_insights_data(self.connection)["top"]["use_count"], 1)
             path.unlink()
             self.assertEqual(scan()[2], 0)
-            self.assertEqual(skill_insights_data(self.connection)["top"]["use_count"], 2)
+            self.assertEqual(skill_insights_data(self.connection)["top"]["use_count"], 1)
             self.assertEqual(skill_insights_data(self.connection)["coverage"]["state"],
                              "not_scanned")
 

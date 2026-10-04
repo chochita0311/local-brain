@@ -23,10 +23,11 @@ from .common import (
     visible_url_evidence,
 )
 from ..official_pricing import select_snapshot
+from .skill_loads import SkillReadCollector
 
 
 CLAUDE_USAGE_CONTRACT_VERSION = "claude-message-usage-v3-official-pricing"
-CLAUDE_SESSION_CONTRACT_VERSION = "claude-session-v2-skill-observations"
+CLAUDE_SESSION_CONTRACT_VERSION = "claude-session-v6-skill-reference-sessions"
 
 
 def _message_content(record: Dict[str, Any]) -> Any:
@@ -189,6 +190,7 @@ def parse_claude_session(path: Path) -> ParsedSession:
     timestamps: List[str] = []
     events: List[ParsedEvent] = []
     skill_observations: List[ParsedSkillObservation] = []
+    skill_reads = SkillReadCollector("claude")
     usage_by_record: Dict[str, ParsedUsageRecord] = {}
     url_evidence = []
     reference_candidates = []
@@ -201,6 +203,8 @@ def parse_claude_session(path: Path) -> ParsedSession:
         if not isinstance(record, dict):
             skipped_lines += 1
             continue
+
+        skill_reads.observe(record, line_number)
 
         if not is_subsession:
             external_id = str(record.get("sessionId") or external_id)
@@ -410,7 +414,7 @@ def parse_claude_session(path: Path) -> ParsedSession:
         session_role="subsession" if is_subsession else "primary",
         parent_external_id=parent_external_id,
         usage_records=list(usage_by_record.values()),
-        skill_observations=skill_observations,
+        skill_observations=skill_reads.finish(skill_observations, events),
         url_evidence=url_evidence,
         reference_candidates=reference_candidates,
     )

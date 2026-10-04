@@ -6,7 +6,7 @@
 - Status: `approved`
 - Owner role: `human`
 - Created: `2026-07-18`
-- Updated: `2026-09-27`
+- Updated: `2026-10-04`
 
 ## Request Summary
 
@@ -135,20 +135,15 @@ increment. The linked child Features and current code own its later implementati
   - a bounded user action such as review, defer, dismiss, or inspect
 - Treat undocumented file or stored-procedure relationships, decision context, and applied solution paths as evidence-backed knowledge candidates, not automatically confirmed architecture facts.
 
-### Explicit Skill Usage
+### Skill Use And Reference Sessions
 
-- Record a skill as used only when LocalBrain can identify an explicit invocation or another approved source-backed usage signal.
-- For the first increment, admit a Claude `Skill` tool invocation with a native call ID and skill name, or a Codex-generated `<skill>` load record with a native message ID and skill name. A literal `$skill` mention and a direct `SKILL.md` file read do not count. Retain source coverage so an incomplete sync is distinguishable from an observed zero, without requiring an explainer line in the ranking view.
-- List every skill with at least one observed use, including skills no longer installed. Do not add currently installed skills with zero observed uses to this list.
-- Sum observed-use counts under the same normalized skill name across Claude Code, Codex, and Codex Company for the displayed ranking, while retaining each observation's original source and locator for provenance.
-- Retain each distinct, once-observed skill use as a historical observation after its local Session or source file disappears. Source disappearance alone does not subtract an observed use; the first view does not expose Session evidence.
-- Count a newly observed invocation from a resumed Session once, even if the Session was imported before. Repeated scans, retries, file moves, and replayed source records must not add the same invocation again.
-- Derive the ranked display from bounded, individually identified skill-use observations, without rereading every Session transcript on each dashboard visit. A stored total is not the only evidence for a count.
-- Show frequently used skills separately from inferred skill candidates.
-- Keep the first list compact: show a readable skill name, observed-use count, and last recorded use time, highest count first. The last-use time comes from the newest admitted observation timestamp, not the latest sync. Keep source and native Session identity in the data contract, but omit row-level source and Session detail from the first view.
-- Distinct Session count and Project or Workstream distribution may be added in a later Workflow Intelligence view once their scope and evidence rules are approved.
-- Do not infer skill success, quality, or impact from invocation count alone.
-- Keep model, source, status, and skill identity as separate visual and semantic roles.
+- The first increment counted native invocations/contexts. [FEAT-0111](../feature/feat-0111-automatic-skill-load-observation.md) added instruction reads and request grouping; [FEAT-0112](../feature/feat-0112-session-skill-use-estimate.md) attempted language-based application declarations. On 2026-10-04 the owner rejected phrase classification and approved [FEAT-0113](../feature/feat-0113-skill-reference-session-count.md): count Sessions with skill use or reference, with accepted missing evidence and no activation instrumentation.
+- Admit native calls/contexts, completed instruction reads, known skill identifiers in visible user/assistant messages and identifiable skill-owned script executions. Names come from source-backed loads within the same Session; availability catalogs alone do not count. Do not interpret application verbs, language, intent or examples. A named discussion is a reference.
+- Count each normalized skill at most once per source and native Session, across repeated reads, requests and signal overlap. New evidence in a resumed Session retains provenance without adding another Session to that skill's count. Replay, moves and retries do not duplicate events. Historical declaration rows remain references; no new declarations are extracted.
+- Group matching names across Claude Code, Codex and Codex Company, retaining distinct source/native Session identities. Show all skills with admitted historical evidence, including uninstalled skills; do not show zero-use installed inventory.
+- Preserve constituent observations, corrections and maintenance exclusion. Ordinary source/file/Session disappearance does not subtract retained historical reach. Derive the display from the ledger without reading transcripts on GET.
+- Label counts as use/reference Sessions with a maximum-one-per-Session explanation and latest admitted reference time, not sync time. Omit row-level source and Session detail in the first view. Keep inferred skill candidates separate.
+- Do not infer execution frequency, successful application, quality or impact from Session reach. Project/Workstream distribution remains future scope. Model, source, status and skill identity retain separate semantic roles.
 
 ### Reviewable Skill Suggestions
 
@@ -206,7 +201,7 @@ increment. The linked child Features and current code own its later implementati
 - Define the active-time idle threshold, minimum segment length, overlapping Session behavior, and source-specific fallback when no reliable Session end exists.
 - The first skill-ranking release covers available Claude and Codex source files; future workflow-signal rollout must follow actual file and error evidence coverage rather than assuming parity.
 - Determine which Claude and Codex records provide reliable file-operation, tool-result, error, and explicit skill-invocation evidence without retaining excessive raw payloads.
-- The owner chose explicit load/invocation records only for the first release: Claude `Skill` tool-use IDs and Codex-generated `<skill>` message IDs. Direct `SKILL.md` reads and literal `$skill` mentions are excluded. Define replay and duplicate handling from native IDs, and disclose that some actual uses may have no admitted source signal.
+- The first-release explicit-only choice is historical. On `2026-10-02` the owner approved source-backed successful skill-file reads and request-level grouping under [FEAT-0111](../feature/feat-0111-automatic-skill-load-observation.md). Dynamic/unsupported readers and vanished files remain coverage limits; actual application and inspection cannot be reliably distinguished from a file read alone.
 - The owner chose same-name aggregation across sources for the displayed ranking. Preserve source-specific identity beneath that presentation group for later provenance work; the first view shows only the combined count.
 - Define correction semantics for a previously counted observation when a parser error is fixed or a source record is later rewritten, while preserving the requested count after ordinary source disappearance.
 - Decide whether error evidence stores only a deterministic signature and bounded excerpt or also a local pointer that rereads the authoritative source on demand.
@@ -233,9 +228,9 @@ These items may remain open at the PRD level, but each must be resolved before a
 - The user opens a repeated pattern, understands its normalized signature or sequence, and follows representative evidence into existing Session, Project, or Workstream surfaces.
 - Exact observations, inferred grouping, and user-confirmed interpretation remain distinguishable.
 
-### Review Explicit Skill Usage
+### Review Skill Use And Reference Sessions
 
-- The user sees which skills have source-backed invocation evidence, how often and where they were used, and which Sessions support the count.
+- The first ranking shows source-backed use/reference Session counts and latest reference times under the [Insights contract](../../policies/project/product.md#insights). Session and Project distribution remains later scope.
 - Missing source coverage does not appear as zero usage without a caveat.
 
 ### Review A Skill Candidate
@@ -251,7 +246,7 @@ These items may remain open at the PRD level, but each must be resolved before a
 ## Constraints
 
 - Explicit human direction and the approved PRD boundary govern scope.
-- Claude and Codex source files remain authoritative for extraction while present. Once-observed explicit skill uses are retained as historical local facts when a source disappears, with unavailable original evidence clearly distinguished from currently inspectable evidence. Other workflow signals, clusters, topics, signatures, and skill candidates remain derived and rebuildable.
+- Claude and Codex source files remain authoritative for extraction while present. Once-observed skill evidence is retained as historical local facts when a source disappears, with unavailable original evidence clearly distinguished from currently inspectable evidence. Other workflow signals, clusters, topics, signatures, and skill candidates remain derived and rebuildable.
 - LocalBrain remains local-first and single-user; analysis runs without requiring cavemem or an external service.
 - Captured and derived facts preserve source identity, Session identity, time, and evidence references.
 - Generated insight never becomes user-confirmed fact or a created skill without an explicit review and later approved action.
@@ -268,8 +263,8 @@ These items may remain open at the PRD level, but each must be resolved before a
 - Tool, file type, topic, Project, Workstream, error, and workflow summaries derive from bounded normalized signals rather than unreviewed full-payload duplication.
 - Raw activity volume is never labeled or ranked as productivity, performance, quality, or business value.
 - Repeated errors, questions, workflows, and knowledge candidates link to representative source-backed evidence and distinguish observation from inference.
-- Explicit skill use and inferred skill candidates remain separate in data, wording, status, and presentation.
-- Reimporting or reopening a Session adds only distinct new skill uses, and deleting its local file does not reduce the historical observed-use total or leave a broken evidence link presented as current.
+- Observed skill use/reference evidence and inferred skill candidates remain separate in data, wording, status, and presentation.
+- Reimporting or reopening a Session adds only distinct new evidence. Additional evidence for the same source/native Session/skill does not increase its Session count. Ordinary file disappearance preserves retained evidence, and unavailable evidence links are not presented as current.
 - Every skill candidate states recurrence evidence, confidence, source limitations, likely benefit, and overlap with existing skills when available.
 - Skill candidates are reversible and reviewable and cannot create, install, publish, or modify a skill without a separately approved action.
 - The insight surface remains usable without cavemem installed and contains no cavemem source, import, connector, or compatibility behavior.

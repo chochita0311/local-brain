@@ -63,5 +63,7 @@ Define and persist one bounded, source-backed skill-use observation per admitted
 
 ## Continuity Notes
 
+- `2026-10-02`: [FEAT-0111](feat-0111-automatic-skill-load-observation.md) extends the first-release admission contract with completed automatic skill-file reads and request grouping. This Feature and its original evaluations retain the initial explicit-only boundary as historical evidence.
+
 - `2026-09-27`: proposed as the first foundation increment after the owner directed skill ranking work to proceed. The owner resolved signal admission and same-name presentation in subsequent answers, allowing this contract boundary to proceed to Spec.
 - `2026-09-28`: implementation predated its formal Run record. Synthetic admission, incremental-retention, correction, coverage, and compatible-migration checks passed after fixing the zero-current coverage state. No personal-improvement analysis model Run was invoked.

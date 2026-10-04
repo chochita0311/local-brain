@@ -13,6 +13,8 @@
 
 ## Implementation Goal
 
+This document records the first-release contract. [SPEC-0111](spec-0111-automatic-skill-load-observation.md) owns the approved extension for automatic skill-file reads and request grouping.
+
 Persist each distinct admitted skill load as a local historical observation that survives the disappearance of its source Session and can be incrementally extended on resumed source files.
 
 ## Source And Identity Contract

@@ -162,10 +162,17 @@ CREATE TABLE IF NOT EXISTS skill_observations (
         skill_locator IS NULL OR length(skill_locator) BETWEEN 1 AND 4096
     ),
     signal_kind TEXT NOT NULL CHECK(
-        signal_kind IN ('claude_skill_tool', 'codex_skill_context')
+        signal_kind IN (
+            'claude_skill_tool', 'codex_skill_context',
+            'claude_skill_read', 'codex_skill_read',
+            'claude_skill_declaration', 'codex_skill_declaration',
+            'claude_skill_mention', 'codex_skill_mention',
+            'claude_skill_script', 'codex_skill_script'
+        )
     ),
     source_line INTEGER NOT NULL CHECK(source_line > 0),
     occurred_at TEXT,
+    request_key TEXT CHECK(request_key IS NULL OR length(request_key) BETWEEN 1 AND 160),
     state TEXT NOT NULL DEFAULT 'observed'
         CHECK(state IN ('observed', 'corrected')),
     recorded_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,

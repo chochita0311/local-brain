@@ -14,6 +14,8 @@
 
 ## Implementation Goal
 
+This document records the first-release view. [SPEC-0111](spec-0111-automatic-skill-load-observation.md) owns its approved observed-load terminology and automatic-read extension.
+
 Expose an Insights view from the existing Sessions Dashboard heading action, with the most-used skill and complete all-time ranked list as its first content.
 
 ## Route And Interaction

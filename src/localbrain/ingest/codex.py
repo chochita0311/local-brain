@@ -28,6 +28,7 @@ from .common import (
     visible_url_evidence,
 )
 from ..official_pricing import select_snapshot
+from .skill_loads import SkillReadCollector
 
 
 CODEX_USAGE_IDENTITY_VERSION = (
@@ -35,7 +36,7 @@ CODEX_USAGE_IDENTITY_VERSION = (
 )
 CODEX_USAGE_CONTRACT_VERSION = "codex-last-token-usage-v8-official-dated-service-tier"
 CODEX_SESSION_CONTRACT_VERSION = (
-    "codex-session-v4-response-message-fallback-user-prompt-guardian-skill-observations"
+    "codex-session-v8-skill-reference-sessions"
 )
 CODEX_GUARDIAN_TITLE = "Codex guardian"
 
@@ -356,6 +357,7 @@ def parse_codex_session(path: Path) -> ParsedSession:
     timestamps: List[str] = []
     events: List[ParsedEvent] = []
     skill_observations: List[ParsedSkillObservation] = []
+    skill_reads = SkillReadCollector("codex")
     usage_by_record: Dict[str, ParsedUsageRecord] = {}
     url_evidence = []
     reference_candidates = []
@@ -425,6 +427,8 @@ def parse_codex_session(path: Path) -> ParsedSession:
         if not isinstance(record, dict):
             skipped_lines += 1
             continue
+
+        skill_reads.observe(record, line_number)
 
         timestamp = record.get("timestamp")
         if isinstance(timestamp, str):
@@ -738,7 +742,7 @@ def parse_codex_session(path: Path) -> ParsedSession:
         session_role=session_role,
         parent_external_id=parent_external_id,
         usage_records=list(usage_by_record.values()),
-        skill_observations=skill_observations,
+        skill_observations=skill_reads.finish(skill_observations, events),
         url_evidence=url_evidence,
         reference_candidates=reference_candidates,
     )

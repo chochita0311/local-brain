@@ -115,6 +115,7 @@ class ParsedSkillObservation:
     source_line: int
     occurred_at: Optional[str] = None
     skill_locator: Optional[str] = None
+    request_key: Optional[str] = None
 
 
 @dataclass(frozen=True)

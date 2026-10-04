@@ -1,4 +1,4 @@
-"""Durable, source-backed skill load observations and first Insights projection."""
+"""Durable skill evidence and use/reference Session counts for Insights."""
 
 import sqlite3
 from typing import Any, Dict
@@ -45,26 +45,44 @@ def store_skill_observations(
         locator = item.skill_locator.strip() or None if item.skill_locator else None
         if locator and len(locator) > 4096:
             locator = None
-        if connection.execute(
+        multiple_skills = item.signal_kind.endswith(("_read", "_declaration", "_mention", "_script"))
+        legacy_id = ("declaration:" + native_id[len("mention:"):]
+                     if item.signal_kind.endswith("_mention") and native_id.startswith("mention:")
+                     else native_id)
+        existing = connection.execute(
             """
-            SELECT 1 FROM skill_observations
+            SELECT id, request_key FROM skill_observations
             WHERE source_key = ? AND external_session_id = ?
-              AND native_event_id = ?
+              AND native_event_id IN (?, ?)
+              AND (? = 0 OR skill_group_key = ?)
             LIMIT 1
             """,
-            (source_key, parsed.external_id, native_id),
-        ).fetchone():
+            (source_key, parsed.external_id, native_id, legacy_id, int(multiple_skills), group_key),
+        ).fetchone()
+        request_key = item.request_key
+        if request_key is not None and (not request_key or len(request_key) > 160):
+            request_key = None
+        if existing:
+            if existing["request_key"] is None and request_key:
+                connection.execute(
+                    "UPDATE skill_observations SET request_key = ? WHERE id = ?",
+                    (request_key, existing["id"]),
+                )
             continue
         observation_id = stable_id(
-            "skill-observation-v2", source_key, parsed.external_id, native_id
+            ("skill-observation-declaration-v1" if item.signal_kind.endswith("_declaration")
+             else "skill-observation-reference-v1" if item.signal_kind.endswith(("_mention", "_script"))
+             else "skill-observation-read-v1" if multiple_skills else "skill-observation-v2"),
+            source_key, parsed.external_id, native_id,
+            *([group_key] if multiple_skills else []),
         )
         cursor = connection.execute(
             """
             INSERT OR IGNORE INTO skill_observations(
                 id, source_key, provider_kind, external_session_id,
                 native_event_id, skill_name, skill_group_key, skill_locator,
-                signal_kind, source_line, occurred_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                signal_kind, source_line, occurred_at, request_key
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 observation_id,
@@ -78,6 +96,7 @@ def store_skill_observations(
                 item.signal_kind,
                 item.source_line,
                 item.occurred_at,
+                request_key,
             ),
         )
         inserted += cursor.rowcount
@@ -107,12 +126,18 @@ def skill_insights_data(connection: sqlite3.Connection) -> Dict[str, Any]:
     """Read a full all-time ranking without touching Session transcripts."""
     grouped = connection.execute(
         """
+        WITH reference_sessions AS (
+            SELECT skill_group_key, MIN(skill_name) AS skill_name,
+                   MAX(julianday(occurred_at)) AS occurred_at
+            FROM skill_observations
+            WHERE state = 'observed'
+            GROUP BY source_key, external_session_id, skill_group_key
+        )
         SELECT skill_group_key, MIN(skill_name) AS skill_name,
                COUNT(*) AS use_count,
-               strftime('%Y-%m-%dT%H:%M:%SZ', MAX(julianday(occurred_at)))
+               strftime('%Y-%m-%dT%H:%M:%SZ', MAX(occurred_at))
                    AS last_used_at
-        FROM skill_observations
-        WHERE state = 'observed'
+        FROM reference_sessions
         GROUP BY skill_group_key
         ORDER BY use_count DESC, skill_group_key ASC
         """

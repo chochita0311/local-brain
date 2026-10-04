@@ -74,7 +74,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Physical field or projection: `skill_observations.provider_kind`
 - Allowed values: `claude`, `codex`
 - Enforcement: `schema-check`
-- Logical axis: skill-load source adapter
+- Logical axis: skill evidence source adapter
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
 - Producers: `src/localbrain/ingest/scanner.py`
@@ -88,14 +88,14 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 ## `skill-observation.signal-kind`
 
 - Physical field or projection: `skill_observations.signal_kind`
-- Allowed values: `claude_skill_tool`, `codex_skill_context`
+- Allowed values: `claude_skill_tool`, `codex_skill_context`, `claude_skill_read`, `codex_skill_read`, `claude_skill_declaration`, `codex_skill_declaration`, `claude_skill_mention`, `codex_skill_mention`, `claude_skill_script`, `codex_skill_script`
 - Enforcement: `schema-check`
-- Logical axis: explicit skill-load signal
+- Logical axis: skill invocation, read, reference or script evidence
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
 - Producers: `src/localbrain/ingest/claude.py`, `src/localbrain/ingest/codex.py`
 - Consumers: `src/localbrain/skill_observations.py`
-- Consequence: Separates native Claude Skill calls from Codex-generated skill context without inferring use from file reads or mentions.
+- Consequence: Distinguishes native calls/contexts, completed reads, named conversation references, identifiable skill script executions and retained historical declarations. All observed kinds count at most once per source/native Session/skill. No application-phrase classification or proof of success/benefit.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
 - Help: none

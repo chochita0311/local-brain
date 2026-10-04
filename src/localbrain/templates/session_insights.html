@@ -6,7 +6,7 @@
     <div>
       <p class="eyebrow">INSIGHTS</p>
       <h1>Sessions Dashboard</h1>
-      <p class="heading-copy">사용한 스킬과 세션을 바탕으로 업무 개선 기회를 살펴봅니다.</p>
+      <p class="heading-copy">스킬을 사용·참조한 세션과 업무 개선 기회를 살펴봅니다.</p>
     </div>
     <a class="secondary-button" href="/sessions-dashboard">Usage &amp; Cost</a>
   </section>
@@ -14,7 +14,7 @@
   {% if insights.coverage.state == 'partial' %}
     <p class="session-insights-coverage" role="status">세션 기록 일부가 아직 새 집계 기준으로 동기화되지 않았습니다. 현재 확인된 {{ insights.coverage.current_file_count }} / {{ insights.coverage.file_count }}개 파일의 결과입니다. <a href="/sessions">Sessions에서 동기화</a></p>
   {% elif insights.top and insights.coverage.state == 'not_scanned' %}
-    <p class="session-insights-coverage" role="status">이전에 기록한 스킬 사용은 유지되고 있지만 현재 확인할 세션 파일이 없습니다. <a href="/sessions">Sessions에서 동기화</a></p>
+    <p class="session-insights-coverage" role="status">이전에 수집한 스킬 기록은 유지되고 있지만 현재 확인할 세션 파일이 없습니다. <a href="/sessions">Sessions에서 동기화</a></p>
   {% endif %}
 
   <div class="session-insights-layout">
@@ -22,23 +22,24 @@
       {% if insights.top %}
         <section class="analysis-panel session-insights-leader" aria-labelledby="session-insights-leader-title">
           <div>
-            <p class="eyebrow">MOST USED SKILL</p>
+            <p class="eyebrow">MOST REFERENCED SKILL</p>
             <h2 id="session-insights-leader-title">{{ insights.top.name }}</h2>
-            <p>전체 {{ insights.ranking | length }}개 스킬 중 가장 많이 사용했습니다.</p>
+            <p>전체 {{ insights.ranking | length }}개 스킬 중 사용·참조한 세션이 가장 많습니다.</p>
           </div>
-          <strong><span>{{ "{:,}".format(insights.top.use_count) }}</span>회</strong>
+          <strong><span>{{ "{:,}".format(insights.top.use_count) }}</span>개 세션</strong>
         </section>
 
-        <section class="analysis-panel session-insights-ranking" aria-label="스킬 사용 목록">
+        <section class="analysis-panel session-insights-ranking" aria-label="스킬 사용·참조 세션 목록">
+          <p class="session-insights-skill-note">언급·호출·읽기·관련 스크립트 실행을 포함합니다. 같은 세션에서는 스킬당 한 번만 셉니다.</p>
           <table class="session-insights-skill-table">
-            <caption class="sr-only">사용 횟수 순으로 정렬한 스킬 목록</caption>
+            <caption class="sr-only">사용·참조한 세션 수 순으로 정렬한 스킬 목록</caption>
             <colgroup><col class="session-insights-skill-name-col"><col class="session-insights-skill-count-col"><col class="session-insights-skill-last-used-col"></colgroup>
-            <thead><tr><th scope="col">스킬</th><th scope="col">횟수</th><th scope="col">마지막 사용</th></tr></thead>
+            <thead><tr><th scope="col">스킬</th><th scope="col">세션 수</th><th scope="col">최근 기록</th></tr></thead>
             <tbody>
               {% for item in insights.ranking %}
                 <tr>
                   <th scope="row" title="{{ item.name }}">{{ item.name }}</th>
-                  <td class="session-insights-count">{{ "{:,}".format(item.use_count) }}회</td>
+                  <td class="session-insights-count">{{ "{:,}".format(item.use_count) }}개</td>
                   <td class="session-insights-last-used">{% if item.last_used_at %}<time datetime="{{ item.last_used_at }}" data-local-date-time-stacked>{{ item.last_used_at }}</time>{% else %}<span>시간 정보 없음</span>{% endif %}</td>
                 </tr>
               {% endfor %}
@@ -47,8 +48,8 @@
         </section>
       {% else %}
         <section class="analysis-panel session-insights-empty" role="status">
-          <h2>{% if insights.coverage.state == 'not_scanned' %}아직 수집된 스킬 기록이 없습니다{% elif insights.coverage.state == 'partial' %}현재까지 확인된 스킬 사용이 없습니다{% else %}확인된 스킬 사용이 없습니다{% endif %}</h2>
-          <p>{% if insights.coverage.state == 'not_scanned' %}<a href="/sessions">Sessions에서 동기화</a>하면 명시적 스킬 사용을 집계합니다.{% elif insights.coverage.state == 'partial' %}남은 세션을 동기화하면 순위에 반영됩니다.{% else %}동기화된 세션에서 명시적 스킬 로드 기록이 발견되지 않았습니다.{% endif %}</p>
+          <h2>{% if insights.coverage.state == 'not_scanned' %}아직 수집된 스킬 기록이 없습니다{% elif insights.coverage.state == 'partial' %}현재까지 사용·참조한 스킬 기록이 없습니다{% else %}사용·참조한 스킬 기록이 없습니다{% endif %}</h2>
+          <p>{% if insights.coverage.state == 'not_scanned' %}<a href="/sessions">Sessions에서 동기화</a>하면 스킬을 사용·참조한 세션을 집계합니다.{% elif insights.coverage.state == 'partial' %}남은 세션을 동기화하면 순위에 반영됩니다.{% else %}동기화된 세션에서 스킬 사용·참조 기록이 발견되지 않았습니다.{% endif %}</p>
         </section>
       {% endif %}
     </div>

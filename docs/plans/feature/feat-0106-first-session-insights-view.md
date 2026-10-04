@@ -68,6 +68,8 @@ Let the owner switch from Usage & Cost to a first Insights view and read the mos
 
 ## Continuity Notes
 
+- `2026-10-02`: [FEAT-0111](feat-0111-automatic-skill-load-observation.md) extends the view with observed-load wording and a concise count explanation alongside automatic-read admission. The first-release layout/navigation contract and earlier evaluations remain historical evidence.
+
 - `2026-09-27`: proposed from the owner's confirmed heading-action navigation and first skill-ranking scope. The owner chose same-name counts summed across sources and explicit-only source signals; the planned product build depended on a passed observation contract.
 - `2026-09-27`: the owner removed the redundant `사용 순위` section heading and separate rank-number display, and requested a `마지막 사용` column after the count.
 - `2026-09-28`: formal evaluation of the existing view passed after FEAT-0105 acceptance. Synthetic browser review covered navigation and filled, empty, partial, long-list, and retained-without-current-file states. The historical build preceded foundation acceptance; this dependency-order gap is recorded in RUN-124.

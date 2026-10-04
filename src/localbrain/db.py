@@ -124,6 +124,7 @@ def init_db() -> None:
         ):
             _ensure_usage_attribution_backup(connection, settings.database_path)
         _migrate_legacy_usage_table_name(connection)
+        _migrate_skill_observation_contract(connection)
         connection.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
         _validate_structure_reference_contract(connection)
         if atlassian_site_access_needs_repair:
@@ -183,6 +184,63 @@ def _table_sql(connection: sqlite3.Connection, table: str):
         (table,),
     ).fetchone()
     return row["sql"] if row else None
+
+
+def _migrate_skill_observation_contract(connection: sqlite3.Connection) -> None:
+    """Atomically retain the ledger while extending its bounded evidence kinds."""
+    table = "skill_observations"
+    old_sql = _table_sql(connection, table)
+    if not old_sql or (all(signal in old_sql for signal in (
+        "codex_skill_read", "claude_skill_read",
+        "codex_skill_declaration", "claude_skill_declaration",
+        "codex_skill_mention", "claude_skill_mention",
+        "codex_skill_script", "claude_skill_script",
+    )) and "request_key" in old_sql):
+        return
+    columns = _column_names(connection, table)
+    expected = {
+        "id", "source_key", "provider_kind", "external_session_id", "native_event_id",
+        "skill_name", "skill_group_key", "skill_locator", "signal_kind", "source_line",
+        "occurred_at", "state", "recorded_at", "request_key",
+    }
+    if not columns.issubset(expected) or not expected.difference({"request_key"}).issubset(columns):
+        raise RuntimeError("Skill observation upgrade found an unexpected table shape")
+    if connection.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='trigger' AND tbl_name=?", (table,)
+    ).fetchone():
+        raise RuntimeError("Skill observation upgrade found an unexpected trigger")
+    temporary = "skill_observations_read_upgrade"
+    if _table_sql(connection, temporary):
+        raise RuntimeError("Skill observation upgrade target already exists")
+    indexes = [row["sql"] for row in connection.execute(
+        "SELECT sql FROM sqlite_master WHERE type='index' AND tbl_name=? AND sql IS NOT NULL",
+        (table,),
+    )]
+    fresh_sql = re.search(
+        r"CREATE TABLE IF NOT EXISTS skill_observations \([\s\S]*?\n\);",
+        SCHEMA_PATH.read_text(encoding="utf-8"),
+    ).group()
+    retained = ", ".join(sorted(columns))
+    connection.execute("SAVEPOINT skill_observation_upgrade")
+    try:
+        connection.execute(fresh_sql.replace(table, temporary, 1))
+        connection.execute("INSERT INTO {} ({}) SELECT {} FROM {}".format(
+            temporary, retained, retained, table
+        ))
+        for before, after in ((table, temporary), (temporary, table)):
+            if connection.execute("SELECT {} FROM {} EXCEPT SELECT {} FROM {}".format(
+                retained, before, retained, after
+            )).fetchone():
+                raise RuntimeError("Skill observation upgrade changed retained evidence")
+        connection.execute("DROP TABLE " + table)
+        connection.execute("ALTER TABLE " + temporary + " RENAME TO " + table)
+        for index_sql in indexes:
+            connection.execute(index_sql)
+        connection.execute("RELEASE skill_observation_upgrade")
+    except Exception:
+        connection.execute("ROLLBACK TO skill_observation_upgrade")
+        connection.execute("RELEASE skill_observation_upgrade")
+        raise
 
 
 def _normalized_schema_sql(value) -> str:

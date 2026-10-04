@@ -24,6 +24,13 @@ Spec, Run, and Evaluation document owns its own detailed status and history.
   ranking's [FEAT-0105](feature/feat-0105-skill-observation-retention.md) and
   [FEAT-0106](feature/feat-0106-first-session-insights-view.md) passed their
   formal evaluations under [PRD-0005](prd/prd-0005-workflow-and-skill-intelligence.md).
+  [FEAT-0111](feature/feat-0111-automatic-skill-load-observation.md) extends the
+  ranking with automatic skill-file reads and grouping within an identified request.
+  [FEAT-0112](feature/feat-0112-session-skill-use-estimate.md) records the prior
+  application-declaration estimate. The owner-approved
+  [FEAT-0113](feature/feat-0113-skill-reference-session-count.md) replaces it with
+  use/reference Session counts, at most one per skill per Session, without
+  language-based application classification.
   [PRD-0018](prd/prd-0018-personal-ai-use-improvement-insights.md) owns the
   remaining analyzer decisions. FEAT-0107/0108 foundations and the executable
   FEAT-0110 first increment are delivered. Owner-started question Runs now
@@ -147,7 +154,18 @@ and [RUN-124](run/run-20260928-124-first-session-insights-view.md) using
 synthetic ingestion and browser evidence. These checks did not execute the
 personal-improvement model.
 
-Subsequent Insights corrections cover usage accounting (RUN-125), selection and
+The automatic skill-load extension passed [RUN-138](run/run-20261002-138-automatic-skill-load-observation.md)
+with source-backed read admission, request grouping, retained-evidence migration,
+local backfill and active-browser checks. Observed loading remains distinct from
+actual application or benefit.
+
+The owner then requested a practical estimate of automatic use without new
+activation instrumentation. [RUN-139](run/run-20261003-139-session-skill-use-estimate.md)
+records the prior [estimated-use correction](feature/feat-0112-session-skill-use-estimate.md).
+The owner then approved [RUN-140](run/run-20261004-140-skill-reference-session-count.md)
+to count use/reference Sessions without application-phrase matching.
+
+The analyzer track's corrections cover usage accounting (RUN-125), selection and
 evidence requests (RUN-128/129), concrete application handoffs (RUN-134), live
 CLI startup (RUN-135), and existing-proposal follow-through (RUN-136). Two
 owner-started question Runs now supply live no-finding/finding reports. The

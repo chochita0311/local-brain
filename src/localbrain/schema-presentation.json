@@ -9,17 +9,17 @@
       {
         "path": "src/localbrain/schema.sql",
         "role": "fresh-schema-truth",
-        "sha256": "5ee4d0641d93701074a9a3111a918f6052c8de8bb0beb93429b9ad33ff8c8964"
+        "sha256": "140e798fcb09fc2205788f9cfe19af857c3fb333c182cebc51c8cffa88683e1a"
       },
       {
         "path": "src/localbrain/db.py",
         "role": "compatible-structure-truth",
-        "sha256": "5bcc5ab41d0c6d2494269cb730afe21ae668b28aa77a680e4d90938af71139d6"
+        "sha256": "33a4b9f771aac68ee2ecb44fefc66885eae875cbd2641f461efbcf1b06f571de"
       },
       {
         "path": "docs/policies/project/data-model.md",
         "role": "semantic-truth",
-        "sha256": "aa5997d1bce94462dae0cd4f7a4866bb117adc68571b4faeb0df05f123ae07a1"
+        "sha256": "9a0684b08d725c9a409e017ad576b2b2b637f78180a08657f2ffd4ea26b589c7"
       },
       {
         "path": "docs/policies/project/data-model/source-registry-and-scans.md",
@@ -29,7 +29,7 @@
       {
         "path": "docs/policies/project/data-model/workspace-and-session-activity.md",
         "role": "semantic-truth",
-        "sha256": "30d2cbc4e254b1e4e7d3a5e1438fb05adeca093dd2c2cb7d3c5502664bf44edf"
+        "sha256": "941f731265851ba365be8ce2cd92ca465eebbda90f1c7102f7a5b6510b2a6fc4"
       },
       {
         "path": "docs/policies/project/data-model/usage-and-cost-records.md",
@@ -2136,7 +2136,7 @@
         "consumers": "Session inventory/detail, dashboard counts, normalized activity, retrieval, Workstream linking/suggestions, Runner context, search projection, Usage Records, and Usage Dashboard denominators. Sessions inventory headline, rows, pagination, and Project grouping share the same `work` plus `primary` denominator with no age cutoff. A selected source matches the stable `sources.kind`, not `provider_kind`, so personal and company Codex remain statistically separate while sharing one adapter.",
         "deletion_effect": "physical `source_id` cascades; optional `workspace_id`, `parent_session_id`, and unique `maintenance_run_id` set null. After a successful scan of a present source root, disappearance of one previously imported native JSONL or confirmation that it remains a zero-Event, zero-Usage, zero-skill-observation stub is deletion authority for its normalized Session. Deleting that Session cascades `activity_events`, `usage_records`, derived `session_reference_scans` and `session_reference_evidence`, and the optional user-owned `session_pins` row; scanner also removes its search and source-file projection while preserving a present native stub. A wholly missing source root does not trigger the same stale-file reconciliation. `skill_observations` has no cascading FK and keeps admitted historical uses. Polymorphic links and checkpoint refs are application edges and can retain an unresolved historical ID.",
         "documented_constraints": "`UNIQUE(source_id, external_id)`, unique nullable `maintenance_run_id`, checks for the two-value class, role, and index-policy vocabularies, and a linked-Session shape check requiring `maintenance`, `primary`, and `metadata_only`. Explicit indexes: `idx_sessions_last_event`, `idx_sessions_workspace`, `idx_sessions_class`, `idx_sessions_role`, `idx_sessions_parent`.",
-        "lifecycle_contract": "native Sessions are source-derived from meaningful retained native JSONL accepted by the owning provider's Session-candidate contract. Meaningful means the parsed file contains at least one normalized Activity Event, direct Usage Record, or admitted skill-load observation; metadata-only stubs retain no Session or source-file projection and are reconsidered on later syncs. Codex conversation ingestion prefers native `event_msg` user/assistant records per role and falls back to `response_item` message content only when the matching role and turn are absent. Response-only user records exclude Codex-expanded repository/environment instructions and `<skill>` bodies before retaining the final user-authored record in a turn, so the literal `$skill` prompt remains visible without duplicating provider context. Claude primary files and direct `subagents/*.jsonl` children are accepted, while deeper internal `subagents` artifacts such as workflow journals are not Sessions. Codex `source.subagent.other=guardian` files remain normalized so their stable source identity, parent relation, and directly observed Usage Records survive, but the parser classifies them as maintenance plus metadata-only: their approval prompts and decisions produce no Activity Events, question counts, search text, or ordinary Session/Subsession presentation. A successful scan reconciles a previously imported row that is no longer an accepted candidate without deleting the native file. Native tools can remove accepted JSONL files under their own retention policies; Claude Code is a confirmed example because it deletes Session files older than `cleanupPeriodDays` at startup. LocalBrain is therefore a source mirror rather than an immutable Session archive. Stable IDs are preserved while their accepted source files remain so curated links and Usage Records remain valid. The same native external ID may exist under personal Codex and Codex Company because Session identity is unique within `source_id`, not provider kind. A Run-linked primary and its resolved child Sessions keep metadata while maintenance index/event policy is restricted; the private Runner stream is an operational artifact only. Ephemeral personal insight executions are a bounded exception: a retained CLI usage observation creates a metadata-only Maintenance Session accounting parent with identity `localbrain-insight:<Run ID>`. It contains no conversation, events, search entry, workspace, or native source-file registration. The independent Run is its application owner; native-source disappearance does not delete this accounting projection.",
+        "lifecycle_contract": "native Sessions are source-derived from meaningful retained native JSONL accepted by the owning provider's Session-candidate contract. Meaningful means the parsed file contains at least one normalized Activity Event, direct Usage Record, or admitted skill observation; metadata-only stubs retain no Session or source-file projection and are reconsidered on later syncs. Codex conversation ingestion prefers native `event_msg` user/assistant records per role and falls back to `response_item` message content only when the matching role and turn are absent. Response-only user records exclude Codex-expanded repository/environment instructions and `<skill>` bodies before retaining the final user-authored record in a turn, so the literal `$skill` prompt remains visible without duplicating provider context. Claude primary files and direct `subagents/*.jsonl` children are accepted, while deeper internal `subagents` artifacts such as workflow journals are not Sessions. Codex `source.subagent.other=guardian` files remain normalized so their stable source identity, parent relation, and directly observed Usage Records survive, but the parser classifies them as maintenance plus metadata-only: their approval prompts and decisions produce no Activity Events, question counts, search text, or ordinary Session/Subsession presentation. A successful scan reconciles a previously imported row that is no longer an accepted candidate without deleting the native file. Native tools can remove accepted JSONL files under their own retention policies; Claude Code is a confirmed example because it deletes Session files older than `cleanupPeriodDays` at startup. LocalBrain is therefore a source mirror rather than an immutable Session archive. Stable IDs are preserved while their accepted source files remain so curated links and Usage Records remain valid. The same native external ID may exist under personal Codex and Codex Company because Session identity is unique within `source_id`, not provider kind. A Run-linked primary and its resolved child Sessions keep metadata while maintenance index/event policy is restricted; the private Runner stream is an operational artifact only. Ephemeral personal insight executions are a bounded exception: a retained CLI usage observation creates a metadata-only Maintenance Session accounting parent with identity `localbrain-insight:<Run ID>`. It contains no conversation, events, search entry, workspace, or native source-file registration. The independent Run is its application owner; native-source disappearance does not delete this accounting projection.",
         "producers": "`ingest/scanner.py` plus Claude/Codex parsers create Sessions and Usage Records; parent reconciliation updates self-references and propagates maintenance policy to Claude or Codex children. `runner.py` synchronizes the selected native source after terminal and recovered Runs. Session projection freshness is independently versioned in `source_files`, so classification/parser changes can rebuild Sessions, Activity Events, and search without replacing Usage merely because the Session contract changed. `db.py` owns the classification/Run-link constraint repair. `personal_insight_usage.py` separately creates insight accounting parents and canonical Usage Records from observed ephemeral CLI usage.",
         "purpose_and_authority": "one normalized Claude or Codex Session/subsession per stable local source and native external identity. Source key owns provenance and statistical separation, while the Source registry provider kind owns parser and normalization behavior. An in-app Task Runner Run is represented by the selected runner's persisted native primary Session, linked to the Run ledger rather than duplicated by LocalBrain.",
         "rebuildability": "source-rebuildable",
@@ -2274,7 +2274,7 @@
           "name": "id",
           "not_null": false,
           "primary_key_position": 1,
-          "semantic_contract": "`TEXT PRIMARY KEY`; opaque deterministic observation ID. Current inserts hash source key, native Session ID, and native event ID; earlier inserts may also include the normalized name.",
+          "semantic_contract": "`TEXT PRIMARY KEY`; deterministic source/Session/event evidence identity; read/declaration/mention/script IDs also include normalized skill name. Existing opaque IDs are retained.",
           "type": "TEXT"
         },
         {
@@ -2306,7 +2306,7 @@
           "name": "native_event_id",
           "not_null": true,
           "primary_key_position": 0,
-          "semantic_contract": "`TEXT NOT NULL`; provider event identity, never a source-line surrogate.",
+          "semantic_contract": "native provider identity for calls/contexts/reads; `mention:` prefixes a native message ID or deterministic normalized message fallback; `script:` prefixes a native execution ID. Historical `declaration:` identities remain retained.",
           "type": "TEXT"
         },
         {
@@ -2330,7 +2330,7 @@
           "name": "skill_locator",
           "not_null": false,
           "primary_key_position": 0,
-          "semantic_contract": "nullable `TEXT`; bounded Codex skill path when the generated load wrapper provides it.",
+          "semantic_contract": "nullable bounded skill instruction path established by a native wrapper or literal completed read.",
           "type": "TEXT"
         },
         {
@@ -2338,7 +2338,7 @@
           "name": "signal_kind",
           "not_null": true,
           "primary_key_position": 0,
-          "semantic_contract": "`TEXT NOT NULL`; checked to `claude_skill_tool` or `codex_skill_context`.",
+          "semantic_contract": "native `claude_skill_tool`/`codex_skill_context`; provider-prefixed `skill_read`, `skill_mention`, `skill_script`; historical `skill_declaration`. Every observed kind can establish Session reach.",
           "type": "TEXT"
         },
         {
@@ -2358,11 +2358,19 @@
           "type": "TEXT"
         },
         {
+          "default_sql": null,
+          "name": "request_key",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable bounded opaque request provenance; unknown scope remains null. Session counting does not depend on this field.",
+          "type": "TEXT"
+        },
+        {
           "default_sql": "'observed'",
           "name": "state",
           "not_null": true,
           "primary_key_position": 0,
-          "semantic_contract": "`TEXT NOT NULL DEFAULT 'observed'`; checked to `observed` or `corrected`; only observed rows enter Insights.",
+          "semantic_contract": "`observed` or `corrected`, default `observed`; only observed evidence enters Insights.",
           "type": "TEXT"
         },
         {
@@ -2380,11 +2388,12 @@
           "length(trim(skill_name)) BETWEEN 1 AND 160",
           "length(skill_group_key) > 0",
           "skill_locator IS NULL OR length(skill_locator) BETWEEN 1 AND 4096",
-          "signal_kind IN ('claude_skill_tool', 'codex_skill_context')",
+          "signal_kind IN ( 'claude_skill_tool', 'codex_skill_context', 'claude_skill_read', 'codex_skill_read', 'claude_skill_declaration', 'codex_skill_declaration', 'claude_skill_mention', 'codex_skill_mention', 'claude_skill_script', 'codex_skill_script' )",
           "source_line > 0",
+          "request_key IS NULL OR length(request_key) BETWEEN 1 AND 160",
           "state IN ('observed', 'corrected')"
         ],
-        "documented": "`UNIQUE(source_key, external_session_id, native_event_id, skill_group_key)` plus an application-level native-event existence guard, bounded name/locator checks, positive source line, and checked provider/signal/state vocabularies. Explicit indexes: `idx_skill_observations_group` and `idx_skill_observations_source_session`.",
+        "documented": "`UNIQUE(source_key, external_session_id, native_event_id, skill_group_key)` plus application evidence guards, bounded fields and checked provider/signal/state values. Indexes: `idx_skill_observations_group` and `idx_skill_observations_source_session`. Startup extends the signal CHECK and optional legacy request field transactionally with exact retained-row parity. The Session-count change adds signal values without changing table/column/index counts.",
         "primary_key": [
           "id"
         ],
@@ -2440,12 +2449,12 @@
       "semantics": {
         "class": "Retained source observation",
         "class_contract": "Still-available source files can reproduce these rows, but an event from a vanished Session survives only in the LocalBrain database or its backup.",
-        "consumers": "`skill_observations.py` all-time ranking with latest admitted event time and extraction-coverage projection for Session Insights. No tracked files means `not_scanned`; the view distinguishes an empty first sync from retained historical observations without current files. Any tracked file lacking the current extraction contract means `partial`, even when the current-file count is zero. Usage & Cost does not query this table.",
+        "consumers": "`skill_observations.py` all-time use/reference Session ranking, latest admitted reference time and extraction coverage for Insights. Compatible `use_count` and `last_used_at` fields mean Session count and latest reference time. No files means `not_scanned`; stale parser contracts mean `partial`. Historical observations without current files remain distinguishable. Usage & Cost does not query this table.",
         "deletion_effect": "`source_key` application-addresses current `sources.kind`; (`source_key`, `external_session_id`) may resolve to a current `sessions` row. Neither is an FK: ordinary source or Session deletion must not cascade into this ledger. Evidence links appear only after a successful current-row join.",
-        "documented_constraints": "`UNIQUE(source_key, external_session_id, native_event_id, skill_group_key)` plus an application-level native-event existence guard, bounded name/locator checks, positive source line, and checked provider/signal/state vocabularies. Explicit indexes: `idx_skill_observations_group` and `idx_skill_observations_source_session`.",
-        "lifecycle_contract": "retained historical observation. A Session contract-version change reprocesses available native files once; later changed or resumed files insert only new native IDs. The producer checks the source key, native Session ID, and native event ID before insertion, including against earlier rows whose opaque ID included a name, so a rewritten name does not count the same event twice. A missing Session or source file does not retract a valid observation. Maintenance Sessions and children classified as maintenance through parent reconciliation are invalidated; a proven erroneous observation can be marked `corrected` without deleting other history. The readable name is preserved while all-time Insights groups trimmed, case-folded names across sources.",
-        "producers": "Claude/Codex parsers extract bounded signals; `ingest/scanner.py` and `skill_observations.py` persist them within the source scan transaction and reconcile maintenance exclusion. A targeted native-event correction can set an erroneous observation to `corrected` without making ordinary file disappearance a deletion signal.",
-        "purpose_and_authority": "one explicit, source-backed skill load per native event. Claude assistant `Skill` calls and Codex-generated `<skill>` load messages are the first-release signals; direct `SKILL.md` reads, mentions, and inferred use are outside the count. This ledger records observed loading, not success or benefit.",
+        "documented_constraints": "`UNIQUE(source_key, external_session_id, native_event_id, skill_group_key)` plus application evidence guards, bounded fields and checked provider/signal/state values. Indexes: `idx_skill_observations_group` and `idx_skill_observations_source_session`. Startup extends the signal CHECK and optional legacy request field transactionally with exact retained-row parity. The Session-count change adds signal values without changing table/column/index counts.",
+        "lifecycle_contract": "retained historical observation. Parser-version upgrades backfill available files once; subsequent changed/resumed files insert only new events. Native events deduplicate by source, Session and event identity; read/mention/script events also include normalized skill identity. Earlier declaration identities guard equivalent mention replay, including corrections. Request identity remains provenance, with null scope allowed. Missing files/Source/Session rows do not retract evidence. Maintenance Sessions and reconciled children are invalidated, and targeted corrections remain supported. Insights counts each normalized skill at most once per source and native Session across all requests/signals. Constituent events remain in the ledger.",
+        "producers": "Claude/Codex parsers, `ingest/skill_loads.py` and `ingest/skill_usage.py` extract bounded signals; `ingest/scanner.py` and `skill_observations.py` persist them within the source scan transaction and reconcile maintenance exclusion. Native Codex turn IDs, Claude user UUIDs or retained user-message identity establish request scope. A targeted native-event correction can set erroneous evidence to `corrected` without making ordinary disappearance a deletion signal.",
+        "purpose_and_authority": "durable native calls/contexts, successful instruction reads, named conversation references and identifiable skill script executions. Names are established by source evidence within the Session; availability catalogs alone do not count. References are matched by identifiers without interpreting use wording or language. All observed evidence contributes to use/reference Session reach, not proof of application, success or benefit. Previously recorded declarations are retained as historical references; no new phrase-based declarations are extracted.",
         "rebuildability": "retained-source-observation",
         "recovery_path": "restore the database to retain observations whose native Session files have disappeared. Still-available files can be rescanned, but cannot reproduce lost historical events.",
         "schema_ownership": "fresh additive table and `idx_skill_observations_group`, `idx_skill_observations_source_session` in `schema.sql`; compatible startup creates the absent table without rewriting existing Session rows."

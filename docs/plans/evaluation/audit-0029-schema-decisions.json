@@ -3,10 +3,10 @@
   "review_status": "complete",
   "manifest": {
     "path": "src/localbrain/schema-presentation.json",
-    "sha256": "99c0d25f3e339ae22c0fcc57f44e1979ee582034c77d90e332604e58a453b332",
+    "sha256": "fb1cc8cb6c789e421f30a7ca23129138c02950676af384d191d37ba2226ca5be",
     "expected": {
       "tables": 45,
-      "columns": 515,
+      "columns": 516,
       "indexes": 51,
       "physical_relations": 57,
       "application_relations": 29
@@ -35,7 +35,7 @@
     }
   },
   "table_decisions": {
-    "skill_observations": {"decision": "keep", "risk": "high", "rationale": "Required retained source-backed skill-load evidence with native-event deduplication and explicit correction state; ordinary Session or file removal must not erase historical observations, and missing native files require database-backup recovery."},
+    "skill_observations": {"decision": "keep", "risk": "high", "rationale": "Required retained source-backed skill evidence with source-scoped event replay guards and explicit correction state; ordinary Session or file removal must not erase historical observations, and missing native files require database-backup recovery."},
     "personal_insight_runs": {"decision": "keep", "risk": "high", "rationale": "Required independent analysis execution and report history with frozen settings, coverage, evidence and artifact references; database-plus-artifact recovery preserves past results without replaying a paid model call. Optional metadata-only usage accounting remains separate from ordinary work Sessions."},
     "sources": {"decision": "keep", "risk": "low", "rationale": "Required stable parent registry for every imported source domain; scan producers and cross-domain consumers depend on its IDs and kind uniqueness."},
     "source_files": {"decision": "keep", "risk": "low", "rationale": "Required rebuildable fingerprint and retry ledger; it separates scan state from normalized descendants and drives idempotent ingestion."},
@@ -215,7 +215,7 @@
     }
   },
   "test_evidence": {
-    "skill_observations": ["tests/test_skill_observations.py"],
+    "skill_observations": ["tests/test_skill_observations.py", "tests/test_automatic_skill_loads.py"],
     "personal_insight_runs": ["tests/test_personal_insight_run_guidance.py", "tests/test_personal_insight_usage.py", "tests/test_personal_insight_ui.py"],
     "sources": ["tests/test_ingest_policy.py", "tests/test_session_contract.py", "tests/test_usage_dashboard.py"],
     "source_files": ["tests/test_session_contract.py", "tests/test_usage_contract.py"],
