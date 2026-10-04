@@ -669,7 +669,7 @@ class UiContractTests(unittest.TestCase):
         self.assertIn('href="/sessions-dashboard">Usage &amp; Cost</a>',
                       self.session_insights)
         self.assertEqual(self.session_insights.count('<thead><tr><th scope="col">'), 1)
-        self.assertIn('<th scope="col">스킬</th><th scope="col">세션 수</th>'
+        self.assertIn('<th scope="col">스킬</th><th scope="col">횟수</th>'
                       '<th scope="col">최근 기록</th>', self.session_insights)
         self.assertIn('insights.ranking', self.session_insights)
         self.assertIn('data-local-date-time-stacked', self.session_insights)

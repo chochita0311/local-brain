@@ -1247,7 +1247,6 @@ a.search-result:hover { background: var(--surface-subtle); }
 .session-insights-leader > strong { flex: 0 0 auto; color: var(--text-primary); font-size: var(--type-section-size); white-space: nowrap; }
 .session-insights-leader > strong span { font-family: var(--type-mono-font); }
 .session-insights-ranking { padding: var(--space-none); overflow: hidden; }
-.session-insights-skill-note { margin: var(--space-none); padding: var(--space-row-block) var(--space-control-gap); color: var(--text-secondary); font-size: var(--type-caption-size); }
 .session-insights-skill-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 .session-insights-skill-name-col { width: 43%; }
 .session-insights-skill-count-col { width: 21%; }
