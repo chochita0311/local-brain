@@ -344,7 +344,7 @@ Exit criteria:
 
 - usage and cost metrics state their inclusion scope, calculation basis, price provenance, freshness, and unavailable fields
 - statistics can be reproduced from stored events
-- insights depend only on source-backed LocalBrain records and remain usable without cavemem installed
+- insights depend only on source-backed LocalBrain records
 - metric definitions state source limitations and avoid false precision
 - insights reveal at least one actionable repeated or forgotten work pattern
 

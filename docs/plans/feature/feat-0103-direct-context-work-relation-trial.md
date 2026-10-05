@@ -134,7 +134,7 @@ generation. All labels are synthetic engineering judgments, not real-work truth.
   finite runtime observations, failure-preserving replay and semantic review.
 - Out: private data, all-corpus pair generation, embeddings, cluster assignment,
   UI/overlay, role/claim/goal extraction, lifecycle, production identity, source
-  rescan, organization writes, Foundry changes and legacy cleanup.
+  rescan, organization writes and legacy cleanup.
 
 ## Surface Lanes And Contract Surfaces
 

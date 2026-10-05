@@ -5,6 +5,8 @@ from typing import Optional
 
 
 DEFAULT_DATA_DIR = Path.home() / "Library" / "Application Support" / "LocalBrain"
+DEFAULT_CACHE_DIR = Path.home() / "Library" / "Caches" / "LocalBrain"
+DEFAULT_DEVELOPMENT_DIR = Path.home() / "Library" / "Application Support" / "LocalBrain-Development"
 
 
 def _system_timezone_name() -> str:
@@ -31,6 +33,17 @@ class Settings:
     mcp_call_budget: int
     timezone_name: str = "UTC"
     session_sources_path: Optional[Path] = None
+    cache_dir: Optional[Path] = None
+    development_dir: Optional[Path] = None
+
+
+def cache_directory(config):
+    """Explicitly constructed legacy settings keep their isolated local root."""
+    return getattr(config, "cache_dir", None) or config.data_dir
+
+
+def development_directory(config):
+    return getattr(config, "development_dir", None) or config.data_dir.parent / (config.data_dir.name + "-development")
 
 
 def load_settings() -> Settings:
@@ -64,6 +77,12 @@ def load_settings() -> Settings:
             "LOCALBRAIN_TIMEZONE", _system_timezone_name()
         ),
         session_sources_path=data_dir / "session-sources.toml",
+        cache_dir=Path(os.environ.get("LOCALBRAIN_CACHE_DIR", str(
+            DEFAULT_CACHE_DIR if data_dir == DEFAULT_DATA_DIR
+            else data_dir.parent / (data_dir.name + "-cache")))).expanduser(),
+        development_dir=Path(os.environ.get("LOCALBRAIN_DEVELOPMENT_DIR", str(
+            DEFAULT_DEVELOPMENT_DIR if data_dir == DEFAULT_DATA_DIR
+            else data_dir.parent / (data_dir.name + "-development")))).expanduser(),
     )
 
 

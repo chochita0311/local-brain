@@ -25,6 +25,11 @@ The Git repository must not contain:
 
 `.gitignore` is a fallback guard. The primary protection is keeping runtime data physically outside the repository.
 
+Public documentation describes LocalBrain's supported installation, behavior,
+and integration contracts. Names and relationships from an operator's private
+local project inventory belong in local context, including when documenting
+optional model installation or development validation.
+
 ## Local Persistence
 
 The default runtime directory is:
@@ -33,7 +38,7 @@ The default runtime directory is:
 ~/Library/Application Support/LocalBrain
 ```
 
-It contains `localbrain.db`, private `session-sources.toml`, guarded schema-migration backups such as `localbrain.db-pre-usage-attribution-check-v1.bak`, `localbrain.db-pre-maintenance-workstream-fk-v1.bak`, `localbrain.db-pre-maintenance-session-contract-v1.bak`, and `localbrain.db-pre-external-resource-url-scope-v1.bak`, and Run artifacts. `LOCALBRAIN_DATA_DIR` may override this location, but it should not point to a tracked repository path. A versioned migration backup is local-only, is validated before use, and is never overwritten by a later startup.
+It contains `localbrain.db`, private `session-sources.toml`, bounded schema-migration recovery copies, and Run artifacts. `LOCALBRAIN_DATA_DIR` may override this location; runtime paths inside a Git repository or the source/installed package are rejected. The data directory uses owner-only permissions and the primary DB uses `0600`. A versioned recovery copy is local-only, is validated before use, and is never overwritten during its retention window. After successfully committed initialization and current-contract/integrity validation, inactive owned migration copies are retired, keeping at most the newest eligible copy for seven days. Failed initialization and uncertain or active files preserve recovery copies. Manual backups, saved reports, and live SQLite sidecars are outside automatic retirement. [macOS Installation And Local Storage](installation-and-storage.md) owns setup, supported commands, and the detailed retention boundary.
 
 `session-sources.toml` stores only a stable local source key, display label,
 provider kind, and local root path. It contains no credential, account identity,
@@ -48,6 +53,16 @@ normalized Session descendants. It may also remove the normalized projection of
 a present metadata-only stub after confirming that parsing yields no Activity
 Event and no Usage Record; LocalBrain never deletes that native file, and a later
 sync can import it after meaningful growth.
+
+Private rebuildable simulation/preview results live under
+`~/Library/Caches/LocalBrain`, selected by `LOCALBRAIN_CACHE_DIR`. Development
+evaluation archives live under `~/Library/Application Support/LocalBrain-Development`,
+selected by `LOCALBRAIN_DEVELOPMENT_DIR`, and are created only by explicit
+development work. Public pretrained weights remain in the user-level Hub cache;
+private prompts, vectors, source excerpts and reports never enter that cache.
+The [installation/storage contract](installation-and-storage.md) owns configurable
+roots and the explicit upgrade command. Migration preserves source content,
+the main DB, saved Runs and frozen evaluation files; it never publishes them.
 
 An in-app Task Runner stream remains a private Run artifact used for the Run Console and result parsing. It must not be re-imported as a Session, Usage Record, Local Context document, Activity Event, or search row. The selected Claude or Codex runner's persisted native JSONL is the sole Session and Usage source for that execution; maintenance policy keeps its content and resolved child content out of ordinary activity and search consumers while their direct real-model Usage Records remain eligible for cost totals.
 
@@ -118,7 +133,8 @@ Its explicitly selected private directory outside Git owns a source-bound
 inventory/cache SQLite file, an ownership marker, progress, the current report
 and at most one previous report. Locators, attributed titles, hashes, vectors
 and inferred memberships are private; complete raw message bodies are not
-copied. The cache expires after 30 inactive days, enforced on the next execution;
+copied. The cache expires after 30 inactive days, enforced on the next execution,
+application startup or explicit storage cleanup;
 status rejects expired state. Purge removes only this owner's derived files
 under its writer lock and retains the minimal ownership marker/lock. There is
 no background cleanup scheduler or source-file deletion. Current inventory
@@ -128,11 +144,20 @@ namespaces. Interrupted work retains checkpoints until resumed or purged.
 Only explicit local model inference is admitted, with verified already-installed
 asset fingerprints, local-files-only loading, no remote code, offline/telemetry
 controls and a Python outbound-socket guard. These controls are not an OS-level
-network sandbox. No training, asset download, external inference or write to
-Foundry state occurs. CLI output is fixed codes unless `--show-counts` explicitly
+network sandbox. No training, asset download or external inference occurs.
+CLI output is fixed codes unless `--show-counts` explicitly
 opts into aggregate disclosure. Model/library output is suppressed; private
 results remain local. This simulation does not change the old sampled comparator or
 authorize production organization, correction, migration or legacy retirement.
+
+Model setup is a separate explicit operation: LocalBrain's optional runtime and
+`models install embedding` own its Python dependencies and private
+`localbrain.semantic-model/v1` manifest. Installation accepts only pinned public
+assets and no private content argument. The packaged simulation defaults to that
+manifest. Compatible existing installed-asset manifests can be supplied
+explicitly. The
+[installation contract](installation-and-storage.md#optional-local-models) owns
+feature prerequisites, downloads, shared public cache paths, and offline reuse.
 
 The separately approved full-history affinity viewer consumes this same finite
 owner without creating another private store. A shared lock guards passive reads;
@@ -147,14 +172,24 @@ quote or inventory enters tracked/browser-test evidence; fixtures are synthetic.
 
 The separately approved [work-context model trial](../../plans/feature/feat-0098-local-work-context-inference.md)
 may install the pinned public Qwen3-4B and separately approved Qwen3-8B assets
-into distinct explicitly selected owned model directories outside Git.
+into the user-wide Hugging Face Hub cache, with distinct explicitly selected
+owned installation-metadata directories outside Git.
 Unknown models, unpinned revisions and mismatched existing ownership are rejected;
 installing the comparison does not replace or purge the baseline.
 Installation takes no private-source arguments,
 uses no authentication token, and contacts only the official public model host
-and its asset delivery endpoints. Foundry code/assets are not modified. The
-installation's content-addressed asset cache is its durable model storage;
-verified assets are retained for reuse independently of evaluation expiry.
+and its asset delivery endpoints. The shared cache holds only public base-model
+assets; LocalBrain's
+owner/lock/integrity manifest stays in its metadata directory. Cache resolution
+follows the canonical [shared cache configuration](installation-and-storage.md#storage-ownership-and-configuration).
+V2 manifests use Hub-relative snapshots confined to the selected model repository;
+legacy v1 manifests retain their app-local resolution. Public assets are retained
+for reuse independently of evaluation expiry and are never purged by app cleanup.
+Private source data, embeddings, reports, and execution records stay project-owned.
+Future trained LoRA adapters, checkpoints, and merged models require durable
+private project storage and backups including base-model revision and training
+provenance; they must not overwrite shared public weights or be treated as
+disposable download cache. No training functionality is introduced here.
 Interrupted public downloads are resumable installation state, not source data.
 Optional Xet transport uses a new empty private task-owned directory, selected
 before the client import, with chunk/shard caches disabled. Its public transfer
@@ -228,12 +263,12 @@ same trial. Caught interruptions consume their reserved attempt rather than retr
 it. Default CLI diagnostics contain no source/output text. Original holdout is
 reachable only after revalidated same-candidate development gates and a primary
 semantic review receipt; it is still synthetic, never a private input path.
-No training, download, private source/DB access, Foundry write, product consumer,
+No training, download, private source/DB access, product consumer,
 organization mutation or legacy deletion follows from the trial.
 
 The previous-sample Auto Work viewer is a narrow local consumer of the
 experimental extraction contract. A single `auto-work-preview/current.json`
-under the configured runtime directory retains an owner/version, seven-day
+under the configured private cache directory retains an owner/version, seven-day
 expiry, bounded frozen manifest, digest, sample counts and extraction output.
 It does not retain full source bodies, native files, a DB copy, source paths,
 credentials, or a report history. This is purpose-owned product preview state,
@@ -290,7 +325,7 @@ synthetic records only.
 
 Removing a source from LocalBrain must be distinguished from deleting the original local file or note. The application must not delete an original source as a side effect of unregistering or purging its index.
 
-General backup, user-facing restore, retention, purge, encryption, and broader schema-recovery controls remain open work tracked in the [Project Backlog](../../plans/project/backlog.md); a migration-specific recovery copy does not close that wider requirement.
+General user backup, user-facing restore/export, encryption, and broader schema-recovery controls remain open work tracked in the [Project Backlog](../../plans/project/backlog.md). Bounded migration-copy retirement is implemented under the [installation/storage contract](installation-and-storage.md#bounded-recovery-and-cleanup); it does not close that wider requirement.
 
 ## Source Persistence Modes
 

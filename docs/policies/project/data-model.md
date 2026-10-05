@@ -13,9 +13,13 @@ This is the durable human entry point for LocalBrain's effective SQLite model. I
 - Effective explicitly named indexes: `51`
 - Focused subject areas: `10`
 - `schema.sql` SHA-256: `140e798fcb09fc2205788f9cfe19af857c3fb333c182cebc51c8cffa88683e1a`
-- `db.py` SHA-256: `33a4b9f771aac68ee2ecb44fefc66885eae875cbd2641f461efbcf1b06f571de`
+- `db.py` SHA-256: `1c6c43c96a6190fb90c329b5431af9900b43d2f6bc6ac906545a0a590630affc`
 
 SQLite primary-key and uniqueness autoindexes and FTS5 shadow tables are implementation internals and are not counted as primary objects or explicitly named indexes. Validation applies `schema.sql` only to an in-memory database; no user database or runtime row is read.
+
+Primary database path protection and bounded migration recovery-copy retirement
+are governed by [macOS Installation And Local Storage](installation-and-storage.md).
+These file lifecycle rules do not change table, index, relation, or row semantics.
 
 ## Subject Ownership
 

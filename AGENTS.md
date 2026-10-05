@@ -41,7 +41,7 @@ Out of scope unless explicitly planned:
 - `DESIGN.md`: creative design intent and source interpretation
 - `README.md`: user-facing overview and quick start
 
-Runtime data belongs under `~/Library/Application Support/LocalBrain` by default and is not part of the codebase.
+Durable runtime data belongs under `~/Library/Application Support/LocalBrain`; private rebuildable caches belong under `~/Library/Caches/LocalBrain`. Development evidence has a separate private archive. These are outside the codebase; [Installation And Local Storage](docs/policies/project/installation-and-storage.md) owns their configuration and lifecycle.
 
 ## Source Of Truth
 

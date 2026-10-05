@@ -25,7 +25,7 @@ Extend the existing installer/verifier to these two pinned models only, preservi
 ownership, mismatch refusal and offline inference. Compare the existing two
 strategies without prompt/seed/expectation changes, including primary semantic
 review before holdout selection. No new corpus, UI, training, quantization,
-Foundry dependency changes, organization writes or legacy cleanup.
+dependency changes, organization writes or legacy cleanup.
 
 ## Current Route
 

@@ -341,10 +341,10 @@ class AtlassianSyncRouteTests(unittest.TestCase):
                 )
         source_report["status"] = "failed"
         self.assertEqual(len(_ATLASSIAN_SYNC_RECEIPTS), 32)
-        self.assertIsNone(
-            _verified_atlassian_sync_report(tokens[0], "/atlassian")
-        )
         with patch("localbrain.main.time.monotonic", return_value=399.0):
+            self.assertIsNone(
+                _verified_atlassian_sync_report(tokens[0], "/atlassian")
+            )
             self.assertEqual(
                 _verified_atlassian_sync_report(last, "/atlassian")["status"],
                 "complete",

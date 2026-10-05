@@ -82,4 +82,4 @@ private corpus remain untouched. A fresh model-weight hash verification passes.
 - Installed model and explicitly owned synthetic evaluation checkpoints are
   retained for reproducible comparison under their existing ownership/expiry
   policy. No task-owned scratch remains; diagnostic commands wrote no files.
-  Sources, Foundry assets, embeddings and existing product UI are unchanged.
+  Sources, installed model assets, embeddings and existing product UI are unchanged.

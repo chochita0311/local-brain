@@ -58,7 +58,7 @@ production/UI or legacy changes are part of this Run.
   No task scratch remains. A known public-download diagnostic log was removed
   after verifying task ownership and process termination; unrelated shared cache
   files and installed assets were preserved.
-- Original sources, Foundry assets and the full-population embedding cache remain
+- Original sources, installed model assets and the full-population embedding cache remain
   unchanged. The next private execution must still cover all admitted Sessions,
   not a smaller sample chosen to improve the apparent score.
 - The 4B choice was a low-cost first baseline using an existing runtime, not a

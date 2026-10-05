@@ -208,7 +208,8 @@ falling back to a hosted model, or running the whole corpus anyway. Later
 private execution retains the all-Session scope; passing synthetic cases alone
 cannot establish real-corpus quality or authorize a production/UI replacement.
 Installation and inference are separate operations. No private text is needed
-for downloading or testing the model. Foundry code and model state stay unchanged.
+for downloading or testing the model. Inference leaves installed pretrained
+weights unchanged.
 
 The initial development trial now blocks application: installation and runtime
 checks passed, but the final non-thinking configuration passed only 2/4 fixed

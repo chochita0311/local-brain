@@ -18,6 +18,22 @@ Product terminology and organization rules are defined in [Product Model](produc
 
 The local web runtime validates the product workflow before native macOS lifecycle and distribution work begins.
 
+The [installation/storage contract](installation-and-storage.md) owns independent
+macOS source/tool/wheel setup and optional local-model requirements. Packaged
+`serve`, `doctor`, `models`, `simulate`, and `storage` commands use the same
+configured runtime paths. Public model assets are shared within the local user
+account; LocalBrain owns its model metadata and optional Python dependencies.
+Runtime state is rejected inside repositories, uses owner-only permissions, and
+has bounded migration-copy retirement after successful committed initialization.
+Ordinary startup creates no permanent log or evaluation archive.
+
+`config.py` separates durable data, private rebuildable cache and development
+archive roots. `storage_layout.py` owns explicit recognized-directory moves,
+destination-conflict refusal and expired-cache retirement under existing writer
+locks. Packaged readers and simulation use the configured cache root. Saved
+Run reports remain durable data; development archives are never normal startup
+outputs. Shared public weights and the primary DB are outside layout migration.
+
 ```text
 Claude / Codex / user-managed local context / local project and Git metadata
 Approved external sources through MCP Gateway
@@ -67,6 +83,20 @@ Approved external sources through MCP Gateway
   The installer admits only the approved pinned 4B/8B catalog. Verification
   resolves the owner and model-specific assets, and inference identity uses that
   verified model; the historical 4B default must not label an 8B result.
+  `model_cache.py` resolves public pretrained assets in the user-wide Hugging
+  Face Hub cache. Installation metadata remains in the explicit private model
+  root: the directory owner marker stays v1, while a
+  `localbrain.work-context-model.v2` model manifest has a Hub-relative snapshot.
+  Legacy v1 manifests remain readable. Verification confines selected assets to
+  their model repository and preserves their pinned hashes and inference identity.
+  `model_catalog.py` pins the supported public identities and feature requirements;
+  `model_installation.py` owns independent LocalBrain embedding setup with a
+  `localbrain.semantic-model/v1` Hub-relative manifest. The embedding adapter
+  also accepts compatible older app-local and Hub-relative snapshot manifests.
+  Private vectors and outputs remain in LocalBrain's runtime storage.
+  App cleanup never owns deletion of shared public weights.
+  Future trained adapters/checkpoints require separate durable project storage
+  under the privacy policy.
   The opt-in classified strategy separates model-selected source roles and work
   membership from serialization. Its finite answer-code decoder constrains syntax,
   not truth; source spans are not work-unit boundaries. Original context and
@@ -121,7 +151,7 @@ Approved external sources through MCP Gateway
   source-read-only inventory, separately owned replayable cache, verified local
   embeddings and experimental two-resolution affinity communities. The
   [simulation Spec](../../plans/spec/spec-0097-replayable-session-simulation.md)
-  owns the command/report contract. No app-startup hook, source migration,
+  owns the command/report contract. No automatic preparation, source migration,
   production identity or causal-lineage inference is introduced.
   Source messages are exhaustively chunked (1,800 characters by default), encoded,
   and linked by thresholded cosine nearest-neighbor similarity. Weighted Louvain

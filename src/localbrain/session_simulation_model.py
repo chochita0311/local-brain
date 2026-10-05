@@ -9,6 +9,8 @@ import sys
 from pathlib import Path
 
 from .work_reconstruction import require
+from .model_cache import hub_snapshot
+from .model_catalog import EMBEDDING_ID, EMBEDDING_REVISION, EMBEDDING_FINGERPRINT
 
 
 def offline_environment():
@@ -44,12 +46,34 @@ def verified_assets(manifest_path):
     path = Path(manifest_path)
     require(path.is_absolute() and path.is_file() and not path.is_symlink(), "INVALID_MODEL")
     value = json.loads(path.read_text(encoding="utf-8"))
-    require(value.get("schema") == "foundry.semantic-model/v1", "INVALID_MODEL")
-    root = path.parent.parent.parent.resolve()
-    snapshot = (root / value["snapshot"]).resolve()
-    require(root in snapshot.parents and snapshot.is_dir(), "INVALID_MODEL")
+    require(value.get("schema") in {"foundry.semantic-model/v1", "foundry.semantic-model/v2",
+                                   "localbrain.semantic-model/v1"}, "INVALID_MODEL")
+    shared = value["schema"] != "foundry.semantic-model/v1"
+    if shared:
+        # Preserve the embedding identity while changing only its storage root.
+        require(value.get("model_id") == EMBEDDING_ID
+                and value.get("resolved_revision") == EMBEDDING_REVISION
+                and value.get("fingerprint") == EMBEDDING_FINGERPRINT,
+                "INVALID_MODEL")
+        snapshot, root = hub_snapshot(value["model_id"], value["resolved_revision"], value["snapshot"])
+        inventory = value.get("files")
+        require(isinstance(inventory, list) and inventory, "INVALID_MODEL")
+        names = [entry.get("path") for entry in inventory if isinstance(entry, dict)]
+        require(len(names) == len(inventory) and all(isinstance(name, str) and name
+                and not Path(name).is_absolute() and ".." not in Path(name).parts for name in names)
+                and len(set(names)) == len(names), "INVALID_MODEL")
+        present = {p.relative_to(snapshot).as_posix() for p in snapshot.rglob("*") if p.is_file()}
+        require(not present - set(names) - {"README.md", "LICENSE", "LICENSE.txt", ".gitattributes"}, "INVALID_MODEL")
+        paths = [snapshot / name for name in sorted(names)]
+    else:
+        root = path.parent.parent.parent.resolve()
+        snapshot = (root / value["snapshot"]).resolve()
+        require(root in snapshot.parents and snapshot.is_dir(), "INVALID_MODEL")
+        paths = sorted(snapshot.rglob("*"))
     files = []
-    for item in sorted(snapshot.rglob("*")):
+    for item in paths:
+        if shared:
+            require(item.is_file(), "INVALID_MODEL")
         if not item.is_file():
             continue
         require(root in item.resolve().parents, "INVALID_MODEL")

@@ -14,10 +14,12 @@ from pathlib import Path
 from .session_simulation import atomic_json, now, read_json
 from .session_simulation_model import block_network, offline_environment
 from .work_reconstruction import ExperimentError, digest, require
+from .model_cache import hub_cache_root, hub_repository, hub_snapshot
 
 MODEL_ID = "Qwen/Qwen3-4B"
 REVISION = "1cfa9a7208912126459214e8b04321603b3df60c"
 OWNER = "localbrain.work-context-model.v1"
+HUB_MANIFEST_OWNER = "localbrain.work-context-model.v2"
 ASSETS = {
     "LICENSE", "config.json", "generation_config.json", "tokenizer.json",
     "tokenizer_config.json", "vocab.json", "merges.txt",
@@ -59,6 +61,11 @@ def safe_root(root):
     require(root.is_absolute() and root == root.resolve() and root != repo
             and repo not in root.parents and root not in repo.parents, "INVALID_MODEL_ROOT")
     require(root.parent.is_dir(), "INVALID_MODEL_ROOT")
+    from .runtime_storage import StorageError, validate_runtime_directory
+    try:
+        validate_runtime_directory(root)
+    except StorageError:
+        raise ExperimentError("INVALID_MODEL_ROOT") from None
     return root
 
 
@@ -103,10 +110,13 @@ def installation(root, model_id=MODEL_ID):
         os.close(fd)
 
 
-def file_inventory(snapshot, root, model_id=MODEL_ID):
+def file_inventory(snapshot, root, model_id=MODEL_ID, *, shared=False):
     spec = model_spec(model_id)
     require(snapshot.is_dir() and root in snapshot.resolve().parents, "INVALID_MODEL")
-    require({p.name for p in snapshot.iterdir()} == spec["assets"], "INVALID_MODEL")
+    names = {p.name for p in snapshot.iterdir()}
+    require(spec["assets"] <= names if shared else names == spec["assets"], "INVALID_MODEL")
+    if shared:
+        require(not names - spec["assets"] - {"README.md", ".gitattributes"}, "INVALID_MODEL")
     files = []
     for name in sorted(spec["assets"]):
         path = snapshot / name
@@ -144,7 +154,7 @@ def configure_transfer(transfer_cache=None):
     os.environ["HF_XET_SHARD_CACHE_SIZE_LIMIT"] = "0"
 
 
-def install(root, model_id=MODEL_ID, *, transfer_cache=None):
+def install(root, model_id=MODEL_ID, *, transfer_cache=None, local_only=False):
     """Only public model assets; no database, private packet or source argument."""
     os.environ["HF_HUB_DISABLE_TELEMETRY"] = "1"
     os.environ["DO_NOT_TRACK"] = "1"
@@ -153,21 +163,27 @@ def install(root, model_id=MODEL_ID, *, transfer_cache=None):
     with installation(root, model_id) as root:
         if (root / "model.json").exists():
             return verify(root, model_id)[1]
-        cache = root / "cache"
-        require(not cache.is_symlink(), "UNOWNED_MODEL")
-        cache.mkdir(mode=0o700, exist_ok=True)
-        # All cache entries are installation-owned, but reject pre-planted escapes.
-        for path in cache.rglob("*"):
-            require(root in path.resolve().parents, "UNOWNED_MODEL")
-        configure_transfer(transfer_cache)
-        from huggingface_hub import snapshot_download
-        snapshot = Path(snapshot_download(repo_id=spec["id"], revision=spec["revision"],
-                        cache_dir=cache, allow_patterns=sorted(spec["assets"]),
-                        endpoint="https://huggingface.co", token=False, max_workers=3)).resolve()
-        require(snapshot.name == spec["revision"], "INVALID_MODEL")
-        files = file_inventory(snapshot, root, model_id)
-        manifest = {"owner": OWNER, "model_id": spec["id"], "revision": spec["revision"],
-                    "snapshot": str(snapshot.relative_to(root)), "files": files,
+        cache = hub_cache_root()
+        repository = hub_repository(spec["id"])
+        cache.mkdir(mode=0o700, parents=True, exist_ok=True)
+        # Other repositories/revisions belong to other consumers; never purge them.
+        # Only this selected public model may be touched by the explicit download.
+        for path in repository.rglob("*"):
+            require(repository in path.resolve().parents, "UNOWNED_MODEL")
+        snapshot = repository / "snapshots" / spec["revision"]
+        if not snapshot.is_dir() or not all((snapshot / name).is_file() for name in spec["assets"]):
+            require(not local_only, "MODEL_NOT_CACHED")
+            configure_transfer(transfer_cache)
+            from huggingface_hub import snapshot_download
+            snapshot = Path(snapshot_download(repo_id=spec["id"], revision=spec["revision"],
+                            cache_dir=cache, allow_patterns=sorted(spec["assets"]),
+                            endpoint="https://huggingface.co", token=False, max_workers=3)).resolve()
+        relative = (repository / "snapshots" / spec["revision"]).relative_to(cache).as_posix()
+        expected, repository = hub_snapshot(spec["id"], spec["revision"], relative)
+        require(snapshot == expected, "INVALID_MODEL")
+        files = file_inventory(snapshot, repository, model_id, shared=True)
+        manifest = {"owner": HUB_MANIFEST_OWNER, "model_id": spec["id"], "revision": spec["revision"],
+                    "snapshot": relative, "files": files,
                     "fingerprint": digest(files), "installed_at": now().isoformat()}
         atomic_json(root / "model.json", manifest)
         return manifest
@@ -177,11 +193,16 @@ def verify(root, model_id=None):
     root = safe_root(root)
     spec = check_directory(root, model_id)
     manifest = read_json(root / "model.json")
-    require(manifest.get("owner") == OWNER and manifest.get("model_id") == spec["id"]
+    require(manifest.get("owner") in {OWNER, HUB_MANIFEST_OWNER} and manifest.get("model_id") == spec["id"]
             and manifest.get("revision") == spec["revision"], "INVALID_MODEL")
-    snapshot = (root / manifest["snapshot"]).resolve()
-    require(snapshot.name == spec["revision"] and root in snapshot.parents, "INVALID_MODEL")
-    files = file_inventory(snapshot, root, spec["id"])
+    shared = manifest["owner"] == HUB_MANIFEST_OWNER
+    if shared:
+        snapshot, boundary = hub_snapshot(spec["id"], spec["revision"], manifest["snapshot"])
+    else:
+        boundary = root
+        snapshot = (root / manifest["snapshot"]).resolve()
+        require(snapshot.name == spec["revision"] and root in snapshot.parents, "INVALID_MODEL")
+    files = file_inventory(snapshot, boundary, spec["id"], shared=shared)
     require(files == manifest.get("files") and digest(files) == manifest.get("fingerprint"),
             "MODEL_ASSETS_CHANGED")
     return snapshot, manifest

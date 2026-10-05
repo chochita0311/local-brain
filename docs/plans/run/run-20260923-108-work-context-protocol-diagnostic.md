@@ -21,7 +21,7 @@ delegation. No UI lane or design/interaction evaluation is required.
 
 Model-quality admission remains blocked; this Run's result describes diagnostic
 coverage, never a replacement quality gate. Read no private Session or source DB.
-Use only the existing pinned 8B installation/runtime and preserve other projects.
+Use only the existing pinned 8B installation/runtime and preserve its assets.
 
 ## Frozen Comparison
 
@@ -51,7 +51,7 @@ training, protocol tuning after outputs, private backfill, embedding or UI work.
 ## Execution Evidence
 
 The implementation's 108 work-context tests pass in the application and installed
-Foundry tool environments. A test assertion was corrected to compare canonical
+local model environments. A test assertion was corrected to compare canonical
 JSON values (tuple/list round-tripping), without changing model expectations.
 The original admission fixtures and all previous strategies remain unchanged.
 
@@ -65,11 +65,11 @@ Frozen before inference:
   interruption can resume; an unclean in-flight crash refuses automatic reuse of
   an unknowable time budget. No model output had been generated at this freeze.
 
-The first process stopped before creating diagnostic state: the Foundry checkout
-environment lacks PyTorch. The existing installed Foundry tool environment was
-resolved from its launcher; PyTorch 2.8.0 and Transformers 4.57.6 match prior
-synthetic reports. No dependency was installed. This startup failure produced no
-model observations and is not semantic evidence.
+The first process stopped before creating diagnostic state: the selected Python
+environment lacked PyTorch. A compatible installed model environment was used;
+its PyTorch 2.8.0 and Transformers 4.57.6 versions match prior synthetic reports.
+No dependency was installed. This startup failure produced no model observations
+and is not semantic evidence.
 
 Review also corrected a replay-report metadata defect: after a clean interrupted
 run resumes successfully, its obsolete top-level interruption error must not

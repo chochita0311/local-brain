@@ -14,12 +14,12 @@
       {
         "path": "src/localbrain/db.py",
         "role": "compatible-structure-truth",
-        "sha256": "33a4b9f771aac68ee2ecb44fefc66885eae875cbd2641f461efbcf1b06f571de"
+        "sha256": "1c6c43c96a6190fb90c329b5431af9900b43d2f6bc6ac906545a0a590630affc"
       },
       {
         "path": "docs/policies/project/data-model.md",
         "role": "semantic-truth",
-        "sha256": "9a0684b08d725c9a409e017ad576b2b2b637f78180a08657f2ffd4ea26b589c7"
+        "sha256": "632e01c833747834f3a81ab4fc5aa8808f31770a42e8c781b7eebdff6c9fe1c9"
       },
       {
         "path": "docs/policies/project/data-model/source-registry-and-scans.md",

@@ -44,11 +44,13 @@ STATES = {
 def _directory(data_dir, create=False):
     base = Path(data_dir)
     repo = Path(__file__).resolve().parents[2]
-    require(base.is_absolute() and base.is_dir() and base == base.resolve(), "INVALID_OUTPUT")
+    require(base.is_absolute() and (not base.exists() or base.is_dir()) and base == base.resolve(), "INVALID_OUTPUT")
     require(base != repo and repo not in base.parents, "INVALID_OUTPUT")
     folder = base / DIRECTORY
     require(not folder.is_symlink(), "INVALID_OUTPUT")
     if create:
+        from .runtime_storage import private_directory
+        private_directory(base)
         folder.mkdir(mode=0o700, exist_ok=True)
     if folder.exists():
         info = folder.stat()
@@ -283,7 +285,7 @@ def _view(payload, records, destinations, page, flow_id, view, evidence_page):
 def main(argv=None):
     parser = QuietParser(description="Prepare the local Auto Work preview explicitly.")
     parser.add_argument("--database", required=True)
-    parser.add_argument("--data-dir", required=True)
+    parser.add_argument("--cache-dir", "--data-dir", dest="data_dir", required=True)
     try:
         args = parser.parse_args(argv)
         prepare_preview(args.database, args.data_dir)

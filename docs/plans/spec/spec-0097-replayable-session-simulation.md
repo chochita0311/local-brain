@@ -18,7 +18,16 @@
 The owner's full-data/recalculation request and FEAT-0097 govern this increment.
 Session body eligibility and local privacy remain owned by project policies.
 No browser, source ingest, source schema, existing preview or organization
-behavior changes. Run only from an explicit database/output/model selection.
+behavior changes. Preparation requires explicit invocation. Source scripts
+require explicit database/output paths and a model manifest for embedding;
+the packaged command uses the configured defaults below unless explicitly
+overridden.
+
+The packaged `localbrain simulate` command resolves the configured primary DB,
+`<LOCALBRAIN_CACHE_DIR>/session-simulation` and the selected LocalBrain embedding
+registration. Source scripts retain explicit path arguments. Installation,
+layout upgrades and expired-cache retirement are owned by the
+[installation/storage contract](../../policies/project/installation-and-storage.md).
 
 ## Implementation Contract
 

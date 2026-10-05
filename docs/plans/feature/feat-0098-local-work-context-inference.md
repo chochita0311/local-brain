@@ -49,7 +49,7 @@ private all-history producer or product consumer depends on these inferences.
    credentials during installation. Verify asset inventories and weights.
 2. Load only verified local safetensors with remote code and network disabled.
    Run inference, never training. Record model/runtime/prompt identities and
-   actual duration/token/resource evidence. Keep existing Foundry assets intact.
+   actual duration/token/resource evidence. Keep installed pretrained assets intact.
 3. Extract separate work units from ordered conversational evidence with goal,
    target, progress, result and remaining-work fields. Every nonempty field
    carries an exact source quote/locator and original speaker; absent fields
@@ -73,7 +73,7 @@ private all-history producer or product consumer depends on these inferences.
 In: explicit model installer/verifier, offline local generator, quoted work-unit
 and pair-relation contracts, synthetic quality harness, tests and measured trial.
 
-Out: training, models beyond these two pinned candidates, hosted inference, edits to Foundry, private
+Out: training, models beyond these two pinned candidates, hosted inference, private
 corpus execution before the gate, automatic source ingestion, production flow
 identity, map/UI replacement, existing Workstream writes and legacy deletion.
 The downstream corpus producer must preserve full coverage, cache/version and

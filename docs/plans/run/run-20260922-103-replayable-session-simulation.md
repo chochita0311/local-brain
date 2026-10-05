@@ -16,7 +16,8 @@
 
 Owner approved a replayable full-Session simulation on 2026-09-22. The earlier
 sampled viewer is not changed or represented as full-data output. Existing local
-model assets/runtime can be reused without downloading or modifying Foundry.
+model assets and a compatible runtime can be reused without downloading or
+modifying model files.
 The primary agent performs sequential contract, build and evaluation work.
 
 ## Evidence

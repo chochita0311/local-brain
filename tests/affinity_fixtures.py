@@ -3,6 +3,7 @@
 import re
 import sqlite3
 from collections import defaultdict
+from contextlib import closing
 from pathlib import Path
 
 from localbrain.session_simulation import simulate
@@ -36,7 +37,7 @@ def grouping(vectors, parameters):
 
 def seed(database, count=96, *, topics=32):
     schema = Path(__file__).resolve().parents[1] / "src/localbrain/schema.sql"
-    with sqlite3.connect(database) as db:
+    with closing(sqlite3.connect(database)) as db, db:
         db.executescript(schema.read_text(encoding="utf-8"))
         db.execute("INSERT INTO sources(id,kind,name,root_path) VALUES (1,'codex','Synthetic Codex','/synthetic')")
         db.execute("INSERT INTO workstreams(id,name,summary) VALUES (1,'검색 경험 개선','기존 구성 보존')")

@@ -50,7 +50,7 @@ Frozen before inference:
 - The sandbox does not expose MPS; the approved local GPU runtime was checked
   through escalated execution and is available. No related model/simulation job
   was active before launch. The new `source-claim-v1-trial` namespace under the standard
-  LocalBrain runtime owner was used, not any previous report or Foundry state.
+  LocalBrain runtime owner was used for the new trial artifacts.
 - Full regression initially found a stale generated schema reference ledger.
   Its lexical runtime-reference list was regenerated from unchanged manifest/
   decision sources; all 649 schema object decisions and physical schema stay intact.

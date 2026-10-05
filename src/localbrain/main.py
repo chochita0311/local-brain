@@ -26,7 +26,7 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 from starlette.concurrency import run_in_threadpool
 
-from .config import settings
+from .config import cache_directory, settings
 from .auto_work import preview_page
 from .session_affinity import affinity_page
 from .contexts import (
@@ -255,6 +255,8 @@ class ContextFileCreate(BaseModel):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
+    from .storage_layout import maintain_derived_cache
+    maintain_derived_cache(cache_directory(settings))
     with transaction() as connection:
         app.state.session_source_registry = load_and_reconcile_session_sources(
             connection, settings
@@ -296,9 +298,9 @@ def auto_work_page(request: Request):
     if params.get("mode") != "sample":
         return templates.TemplateResponse("affinity-map.html", {
             "request": request, "active_page": "auto-work",
-            "mapview": affinity_page(settings.database_path, settings.data_dir, params=params),
+            "mapview": affinity_page(settings.database_path, cache_directory(settings), params=params),
         }, headers={"Cache-Control": "no-store, private", "X-Content-Type-Options": "nosniff"})
-    preview = preview_page(settings.database_path, settings.data_dir,
+    preview = preview_page(settings.database_path, cache_directory(settings),
                            page=params.get("page", "1"), flow=params.get("flow"),
                            view=params.get("view", "flows"), evidence_page=params.get("evidence_page", "1"))
     notices = {"updated": "현재 데이터로 분석 결과를 갱신했습니다. 분류 품질은 아직 미평가입니다.",
@@ -315,7 +317,7 @@ def _refresh_auto_work():
     try:
         result = subprocess.run(
             [sys.executable, "-B", "-m", "localbrain.auto_work", "--database", str(settings.database_path),
-             "--data-dir", str(settings.data_dir)],
+             "--cache-dir", str(cache_directory(settings))],
             stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
             timeout=300, start_new_session=True,
         )

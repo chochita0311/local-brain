@@ -1,12 +1,13 @@
 """Synthetic-only fixture shared by Auto Work route and browser checks."""
 
 import sqlite3
+from contextlib import closing
 from pathlib import Path
 
 
 def seed(database):
     schema = Path(__file__).resolve().parents[1] / "src/localbrain/schema.sql"
-    with sqlite3.connect(database) as connection:
+    with closing(sqlite3.connect(database)) as connection, connection:
         connection.executescript(schema.read_text(encoding="utf-8"))
         connection.execute("INSERT INTO sources(id,kind,name,root_path) VALUES (1,'codex','Synthetic Codex','/synthetic')")
         connection.execute("INSERT INTO workstreams(id,name,summary) VALUES (1,'검색 경험 개선','기존 Workstream 유지 확인')")

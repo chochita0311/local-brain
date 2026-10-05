@@ -2,6 +2,7 @@ import fcntl
 import sqlite3
 import tempfile
 import unittest
+from contextlib import closing
 from datetime import timedelta
 from pathlib import Path
 from urllib.parse import parse_qsl, urlparse
@@ -27,6 +28,12 @@ class AffinityTests(unittest.TestCase):
         self.root = Path(self.temp.name).resolve()
         self.database = self.root / "localbrain.db"
         seed(self.database)
+        # Keep WAL creation/removal separate from the content-freshness checks.
+        self.source_connection = sqlite3.connect(
+            self.database.as_uri() + "?mode=ro", uri=True
+        )
+        self.addCleanup(self.source_connection.close)
+        self.source_connection.execute("SELECT id FROM sessions LIMIT 1").fetchone()
         self.folder = self.root / "session-simulation"
         self.report = prepare(self.database)
         reader._cache.clear()
@@ -35,7 +42,7 @@ class AffinityTests(unittest.TestCase):
         return reader.affinity_page(self.database, self.root, params=params)
 
     def edit(self, sql):
-        with sqlite3.connect(self.database) as db:
+        with closing(sqlite3.connect(self.database)) as db, db:
             db.execute(sql)
 
     def render(self, query_string=b""):

@@ -114,7 +114,11 @@ single linked checkbox in the detailed backlog below.
 - [ ] Define an export workflow with destination confirmation, content preview, and redaction options.
 - [ ] Add per-source delete, purge, and re-index operations that distinguish index removal from original-source deletion.
 - [ ] Decide whether database encryption at rest is required and, if so, keep keys in macOS Keychain.
-- [ ] Define backup, restore, schema migration, and database corruption recovery procedures.
+- [ ] Define user backup, restore/export, and database corruption recovery procedures.
+  Independent macOS installation, LocalBrain-owned optional model setup, and
+  bounded seven-day migration-copy retirement are implemented under
+  [macOS Installation And Local Storage](../../policies/project/installation-and-storage.md).
+  Native binary packaging and a broader user-facing recovery flow remain open.
 - [ ] Ensure logs and error pages omit note bodies, Session excerpts, credentials, and full prompts by default.
 - [ ] Replace private data in tracked test fixtures and screenshots with generated examples.
 
@@ -253,7 +257,7 @@ single linked checkbox in the detailed backlog below.
 
 - [ ] Close FEAT-0019's direct rendered evidence gap at `1440`, `700`, and `320`, including selector geometry, same-row containment, and the Session-only source summary.
 - [ ] Capture the Sessions `동기화` working, success, failure, focus, and scope-preservation states from a browser after a warm-cache revisit; versioned assets, local HTTP synchronization, and human PRD-0002 acceptance are complete, so this is non-blocking regression evidence.
-- [ ] Add an official `localbrain serve` CLI subcommand with default host and port, an opt-in development reload flag, and a documented install/run-from-anywhere path so personal shell aliases are not required.
+- [ ] Decide whether packaged development reload is needed. The installed `localbrain serve` command, loopback host/port options and source-independent wheel setup are delivered under the [installation contract](../../policies/project/installation-and-storage.md); source reload uses the documented explicit Uvicorn command.
 - [ ] Add browser-level tests for Workstream, Thread, source browsing, Suggestion review, and Run workflows.
 - [ ] Build a synthetic graphical regression matrix for the current screen families at `1440`, `920`, `700`, and `320`, covering representative long-content, empty, unavailable, error, and active-interaction states without tracking private runtime content.
 - [ ] Add performance tests using large synthetic Session and document sets.

@@ -30,7 +30,7 @@ production Workstream replacement or a semantic-quality acceptance claim.
    covers every admitted character; model token windows cover every token.
    A mixed Session may contribute chunks to multiple experimental groups.
 3. Use explicitly selected, verified, already-local model assets offline. Do
-   not download, train, write Foundry state or send private material externally.
+   not download, train, modify model assets or send private material externally.
    Cache keys include text, model/runtime and chunking identities.
 4. Commit embedding progress in batches. An interrupted run resumes with valid
    cache entries; unchanged replay performs no new encoding. Source changes

@@ -84,6 +84,11 @@ def owned_store(folder, database, *, purge=False):
     require(folder.is_absolute() and folder == folder.resolve() and folder != repo
             and repo not in folder.parents and folder != database.parent, "INVALID_OUTPUT")
     require(folder.parent.is_dir(), "INVALID_OUTPUT")
+    from .runtime_storage import StorageError, validate_runtime_directory
+    try:
+        validate_runtime_directory(folder)
+    except StorageError:
+        raise ExperimentError("INVALID_OUTPUT") from None
     binding = digest([str(database.resolve()), database.stat().st_dev, database.stat().st_ino])
     created = not folder.exists()
     if created:

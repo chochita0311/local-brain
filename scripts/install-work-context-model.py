@@ -19,7 +19,8 @@ class Parser(argparse.ArgumentParser):
 
 def main(argv=None):
     parser = Parser(description=__doc__)
-    parser.add_argument("--root", type=Path, required=True)
+    parser.add_argument("--root", type=Path, required=True,
+                        help="Private LocalBrain installation metadata directory; new public assets use HF_HUB_CACHE.")
     parser.add_argument("--verify", action="store_true")
     parser.add_argument("--model", choices=MODEL_IDS,
                         help="Install only this pinned model; defaults to Qwen3-4B. Verify infers the owned model when omitted.")

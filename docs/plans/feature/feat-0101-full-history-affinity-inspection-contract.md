@@ -93,7 +93,7 @@ vector store or production workflow identity system.
 - In: consumer contract, full-population accounting, exact provenance,
   snapshot-scoped navigation, existing-cache replay and source-delta readiness.
 - Out: UI, new inference models, relation judgments, goal/state extraction,
-  training, Foundry changes, production identity, organization mutation,
+  training, production identity, organization mutation,
   automatic refresh, remote access and legacy retirement.
 
 ## Surface Lanes

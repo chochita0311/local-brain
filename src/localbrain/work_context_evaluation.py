@@ -22,6 +22,11 @@ def evaluation_store(folder):
     require(folder.is_absolute() and folder == folder.resolve() and folder != repo
             and repo not in folder.parents and folder not in repo.parents
             and folder.parent.is_dir(), "INVALID_OUTPUT")
+    from .runtime_storage import StorageError, validate_runtime_directory
+    try:
+        validate_runtime_directory(folder)
+    except StorageError:
+        raise ExperimentError("INVALID_OUTPUT") from None
     if not folder.exists():
         folder.mkdir(mode=0o700)
         atomic_json(folder / "owner.json", {"owner": OWNER, "expires_at": (now() + timedelta(days=30)).isoformat()})

@@ -15,12 +15,13 @@ Durable rules and current contracts live under `docs/policies/`.
 
 - [Product Model](policies/project/product.md): product purpose, scope, terminology, source roles, and user-facing organization rules
 - [Project Architecture](policies/project/architecture.md): stack, runtime boundaries, source adapters, storage model, and current implementation baseline
+- [macOS Installation And Local Storage](policies/project/installation-and-storage.md): installed wheel/archive setup, optional models, configurable private storage, updates, migration and cleanup
 - [Source Claims And Work State](policies/project/source-claims-and-work-state.md): pure supplied-claim state projection and inferred provenance; not an admitted source extractor or map producer
 - [Data Model](policies/project/data-model.md): complete effective SQLite map, global and subject ERDs, table/column catalogs, relationships, lifecycle, recovery, and delta maintenance ownership
 - [Value Dictionaries](policies/project/data-model/value-dictionaries.md): generated subject map from physical and derived bounded values to complete presentation modes, labels, fallbacks, and consumer ownership
 - [Schema Presentation](policies/project/schema-presentation.md): deterministic package manifest, source ownership, loader/failure behavior, and downstream Schema consumer contract
 - [Privacy And Data Handling](policies/project/privacy-and-data.md): repository boundary, local persistence, external access, and disclosure constraints
-- [Developer Guide](policies/project/developer-guide.md): setup, configuration, development workflow, and verification
+- [Developer Guide](policies/project/developer-guide.md): source development setup, configuration, model experiments, private evaluation archives and verification
 - [Markdown Rendering Contract](policies/project/markdown-rendering.md): shared syntax, trust, local-reference, highlighting, consumer, and fallback rules
 - [Maintenance Task Runner](policies/operations/claude-task-runner.md): in-app Claude/Codex maintenance execution, retrieval, external-sync boundaries, persistence, and review behavior
 - [Harness Policies](policies/harness/): planning approval, execution routing, profiles, delegation, operator continuity, and traceability

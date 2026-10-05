@@ -123,7 +123,7 @@ are historical evidence, not erased by this result.
   observations refuse without silent regeneration; an unclean in-flight crash
   cannot reset cumulative budgets. A clean-resume stale-error metadata bug was
   corrected and regression-tested without changing frozen inference/scoring.
-- PASS — runtime/defaults: existing verified 8B assets and installed Foundry
+- PASS — runtime/defaults: existing verified 8B assets and installed local model
   dependencies only, offline non-training MPS/eager/bfloat16. Diagnostic limits
   are opt-in; historical generation defaults and extraction strategies remain
   unchanged. Actual replay reuses 288/288 observations with matching digests and
@@ -145,7 +145,7 @@ has finite retention; no task scratch or active generation process remains.
 
 - Official pinned public safetensors were installed and hash-verified. Only
   installation can use the network; it accepts no source/DB argument or token.
-  The existing Foundry runtime was reused without package/model-state changes.
+  A compatible installed model runtime was reused without package/model-state changes.
 - Generation uses verified local files, eval/inference mode, remote-code denial,
   offline/telemetry settings and the tested outbound Python socket guard.
 - Output is an inferred work unit or inferred pair judgment. Exact quotes,
@@ -197,7 +197,7 @@ has finite retention; no task scratch or active generation process remains.
   changing dependencies/weights; rehash verification passes. Exact kernel cause
   remains unproven, not silently described as established. Other devices and
   actual maximum-size/time-stopped model runs were unobserved in RUN-105.
-- No source schema, product consumer, UI, Foundry state, legacy organization,
+- No source schema, product consumer, UI, legacy organization,
   training or private-corpus path was added. Owned model/evaluation storage and
   finite evaluation retention remain unchanged; diagnostics created no scratch.
 

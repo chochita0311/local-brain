@@ -271,7 +271,7 @@ runtime, not acceptance of its failed semantic producers. No private simulation
 report or live DB is needed. Original Runs and observed failures remain unchanged.
 
 Out: private Session/DB reads, all-corpus jobs, embeddings, training/downloads,
-Foundry changes, production effort identity/correction remapping, area clustering,
+production effort identity/correction remapping, area clustering,
 graph layouts/UI, endpoints/RAG, source/schema/organization writes, migrations and
 legacy deletion. No new 60-Session cap or per-Session confirmation is introduced.
 

@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Generator
 
 from .config import settings
+from .runtime_storage import private_database, maintain_migration_backups
 
 
 SCHEMA_PATH = Path(__file__).with_name("schema.sql")
@@ -66,7 +67,7 @@ STRUCTURE_REFERENCE_INDEXES = (
 
 
 def connect() -> sqlite3.Connection:
-    settings.data_dir.mkdir(parents=True, exist_ok=True)
+    private_database(settings.database_path)
     connection = sqlite3.connect(str(settings.database_path), timeout=30)
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys = ON")
@@ -154,6 +155,25 @@ def init_db() -> None:
                 )
                 """
             )
+    # The transaction committed successfully. Failed initialization keeps recovery
+    # copies; ordinary starts do not accumulate indefinite versioned backups.
+    try:
+        maintain_migration_backups(settings.database_path, connection)
+    finally:
+        connection.close()
+
+
+def migration_contracts_current(connection: sqlite3.Connection) -> bool:
+    usage_table = _usage_contract_table(connection)
+    return bool(
+        _source_provider_identity_contract_exists(connection)
+        and _atlassian_site_access_contract_exists(connection)
+        and not _external_resource_url_unique_exists(connection)
+        and _maintenance_workstream_fk_exists(connection)
+        and _maintenance_session_contract_exists(connection)
+        and usage_table == USAGE_RECORDS_TABLE
+        and _usage_attribution_check_exists(connection, usage_table)
+    )
 
 
 def _column_names(connection: sqlite3.Connection, table: str) -> set:

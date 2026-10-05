@@ -23,7 +23,8 @@ shared shell and browse/read family, no new visual language or canvas.
 
 - `auto_work.py` owns a versioned private preview, not Workstream identity.
   The fixed owner is `localbrain.auto-work-preview.v1`; path is
-  `auto-work-preview/current.json` beneath the configured runtime directory.
+  `auto-work-preview/current.json` beneath `LOCALBRAIN_CACHE_DIR` in packaged
+  installations. Explicit legacy `--data-dir` remains an alias for `--cache-dir`.
 - Explicit preparation samples the selected current DB through invocation UTC,
   under existing 60-Session/8-source/text/120-second/512-MiB bounds. Use only the
   latest frozen snapshot and `reconstruct(..., include_organization=False)`.

@@ -7,6 +7,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from contextlib import closing
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from types import SimpleNamespace
@@ -44,7 +45,7 @@ class AutoWorkTests(unittest.TestCase):
         return auto_work.preview_page(self.database, self.root, **kwargs)
 
     def change(self, sql):
-        with sqlite3.connect(self.database) as connection:
+        with closing(sqlite3.connect(self.database)) as connection, connection:
             connection.execute(sql)
 
     def request(self, *, method="GET", query=b"", origin=None, host="127.0.0.1", site=None, body=b""):
@@ -259,7 +260,7 @@ class AutoWorkTests(unittest.TestCase):
 
     def test_related_document_and_item_destinations_and_revocation(self):
         at = "2026-01-01T09:00:00Z"
-        with sqlite3.connect(self.database) as connection:
+        with closing(sqlite3.connect(self.database)) as connection, connection:
             connection.execute("INSERT INTO context_roots(id,path,label) VALUES (1,'/synthetic/docs','Synthetic')")
             connection.execute("""INSERT INTO context_documents(id,source_id,context_root_id,path,relative_path,title,
                 body,size_bytes,mtime_ns,content_hash,imported_at)
