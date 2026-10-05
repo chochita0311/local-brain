@@ -84,8 +84,10 @@ The flag applies to that command only. If later `uv` commands also need network 
 
 Use the uv-managed Python 3.11 environment shown above for installation and
 verification. The standalone installation checks and full test suite passed
-with this environment. Package metadata accepts Python 3.9 or later; it does
-not establish that every system-provided Python runtime has been verified.
+with this environment. The full test suite also passed in an existing macOS
+source-checkout environment using Apple Command Line Tools Python 3.9.6.
+Package metadata accepts Python 3.9 or later; it does not establish that every
+system-provided Python runtime has been verified.
 
 ## Configuration
 
