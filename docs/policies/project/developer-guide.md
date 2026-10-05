@@ -83,10 +83,9 @@ The flag applies to that command only. If later `uv` commands also need network 
 ## Python Runtime Compatibility
 
 Use the uv-managed Python 3.11 environment shown above for installation and
-verification. A forked reconstruction worker crashed while opening SQLite with
-Apple Command Line Tools Python 3.9.6; the same check and full test suite passed
-with uv-managed Python 3.11. Package metadata accepting an older interpreter
-does not establish that every system-provided Python runtime has been verified.
+verification. The standalone installation checks and full test suite passed
+with this environment. Package metadata accepts Python 3.9 or later; it does
+not establish that every system-provided Python runtime has been verified.
 
 ## Configuration
 
