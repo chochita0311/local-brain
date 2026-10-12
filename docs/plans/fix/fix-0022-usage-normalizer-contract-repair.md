@@ -35,7 +35,9 @@
 - No retroactive price-catalog update for unknown Codex models.
 - No change to activity-time, Session hierarchy, or Project reconciliation policy.
 
-## Remaining Issues
+## Remaining Issues At This Attempt Handoff
+
+These issues describe the Attempt 2 handoff on `2026-07-18`. [FEAT-0020](../feature/feat-0020-usage-and-cost-fact-contract.md#continuity-notes) records the later human-approved Attempts 3 and 4 and their passed evaluations.
 
 - Later official-adapter evidence invalidated the cumulative-only Codex repair basis: `last_token_usage` is the primary event delta and cumulative subtraction is only a fallback.
 - The installed ccusage comparison also showed that dated `codex-auto-review` fallback mapping, current model-price coverage, and the configured fast service tier materially affect the trend estimate.

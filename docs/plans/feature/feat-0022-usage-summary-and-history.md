@@ -48,7 +48,7 @@
   - synthetic route, query, UI-contract, and browser evidence
 - Out:
   - Source, Model, and Project ranked breakdowns and detailed trust region owned by FEAT-0023
-  - month-end projection owned by deferred FEAT-0024
+  - month-end projection owned by the initially deferred FEAT-0024; its visible presentation was later retired while its non-persisted calculation was retained only as internal compatibility behavior
   - budgets, caps, quota warnings, currency conversion, actual billing, and company governance
   - activity or attribution contract invention from FEAT-0021
   - tool-call, context-switch, repeated-workflow, and skill analysis from PRD-0005

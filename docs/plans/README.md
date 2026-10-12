@@ -16,6 +16,46 @@ Spec, Run, and Evaluation document owns its own detailed status and history.
 
 ## Open Planning Boundaries
 
+- [PRD-0019: Observed Session Chart](prd/prd-0019-observed-session-chart.md)
+  owns the separately approved Sessions List/Chart, whose first phase reached the
+  owner's wrap-up review on 2026-10-12, including the continuous hover-region revision under
+  [FEAT-0114](feature/feat-0114-observed-session-chart.md) and
+  [RUN-151](run/run-20261009-151-session-chart-hover-region.md), retaining held descriptions in
+  [RUN-150](run/run-20261008-150-session-chart-hover-preview.md) and scaled labels in
+  [RUN-149](run/run-20261007-149-session-chart-scaled-branch-labels.md), HEAD handling in
+  [RUN-148](run/run-20261007-148-session-chart-head-reference-tracks.md), the wheel controls in
+  [RUN-147](run/run-20261007-147-session-chart-wheel-controls.md) and the local-DB/end-space
+  [RUN-146](run/run-20261007-146-local-chart-preferences-and-pan-space.md), extending
+  the toolbar/pin [RUN-145](run/run-20261007-145-session-chart-controls-and-pins.md) and
+  the filter/overview [RUN-144](run/run-20261006-144-filtered-session-chart-overview.md) and
+  [RUN-143](run/run-20261006-143-project-branch-session-chart.md). The first
+  [RUN-141](run/run-20261006-141-observed-session-chart.md) and irregular-field
+  [RUN-142](run/run-20261006-142-stable-session-constellation.md) retain historical
+  evidence. Chart uses recorded time, name-sorted launch-folder rows, stored branch
+  guides from first observation. Exact HEAD remains original metadata but does
+  not create a branch; HEAD/missing-only folders use one line without an empty
+  baseline. Named-branch folders retain one unassigned HEAD/missing track.
+  Chart also offers Project checkbox visibility, compact tracks,
+  whole-diagram fit and resisted date ends with balanced adaptive space. Project
+  and branch names stay present and scale with rows; no zoom cutoff hides branches.
+  Existing focus restores reading scale from tiny whole-fit names. Node hover/focus
+  opens a temporary description maintained across the node/card/passage, with
+  local card reading/scrolling and native exit grace; node activation holds it and repeat/blank activation
+  releases it. Other hover keeps the held description/activity intact, with native
+  emphasis and no hover-driven camera, persistence or activity change. Shift-wheel
+  moves horizontally from either input axis; Cmd/Ctrl+Shift-wheel changes time spacing
+  without changing vertical projection or position. Project
+  choices persist per scope in the private LocalBrain DB across browsers using it,
+  with valid browser-choice migration and contextual save retry. The simplified
+  toolbar and static native pin cues
+  preserve exact-member selection. It reads no
+  actual Git ancestry and infers no work relationship. List, Session Workflow Focus
+  and the stopped Auto Work track retain their scope. The owner-approved seven
+  portable UI/UX criteria are published in ai-assets
+  [commit 3dfcc36](https://github.com/chochita0311/ai-assets/commit/3dfcc36bd91e6f2c2461fe91d8f387dfca2ca17b).
+  The requested LocalBrain documentation and verification closeout is complete.
+  Physical wheel-gesture evidence remains unverified from R7; any later relationship
+  proposal requires its own approval.
 - The workflow-map track is paused at the owner's request after the continuous-map
   inspection. The
   [design-plan handoff](design/workflow-map-design-plan.md#handoff-to-next-track)

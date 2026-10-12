@@ -31,7 +31,7 @@
 - Out:
   - document extraction or rendering semantics
   - Resource creation, editing, deletion, or relationship behavior
-  - Local Context explorer preview owned by `feat-0011`
+  - Local Context explorer preview owned by `feat-0014`
   - Markdown or rich-text feature expansion
 
 ## Contract Surfaces

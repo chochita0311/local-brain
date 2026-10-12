@@ -51,7 +51,7 @@ health field or API report. A successful scan of an unchanged, present root may
 still reconcile a disappeared native JSONL and remove only that Source's
 normalized Session descendants. It may also remove the normalized projection of
 a present metadata-only stub after confirming that parsing yields no Activity
-Event and no Usage Record; LocalBrain never deletes that native file, and a later
+Event, no Usage Record, and no admitted skill observation; LocalBrain never deletes that native file, and a later
 sync can import it after meaningful growth.
 
 Private rebuildable simulation/preview results live under

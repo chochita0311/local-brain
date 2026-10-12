@@ -44,8 +44,11 @@
   the Item does not own.
 - The read model performs no model, embedding, provider, capability, network,
   Refresh, evidence scan, or maintenance Run.
-- Current token-AND query behavior remains available only as a historical
-  regression comparison and is not presented as the new exact contract.
+- For Atlassian Browse, the previous token-AND query behavior remains available
+  only as a historical regression comparison and is not presented as the new
+  exact contract. The [Functional evaluation](../evaluation/eval-0076-functional-atlassian-exact-retrieval-contract.md#regression-notes)
+  records that Global Search retained its previous token-AND/BM25 behavior and
+  result shape for this increment.
 
 ## Scope Boundary
 

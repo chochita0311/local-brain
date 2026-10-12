@@ -359,9 +359,128 @@ Bounded database-backed state families use the executable value registry as thei
 
 ### Application Navigation And Session Inventory
 
-The application uses a persistent left navigation boundary. Dashboard, Sessions Dashboard, Workstreams, Sessions, Atlassian, Local Contexts, and Sources have distinct responsibilities so source inspection does not overload the Session timeline. Sessions owns a local `Sessions | Projects` view switch: Sessions is the default individual history and Projects is its path-derived grouping, not a separate persistent destination or entity. Its peer source scopes derive from the ordered private registry: `전체` combines every retained meaningful primary work Session, and each stable source key—including Claude, personal Codex, and Codex Company—remains independently selectable. Meaningful requires at least one normalized Activity Event or direct Usage Record; a metadata-only native stub owns no normalized Session projection. The selected source constrains the headline count, rows, pagination, and Project grouping through the same denominator without an inventory age cutoff. Every Session and Subsession icon derives its compact `CL`, `CX`, or `CC` cue from stable source identity rather than provider kind. Ordinary cards, Pinned cards, detail headings, and detail Subsession rows omit the repeated visible source name and retain it for assistive technology. The shared inventory toolbar also owns a Session-only synchronization action for all registered local AI Session sources; its existing result region reports the current source, contract-upgrade reason, and bounded file progress before rendering the unchanged complete/partial/failed summary. The button keeps its busy, reload, retry, keyboard-focus, and no-script fallback behavior. Progress never exposes a local source path or content. Its source-status summary shows only those Session sources and does not expose the database path. The Sources destination retains the wider scan that includes enabled Local Context sources.
+The application uses a persistent left navigation boundary. Dashboard, Sessions Dashboard, Workstreams, Sessions, Atlassian, Local Contexts, and Sources have distinct responsibilities so source inspection does not overload the Session timeline. Sessions owns a local `Sessions | Projects` view switch: Sessions is the default individual history and Projects is its path-derived grouping, not a separate persistent destination or entity. Its peer source scopes derive from the ordered private registry: `전체` combines every retained meaningful primary work Session, and each stable source key—including Claude, personal Codex, and Codex Company—remains independently selectable. Meaningful requires at least one normalized Activity Event, direct Usage Record, or admitted skill observation; a metadata-only native stub owns no normalized Session projection. The selected source constrains the headline count, rows, pagination, and Project grouping through the same denominator without an inventory age cutoff. Every Session and Subsession icon derives its compact `CL`, `CX`, or `CC` cue from stable source identity rather than provider kind. Ordinary cards, Pinned cards, detail headings, and detail Subsession rows omit the repeated visible source name and retain it for assistive technology. The shared inventory toolbar also owns a Session-only synchronization action for all registered local AI Session sources; its existing result region reports the current source, contract-upgrade reason, and bounded file progress before rendering the unchanged complete/partial/failed summary. The button keeps its busy, reload, retry, keyboard-focus, and no-script fallback behavior. Progress never exposes a local source path or content. Its source-status summary shows only those Session sources and does not expose the database path. The Sources destination retains the wider scan that includes enabled Local Context sources.
 
 The Sessions inventory uses its secondary recall region for owner-curated `Pinned Sessions`, never recent Documents, inferred importance, or generated Suggestions. The panel is global across active Session filters and exposes every current pin without a product cap. It groups current workspace identities with Git-backed Projects first and non-Git working paths second, orders each section alphabetically by workspace display name, and orders Sessions inside one Project by displayed activity date (`last_event_at`, otherwise `started_at`) descending with `pinned_at DESC, session_id DESC` tie-breaks. The Project/path appears once as the group heading; each Session row shows its compact accessible source cue, title, optional Session-owned Git branch, and activity date without repeating the Project or configured source name. Only wide-layout height is bounded with an internal scroller. Persisted primary work Sessions can be pinned or unpinned from inventory and detail; Maintenance Sessions and Subsessions remain ineligible. Every inventory row reserves one utility layer: desktop and laptop place `질문 → 이벤트 → 날짜 → 핀` on the aligned upper edge, use stable left-aligned question and event columns across rows, and anchor optional Subsessions at the lower trailing edge; narrow layouts keep the pin upper trailing and the Subsession action lower trailing. Pin and Subsession controls remain outside the Session destination link. The fixed pin hit area has no visible outline border or independent background in idle, hover, or pinned state, so it follows the owning row or detail surface; pinning never changes that surface. An unpinned pin may use the ordinary hover emphasis, while an already pinned glyph retains its information color on hover. The filled glyph, accessible name, and `aria-pressed` expose state while keyboard focus retains its separate focus ring. Enhanced pin mutations update the control and Pinned Sessions panel in place, preserve document and panel scroll positions, keep the current inventory query state, and return focus to the changed control. Pin mutations remain local POST actions; they never write source files or imply native Claude/Codex process resume.
+
+Sessions also owns a subordinate two-segment `List/Chart` display switch without
+a divider. Its shared source header uses `All` and the Dashboard's separators
+between adjacent unselected options. List remains the
+default with its existing ordering, pagination, source filters, pins and child
+disclosures. Chart removes the secondary recall column and uses the full main
+content width. Its complete source/workspace scope is independent of List pages
+and age. Each primary work Session is anchored to its most recent valid retained
+metadata timestamp, or a retained Event timestamp when metadata has no valid
+time. Project bands use the recorded launch folder, lexically normalized without
+merging Git roots or resolving symlinks. Their order is folder name, ignoring
+case, then full path; missing path is last. Equal names stay distinct with paths.
+Recorded branch names form stable subtracks, with observed master or main as
+baseline, and a neutral guide when other named branches exist but neither is
+observed. Exact `HEAD` is a checkout reference and is excluded from named branches
+only in Chart layout; original metadata stays unchanged and inspectable. Folders
+containing only HEAD/missing values use one line without an empty baseline.
+HEAD/missing records in mixed named-branch folders share one `브랜치 없음` track
+and are never assigned to master/main. This rule does not establish current or
+historical Git repository status. Guides begin
+at first retained metadata observation, with Event timestamp fallback only when
+metadata is unusable. They show recorded Session observations, not actual Git
+forks/merges, continuous duration or actual work identity. Undated Sessions remain
+accessible. Same-track pixel-overlap shows exact counts and a selector for each
+original Session; mixed-source aggregates have a neutral cue.
+
+A checkbox Project filter at the left of the Chart toolbar controls local visibility immediately, with
+whole/partial/none selection and searchable options. Search narrows the menu only;
+full paths distinguish identical names. Hidden Projects close their row gaps and
+clear their current selection/activity. This does not delete or classify records,
+alter source/workspace scope, or filter the existing List. Confirmed choices persist
+in the private LocalBrain database per source/workspace and are shared by browsers
+using that database. Clearing browser site data does not erase them; database loss
+requires backup recovery or reselection. Camera and selection remain tab navigation
+state. An absent DB setting permits migration from prior browser visibility, then
+legacy tab visibility; create-if-absent preserves any existing DB choice, including
+explicit all-selected. Temporarily absent hidden folder keys remain retained.
+Failed load/save leaves filtering usable and exposes a contextual retry; unconfirmed
+choices are not described as saved. Footer counts, layout
+legend and instructions are omitted; actual unknown-time/recovery access remains.
+
+Chart reads existing eligible Session pins and shows a static native halo and pin
+icon while retaining source cues. An aggregate is marked when any member is
+pinned, with exact accessible pin count; selector and preview status belong to the
+selected original Session. Undated pinned links also retain status. Chart adds no
+pin mutation control.
+
+Chart node hover or keyboard focus shows a temporary description of the original
+source, title, observed time, recorded path/branch, pin status and overlap count.
+The node, description and passage between their facing edges share pointer
+ownership. Crossing the gap or reading inside the card retains it; leaving that
+region closes it after the native 120ms state-duration grace, unless keyboard
+focus remains in the node/card. Reentry cancels the pending exit. The card accepts
+text selection and local scrolling without holding selection, navigating or
+dragging the canvas. New transient metadata resets its internal scroll to the top.
+Mouse text clicks do not create lasting focus retention. It has keyboard focus
+and Escape dismissal, while retaining
+no member/activity/detail actions. The passage is a geometric check, not an
+invisible input overlay; blank canvas click/drag remain available, and blank
+click clears even a temporary-only description.
+It overlays beside the point, or above/below when
+space is narrow, without changing the camera, scale, page layout, held selection
+or loaded activity. Hover never fetches activity or persists navigation state.
+Click, tap or keyboard activation holds the description as selection. The held
+preview floats on wide screens and follows the chart in flow on narrow screens;
+it retains exact-member selection, activity actions and the ordinary detail link.
+Another hovered node adds a separate temporary card while the held one stays in
+place. Hovering a held aggregate uses its selected original member. Camera/filter/
+resize, drag, node removal and cancellation clear transient exit callbacks as well
+as hover. Repeating
+activation of its node, clicking blank canvas, close or Escape clears the held
+description. Immediate reprojection beneath a stationary pointer must not open
+another card; intentional pointer movement resumes hover. Dragging remains
+distinct from clicking. Metadata is historical and does not infer work identity.
+An explicit
+activity action reads retained Event time occurrences, with undated counts and
+separately labeled metadata-only time fallback. Points indicate observations,
+never continuous duration, inactivity or completion. The Project filter replaces
+toolbar date navigation; date range and directional buttons are removed. Axis
+dates, dragging, keyboard navigation, zoom, whole-diagram fit and selected focus
+expose offscreen history. Reading
+tracks are 48px apart; ordinary Cmd/Ctrl-wheel and visible/keyboard zoom controls
+reduce vertical projection too, so selected Projects and the full observed period
+fit one canvas. Cmd/Ctrl+Shift-wheel changes only horizontal time spacing around
+the pointer, preserving vertical scale, camera and preview mode. Shift-wheel pans
+horizontally from either vertical or already horizontal input; a diagonal uses its
+larger absolute component once. Whole-time fit or a date end can prevent bounded
+movement. Independent X/Y state survives tab navigation and resize; fitting time
+alone does not reset the Project axis. Overview retains Project/branch names:
+their typography and branch-label height/vertical padding use the same rowScale
+as the tracks, without a label-hiding threshold. Project heading measurement uses
+its resolved scaled line height to avoid covering the first branch. Fixed axis
+width/insets, reading-scale typography, ellipsis and full-name titles remain.
+Whole-fit labels may be tiny; time-only zoom does not resize them. Overview omits
+crowded Session titles and temporarily withholds the held preview while preserving
+selection; temporary hover descriptions remain available without changing scale. Project
+or Session selection restores reading scale; fit brings the canvas into view.
+Homes are stable per visible Project set rather than per screen scale. Pulling a point temporarily moves it with resistance
+and gentle same-track geometric response; its original time anchor remains indicated.
+Pull distance is bounded to its track and guides stay fixed. Release returns
+every displaced point home. Cancellation restores rest; reduced
+motion omits neighboring motion and returns immediately. No relationship or
+persisted position is created. Empty-space dragging retains camera navigation.
+Horizontal panning uses the first/latest observations of visible Projects plus
+explicitly loaded activity of a visible selection, reserving floating preview space.
+Hiding an endpoint Project contracts its bound unless another visible observation
+retains that time. Endpoint cameras follow the new end, whole-time fit refits, and
+a middle camera preserves its time anchor within the new bounds. Both ends reserve
+a 64px target inset, capped by 20% of usable width and free projected-target space
+on narrow plots. Source circles are centered in their targets; guide ends retain
+the frame inset. Short periods may leave additional unused time space at the existing
+reading-scale cap. Blank drag permits at most 80px resisted extension, capped at half
+the usable plot width, and springs back; reduced motion returns immediately.
+Overshoot is never stored. Detail return retains Chart/source/workspace/List-page
+orientation, browser-local camera/selection/vertical scale and DB-owned Project
+visibility. Preference failures retain navigation and retry.
+Missing script, rendering failure and empty/undated scopes retain List/detail
+access; failed activity retrieval permits retry. Browsing never invokes ingestion
+or a model. Existing Session Workflow Focus and Auto Work are unchanged.
 
 ### Atlassian Explorer, Add, Connections, Sync, And Refresh
 

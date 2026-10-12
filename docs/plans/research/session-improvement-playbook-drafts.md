@@ -2,7 +2,7 @@
 
 ## Status And Use
 
-- Status: historical research proposal, `2026-09-27`. The executable playbooks now live under [`personal_insight_guides/playbooks/`](../../../src/localbrain/personal_insight_guides/playbooks/task_framing-v1.md); this draft is not loaded by Runs.
+- Status: historical research proposal, `2026-09-27`. The executable playbooks now live under [`personal_insight_guides/playbooks/`](../../../src/localbrain/personal_insight_guides/playbooks/); this draft is not loaded by Runs.
 - Parent direction: [PRD-0018](../prd/prd-0018-personal-ai-use-improvement-insights.md) and the [research framework](session-improvement-analysis-framework.md).
 - Implemented contract owner: [FEAT-0108](../feature/feat-0108-personal-improvement-guide-and-finding-contract.md) (`passed` for the synthetic foundation contract).
 

@@ -1,5 +1,64 @@
 # Project Roadmap
 
+## Observed Session Chart — 2026-10-12
+
+The owner approved PRD creation and continued execution for
+[PRD-0019](../prd/prd-0019-observed-session-chart.md), delivered through
+[FEAT-0114](../feature/feat-0114-observed-session-chart.md) and
+[RUN-141](../run/run-20261006-141-observed-session-chart.md). Owner review then
+approved [RUN-142](../run/run-20261006-142-stable-session-constellation.md) for
+fixed irregular placement and elastic point dragging with return to home. That
+screen's owner review replaces scatter with
+[RUN-143](../run/run-20261006-143-project-branch-session-chart.md): recorded launch
+folders as name-sorted Project rows and stored branch names as rightward guides
+from first Session observation. No actual Git fork/merge history is read or
+implied. The Sessions Chart exposes the complete scoped history by recorded time
+with exact-count selection, activity points, small same-track tension and detail
+return. Its filter/overview refinement is
+[RUN-144](../run/run-20261006-144-filtered-session-chart-overview.md): remove footer
+annotations, add Project checkbox visibility, compact tracks, resisted date ends
+and vertical overview zoom. The subsequent owner-approved
+[RUN-145](../run/run-20261007-145-session-chart-controls-and-pins.md) places Project
+filtering in the former date-control position, removes directional/date controls,
+persists Project choices beyond browser close and displays existing pins with a
+native static halo/icon and exact-member status. List/Chart drops its separator;
+source controls use Dashboard separators and All. Existing List rows and Session
+Workflow Focus are preserved; the stopped Auto Work track below is not resumed.
+[RUN-146](../run/run-20261007-146-local-chart-preferences-and-pan-space.md) moves
+confirmed visibility to the private LocalBrain DB per scope, preserving browser
+choices only through create-if-absent migration. Visible-only bounds follow the
+new date ends when filtering; centered targets reserve balanced adaptive space and
+blank pan gains more resisted travel.
+[RUN-147](../run/run-20261007-147-session-chart-wheel-controls.md) fixes horizontal
+Shift-wheel input and adds Cmd/Ctrl+Shift-wheel time-only zoom with stable vertical
+orientation through resize and navigation. Existing whole-chart zoom remains.
+[RUN-148](../run/run-20261007-148-session-chart-head-reference-tracks.md) corrects
+exact HEAD being drawn as a branch: HEAD/missing-only folders use one line without
+an empty baseline, and mixed named-branch folders share one unassigned track for
+those records. Raw metadata remains inspectable; Git repository state is not
+inferred. [RUN-149](../run/run-20261007-149-session-chart-scaled-branch-labels.md)
+keeps branch labels present through zoom-out, scaling their typography/boxes and
+Project names with vertical geometry instead of hiding them below a threshold.
+Existing focus restores reading scale; whole-fit names can be tiny.
+[RUN-150](../run/run-20261008-150-session-chart-hover-preview.md) adds temporary
+original-metadata hover/focus descriptions and stronger native hover feedback.
+Activation holds selection; repeat/blank/close/Escape releases it. Another hover
+leaves the held card/activity in place, including narrow layout. Hover does not
+change camera, scale, saved selection or activity, and stationary-pointer
+reprojection cannot immediately reopen a dismissed card.
+[RUN-151](../run/run-20261009-151-session-chart-hover-region.md) joins the node,
+temporary card and their facing-edge passage into continuous hover ownership.
+Card reading/scrolling and keyboard focus retain the description; leaving ownership
+closes it after native grace, with cancellation on reentry. Card input does not
+hold selection or intercept canvas gestures. On 2026-10-12, the owner said the
+current implementation can wrap up phase one and requested portable UI/UX
+evaluation review, then explicitly authorized adoption and publication of the seven
+shared criteria in ai-assets
+[commit 3dfcc36](https://github.com/chochita0311/ai-assets/commit/3dfcc36bd91e6f2c2461fe91d8f387dfca2ca17b).
+The requested LocalBrain documentation and verification closeout is complete; R7 physical wheel
+evidence stays unverified. Any further UI or work relationship inference remains
+a separately approved future boundary.
+
 ## Workflow-Map Track — 2026-09-24
 
 The owner stopped implementation and calculations on the workflow-map track after inspecting the delivered

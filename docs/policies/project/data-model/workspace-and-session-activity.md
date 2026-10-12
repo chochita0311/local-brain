@@ -1,8 +1,8 @@
 # Workspace And Session Activity
 
-<!-- schema-objects: workspaces, sessions, activity_events, skill_observations, session_pins, session_reference_scans, session_reference_evidence -->
+<!-- schema-objects: workspaces, sessions, activity_events, skill_observations, session_pins, session_chart_preferences, session_reference_scans, session_reference_evidence -->
 
-This subject owns current workspace identity, source-backed Session identity and hierarchy, historical working context, normalized activity events, Session classification, separate user-owned Session pin intent, and source-neutral derived evidence that a primary work Session referenced a target. Usage observations are owned separately. Atlassian Source Memory continues to own reusable Item identity and its legacy Session/Document URL sightings; generalized Session reference evidence owns only the Session-facing observed identity, outcome, and source location.
+This subject owns current workspace identity, source-backed Session identity and hierarchy, historical working context, normalized activity events, Session classification, separate user-owned Session pin intent and scoped Chart visibility preferences, and source-neutral derived evidence that a primary work Session referenced a target. Usage observations are owned separately. Atlassian Source Memory continues to own reusable Item identity and its legacy Session/Document URL sightings; generalized Session reference evidence owns only the Session-facing observed identity, outcome, and source location.
 
 [Value Dictionary](value-dictionaries/workspace-and-session-activity.md) owns this subject's bounded physical/logical/presentation mappings.
 
@@ -43,6 +43,12 @@ erDiagram
     SESSION_PINS {
         integer session_id PK
         string pinned_at
+    }
+    SESSION_CHART_PREFERENCES {
+        string source_scope PK
+        string workspace_scope PK
+        string hidden_projects_json
+        string updated_at
     }
     SESSION_REFERENCE_SCANS {
         integer session_id PK
@@ -250,6 +256,25 @@ Constraints: `UNIQUE(source_key, external_session_id, native_event_id, skill_gro
 | `pinned_at` | `TEXT NOT NULL`; first time of the current pin interval, preserved by repeated pin and replaced only after unpin plus re-pin. |
 
 Constraints: one row per Session, required pin time, and cascading physical ownership. Application eligibility admits only persisted `work` plus `primary` Sessions. Explicit indexes: none; the primary-key index owns membership and join lookup.
+
+### `session_chart_preferences`
+
+- Purpose and authority: current user-selected Project visibility for the Sessions Chart, independent of browser storage. It stores display intent and never changes Session observations, membership, pins or work classification.
+- Lifecycle: user-curated and non-rebuildable. One row per source/workspace scope contains the complete hidden-folder list; an empty list means all-selected. An absent row permits one-time browser migration through create-if-absent. Normal user changes replace this scope's current choice.
+- Producers: trusted local Project visibility writes in `session_chart_preferences.py`, exposed by the bounded same-origin Sessions preference endpoint. Scanners and source adapters never write this table.
+- Consumers: Sessions Chart GET and Project checkbox controls; browser camera and selection remain separate tab navigation state.
+- Relations and deletion: composite scope identity has no physical or application FK. Empty workspace scope means all workspaces. Source/workspace removal does not delete the preference, and temporarily absent hidden folder identities remain retained. Removing this row resets that scope's visibility to default all; it never deletes imported or organized work.
+- Recovery: restore the LocalBrain database backup or reselect Projects. Native Session files cannot reconstruct user display intent; browser site-data removal has no effect on a confirmed DB setting.
+- DDL ownership: fresh definition in `schema.sql`; ordinary idempotent startup creates the missing table on an older compatible database without changing existing objects. No explicit named index.
+
+| Column | Contract |
+| --- | --- |
+| `source_scope` | `TEXT NOT NULL`; logical source filter key, with `all` as the unfiltered scope. First composite primary-key column. |
+| `workspace_scope` | `TEXT NOT NULL DEFAULT ''`; empty string for all workspaces, otherwise the validated workspace ID serialized as text. Second composite primary-key column; not a cascading reference. |
+| `hidden_projects_json` | `TEXT NOT NULL`; JSON array of deduplicated, sorted recorded folder keys, including the empty missing-folder key. Application validates array/string shape and size; only currently known keys affect rendering. |
+| `updated_at` | `TEXT NOT NULL`; UTC time of the latest committed preference write, unchanged when migration encounters an existing row. |
+
+Constraints: composite primary key on `(source_scope, workspace_scope)`; both scope columns are non-null. JSON shape and byte limits are application-owned. Explicit indexes: none.
 
 ### `session_reference_scans`
 

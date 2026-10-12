@@ -45,7 +45,10 @@
 - The official `mermaid` npm package usage contract: owns the supported browser-library installation, initialization, and rendering API.
 - [Project Backlog](../project/backlog.md): owns residual schema work that remains open after an approved cleanup increment closes.
 
-### Current Implementation References
+### Implementation References
+
+The referenced files remain implementation sources. Behavior and dependency
+descriptions below record the pre-delivery baseline.
 
 - `src/localbrain/schema.sql`: canonical fresh-database DDL and declared indexes.
 - `src/localbrain/db.py`: compatible startup migrations and runtime-only index creation.
@@ -56,7 +59,12 @@
 - `pyproject.toml`: current Python-only dependency and packaging baseline; no JavaScript package manifest or build contract exists yet.
 - `tests/`: synthetic schema setup, persistence fixtures, and behavior-level contract evidence.
 
-## Current Implementation Findings
+## Initial Implementation Findings
+
+The gaps below record the initial implementation baseline. Their requirements
+for recovery classification before destructive cleanup, distinct Usage subject
+ownership, and an explicit local Mermaid asset contract remain binding for the
+approved delivery and later changes.
 
 - The current schema declares 20 ordinary tables and one FTS5 virtual table, but no single document shows all relationships, ownership, rebuildability, or deletion behavior.
 - `schema.sql` describes a fresh database while `db.py` adds compatible columns and indexes to existing databases. The effective runtime schema therefore cannot be understood safely from only one file.

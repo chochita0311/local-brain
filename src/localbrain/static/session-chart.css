@@ -1,0 +1,143 @@
+.session-display-control { align-items: center; }
+.content-grid.session-inventory-chart { grid-template-columns: minmax(0, 1fr); }
+.session-chart {
+  --session-chart-point-size: var(--space-section);
+  --session-chart-node-width: calc(var(--workflow-node-width) - var(--space-40));
+  --session-chart-label-width: calc(var(--space-40) * 5);
+  min-width: 0;
+}
+.session-chart [hidden] { display: none; }
+.session-chart-fallback { padding: var(--space-card); border: var(--border-width-control) solid var(--border-subtle); border-radius: var(--radius-panel); }
+.session-chart-fallback p { margin: var(--space-none) var(--space-none) var(--space-control-gap); color: var(--text-secondary); }
+.session-chart-project-filter { position: relative; min-width: 0; }
+.session-chart-project-save-error { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-control-gap); min-width: 0; color: var(--text-danger); font-size: var(--type-body-small-size); }
+.session-chart-project-filter > summary { display: flex; align-items: center; justify-content: space-between; gap: var(--space-card); min-height: var(--control-min-height-touch); padding: var(--space-control-gap) var(--space-row-block); color: var(--text-primary); background: var(--surface-default); border: var(--border-width-control) solid var(--border-default); border-radius: var(--radius-control); font-size: var(--type-label-size); font-weight: var(--type-semibold); list-style: none; cursor: pointer; }
+.session-chart-project-filter > summary::-webkit-details-marker { display: none; }
+.session-chart-project-filter > summary:hover { background: var(--surface-subtle); }
+.session-chart-project-filter-panel { position: absolute; top: calc(100% + var(--space-compact)); left: var(--space-none); z-index: 5; width: min(var(--rail-context-width), calc(100vw - var(--space-page-inline-narrow) * 2)); padding: var(--space-control-gap); border: var(--border-width-control) solid var(--border-default); border-radius: var(--radius-panel); background: var(--surface-overlay); box-shadow: var(--elevation-overlay); }
+.session-chart-project-filter-panel > input { width: 100%; min-width: 0; min-height: var(--control-min-height-touch); padding: var(--space-control-gap); color: var(--text-primary); background: var(--surface-default); border: var(--border-width-control) solid var(--border-default); border-radius: var(--radius-control); font: inherit; font-size: var(--type-body-small-size); }
+.session-chart-project-options { max-height: calc(var(--space-40) * 7); overflow-y: auto; padding-right: var(--space-control-gap); }
+.session-chart-project-choice { display: flex; align-items: center; gap: var(--space-control-gap); min-height: var(--control-min-height-touch); padding: var(--space-compact) var(--space-control-gap); border-radius: var(--radius-control); cursor: pointer; }
+.session-chart-project-choice:hover { background: var(--surface-subtle); }
+.session-chart-project-choice > input { flex: 0 0 auto; margin: var(--space-none); accent-color: var(--text-link); }
+.session-chart-project-choice > span { min-width: 0; font-size: var(--type-body-small-size); }
+.session-chart-project-choice strong, .session-chart-project-choice small { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.session-chart-project-choice strong { font-weight: var(--type-semibold); }
+.session-chart-project-choice small { color: var(--text-tertiary); font-size: var(--type-caption-size); }
+.session-chart-project-all { margin-top: var(--space-compact); margin-bottom: var(--space-compact); border-bottom: var(--border-width-control) solid var(--border-subtle); border-radius: 0; }
+.session-chart-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-control-gap); margin-bottom: var(--space-control-gap); }
+.session-chart-actions { display: flex; flex-wrap: wrap; gap: var(--space-compact); }
+.session-chart button, .session-chart-preview a { min-height: var(--control-min-height-touch); }
+.session-chart button[disabled] { cursor: default; opacity: var(--opacity-disabled); }
+.session-chart-stage { position: relative; }
+.session-chart-viewport {
+  position: relative; height: var(--workflow-canvas-height); overflow: hidden;
+  color: var(--text-primary); background: var(--surface-default);
+  border: var(--border-width-control) solid var(--border-subtle); border-radius: var(--radius-panel);
+  cursor: grab; touch-action: pan-y; scroll-margin-block-end: var(--space-control-gap);
+}
+.session-chart-viewport.is-dragging { cursor: grabbing; user-select: none; }
+.session-chart-axis { position: absolute; inset: var(--space-none) var(--space-none) auto var(--session-chart-label-width); z-index: 2; height: var(--space-40); overflow: hidden; background: var(--surface-subtle); border-bottom: var(--border-width-control) solid var(--border-subtle); pointer-events: none; }
+.session-chart-axis-corner { position: absolute; top: var(--space-none); left: var(--space-none); z-index: 3; display: flex; align-items: center; width: var(--session-chart-label-width); height: var(--space-40); padding-inline: var(--space-card); background: var(--surface-subtle); border-bottom: var(--border-width-control) solid var(--border-subtle); border-right: var(--border-width-control) solid var(--border-subtle); color: var(--text-secondary); font-size: var(--type-caption-size); }
+.session-chart-project-axis { position: absolute; inset: var(--space-40) auto var(--space-none) var(--space-none); z-index: 2; width: var(--session-chart-label-width); overflow: hidden; background: var(--surface-default); border-right: var(--border-width-control) solid var(--border-subtle); }
+.session-chart .session-chart-project-heading { position: absolute; z-index: 1; width: 100%; height: var(--space-40); min-height: 0; padding: var(--space-compact) var(--space-card); overflow: hidden; text-align: left; color: var(--text-primary); font: inherit; background: var(--surface-default); border: none; border-radius: 0; cursor: zoom-in; }
+.session-chart-project-heading:hover { background: var(--surface-subtle); }
+.session-chart-project-heading strong, .session-chart-project-heading small, .session-chart-branch-label { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.session-chart-project-heading strong, .session-chart-project-heading small { line-height: var(--type-line-title); }
+.session-chart-project-heading strong { font-size: calc(var(--type-body-small-size) * var(--session-chart-view-scale, 1)); font-weight: var(--type-semibold); }
+.session-chart-project-heading small { margin-top: var(--space-micro); color: var(--text-tertiary); font-size: var(--type-caption-size); }
+.session-chart-branch-label { position: absolute; width: 100%; height: calc(var(--control-min-height-touch) * var(--session-chart-view-scale, 1)); padding: calc(var(--space-control-gap) * var(--session-chart-view-scale, 1)) var(--space-card); color: var(--text-secondary); font: calc(var(--type-caption-size) * var(--session-chart-view-scale, 1))/var(--type-line-ui) var(--type-mono-font); }
+.session-chart-branch-label.is-selected { color: var(--text-link); font-weight: var(--type-semibold); }
+.session-chart-tick { position: absolute; top: var(--space-control-gap); color: var(--text-secondary); font-size: var(--type-caption-size); white-space: nowrap; }
+.session-chart-grid { position: absolute; inset: var(--space-40) var(--space-none) var(--space-none) var(--session-chart-label-width); pointer-events: none; }
+.session-chart-grid-line { position: absolute; top: var(--space-none); height: var(--space-control-gap); border-left: var(--border-width-control) solid var(--border-subtle); }
+.session-chart-nodes, .session-chart-events, .session-chart-guides { position: absolute; inset: var(--space-40) var(--space-none) var(--space-none) var(--session-chart-label-width); overflow: hidden; pointer-events: none; }
+.session-chart-guides { width: calc(100% - var(--session-chart-label-width)); height: calc(100% - var(--space-40)); }
+.session-chart-guide { fill: none; stroke: var(--border-default); stroke-width: var(--border-width-control); stroke-linecap: round; stroke-linejoin: round; }
+.session-chart-guide.is-baseline { stroke: var(--text-tertiary); }
+.session-chart-guide.is-selected { stroke: var(--focus-ring); stroke-width: var(--border-width-focus); }
+.session-chart-guide.is-undated { stroke-dasharray: 4 4; }
+.session-chart-guide-arrow { fill: var(--text-tertiary); }
+.session-chart-project-divider { stroke: var(--border-subtle); stroke-width: var(--border-width-control); }
+.session-chart-node {
+  position: absolute; display: flex; align-items: center; justify-content: center; gap: var(--space-control-gap);
+  width: var(--control-min-height-touch); height: var(--control-min-height-touch);
+  margin: var(--space-none); padding: var(--space-compact); text-align: left; font: inherit;
+  color: var(--text-primary); background: transparent;
+  border: var(--border-width-control) solid transparent; border-radius: var(--radius-card);
+  cursor: grab; pointer-events: auto; touch-action: none;
+  transform: scale(var(--session-chart-view-scale, 1)); transform-origin: top left;
+}
+.session-chart-node:hover, .session-chart-node.is-hovered, .session-chart-node:focus-visible { z-index: 2; background: var(--surface-info); border-color: var(--border-info); border-width: var(--border-width-focus); box-shadow: var(--elevation-card); }
+.session-chart-node[aria-pressed="true"] { z-index: 1; border-color: var(--focus-ring); background: var(--surface-info); box-shadow: var(--elevation-card); }
+.session-chart-node.is-compact .session-chart-node-copy { display: none; }
+.session-chart-node.is-compact:hover .session-chart-node-copy, .session-chart-node.is-compact:focus-visible .session-chart-node-copy {
+  display: grid;
+}
+.session-chart-node:hover .session-chart-node-copy, .session-chart-node:focus-visible .session-chart-node-copy {
+  padding: var(--space-compact); border-radius: var(--radius-control); background: var(--surface-info);
+}
+.session-chart-node[aria-pressed="true"] .session-chart-node-copy { padding: var(--space-compact); border-radius: var(--radius-control); background: var(--surface-info); }
+.session-chart-node.is-pulled { z-index: 3; cursor: grabbing; }
+.session-chart-stack-count { position: absolute; top: calc(var(--space-compact) * -1); right: var(--space-none); min-width: var(--space-card); padding-inline: var(--space-micro); border: var(--border-width-control) solid var(--border-subtle); border-radius: var(--radius-pill); color: var(--text-primary); background: var(--surface-default); font-size: var(--type-caption-size); font-variant-numeric: tabular-nums; text-align: center; }
+.session-chart-node.is-displaced::before {
+  content: ""; position: absolute; pointer-events: none;
+  left: calc(var(--control-min-height-touch) / 2 - var(--space-row-block) / 2 - var(--chart-pull-x));
+  top: calc(50% - var(--space-row-block) / 2 - var(--chart-pull-y));
+  width: var(--space-row-block); height: var(--space-row-block);
+  border: var(--border-width-control) solid var(--border-default); border-radius: var(--radius-pill);
+  background: var(--surface-default);
+}
+.session-chart-source {
+  display: inline-flex; align-items: center; justify-content: center; flex: 0 0 var(--session-chart-point-size);
+  width: var(--session-chart-point-size); height: var(--session-chart-point-size); color: var(--text-secondary);
+  border: var(--border-width-control) solid var(--border-default); border-radius: var(--radius-pill);
+  background: var(--surface-subtle); font-size: var(--type-caption-size); font-weight: var(--type-bold);
+}
+.session-chart-source[data-provider="claude"] { color: var(--text-source-claude); background: var(--surface-source-claude); border-color: var(--border-source-claude); }
+.session-chart-node.is-pinned .session-chart-source { outline: var(--border-width-focus) solid var(--border-info); outline-offset: var(--space-micro); box-shadow: 0 0 var(--space-control-gap) var(--border-info); }
+.session-chart-pin-icon { width: var(--space-card); height: var(--space-card); flex: 0 0 auto; overflow: visible; }
+.session-chart-pin-icon path { stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: var(--border-width-focus); }
+.session-chart-pin-icon path:first-child { fill: currentColor; }
+.session-chart-pin-icon path:last-child { fill: none; }
+.session-chart-pin-marker { position: absolute; bottom: var(--space-none); right: var(--space-none); display: flex; padding: var(--space-micro); color: var(--text-info); background: var(--surface-default); border-radius: var(--radius-pill); pointer-events: none; }
+.session-chart-pin-status { display: inline-flex; flex: 0 0 auto; align-items: center; gap: var(--space-compact); color: var(--text-info); font-size: var(--type-caption-size); white-space: nowrap; }
+.session-chart-preview-heading > [data-chart-preview-source] { min-width: 0; margin-right: auto; overflow-wrap: anywhere; }
+.session-chart-source[data-provider="codex"] { color: var(--text-source-codex); background: var(--surface-source-codex); border-color: var(--border-source-codex); }
+.session-chart-source[data-kind="codex-company"] { color: var(--text-source-codex-company); background: var(--surface-source-codex-company); border-color: var(--border-source-codex-company); }
+.session-chart-node-copy { position: absolute; left: calc(var(--space-compact) + var(--session-chart-point-size) + var(--space-control-gap)); width: calc(var(--session-chart-node-width) - var(--control-min-height-touch)); min-width: 0; display: grid; gap: var(--space-micro); pointer-events: none; }
+.session-chart-node-copy strong { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: var(--type-body-small-size); line-height: var(--type-line-ui); font-weight: var(--type-semibold); }
+.session-chart.is-overview .session-chart-node-copy, .session-chart.is-overview .session-chart-stack-count { display: none !important; }
+.session-chart.is-overview .session-chart-source { font-size: 0; }
+.session-chart.is-overview .session-chart-project-heading { padding-block: 0; }
+.session-chart.is-overview .session-chart-project-heading small { display: none; }
+.session-chart-event { position: absolute; width: var(--control-min-height-touch); height: var(--control-min-height-touch); margin: var(--space-none); padding: var(--space-none); border: none; background: transparent; pointer-events: auto; cursor: pointer; transform: scale(var(--session-chart-view-scale, 1)); transform-origin: top left; }
+.session-chart-event::after { content: ""; position: absolute; width: var(--space-compact); height: var(--space-compact); top: 50%; left: 50%; transform: translate(-50%, -50%); border: var(--border-width-control) solid var(--text-link); border-radius: var(--radius-pill); background: var(--surface-info); }
+.session-chart-event:focus-visible::after, .session-chart-event:hover::after { background: var(--text-link); }
+.session-chart-undated-empty { position: absolute; inset: var(--space-40) var(--space-card) var(--space-card); display: grid; place-items: center; color: var(--text-secondary); text-align: center; pointer-events: none; }
+.session-chart-preview { position: absolute; z-index: 3; top: calc(var(--space-40) + var(--space-card)); right: var(--space-card); width: min(var(--rail-context-width), calc(100% - var(--space-card) * 2)); max-height: calc(var(--workflow-canvas-height) - var(--space-40) - var(--space-card) * 2); overflow: auto; padding: var(--space-card); color: var(--text-primary); background: var(--surface-overlay); border: var(--border-width-control) solid var(--border-subtle); border-radius: var(--radius-panel); box-shadow: var(--elevation-overlay); }
+.session-chart-preview.is-hover-preview { position: absolute; width: min(var(--rail-context-width), calc(100% - var(--space-card) * 2)); max-height: calc(var(--workflow-canvas-height) - var(--space-40) - var(--space-card) * 2); margin-top: 0; pointer-events: auto; cursor: auto; }
+.session-chart-preview-heading { display: flex; align-items: center; justify-content: space-between; gap: var(--space-compact); color: var(--text-secondary); font-size: var(--type-body-small-size); }
+.session-chart-preview-heading button { min-width: var(--control-min-height-touch); }
+.session-chart-preview h3 { margin: var(--space-control-gap) var(--space-none) var(--space-compact); overflow-wrap: anywhere; font-size: var(--type-body-size); line-height: var(--type-line-body); }
+.session-chart-preview time { color: var(--text-secondary); font-size: var(--type-body-small-size); }
+.session-chart-stack-selector { display: grid; gap: var(--space-compact); margin-top: var(--space-control-gap); color: var(--text-secondary); font-size: var(--type-body-small-size); }
+.session-chart-stack-selector select { min-width: 0; width: 100%; min-height: var(--control-min-height-touch); padding: var(--space-control-gap); border: var(--border-width-control) solid var(--border-default); border-radius: var(--radius-control); color: var(--text-primary); background: var(--surface-default); font: inherit; }
+.session-chart-preview dl { display: grid; gap: var(--space-control-gap); margin: var(--space-card) var(--space-none); }
+.session-chart-preview dt { color: var(--text-tertiary); font-size: var(--type-caption-size); }
+.session-chart-preview dd { margin: var(--space-micro) var(--space-none) var(--space-none); overflow-wrap: anywhere; font: var(--type-body-small-size)/var(--type-line-body) var(--type-mono-font); }
+.session-chart-activity-status { margin: var(--space-control-gap) var(--space-none); font-size: var(--type-body-small-size); color: var(--text-secondary); }
+.session-chart-preview-actions { display: flex; flex-wrap: wrap; gap: var(--space-compact); }
+.session-chart-undated { margin-top: var(--space-card); padding: var(--space-card); border: var(--border-width-control) solid var(--border-subtle); border-radius: var(--radius-panel); }
+.session-chart-undated summary { cursor: pointer; font-size: var(--type-body-small-size); }
+.session-chart-undated ul { display: grid; gap: var(--space-compact); padding-left: var(--space-card); }
+.session-chart-undated a { overflow-wrap: anywhere; color: var(--text-link); }
+@media (max-width: 700px) {
+  .session-chart { --session-chart-label-width: calc(var(--space-40) * 2 + var(--space-card)); }
+  .session-chart-axis-corner, .session-chart-project-heading, .session-chart-branch-label { padding-inline: var(--space-control-gap); }
+  .session-chart-actions { width: 100%; }
+  .session-chart-preview { position: static; width: 100%; max-height: none; margin-top: var(--space-control-gap); box-shadow: var(--elevation-card); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .session-chart * { scroll-behavior: auto; transition: none; }
+}

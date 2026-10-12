@@ -44,7 +44,10 @@
 - [FEAT-0009 Document And Resource Details](../feature/feat-0009-document-resource-details.md): existing full Document route and its prior exclusion of Markdown rendering and a full context explorer tree.
 - [PRD-0002 Session Browsing And Subsession Organization](prd-0002-session-browsing-and-subsession-organization.md): current Session and Subsession navigation and detail boundaries.
 
-### Current Implementation References
+### Implementation References
+
+The referenced files remain implementation sources. Behavior descriptions below
+record the pre-delivery baseline.
 
 - `src/localbrain/templates/context.html`: FOLDERS and FILES source groups, add controls, source tree, document preview, and full-view entry.
 - `src/localbrain/templates/document.html`: current full Document metadata and plain-text body.
@@ -54,7 +57,12 @@
 - `src/localbrain/static/app.js`: same-source preview selection, source-tree disclosure, selected-item reveal, focus, history, and source-switch navigation behavior.
 - `src/localbrain/main.py` and `src/localbrain/contexts.py`: Local Context source selection, source-tree construction, document membership validation, and full Document route data.
 
-## Current Findings
+## Initial Gaps And Continuing Behavior
+
+The plain-text, fixed-width, and missing full-view-tree observations below
+record the pre-delivery baseline. The same-source continuity, approved
+source-switch window-position continuity, source-membership and unique-path
+ownership, and narrow-layout requirements remain current and binding.
 
 - Local Context previews, full Document bodies, and Session message bodies currently preserve whitespace as plain text; they do not share a rendered Markdown reading contract.
 - The Local Context explorer already separates source inventory, source tree, and document preview, but the tree and preview widths are fixed.

@@ -83,7 +83,7 @@ Constraints: uniqueness of `fingerprint`; target/status/payload validation is ap
 - Consumers: Workstream detail/resume presentation and checkpoint history.
 - Relations and deletion: Workstream deletion cascades checkpoints, then checkpoint resource references. This destructive path is not an implied cleanup action.
 - Recovery: database backup or an explicit export; Sessions and documents do not reconstruct confirmed wording or decision boundaries.
-- DDL ownership: fresh definition in `schema.sql`; compatible `based_on_activity_at`, `version`, and `updated_at` plus value backfill in `db.py`. On an older database, `updated_at` remains nullable and has no database default after the one-time backfill. No explicit named index.
+- DDL ownership: fresh definition in `schema.sql`; compatible `based_on_activity_at`, `version`, and `updated_at` plus value backfill in `db.py`. On an older database, `updated_at` remains nullable and has no database default after the one-time backfill. The fresh and compatible paths create `idx_checkpoints_workstream_version`.
 
 | Column | Contract |
 | --- | --- |

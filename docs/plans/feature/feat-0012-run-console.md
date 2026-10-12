@@ -29,10 +29,10 @@
 - In:
   - `/runs/{run_id}`
   - Run heading, lifecycle status, metadata, cancellation, console, errors, artifacts, polling feedback, return link, and responsive presentation
-  - reusable visual treatment for Run status summaries consumed later by `feat-0010`
+  - reusable visual treatment for Run status summaries consumed later by `feat-0013`
 - Out:
   - Run preparation, execution, persistence, cancellation semantics, artifacts, retrieval, or MCP behavior changes
-  - Workstream maintenance launcher and history layout owned by `feat-0010`
+  - Workstream maintenance launcher and history layout owned by `feat-0013`
   - new terminal controls, log search, retry, or execution stages
 
 ## Contract Surfaces
@@ -74,7 +74,7 @@
 - `src/localbrain/templates/run.html`
 - Run status, details, console, error, artifact, action, and responsive selectors in `src/localbrain/static/styles.css`
 - Run polling and cancellation interaction in `src/localbrain/static/app.js`
-- Workstream Run summary selectors only when needed to expose the reusable status contract for `feat-0010`
+- Workstream Run summary selectors only when needed to expose the reusable status contract for `feat-0013`
 
 ## Pass Or Fail Checks
 

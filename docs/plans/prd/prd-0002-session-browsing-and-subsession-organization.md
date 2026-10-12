@@ -56,7 +56,7 @@
 - [Claude Task Runner](../../policies/operations/claude-task-runner.md): Workstream maintenance Runs remain separate from ordinary Sessions.
 - [Core Work Inventories](../feature/feat-0005-core-work-inventories.md): accepted Sessions inventory behavior and regression surface.
 - [Session And Subagent Details](../feature/feat-0008-session-subagent-details.md): accepted Session and Claude subagent detail behavior and regression surface.
-- [Data Model Visibility And Schema Cleanup](prd-0003-data-model-visibility-and-schema-cleanup.md): draft follow-up for the complete ERD, table catalog, schema ownership, and cleanup decisions outside this Session-specific change.
+- [Data Model Visibility And Schema Cleanup](prd-0003-data-model-visibility-and-schema-cleanup.md): initially drafted follow-up, now `passed`, for the complete ERD, table catalog, schema ownership, and cleanup decisions outside this Session-specific change.
 
 ### Initial Implementation References
 

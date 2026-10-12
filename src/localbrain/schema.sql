@@ -185,6 +185,14 @@ CREATE TABLE IF NOT EXISTS session_pins (
     pinned_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS session_chart_preferences (
+    source_scope TEXT NOT NULL,
+    workspace_scope TEXT NOT NULL DEFAULT '',
+    hidden_projects_json TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    PRIMARY KEY(source_scope, workspace_scope)
+);
+
 CREATE TABLE IF NOT EXISTS session_reference_scans (
     session_id INTEGER PRIMARY KEY
         REFERENCES sessions(id) ON DELETE CASCADE,

@@ -26,7 +26,7 @@
 - Per-target and total remote-read counts make the 20-read ceiling understandable before submission. The one-maintenance-Run label avoids implying one hidden Run per Source Instance.
 - Source Instance, Site/Space, coverage, freshness, and timestamps provide enough context to exclude a target without opening another screen.
 - The unavailable executor state explains why remote execution is disabled while preserving the complete local preview and navigation back to the originating context.
-- Failed/unavailable retry is explicit and selected-only; no automatic retry, scheduler, page-load refresh, or background polling exists.
+- Failed/unavailable retry is explicit and selected-only; no automatic retry, scheduler, page-load refresh, or background provider polling exists. Local status polling observes only the explicitly selected active Run, as recorded in the [Functional evaluation](eval-0049-functional-explicit-atlassian-refresh-and-preview.md).
 - At compact widths, the document order remains scope → counts → targets → handoff. Checkboxes, labels, URLs, and actions remain reachable without horizontal page overflow.
 
 ## Evidence Gaps

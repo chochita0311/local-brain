@@ -10,6 +10,46 @@ Priority meaning:
 
 ## Current Focus
 
+The separately approved [Observed Session Chart](../prd/prd-0019-observed-session-chart.md)
+increment is tracked by [FEAT-0114](../feature/feat-0114-observed-session-chart.md).
+The owner treats the delivered Chart as the phase-one wrap-up point on 2026-10-12
+and requested review of portable UI/UX evaluation criteria. The subsequent owner-approved
+seven criteria are adopted and published in ai-assets
+[commit 3dfcc36](https://github.com/chochita0311/ai-assets/commit/3dfcc36bd91e6f2c2461fe91d8f387dfca2ca17b);
+LocalBrain documentation and verification closeout is complete. The completed continuous hover region is tracked by
+[RUN-151](../run/run-20261009-151-session-chart-hover-region.md), retaining held descriptions in
+[RUN-150](../run/run-20261008-150-session-chart-hover-preview.md) and scaled labels in
+[RUN-149](../run/run-20261007-149-session-chart-scaled-branch-labels.md), HEAD handling in
+[RUN-148](../run/run-20261007-148-session-chart-head-reference-tracks.md), wheel controls in
+[RUN-147](../run/run-20261007-147-session-chart-wheel-controls.md) and the local-DB/end-space
+[RUN-146](../run/run-20261007-146-local-chart-preferences-and-pan-space.md), extending
+[RUN-145](../run/run-20261007-145-session-chart-controls-and-pins.md) and the
+filter/overview RUN-144 and the
+Project/branch screen in RUN-143 that replaced RUN-142's irregular field. Recorded launch folders define name-sorted
+rows; stored branch names and first Session observations define layout guides.
+Exact HEAD remains original metadata but is excluded from named branches:
+HEAD/missing-only folders use one line without an empty baseline, and mixed
+named-branch folders keep those records on one unassigned track.
+Project/branch names stay present and shrink with their rows, with no zoom cutoff
+hiding branches; existing focus restores reading scale. Project checkboxes hide
+chosen rows locally; compact spacing, whole-chart zoom
+and resisted date ends improve browsing without footer annotations. Project choices
+persist per scope in the private LocalBrain DB across browsers using it, with
+create-if-absent migration from browser choices. Visible endpoints contract on
+filter changes; centered targets retain balanced adaptive insets and blank panning
+has more resisted travel. The filter replaces date navigation and existing pins
+retain static native cues and exact-member status. Node hover/focus reveals a
+temporary description with stronger native feedback; activation holds it and
+same-node/blank/close/Escape releases it. Another hover preserves the held card
+and activity without changing projection or persistence. Narrow temporary cards
+overlay without reflow, and stationary-pointer reprojection does not reopen a
+dismissed description. Node/card/facing-edge passage retain hover,
+with native exit grace and pointer/focus reading or local scrolling; card input
+does not hold selection or intercept blank canvas gestures. R7 physical Shift-wheel and Cmd+Shift
+evidence remains unverified. Actual Git ancestry and work relationship
+inference remain outside the approved boundary. Existing List, Session Workflow
+Focus and the stopped Auto Work track retain their current scope.
+
 The owner stopped further implementation and calculations on the workflow-map
 track after inspecting the continuous map. The
 [design-plan handoff](../design/workflow-map-design-plan.md#handoff-to-next-track)

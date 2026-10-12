@@ -84,7 +84,10 @@
 - [Project Backlog](../project/backlog.md): unresolved per-source retention,
   removed-source relationship preservation, purge, backup, and restore work.
 
-### Current Implementation References
+### Implementation References
+
+The referenced files remain implementation sources. Behavior descriptions below
+record the pre-delivery baseline.
 
 - `src/localbrain/config.py`: one `codex_root` setting backed by one
   `LOCALBRAIN_CODEX_ROOT` value.
@@ -102,7 +105,12 @@
   `sessions_dashboard.html`: current provider-level provenance, counts, source
   state, and Usage scope controls.
 
-## Current Findings
+## Findings At Intake
+
+These findings record the `2026-08-02` intake and read-only audit. The
+count-inclusion and source-mirror lifecycle rules retained in Confirmed Scope
+remain binding; the multiple-source gaps were subsequently closed by the passed
+child Features.
 
 ### Multiple Local AI Sources
 

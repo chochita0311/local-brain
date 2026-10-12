@@ -3,10 +3,10 @@
   "review_status": "complete",
   "manifest": {
     "path": "src/localbrain/schema-presentation.json",
-    "sha256": "a2db822de75109d7f298a76411426c9a150fd7caa4870264c14d712fff90dec6",
+    "sha256": "c8ece2d46bcd9ccfb055789f56e7780356e1517b0d5a2abfc2707b14d979ece6",
     "expected": {
-      "tables": 45,
-      "columns": 516,
+      "tables": 46,
+      "columns": 520,
       "indexes": 51,
       "physical_relations": 57,
       "application_relations": 29
@@ -45,6 +45,7 @@
     "sessions": {"decision": "keep", "risk": "medium", "rationale": "Required normalized Session identity, parent hierarchy, activity boundary, retrieval source, and Usage Record parent under approved PRD-0002 contracts."},
     "activity_events": {"decision": "keep", "risk": "low", "rationale": "The normalized event table remains required; FEAT-0032 removed its unused generic metadata slot after an all-null runtime preflight while preserving event identity, content, provenance, and ordering."},
     "session_pins": {"decision": "keep", "risk": "high", "rationale": "Required non-rebuildable owner recall intent for eligible primary work Sessions; row presence, one-to-one cascade ownership, and database-backup recovery remain separate from source-derived Session facts."},
+    "session_chart_preferences": {"decision": "keep", "risk": "medium", "rationale": "Required non-rebuildable user Project visibility per source/workspace scope under FEAT-0114; explicit all-selected state and absent-setting migration precedence remain separate from imported Sessions and tab navigation. Database-backup recovery preserves choices, including keys whose Projects are currently absent."},
     "session_reference_scans": {"decision": "keep", "risk": "medium", "rationale": "Required aggregate source/extractor freshness and 100-target bound for one primary work Session; it keeps failed reconciliation stale rather than guessing from detail reads."},
     "session_reference_evidence": {"decision": "keep", "risk": "medium", "rationale": "Required source-neutral privacy-minimized Session reference locations and completed read outcomes; it separates Session-facing evidence from Activity Event content, shared target metadata, and user organization."},
     "workflow_assertions": {"decision": "keep", "risk": "high", "rationale": "Required non-rebuildable append-only owner correction ledger; stable Episode boundary identity, exact before/after meaning, supersession, and optional note cannot be recovered from source Sessions or deterministic candidates."},
@@ -196,7 +197,7 @@
     "suggestions.status": {"decision": "defer", "risk": "high", "defer": "closed-vocabulary-constraints", "rationale": "Pending, accepted, rejected, and superseded are non-rebuildable review states and require an explicit durable vocabulary."},
     "checkpoint_resource_refs.entity_type": {"decision": "defer", "risk": "high", "defer": "closed-vocabulary-constraints", "rationale": "Immutable snapshot targets should align with link entity types, but legacy preservation and future resource expansion remain unresolved."},
     "maintenance_runs.status": {"decision": "defer", "risk": "high", "defer": "closed-vocabulary-constraints", "rationale": "Prepared/queued/running/cancelling and terminal values form a state machine that is not yet durably enumerated."},
-    "search_index.entity_type": {"decision": "defer", "risk": "low", "defer": "closed-vocabulary-constraints", "rationale": "The projection supports session, document, and atlassian_item, while an FTS-compatible enforcement mechanism and future expansion rule remain unresolved."}
+    "search_index.entity_type": {"decision": "defer", "risk": "low", "defer": "closed-vocabulary-constraints", "rationale": "The projection supports session, document, atlassian_item, and atlassian_structure_reference, while an FTS-compatible enforcement mechanism and future expansion rule remain unresolved."}
   },
   "index_overrides": {},
   "physical_relation_overrides": {},
@@ -225,6 +226,7 @@
     "sessions": ["tests/test_session_contract.py", "tests/test_session_details.py", "tests/test_session_inventory.py", "tests/test_usage_contract.py"],
     "activity_events": ["tests/test_activity_attribution.py", "tests/test_session_details.py", "tests/test_retrieval.py", "tests/test_schema_migrations.py"],
     "session_pins": ["tests/test_session_pins.py"],
+    "session_chart_preferences": ["tests/test_session_chart.py"],
     "session_reference_scans": ["tests/test_session_reference_schema.py"],
     "session_reference_evidence": ["tests/test_session_reference_schema.py"],
     "workflow_assertions": ["tests/test_workflow_assertions.py"],

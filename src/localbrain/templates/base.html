@@ -6,6 +6,7 @@
     <title>{% block title %}LocalBrain{% endblock %}</title>
     <link rel="icon" href="{{ url_for('static', path='/favicon.svg') }}?v={{ asset_version | default('dev') }}" type="image/svg+xml">
     <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}?v={{ asset_version | default('dev') }}">
+    {% block styles %}{% endblock %}
     <script src="{{ url_for('static', path='/app.js') }}?v={{ asset_version | default('dev') }}" defer></script>
   </head>
   <body>

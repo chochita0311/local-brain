@@ -1,7 +1,10 @@
+import posixpath
 import re
 import sqlite3
+from pathlib import Path
 from typing import List, Optional
 
+from .activity import parse_timestamp
 
 SESSION_PAGE_SIZE = 15
 
@@ -357,6 +360,114 @@ def session_inventory_page(
         "compact_page_items": compact_pagination_items(bounded_page, total_pages),
         "previous_page": bounded_page - 1 if bounded_page > 1 else None,
         "next_page": bounded_page + 1 if bounded_page < total_pages else None,
+    }
+
+
+def session_chart_inventory(
+    connection: sqlite3.Connection,
+    source_kind: Optional[str] = None,
+    workspace_id: Optional[int] = None,
+) -> list:
+    """Read the complete inventory's metadata without pagination or inference."""
+    conditions = [
+        "sessions.session_class = 'work'",
+        "sessions.session_role = 'primary'",
+    ]
+    params = []
+    if source_kind:
+        conditions.append("sources.kind = ?")
+        params.append(source_kind)
+    if workspace_id is not None:
+        conditions.append("sessions.workspace_id = ?")
+        params.append(workspace_id)
+    rows = connection.execute(
+        """
+        SELECT sessions.id, sessions.title, sessions.started_at,
+               sessions.last_event_at, sessions.cwd_raw, sessions.git_branch,
+               sources.kind AS source_kind, sources.provider_kind,
+               sources.name AS source_name
+        FROM sessions JOIN sources ON sources.id = sessions.source_id
+        WHERE {where}
+        ORDER BY sessions.id
+        """.format(where=" AND ".join(conditions)),
+        tuple(params),
+    ).fetchall()
+    items = []
+    home = str(Path.home())
+    for row in rows:
+        item = dict(row)
+        cwd = row["cwd_raw"]
+        if cwd == "~" or (cwd and cwd.startswith("~/")):
+            cwd = home + cwd[1:]
+        folder = posixpath.normpath(cwd) if cwd else ""
+        label = (
+            "~" + folder[len(home):]
+            if folder == home or folder.startswith(home + "/") else folder
+        )
+        item["project_key"] = folder
+        item["project_name"] = (
+            "~" if folder == home
+            else posixpath.basename(folder) or folder or "실행 폴더 없음"
+        )
+        item["project_path"] = label
+        times = [
+            parsed for parsed in (
+                parse_timestamp(row["last_event_at"]),
+                parse_timestamp(row["started_at"]),
+            ) if parsed is not None
+        ]
+        time_source = "metadata"
+        if not times:
+            # Only undated metadata needs an Event fallback; never read bodies.
+            times = [
+                parsed for event in connection.execute(
+                    "SELECT occurred_at FROM activity_events WHERE session_id = ?",
+                    (row["id"],),
+                ) if (parsed := parse_timestamp(event["occurred_at"])) is not None
+            ]
+            time_source = "event"
+        item["first_observed_at"] = min(times).isoformat() if times else None
+        item["observed_at"] = max(times).isoformat() if times else None
+        item["time_source"] = time_source if times else None
+        items.append(item)
+    return items
+
+
+def session_chart_activity(
+    connection: sqlite3.Connection, session_id: int
+) -> Optional[dict]:
+    """Return retained timestamp occurrences for an eligible primary Session."""
+    session = connection.execute(
+        """
+        SELECT id, started_at, last_event_at FROM sessions
+        WHERE id = ? AND session_class = 'work' AND session_role = 'primary'
+        """,
+        (session_id,),
+    ).fetchone()
+    if session is None:
+        return None
+    times = []
+    undated = 0
+    for row in connection.execute(
+        "SELECT occurred_at FROM activity_events WHERE session_id = ?",
+        (session_id,),
+    ):
+        parsed = parse_timestamp(row["occurred_at"])
+        if parsed is None:
+            undated += 1
+        else:
+            times.append(parsed)
+    metadata = []
+    for field in ("started_at", "last_event_at"):
+        parsed = parse_timestamp(session[field])
+        if parsed is not None:
+            metadata.append({"field": field, "at": parsed.isoformat()})
+    return {
+        "session_id": session_id,
+        "timestamps": [value.isoformat() for value in sorted(times)],
+        "total_events": len(times) + undated,
+        "undated_events": undated,
+        "metadata_times": metadata,
     }
 
 

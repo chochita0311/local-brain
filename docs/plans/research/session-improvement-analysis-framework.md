@@ -3,7 +3,7 @@
 ## Status And Ownership
 
 - Reviewed: `2026-09-27`
-- Status: supporting research and historical proposal. The executable guide now lives in [`personal_insight_guides/`](../../../src/localbrain/personal_insight_guides/core-v2.md), under [FEAT-0108](../feature/feat-0108-personal-improvement-guide-and-finding-contract.md); this research is not loaded by a Run.
+- Status: supporting research and historical proposal. The executable guide now lives in [`personal_insight_guides/`](../../../src/localbrain/personal_insight_guides/), under [FEAT-0108](../feature/feat-0108-personal-improvement-guide-and-finding-contract.md); this research is not loaded by a Run.
 - Proposed analyzer owner: [PRD-0018: Personal AI-Use Improvement Insights](../prd/prd-0018-personal-ai-use-improvement-insights.md) (`approved` for feature planning).
 - Related first increment: [PRD-0005: Workflow And Skill Intelligence](../prd/prd-0005-workflow-and-skill-intelligence.md).
 - Existing first view: [FEAT-0106: First Session Insights View](../feature/feat-0106-first-session-insights-view.md) owns only the observed skill ranking.

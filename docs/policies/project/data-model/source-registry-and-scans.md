@@ -114,8 +114,8 @@ indexes: none; SQLite owns the uniqueness autoindex.
   A successful scan removes prior evidence for paths that are no longer accepted
   provider candidates, using the same normalized-only reconciliation boundary as
   a disappeared native file while leaving the original file untouched. An accepted
-  Session path whose parsed content has neither an Activity Event nor a Usage
-  Record is also omitted: any prior file row is removed, the native stub remains,
+  Session path whose parsed content has no Activity Event, Usage Record, or
+  admitted skill observation is also omitted: any prior file row is removed, the native stub remains,
   and its lack of a freshness row makes later meaningful growth discoverable.
 - Producers: `ingest/scanner.py` inserts and updates scan results, writes the
   resolved Session mapping and all three contract versions, and replaces mappings on

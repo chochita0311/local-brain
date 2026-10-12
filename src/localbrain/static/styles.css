@@ -610,7 +610,7 @@ h1 { margin: var(--space-none); font-family: var(--type-display-font); font-size
 .inventory-switch a { min-width: 58px; padding: var(--space-compact) var(--space-control-gap); color: var(--text-secondary); text-align: center; border-radius: var(--radius-control); font-size: var(--type-label-size); font-weight: var(--type-semibold); }
 .segmented-control a.selected { color: var(--text-primary); background: var(--surface-default); box-shadow: var(--elevation-card); }
 .session-source-control { max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; }
-.session-source-control a { flex: 0 0 auto; }
+.session-source-control a { position: relative; flex: 0 0 auto; }
 
 .inventory-switch {
   position: relative;
@@ -1174,6 +1174,7 @@ a.search-result:hover { background: var(--surface-subtle); }
 .usage-source-control { max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; }
 .usage-source-control a { position: relative; flex: 0 0 auto; white-space: nowrap; }
 .usage-source-control a:not(.selected) + a:not(.selected)::before,
+.session-source-control a:not(.selected) + a:not(.selected)::before,
 .usage-range-control a:not(.selected) + a:not(.selected)::before { content: ""; position: absolute; top: var(--space-control-gap); bottom: var(--space-control-gap); left: 0; width: var(--border-width-control); background: var(--border-default); pointer-events: none; }
 .usage-range-control a { position: relative; }
 .usage-source-control a:not(.selected):hover { color: var(--text-primary); }

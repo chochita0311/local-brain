@@ -15,6 +15,15 @@
 - Created: `2026-07-19`
 - Updated: `2026-07-19`
 
+## Historical Producer Boundary
+
+[SPEC-0036](spec-0036-native-maintenance-session-and-runner-ui-consolidation.md)
+owns the native Claude JSONL replacement for this Spec's stream-backed synthetic
+Session and Usage producer. It preserves the CHECK/FK/UNIQUE schema contract.
+[RUN-40](../run/run-20260719-40-maintenance-session-usage-bridge.md) records the
+passed attempt and the subsequent owner rejection of the producer assumption;
+the approved contract below remains that Run's historical boundary.
+
 ## Implementation Goal
 
 - Establish one enforced Run-to-Maintenance-Session identity and turn the existing private Runner stream into idempotent, priced Usage Records without making maintenance activity eligible for ordinary work consumers.
@@ -72,7 +81,7 @@
 
 ## Open Blockers
 
-- None. The current local database preflight has 171 work/full Sessions, zero linked Sessions, zero orphan/duplicate/mismatched links, six Run rows, and two completed stream-backed in-app Runs.
+- None. The 2026-07-19 preflight recorded for this Spec had 171 work/full Sessions, zero linked Sessions, zero orphan/duplicate/mismatched links, six Run rows, and two completed stream-backed in-app Runs. [RUN-40](../run/run-20260719-40-maintenance-session-usage-bridge.md) owns the ensuing migration and review evidence.
 
 ## Continuity Notes
 

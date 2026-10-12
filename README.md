@@ -19,6 +19,47 @@ The current MVP runs as a FastAPI web application on the local machine. A native
 - Maintain versioned checkpoints and review reversible resource Suggestions.
 - Run Claude maintenance tasks for resource organization, checkpoint drafting, and priority review.
 - Inspect source-aware Session inventory, pinned recall, related evidence, and token or estimated-cost history.
+- Switch Sessions between **List** and **Chart**. Chart fills the content width,
+  places every matching primary Session by recorded time in launch-folder Project
+  rows sorted by name, with full paths distinguishing equal names. Stored branch
+  names form rightward guides from their first retained observation: observed
+  `master`, otherwise `main`, supplies the baseline; other named branches without
+  either use a neutral baseline. Exact `HEAD` is a checkout reference, kept in
+  original metadata but excluded from branch names in layout. Folders containing
+  only `HEAD` and/or missing branch values stay on one line without an empty
+  baseline. In folders with named branches, HEAD/missing records share one
+  unassigned track. Guides are layout
+  aids and do not represent actual Git forks, merges or work duration. Overlapping
+  points show a count and a selector for each original Session. Hover or keyboard
+  focus shows retained metadata temporarily. Moving into its description across
+  the gap keeps it open for reading or scrolling; leaving the node, passage and
+  card closes it after a short grace unless keyboard focus remains there.
+  Click a point to hold its description
+  and access activity points or ordinary detail; click it again or click empty
+  canvas to release it. Hovering another point leaves the held description intact.
+  Pull a point for
+  gentle same-track tension and release it to return home. The **프로젝트** checkbox
+  filter in the toolbar shows/hides folders locally, with whole/partial/none
+  selection stored per source/workspace in the private LocalBrain database. Browsers
+  using that DB share the choice, which survives clearing browser site data. Existing
+  browser choices migrate when no DB setting exists; failed saves offer retry.
+  Existing pinned Sessions have a static halo and pin icon, including aggregates
+  with a pinned member; the selector/preview shows each original pin status. Tracks are
+  compact; minus and **전체 보기** fit both time and all displayed rows. Overview
+  keeps Project and branch names scaled with the rows, while omitting crowded
+  Session titles and the held preview; temporary hover descriptions remain
+  available. Choosing a Project or Session restores reading scale.
+  **Cmd/Ctrl + scroll** zooms both axes; **Cmd/Ctrl + Shift + scroll** changes only
+  horizontal time spacing, preserving vertical scale and position. **Shift + scroll**
+  moves horizontally within the visible time range. Once that range fits entirely,
+  there is no horizontal distance to pan.
+  Hiding an endpoint Project contracts the visible date range. Both ends reserve
+  balanced space; blank dragging stretches farther with resistance and returns
+  within the visible bounds. Drag empty
+  space or use keyboard navigation and zoom to explore history; returning from
+  detail restores orientation, Project visibility and vertical scale. Footer
+  counts/legend/help are omitted. No work relationships are inferred. The
+  existing List and Session **작업 흐름** remain available.
 - Compare Sessions Dashboard usage by source and Daily, Weekly, or Monthly range; Monthly shows each month's total. Estimated cost uses dated OpenAI and Anthropic model rates, including GPT-6 Astra, GPT-6 Sol, and GPT-6.1 Sol. Eligible retained unpriced GPT-6.1 Sol usage is calculated once on startup using its dated Standard/Fast rate. Codex Standard/Fast is selected from recorded thread settings when available; early GPT-5.6 Priority prices use a marked historical 2x estimate. Spark uses an explicitly labeled ccusage 20.0.17 GPT-5.3-Codex proxy, and historical GPT-5.6 or GPT-5.5 Fast requests above 272K input tokens use a separate labeled ccusage-style long-context estimate where no applicable Fast rate was published. The USD amount is an API-equivalent trend estimate, not a subscription charge; other models without their own published rate remain unpriced, and unsupported model/tier/context combinations remain partial. Zero-token Codex snapshots are omitted from dashboard totals, partial pricing coverage remains marked, and source synchronization details remain on Sources.
 - Change either Sessions Dashboard calendar date to show that period immediately; the history chart skips empty dates before the first and after the last value in a custom range, with daily labels at both ends and each month's 1st and 15th.
 - Cost history opens first; the chart switch places Cost before Tokens, and bar-top labels use whole-number compact values.

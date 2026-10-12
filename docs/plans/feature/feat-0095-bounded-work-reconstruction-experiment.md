@@ -298,7 +298,9 @@ runtime parameters and must never be placed in tracked artifacts.
   Status remains `blocked` on that evidence gap, not on another Feature scope
   approval. No production identity, UI, model, migration, or cleanup handoff is
   authorized. Exact checks and retained limitations belong to RUN-20260915-101
-  and its evaluator reports.
+  and its evaluator reports. For UI under this Feature, the separately approved
+  [FEAT-0096 inspection](feat-0096-auto-work-inspection.md) scope is the exception
+  stated above.
 
 ## Continuity Notes
 

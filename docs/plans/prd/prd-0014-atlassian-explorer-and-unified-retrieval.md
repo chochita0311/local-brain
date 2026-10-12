@@ -45,8 +45,8 @@
 
 ### Golden And Rendered Sources
 
-- The current `/atlassian` Browse and Add surfaces, the current Atlassian Item
-  detail route, and the current Local Context Explorer are the visual and
+- At intake, the `/atlassian` Browse and Add surfaces, the Atlassian Item
+  detail route, and the Local Context Explorer provided the visual and
   interaction baselines.
 - A Chrome DevTools review with synthetic Jira and Confluence records observed:
   - ten visible Atlassian Browse selectors plus simultaneous global and local
@@ -388,7 +388,7 @@ authority.
 | Source | Priority | Contribution | Boundary |
 | --- | --- | --- | --- |
 | Human direction | primary | Explorer hierarchy, one search, right detail, local Sync, manual Add, and separate/combined service views | does not authorize implementation, external AI, remote writes, or unbounded source copying |
-| Rendered current Atlassian screens | primary evidence | control density, result displacement, Add sequencing, separate detail route, and missing combined scope | current behavior is evidence, not the target contract |
+| Atlassian screens rendered at intake | primary evidence | control density, result displacement, Add sequencing, separate detail route, and missing combined scope | intake behavior is evidence, not the target contract |
 | Local Context Explorer | golden family reference | stable source hierarchy, tree/list orientation, progressive preview, responsive collapse, and history continuity | document tree semantics do not automatically become Atlassian containment |
 | PRD-0007 and PRD-0008 | passed contract | identity, evidence, registration, access, discovery, explicit Refresh, and read-only boundaries | AI retrieval and the Explorer reframe require new approved scope |
 | PRD-0010 | sibling planning history | passed incremental Add/access reconciliation and current-IA regression expectations | does not own this upper reframe |

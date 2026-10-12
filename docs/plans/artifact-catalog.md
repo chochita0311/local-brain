@@ -6,7 +6,7 @@ Edit the owning artifact, then run `uv run python scripts/build-plan-artifact-ca
 
 Status and relation values are preserved from each owner artifact. `—` means the field is not declared or does not apply; historical Spec `passed` and Run `complete` values are legacy aliases preserved under [Execution Artifact Status](../policies/harness/execution-loop-governance.md#execution-artifact-status).
 
-## PRDs (18)
+## PRDs (19)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -28,8 +28,9 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [PRD-0016: Atlassian Standard URL Structure References](prd/prd-0016-atlassian-standard-url-recognition.md) | `passed` | — |
 | [PRD-0017: Source-Backed Workflow Map And Workstream Lenses](prd/prd-0017-source-backed-workflow-map-and-workstream-lenses.md) | `approved` | — |
 | [PRD-0018: Personal AI-Use Improvement Insights](prd/prd-0018-personal-ai-use-improvement-insights.md) | `approved` | — |
+| [PRD-0019: Observed Session Chart](prd/prd-0019-observed-session-chart.md) | `approved` | — |
 
-## Features (113)
+## Features (114)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -146,8 +147,9 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [FEAT-0111: Automatic Skill Load Observation](feature/feat-0111-automatic-skill-load-observation.md) | `passed` | PRD-0005 |
 | [FEAT-0112: Session Skill Use Estimate](feature/feat-0112-session-skill-use-estimate.md) | `passed` | PRD-0005 |
 | [FEAT-0113: Skill Reference Session Count](feature/feat-0113-skill-reference-session-count.md) | `passed` | PRD-0005 |
+| [FEAT-0114: Observed Session Chart](feature/feat-0114-observed-session-chart.md) | `passed` | PRD-0019 |
 
-## Specs (112)
+## Specs (123)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -263,8 +265,19 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [SPEC-0111: Automatic Skill Load Observation](spec/spec-0111-automatic-skill-load-observation.md) | `approved` | FEAT-0111 |
 | [SPEC-0112: Session Skill Use Estimate](spec/spec-0112-session-skill-use-estimate.md) | `approved` | FEAT-0112 |
 | [SPEC-0113: Skill Reference Session Count](spec/spec-0113-skill-reference-session-count.md) | `approved` | FEAT-0113 |
+| [SPEC-0114: Observed Session Chart](spec/spec-0114-observed-session-chart.md) | `superseded` | FEAT-0114 |
+| [SPEC-0114-R10: Session Chart Hover Preview](spec/spec-0114-r10-session-chart-hover-preview.md) | `superseded` | FEAT-0114 |
+| [SPEC-0114-R11: Session Chart Hover Region](spec/spec-0114-r11-session-chart-hover-region.md) | `approved` | FEAT-0114 |
+| [SPEC-0114-R2: Stable Session Constellation](spec/spec-0114-r2-stable-session-constellation.md) | `superseded` | FEAT-0114 |
+| [SPEC-0114-R3: Project And Branch Session Chart](spec/spec-0114-r3-project-branch-session-chart.md) | `superseded` | FEAT-0114 |
+| [SPEC-0114-R4: Filtered Session Chart Overview](spec/spec-0114-r4-filtered-session-chart-overview.md) | `superseded` | FEAT-0114 |
+| [SPEC-0114-R5: Session Chart Controls And Pins](spec/spec-0114-r5-session-chart-controls-and-pins.md) | `superseded` | FEAT-0114 |
+| [SPEC-0114-R6: Local Chart Preferences And Pan Space](spec/spec-0114-r6-local-chart-preferences-and-pan-space.md) | `superseded` | FEAT-0114 |
+| [SPEC-0114-R7: Session Chart Wheel Controls](spec/spec-0114-r7-session-chart-wheel-controls.md) | `superseded` | FEAT-0114 |
+| [SPEC-0114-R8: Session Chart HEAD Reference Tracks](spec/spec-0114-r8-session-chart-head-reference-tracks.md) | `superseded` | FEAT-0114 |
+| [SPEC-0114-R9: Session Chart Scaled Branch Labels](spec/spec-0114-r9-session-chart-scaled-branch-labels.md) | `superseded` | FEAT-0114 |
 
-## Runs (140)
+## Runs (151)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -408,8 +421,19 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [RUN-138: Automatic Skill Load Observation](run/run-20261002-138-automatic-skill-load-observation.md) | `passed` | FEAT-0111 |
 | [RUN-139: Session Skill Use Estimate](run/run-20261003-139-session-skill-use-estimate.md) | `passed` | FEAT-0112 |
 | [RUN-140: Skill Reference Session Count](run/run-20261004-140-skill-reference-session-count.md) | `passed` | FEAT-0113 |
+| [RUN-141: Observed Session Chart](run/run-20261006-141-observed-session-chart.md) | `passed` | FEAT-0114 |
+| [RUN-142: Stable Session Constellation](run/run-20261006-142-stable-session-constellation.md) | `passed` | FEAT-0114 |
+| [RUN-143: Project And Branch Session Chart](run/run-20261006-143-project-branch-session-chart.md) | `passed` | FEAT-0114 |
+| [RUN-144: Filtered Session Chart Overview](run/run-20261006-144-filtered-session-chart-overview.md) | `passed` | FEAT-0114 |
+| [RUN-145: Session Chart Controls And Pins](run/run-20261007-145-session-chart-controls-and-pins.md) | `passed` | FEAT-0114 |
+| [RUN-146: Local Chart Preferences And Pan Space](run/run-20261007-146-local-chart-preferences-and-pan-space.md) | `passed` | FEAT-0114 |
+| [RUN-147: Session Chart Wheel Controls](run/run-20261007-147-session-chart-wheel-controls.md) | `passed` | FEAT-0114 |
+| [RUN-148: Session Chart HEAD Reference Tracks](run/run-20261007-148-session-chart-head-reference-tracks.md) | `passed` | FEAT-0114 |
+| [RUN-149: Session Chart Scaled Branch Labels](run/run-20261007-149-session-chart-scaled-branch-labels.md) | `passed` | FEAT-0114 |
+| [RUN-150: Session Chart Hover Preview](run/run-20261008-150-session-chart-hover-preview.md) | `passed` | FEAT-0114 |
+| [RUN-151: Session Chart Hover Region](run/run-20261009-151-session-chart-hover-region.md) | `passed` | FEAT-0114 |
 
-## Evaluations And Schema Audits (405)
+## Evaluations And Schema Audits (416)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -818,6 +842,17 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [EVAL-0111 UX: Automatic Skill Load Observation](evaluation/eval-0111-ux-automatic-skill-load-observation.md) | `complete` | FEAT-0111 |
 | [EVAL-0112: Session Skill Use Estimate](evaluation/eval-0112-session-skill-use-estimate.md) | `complete` | FEAT-0112 |
 | [EVAL-0113: Skill Reference Session Count](evaluation/eval-0113-skill-reference-session-count.md) | `complete` | FEAT-0113 |
+| [EVAL-0114: Observed Session Chart](evaluation/eval-0114-observed-session-chart.md) | `complete` | FEAT-0114 |
+| [EVAL-0114-R10: Session Chart Hover Preview](evaluation/eval-0114-r10-session-chart-hover-preview.md) | `complete` | FEAT-0114 |
+| [EVAL-0114-R11: Session Chart Hover Region](evaluation/eval-0114-r11-session-chart-hover-region.md) | `complete` | FEAT-0114 |
+| [EVAL-0114-R2: Stable Session Constellation](evaluation/eval-0114-r2-stable-session-constellation.md) | `complete` | FEAT-0114 |
+| [EVAL-0114-R3: Project And Branch Session Chart](evaluation/eval-0114-r3-project-branch-session-chart.md) | `complete` | FEAT-0114 |
+| [EVAL-0114-R4: Filtered Session Chart Overview](evaluation/eval-0114-r4-filtered-session-chart-overview.md) | `complete` | FEAT-0114 |
+| [EVAL-0114-R5: Session Chart Controls And Pins](evaluation/eval-0114-r5-session-chart-controls-and-pins.md) | `complete` | FEAT-0114 |
+| [EVAL-0114-R6: Local Chart Preferences And Pan Space](evaluation/eval-0114-r6-local-chart-preferences-and-pan-space.md) | `complete` | FEAT-0114 |
+| [EVAL-0114-R7: Session Chart Wheel Controls](evaluation/eval-0114-r7-session-chart-wheel-controls.md) | `complete` | FEAT-0114 |
+| [EVAL-0114-R8: Session Chart HEAD Reference Tracks](evaluation/eval-0114-r8-session-chart-head-reference-tracks.md) | `complete` | FEAT-0114 |
+| [EVAL-0114-R9: Session Chart Scaled Branch Labels](evaluation/eval-0114-r9-session-chart-scaled-branch-labels.md) | `complete` | FEAT-0114 |
 
 ## Fix Logs (24)
 

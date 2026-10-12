@@ -75,7 +75,7 @@
   truthful destination affordances, disclosure behavior, navigation
   continuity, focus, and responsive reading order.
 
-### Current Implementation Evidence
+### Implementation Evidence At Intake
 
 - `src/localbrain/session_context.py` builds a request-time projection from
   Session-backed Atlassian evidence, shared Thread and Workstream links, and

@@ -34,7 +34,7 @@
 
 ## In-Scope Behavior
 
-- Add a narrowly shared workflow eligibility predicate matching FEAT-0086:
+- Add a narrowly shared workflow eligibility predicate based on FEAT-0086 and explicitly requiring `full`:
   `work`, `primary`, `full`, plus a positive normalized event count, persisted
   Activity Event, or Usage Record. Session detail uses only this predicate to
   decide whether to show one `작업 흐름` link; predicate failure is isolated

@@ -104,16 +104,16 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 ## `external-sync.service`
 
 - Physical field or projection: `external_sync_runs.service`
-- Allowed values: `jira`, `confluence`
+- Allowed values: `jira`, `confluence`, `mixed`
 - Enforcement: `application-stored`
 - Logical axis: external synchronization service
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: label → 알 수 없는 서비스; `invalid`: reject; `future`: label → 새 서비스
 - Producers: `src/localbrain/external_sync.py`
 - Consumers: `src/localbrain/external_sync.py`, `src/localbrain/templates/atlassian-refresh.html`
-- Consequence: Keeps the approved manifest bound to one service.
+- Consequence: Records the selected service or a mixed-service aggregate while each target retains its approved Source Instance and single-service dispatch boundary.
 - Presentation mode: `logical-label`
-- Labels: `jira` → Jira; `confluence` → Confluence
+- Labels: `jira` → Jira; `confluence` → Confluence; `mixed` → 여러 서비스
 - Help: none
 - Visible consumer inventory: `src/localbrain/templates/atlassian-refresh.html` (registry-backed)
 

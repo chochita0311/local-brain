@@ -12,6 +12,15 @@
 - Created: `2026-08-03`
 - Updated: `2026-08-03`
 
+## Current Ingestion Eligibility
+
+The Event/Usage producer gate approved on `2026-08-03` and this Feature's original
+acceptance evidence remain recorded below. Current ingestion eligibility is owned
+by [Sessions](../../policies/project/data-model/workspace-and-session-activity.md#sessions):
+an accepted provider Session candidate is meaningful when its parsed file contains
+at least one normalized Activity Event, direct Usage Record, or admitted skill
+observation.
+
 ## Goal
 
 - Keep accepted native JSONL that contains only metadata and no observable Session

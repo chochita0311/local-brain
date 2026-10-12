@@ -147,7 +147,7 @@ Process:
 ## Execution Loop Guidance
 - Apply the execution-loop governance policy for active-feature concurrency, evidence gaps, failure classification, return paths, and post-contract regression checks; this flow does not redefine those rules.
 - Select the execution profile, surface lanes, and evaluator set through the execution-profile policy; this flow does not redefine that matrix.
-- `Spec Agent` is the first execution role and should create one spec per active feature.
+- `Spec Agent` follows the Orchestrator’s setup and should create one spec per active feature.
 - `Builder` should work from the active spec, not directly from rough feature prose.
 - `Fix Agent` should consume findings from the active evaluator set and preserve the same feature boundary.
 

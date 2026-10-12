@@ -47,4 +47,4 @@
 
 ## Open Blockers
 
-- None. Actual preflight reports zero orphan Workstream IDs.
+- None. [RUN-42](../run/run-20260719-42-maintenance-run-workstream-fk-parity.md) records zero orphan Workstream IDs in its 2026-07-19 preflight.

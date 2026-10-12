@@ -17,7 +17,8 @@
 ## Evidence Invalidation
 
 - This Attempt 1 result is historical and is not current execution truth.
-- Live Chrome evidence in [Attempt 2](./eval-0014-ux-context-explorer-attempt-2.md) found severe orientation loss inside the approved explorer contract; the current evaluator result is `FAIL`.
+- Live Chrome evidence in [Attempt 2](./eval-0014-ux-context-explorer-attempt-2.md) found severe orientation loss inside the approved explorer contract; the evaluator result at Attempt 2 was `FAIL`.
+- The later [Attempt 3](./eval-0014-ux-context-explorer-attempt-3.md) records `PASS` after the fixes and re-evaluation.
 
 ## Scope And Checks
 

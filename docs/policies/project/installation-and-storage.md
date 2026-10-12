@@ -209,6 +209,15 @@ New runtime directories use `0700`; the primary DB and private configuration
 use `0600`. A future desktop wrapper must reuse this path resolver, command and
 storage contract instead of introducing machine-specific project paths.
 
+Confirmed Sessions Chart Project visibility belongs to the primary DB's
+`session_chart_preferences` table, per logical source/workspace scope. It is user
+intent rather than a rebuildable cache and requires DB backup or reselection after
+DB loss. Browsers using the same LocalBrain DB share this choice; clearing browser
+site data does not delete it. Camera, selection and vertical scale remain browser
+tab navigation state. No new file root, cloud sync or automatic backup is added.
+[Workspace And Session Activity](data-model/workspace-and-session-activity.md#session_chart_preferences)
+owns its row and recovery semantics.
+
 `LOCALBRAIN_CACHE_DIR` selects private rebuildable state;
 `LOCALBRAIN_DEVELOPMENT_DIR` selects the private development archive. With a
 custom `LOCALBRAIN_DATA_DIR`, unspecified cache/development roots become sibling

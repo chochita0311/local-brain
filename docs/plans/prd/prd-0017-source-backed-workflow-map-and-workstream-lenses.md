@@ -604,7 +604,7 @@ before any runtime data is read.
   [PRD-0016](prd-0016-atlassian-standard-url-recognition.md): passed local
   Atlassian inventory, evidence Sync, read-only exploration, and structure
   reference behavior.
-- [PRD-0005](prd-0005-workflow-and-skill-intelligence.md): sibling draft for
+- [PRD-0005](prd-0005-workflow-and-skill-intelligence.md): initially drafted sibling boundary, now `approved`, for
   aggregate workflow patterns and skill intelligence rather than the
   directional personal-work map owned here.
 
@@ -1240,7 +1240,7 @@ zero-routine-confirmation requirement.
 | PRD-0013 and Session reference implementation | passed evidence baseline | source-neutral direct Session references and exact evidence reasons | semantic or workflow proximity must remain separate from the authoritative related-material rail |
 | Passed Atlassian planning and implementation | source authority and current behavior | stored Jira/Wiki identity, local evidence, structure references, freshness, explicit Sync/Connections/Refresh separation | map entry performs no remote read or implicit refresh and does not rewrite Atlassian ownership |
 | Current Workstream implementation | implementation truth | existing manual Threads, checkpoints, links, Suggestions, and Runs | evidence of current state, not authority to preserve editor-first UX after an approved reframe |
-| PRD-0005 | sibling draft | aggregate repeated workflow, topic, error, and skill insight questions | does not own the per-effort directional graph or map interaction defined here |
+| PRD-0005 | initially drafted sibling boundary, now `approved` | aggregate repeated workflow, topic, error, and skill insight questions | does not own the per-effort directional graph or map interaction defined here |
 | FEAT-0090 and RUN-20260915-100 | implementation truth with limited applicability | tested pair normalization, deterministic identity/revisions, evidence and coverage semantics | not a proven goal extractor; technical PASS does not approve a top-level flow unit or its superseded consumers |
 | Optional future models | deferred supporting source | possible goal-language extraction, semantic continuity, and labels in a matched experiment | no confirmation/source authority and no model admission without separate approval; absence of useful review UI is not an experiment blocker |
 

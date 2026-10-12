@@ -197,7 +197,21 @@ class ReconstructionInputTests(unittest.TestCase):
         self.assertFalse(missing.exists())
 
     def test_supervised_load_uses_no_bootstrap(self):
-        result, resources = supervise("load", (str(self.db), self.manifest))
+        # Exercise the CLI's fresh interpreter boundary. A fork from the full
+        # suite's process can inherit unrelated native state and crash before
+        # the worker loads its input; keep the production supervisor unchanged.
+        manifest = self.root / "supervised-manifest.json"
+        manifest.write_text(json.dumps(self.manifest), encoding="utf-8")
+        command = [sys.executable, "-B", "-c", "\n".join((
+            "import json, sys",
+            "from pathlib import Path",
+            "from localbrain.work_reconstruction_experiment import supervise",
+            "manifest = json.loads(Path(sys.argv[2]).read_text(encoding='utf-8'))",
+            "print(json.dumps(supervise('load', (sys.argv[1], manifest))))",
+        )), str(self.db), str(manifest)]
+        process = subprocess.run(command, capture_output=True, text=True, timeout=30)
+        self.assertEqual((process.returncode, process.stderr), (0, ""))
+        result, resources = json.loads(process.stdout)
         self.assertEqual(result[0]["records"][0]["text"], "Fix parsing.")
         self.assertGreater(resources["peak_bytes"], 0)
 

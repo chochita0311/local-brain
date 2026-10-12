@@ -39,7 +39,9 @@
 - Surface lanes touched: frontend interaction only.
 - Stale-assumption check needed: completed; normal link fallback, direct entry, back/forward routing, server-rendered selected state, and unrelated shared interactions remain intact.
 
-## Remaining Issues
+## Remaining Issues At This Attempt Handoff
+
+These issues describe the Attempt 2 handoff on `2026-07-18`. [FEAT-0022](../feature/feat-0022-usage-summary-and-history.md#continuity-notes) records the later post-run synthetic rendering and browser interaction checks; [FEAT-0020](../feature/feat-0020-usage-and-cost-fact-contract.md#continuity-notes) records the separately approved producer corrections. Those later records do not change this fix's original verification limits.
 
 - Direct scripted browser interaction was unavailable in this environment. Static JavaScript validation, 77 automated tests, and a temporary-server `200` response verified the replacement hooks and asset delivery; the exact live scroll coordinate remains a human-runtime confirmation point.
 - A separate ccusage comparison invalidated the current Codex normalizer and pricing acceptance basis. That is a FEAT-0020 Spec issue and was not absorbed into this frontend fix.

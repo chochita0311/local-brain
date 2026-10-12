@@ -16,6 +16,59 @@ The starting point is a screen-plus-context source set:
 
 The upstream design system is a strong visual guide, not a complete LocalBrain specification. Commerce-specific concepts, unsupported states, and source-specific component assumptions do not transfer automatically. LocalBrain adds the feedback, accessibility, provenance, console, long-path, and dense-workflow rules needed by the product.
 
+The Sessions Chart also references the **Chochita Archive / Andromeda collection**
+(owner-selected, 2026-10-06) for spatial point/card exploration, selection focus
+and camera interaction. LocalBrain retains its own shell, typography, palette
+and source cues. Recorded time supplies horizontal structure; no star background,
+decorative links or inferred work grouping is imported. This is an interaction
+reference within the existing creative direction. The owner's subsequent
+**Obsidian Graph view** reference contributes the feeling of tension when pulling
+a point. The Chart adapts it into transient bounded motion around fixed homes,
+with recorded time anchors and spring return. The owner's later review replaces
+the irregular field with **recorded-folder Project bands and Git-like branch
+guides**. Stored branch names and first Session observations own that structure;
+exact `HEAD` is retained as original metadata rather than a named branch.
+Folders with only HEAD/missing values use one line without an empty baseline;
+mixed named-branch folders keep those values on one unassigned track.
+It imports no actual Git ancestry or work inference. Tension is now small and
+local to one track. No note relationships, persistent free layout or Obsidian
+styling are imported.
+
+The next owner refinement favors compact tracks and a whole-diagram overview
+with native checkbox Project visibility. Footer annotations are removed. The
+camera offers light resistance near recorded date ends; overview keeps Project
+and branch names scaled with their rows, suppresses crowded Session titles and
+returns to reading scale on selection. These are exploration
+controls over retained observations, not new relationships or work classification.
+
+The subsequent toolbar refinement places Project filtering in the date navigation
+position, removes directional/date controls and retains drag/keys/zoom/fit/focus.
+Project choices persist locally after browser close. Existing pinned Sessions use
+a static halo in the native pin color and the established pin shape, without
+recoloring source cues or adding pulse. Two-segment List/Chart omits a divider;
+the source header adopts Dashboard separators and `All`.
+
+The owner's storage/space refinement puts confirmed Project choices in LocalBrain's
+private DB, shared across browsers while camera state remains local to the tab.
+The same native canvas gains balanced end insets around centered source targets,
+visible-project endpoint anchoring and more resisted travel before spring return.
+These changes retain compact branch geometry and the existing static pin language.
+Only a genuine preference failure introduces contextual recovery copy.
+
+Independent time zoom lets the owner compress history without shrinking Project
+and branch spacing. The modifier gesture keeps the pointer's time and vertical
+orientation stable; the existing whole-chart controls retain overview behavior.
+
+Temporary descriptions let the owner inspect points before choosing one. A
+stronger native information surface and border make hover apparent while source
+and pin cues keep their meanings. Clicking holds a description; repeating the
+click or choosing empty canvas releases it. A separate temporary card keeps an
+already held description in place, including on narrow screens. This extends the
+existing point/card exploration without introducing a new visual language.
+The owner's next refinement joins the node and description through a continuous
+hover passage so moving into the card feels stable. Card reading remains temporary
+and local; leaving its pointer/focus ownership closes it after a short grace.
+
 ## Creative North Star
 
 **The Trusted Tool**

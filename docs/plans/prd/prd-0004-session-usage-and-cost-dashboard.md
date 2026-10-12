@@ -44,8 +44,8 @@
 - [Design Evaluation](../../policies/design/design-evaluation.md): dashboard containment, source-use discipline, hierarchy, and rendered-evidence requirements.
 - [Interaction Evaluation](../../policies/experience/interaction-evaluation.md): range changes, scope reset, state continuity, and control behavior.
 - [Project Roadmap](../project/roadmap.md): planned Activity Insights phase.
-- [PRD-0003](prd-0003-data-model-visibility-and-schema-cleanup.md): draft global data-model visibility and cleanup boundary; it does not own this PRD's usage and price semantics.
-- [PRD-0005](prd-0005-workflow-and-skill-intelligence.md): sibling draft for personal workflow and skill insights.
+- [PRD-0003](prd-0003-data-model-visibility-and-schema-cleanup.md): initially drafted global data-model visibility and cleanup boundary, now `passed`; it does not own this PRD's usage and price semantics.
+- [PRD-0005](prd-0005-workflow-and-skill-intelligence.md): initially drafted sibling boundary, now `approved`, for personal workflow and skill insights.
 
 ### Current Implementation References
 

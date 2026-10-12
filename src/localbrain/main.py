@@ -10,7 +10,7 @@ import time
 from collections import OrderedDict
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Iterable, Optional
+from typing import Iterable, List, Optional
 from urllib.parse import parse_qs, parse_qsl, quote, urlencode, urlsplit
 
 from fastapi import FastAPI, HTTPException, Query, Request
@@ -82,6 +82,8 @@ from .queries import (
     search,
     session_conversation_events,
     session_inventory_page,
+    session_chart_inventory,
+    session_chart_activity,
     session_detail,
     session_parent,
     session_source_scopes,
@@ -94,6 +96,11 @@ from .session_pins import (
     list_all_pinned_sessions,
     pin_session as persist_session_pin,
     unpin_session as persist_session_unpin,
+)
+from .session_chart_preferences import (
+    get_project_visibility,
+    set_project_visibility,
+    validate_hidden_projects,
 )
 from .runner import (
     cancel_run,
@@ -643,7 +650,9 @@ def sessions_page(
     source: str = Query(default="all"),
     workspace: Optional[int] = Query(default=None),
     page: str = Query(default="1"),
+    display: str = Query(default="list"),
 ):
+    selected_display = "chart" if display == "chart" else "list"
     try:
         requested_page = int(page)
         page_is_valid = requested_page > 0
@@ -661,6 +670,8 @@ def sessions_page(
         ).fetchone() is not None
         if not source_is_valid or not workspace_is_valid:
             params = {}
+            if selected_display == "chart":
+                params["display"] = "chart"
             if source_is_valid and source != "all":
                 params["source"] = source
             if workspace_is_valid and workspace is not None:
@@ -678,6 +689,8 @@ def sessions_page(
             not page_is_valid or requested_page != pagination["page"]
         ):
             params = {"page": pagination["page"]}
+            if selected_display == "chart":
+                params["display"] = "chart"
             if selected_source:
                 params["source"] = selected_source
             if workspace is not None:
@@ -686,10 +699,23 @@ def sessions_page(
                 url="/sessions?{}".format(urlencode(params)), status_code=303
             )
         pinned_sessions = list_all_pinned_sessions(connection)
+        chart_project_preference = {"hidden_projects": None, "available": True}
+        if selected_display == "chart":
+            try:
+                chart_project_preference["hidden_projects"] = get_project_visibility(
+                    connection, selected_source or "all", workspace
+                )
+            except (sqlite3.Error, ValueError):
+                chart_project_preference["available"] = False
         page_context = {
             "request": request,
             "active_page": "sessions",
             "selected_inventory": "sessions",
+            "selected_display": selected_display,
+            "chart_project_preference": chart_project_preference,
+            "chart_sessions": session_chart_inventory(
+                connection, selected_source, workspace
+            ) if selected_display == "chart" else [],
             "page_title": "Sessions",
             "selected_source": selected_source or "all",
             "selected_source_label": (
@@ -715,6 +741,62 @@ def sessions_page(
             else None,
         }
     return templates.TemplateResponse("sessions.html", page_context)
+
+
+def _save_chart_project_visibility(
+    source: str, workspace: Optional[int], hidden_projects: List[str], only_if_missing: bool
+) -> List[str]:
+    try:
+        with transaction() as connection:
+            if source != "all" and source not in {
+                item["source_key"] for item in session_source_scopes(connection)
+            }:
+                raise HTTPException(status_code=400, detail="Invalid source scope")
+            if workspace is not None and connection.execute(
+                "SELECT 1 FROM workspaces WHERE id = ?", (workspace,)
+            ).fetchone() is None:
+                raise HTTPException(status_code=400, detail="Invalid workspace scope")
+            result = set_project_visibility(
+                connection, source, workspace, hidden_projects,
+                only_if_missing=only_if_missing,
+            )
+        return result
+    except (sqlite3.Error, ValueError) as error:
+        raise HTTPException(status_code=503, detail="Project preferences unavailable") from error
+
+
+@app.put("/sessions/chart/project-visibility")
+async def save_chart_project_visibility(
+    request: Request,
+    source: str = Query(default="all"),
+    workspace: Optional[int] = Query(default=None, ge=-(2**63), le=2**63 - 1),
+):
+    if request.url.hostname not in {"localhost", "127.0.0.1", "::1"} or request.headers.get("sec-fetch-site", "").lower() == "cross-site":
+        raise HTTPException(status_code=400, detail="Local access required")
+    origin = request.headers.get("origin")
+    if origin and origin != "{}://{}".format(request.url.scheme, request.url.netloc):
+        raise HTTPException(status_code=400, detail="Same-origin submission required")
+    if request.headers.get("content-type", "").split(";", 1)[0].strip().lower() != "application/json":
+        raise HTTPException(status_code=415, detail="JSON submission required")
+    body = bytearray()
+    async for chunk in request.stream():
+        if len(body) + len(chunk) > 65_536:
+            raise HTTPException(status_code=413, detail="Project preferences are too large")
+        body.extend(chunk)
+    try:
+        payload = json.loads(body)
+        if not isinstance(payload, dict) or set(payload) - {"hidden_projects", "only_if_missing"}:
+            raise ValueError("Invalid preference payload")
+        hidden_projects = validate_hidden_projects(payload.get("hidden_projects"))
+        only_if_missing = payload.get("only_if_missing", False)
+        if not isinstance(only_if_missing, bool):
+            raise ValueError("Invalid migration option")
+    except (ValueError, RecursionError) as error:
+        raise HTTPException(status_code=400, detail="Invalid Project preferences") from error
+    result = await run_in_threadpool(
+        _save_chart_project_visibility, source, workspace, hidden_projects, only_if_missing
+    )
+    return JSONResponse({"hidden_projects": result}, headers={"Cache-Control": "no-store"})
 
 
 @app.get("/context", response_class=HTMLResponse)
@@ -2788,6 +2870,7 @@ def sync_sessions_page(
     source: str = Query(default="all"),
     workspace: Optional[int] = Query(default=None),
     page: int = Query(default=1, ge=1),
+    display: str = Query(default="list"),
 ):
     report = scan_session_sources()
     outcome = report.get("outcome")
@@ -2799,6 +2882,8 @@ def sync_sessions_page(
             status_code=303,
         )
     params = {"sync": outcome}
+    if display == "chart":
+        params["display"] = "chart"
     valid_source_keys = {
         item.get("source_key")
         for item in report.get("sources", [])
@@ -2952,6 +3037,15 @@ def schema_page(
     )
 
 
+@app.get("/sessions/{session_id}/chart-activity")
+def show_session_chart_activity(session_id: int):
+    with connect() as connection:
+        activity = session_chart_activity(connection, session_id)
+    if activity is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return JSONResponse(activity, headers={"Cache-Control": "no-store"})
+
+
 def _session_navigation_state(
     connection: sqlite3.Connection,
     source: str,
@@ -2993,6 +3087,17 @@ def show_session(
         selected_source, selected_workspace, navigation_query = (
             _session_navigation_state(connection, source, workspace)
         )
+        session_list_url = "/sessions{}".format(navigation_query)
+        if request.query_params.get("display") == "chart":
+            params = {"display": "chart"}
+            if selected_source != "all":
+                params["source"] = selected_source
+            if selected_workspace is not None:
+                params["workspace"] = selected_workspace
+            return_page = request.query_params.get("page", "1")
+            if return_page.isdigit() and int(return_page) > 1:
+                params["page"] = return_page
+            session_list_url = "/sessions?{}".format(urlencode(params))
         events = conversation_event_views(
             session_conversation_events(connection, session_id)
         )
@@ -3072,7 +3177,7 @@ def show_session(
             "selected_workspace": selected_workspace,
             "navigation_query": navigation_query,
             "workflow_available": workflow_available,
-            "session_list_url": "/sessions{}".format(navigation_query),
+            "session_list_url": session_list_url,
             "parent_url": (
                 "/sessions/{}{}".format(parent["id"], navigation_query)
                 if parent

@@ -32,7 +32,7 @@
   - connector implementation or authentication
   - changes to scan, source, Project, Jira, or Confluence data contracts
   - new health metrics, filters, or source-management actions
-  - Local Context source management owned by `feat-0011`
+  - Local Context source management owned by `feat-0014`
 
 ## Contract Surfaces
 

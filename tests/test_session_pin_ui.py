@@ -150,7 +150,7 @@ class SessionPinUiTests(unittest.TestCase):
         )
 
         self.assertIn("Pinned Sessions", response)
-        self.assertLess(response.index(">전체</a>"), response.index(">Claude</a>"))
+        self.assertLess(response.index(">All</a>"), response.index(">Claude</a>"))
         self.assertLess(response.index(">Claude</a>"), response.index(">Codex</a>"))
         self.assertLess(
             response.index(">Codex</a>"), response.index(">Codex Company</a>")

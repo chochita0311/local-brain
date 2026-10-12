@@ -239,6 +239,7 @@ Approved external sources through MCP Gateway
   explicit one-call partial Space-candidate maintenance composition
 - `src/localbrain/atlassian_refresh.py`: local Item/Space/Thread/Workstream/all-known scope resolution, freshness-aware preview, mixed-instance bounded Run preparation, and atomic validated result application
 - `src/localbrain/subagents.py`: lazy Claude Subsession compatibility discovery over the source-native `subagents/` directory
+- `src/localbrain/session_chart_preferences.py`: scoped, bounded user-selected Chart visibility in the private primary DB, independent of observations and browser camera state
 - `src/localbrain/schema_explorer.py`: manifest-only Schema query normalization and read model; it never opens the runtime database
 - `src/localbrain/templates/`: server-rendered UI views
 - `src/localbrain/static/`: browser behavior and visual presentation
@@ -639,13 +640,13 @@ Original Claude and Codex JSONL remains the authoritative Session source. LocalB
 ### Session Eligibility
 
 Provider parsing is followed by one shared meaningful-Session eligibility gate. A
-parsed file must contain at least one normalized Activity Event or one direct
-Usage Record; title, name, identity, timestamp, cwd, branch, or other metadata
+parsed file must contain at least one normalized Activity Event, direct Usage
+Record, or admitted skill observation; title, name, identity, timestamp, cwd, branch, or other metadata
 alone describes an empty native stub. A successful readable-source scan stores no
 normalized Session or source-file evidence for a new stub and reconciles an
 existing empty projection after reparsing current sibling files. The source JSONL
 is never deleted. Because an ignored stub retains no freshness row, later syncs
-inspect it again and import it once Event or Usage evidence appears.
+inspect it again and import it once Event, Usage, or admitted skill observation evidence appears.
 
 ### Usage Normalization And Repair
 
@@ -701,6 +702,107 @@ The child projection carries the existing `user_message_count` beside
 `event_count`; a lazy Claude child derives the same question count from its
 source events. The detail row renders question, event, then activity date.
 Detail links retain the selected source/workspace only as return orientation.
+
+The additive Sessions Chart uses `display=chart`; `display=list` or an absent or
+unrecognized display value selects the existing paginated List. Scope repair and
+the Session-only sync redirect retain Chart state. The full Chart projection
+selects primary work metadata without pagination, age cutoff or body/source-file
+reads. `parse_timestamp` normalizes valid `started_at`/`last_event_at` to UTC;
+the latest valid value anchors the point. Only metadata-undated rows need an
+Event-time fallback query. The Chart never calls activity-segment construction.
+
+`GET /sessions/{id}/chart-activity` admits only an existing primary work Session
+and returns ordered timestamp occurrences, total/undated Event counts and labeled
+valid metadata times with `Cache-Control: no-store`. It selects no Event body,
+tool argument or opaque source identity and performs no database mutation.
+Initial Chart metadata carries only ID, title, source cue fields, recorded
+execution path/branch, lexically normalized folder key/name/display path,
+earliest/latest valid observed time and provenance. `~` uses the local home;
+normalization never reads Git history, resolves symlinks or groups by Git root.
+Timestamp fallback continues to read only Event times when metadata is unusable.
+The template additionally projects IDs from the already-loaded complete eligible
+pin inventory; no new SQL, limit or mutation is introduced. Chart intersects these
+identities with scoped records. A static pin cue reflects any pinned member of a
+pixel aggregate; the selector and preview use the exact original member's status.
+The browser builds case-insensitive folder-name/full-path ordered bands, missing
+folder last, and stored-branch membership once per scope. Observed master/main owns
+the baseline; feature-only data has a neutral structural guide. Missing branch
+data never acquires a branch identity. Guide joins terminate at the first retained
+observation, without asserting a Git fork, merge or Session relationship.
+
+Only viewport points are rendered, with same-track pixel buckets exposing exact
+counts and all original Session identities through a native selector; mixed
+sources use a neutral aggregate cue. No footer totals/legend/help are rendered.
+A native Project checkbox/search disclosure controls local visibility by known
+folder key. Filter changes repack homes and clear hidden selection/activity;
+ordinary camera/zoom/resize only change projection. Reading track pitch is 48px,
+heading 40px and Project gap 8px. A separate bounded vertical scale allows all
+visible rows to fit; overview plot targets and Project/branch names scale while
+crowded Session titles and the held preview are withheld. Project/Session focus
+restores reading scale. Node hover/focus renders original metadata in a separate
+temporary instance of the native preview without moving the camera, reserving
+space, persisting hover or loading activity. Node/card/facing-edge passage share
+geometric hover ownership; exit outside both pointer and keyboard focus closes
+it after native state-duration grace. Reentry cancels the callback. The gap adds
+no hit overlay; the focusable card accepts text reading/selection and local
+scrolling without selection actions or canvas dragging, including narrow widths.
+New hovered metadata resets local scroll; only visible keyboard focus retains
+the card after pointer exit, so mouse text clicks do not hold it.
+Activation
+holds selection, with repeat/blank/close/Escape dismissal. Hovering another node
+keeps the held Session and activity intact. Blank click clears temporary-only
+hover too, and cancellation clears pending exit callbacks. A cursor
+guard prevents stationary-pointer hover reappearance after reprojection; genuine
+movement resumes it. Small transient drag offsets couple only
+same-track neighbors; a damped spring returns to exact anchors with no idle
+simulation or persisted layout. Guides/activity times stay fixed. Cancellation,
+camera change, resize or page hiding clears capture/offsets, and reduced motion
+omits coupling and returns immediately. Selected Event points may
+share a pixel bucket, whose exact count and observed endpoint times remain
+inspectable; no duration bar or Session edge is produced. Camera, selection ID,
+vertical scale and List page use scope-specific version-four sessionStorage, which
+also carries visibility as a navigation fallback. The dedicated
+`session_chart_preferences` table owns durable visibility per logical source and
+workspace scope; empty workspace scope means all workspaces. It has no cascading
+FK and stores only sorted hidden-folder keys and update time. DB state, including
+an empty all-selected list, overrides browser state. Only known keys affect the
+screen; absent hidden keys remain available when their folders return. An absent
+DB row permits migration from valid
+`localbrain:session-chart-projects:1:<source>:<workspace>` localStorage, then legacy
+tab visibility, through create-if-absent. Clear the old browser key only after DB
+confirmation. Server load failure never triggers automatic migration.
+
+`PUT /sessions/chart/project-visibility` validates local same-origin access,
+source/workspace query scopes and a JSON body of at most 65,536 bytes. The payload
+admits only `hidden_projects` and optional Boolean `only_if_missing`; hidden keys
+must be a list of at most 2,000 strings, each at most 4,096 characters, with at most
+60,000 encoded UTF-8 bytes after deduplication. Empty keys represent missing cwd.
+A transaction replaces one current preference or preserves an existing migration
+row, and commits before acknowledgment. Invalid inputs/scopes return 400, invalid
+workspace query types or values outside SQLite signed-integer range 422, non-JSON 415, oversized bodies 413 and unavailable DB
+writes 503. DB work runs in the thread pool. These writes never alter Sessions,
+pins, membership or source files. Browser writes are serialized and retain the
+newest pending choice; bounded keepalive requests support navigation, while load/save
+failure exposes a native contextual retry and preserves in-memory use. Only confirmed
+writes are durable; abrupt closure with unconfirmed queued work is not a save receipt.
+Preference writes occur on filter changes rather than camera rendering. Browser
+storage denial keeps filtering/navigation usable in memory. Earlier valid camera
+time/scale/selection migrates but old-spacing Y is discarded. The toolbar has the
+Project filter and zoom/fit/focus; directional/date controls are omitted while
+axis dates and drag/keyboard navigation remain. Initial
+reading entry fits time and starts at the alphabetical top; whole fit also scales
+Y and brings the canvas into view. Bounds use visible first/latest observations
+and selected visible activity; internal time origin remains fixed. Filtering refits
+a whole-time overview, retains endpoint anchoring, or preserves a middle camera's
+time anchor and clamps it. Both ends account for the centered projected 40px target
+and reserve 64px, capped at 20% usable width and free target space; guide ends use
+the same frame inset. Fit retains the existing base reading-scale/one-day cap, so
+short periods can underfill the right side. Floating preview width is reserved.
+Blank pan uses an 80px resistance limit capped at half usable plot width; the existing
+on-demand spring returns the camera, with immediate reduced-motion restoration and
+no saved overshoot or idle loop. Point-pull limits are unchanged.
+Ordinary detail's Chart backlink adds return state only;
+Workflow links and projection/correction contracts are unchanged.
 
 ### Adapter-specific Rules
 

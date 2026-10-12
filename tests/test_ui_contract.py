@@ -1246,7 +1246,7 @@ class UiContractTests(unittest.TestCase):
         )
 
         self.assertEqual(html.count('class="session-page-numbers'), 2)
-        self.assertEqual(html.count('aria-current="page"'), 4)
+        self.assertEqual(html.count('aria-current="page"'), 5)
 
     def test_session_inventory_separates_parent_links_and_child_disclosure(self):
         for marker in (

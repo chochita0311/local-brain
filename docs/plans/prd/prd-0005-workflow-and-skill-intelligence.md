@@ -163,7 +163,7 @@ increment. The linked child Features and current code own its later implementati
 ### Information Architecture
 
 - Place broader Workflow Intelligence in a peer `Insights` view within the Sessions Dashboard family. In the Usage & Cost heading, replace the redundant `세션 보기` action with an `Insights` navigation button; the persistent LNB already links to `Sessions`. In the Insights heading, provide a reciprocal `Usage & Cost` action. This pair switches between the two views like tabs without adding a separate tab row. Give each view its own route and load its data only when selected, preserving the fast initial usage overview. The owner confirmed this navigation on 2026-09-27.
-- Make the observed-skill ranking the first bounded section of Insights: show the most-used skill immediately and the complete descending list beneath it. Add frequent questions, recurring work patterns, and reviewable improvement or skill suggestions as later sections when their evidence contracts are approved. Do not introduce a narrow left or right rail for the list.
+- Make the observed-skill ranking the first bounded section of Insights: show the most-used skill immediately and the complete descending list beneath it. Add frequent questions, recurring work patterns, and reviewable improvement or skill suggestions as later sections when their evidence contracts are approved. Do not introduce a narrow left or right rail for the list. This list layout requirement governs the first ranking increment; [PRD-0018](prd-0018-personal-ai-use-improvement-insights.md) owns the later composition with a compact skill ranking beside the analyzer.
 - The primary reading order is:
   - period, source, Project, or Workstream scope
   - concise personal workflow summary
