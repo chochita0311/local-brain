@@ -1,5 +1,26 @@
 # Project Roadmap
 
+## Local Natural Language Search — 2026-10-13
+
+[PRD-0020](../prd/prd-0020-local-natural-language-search.md) is approved for
+continuous implementation and tests. Contracts FEAT-0115–0118, the local search
+engine FEAT-0119 and parallel-input UI FEAT-0120 have passed their bounded checks.
+[FEAT-0121](../feature/feat-0121-natural-search-local-comparison.md) completed actual
+Qwen/Laya/reranker comparisons, full eligible private-index measurements, regression
+and independent installed-wheel model execution. [FEAT-0122](../feature/feat-0122-natural-search-ranking-precision.md)
+replaced RRF with cosine ordering. [FEAT-0123](../feature/feat-0123-general-work-search.md)
+adds original/focused query views and page-bounded excerpt reads across general
+work domains, preserving Qwen512/512/cutoff0.45 and exact-identifier admission.
+Broad development first-result usefulness improves; held-out quality is unchanged
+and individual recall/order regressions remain explicit. Useful discovery, coverage
+and latency govern evaluation; perfect classification is not an acceptance gate.
+The current baseline can close for local use; further tuning is optional when
+repeated use reveals a concrete retrieval burden. The owner subsequently authorized
+documentation review, verification and commit/push of public code, docs and
+synthetic fixtures; [RUN-160](../run/run-20261013-160-general-work-search.md#session-closeout--2026-10-13)
+records that closeout. Personal content stays local. The stopped workflow-map
+track remains outside this authorization.
+
 ## Observed Session Chart — 2026-10-12
 
 The owner approved PRD creation and continued execution for

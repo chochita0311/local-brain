@@ -138,6 +138,7 @@ def storage_status(data_dir, *, cache_dir=None, development_dir=None):
     categories = {"database": 0, "migration_backups": 0, "simulation": 0,
                   "saved_runs": 0, "development_evidence": 0, "model_metadata": 0, "other": 0}
     categories["preview"] = 0
+    categories["natural_search"] = 0
     roots = [(root, None)]
     if cache_dir is not None and Path(cache_dir) != root:
         roots.append((Path(cache_dir), "cache"))
@@ -165,6 +166,8 @@ def storage_status(data_dir, *, cache_dir=None, development_dir=None):
                 category = "simulation"
             elif top == "auto-work-preview":
                 category = "preview"
+            elif top == "natural-search":
+                category = "natural_search"
             elif top in {"runs", "personal-insight-runs"} and kind is None:
                 category = "saved_runs"
             elif top == "personal-insight-evaluations" or top.startswith(("work-context-", "work-role-", "source-claim-")):

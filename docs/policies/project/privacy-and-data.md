@@ -40,6 +40,18 @@ The default runtime directory is:
 
 It contains `localbrain.db`, private `session-sources.toml`, bounded schema-migration recovery copies, and Run artifacts. `LOCALBRAIN_DATA_DIR` may override this location; runtime paths inside a Git repository or the source/installed package are rejected. The data directory uses owner-only permissions and the primary DB uses `0600`. A versioned recovery copy is local-only, is validated before use, and is never overwritten during its retention window. After successfully committed initialization and current-contract/integrity validation, inactive owned migration copies are retired, keeping at most the newest eligible copy for seven days. Failed initialization and uncertain or active files preserve recovery copies. Manual backups, saved reports, and live SQLite sidecars are outside automatic retirement. [macOS Installation And Local Storage](installation-and-storage.md) owns setup, supported commands, and the detailed retention boundary.
 
+Natural-language search keeps activation/settings in `<data>/natural-search.json`
+and all derived text spans, provenance locators and vectors in
+`<cache>/natural-search/`. Shared public model weights never contain source text
+or queries. Model inference uses verified local assets offline; page visits
+cannot download them. No automatic query history or feedback archive is written,
+and packaged `serve` disables access logging so query URLs are not copied into
+server logs. Browser history can retain submitted URLs. Private benchmark
+queries, judgments and raw results belong only to an explicitly selected private
+Development archive; tracked fixtures and reports contain authored synthetic
+material. See [Natural-Language Search](natural-language-search.md) for current
+eligibility checks and stale-evidence refusal.
+
 `session-sources.toml` stores only a stable local source key, display label,
 provider kind, and local root path. It contains no credential, account identity,
 or Session content, is created with owner-only permissions, and remains outside

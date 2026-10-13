@@ -7,6 +7,7 @@ The current MVP runs as a FastAPI web application on the local machine. A native
 ## Current Capabilities
 
 - Ingest local Claude and Codex session history.
+- Search eligible Sessions and Local Context with local Korean natural-language retrieval, beside the original keyword search.
 - Register and browse folders, individual files, and Apple Notes as Local Context sources.
 - Read safe, locally rendered Markdown in Local Context previews, context-aware full Document views, and Session or Subsession conversations.
 - Browse Jira and Confluence links plus URL-derived Project, Board, Filter,
@@ -100,6 +101,49 @@ a source checkout. Development setup belongs to the
 [Developer Guide](docs/policies/project/developer-guide.md#setup-and-run).
 
 Open `http://127.0.0.1:8000`. The local database is created automatically on first startup. Stop the server with `Ctrl+C`.
+
+### Search Sessions And Local Context In Natural Language
+
+Use the **left search input in the header**, or open `/natural-search`, and describe
+what you want to find, for example `만들던 앱 관련 세션을 보여줘`. The original
+keyword search stays beside it. Results group related passages under their
+original Session or Document, with links to the exact evidence and back to results.
+
+Install the [optional local model runtime](docs/policies/project/installation-and-storage.md#install-the-local-model-runtime), then:
+
+```bash
+localbrain models install embedding
+localbrain search prepare
+localbrain search status
+```
+
+Source checkout users prefix these commands with `uv run --no-sync`. Restart an
+already running server after updating the code or model dependencies. The page's
+**검색 준비** action can perform preparation after the model is installed. First
+preparation reads all eligible primary work Sessions and enabled, readable Local
+Context bodies; long histories can take substantial time. Maintenance Runs and
+subsessions remain excluded. A prepared index updates automatically after Sync
+while the app is running. No personal model training or remote search is needed.
+
+The search model is **Qwen3-Embedding-0.6B**: it reads the eligible text locally to
+create vectors and embeds each query for comparison. Qwen3-4B/8B are separate
+generation experiments. Laya and Qwen3-Reranker-0.6B were tested separately and
+are optional development comparisons; ordinary search does not load them.
+See [model roles and context limits](docs/policies/project/natural-language-search.md#model-roles-and-context)
+for what the pretrained model and molecularization each contribute.
+
+Settings live in Application Support; private passages, pointers and vectors live
+in the separate rebuildable Caches directory. Public weights use the shared Hub
+cache. The initial common profile uses 512-token body targets, 512-dimensional
+vectors and a cosine cutoff of 0.45; this is a relevance criterion, not a probability.
+Search keeps your full question and can also search its topic/action wording,
+combining the two meaning scores. Quoted, negative and uncertain wording stays
+intact. Repeated matching words do not add a ranking bonus, and exact identifiers
+retain a lexical lookup path. Excerpts load for the current result page. Updating this
+ranking policy requires a server restart, without rebuilding existing vectors.
+Explicit document/session and calendar conditions appear with results; ambiguous
+conditions retain candidates with a notice. See the [search contract](docs/policies/project/natural-language-search.md)
+for exclusions, recovery and interpretation limits.
 
 ### Run a personal improvement analysis
 

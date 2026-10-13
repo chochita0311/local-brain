@@ -1,5 +1,5 @@
 {% macro conversation_message(event, user_label, assistant_label) -%}
-  <article class="event-row {{ event.role }}">
+  <article class="event-row {{ event.role }}"{% if event.id is defined %} id="event-{{ event.id }}"{% endif %}>
     <div class="event-rail"><span></span></div>
     <div class="event-content">
       <div class="event-header">

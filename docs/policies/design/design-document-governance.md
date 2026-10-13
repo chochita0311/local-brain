@@ -190,6 +190,7 @@ A constitution change fails when:
 | 2026-10-07 | v32 | Overview retains branch labels instead of dropping them below a scale threshold. Project-name typography and branch caption/height/vertical padding follow the vertical projection, with scaled heading measurement preventing occlusion. Fixed axis insets, reading tokens and native focus remain; tiny whole-fit names restore to reading scale through existing focus. |
 | 2026-10-08 | v33 | Session-node hover/focus gains temporary native metadata descriptions and a stronger information surface/border. Activation holds selection; repeat/blank activation releases it without stationary-pointer reappearance. A separate temporary component preserves held description/activity and narrow layout; hover changes no camera, scale, persistence or activity. Source/pin cues and exact-member access remain. |
 | 2026-10-09 | v34 | Node, temporary metadata card and the facing-edge passage share hover ownership. The card accepts pointer/focus reading and local scrolling; leaving ownership closes it after native state-duration grace with cancellation on reentry. No invisible hit overlay intercepts blank canvas input; card input does not hold selection or move the map. Pending exit callbacks clear with transient hover. |
+| 2026-10-12 | v35 | Extended the existing Search/read families with a labeled two-input header, source-parent evidence/result continuity, and explicit preparation/coverage states using existing semantic tokens. |
 
 ## Practical Summary
 

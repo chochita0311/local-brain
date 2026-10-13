@@ -245,6 +245,23 @@ single linked checkbox in the detailed backlog below.
 
 ## P1 - Sessions And Retrieval
 
+- [x] Approve and implement [PRD-0020: Local Natural Language Search](../prd/prd-0020-local-natural-language-search.md)
+  beside existing search, with whole eligible Session/Local Context coverage,
+  private derived storage and automatic refresh. Contracts/engine/UI passed.
+- [x] Complete [FEAT-0121](../feature/feat-0121-natural-search-local-comparison.md)
+  actual-model comparison, full private-index measurements and final regression.
+- [x] Compare concrete natural-search noise and adopt the measured query-time
+  ordering improvement in [FEAT-0122](../feature/feat-0122-natural-search-ranking-precision.md).
+- [x] Improve general work search across multiple domains in
+  [FEAT-0123](../feature/feat-0123-general-work-search.md), comparing original/focused
+  query representations, preserving source contracts and measuring real query cost.
+- [ ] Optional follow-up: reopen ranking/model work only when repeated real use
+  shows difficulty finding useful sources, broad-topic gaps, ambiguous meanings
+  dominating top results, individual regressions or disruptive latency;
+  preserve the observed holdouts and private query boundary.
+  [PRD-0020](../prd/prd-0020-local-natural-language-search.md#decisions-and-remaining-review)
+  owns this follow-up. This is not unfinished acceptance work for the current
+  baseline. No automatic query collection or settings UI is added.
 - [ ] Validate Claude and Codex parsers against format changes and malformed or partially written JSONL.
 - [ ] Decide which additional subagent metadata is useful without importing nested events.
 - [ ] Decide which tool-result fields are valuable enough to index without adding opaque payload noise or excessive volume.

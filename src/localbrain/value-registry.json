@@ -23,10 +23,10 @@
       "default": null,
       "fallbacks": {"null": {"action": "reject"}, "unknown": {"action": "label", "label": "알 수 없는 소스"}, "invalid": {"action": "reject"}, "future": {"action": "label", "label": "새 소스"}},
       "producers": ["src/localbrain/ingest/scanner.py"],
-      "consumers": ["src/localbrain/templates/sources.html", "src/localbrain/templates/sessions.html", "src/localbrain/templates/session.html", "src/localbrain/templates/sessions_dashboard.html", "src/localbrain/templates/search.html"],
+      "consumers": ["src/localbrain/templates/sources.html", "src/localbrain/templates/sessions.html", "src/localbrain/templates/session.html", "src/localbrain/templates/sessions_dashboard.html", "src/localbrain/templates/search.html", "src/localbrain/templates/natural-search.html"],
       "consequence": "Selects source ownership, filtering, statistics, and visible provenance independently from provider behavior.",
       "presentation": {"mode": "logical-label", "labels": {"claude": "Claude", "codex": "Codex", "codex-company": "Codex Company", "context": "Local Context"}, "help": "어디에서 가져온 기록인지 나타냅니다."},
-      "visible_consumers": [{"path": "src/localbrain/templates/sources.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/sessions.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/session.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/search.html", "state": "registry-backed"}],
+      "visible_consumers": [{"path": "src/localbrain/templates/sources.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/sessions.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/session.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/search.html", "state": "registry-backed"}, {"path": "src/localbrain/templates/natural-search.html", "state": "registry-backed"}],
       "sources": [{"kind": "application", "path": "src/localbrain/ingest/scanner.py"}]
     },
     {

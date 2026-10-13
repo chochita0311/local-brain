@@ -4,6 +4,7 @@
 {% block page_location %}Local Contexts{% endblock %}
 {% block content %}
   <div class="document-reader{% if has_context_tree %} has-context-tree{% endif %}" data-document-reader data-document-reader-source-id="{{ context_source.id if context_source else '' }}">
+    {% if search_return %}<a class="back-link" href="{{ search_return }}">검색 결과로 돌아가기</a>{% endif %}
     <a class="back-link" href="{{ return_href }}" data-document-reader-return>Local Contexts로 돌아가기</a>
     <div class="document-reader-layout">
       {% if has_context_tree %}

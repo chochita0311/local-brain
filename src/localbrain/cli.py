@@ -8,6 +8,9 @@ import sys
 
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
+    if argv and argv[0] == "search":
+        from .natural_search.cli import main as search_main
+        return search_main(argv[1:])
     if argv and argv[0] == "simulate":
         from .session_simulation_cli import main as simulate_main
         return simulate_main(argv[1:], application_defaults=True)
@@ -19,6 +22,7 @@ def main(argv=None):
     serve_parser.add_argument("--port", type=int, default=8000)
     subparsers.add_parser("doctor", help="Report installation and optional local-model readiness")
     subparsers.add_parser("simulate", help="Explicitly prepare or inspect the full-history map")
+    subparsers.add_parser("search", help="Prepare or query the local natural-language index")
     models_parser = subparsers.add_parser("models", help="Manage pinned public local-model assets")
     model_commands = models_parser.add_subparsers(dest="model_action", required=True)
     model_commands.add_parser("status", help="Report presence without downloading or running models")
@@ -45,7 +49,8 @@ def main(argv=None):
         if not 1 <= args.port <= 65535:
             parser.error("port must be between 1 and 65535")
         import uvicorn
-        uvicorn.run("localbrain.main:app", host=args.host, port=args.port)
+        # Search phrases and private source paths are carried in GET URLs.
+        uvicorn.run("localbrain.main:app", host=args.host, port=args.port, access_log=False)
         return 0
 
     if args.command in {"models", "doctor"}:
@@ -118,7 +123,16 @@ def main(argv=None):
 
     if args.command == "scan":
         from .ingest.scanner import scan_all
-        print(json.dumps(scan_all(force=args.full), ensure_ascii=False, indent=2))
+        from .config import settings
+        from .natural_search.service import refresh_after_scan
+        report = scan_all(force=args.full)
+        try:
+            search_refresh = refresh_after_scan(settings)
+            if search_refresh is not None:
+                report["natural_search"] = search_refresh
+        except Exception:
+            report["natural_search"] = {"state": "failed", "error": "SEARCH_REFRESH_FAILED"}
+        print(json.dumps(report, ensure_ascii=False, indent=2))
         return 0
 
     from .db import init_db

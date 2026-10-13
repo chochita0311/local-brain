@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}검색 근거 · LocalBrain{% endblock %}
+{% block page_location %}Search evidence{% endblock %}
+{% block content %}
+  <a class="back-link" href="{{ return_to }}">검색 결과로 돌아가기</a>
+  {% if evidence %}
+    <section class="page-heading">
+      <div>
+        <p class="eyebrow">LOCAL CONTEXT</p>
+        <h1>{{ evidence.source.title }}</h1>
+        <p class="heading-copy path-copy">{{ evidence.source.path }}</p>
+      </div>
+    </section>
+    <p class="result-count">등록된 본문 {{ evidence.locator.line_start }}–{{ evidence.locator.line_end }}행 · 현재 원문과 대조한 검색 근거</p>
+    <pre class="natural-evidence-body">{{ evidence.text }}</pre>
+    <a class="button-link secondary-button" href="/documents/{{ evidence.source.entity_id }}?{{ {'search_return': return_to}|urlencode }}">전체 문서 열기</a>
+  {% else %}
+    <section class="empty-state">
+      <h1>검색 근거가 변경되었거나 준비되지 않았습니다</h1>
+      <p>원문이나 검색 자료가 갱신되었을 수 있습니다. 검색 결과로 돌아가 다시 찾아 주세요.</p>
+    </section>
+  {% endif %}
+{% endblock %}

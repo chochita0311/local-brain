@@ -509,6 +509,14 @@ Every persisted or user-visible derived state has one semantic family and a text
 | Source file | `error` | danger | contributes to source error count |
 | Local resource | available | success | normal link treatment |
 | Local resource | missing | warning | historical path remains visible |
+| Natural search | `disabled` | neutral | preparation action with local scope |
+| Natural search | `model-missing` | warning | installation guidance; never an empty result |
+| Natural search | `preparing` | info | aggregate progress and cancellation; preserve query/focus |
+| Natural search | `partial` | warning | current evidence remains usable; refresh guidance |
+| Natural search | `failed` | danger | bounded explanation and retry |
+| Natural search | `ready` | success | ordinary search availability |
+| Natural search | `no-data` | neutral | eligible source setup/Sync guidance |
+| Natural search | no-match | neutral | query-specific empty result with applied conditions |
 | External Source Instance capability | `current` | success | remote maintenance action may be offered |
 | External Source Instance capability | `unknown` or `stale` | warning | identity remains visible; remote action unavailable pending inspection |
 | External Source Instance capability | `disabled` or `unavailable` | neutral | local inventory remains visible; remote action unavailable |
@@ -790,6 +798,16 @@ fallback retain explicit meaning. Script/render/storage or activity failures
 preserve List/detail access and reduced motion retains controls and selection.
 
 ### Detail And Read
+
+- Natural search extends the Search family. Its header input precedes the
+  preserved keyword input in a two-column pair with explicit labels; both remain
+  accessible at narrow widths. Existing Atlassian header scope is preserved.
+- Natural-search results represent original Sessions or Local Context documents,
+  with source cues and up to three linked evidence excerpts. Preparation, coverage
+  and recovery stay next to the search form. Status updates preserve query,
+  focus and results. Evidence readers show original-text provenance and a query
+  return link; scores never appear as answer probabilities. Molecules do not
+  create a user-visible document taxonomy.
 
 - Title and source metadata precede the body; evidence and actions stay
   adjacent without shrinking the reading column.

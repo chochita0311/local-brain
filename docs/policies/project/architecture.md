@@ -11,7 +11,7 @@ Product terminology and organization rules are defined in [Product Model](produc
 - Runtime: local web server and browser UI
 - Backend: Python and FastAPI
 - Database: SQLite
-- Search: SQLite FTS5
+- Search: existing SQLite FTS5 plus optional local Qwen semantic ordering and lexical exact-identifier admission
 - Frontend: server-rendered Jinja2 with small JSON API interactions
 - External integration boundary: approved MCP Gateway and source-specific adapters
 - Later packaging: Tauri when feasible, with Electron as an alternative if integration constraints require it
@@ -20,7 +20,7 @@ The local web runtime validates the product workflow before native macOS lifecyc
 
 The [installation/storage contract](installation-and-storage.md) owns independent
 macOS source/tool/wheel setup and optional local-model requirements. Packaged
-`serve`, `doctor`, `models`, `simulate`, and `storage` commands use the same
+`serve`, `doctor`, `models`, `simulate`, `search`, and `storage` commands use the same
 configured runtime paths. Public model assets are shared within the local user
 account; LocalBrain owns its model metadata and optional Python dependencies.
 Runtime state is rejected inside repositories, uses owner-only permissions, and
@@ -50,6 +50,14 @@ Approved external sources through MCP Gateway
 ```
 
 ## Package Ownership
+
+- `natural_search/`: eligible read-only source snapshot, original-span molecularization,
+  private SQLite/FTS/vector generations, persistent offline Qwen encoder, explicit
+  condition interpretation, parent-ranked retrieval and Sync refresh worker.
+  `main.py` owns loopback routes and app lifecycle; templates and `natural-search.js`
+  own two-input search and evidence navigation. [Natural-Language Search](natural-language-search.md)
+  owns the detailed source, score, input-budget, refresh and recovery contracts.
+  Laya and Qwen Reranker are development comparisons, not runtime dependencies.
 
 - `work_state.py`: pure source-claim/reported-state projection: unchanged
   synthetic-supplied v1 plus model-aware v2 provenance/lifecycle effects, governed

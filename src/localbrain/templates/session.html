@@ -8,6 +8,7 @@
 {% block page_location %}Session detail{% endblock %}
 {% block content %}
   <nav class="detail-backlinks" aria-label="Session 상세 탐색">
+    {% if search_return %}<a class="back-link" href="{{ search_return }}">검색 결과로 돌아가기</a>{% endif %}
     {% if parent %}<a class="back-link" href="{{ parent_url | default('/sessions/' ~ parent.id) }}">상위 Session으로 돌아가기</a>{% endif %}
     <a class="back-link" href="{{ session_list_url | default('/sessions') }}">Sessions {{ 'Chart' if request.query_params.get('display') == 'chart' else '목록' }}</a>
   </nav>

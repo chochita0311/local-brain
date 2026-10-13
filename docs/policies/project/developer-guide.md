@@ -40,7 +40,7 @@ uv run --no-sync localbrain serve
 Open `http://127.0.0.1:8000`.
 
 For source reload during development, use
-`uv run --no-sync uvicorn localbrain.main:app --host 127.0.0.1 --reload`.
+`uv run --no-sync uvicorn localbrain.main:app --host 127.0.0.1 --reload --no-access-log`.
 Install optional local-model dependencies with
 `uv sync --python 3.11 --extra local-models --frozen`;
 `uv run --no-sync localbrain models install embedding` verifies public model
@@ -83,11 +83,20 @@ The flag applies to that command only. If later `uv` commands also need network 
 ## Python Runtime Compatibility
 
 Use the uv-managed Python 3.11 environment shown above for installation and
-verification. The standalone installation checks and full test suite passed
-with this environment. The full test suite also passed in an existing macOS
-source-checkout environment using Apple Command Line Tools Python 3.9.6.
+verification. Earlier standalone installation checks and full-suite runs passed
+on Python 3.11; the source checkout also passed on Apple Command Line Tools
+Python 3.9.6. These are separate execution records.
+
+The search-session closeout subsequently checked the migrated application
+environment on Python 3.11.15/OpenSSL 3.5.7: all 53 installed packages were
+compatible and all 1,115 tests passed. The migration's import and offline Qwen
+query smoke are recorded separately from that full-suite run in
+[RUN-160](../../plans/run/run-20261013-160-general-work-search.md#session-closeout--2026-10-13).
+The FEAT-0121–0123 embedding quality/latency results retain their measured
+Python 3.9.6 runtime; this verification does not replace their benchmarks.
 Package metadata accepts Python 3.9 or later; it does not establish that every
-system-provided Python runtime has been verified.
+system-provided runtime has been verified. See [LibreSSL environment repair](installation-and-storage.md#repair-an-existing-libressl-based-environment)
+when the interpreter, rather than server logging, needs replacement.
 
 ## Configuration
 
@@ -96,7 +105,7 @@ LocalBrain reads these environment variables at process startup:
 | Variable | Default | Responsibility |
 | --- | --- | --- |
 | `LOCALBRAIN_DATA_DIR` | `~/Library/Application Support/LocalBrain` | Primary DB, private configuration, model registrations and saved Runs |
-| `LOCALBRAIN_CACHE_DIR` | `~/Library/Caches/LocalBrain` | Rebuildable simulation and preview results |
+| `LOCALBRAIN_CACHE_DIR` | `~/Library/Caches/LocalBrain` | Rebuildable search indexes, simulation and preview results |
 | `LOCALBRAIN_DEVELOPMENT_DIR` | `~/Library/Application Support/LocalBrain-Development` | Explicit development evaluations; never created by ordinary app startup |
 | `LOCALBRAIN_CONTEXT_ROOT` | `~/Projects/context` | Initial Local Context folder discovery |
 | `LOCALBRAIN_CLAUDE_ROOT` | `~/.claude/projects` | One-time Claude root seed when `session-sources.toml` is first absent |
@@ -291,6 +300,117 @@ paths. Such scripts never create development archives during normal app startup.
 Migrating an archive preserves its original files and hashes. Historical paths
 inside frozen logs or diagnostic snapshots describe their original execution;
 they are evidence, not live commands or dependencies on those locations.
+
+### Natural-Language Search Comparisons
+
+The product uses only the existing `local-models` extra and verified
+Qwen3-Embedding-0.6B checkpoint for natural search. Qwen3-Reranker-0.6B is a
+separate candidate scorer; Qwen3-4B/8B generation trials do not run in this path.
+The [search contract](natural-language-search.md) and
+[measured comparison](../../plans/evaluation/eval-0121-functional-natural-search-local-comparison.md)
+separate default selection, synthetic model observations and private full-index
+measurements. No private corpus is required to reproduce the public comparison.
+Use fresh private output directories for each command. Run GPU measurements
+sequentially without another model job; timings include completed MPS work.
+
+```bash
+uv run --no-sync python scripts/benchmark-natural-search.py --device mps --output "$HOME/Library/Application Support/LocalBrain-Development/search-comparison/retrieval"
+uv run --no-sync python scripts/benchmark-search-runtime.py --output "$HOME/Library/Application Support/LocalBrain-Development/search-comparison/runtime"
+uv run --no-sync python scripts/benchmark-search-throughput.py --output "$HOME/Library/Application Support/LocalBrain-Development/search-comparison/throughput"
+```
+
+The first command compares 256/512/768 body targets, 512/1024 dimensions, lexical,
+dense and hybrid retrieval including cutoff 0.7. It reuses full-dimension model
+outputs for the pinned model's Matryoshka prefix comparison; accuracy-loop query
+caching is disabled for latency. The runtime command evaluates the frozen default
+on separate authored topic families, then measures unchanged/incremental refresh
+and foreground searches during actual model preparation. The optional throughput
+command compares batch sizes and float16 explicitly; it does not alter app settings.
+
+After FEAT-0123, `hybrid` uses the original query and a conservative topic/action
+view, orders by their mean cosine and retains exact-identifier lexical admission.
+These commands use the current implementation. `dense` remains the original-query
+baseline. The dedicated precision comparator reconstructs historical RRF and
+FEAT-0122 cosine ordering on identical fragment scores, using dense mode plus
+unchanged hybrid admission for single identifiers:
+
+```bash
+uv run --no-sync python scripts/benchmark-search-precision.py --device mps --output "$HOME/Library/Application Support/LocalBrain-Development/search-comparison/precision"
+```
+
+This compares the fixed0/0.03/0.05/0.08 lexical-bonus grid on authored development
+and prior selection cases, then the frozen zero-bonus choice against the historical
+baseline on prior observed and new held-out topics. It caches query vectors only
+for quality comparison and makes no query-latency claim. Synthetic indexes live
+in task-owned temporary directories and are removed automatically. The fresh
+private output retains fixture hashes, runtime and complete per-query judgments;
+these are authored labels, not private human ground truth.
+
+The general-work comparator covers broad purposes, conversational descriptions,
+ambiguous terms and multiple relevant activities across work domains:
+
+```bash
+uv run --no-sync python scripts/benchmark-search-general.py --stage development --device mps --output "$HOME/Library/Application Support/LocalBrain-Development/search-comparison/general-development"
+uv run --no-sync python scripts/benchmark-search-general.py --stage holdout --selected equal --device mps --output "$HOME/Library/Application Support/LocalBrain-Development/search-comparison/general-holdout"
+```
+
+Freeze the selection after development and before observing a fresh holdout.
+The shipped holdout is now observed regression evidence, not an unseen test for
+future tuning. `equal` is the admitted default: original/focused cosine mean,
+with admission from either view. The script checks comparator/engine agreement
+and reports per-query/category metrics, including topic coverage for broad queries.
+It reuses vectors only for quality comparison; measure latency with fresh encoding.
+The [general-work evaluation](../../plans/evaluation/eval-0123-functional-general-work-search.md)
+records rejected instruction alternatives, measured limits and private evidence scope.
+
+Laya and Qwen Reranker are optional development-only dependencies. Create a separate
+Python 3.11 environment outside the repository; do not replace the application's
+runtime. The measured versions were `laya==0.4.4`, `torch==2.8.0`,
+`transformers==4.57.6`, `huggingface-hub==0.36.2`, `numpy==1.26.4` and
+`truststore==0.10.4`. The following setup downloads only pinned public assets into
+the shared Hub cache and writes a local hash manifest; `--offline` reuses existing
+assets. This explicit setup is the only network stage.
+
+The paths below describe a reproducible environment to create, not an inventory
+claim that a previous comparison environment is still installed. Shared public
+checkpoint retention and private comparison-runtime retention are independent.
+
+```bash
+uv venv --python 3.11 "$HOME/Library/Application Support/LocalBrain-Development/search-comparison/runtime-judge"
+uv pip install --system-certs --python "$HOME/Library/Application Support/LocalBrain-Development/search-comparison/runtime-judge/bin/python" laya==0.4.4 torch==2.8.0 transformers==4.57.6 huggingface-hub==0.36.2 numpy==1.26.4 truststore==0.10.4
+"$HOME/Library/Application Support/LocalBrain-Development/search-comparison/runtime-judge/bin/python" scripts/prepare-search-comparison-models.py --output "$HOME/Library/Application Support/LocalBrain-Development/search-comparison/assets"
+```
+
+Use that environment's Python to run `scripts/benchmark-search-judges.py` with
+`--assets <assets>/assets.json --candidates <retrieval>/candidates.json
+--output <fresh-private-output> --role laya --device mps --laya-fp32`; repeat with
+`--role reranker` and omit `--laya-fp32`. Both score the same frozen parent texts
+at K10/20/50. Full-path measurement uses the application Python and
+`scripts/benchmark-search-pipeline.py --assets <assets>/assets.json
+--output <fresh-private-output> --judge-python <runtime-judge>/bin/python
+--role laya` (then `--role reranker`). This measures retrieval and the resident
+judge through local pipes, not an external service. Full-path trials use K20,
+retrieval cutoff0 and judge threshold0.5; their scores have a different contract
+from the product's cosine cutoff0.45.
+
+A checkpoint/runtime producing non-finite scores fails that attempt. The measured
+Laya trial disables its MPS autocast explicitly; the Qwen Reranker uses float32
+and eager attention. Reports record these conditions, input budgets and truncation
+refusal. Laya's loader adaptation copies only metadata into its private evaluation
+owner and links immutable public weights; shared downloaded files stay unchanged.
+
+`tests/standalone_natural_search.py --output <fresh-private-output>` is an
+explicit real-model smoke for the installed wheel environment. Run it with the
+installed environment's Python from outside the checkout, after adding the
+`local-models` extra and caching the public embedding checkpoint. It uses the
+installed schema/code, registers assets offline, builds only its authored Session
+and Context data and asserts actual semantic matches. It refuses an existing
+output or an editable source import. It is separate from ordinary unit discovery.
+
+No script writes personal content to Git, collects background query history or
+changes source organization. Development archives are deliberate evidence owners;
+retire their reports, synthetic DBs and isolated runtimes explicitly when no longer
+needed. Shared public checkpoints have a separate lifecycle.
 
 ### Full-History Simulation And Model Trials
 

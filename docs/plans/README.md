@@ -16,6 +16,24 @@ Spec, Run, and Evaluation document owns its own detailed status and history.
 
 ## Open Planning Boundaries
 
+- [PRD-0020: Local Natural Language Search](prd/prd-0020-local-natural-language-search.md)
+  is `approved` for Korean natural-language retrieval over all eligible Sessions
+  and registered Local Context documents, with hidden document molecularization
+  and a new input to the left of the preserved search. It owns the product
+  boundary, public/private resource separation, internal cutoff comparison,
+  and remaining decisions. Validation is limited to the owner's current Apple
+  Silicon Mac. FEAT-0115–0121 completed contracts, implementation, full indexing,
+  model comparisons and independent installation tests. The [comparison report](evaluation/eval-0121-functional-natural-search-local-comparison.md)
+  records the historical Qwen/RRF baseline. [FEAT-0122](feature/feat-0122-natural-search-ranking-precision.md)
+  replaced it with cosine and exact-identifier lexical admission.
+  [FEAT-0123](feature/feat-0123-general-work-search.md) now combines original/focused
+  query views and loads page excerpts after ranking, preserving the model/index/cutoff.
+  Some first results improve, while individual recall/order regressions and no
+  new holdout gain remain explicit. The [search policy](../policies/project/natural-language-search.md)
+  owns current implementation contracts and flows. The baseline can close for
+  local use; further tuning depends on recurring observed burden. [RUN-160](run/run-20261013-160-general-work-search.md#session-closeout--2026-10-13)
+  records subsequent runtime/documentation verification and the authorized
+  public-code/docs closeout; private evidence stays local.
 - [PRD-0019: Observed Session Chart](prd/prd-0019-observed-session-chart.md)
   owns the separately approved Sessions List/Chart, whose first phase reached the
   owner's wrap-up review on 2026-10-12, including the continuous hover-region revision under

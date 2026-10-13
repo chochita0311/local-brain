@@ -92,6 +92,42 @@ uv run --no-sync localbrain serve
 installed application. Choose one installation for normal use; installing the
 package twice is not necessary. Both use the configured runtime data location.
 
+### Repair An Existing LibreSSL-Based Environment
+
+An urllib3 `NotOpenSSLWarning` identifying LibreSSL comes from the Python SSL
+runtime in the active environment. Recreate that environment with the recommended
+uv-managed Python 3.11. Suppressing server logs does not change its SSL library.
+For a source checkout, stop its running server and model jobs first, then run:
+
+```bash
+uv python install 3.11
+uv sync --python 3.11 --extra local-models --frozen
+uv pip check --python .venv/bin/python --no-cache
+uv run --no-sync python -c 'import ssl; print(ssl.OPENSSL_VERSION)'
+uv run --no-sync localbrain serve
+```
+
+Keep the extras required by that installation; omit `--extra local-models` for a
+base-only checkout. With the model runtime installed, also check
+`uv run --no-sync python -c 'import urllib3'` for the original warning; urllib3
+is not a base-app prerequisite. If the managed interpreter and locked distributions are
+already cached, skip the Python download and add
+`--no-python-downloads --offline` to `uv sync`. For a separately installed app,
+repeat its selected wheel/archive installation with `--python 3.11` and the same
+extras instead of editing a checkout's `.venv`.
+
+This replaces Python packages, leaving the separately owned database, model
+weights and search cache in place. A frozen sync preserves the lockfile; packages
+selected by its Python-version conditions may differ. A running server must be
+restarted to use the replacement environment. Successful imports do not establish
+search quality or benchmark performance in the new runtime.
+
+Uvicorn's startup `INFO` message is normal. A shell alias that invokes Uvicorn
+directly can also keep its default request logging, including search URLs and
+periodic status requests. Changing `.venv` does not alter that alias or disable
+access logs. The packaged `localbrain serve` command owns its separate
+`access_log=False` behavior.
+
 ### Updates And Removal
 
 Stop the server before replacing the installed application. Preserve the
@@ -120,15 +156,28 @@ model. Local inference does not train or update shared pretrained weights.
 
 | Feature | Local model requirement | Asset download |
 | --- | --- | --- |
-| Session ingestion, reading, search, deterministic views | None | None |
+| Session ingestion, reading, keyword search, deterministic views | None | None |
+| Natural-language Session / Local Context search | Qwen3-Embedding-0.6B | Same shared asset as affinity |
 | Prepared full-history affinity map | Qwen3-Embedding-0.6B | About 1.21 GB |
 | Explicit experimental context trials | Qwen3-4B or Qwen3-8B | About 8.06 GB or 16.40 GB |
 
-The 4B/8B candidates remain experiments; installing them does not admit a new
+Qwen3-Embedding-0.6B is the document/query encoder used by natural search.
+The 4B/8B candidates are separate generation models and remain experiments;
+installing them does not admit a new
 automatic workflow producer or enable an LLM on ordinary app startup.
 Claude/Codex-backed actions have their own CLI/authentication requirements and
 explicit external-service boundary; installing local models does not satisfy
 those requirements.
+
+The natural-search comparison also downloaded Laya multilingual and
+Qwen3-Reranker-0.6B as separate optional development assets. Their pinned snapshots
+use the same resolved public Hub cache as the Qwen embedding and 4B/8B assets,
+with separate model directories and weights. They are not part of the app's
+`local-models` extra or its default search path. The comparison's Python packages
+and private hash manifests have a separate development lifecycle. See the
+[comparison setup](developer-guide.md#natural-language-search-comparisons) for
+explicit installation and offline reproduction; a retained checkpoint alone is
+not a ready-to-run comparison environment.
 
 ### Install The Local Model Runtime
 
@@ -200,7 +249,7 @@ model identity.
 | Primary data | `~/Library/Application Support/LocalBrain` | One primary DB, source configuration, saved Runs/reports |
 | Model metadata | `<data>/models/<model-slug>` | Small LocalBrain installation manifests/locks |
 | Public pretrained assets | `~/.cache/huggingface/hub` | Shared within this PC's user account |
-| Private derived cache | `~/Library/Caches/LocalBrain` | One simulation index and one preview; rebuildable and finite |
+| Private derived cache | `~/Library/Caches/LocalBrain` | Simulation, preview and natural-search generations; rebuildable |
 | Development evaluation evidence | `~/Library/Application Support/LocalBrain-Development` | Explicit development archives, separate from installed app data |
 
 `LOCALBRAIN_DATA_DIR` selects private application state. Paths inside a Git
@@ -234,6 +283,50 @@ Public cache precedence is `HF_HUB_CACHE`, `HUGGINGFACE_HUB_CACHE`, `HF_HOME/hub
 same value for installation and inference. Prefer it over `HF_HOME`, which also
 controls other Hub state. Each Mac downloads its own public assets. No machine
 sync, private-data sharing, or automatic Git publishing is performed.
+
+### Natural-Language Search Storage
+
+`<data>/natural-search.json` holds explicit activation and the selected search
+profile. `<cache>/natural-search/` owns one readable `index.sqlite3`, one resumable
+`building.sqlite3`, a writer lock and bounded aggregate `status.json`. Molecules,
+original-text pointers, lexical terms and binary vectors are private derived
+data. Deleting this cache preserves original Sessions, Contexts and settings;
+an enabled running app rebuilds it from eligible normalized sources. An update
+keeps the prior complete generation readable until atomic publication; changed
+or removed originals are excluded even before rebuilding finishes. Budget for
+both generations and SQLite rebuild overhead. An interrupted staging generation
+is retained for explicit retry, with compatible vectors reused.
+
+Storage follows ownership and recoverability, not the `.sqlite3` extension.
+The primary DB contains durable user state; the search DB can be recreated from
+eligible normalized originals and the selected profile. Rebuilding can still be
+costly, and cached excerpts/vectors remain private. Public model download caches
+have a different owner and never receive those private derived contents.
+
+Let the current index size be A and the staging database size be B. SQLite's
+`VACUUM` can require up to another `2 × B` of free space for its temporary database
+and journal, so `A + 3 × B` is a planning allowance for these files, not merely
+`A + B`. This
+does not include public model assets or other application data. Actual sampled
+peaks and allocated bytes are recorded separately; they are not a universal cap.
+See [SQLite VACUUM storage behavior](https://www.sqlite.org/lang_vacuum.html#how_vacuum_works).
+
+Install the optional runtime and `localbrain models install embedding`, then
+use `localbrain search prepare` or the natural-search preparation action. There
+is no download on page opening. Once enabled, the app refreshes after normalized
+Sync changes; `localbrain scan` also refreshes an enabled index. The enabled app prepares the query model after checking its index and keeps it
+loaded in the app process. Empty corpora do not load weights. Local inference uses verified public assets in
+offline mode; private inputs and results never enter the shared Hub cache.
+
+`localbrain search status` reports aggregate coverage; `localbrain search query
+"만들던 앱 관련 세션 보여줘"` explicitly prints local results. The engine does not
+persist search-query history; the packaged server disables URL access logging.
+Browser history still contains submitted queries. An unchanged refresh preserves
+the current generation without tokenizing or embedding it again.
+`localbrain search prepare --rebuild` recomputes an owned index when its vector
+contents need recovery; it preserves the previous complete generation until
+publication and does not remove unrelated caches. [Natural-Language Search](natural-language-search.md)
+owns admission, molecularization, score and recovery semantics.
 
 ### Model Registration Information
 

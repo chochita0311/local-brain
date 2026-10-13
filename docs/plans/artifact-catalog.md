@@ -6,7 +6,7 @@ Edit the owning artifact, then run `uv run python scripts/build-plan-artifact-ca
 
 Status and relation values are preserved from each owner artifact. `—` means the field is not declared or does not apply; historical Spec `passed` and Run `complete` values are legacy aliases preserved under [Execution Artifact Status](../policies/harness/execution-loop-governance.md#execution-artifact-status).
 
-## PRDs (19)
+## PRDs (20)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -29,8 +29,9 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [PRD-0017: Source-Backed Workflow Map And Workstream Lenses](prd/prd-0017-source-backed-workflow-map-and-workstream-lenses.md) | `approved` | — |
 | [PRD-0018: Personal AI-Use Improvement Insights](prd/prd-0018-personal-ai-use-improvement-insights.md) | `approved` | — |
 | [PRD-0019: Observed Session Chart](prd/prd-0019-observed-session-chart.md) | `approved` | — |
+| [PRD-0020: Local Natural Language Search](prd/prd-0020-local-natural-language-search.md) | `approved` | — |
 
-## Features (114)
+## Features (123)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -148,8 +149,17 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [FEAT-0112: Session Skill Use Estimate](feature/feat-0112-session-skill-use-estimate.md) | `passed` | PRD-0005 |
 | [FEAT-0113: Skill Reference Session Count](feature/feat-0113-skill-reference-session-count.md) | `passed` | PRD-0005 |
 | [FEAT-0114: Observed Session Chart](feature/feat-0114-observed-session-chart.md) | `passed` | PRD-0019 |
+| [FEAT-0115: Search Molecule Contract](feature/feat-0115-search-molecule-contract.md) | `passed` | PRD-0020 |
+| [FEAT-0116: Natural Search Query Contract](feature/feat-0116-natural-search-query-contract.md) | `passed` | PRD-0020 |
+| [FEAT-0117: Natural Search Storage Contract](feature/feat-0117-natural-search-storage-contract.md) | `passed` | PRD-0020 |
+| [FEAT-0118: Natural Search Evaluation Contract](feature/feat-0118-natural-search-evaluation-contract.md) | `passed` | PRD-0020 |
+| [FEAT-0119: Local Natural Search Engine](feature/feat-0119-local-natural-search-engine.md) | `passed` | PRD-0020 |
+| [FEAT-0120: Parallel Natural Search](feature/feat-0120-parallel-natural-search.md) | `passed` | PRD-0020 |
+| [FEAT-0121: Natural Search Local Comparison](feature/feat-0121-natural-search-local-comparison.md) | `passed` | PRD-0020 |
+| [FEAT-0122: Natural Search Ranking Precision](feature/feat-0122-natural-search-ranking-precision.md) | `passed` | PRD-0020 |
+| [FEAT-0123: General Work Search](feature/feat-0123-general-work-search.md) | `passed` | PRD-0020 |
 
-## Specs (123)
+## Specs (132)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -276,8 +286,17 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [SPEC-0114-R7: Session Chart Wheel Controls](spec/spec-0114-r7-session-chart-wheel-controls.md) | `superseded` | FEAT-0114 |
 | [SPEC-0114-R8: Session Chart HEAD Reference Tracks](spec/spec-0114-r8-session-chart-head-reference-tracks.md) | `superseded` | FEAT-0114 |
 | [SPEC-0114-R9: Session Chart Scaled Branch Labels](spec/spec-0114-r9-session-chart-scaled-branch-labels.md) | `superseded` | FEAT-0114 |
+| [SPEC-0115: Molecules](spec/spec-0115-search-molecule-contract.md) | `approved` | FEAT-0115 |
+| [SPEC-0116: Query And Results](spec/spec-0116-natural-search-query-contract.md) | `approved` | FEAT-0116 |
+| [SPEC-0117: Storage, Preparation And Refresh](spec/spec-0117-natural-search-storage-contract.md) | `approved` | FEAT-0117 |
+| [SPEC-0118: Comparison And Evidence](spec/spec-0118-natural-search-evaluation-contract.md) | `approved` | FEAT-0118 |
+| [SPEC-0119: Local Natural Search Engine](spec/spec-0119-local-natural-search-engine.md) | `approved` | FEAT-0119 |
+| [SPEC-0120: Parallel Natural Search](spec/spec-0120-parallel-natural-search.md) | `approved` | FEAT-0120 |
+| [SPEC-0121: Natural Search Local Comparison](spec/spec-0121-natural-search-local-comparison.md) | `approved` | FEAT-0121 |
+| [SPEC-0122: Natural Search Ranking Precision](spec/spec-0122-natural-search-ranking-precision.md) | `approved` | FEAT-0122 |
+| [SPEC-0123: General Work Search](spec/spec-0123-general-work-search.md) | `approved` | FEAT-0123 |
 
-## Runs (151)
+## Runs (160)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -432,8 +451,17 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [RUN-149: Session Chart Scaled Branch Labels](run/run-20261007-149-session-chart-scaled-branch-labels.md) | `passed` | FEAT-0114 |
 | [RUN-150: Session Chart Hover Preview](run/run-20261008-150-session-chart-hover-preview.md) | `passed` | FEAT-0114 |
 | [RUN-151: Session Chart Hover Region](run/run-20261009-151-session-chart-hover-region.md) | `passed` | FEAT-0114 |
+| [run-20261012-152: Molecules](run/run-20261012-152-search-molecule-contract.md) | `passed` | FEAT-0115 |
+| [run-20261012-153: Query And Results](run/run-20261012-153-natural-search-query-contract.md) | `passed` | FEAT-0116 |
+| [run-20261012-154: Storage, Preparation And Refresh](run/run-20261012-154-natural-search-storage-contract.md) | `passed` | FEAT-0117 |
+| [run-20261012-155: Comparison And Evidence](run/run-20261012-155-natural-search-evaluation-contract.md) | `passed` | FEAT-0118 |
+| [RUN-156: Local Natural Search Engine](run/run-20261012-156-local-natural-search-engine.md) | `passed` | FEAT-0119 |
+| [RUN-157: Parallel Natural Search](run/run-20261012-157-parallel-natural-search.md) | `passed` | FEAT-0120 |
+| [RUN-158: Natural Search Local Comparison](run/run-20261012-158-natural-search-local-comparison.md) | `passed` | FEAT-0121 |
+| [RUN-159: Natural Search Ranking Precision](run/run-20261012-159-natural-search-ranking-precision.md) | `passed` | FEAT-0122 |
+| [RUN-160: General Work Search](run/run-20261013-160-general-work-search.md) | `passed` | FEAT-0123 |
 
-## Evaluations And Schema Audits (416)
+## Evaluations And Schema Audits (432)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -853,6 +881,22 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [EVAL-0114-R7: Session Chart Wheel Controls](evaluation/eval-0114-r7-session-chart-wheel-controls.md) | `complete` | FEAT-0114 |
 | [EVAL-0114-R8: Session Chart HEAD Reference Tracks](evaluation/eval-0114-r8-session-chart-head-reference-tracks.md) | `complete` | FEAT-0114 |
 | [EVAL-0114-R9: Session Chart Scaled Branch Labels](evaluation/eval-0114-r9-session-chart-scaled-branch-labels.md) | `complete` | FEAT-0114 |
+| [Contract Evaluation: FEAT-0115](evaluation/eval-0115-contract-search-molecule-contract.md) | `complete` | FEAT-0115 |
+| [Contract Evaluation: FEAT-0116](evaluation/eval-0116-contract-natural-search-query-contract.md) | `complete` | FEAT-0116 |
+| [Contract Evaluation: FEAT-0117](evaluation/eval-0117-contract-natural-search-storage-contract.md) | `complete` | FEAT-0117 |
+| [Contract Evaluation: FEAT-0118](evaluation/eval-0118-contract-natural-search-evaluation-contract.md) | `complete` | FEAT-0118 |
+| [Contract Evaluation: FEAT-0119](evaluation/eval-0119-contract-local-natural-search-engine.md) | `complete` | FEAT-0119 |
+| [Functional Evaluation: FEAT-0119](evaluation/eval-0119-functional-local-natural-search-engine.md) | `complete` | FEAT-0119 |
+| [Contract Evaluation: FEAT-0120](evaluation/eval-0120-contract-parallel-natural-search.md) | `complete` | FEAT-0120 |
+| [Design Evaluation: FEAT-0120](evaluation/eval-0120-design-parallel-natural-search.md) | `complete` | FEAT-0120 |
+| [Functional Evaluation: FEAT-0120](evaluation/eval-0120-functional-parallel-natural-search.md) | `complete` | FEAT-0120 |
+| [Ux-Heuristic Evaluation: FEAT-0120](evaluation/eval-0120-ux-heuristic-parallel-natural-search.md) | `complete` | FEAT-0120 |
+| [Contract Evaluation: Local Natural Search Comparison](evaluation/eval-0121-contract-natural-search-local-comparison.md) | `complete` | FEAT-0121 |
+| [Functional Evaluation: Local Natural Search Comparison](evaluation/eval-0121-functional-natural-search-local-comparison.md) | `complete` | FEAT-0121 |
+| [Contract Evaluation: Natural Search Ranking Precision](evaluation/eval-0122-contract-natural-search-ranking-precision.md) | `complete` | FEAT-0122 |
+| [자연어 검색 순위 개선 검증](evaluation/eval-0122-functional-natural-search-ranking-precision.md) | `complete` | FEAT-0122 |
+| [Contract Evaluation: General Work Search](evaluation/eval-0123-contract-general-work-search.md) | `complete` | FEAT-0123 |
+| [업무 전반의 자연어 검색 개선 검증](evaluation/eval-0123-functional-general-work-search.md) | `complete` | FEAT-0123 |
 
 ## Fix Logs (24)
 

@@ -14,12 +14,12 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: label → 알 수 없는 소스; `invalid`: reject; `future`: label → 새 소스
 - Producers: `src/localbrain/ingest/scanner.py`
-- Consumers: `src/localbrain/templates/sources.html`, `src/localbrain/templates/sessions.html`, `src/localbrain/templates/session.html`, `src/localbrain/templates/sessions_dashboard.html`, `src/localbrain/templates/search.html`
+- Consumers: `src/localbrain/templates/sources.html`, `src/localbrain/templates/sessions.html`, `src/localbrain/templates/session.html`, `src/localbrain/templates/sessions_dashboard.html`, `src/localbrain/templates/search.html`, `src/localbrain/templates/natural-search.html`
 - Consequence: Selects source ownership, filtering, statistics, and visible provenance independently from provider behavior.
 - Presentation mode: `logical-label`
 - Labels: `claude` → Claude; `codex` → Codex; `codex-company` → Codex Company; `context` → Local Context
 - Help: 어디에서 가져온 기록인지 나타냅니다.
-- Visible consumer inventory: `src/localbrain/templates/sources.html` (registry-backed); `src/localbrain/templates/sessions.html` (registry-backed); `src/localbrain/templates/session.html` (registry-backed); `src/localbrain/templates/search.html` (registry-backed)
+- Visible consumer inventory: `src/localbrain/templates/sources.html` (registry-backed); `src/localbrain/templates/sessions.html` (registry-backed); `src/localbrain/templates/session.html` (registry-backed); `src/localbrain/templates/search.html` (registry-backed); `src/localbrain/templates/natural-search.html` (registry-backed)
 
 ## `source.provider-kind`
 

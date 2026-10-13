@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}자연어 검색 · LocalBrain{% endblock %}
+{% block page_location %}Natural search{% endblock %}
+{% block content %}
+  <section class="page-heading search-heading">
+    <div>
+      <p class="eyebrow">SEARCH</p>
+      <h1>자연어로 원문 찾기</h1>
+      <p class="heading-copy">프로젝트 이름을 몰라도, 찾고 싶은 내용을 설명해 보세요. 작업 세션과 등록된 Local Context 전체에서 검색합니다.</p>
+    </div>
+  </section>
+
+  <form class="page-search natural-search-form" action="/natural-search" method="get">
+    <label for="natural-page-query"><span class="sr-only">찾고 싶은 내용</span>
+      <input id="natural-page-query" name="q" type="search" maxlength="300" value="{{ natural_query }}" placeholder="만들던 앱 관련 세션을 보여줘">
+    </label>
+    <button class="primary-button" type="submit">검색</button>
+  </form>
+
+  <section class="natural-search-status" data-natural-search-status data-state="{{ search_status.state }}" aria-label="검색 준비 상태">
+    <div aria-live="polite" aria-atomic="true">
+      <strong data-search-status-title>{{ search_status.title }}</strong>
+      <p data-search-status-copy>{{ search_status.description }}</p>
+      <p class="result-count" data-search-status-count>{% if search_status.eligible_parents %}원문 {{ search_status.parents }} / {{ search_status.eligible_parents }}개 준비{% if search_status.state == 'preparing' %} · 본문 구간 {{ search_status.fragments|default(0) }}개 처리{% endif %}{% endif %}</p>
+    </div>
+    <details data-search-coverage {% if search_status.state in ['disabled', 'model-missing'] %}hidden{% endif %}>
+      <summary>검색 범위 상세</summary>
+      <p data-search-coverage-copy>검색 허용 범위 밖 세션 {{ search_status.excluded_sessions|default(0) }}개 · 본문 없는 원문 {{ (search_status.empty_sessions|default(0)) + (search_status.empty_documents|default(0)) }}개 · 앱 저장 영역의 문서 {{ search_status.excluded_runtime_documents|default(0) }}개 제외. 읽을 수 없는 Local Context 등록 경로 {{ search_status.unreadable_context_roots|default(0) }}개.</p>
+    </details>
+    <div data-search-install {% if search_status.state != 'model-missing' %}hidden{% endif %}>
+      <details>
+        <summary>로컬 모델 설치 방법</summary>
+        <p>소스 폴더에서 실행 중이면 <code>uv sync --python 3.11 --extra local-models --frozen</code>으로 실행 환경을 준비합니다.</p>
+        <p>설치형 앱이면 사용한 설치 파일에 <code>[local-models]</code>를 붙여 다시 설치합니다: <code>uv tool install --reinstall --python 3.11 "/설치파일경로/localbrain-version-py3-none-any.whl[local-models]"</code>. 경로와 버전은 실제 설치 파일로 바꿔 주세요.</p>
+        <p>이후 <code>localbrain models install embedding</code>으로 공개 검색 모델을 다운로드합니다. 소스 폴더에서는 명령 앞에 <code>uv run --no-sync</code>를 붙입니다. 서버를 재시작한 뒤 검색을 준비해 주세요.</p>
+      </details>
+    </div>
+    <div class="natural-search-actions">
+      <form action="/natural-search/prepare" method="post" data-search-prepare {% if search_status.state not in ['disabled', 'failed', 'partial', 'model-missing'] %}hidden{% endif %}>
+        <input type="hidden" name="q" value="{{ natural_query }}">
+        <button class="secondary-button" type="submit">검색 준비 · 다시 시도</button>
+      </form>
+      <form action="/natural-search/cancel" method="post" data-search-cancel {% if not search_status.can_cancel %}hidden{% endif %}>
+        <input type="hidden" name="q" value="{{ natural_query }}">
+        <button class="secondary-button" type="submit">준비 중단</button>
+      </form>
+      <a class="back-link" href="/natural-search?{{ {'q': natural_query}|urlencode }}" data-search-repeat hidden>같은 검색 다시 실행</a>
+      <a class="back-link" href="/search?{{ {'q': natural_query}|urlencode }}">키워드 검색으로 찾기</a>
+    </div>
+    <noscript><p>진행 상태를 확인하려면 이 페이지를 새로고침해 주세요.</p></noscript>
+  </section>
+
+  {% if query_error %}<p class="empty-state" role="alert">{{ query_error }}</p>{% endif %}
+  {% if search_response %}
+    {% if search_response.conditions.labels or search_response.conditions.notices %}
+      <div class="natural-search-conditions">
+        {% if search_response.conditions.labels %}<p>적용된 조건: {{ search_response.conditions.labels|join(' · ') }}</p>{% endif %}
+        {% for notice in search_response.conditions.notices %}<p>{{ notice }}</p>{% endfor %}
+      </div>
+    {% endif %}
+    <p class="result-count">원문 {{ search_response.total }}개 · 관련도순{% if search_response.partial %} · 갱신 중인 자료는 제외{% endif %}</p>
+    <div class="search-results">
+      {% for result in search_response.results %}
+        <article class="search-result natural-search-result" id="{{ result.anchor }}">
+          <div class="result-type {{ result.source_kind|replace(':', '-') }}">{{ 'Session' if result.kind == 'session' else 'Local Context' }}</div>
+          <div>
+            <h2><a href="{{ result.href }}">{{ result.title }}</a></h2>
+            <p class="path-line">{{ result.path }}</p>
+            <p class="search-result-context">{{ value_label('source.kind', result.source_kind) }}{% if result.timestamp %} · <time datetime="{{ result.timestamp }}" data-local-time>{{ result.timestamp }}</time>{% endif %}{% if result.match_reason == 'exact' %} · 이름 일치{% endif %}</p>
+            <ol class="natural-search-evidence-list">
+              {% for evidence in result.evidence %}
+                <li>
+                  <a class="natural-evidence-link" href="{{ evidence.href }}">
+                    <span class="result-excerpt">{{ evidence.text }}</span>
+                    <span class="natural-evidence-label">{{ '대화' if result.kind == 'session' else '본문' }} 근거 {{ loop.index }} 보기</span>
+                  </a>
+                </li>
+              {% endfor %}
+            </ol>
+          </div>
+        </article>
+      {% else %}
+        <div class="empty-state">
+          <h3>{% if search_response.total %}이 페이지에 결과가 없습니다{% else %}현재 관련도 기준에 맞는 결과가 없습니다{% endif %}</h3>
+          <p>찾던 작업의 목적이나 기능을 조금 더 설명해 보세요. 입력한 조건을 줄이거나 키워드 검색으로도 확인할 수 있습니다.</p>
+        </div>
+      {% endfor %}
+    </div>
+    {% if search_response.page > 1 or search_response.total > search_response.page_size %}
+      <nav class="natural-search-pagination" aria-label="검색 결과 페이지">
+        {% if search_response.page > 1 %}<a class="button-link secondary-button" href="{{ previous_url }}">이전</a>{% endif %}
+        <span>{{ search_response.page }} 페이지</span>
+        {% if search_response.page * search_response.page_size < search_response.total %}<a class="button-link secondary-button" href="{{ next_url }}">다음</a>{% endif %}
+      </nav>
+    {% endif %}
+  {% endif %}
+{% endblock %}
+{% block scripts %}
+  <script src="{{ url_for('static', path='/natural-search.js') }}?v={{ asset_version|default('dev') }}" defer></script>
+{% endblock %}

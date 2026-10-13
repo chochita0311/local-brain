@@ -176,6 +176,8 @@ from .workflow_correction import (
 )
 from .workflow_correction_view import workflow_relation_id
 from .workflow_map import workflow_map_state_view, workflow_map_view
+from .natural_search.service import SearchService
+from .natural_search.presentation import safe_return as natural_search_return, state_copy as natural_search_state
 
 
 PACKAGE_ROOT = Path(__file__).resolve().parent
@@ -270,9 +272,12 @@ async def lifespan(app: FastAPI):
         )
     reconcile_interrupted_runs()
     reconcile_interrupted_insight_runs()
+    app.state.natural_search = SearchService(settings)
+    app.state.natural_search.start()
     try:
         yield
     finally:
+        await run_in_threadpool(app.state.natural_search.stop)
         await shutdown_runs()
         await shutdown_insight_runs()
 
@@ -3178,6 +3183,7 @@ def show_session(
             "navigation_query": navigation_query,
             "workflow_available": workflow_available,
             "session_list_url": session_list_url,
+            "search_return": natural_search_return(request.query_params.get("search_return")) if request.query_params.get("search_return") else None,
             "parent_url": (
                 "/sessions/{}{}".format(parent["id"], navigation_query)
                 if parent
@@ -3559,6 +3565,7 @@ def show_document(request: Request, document_id: int):
             "active_page": "context",
             **reader,
             "memberships": memberships,
+            "search_return": natural_search_return(request.query_params.get("search_return")) if request.query_params.get("search_return") else None,
         },
     )
 
@@ -3579,6 +3586,87 @@ def show_local_resource(request: Request, resource_id: int):
             "memberships": memberships,
         },
     )
+
+
+def _natural_search_status(request):
+    try:
+        return natural_search_state(request.app.state.natural_search.status())
+    except (ValueError, OSError, sqlite3.Error):
+        return natural_search_state({"state": "failed"})
+
+
+@app.get("/natural-search", response_class=HTMLResponse)
+def natural_search_page(request: Request, q: str = Query(default="", max_length=300),
+                        page: int = Query(default=1, ge=1, le=1000000)):
+    _auto_work_local_request(request)
+    status, result, query_error = _natural_search_status(request), None, None
+    if q.strip() and status["state"] not in {"disabled", "model-missing", "no-data"}:
+        try:
+            result = request.app.state.natural_search.search(q, page=page)
+            if result["partial"]:
+                status = natural_search_state({**status, "state": "partial"})
+        except (ValueError, OSError, sqlite3.Error, RuntimeError) as error:
+            if str(error) == "SEARCH_INPUT_TOO_LONG":
+                query_error = "검색어를 더 짧게 입력해 주세요. 이 표현은 검색 모델의 입력 한도를 넘었습니다."
+            elif str(error) != "SEARCH_INDEX_UNAVAILABLE":
+                query_error = "검색을 완료하지 못했습니다. 잠시 후 다시 검색해 주세요."
+    return templates.TemplateResponse("natural-search.html", {
+        "request": request, "active_page": "natural-search", "natural_query": q,
+        "search_status": status, "search_response": result, "query_error": query_error,
+        "previous_url": "/natural-search?" + urlencode({"q": q, "page": max(1, page - 1)}),
+        "next_url": "/natural-search?" + urlencode({"q": q, "page": page + 1}),
+    })
+
+
+@app.get("/api/natural-search/status")
+def natural_search_status(request: Request):
+    _auto_work_local_request(request)
+    return JSONResponse(_natural_search_status(request), headers={"Cache-Control": "no-store"})
+
+
+async def _natural_search_action(request, *, cancel=False):
+    _auto_work_local_request(request)
+    try:
+        form = await _bounded_urlencoded_form(request)
+        query = form.get("q", "")
+        if len(query) > 300:
+            raise ValueError("INVALID_SEARCH_QUERY")
+    except (AtlassianRegistrationError, ValueError) as error:
+        raise HTTPException(422, "검색어 또는 요청 형식을 확인해 주세요.") from error
+    if cancel:
+        request.app.state.natural_search.cancel()
+    else:
+        try:
+            request.app.state.natural_search.request_prepare()
+        except (OSError, ValueError) as error:
+            raise HTTPException(503, "검색 설정을 저장하지 못했습니다.") from error
+    return RedirectResponse("/natural-search?" + urlencode({"q": query}), status_code=303)
+
+
+@app.post("/natural-search/prepare")
+async def natural_search_prepare(request: Request):
+    return await _natural_search_action(request)
+
+
+@app.post("/natural-search/cancel")
+async def natural_search_cancel(request: Request):
+    return await _natural_search_action(request, cancel=True)
+
+
+@app.get("/natural-search/evidence/{rowid}", response_class=HTMLResponse)
+def natural_search_evidence(request: Request, rowid: int,
+                            generation: str = Query(default="", max_length=64),
+                            return_to: str = Query(default="/natural-search", max_length=4000)):
+    _auto_work_local_request(request)
+    evidence = None
+    try:
+        evidence = request.app.state.natural_search.evidence(rowid, generation)
+    except (ValueError, OSError, sqlite3.Error, RuntimeError):
+        pass
+    return templates.TemplateResponse("natural-search-evidence.html", {
+        "request": request, "active_page": "natural-search", "evidence": evidence,
+        "return_to": natural_search_return(return_to),
+    }, status_code=200 if evidence else 409)
 
 
 @app.get("/search", response_class=HTMLResponse)

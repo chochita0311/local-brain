@@ -37,6 +37,13 @@ function formatLocalTimes(root = document) {
 
 formatLocalTimes();
 
+// Native GET submission remains available; composing Enter only confirms IME text.
+document.querySelectorAll('.global-search input, .natural-search-form input').forEach((input) => {
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' && (event.isComposing || event.keyCode === 229)) event.preventDefault();
+  });
+});
+
 const usageDashboardStatus = document.querySelector("[data-usage-dashboard-status]");
 
 if (usageDashboardStatus) {

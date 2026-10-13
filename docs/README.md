@@ -16,6 +16,7 @@ Durable rules and current contracts live under `docs/policies/`.
 - [Product Model](policies/project/product.md): product purpose, scope, terminology, source roles, and user-facing organization rules
 - [Project Architecture](policies/project/architecture.md): stack, runtime boundaries, source adapters, storage model, and current implementation baseline
 - [macOS Installation And Local Storage](policies/project/installation-and-storage.md): installed wheel/archive setup, optional models, configurable private storage, updates, migration and cleanup
+- [Local Natural Language Search](policies/project/natural-language-search.md): eligible sources, molecularization, model roles, query interpretation, ranking, refresh and evidence navigation
 - [Source Claims And Work State](policies/project/source-claims-and-work-state.md): pure supplied-claim state projection and inferred provenance; not an admitted source extractor or map producer
 - [Data Model](policies/project/data-model.md): complete effective SQLite map, global and subject ERDs, table/column catalogs, relationships, lifecycle, recovery, and delta maintenance ownership
 - [Value Dictionaries](policies/project/data-model/value-dictionaries.md): generated subject map from physical and derived bounded values to complete presentation modes, labels, fallbacks, and consumer ownership
