@@ -36,7 +36,7 @@ separately authorized local operations.
 | Session identity and copy | Lead the metadata strip with Session ID, abbreviate from eight characters and extend on distinct-ID collisions. Copy the complete ID with button-anchored hover/result feedback, independent two-second copied state, bounded placement, stale-attempt protection and selectable failure recovery. | [Architecture](../../policies/project/architecture.md), design rules and shared browser assets |
 | Usage history and disclosure | Use the first/last positive selected-metric buckets when present for every source and Daily/Weekly/Monthly/Cumulative view; retain internal zero periods and selected-range totals, and keep requested bounds when no positive bucket exists. Expanded composition places Show less after the additional rows. | [Architecture](../../policies/project/architecture.md), usage read model and responsive CSS |
 | Unified search entry | Preserve the original header placeholder in one accessible input. Search and Enter submit the same native form to natural search; remove keyword fallback links. Keep the legacy keyword route and FTS implementation deprecated for existing URLs. | [PRD decision](../prd/prd-0020-local-natural-language-search.md#current-search-entry--2026-10-16), [search policy](../../policies/project/natural-language-search.md#product-surface) |
-| Native compressed sources | Recovery and duplicate retirement were performed locally with complete decoding, matching SHA-256/byte counts, no-overwrite publication and unchanged-file checks. The scanner still accepts plain JSONL only. | [Storage recovery](../../policies/project/installation-and-storage.md#native-session-compression-and-recovery), [follow-up backlog](../project/backlog.md#p1---sessions-and-retrieval) |
+| Local source recovery | Recovery and duplicate retirement were performed locally with complete decoding, matching SHA-256/byte counts, no-overwrite publication and unchanged-file checks. LocalBrain ingests the restored native Session JSONL under its existing contract. | [Storage recovery](../../policies/project/installation-and-storage.md#native-session-compression-and-recovery) |
 
 ## Clarifications And Deferred Decisions
 
@@ -56,6 +56,11 @@ separately authorized local operations.
 - Native compression startup gating and an explicit compression RPC are distinct.
   A current disabled flag cannot identify the actor behind a previous compression
   pass. Keep the version scope and evidence limit in the storage owner.
+- Scope correction: the owner clarified that LocalBrain reads local native
+  Sessions; the compressed files in this incident required a separately authorized
+  local recovery operation. The agent-added direct compressed-ingestion backlog
+  item was withdrawn. It was not an approved follow-up requirement, and compressed
+  ingestion is outside this Session ingestion contract.
 - Portable conversation, identity, analytical-range and utility-feedback review
   criteria were separately published in [ai-assets](https://github.com/chochita0311/ai-assets/commit/b1adc91f4d90e57f5766b7cb78d674c689572960).
   That separate upstream result does not replace LocalBrain's owned policies.
@@ -73,7 +78,7 @@ reorganization or document-wide rewrite was unnecessary and was not performed.
   the PRD preserves the initial comparison phase as historical evidence.
 - Before: native compressed rollout recovery had no current storage owner.
   After: the storage policy owns the version-scoped upstream distinction and
-  recovery safeguards; direct compressed ingestion remains an explicit backlog item.
+  safeguards for separately authorized local recovery.
 - Before: detailed conversation normalization and phase provenance were split
   between Architecture and the declared data-model owner. After: the Session and
   Activity Event owner sections contain the complete predicates and exceptions;
@@ -154,8 +159,8 @@ implementation and final verification remain the primary agent's responsibility.
 
 ## Remaining Boundary
 
-Direct compressed ingestion, Project display settings and recurring search-quality
-follow-ups remain separately owned work. Physical operating-system IME behavior
+Project display settings and recurring search-quality follow-ups remain
+separately owned work. Physical operating-system IME behavior
 and full distribution installation are not established by unit tests or this
 closeout's local browser observations. Publication covers this repository's
 reviewed changes; private source recovery is not a reusable product feature.

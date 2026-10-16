@@ -378,6 +378,10 @@ Session scanner accepts `.jsonl`; it does not ingest `.jsonl.zst` directly.
 A compressed-only rollout can therefore disappear from the normalized source
 mirror without its conversation having been permanently deleted.
 
+Session ingestion is scoped to native local Claude/Codex JSONL. Compressed-file
+recovery is a separately authorized local maintenance operation; direct compressed
+ingestion is outside this contract and is not a planned extension.
+
 Codex's [versioned compression implementation](https://github.com/openai/codex/blob/rust-v0.162.1/codex-rs/rollout/src/compression.rs)
 examines active and archived rollouts, selects files at least seven days old by
 modification time, verifies decoded output before retiring the plain file, and

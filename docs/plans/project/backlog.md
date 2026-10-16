@@ -264,11 +264,6 @@ single linked checkbox in the detailed backlog below.
   [PRD-0020](../prd/prd-0020-local-natural-language-search.md#decisions-and-remaining-review)
   owns this follow-up. This is not unfinished acceptance work for the current
   baseline. No automatic query collection or settings UI is added.
-- [ ] Support native Codex `.jsonl.zst` source ingestion without requiring
-  manual decompression. Define candidate freshness, compressed/plain deduplication,
-  stable logical Session identity, decode-failure recovery and disappearance
-  reconciliation together. The current scanner accepts `.jsonl` only; bounded
-  manual recovery is documented under [native Session compression and recovery](../../policies/project/installation-and-storage.md#native-session-compression-and-recovery).
 - [ ] Validate Claude and Codex parsers against format changes and malformed or partially written JSONL.
 - [ ] Decide which additional subagent metadata is useful without importing nested events.
 - [ ] Decide which tool-result fields are valuable enough to index without adding opaque payload noise or excessive volume.
