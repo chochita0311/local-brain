@@ -2,7 +2,7 @@
 
 ## Authority And Scope
 
-[PRD-0020](../../plans/prd/prd-0020-local-natural-language-search.md) owns the product boundary. This document owns the new search contracts; code and schema remain implementation truth. The original `/search` and its FTS table retain their existing contract.
+[PRD-0020](../../plans/prd/prd-0020-local-natural-language-search.md) owns the product boundary. This document owns the search contracts; code and schema remain implementation truth. Natural-language search is the shared-header search entry point. The original keyword-search route `/search` is deprecated and retained for existing URLs; its FTS data and legacy query behavior remain available for compatibility.
 
 The owner approved sequential implementation and local tests on 2026-10-12. No private corpus, query, vector, evaluation, model adapter or machine inventory is publishable. Public examples and fixtures are synthetic. No remote inference, implicit downloads, personal fine-tuning, source editing or Workstream reorganization.
 
@@ -86,7 +86,9 @@ environment still exists.
 
 ## Product Surface
 
-The new input appears left of the original shared-header search, with separate form actions and values. Keep Atlassian's current local-query exception. At narrow widths preserve both named, keyboard-reachable inputs without horizontal overflow. Use existing semantic tokens and search-result families; no fragment management UI or threshold control.
+The shared header has one search input in the original global-search position, preserving the `세션, 질문, 문서 통합 검색` placeholder and the current query. Its label is available to assistive technology without visible search-mode copy. Enter and the header's Search submit button use the same native GET form targeting `/natural-search`; IME composition remains guarded. Keep Atlassian's current local-query exception and its header Search link to `/natural-search`. At narrow widths preserve keyboard reachability and containment. Use existing semantic tokens and search-result families; no fragment management UI or threshold control.
+
+The deprecated `/search` route remains directly reachable with its existing filters and query contract, and is marked deprecated in the route schema. Shared navigation, natural-search recovery and no-match guidance do not offer keyword search. This deprecation does not remove the legacy FTS table or the natural-search engine's lexical exact-identifier path.
 
 The natural-search page owns explicit first preparation/retry, truthful coverage, applied conditions, ranked parent results and source evidence navigation. Status polling cannot reset query, focus or scroll. Never put model internals or debug traces into normal result copy.
 
@@ -132,7 +134,7 @@ observes the changed normalized source snapshot.
 
 ```mermaid
 flowchart TD
-    Input[Left header input or natural-search page] --> Conditions[Preserve query; interpret explicit conditions]
+    Input[Shared header input or natural-search page] --> Conditions[Preserve query; interpret explicit conditions]
     Conditions --> Current[Recheck normalized source eligibility and revision]
     Current --> Views[Original query plus conservative topic/action view when applicable]
     Views --> Embed[Offline Qwen embedding in one batch]

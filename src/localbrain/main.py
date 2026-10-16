@@ -85,6 +85,7 @@ from .queries import (
     session_chart_inventory,
     session_chart_activity,
     session_detail,
+    session_id_prefix,
     session_parent,
     session_source_scopes,
     session_subsessions,
@@ -3089,6 +3090,7 @@ def show_session(
         session = session_detail(connection, session_id)
         if not session or session["session_class"] != "work":
             raise HTTPException(status_code=404, detail="Session not found")
+        short_session_id = session_id_prefix(connection, session["external_id"])
         selected_source, selected_workspace, navigation_query = (
             _session_navigation_state(connection, source, workspace)
         )
@@ -3173,6 +3175,7 @@ def show_session(
             "request": request,
             "active_page": "sessions",
             "session": session,
+            "short_session_id": short_session_id,
             "events": events,
             "parent": parent,
             "memberships": memberships,
@@ -3669,7 +3672,7 @@ def natural_search_evidence(request: Request, rowid: int,
     }, status_code=200 if evidence else 409)
 
 
-@app.get("/search", response_class=HTMLResponse)
+@app.get("/search", response_class=HTMLResponse, deprecated=True)
 def search_page(
     request: Request,
     q: str = Query(default="", max_length=300),
@@ -3686,6 +3689,7 @@ def search_page(
     tag_id: Optional[int] = Query(default=None, ge=1),
     workstream_id: Optional[int] = Query(default=None, ge=1),
 ):
+    """Deprecated keyword-search entry point retained for existing URLs."""
     selected_source = (
         source if source in {"all", "sessions", "documents", "atlassian"} else "all"
     )

@@ -446,11 +446,12 @@ def _next_bucket(value: date, view: str) -> date:
 def _history_from_buckets(buckets: Dict[date, Decimal], scope: dict) -> List[dict]:
     current = _bucket_start(scope["from_date"], scope["view"])
     last = _bucket_start(scope["to_date"], scope["view"])
-    if scope["custom"]:
-        nonzero_dates = [bucket_date for bucket_date, value in buckets.items() if value > 0]
-        if nonzero_dates:
-            current = max(current, min(nonzero_dates))
-            last = min(last, max(nonzero_dates))
+    # Display bounds follow the selected metric, regardless of how scope changed.
+    # Keep the requested range for selection and zero buckets between its values.
+    nonzero_dates = [bucket_date for bucket_date, value in buckets.items() if value > 0]
+    if nonzero_dates:
+        current = max(current, min(nonzero_dates))
+        last = min(last, max(nonzero_dates))
     items = []
     running = Decimal("0")
     while current <= last:

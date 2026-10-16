@@ -1,11 +1,12 @@
 import sqlite3
 import unittest
 from datetime import date, datetime, timezone
+from decimal import Decimal
 from pathlib import Path
 
 from localbrain.ingest.common import ParsedSession, ParsedUsageRecord
 from localbrain.ingest.scanner import _store_session
-from localbrain.usage_queries import normalize_usage_scope, usage_dashboard_data
+from localbrain.usage_queries import _history_from_buckets, normalize_usage_scope, usage_dashboard_data
 
 
 SCHEMA_PATH = Path(__file__).parents[1] / "src" / "localbrain" / "schema.sql"
@@ -72,6 +73,41 @@ def parsed_session(
 
 
 class UsageDashboardTests(unittest.TestCase):
+    def test_history_bounds_share_one_rule_for_default_and_custom_ranges(self):
+        for view, dates in (
+            ("daily", (date(2026, 6, 2), date(2026, 6, 3), date(2026, 6, 4))),
+            ("weekly", (date(2026, 6, 8), date(2026, 6, 15), date(2026, 6, 22))),
+            ("monthly", (date(2026, 6, 1), date(2026, 7, 1), date(2026, 8, 1))),
+            ("cumulative", (date(2026, 6, 1), date(2026, 7, 1), date(2026, 8, 1))),
+        ):
+            for metric in ("tokens", "cost"):
+                for custom in (False, True):
+                    with self.subTest(view=view, metric=metric, custom=custom):
+                        scope = {"view": view, "metric": metric, "custom": custom,
+                                 "from_date": date(2026, 6, 1), "to_date": date(2026, 9, 30)}
+                        result = _history_from_buckets(
+                            {dates[0]: Decimal(3), dates[2]: Decimal(5)}, scope
+                        )
+                        self.assertEqual([row["date"] for row in result], list(dates))
+                        self.assertEqual(
+                            [row["value"] for row in result],
+                            [Decimal(3), Decimal(3), Decimal(8)]
+                            if view == "cumulative" else [Decimal(3), Decimal(0), Decimal(5)],
+                        )
+                        self.assertEqual(scope["from_date"], date(2026, 6, 1))
+                        self.assertEqual(scope["to_date"], date(2026, 9, 30))
+
+    def test_history_without_positive_values_keeps_selected_range(self):
+        for custom in (False, True):
+            scope = {"view": "daily", "metric": "cost", "custom": custom,
+                     "from_date": date(2026, 6, 1), "to_date": date(2026, 6, 3)}
+            for buckets in ({}, {date(2026, 6, 2): Decimal(0)}):
+                with self.subTest(custom=custom, buckets=buckets):
+                    result = _history_from_buckets(buckets, scope)
+                    self.assertEqual([row["date"] for row in result],
+                                     [date(2026, 6, day) for day in (1, 2, 3)])
+                    self.assertTrue(all(row["bar_percent"] == 0 for row in result))
+
     def setUp(self):
         self.connection = sqlite3.connect(":memory:")
         self.connection.row_factory = sqlite3.Row
@@ -203,7 +239,7 @@ class UsageDashboardTests(unittest.TestCase):
 
         self.assertEqual(result["scope"]["from_iso"], "2026-06-19")
         self.assertEqual(result["scope"]["to_iso"], "2026-07-18")
-        self.assertEqual(len(result["history"]), 30)
+        self.assertEqual(len(result["history"]), 18)
         self.assertEqual(result["aggregate"]["total_tokens"], 680)
         self.assertEqual(result["aggregate"]["session_count"], 2)
         self.assertEqual(result["aggregate"]["active_days"], 2)
@@ -285,10 +321,14 @@ class UsageDashboardTests(unittest.TestCase):
                 all_usage["month_to_date"][field],
                 sum(item["month_to_date"][field] for item in per_source.values()),
             )
-        for index, bucket in enumerate(all_usage["history"]):
+        per_source_history = [
+            {bucket["date"]: bucket["value"] for bucket in item["history"]}
+            for item in per_source.values()
+        ]
+        for bucket in all_usage["history"]:
             self.assertEqual(
                 bucket["value"],
-                sum(item["history"][index]["value"] for item in per_source.values()),
+                sum(history.get(bucket["date"], 0) for history in per_source_history),
             )
         source_rows = {
             row["key"]: row for row in all_usage["breakdown"]["rows"]
@@ -416,7 +456,7 @@ class UsageDashboardTests(unittest.TestCase):
             today=date(2026, 7, 18),
         )
         self.assertEqual(weekly["scope"]["from_iso"], "2026-04-27")
-        self.assertEqual(len(weekly["history"]), 12)
+        self.assertEqual(len(weekly["history"]), 3)
 
         cumulative = usage_dashboard_data(
             self.connection,

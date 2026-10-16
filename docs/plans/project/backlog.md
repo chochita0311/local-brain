@@ -246,8 +246,10 @@ single linked checkbox in the detailed backlog below.
 ## P1 - Sessions And Retrieval
 
 - [x] Approve and implement [PRD-0020: Local Natural Language Search](../prd/prd-0020-local-natural-language-search.md)
-  beside existing search, with whole eligible Session/Local Context coverage,
-  private derived storage and automatic refresh. Contracts/engine/UI passed.
+  with whole eligible Session/Local Context coverage, private derived storage
+  and automatic refresh. Initial contracts/engine/parallel UI passed; the
+  owner-approved follow-up uses one header input and deprecates keyword-search
+  navigation under [RUN-161](../run/run-20261016-161-session-parsing-and-search-closeout.md).
 - [x] Complete [FEAT-0121](../feature/feat-0121-natural-search-local-comparison.md)
   actual-model comparison, full private-index measurements and final regression.
 - [x] Compare concrete natural-search noise and adopt the measured query-time
@@ -262,6 +264,11 @@ single linked checkbox in the detailed backlog below.
   [PRD-0020](../prd/prd-0020-local-natural-language-search.md#decisions-and-remaining-review)
   owns this follow-up. This is not unfinished acceptance work for the current
   baseline. No automatic query collection or settings UI is added.
+- [ ] Support native Codex `.jsonl.zst` source ingestion without requiring
+  manual decompression. Define candidate freshness, compressed/plain deduplication,
+  stable logical Session identity, decode-failure recovery and disappearance
+  reconciliation together. The current scanner accepts `.jsonl` only; bounded
+  manual recovery is documented under [native Session compression and recovery](../../policies/project/installation-and-storage.md#native-session-compression-and-recovery).
 - [ ] Validate Claude and Codex parsers against format changes and malformed or partially written JSONL.
 - [ ] Decide which additional subagent metadata is useful without importing nested events.
 - [ ] Decide which tool-result fields are valuable enough to index without adding opaque payload noise or excessive volume.
@@ -327,6 +334,13 @@ single linked checkbox in the detailed backlog below.
 
 ## Open Decisions
 
+- <a id="project-root-and-path-display-settings"></a>[ ] Review general settings
+  and Project base-path/display policy together. The base folder can currently
+  appear as `.` in By Project because its stored display name is relative to
+  that base. Decide whether the base path should be configurable and how
+  home/base folders and relative/absolute path labels should appear, accounting
+  for frozen historical Usage attribution. Tracking only at the owner's request
+  on `2026-10-16`; implementation and settings/display decisions are deferred.
 - [ ] Whether full source text stays in SQLite, is stored only as searchable excerpts, or is read from the original source on demand.
 - [ ] Which external metadata may be persisted under applicable policy and which must remain ephemeral.
 - [ ] Whether AI summaries are local-only, use an approved model path, or require per-Run confirmation.

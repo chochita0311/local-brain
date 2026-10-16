@@ -8,6 +8,7 @@ from localbrain.ingest.common import ParsedEvent, ParsedSession
 from localbrain.queries import (
     session_conversation_events,
     session_events,
+    session_id_prefix,
     session_parent,
     session_subsessions,
 )
@@ -132,6 +133,33 @@ class SessionDetailTests(unittest.TestCase):
                 parent_id,
             ),
         ).lastrowid
+
+    def test_session_id_prefix_extends_only_for_distinct_colliding_ids(self):
+        target = "abcdefgh-1234"
+        self._session(target, "primary")
+        self.assertEqual(session_id_prefix(self.connection, target), "abcdefgh")
+        self._session("abcdefgh-5678", "primary")
+        self.assertEqual(session_id_prefix(self.connection, target), "abcdefgh-1")
+
+    def test_session_id_prefix_allows_same_native_id_in_different_sources(self):
+        target = "unique01-synthetic"
+        self._session(target, "primary")
+        source_id = self.connection.execute(
+            "INSERT INTO sources(kind,name,root_path) VALUES (?, ?, ?)",
+            ("codex-company", "Codex Company", "/synthetic/company"),
+        ).lastrowid
+        self.connection.execute(
+            "INSERT INTO sessions(source_id,external_id,source_path,title) VALUES (?, ?, ?, ?)",
+            (source_id, target, "/synthetic/company/session.jsonl", "Synthetic"),
+        )
+        self.assertEqual(session_id_prefix(self.connection, target), "unique01")
+
+    def test_session_id_prefix_keeps_short_and_literal_ids(self):
+        self._session("short", "primary")
+        self._session("literal%-one", "primary")
+        self._session("literalX-two", "primary")
+        self.assertEqual(session_id_prefix(self.connection, "short"), "short")
+        self.assertEqual(session_id_prefix(self.connection, "literal%-one"), "literal%")
 
     def test_conversation_filter_preserves_raw_events_and_message_text(self):
         conversation = session_conversation_events(self.connection, self.parent)
@@ -265,6 +293,37 @@ class SessionDetailTests(unittest.TestCase):
         self.assertEqual(fallback["render_state"], "fallback")
         self.assertIn("&lt;unsafe&gt;", fallback["rendered_body"])
         self.assertNotIn("synthetic", fallback["rendered_body"])
+
+    def test_conversation_phase_changes_only_frame_without_adding_labels(self):
+        from jinja2 import Environment, FileSystemLoader
+
+        environment = Environment(loader=FileSystemLoader(
+            SCHEMA_PATH.parent / "templates"
+        ), autoescape=True)
+        message = environment.get_template("_conversation.html").module.conversation_message
+        for role, phase, expected_frame in (
+            ("user", None, False),
+            ("user", "final_answer", False),
+            ("assistant", "commentary", False),
+            ("assistant", "final_answer", True),
+            ("assistant", None, False),
+            ("assistant", "future_phase", False),
+        ):
+            with self.subTest(role=role, phase=phase):
+                event = {"id": "synthetic-message", "role": role,
+                         "message_phase": phase, "text": "원본 메시지 본문",
+                         "occurred_at": "2026-10-15T01:00:00Z"}
+                rendered = str(message(event, "나", "Codex Company"))
+                self.assertEqual("is-final-answer" in rendered, expected_frame)
+                self.assertIn("<strong>{}</strong>".format("나" if role == "user" else "Codex Company"), rendered)
+                self.assertIn("원본 메시지 본문", rendered)
+                self.assertNotIn("최종 답변", rendered)
+                self.assertNotIn("진행 설명", rendered)
+                self.assertNotIn("작업 완료", rendered)
+        # Legacy or lazy consumers may have no phase key at all.
+        self.assertNotIn("is-final-answer", str(message(
+            {"role": "assistant", "text": "기존 답변"}, "나", "Codex Company"
+        )))
 
     def test_tool_only_session_has_an_empty_conversation_without_data_loss(self):
         self.assertEqual(

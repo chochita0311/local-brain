@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from .common import (
     ApprovedResourceCall,
@@ -27,7 +27,7 @@ from .skill_loads import SkillReadCollector
 
 
 CLAUDE_USAGE_CONTRACT_VERSION = "claude-message-usage-v3-official-pricing"
-CLAUDE_SESSION_CONTRACT_VERSION = "claude-session-v6-skill-reference-sessions"
+CLAUDE_SESSION_CONTRACT_VERSION = "claude-session-v7-message-phases"
 
 
 def _message_content(record: Dict[str, Any]) -> Any:
@@ -189,6 +189,8 @@ def parse_claude_session(path: Path) -> ParsedSession:
     first_user_text = ""
     timestamps: List[str] = []
     events: List[ParsedEvent] = []
+    assistant_messages: Dict[Tuple[str, int], List[ParsedEvent]] = {}
+    assistant_stop_reasons: Dict[Tuple[str, int], Set[str]] = {}
     skill_observations: List[ParsedSkillObservation] = []
     skill_reads = SkillReadCollector("claude")
     usage_by_record: Dict[str, ParsedUsageRecord] = {}
@@ -232,6 +234,29 @@ def parse_claude_session(path: Path) -> ParsedSession:
             continue
 
         message_content = _message_content(record)
+        message = record.get("message")
+        assistant_key = None
+        if record_type == "assistant" and isinstance(message, dict):
+            message_id = message.get("id")
+            assistant_key = (
+                (message_id, 0)
+                if isinstance(message_id, str) and message_id.strip()
+                else ("", line_number)
+            )
+            reasons = assistant_stop_reasons.setdefault(assistant_key, set())
+            stop_reason = message.get("stop_reason")
+            if stop_reason is not None:
+                reasons.add(
+                    stop_reason if isinstance(stop_reason, str) else "invalid"
+                )
+            if isinstance(message_content, list) and any(
+                isinstance(item, dict)
+                and item.get("type") in {"tool_use", "server_tool_use"}
+                for item in message_content
+            ):
+                reasons.add("tool_use")
+            if record.get("isApiErrorMessage") or record.get("error"):
+                reasons.add("error")
         is_tool_result = (
             bool(record.get("sourceToolAssistantUUID"))
             or "toolUseResult" in record
@@ -296,17 +321,18 @@ def parse_claude_session(path: Path) -> ParsedSession:
             if record_type == "user" and not first_user_text:
                 first_user_text = text
             event_id = stable_id("claude", external_id, line_number, record_type)
-            events.append(
-                ParsedEvent(
-                    event_id=event_id,
-                    sequence=line_number * 10,
-                    source_line=line_number,
-                    event_type="message",
-                    occurred_at=timestamp if isinstance(timestamp, str) else None,
-                    role=record_type,
-                    text=text,
-                )
+            event = ParsedEvent(
+                event_id=event_id,
+                sequence=line_number * 10,
+                source_line=line_number,
+                event_type="message",
+                occurred_at=timestamp if isinstance(timestamp, str) else None,
+                role=record_type,
+                text=text,
             )
+            events.append(event)
+            if assistant_key is not None:
+                assistant_messages.setdefault(assistant_key, []).append(event)
             url_evidence.extend(
                 visible_url_evidence(
                     text,
@@ -325,7 +351,6 @@ def parse_claude_session(path: Path) -> ParsedSession:
                 )
             )
 
-        message = record.get("message")
         if record_type == "assistant":
             usage_record = _claude_usage_record(
                 external_id,
@@ -389,6 +414,16 @@ def parse_claude_session(path: Path) -> ParsedSession:
                                 tool_name=tool_name,
                             )
                         )
+
+    # Claude can write one API message as separate text/thinking/tool records.
+    # Share its terminal signal by native message ID; EOF or wording is not proof
+    # that a response finished, and conflicting/error signals stay unmarked.
+    phases = {"end_turn": "final_answer", "tool_use": "commentary"}
+    for key, message_events in assistant_messages.items():
+        reasons = assistant_stop_reasons[key]
+        phase = phases.get(next(iter(reasons))) if len(reasons) == 1 else None
+        for event in message_events:
+            event.message_phase = phase
 
     fallback = Path(cwd).name if cwd else path.parent.name.strip("-") or path.stem
     title = compact_title(explicit_title or first_user_text, fallback)

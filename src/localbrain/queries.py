@@ -620,6 +620,27 @@ def source_inventory(connection: sqlite3.Connection):
     ).fetchall()
 
 
+def session_id_prefix(connection: sqlite3.Connection, external_id: str) -> str:
+    """Abbreviate a native ID, extending past eight characters on collisions."""
+    length = min(8, len(external_id))
+    prefix = external_id[:length]
+    candidates = [
+        row["external_id"]
+        for row in connection.execute(
+            """
+            SELECT DISTINCT external_id FROM sessions
+            WHERE substr(external_id, 1, ?) = ? AND external_id != ?
+            """,
+            (length, prefix, external_id),
+        ).fetchall()
+    ]
+    while length < len(external_id) and any(
+        candidate.startswith(external_id[:length]) for candidate in candidates
+    ):
+        length += 1
+    return external_id[:length]
+
+
 def session_detail(connection: sqlite3.Connection, session_id: int):
     return connection.execute(
         """
@@ -754,6 +775,7 @@ def search(
     source_scope: str = "all",
     atlassian_filters: Optional[dict] = None,
 ):
+    """Deprecated global keyword search retained for the legacy /search route."""
     expression = _fts_expression(query)
     if not expression:
         return []

@@ -156,7 +156,7 @@ model. Local inference does not train or update shared pretrained weights.
 
 | Feature | Local model requirement | Asset download |
 | --- | --- | --- |
-| Session ingestion, reading, keyword search, deterministic views | None | None |
+| Session ingestion, reading, deprecated keyword search, deterministic views | None | None |
 | Natural-language Session / Local Context search | Qwen3-Embedding-0.6B | Same shared asset as affinity |
 | Prepared full-history affinity map | Qwen3-Embedding-0.6B | About 1.21 GB |
 | Explicit experimental context trials | Qwen3-4B or Qwen3-8B | About 8.06 GB or 16.40 GB |
@@ -369,6 +369,34 @@ DB, source configuration, saved Runs and shared public weights are not moved.
 
 Use `localbrain models verify <model>` for each installed model, inspect
 `localbrain storage status`, then restart with `localbrain serve`.
+
+## Native Session Compression And Recovery
+
+Native Session files are owned by Claude/Codex. LocalBrain does not request their
+compression or apply its migration-backup cleanup policy to them. The current
+Session scanner accepts `.jsonl`; it does not ingest `.jsonl.zst` directly.
+A compressed-only rollout can therefore disappear from the normalized source
+mirror without its conversation having been permanently deleted.
+
+Codex's [versioned compression implementation](https://github.com/openai/codex/blob/rust-v0.162.1/codex-rs/rollout/src/compression.rs)
+examines active and archived rollouts, selects files at least seven days old by
+modification time, verifies decoded output before retiring the plain file, and
+uses a six-hour worker-start cooldown rather than a periodic deletion timer.
+In that version the [startup feature defaults to false](https://github.com/openai/codex/blob/rust-v0.162.1/codex-rs/features/src/lib.rs).
+A client can separately request [`rollout/compress`](https://github.com/openai/codex/blob/rust-v0.163.0/codex-rs/app-server/README.md#local-rollout-compression)
+without enabling the startup feature. A current disabled flag does not establish
+which process triggered a past compression pass. These are version-scoped
+upstream observations, not a LocalBrain retention guarantee.
+
+For bounded manual recovery, preserve the compressed source, decode into a
+separate private staging file, verify successful complete decoding, and publish
+the matching `.jsonl` without overwriting any existing plain file. Sync that
+registered Session source afterward. Original timestamps and source-native
+identity should be preserved. Removal of a compressed duplicate requires a
+separate user request, matching decoded/plain byte counts and SHA-256 hashes,
+and unchanged regular files at the deletion boundary; changed or uncertain
+pairs stay preserved. This operation creates no new ingestion format support
+and never places native files or recovery manifests in Git.
 
 ## Bounded Recovery And Cleanup
 

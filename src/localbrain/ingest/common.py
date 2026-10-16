@@ -79,6 +79,7 @@ class ParsedEvent:
     role: Optional[str] = None
     text: Optional[str] = None
     tool_name: Optional[str] = None
+    message_phase: Optional[str] = None
 
 
 @dataclass(frozen=True)

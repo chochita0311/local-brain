@@ -296,7 +296,7 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [SPEC-0122: Natural Search Ranking Precision](spec/spec-0122-natural-search-ranking-precision.md) | `approved` | FEAT-0122 |
 | [SPEC-0123: General Work Search](spec/spec-0123-general-work-search.md) | `approved` | FEAT-0123 |
 
-## Runs (160)
+## Runs (161)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -460,6 +460,7 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [RUN-158: Natural Search Local Comparison](run/run-20261012-158-natural-search-local-comparison.md) | `passed` | FEAT-0121 |
 | [RUN-159: Natural Search Ranking Precision](run/run-20261012-159-natural-search-ranking-precision.md) | `passed` | FEAT-0122 |
 | [RUN-160: General Work Search](run/run-20261013-160-general-work-search.md) | `passed` | FEAT-0123 |
+| [RUN-161: Session Parsing And Search Closeout](run/run-20261016-161-session-parsing-and-search-closeout.md) | `passed` | PRD-0002, PRD-0004, PRD-0020 |
 
 ## Evaluations And Schema Audits (432)
 

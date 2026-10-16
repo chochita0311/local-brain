@@ -70,19 +70,14 @@
           <span class="page-location">{% block page_location %}LocalBrain{% endblock %}</span>
           {% if active_page == 'atlassian' %}
             <span class="global-search-reserve" aria-hidden="true"></span>
+            <a class="search-link" href="/natural-search">Search</a>
           {% else %}
-            <div class="global-search-pair">
-              <form class="global-search" action="/natural-search" method="get">
-                <label for="global-natural-query">자연어 검색</label>
-                <input id="global-natural-query" name="q" type="search" maxlength="300" placeholder="만들던 앱 관련 세션" value="{{ natural_query | default('') }}">
-              </form>
-              <form class="global-search" action="/search" method="get">
-                <label for="global-query">키워드 검색</label>
-                <input id="global-query" name="q" type="search" placeholder="세션, 질문, 문서 통합 검색" value="{{ query | default('') }}">
-              </form>
-            </div>
+            <form id="global-search" class="global-search" action="/natural-search" method="get">
+              <label class="sr-only" for="global-query">검색</label>
+              <input id="global-query" name="q" type="search" maxlength="300" placeholder="세션, 질문, 문서 통합 검색" value="{{ natural_query | default(query | default('')) }}">
+            </form>
+            <button class="search-link {% if active_page in ['natural-search', 'search'] %}active{% endif %}" type="submit" form="global-search">Search</button>
           {% endif %}
-          <a class="search-link {% if active_page == 'search' %}active{% endif %}" href="/search" {% if active_page == 'search' %}aria-current="page"{% endif %}>Search</a>
         </header>
         <main class="app-main" id="main-content" tabindex="-1">
           {% block content %}{% endblock %}

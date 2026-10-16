@@ -456,6 +456,166 @@ function showNotice(message, tone = "error") {
   window.setTimeout(() => notice.remove(), 5000);
 }
 
+document.querySelectorAll("[data-session-id-copy]").forEach((button, index) => {
+  const value = button.closest(".session-id-value").querySelector("code");
+  const fullId = button.dataset.sessionIdCopy;
+  const icon = button.querySelector("svg");
+  const idleIcon = icon.innerHTML;
+  const copiedIcon = '<path d="m3 8 3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
+  const idleLabel = button.getAttribute("aria-label");
+  const errorMessage = "복사하지 못했습니다. 선택된 Session ID를 직접 복사해 주세요.";
+  const feedback = document.createElement("div");
+  feedback.id = "session-id-copy-feedback-" + index;
+  feedback.className = "session-id-copy-feedback sr-only";
+  feedback.setAttribute("role", "tooltip");
+  const announcement = document.createElement("div");
+  announcement.className = "sr-only";
+  announcement.setAttribute("role", "status");
+  announcement.setAttribute("aria-atomic", "true");
+  // The metadata frame clips overflow, so the shared hover/result tooltip is external.
+  document.body.append(feedback, announcement);
+  let outcome = "idle";
+  let outcomeTimer = null;
+  let hoverTimer = null;
+  let tooltipDismissed = false;
+  let copyAttempt = 0;
+  button.dataset.copyState = "idle";
+  // Native title tooltips follow the pointer and must not compete with this tooltip.
+  button.removeAttribute("title");
+
+  const hideCopyTooltip = () => {
+    feedback.classList.add("sr-only");
+    feedback.textContent = "";
+    button.removeAttribute("aria-describedby");
+  };
+
+  const showCopyTooltip = (message, tone) => {
+    feedback.textContent = message;
+    feedback.dataset.tone = tone;
+    feedback.classList.remove("sr-only");
+    button.setAttribute("aria-describedby", feedback.id);
+
+    const anchor = button.getBoundingClientRect();
+    const box = feedback.getBoundingClientRect();
+    const gap = Number.parseFloat(
+      getComputedStyle(feedback).getPropertyValue("--space-control-gap"),
+    );
+    const center = anchor.left + anchor.width / 2;
+    const left = Math.max(gap, Math.min(
+      center - box.width / 2,
+      document.documentElement.clientWidth - box.width - gap,
+    ));
+    const below = anchor.bottom + gap;
+    const above = anchor.top - box.height - gap;
+    const flip = below + box.height + gap > document.documentElement.clientHeight
+      && above >= gap;
+    feedback.dataset.placement = flip ? "above" : "below";
+    feedback.style.left = left + "px";
+    feedback.style.top = (flip ? above : below) + "px";
+    feedback.style.setProperty(
+      "--session-copy-arrow-x",
+      Math.max(gap, Math.min(center - left, box.width - gap)) + "px",
+    );
+  };
+
+  const renderCopyTooltip = () => {
+    if (tooltipDismissed || (
+      outcome === "idle" && !button.matches(":hover, :focus-visible")
+    )) {
+      hideCopyTooltip();
+      return;
+    }
+    showCopyTooltip(
+      outcome === "copied" ? "Copied!" : outcome === "error" ? errorMessage : idleLabel,
+      outcome === "error" ? "error" : "neutral",
+    );
+  };
+
+  const renderCopyState = () => {
+    const state = outcome === "copied" ? "copied" : "idle";
+    if (button.dataset.copyState !== state) {
+      icon.innerHTML = state === "copied" ? copiedIcon : idleIcon;
+      button.dataset.copyState = state;
+    }
+    button.setAttribute("aria-label", state === "copied" ? "Session ID 복사 완료" : idleLabel);
+    renderCopyTooltip();
+  };
+
+  const setCopyOutcome = (next) => {
+    window.clearTimeout(outcomeTimer);
+    outcome = next;
+    announcement.textContent = next === "copied" ? "Session ID를 복사했습니다." : errorMessage;
+    renderCopyState();
+    // Leaving the button hides its tooltip; the result still expires on this deadline.
+    outcomeTimer = window.setTimeout(() => {
+      outcomeTimer = null;
+      outcome = "idle";
+      announcement.textContent = "";
+      renderCopyState();
+    }, next === "copied" ? 2000 : 5000);
+  };
+
+  const dismissCopyTooltip = () => {
+    window.clearTimeout(hoverTimer);
+    hoverTimer = null;
+    tooltipDismissed = true;
+    hideCopyTooltip();
+  };
+
+  button.addEventListener("pointerenter", (event) => {
+    if (event.pointerType === "touch") return;
+    tooltipDismissed = false;
+    window.clearTimeout(hoverTimer);
+    hoverTimer = window.setTimeout(() => {
+      hoverTimer = null;
+      renderCopyTooltip();
+    }, 100);
+  });
+  button.addEventListener("pointerleave", (event) => {
+    if (event.pointerType !== "touch") dismissCopyTooltip();
+  });
+  button.addEventListener("focus", () => {
+    if (button.matches(":focus-visible")) {
+      tooltipDismissed = false;
+      renderCopyTooltip();
+    }
+  });
+  button.addEventListener("blur", dismissCopyTooltip);
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && (
+      hoverTimer !== null || !feedback.classList.contains("sr-only")
+    )) {
+      dismissCopyTooltip();
+    }
+  });
+  window.addEventListener("scroll", dismissCopyTooltip, { capture: true, passive: true });
+  window.addEventListener("resize", dismissCopyTooltip);
+  button.addEventListener("click", async () => {
+    const attempt = ++copyAttempt;
+    window.clearTimeout(hoverTimer);
+    hoverTimer = null;
+    tooltipDismissed = false;
+    try {
+      await navigator.clipboard.writeText(fullId);
+      if (attempt !== copyAttempt) return;
+      setCopyOutcome("copied");
+    } catch {
+      if (attempt !== copyAttempt) return;
+      // Keep the complete value available when clipboard permission is denied.
+      value.textContent = fullId;
+      value.focus({ preventScroll: true });
+      const selection = window.getSelection();
+      const range = document.createRange();
+      range.selectNodeContents(value);
+      selection.removeAllRanges();
+      selection.addRange(range);
+      tooltipDismissed = false;
+      setCopyOutcome("error");
+    }
+  });
+  button.hidden = false;
+});
+
 const scanStatusLabels = {
   completed: "완료",
   empty: "비어 있음",

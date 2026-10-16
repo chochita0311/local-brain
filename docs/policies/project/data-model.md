@@ -12,8 +12,8 @@ This is the durable human entry point for LocalBrain's effective SQLite model. I
 - Physical foreign keys: `57`
 - Effective explicitly named indexes: `51`
 - Focused subject areas: `10`
-- `schema.sql` SHA-256: `20c57959f797b2da44599a48f66874ee9c009992bf85d2f627d46156600162e1`
-- `db.py` SHA-256: `1c6c43c96a6190fb90c329b5431af9900b43d2f6bc6ac906545a0a590630affc`
+- `schema.sql` SHA-256: `c94a88e3fb41a43219b22f5c731e4828cbd56eab7c1b4ce21f54478f87b45599`
+- `db.py` SHA-256: `5a315feb476886a6d988a876bfa9441d0e2047162504f7a20e6ef3c08480fd79`
 
 SQLite primary-key and uniqueness autoindexes and FTS5 shadow tables are implementation internals and are not counted as primary objects or explicitly named indexes. Validation applies `schema.sql` only to an in-memory database; no user database or runtime row is read.
 

@@ -1175,6 +1175,495 @@ root = "{company}"
                     scanner.scan_session_sources()
                 self.assertEqual(reconcile_references.call_count, 0)
 
+    def test_codex_message_repair_restores_unchanged_sources_without_repricing(self):
+        prompt = "첫 질문 https://visible.example.test/initial"
+        reply = "후속 확인 응답"
+
+        def legacy_parser(path):
+            parsed = scanner.parse_codex_session(path)
+            # Model the stored v8 projection, which omitted the initial prompt.
+            parsed.events = [event for event in parsed.events if event.text != prompt]
+            parsed.title = reply
+            parsed.url_evidence = []
+            parsed.reference_candidates = []
+            return parsed
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            settings = self._settings(root)
+            self._write_claude_session(root / "claude" / "control.jsonl", "control", "Claude 질문")
+            paths = []
+            for source_key in ("codex", "codex-company"):
+                path = root / source_key / "response-only.jsonl"
+                self._write_codex_session(path, "response-only", prompt)
+                records = [json.loads(line) for line in path.read_text().splitlines()]
+                records[1] = {
+                    "type": "turn_context",
+                    "payload": {"turn_id": "turn-one", "model": "gpt-5"},
+                }
+                for role, text in (
+                    ("user", "# AGENTS.md instructions\n<INSTRUCTIONS>\n"
+                     "https://injected.example.test/item\n</INSTRUCTIONS>"),
+                    ("user", prompt), ("assistant", "확인할까요?"),
+                    ("user", reply), ("assistant", "진행했습니다"),
+                ):
+                    records.append({"type": "response_item", "payload": {
+                        "type": "message", "role": role,
+                        "content": [{"type": "input_text" if role == "user" else "output_text",
+                                     "text": text}],
+                    }})
+                path.write_text("\n".join(json.dumps(record) for record in records) + "\n")
+                paths.append(path)
+            file_stats = [path.stat() for path in paths]
+            with patch.object(db, "settings", settings), patch.object(scanner, "settings", settings):
+                with patch.dict(scanner.SESSION_SCAN_ADAPTERS, {"codex": (
+                    legacy_parser, "codex-session-v8-skill-reference-sessions",
+                    scanner.CODEX_USAGE_CONTRACT_VERSION,
+                )}):
+                    scanner.scan_session_sources()
+                with db.connect() as connection:
+                    rows_before = connection.execute(
+                        "SELECT id, source_id, title FROM sessions ORDER BY id"
+                    ).fetchall()
+                    ids_before = [(row["id"], row["source_id"]) for row in rows_before]
+                    self.assertEqual(sum(row["title"] == reply for row in rows_before), 2)
+                    usage_before = self._table_rows(connection, "usage_records")
+                    self.assertEqual(len(usage_before), 2)
+                    claude_before = tuple(connection.execute(
+                        "SELECT * FROM sessions WHERE external_id = 'control'"
+                    ).fetchone())
+                progress = []
+                with patch.object(scanner, "_store_parsed_usage", wraps=scanner._store_parsed_usage) as store_usage:
+                    report = scanner.scan_session_sources(progress=progress.append)
+                self.assertEqual(store_usage.call_count, 0)
+                self.assertEqual(report["outcome"], "complete")
+                self.assertEqual(report["summary"]["imported"], 2)
+                self.assertEqual(
+                    [(event["source_key"], event["repair_kinds"]) for event in progress
+                     if event["type"] == "source_plan" and event["repair_kinds"]],
+                    [("codex", ["session"]), ("codex-company", ["session"])],
+                )
+                with db.connect() as connection:
+                    rows_after = connection.execute(
+                        "SELECT id, source_id, title FROM sessions ORDER BY id"
+                    ).fetchall()
+                    self.assertEqual([(row["id"], row["source_id"]) for row in rows_after], ids_before)
+                    self.assertEqual(tuple(connection.execute(
+                        "SELECT * FROM sessions WHERE external_id = 'control'"
+                    ).fetchone()), claude_before)
+                    self.assertEqual(self._table_rows(connection, "usage_records"), usage_before)
+                    for row in rows_after:
+                        if row["title"] != prompt:
+                            continue
+                        messages = connection.execute(
+                            "SELECT role, text FROM activity_events WHERE session_id = ? ORDER BY sequence",
+                            (row["id"],),
+                        ).fetchall()
+                        self.assertEqual([(event["role"], event["text"]) for event in messages], [
+                            ("user", prompt), ("assistant", "확인할까요?"),
+                            ("user", reply), ("assistant", "진행했습니다"),
+                        ])
+                        indexed = connection.execute(
+                            "SELECT title, body FROM search_index WHERE entity_type = 'session' AND entity_id = ?",
+                            (str(row["id"]),),
+                        ).fetchone()
+                        self.assertEqual(indexed["title"], prompt)
+                        self.assertIn(prompt, indexed["body"])
+                        self.assertNotIn("injected.example.test", indexed["body"])
+                    self.assertEqual(sum(row["title"] == prompt for row in rows_after), 2)
+                    events_after = self._table_rows(connection, "activity_events")
+                    self.assertEqual({row[0] for row in connection.execute(
+                        "SELECT session_contract_version FROM source_files JOIN sources ON sources.id = source_files.source_id "
+                        "WHERE sources.provider_kind = 'codex'"
+                    )}, {scanner.CODEX_SESSION_CONTRACT_VERSION})
+                repeated = scanner.scan_session_sources()
+                self.assertEqual(repeated["summary"]["imported"], 0)
+                with db.connect() as connection:
+                    self.assertEqual(self._table_rows(connection, "activity_events"), events_after)
+                    self.assertEqual(self._table_rows(connection, "usage_records"), usage_before)
+                self.assertEqual([path.stat() for path in paths], file_stats)
+
+    def test_phase_upgrade_backfills_unchanged_codex_files_without_repricing(self):
+        def previous_parser(path):
+            parsed = scanner.parse_codex_session(path)
+            for event in parsed.events:
+                event.message_phase = None
+            return parsed
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            settings = self._settings(root)
+            for key in ("codex", "codex-company"):
+                path = root / key / "phase.jsonl"
+                self._write_codex_session(path, "phase-test", "첫 질문")
+                records = [json.loads(line) for line in path.read_text().splitlines()]
+                for phase, text in (("commentary", "진행 설명"), ("final_answer", "응답 본문")):
+                    records.append({"type": "response_item", "payload": {
+                        "type": "message", "role": "assistant", "phase": phase,
+                        "content": [{"type": "output_text", "text": text}],
+                    }})
+                path.write_text("\n".join(json.dumps(record) for record in records) + "\n")
+            with patch.object(db, "settings", settings), patch.object(scanner, "settings", settings):
+                with patch.dict(scanner.SESSION_SCAN_ADAPTERS, {"codex": (
+                    previous_parser, "codex-session-v9-user-message-preservation",
+                    scanner.CODEX_USAGE_CONTRACT_VERSION,
+                )}):
+                    scanner.scan_session_sources()
+                with db.connect() as connection:
+                    usage_before = self._table_rows(connection, "usage_records")
+                    self.assertEqual(len(usage_before), 2)
+                    columns = "id,session_id,sequence,occurred_at,event_type,role,text,tool_name,source_line"
+                    events_before = [tuple(row) for row in connection.execute(
+                        "SELECT " + columns + " FROM activity_events ORDER BY id"
+                    )]
+                    self.assertEqual(connection.execute(
+                        "SELECT COUNT(*) FROM activity_events WHERE message_phase IS NOT NULL"
+                    ).fetchone()[0], 0)
+                with patch.object(scanner, "_store_parsed_usage", wraps=scanner._store_parsed_usage) as usage:
+                    report = scanner.scan_session_sources()
+                self.assertEqual(report["outcome"], "complete")
+                self.assertEqual(report["summary"]["imported"], 2)
+                self.assertEqual(usage.call_count, 0)
+                with db.connect() as connection:
+                    self.assertEqual([tuple(row) for row in connection.execute(
+                        "SELECT " + columns + " FROM activity_events ORDER BY id"
+                    )], events_before)
+                    self.assertEqual(self._table_rows(connection, "usage_records"), usage_before)
+                    self.assertEqual([tuple(row) for row in connection.execute(
+                        "SELECT message_phase,COUNT(*) FROM activity_events GROUP BY message_phase ORDER BY message_phase"
+                    )], [(None, 2), ("commentary", 2), ("final_answer", 2)])
+                repeated = scanner.scan_session_sources()
+                self.assertEqual(repeated["summary"]["imported"], 0)
+
+    def test_phase_upgrade_backfills_unchanged_claude_files_without_repricing(self):
+        def previous_parser(path):
+            parsed = scanner.parse_claude_session(path)
+            for event in parsed.events:
+                event.message_phase = None
+            return parsed
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            settings = self._settings(root)
+            path = root / "claude" / "phase.jsonl"
+            self._write_claude_session(path, "claude-phase", "첫 질문")
+            with path.open("a") as stream:
+                for native_id, reason, text in (
+                    ("working", "tool_use", "진행 설명"),
+                    ("completed", "end_turn", "응답 본문"),
+                ):
+                    stream.write(json.dumps({"type": "assistant", "message": {
+                        "id": native_id, "model": "claude-sonnet-4-6",
+                        "stop_reason": reason, "content": [{"type": "text", "text": text}],
+                        "usage": {"input_tokens": 10, "output_tokens": 5},
+                    }}) + "\n")
+            for key in ("codex", "codex-company"):
+                self._write_codex_session(root / key / "control.jsonl", "control", "대조 질문")
+            source_stat = path.stat()
+            with patch.object(db, "settings", settings), patch.object(scanner, "settings", settings):
+                with patch.dict(scanner.SESSION_SCAN_ADAPTERS, {"claude": (
+                    previous_parser, "claude-session-v6-skill-reference-sessions",
+                    scanner.CLAUDE_USAGE_CONTRACT_VERSION,
+                )}):
+                    scanner.scan_session_sources()
+                with db.connect() as connection:
+                    usage_before = self._table_rows(connection, "usage_records")
+                    self.assertEqual(len(usage_before), 4)
+                    columns = "id,session_id,sequence,occurred_at,event_type,role,text,tool_name,source_line"
+                    events_before = [tuple(row) for row in connection.execute(
+                        "SELECT " + columns + " FROM activity_events ORDER BY id"
+                    )]
+                    codex_before = [tuple(row) for row in connection.execute(
+                        "SELECT s.* FROM sessions s JOIN sources p ON p.id=s.source_id "
+                        "WHERE p.provider_kind='codex' ORDER BY s.id"
+                    )]
+                progress = []
+                with patch.object(scanner, "_store_parsed_usage", wraps=scanner._store_parsed_usage) as usage:
+                    report = scanner.scan_session_sources(progress=progress.append)
+                self.assertEqual(report["outcome"], "complete")
+                self.assertEqual(report["summary"]["imported"], 1)
+                self.assertEqual(usage.call_count, 0)
+                self.assertEqual(
+                    [(event["source_key"], event["repair_kinds"]) for event in progress
+                     if event["type"] == "source_plan" and event["repair_kinds"]],
+                    [("claude", ["session"])],
+                )
+                with db.connect() as connection:
+                    self.assertEqual([tuple(row) for row in connection.execute(
+                        "SELECT " + columns + " FROM activity_events ORDER BY id"
+                    )], events_before)
+                    self.assertEqual(self._table_rows(connection, "usage_records"), usage_before)
+                    self.assertEqual([tuple(row) for row in connection.execute(
+                        "SELECT s.* FROM sessions s JOIN sources p ON p.id=s.source_id "
+                        "WHERE p.provider_kind='codex' ORDER BY s.id"
+                    )], codex_before)
+                    self.assertEqual([tuple(row) for row in connection.execute(
+                        "SELECT e.role,e.text,e.message_phase FROM activity_events e "
+                        "JOIN sessions s ON s.id=e.session_id JOIN sources p ON p.id=s.source_id "
+                        "WHERE p.provider_kind='claude' ORDER BY e.sequence"
+                    )], [
+                        ("user", "첫 질문", None),
+                        ("assistant", "진행 설명", "commentary"),
+                        ("assistant", "응답 본문", "final_answer"),
+                    ])
+                    self.assertEqual({row[0] for row in connection.execute(
+                        "SELECT f.session_contract_version FROM source_files f "
+                        "JOIN sources p ON p.id=f.source_id WHERE p.provider_kind='claude'"
+                    )}, {scanner.CLAUDE_SESSION_CONTRACT_VERSION})
+                    events_after = self._table_rows(connection, "activity_events")
+                self.assertEqual(scanner.scan_session_sources()["summary"]["imported"], 0)
+                with db.connect() as connection:
+                    self.assertEqual(self._table_rows(connection, "activity_events"), events_after)
+                    self.assertEqual(self._table_rows(connection, "usage_records"), usage_before)
+            self.assertEqual(path.stat(), source_stat)
+
+    def test_question_reply_upgrade_repairs_both_codex_sources_without_repricing(self):
+        wrapper = (
+            "<send_user_message_question_reply>\n"
+            + json.dumps([{
+                "question": "적용 범위는 어디까지인가요?",
+                "answer": "우선 기획 문서 https://visible.example.test/plan 을 확인해 주세요.",
+                "questionItemId": json.dumps(["request_user_input_async", "internal-call", 0]),
+            }], ensure_ascii=False)
+            + "\n</send_user_message_question_reply>"
+        )
+        readable = (
+            "> 적용 범위는 어디까지인가요?\n\n"
+            "우선 기획 문서 https://visible.example.test/plan 을 확인해 주세요."
+        )
+
+        def previous_parser(path):
+            parsed = scanner.parse_codex_session(path)
+            for event in parsed.events:
+                if event.text == readable:
+                    event.text = wrapper
+            return parsed
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            settings = self._settings(root)
+            paths = []
+            for key in ("codex", "codex-company"):
+                path = root / key / "question.jsonl"
+                self._write_codex_session(path, "question-test", "실제 첫 질문")
+                with path.open("a") as stream:
+                    for role, text, phase in (("user", wrapper, None), ("assistant", "확인했습니다", "final_answer")):
+                        stream.write(json.dumps({"type": "response_item", "payload": {
+                            "type": "message", "role": role, "phase": phase,
+                            "content": [{"type": "input_text" if role == "user" else "output_text", "text": text}],
+                        }}) + "\n")
+                paths.append(path)
+            self._write_claude_session(root / "claude" / "control.jsonl", "control", "Claude 대조 질문")
+            source_bytes = [path.read_bytes() for path in paths]
+            with patch.object(db, "settings", settings), patch.object(scanner, "settings", settings):
+                with patch.dict(scanner.SESSION_SCAN_ADAPTERS, {"codex": (
+                    previous_parser, "codex-session-v10-message-phases",
+                    scanner.CODEX_USAGE_CONTRACT_VERSION,
+                )}):
+                    scanner.scan_session_sources()
+                with db.connect() as connection:
+                    usage_before = self._table_rows(connection, "usage_records")
+                    self.assertEqual(len(usage_before), 2)
+                    columns = "id,session_id,sequence,occurred_at,event_type,role,tool_name,source_line,message_phase"
+                    identities_before = [tuple(row) for row in connection.execute(
+                        "SELECT " + columns + " FROM activity_events ORDER BY id"
+                    )]
+                    claude_before = tuple(connection.execute(
+                        "SELECT * FROM sessions WHERE external_id='control'"
+                    ).fetchone())
+                progress = []
+                with patch.object(scanner, "_store_parsed_usage", wraps=scanner._store_parsed_usage) as usage:
+                    report = scanner.scan_session_sources(progress=progress.append)
+                self.assertEqual(report["outcome"], "complete")
+                self.assertEqual(report["summary"]["imported"], 2)
+                self.assertEqual(usage.call_count, 0)
+                self.assertEqual(
+                    [(event["source_key"], event["repair_kinds"]) for event in progress
+                     if event["type"] == "source_plan" and event["repair_kinds"]],
+                    [("codex", ["session"]), ("codex-company", ["session"])],
+                )
+                with db.connect() as connection:
+                    self.assertEqual([tuple(row) for row in connection.execute(
+                        "SELECT " + columns + " FROM activity_events ORDER BY id"
+                    )], identities_before)
+                    self.assertEqual(self._table_rows(connection, "usage_records"), usage_before)
+                    self.assertEqual(tuple(connection.execute(
+                        "SELECT * FROM sessions WHERE external_id='control'"
+                    ).fetchone()), claude_before)
+                    for key in ("codex", "codex-company"):
+                        session_id = connection.execute(
+                            "SELECT s.id FROM sessions s JOIN sources p ON p.id=s.source_id WHERE p.kind=?",
+                            (key,),
+                        ).fetchone()[0]
+                        self.assertEqual([tuple(row) for row in connection.execute(
+                            "SELECT role,text FROM activity_events WHERE session_id=? ORDER BY sequence", (session_id,),
+                        )], [("user", "실제 첫 질문"), ("user", readable), ("assistant", "확인했습니다")])
+                        indexed = connection.execute(
+                            "SELECT body FROM search_index WHERE entity_type='session' AND entity_id=?", (str(session_id),),
+                        ).fetchone()[0]
+                        self.assertIn(readable, indexed)
+                        for internal in ("send_user_message_question_reply", "questionItemId", "internal-call"):
+                            self.assertNotIn(internal, indexed)
+                    events_after = self._table_rows(connection, "activity_events")
+                self.assertEqual(scanner.scan_session_sources()["summary"]["imported"], 0)
+                with db.connect() as connection:
+                    self.assertEqual(self._table_rows(connection, "activity_events"), events_after)
+            self.assertEqual([path.read_bytes() for path in paths], source_bytes)
+
+    def test_context_only_upgrade_clears_stale_events_and_preserves_shared_real_owner(self):
+        from localbrain.ingest.common import ParsedEvent
+
+        catalog = (
+            "<recommended_plugins>\n"
+            "Here is a list of plugins that are available but not installed.\n</recommended_plugins>"
+        )
+
+        def previous_parser(path):
+            parsed = scanner.parse_codex_session(path)
+            for line, value in enumerate(path.read_text().splitlines(), 1):
+                record = json.loads(value)
+                payload = record.get("payload", {})
+                if payload.get("type") == "message" and payload.get("content") == [
+                    {"type": "input_text", "text": catalog},
+                ]:
+                    parsed.events.append(ParsedEvent(
+                        event_id=scanner.stable_id("codex", parsed.external_id, line, "user"),
+                        sequence=line * 10, source_line=line, event_type="message",
+                        role="user", text=catalog,
+                    ))
+                    parsed.title = "Previously imported generated context"
+            return parsed
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            settings = self._settings(root)
+            paths = []
+            for key in ("codex", "codex-company"):
+                real = root / key / "a-real.jsonl"
+                self._write_codex_session(real, "shared", "실제 대화")
+                paths.append(real)
+                for name, external_id in (("empty.jsonl", "empty"), ("z-context.jsonl", "shared")):
+                    path = root / key / name
+                    path.write_text("\n".join(json.dumps(record) for record in (
+                        {"type": "session_meta", "payload": {"id": external_id}},
+                        {"type": "response_item", "payload": {
+                            "type": "message", "role": "user",
+                            "content": [{"type": "input_text", "text": catalog}],
+                        }},
+                    )) + "\n")
+                    paths.append(path)
+            source_bytes = [path.read_bytes() for path in paths]
+            with patch.object(db, "settings", settings), patch.object(scanner, "settings", settings):
+                with patch.dict(scanner.SESSION_SCAN_ADAPTERS, {"codex": (
+                    previous_parser, "codex-session-v10-message-phases",
+                    scanner.CODEX_USAGE_CONTRACT_VERSION,
+                )}):
+                    scanner.scan_session_sources()
+                with db.connect() as connection:
+                    self.assertEqual(connection.execute("SELECT COUNT(*) FROM sessions").fetchone()[0], 4)
+                    shared_ids = [row[0] for row in connection.execute(
+                        "SELECT id FROM sessions WHERE external_id='shared' ORDER BY id"
+                    )]
+                    for sid in shared_ids:
+                        connection.execute("INSERT INTO session_pins VALUES (?, '2026-10-15T00:00:00Z')", (sid,))
+                    connection.commit()
+                    usage_before = self._table_rows(connection, "usage_records")
+                    self.assertEqual(len(usage_before), 2)
+                report = scanner.scan_session_sources()
+                self.assertEqual(report["outcome"], "complete")
+                with db.connect() as connection:
+                    self.assertEqual([row[0] for row in connection.execute(
+                        "SELECT id FROM sessions ORDER BY id"
+                    )], shared_ids)
+                    self.assertEqual([row[0] for row in connection.execute(
+                        "SELECT text FROM activity_events ORDER BY id"
+                    )], ["실제 대화", "실제 대화"])
+                    self.assertEqual([row[0] for row in connection.execute(
+                        "SELECT session_id FROM session_pins ORDER BY session_id"
+                    )], shared_ids)
+                    self.assertEqual(connection.execute("SELECT COUNT(*) FROM source_files").fetchone()[0], 2)
+                    self.assertEqual(self._table_rows(connection, "usage_records"), usage_before)
+                    self.assertEqual(connection.execute(
+                        "SELECT COUNT(*) FROM search_index WHERE body LIKE '%recommended_plugins%'"
+                    ).fetchone()[0], 0)
+                scanner.scan_session_sources()
+                with db.connect() as connection:
+                    self.assertEqual([row[0] for row in connection.execute(
+                        "SELECT text FROM activity_events ORDER BY id"
+                    )], ["실제 대화", "실제 대화"])
+                    self.assertEqual(self._table_rows(connection, "usage_records"), usage_before)
+            self.assertEqual([path.read_bytes() for path in paths], source_bytes)
+
+    def test_empty_sibling_does_not_remove_shared_skill_only_owner(self):
+        skill = (
+            "<skill>\n<name>synthetic-review</name>\n"
+            "<path>/synthetic/skills/synthetic-review/SKILL.md</path>\n</skill>"
+        )
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            settings = self._settings(root)
+            for key in ("codex", "codex-company"):
+                owner = root / key / "a-skill.jsonl"
+                owner.parent.mkdir(parents=True, exist_ok=True)
+                owner.write_text("\n".join(json.dumps(item) for item in (
+                    {"type": "session_meta", "payload": {"id": "shared-skill"}},
+                    {"type": "response_item", "payload": {
+                        "id": "native-skill", "type": "message", "role": "user",
+                        "content": [{"type": "input_text", "text": skill}],
+                    }},
+                )) + "\n")
+                parsed = scanner.parse_codex_session(owner)
+                self.assertEqual(parsed.events, [])
+                self.assertTrue(parsed.skill_observations)
+                (owner.parent / "z-empty.jsonl").write_text(json.dumps({
+                    "type": "session_meta", "payload": {"id": "shared-skill"},
+                }) + "\n")
+            with patch.object(db, "settings", settings), patch.object(scanner, "settings", settings):
+                self.assertEqual(scanner.scan_session_sources()["outcome"], "complete")
+                with db.connect() as connection:
+                    ids = [row[0] for row in connection.execute(
+                        "SELECT id FROM sessions ORDER BY id"
+                    )]
+                    self.assertEqual(len(ids), 2)
+                    self.assertEqual(connection.execute(
+                        "SELECT COUNT(*) FROM source_files"
+                    ).fetchone()[0], 2)
+                self.assertEqual(scanner.scan_session_sources()["outcome"], "complete")
+                with db.connect() as connection:
+                    self.assertEqual([row[0] for row in connection.execute(
+                        "SELECT id FROM sessions ORDER BY id"
+                    )], ids)
+                    self.assertEqual(connection.execute(
+                        "SELECT COUNT(*) FROM activity_events"
+                    ).fetchone()[0], 0)
+                    self.assertEqual(connection.execute(
+                        "SELECT COUNT(*) FROM skill_observations"
+                    ).fetchone()[0], 2)
+
+    def test_newly_empty_owner_clears_stale_conversation_but_keeps_historical_usage(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            settings = self._settings(root)
+            path = root / "codex" / "history.jsonl"
+            self._write_codex_session(path, "history", "기존 대화")
+            with patch.object(db, "settings", settings), patch.object(scanner, "settings", settings):
+                scanner.scan_session_sources()
+                with db.connect() as connection:
+                    usage_before = self._table_rows(connection, "usage_records")
+                    sid = connection.execute("SELECT id FROM sessions").fetchone()[0]
+                path.write_text(json.dumps({
+                    "type": "session_meta", "payload": {"id": "history"},
+                }) + "\n")
+                scanner.scan_session_sources()
+                with db.connect() as connection:
+                    self.assertEqual(tuple(connection.execute(
+                        "SELECT id,event_count,user_message_count,assistant_message_count FROM sessions"
+                    ).fetchone()), (sid, 0, 0, 0))
+                    self.assertEqual(connection.execute("SELECT COUNT(*) FROM activity_events").fetchone()[0], 0)
+                    self.assertEqual(connection.execute("SELECT COUNT(*) FROM search_index").fetchone()[0], 0)
+                    self.assertEqual(self._table_rows(connection, "usage_records"), usage_before)
+                    self.assertEqual(connection.execute("SELECT COUNT(*) FROM source_files").fetchone()[0], 0)
+
     def test_missing_session_contract_triggers_skill_backfill_without_usage_repair(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

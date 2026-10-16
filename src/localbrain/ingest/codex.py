@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -36,7 +37,7 @@ CODEX_USAGE_IDENTITY_VERSION = (
 )
 CODEX_USAGE_CONTRACT_VERSION = "codex-last-token-usage-v8-official-dated-service-tier"
 CODEX_SESSION_CONTRACT_VERSION = (
-    "codex-session-v8-skill-reference-sessions"
+    "codex-session-v11-question-replies-and-context-blocks"
 )
 CODEX_GUARDIAN_TITLE = "Codex guardian"
 
@@ -74,8 +75,83 @@ def _config_service_tier(path: Path) -> tuple:
     return "standard", "unmarked_default_assumption"
 
 
+def _codex_message_phase(payload: Dict[str, Any], role: str) -> Optional[str]:
+    phase = payload.get("phase")
+    if role == "assistant" and isinstance(phase, str) and phase in {
+        "commentary", "final_answer"
+    }:
+        return phase
+    return None
+
+
+def _codex_question_reply_text(text: str) -> str:
+    opening = "<send_user_message_question_reply>"
+    closing = "</send_user_message_question_reply>"
+    value = text.strip()
+    if not (value.startswith(opening) and value.endswith(closing)):
+        return value
+
+    def unique_object(pairs):
+        result = {}
+        for key, item in pairs:
+            if key in result:
+                raise ValueError("Duplicate question-reply field")
+            result[key] = item
+        return result
+
+    try:
+        replies = json.loads(
+            value[len(opening) : -len(closing)],
+            object_pairs_hook=unique_object,
+        )
+    except (ValueError, RecursionError):
+        return value
+    if not isinstance(replies, list) or not replies:
+        return value
+
+    parts = []
+    for reply in replies:
+        if not isinstance(reply, dict) or not reply.keys() <= {
+            "answer", "question", "questionItemId"
+        }:
+            return value
+        answer = reply.get("answer")
+        question = reply.get("question", "")
+        if (
+            not isinstance(answer, str)
+            or not answer.strip()
+            or not isinstance(question, str)
+        ):
+            return value
+        # Keep the human question as a quotation and the answer as authored text.
+        # Transport IDs stay in the source JSONL, never in the readable message.
+        if question.strip():
+            parts.append("\n".join("> " + line for line in question.strip().splitlines()))
+        parts.append(answer.strip())
+    return "\n\n".join(parts)
+
+
 def _codex_generated_user_context(text: str) -> bool:
     value = text.strip()
+    header = value.split("\n", 1)[0].rstrip()
+    if (
+        value.startswith(
+            "<recommended_plugins>\n"
+            "Here is a list of plugins that are available but not installed."
+        )
+        and value.endswith("</recommended_plugins>")
+    ):
+        return True
+    if (
+        value.startswith('<codex_internal_context source="daemon_recovery">\n')
+        and value.endswith("</codex_internal_context>")
+    ) or (
+        value.startswith(
+            "<turn_aborted>\nThe user interrupted the previous turn"
+        )
+        and value.endswith("</turn_aborted>")
+    ):
+        return True
     if (
         value.startswith("<skill>\n<name>")
         and "\n<path>" in value
@@ -83,7 +159,10 @@ def _codex_generated_user_context(text: str) -> bool:
     ):
         return True
     if (
-        value.startswith("# AGENTS.md instructions for ")
+        (
+            header == "# AGENTS.md instructions"
+            or header.startswith("# AGENTS.md instructions for ")
+        )
         and "\n<INSTRUCTIONS>" in value
         and "\n</INSTRUCTIONS>" in value
     ):
@@ -91,6 +170,27 @@ def _codex_generated_user_context(text: str) -> bool:
     return value.startswith("<environment_context>") and value.endswith(
         "</environment_context>"
     )
+
+
+def _codex_user_message_text(text: str) -> str:
+    if _codex_generated_user_context(text):
+        return ""
+    return _codex_question_reply_text(text)
+
+
+def _codex_user_content(content: Any) -> str:
+    if isinstance(content, str):
+        return _codex_user_message_text(content)
+    if not isinstance(content, list):
+        return ""
+    chunks = []
+    for item in content:
+        text = text_from_content([item])
+        if text:
+            normalized = _codex_user_message_text(text)
+            if normalized:
+                chunks.append(normalized)
+    return "\n\n".join(chunks)
 
 
 def _codex_loaded_skill(text: str) -> Optional[tuple]:
@@ -374,7 +474,9 @@ def parse_codex_session(path: Path) -> ParsedSession:
     previous_total_usage: Dict[str, int] = {}
     response_messages: List[Dict[str, Any]] = []
     event_message_turns = set()
-    event_message_texts = {"user": set(), "assistant": set()}
+    legacy_assistant_events: Dict[tuple, List[ParsedEvent]] = {}
+    legacy_phase_hints: Dict[str, set] = {}
+    event_message_texts = {"user": {}, "assistant": {}}
     replay_second = _codex_subagent_replay_second(path)
     skip_subagent_replay = replay_second is not None
     fallback_service_tier, fallback_tier_source = _config_service_tier(path)
@@ -388,23 +490,23 @@ def parse_codex_session(path: Path) -> ParsedSession:
         payload: Dict[str, Any],
         role: str,
         text: str,
-    ) -> None:
+    ) -> Optional[ParsedEvent]:
         normalized_text = text.strip()
         if not normalized_text:
             return
         event_id = stable_id("codex", external_id, line_number, role)
         source_event_id = source_native_event_id(payload, event_id)
-        events.append(
-            ParsedEvent(
-                event_id=event_id,
-                sequence=line_number * 10,
-                source_line=line_number,
-                event_type="message",
-                occurred_at=timestamp,
-                role=role,
-                text=normalized_text,
-            )
+        event = ParsedEvent(
+            event_id=event_id,
+            sequence=line_number * 10,
+            source_line=line_number,
+            event_type="message",
+            occurred_at=timestamp,
+            role=role,
+            text=normalized_text,
+            message_phase=_codex_message_phase(payload, role),
         )
+        events.append(event)
         url_evidence.extend(
             visible_url_evidence(
                 normalized_text,
@@ -422,6 +524,7 @@ def parse_codex_session(path: Path) -> ParsedSession:
                 observed_at=timestamp,
             )
         )
+        return event
 
     for line_number, record in read_json_lines(path):
         if not isinstance(record, dict):
@@ -551,15 +654,25 @@ def parse_codex_session(path: Path) -> ParsedSession:
                 text = payload.get("message")
 
             if role and isinstance(text, str) and text.strip():
+                if role == "user":
+                    text = _codex_user_message_text(text)
+                    if not text:
+                        continue
                 event_message_turns.add((role, current_turn_id))
-                event_message_texts[role].add(text.strip())
-                append_message_event(
+                event_message_texts[role].setdefault(text.strip(), set()).add(
+                    current_turn_id
+                )
+                message_event = append_message_event(
                     line_number=line_number,
                     timestamp=timestamp if isinstance(timestamp, str) else None,
                     payload=payload,
                     role=role,
                     text=text,
                 )
+                if role == "assistant" and message_event is not None:
+                    legacy_assistant_events.setdefault(
+                        (current_turn_id, text.strip()), []
+                    ).append(message_event)
             continue
 
         if record_type == "response_item" and payload.get("type") == "message":
@@ -586,6 +699,10 @@ def parse_codex_session(path: Path) -> ParsedSession:
                         occurred_at=timestamp if isinstance(timestamp, str) else None,
                     )
                 )
+            if role == "user":
+                text = _codex_user_content(payload.get("content"))
+                if not text:
+                    continue
             metadata = payload.get("internal_chat_message_metadata_passthrough")
             turn_value = metadata.get("turn_id") if isinstance(metadata, dict) else None
             response_messages.append(
@@ -671,30 +788,38 @@ def parse_codex_session(path: Path) -> ParsedSession:
                     )
                 )
 
-    last_visible_user_by_turn = {
-        message["turn_id"]: index
-        for index, message in enumerate(response_messages)
-        if (
-            message["role"] == "user"
-            and message["turn_id"]
-            and not _codex_generated_user_context(message["text"])
-        )
-    }
-    for index, message in enumerate(response_messages):
+    for message in response_messages:
         role = message["role"]
         turn_id = message["turn_id"]
-        if role == "user" and _codex_generated_user_context(message["text"]):
-            continue
+        legacy_turns = event_message_texts[role].get(message["text"].strip(), set())
+        # Legacy assistant events own that role's turn. User replies can arrive
+        # during the same turn, so only matching legacy user text is a duplicate.
         if (
-            (turn_id and (role, turn_id) in event_message_turns)
-            or message["text"].strip() in event_message_texts[role]
-        ):
-            continue
-        if (
-            role == "user"
+            role == "assistant"
             and turn_id
-            and last_visible_user_by_turn.get(turn_id) != index
+            and (role, turn_id) in event_message_turns
+        ) or (
+            legacy_turns
+            and (not turn_id or None in legacy_turns or turn_id in legacy_turns)
         ):
+            phase = _codex_message_phase(message["payload"], role)
+            if phase is not None:
+                text = message["text"].strip()
+                if turn_id:
+                    matches = legacy_assistant_events.get((turn_id, text), [])
+                    if not matches:
+                        matches = legacy_assistant_events.get((None, text), [])
+                else:
+                    matches = [
+                        event
+                        for (_, event_text), candidates in legacy_assistant_events.items()
+                        if event_text == text
+                        for event in candidates
+                    ]
+                # A unique matching source record can supply missing phase data;
+                # text-only ambiguity never promotes a legacy reply to a result.
+                if len(matches) == 1:
+                    legacy_phase_hints.setdefault(matches[0].event_id, set()).add(phase)
             continue
         append_message_event(
             line_number=message["line_number"],
@@ -703,6 +828,12 @@ def parse_codex_session(path: Path) -> ParsedSession:
             role=role,
             text=message["text"],
         )
+
+    for candidates in legacy_assistant_events.values():
+        for event in candidates:
+            phases = legacy_phase_hints.get(event.event_id, set())
+            if event.message_phase is None and len(phases) == 1:
+                event.message_phase = next(iter(phases))
 
     events.sort(key=lambda event: (event.sequence, event.source_line, event.event_id))
     first_user_text = next(

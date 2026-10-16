@@ -146,6 +146,9 @@ CREATE TABLE IF NOT EXISTS activity_events (
     text TEXT,
     tool_name TEXT,
     source_line INTEGER NOT NULL,
+    message_phase TEXT CHECK(message_phase IN (
+        'commentary', 'final_answer'
+    )),
     UNIQUE(session_id, sequence, event_type, source_line)
 );
 

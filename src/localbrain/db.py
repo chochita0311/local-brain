@@ -1995,6 +1995,10 @@ def _run_compatible_migrations(
         _repair_maintenance_session_contract(connection)
 
     _remove_unused_activity_event_metadata(connection)
+    _ensure_column(
+        connection, "activity_events", "message_phase",
+        "TEXT CHECK(message_phase IN ('commentary', 'final_answer'))",
+    )
     _migrate_schema_indexes(connection)
 
     connection.executescript(

@@ -69,7 +69,30 @@ class NaturalSearchWebTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertIn('자연어 검색을 준비해 주세요', body)
         self.assertNotIn('현재 관련도 기준에 맞는 결과가 없습니다', body)
-        self.assertLess(body.index('id="global-natural-query"'), body.index('id="global-query"'))
+        self.assertIn('id="global-query" name="q" type="search" maxlength="300"', body)
+
+    def test_header_uses_one_native_form_for_search_and_enter(self):
+        status, body, _ = self.call('/natural-search?' + urlencode({'q': '앱 & 문서'}))
+        header = body.split('<header class="workspace-header">', 1)[1].split('</header>', 1)[0]
+        self.assertEqual(status, 200)
+        self.assertEqual(header.count('type="search"'), 1)
+        self.assertIn('id="global-search" class="global-search" action="/natural-search" method="get"', header)
+        self.assertIn('placeholder="세션, 질문, 문서 통합 검색"', header)
+        self.assertIn('value="앱 &amp; 문서"', header)
+        self.assertIn('<label class="sr-only" for="global-query">검색</label>', header)
+        self.assertIn('type="submit" form="global-search">Search</button>', header)
+        self.assertNotIn('global-natural-query', header)
+        self.assertNotIn('키워드 검색', header)
+
+    def test_keyword_route_is_deprecated_without_navigation_fallback(self):
+        status, body, _ = self.call('/openapi.json')
+        self.assertEqual(status, 200)
+        schema = json.loads(body)
+        self.assertTrue(schema['paths']['/search']['get']['deprecated'])
+        self.assertNotIn('deprecated', schema['paths']['/natural-search']['get'])
+        body = self.call('/natural-search')[1]
+        self.assertNotIn('href="/search', body)
+        self.assertNotIn('키워드 검색으로', body)
 
     def test_prepare_and_cancel_are_explicit_local_actions(self):
         for action, method in (('prepare', 'request_prepare'), ('cancel', 'cancel')):
@@ -158,7 +181,7 @@ class NaturalSearchWebTests(unittest.TestCase):
         self.assertEqual(status,200)
         self.assertIn('Atlas 모바일 앱',body)
         self.assertIn('action="/search"',body)
-        self.assertNotIn('id="global-query" name="q" type="search" maxlength=',body)
+        self.assertIn('id="global-query" name="q" type="search" maxlength="300"',body)
 
 
 if __name__ == '__main__':

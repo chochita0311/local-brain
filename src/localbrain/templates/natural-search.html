@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}자연어 검색 · LocalBrain{% endblock %}
-{% block page_location %}Natural search{% endblock %}
+{% block page_location %}Search{% endblock %}
 {% block content %}
   <section class="page-heading search-heading">
     <div>
@@ -45,7 +45,6 @@
         <button class="secondary-button" type="submit">준비 중단</button>
       </form>
       <a class="back-link" href="/natural-search?{{ {'q': natural_query}|urlencode }}" data-search-repeat hidden>같은 검색 다시 실행</a>
-      <a class="back-link" href="/search?{{ {'q': natural_query}|urlencode }}">키워드 검색으로 찾기</a>
     </div>
     <noscript><p>진행 상태를 확인하려면 이 페이지를 새로고침해 주세요.</p></noscript>
   </section>
@@ -82,7 +81,7 @@
       {% else %}
         <div class="empty-state">
           <h3>{% if search_response.total %}이 페이지에 결과가 없습니다{% else %}현재 관련도 기준에 맞는 결과가 없습니다{% endif %}</h3>
-          <p>찾던 작업의 목적이나 기능을 조금 더 설명해 보세요. 입력한 조건을 줄이거나 키워드 검색으로도 확인할 수 있습니다.</p>
+          <p>찾던 작업의 목적이나 기능을 조금 더 설명해 보세요. 입력한 조건을 줄여서 다시 검색할 수도 있습니다.</p>
         </div>
       {% endfor %}
     </div>

@@ -7,7 +7,7 @@ The current MVP runs as a FastAPI web application on the local machine. A native
 ## Current Capabilities
 
 - Ingest local Claude and Codex session history.
-- Search eligible Sessions and Local Context with local Korean natural-language retrieval, beside the original keyword search.
+- Search eligible Sessions and Local Context with local Korean natural-language retrieval from the shared header.
 - Register and browse folders, individual files, and Apple Notes as Local Context sources.
 - Read safe, locally rendered Markdown in Local Context previews, context-aware full Document views, and Session or Subsession conversations.
 - Browse Jira and Confluence links plus URL-derived Project, Board, Filter,
@@ -20,6 +20,14 @@ The current MVP runs as a FastAPI web application on the local machine. A native
 - Maintain versioned checkpoints and review reversible resource Suggestions.
 - Run Claude maintenance tasks for resource organization, checkpoint drafting, and priority review.
 - Inspect source-aware Session inventory, pinned recall, related evidence, and token or estimated-cost history.
+- Find the source-native **Session ID** in Session detail's metadata strip.
+  The short display expands on prefix collisions; hover reveals the complete
+  ID, which is also available to assistive technology on focus. The copy icon
+  copies that complete value for resuming or referencing the Session. Successful
+  copying changes the icon to a check mark and shows `Copied!` in the same
+  centered tooltip used for hover/focus help. After two seconds the icon resets
+  and an open tooltip returns to the copy explanation. Leaving hides the tooltip
+  while the copied state continues until its deadline.
 - Switch Sessions between **List** and **Chart**. Chart fills the content width,
   places every matching primary Session by recorded time in launch-folder Project
   rows sorted by name, with full paths distinguishing equal names. Stored branch
@@ -62,9 +70,15 @@ The current MVP runs as a FastAPI web application on the local machine. A native
   counts/legend/help are omitted. No work relationships are inferred. The
   existing List and Session **작업 흐름** remain available.
 - Compare Sessions Dashboard usage by source and Daily, Weekly, or Monthly range; Monthly shows each month's total. Estimated cost uses dated OpenAI and Anthropic model rates, including GPT-6 Astra, GPT-6 Sol, and GPT-6.1 Sol. Eligible retained unpriced GPT-6.1 Sol usage is calculated once on startup using its dated Standard/Fast rate. Codex Standard/Fast is selected from recorded thread settings when available; early GPT-5.6 Priority prices use a marked historical 2x estimate. Spark uses an explicitly labeled ccusage 20.0.17 GPT-5.3-Codex proxy, and historical GPT-5.6 or GPT-5.5 Fast requests above 272K input tokens use a separate labeled ccusage-style long-context estimate where no applicable Fast rate was published. The USD amount is an API-equivalent trend estimate, not a subscription charge; other models without their own published rate remain unpriced, and unsupported model/tier/context combinations remain partial. Zero-token Codex snapshots are omitted from dashboard totals, partial pricing coverage remains marked, and source synchronization details remain on Sources.
-- Change either Sessions Dashboard calendar date to show that period immediately; the history chart skips empty dates before the first and after the last value in a custom range, with daily labels at both ends and each month's 1st and 15th.
+- Change either Sessions Dashboard calendar date to show that period immediately.
+  Across source and date changes, Daily, Weekly, and Monthly use the first through
+  last positive bucket for the selected metric when any exist, retaining empty
+  periods between them. With no positive buckets, the chart keeps the requested
+  bounds; unavailable metric coverage remains explicit. Date filters and totals
+  use the full selected range. Daily labels appear at both ends and each month's
+  1st and 15th.
 - Cost history opens first; the chart switch places Cost before Tokens, and bar-top labels use whole-number compact values.
-- Compare Source, Model, and Project composition in one table with shared column headings for Tokens, Cost, Sessions, and share; expand the list to see additional groups.
+- Compare Source, Model, and Project composition in one table with shared column headings for Tokens, Cost, Sessions, and share; expand the list to see additional groups, then use `Show less` below the final row to collapse it.
 - Switch the Sessions Dashboard heading between Usage & Cost and Insights. Insights ranks skills by the number of Sessions that used or referenced them, counting a skill at most once per source and native Session across repeated reads and requests. The list shows the latest reference time and retains history after a local file disappears. This measures use/reference reach, not execution frequency or successful application. See the [Insights contract](docs/policies/project/product.md#insights) for admitted evidence and coverage limits.
 - The Insights improvement analyzer accepts a question or discovers opportunities from bounded primary-work Session excerpts. One explicit click starts one analysis-only Codex CLI Run; its status, observed usage, stored estimated cost, source-backed Markdown report, repeatable download, and earlier Runs remain available in Insights. Open the report settings to inspect its calculation state and frozen price basis; missing usage or prices remain explicitly unavailable. Reanalysis creates a new Run. Observed analysis tokens and estimated cost also enter Usage & Cost under the selected Codex source, with Project `Unassigned`; analysis remains outside ordinary Sessions and future analysis evidence. Each Run executes in its private runtime artifact directory. New Runs require that Codex home to be registered in Sources and explicitly use Standard service tier.
 - Open `작업 흐름` from an eligible primary Session to inspect a deterministic
@@ -104,10 +118,14 @@ Open `http://127.0.0.1:8000`. The local database is created automatically on fir
 
 ### Search Sessions And Local Context In Natural Language
 
-Use the **left search input in the header**, or open `/natural-search`, and describe
-what you want to find, for example `만들던 앱 관련 세션을 보여줘`. The original
-keyword search stays beside it. Results group related passages under their
-original Session or Document, with links to the exact evidence and back to results.
+Use the **search input in the header**, or open `/natural-search`, and describe
+what you want to find, for example `만들던 앱 관련 세션을 보여줘`. Press Enter or
+click **Search** to submit the same query to natural-language search. The header
+keeps its `세션, 질문, 문서 통합 검색` placeholder without search-mode labels.
+Results group related passages under their original Session or Document, with
+links to the exact evidence and back to results. The original keyword-search
+route `/search` is deprecated and retained only for existing URLs; ordinary
+search navigation no longer offers it.
 
 Install the [optional local model runtime](docs/policies/project/installation-and-storage.md#install-the-local-model-runtime), then:
 

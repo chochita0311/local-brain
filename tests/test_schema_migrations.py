@@ -1399,6 +1399,38 @@ class ActivityEventMetadataMigrationTests(unittest.TestCase):
         connection.close()
 
 
+class ActivityEventPhaseMigrationTests(unittest.TestCase):
+    def test_existing_events_survive_additive_phase_migration_and_repeated_startup(self):
+        connection = schema_connection()
+        self.addCleanup(connection.close)
+        connection.execute("ALTER TABLE activity_events DROP COLUMN message_phase")
+        connection.executescript("""
+            INSERT INTO sources(kind,name,root_path) VALUES ('codex','Codex','/synthetic');
+            INSERT INTO sessions(source_id,external_id,source_path,title)
+                VALUES (1,'phase-test','/synthetic/session.jsonl','Phase test');
+            INSERT INTO activity_events(id,session_id,sequence,event_type,role,text,source_line)
+                VALUES ('old-event',1,10,'message','assistant','완료라는 본문',1);
+        """)
+        before = tuple(connection.execute("SELECT * FROM activity_events").fetchone())
+        _run_compatible_migrations(connection, include_data_migrations=False)
+        row = connection.execute("SELECT * FROM activity_events").fetchone()
+        self.assertEqual(tuple(row)[:-1], before)
+        self.assertIsNone(row["message_phase"])
+        for phase in ("commentary", "final_answer", None):
+            connection.execute("UPDATE activity_events SET message_phase = ?", (phase,))
+        with self.assertRaises(sqlite3.IntegrityError):
+            connection.execute("UPDATE activity_events SET message_phase = 'guessed-completion'")
+        after = tuple(connection.execute("SELECT * FROM activity_events").fetchone())
+        _run_compatible_migrations(connection, include_data_migrations=False)
+        self.assertEqual(tuple(connection.execute("SELECT * FROM activity_events").fetchone()), after)
+        fresh = schema_connection()
+        self.addCleanup(fresh.close)
+        self.assertEqual(
+            [tuple(row) for row in connection.execute("PRAGMA table_info(activity_events)")],
+            [tuple(row) for row in fresh.execute("PRAGMA table_info(activity_events)")],
+        )
+
+
 class UsageAttributionCheckMigrationTests(unittest.TestCase):
     def test_valid_legacy_rows_and_column_metadata_are_preserved_exactly(self):
         connection = schema_connection()

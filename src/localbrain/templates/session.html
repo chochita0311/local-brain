@@ -38,8 +38,18 @@
 
   <div class="session-detail-layout{% if related_context %} has-related-context{% endif %}">
     <div class="session-detail-orientation">
-      <section class="detail-strip">
-        <div><span>마지막 활동</span><strong><time datetime="{{ session.last_event_at }}" data-local-time>{{ session.last_event_at or '-' }}</time></strong></div>
+      <section class="detail-strip session-detail-strip">
+        <div>
+          <span>Session ID</span>
+          <strong class="session-id-value">
+            <code tabindex="0" title="{{ session.external_id }}" aria-describedby="session-native-id">{{ short_session_id | default(session.external_id[:8], true) }}</code>
+            <button class="session-id-copy" type="button" data-session-id-copy="{{ session.external_id }}" aria-label="전체 Session ID 복사" hidden>
+              <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false"><rect x="5.5" y="5.5" width="8" height="8" rx="1" stroke="currentColor"/><path d="M10.5 3.5v-1a1 1 0 0 0-1-1h-7a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h1" stroke="currentColor"/></svg>
+            </button>
+            <span id="session-native-id" class="sr-only">{{ session.external_id }}</span>
+          </strong>
+        </div>
+        <div><span>마지막 활동</span><strong class="session-activity-value"><time datetime="{{ session.last_event_at }}" data-local-time>{{ session.last_event_at or '-' }}</time></strong></div>
         <div><span>질문</span><strong>{{ session.user_message_count }}</strong></div>
         <div><span>원본 이벤트</span><strong>{{ session.event_count }}</strong></div>
         <div><span>브랜치</span><strong>{{ session.git_branch or '-' }}</strong></div>

@@ -19,7 +19,9 @@ Spec, Run, and Evaluation document owns its own detailed status and history.
 - [PRD-0020: Local Natural Language Search](prd/prd-0020-local-natural-language-search.md)
   is `approved` for Korean natural-language retrieval over all eligible Sessions
   and registered Local Context documents, with hidden document molecularization
-  and a new input to the left of the preserved search. It owns the product
+  and a single shared-header natural-language search entry after the owner's
+  approved parallel-input cleanup. The deprecated keyword-search route remains
+  available for existing URLs. It owns the product
   boundary, public/private resource separation, internal cutoff comparison,
   and remaining decisions. Validation is limited to the owner's current Apple
   Silicon Mac. FEAT-0115–0121 completed contracts, implementation, full indexing,
@@ -34,6 +36,8 @@ Spec, Run, and Evaluation document owns its own detailed status and history.
   local use; further tuning depends on recurring observed burden. [RUN-160](run/run-20261013-160-general-work-search.md#session-closeout--2026-10-13)
   records subsequent runtime/documentation verification and the authorized
   public-code/docs closeout; private evidence stays local.
+  [RUN-161](run/run-20261016-161-session-parsing-and-search-closeout.md) records the
+  later parser/conversation, Session ID, dashboard and unified-search closeout.
 - [PRD-0019: Observed Session Chart](prd/prd-0019-observed-session-chart.md)
   owns the separately approved Sessions List/Chart, whose first phase reached the
   owner's wrap-up review on 2026-10-12, including the continuous hover-region revision under

@@ -69,6 +69,22 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Help: none
 - Visible consumer inventory: none.
 
+## `activity-event.message-phase`
+
+- Physical field or projection: `activity_events.message_phase`
+- Allowed values: `commentary`, `final_answer`
+- Enforcement: `schema-check`
+- Logical axis: assistant response phase normalized from explicit source signals
+- Default: `NULL`
+- Fallbacks: `null`: internal; `unknown`: internal; `invalid`: reject; `future`: internal
+- Producers: `src/localbrain/ingest/claude.py`, `src/localbrain/ingest/codex.py`, `src/localbrain/ingest/scanner.py`
+- Consumers: `src/localbrain/queries.py`, `src/localbrain/session_reading.py`, `src/localbrain/templates/_conversation.html`
+- Consequence: Native Codex final_answer phases and Claude end_turn responses select a neutral conversation frame without implying task success. Claude tool_use maps to commentary; split records share signals within the same native API message ID. Missing, conflicting, malformed or error signals keep the ordinary assistant presentation.
+- Presentation mode: `internal-only`
+- Labels: none; the family is not visible on ordinary screens.
+- Help: none
+- Visible consumer inventory: none.
+
 ## `skill-observation.provider-kind`
 
 - Physical field or projection: `skill_observations.provider_kind`

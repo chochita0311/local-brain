@@ -3,10 +3,10 @@
   "review_status": "complete",
   "manifest": {
     "path": "src/localbrain/schema-presentation.json",
-    "sha256": "c8ece2d46bcd9ccfb055789f56e7780356e1517b0d5a2abfc2707b14d979ece6",
+    "sha256": "177995de6118ea67a5ecaca2b4b1d745dea60607ef291e0d922f816d849d4b0d",
     "expected": {
       "tables": 46,
-      "columns": 520,
+      "columns": 521,
       "indexes": 51,
       "physical_relations": 57,
       "application_relations": 29
@@ -83,6 +83,11 @@
     "search_index": {"decision": "keep", "risk": "low", "rationale": "Required fully derived FTS projection; explicit lifecycle deletion and full rescan recovery make its application relations appropriate."}
   },
   "column_overrides": {
+    "activity_events.message_phase": {
+      "decision": "keep",
+      "risk": "low",
+      "rationale": "The 2026-10-15 owner-requested visual-only conversation distinction needs explicit source assistant phase. Retain the nullable commentary/final_answer field with additive row-preserving migration and versioned local backfill; unknown or ambiguous phase stays unmarked and never implies task success."
+    },
     "skill_observations.occurred_at": {"decision": "defer", "risk": "medium", "defer": "canonical-timestamp-contract", "rationale": "Native event times may use provider-specific text forms; retained chronology must follow the existing canonical timestamp decision before normalization."},
     "skill_observations.recorded_at": {"decision": "defer", "risk": "medium", "defer": "canonical-timestamp-contract", "rationale": "The first persistence time uses SQLite CURRENT_TIMESTAMP while event and application times use other forms; preserve retained observations until the shared timestamp contract is approved."},
     "personal_insight_runs.created_at": {"decision": "defer", "risk": "medium", "defer": "canonical-timestamp-contract", "rationale": "Frozen Run chronology uses application UTC text and participates in ordering beside other operational timestamp forms; any normalization belongs to the shared timestamp contract."},

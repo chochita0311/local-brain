@@ -126,12 +126,10 @@ Constraints: uniqueness of `canonical_path`. Explicit indexes: none.
   accepted by the owning provider's Session-candidate contract. Meaningful means
   the parsed file contains at least one normalized Activity Event, direct Usage
   Record, or admitted skill observation; metadata-only stubs retain no Session or source-file projection and are
-  reconsidered on later syncs. Codex conversation ingestion prefers native
-  `event_msg` user/assistant records per role and falls back to `response_item`
-  message content only when the matching role and turn are absent. Response-only
-  user records exclude Codex-expanded repository/environment instructions and
-  `<skill>` bodies before retaining the final user-authored record in a turn, so
-  the literal `$skill` prompt remains visible without duplicating provider context.
+  reconsidered on later syncs. Conversation normalization retains authored inputs,
+  filters recognized generated context per text block, and reconciles native
+  counterparts using provider-specific precedence. Assistant response phases
+  require explicit provider provenance; absent or ambiguous signals remain unmarked.
   Claude
   primary files and direct `subagents/*.jsonl` children are accepted, while deeper
   internal `subagents` artifacts such as workflow journals are not Sessions. Codex
@@ -153,9 +151,9 @@ Constraints: uniqueness of `canonical_path`. Explicit indexes: none.
   maintenance index/event policy is restricted; the private Runner stream is an
   operational artifact only.
   Ephemeral personal insight executions are a bounded exception: a retained CLI usage observation creates a metadata-only Maintenance Session accounting parent with identity `localbrain-insight:<Run ID>`. It contains no conversation, events, search entry, workspace, or native source-file registration. The independent Run is its application owner; native-source disappearance does not delete this accounting projection.
-- Producers: `ingest/scanner.py` plus Claude/Codex parsers create Sessions and Usage Records; parent reconciliation updates self-references and propagates maintenance policy to Claude or Codex children. `runner.py` synchronizes the selected native source after terminal and recovered Runs. Session projection freshness is independently versioned in `source_files`, so classification/parser changes can rebuild Sessions, Activity Events, and search without replacing Usage merely because the Session contract changed. `db.py` owns the classification/Run-link constraint repair. `personal_insight_usage.py` separately creates insight accounting parents and canonical Usage Records from observed ephemeral CLI usage.
+- Producers: `ingest/scanner.py` plus Claude/Codex parsers create Sessions and Usage Records; parent reconciliation updates self-references and propagates maintenance policy to Claude or Codex children. `runner.py` synchronizes the selected native source after terminal and recovered Runs. Session projection freshness is independently versioned in `source_files`, so classification/parser changes can rebuild Sessions, Activity Events, and search without replacing Usage merely because the Session contract changed. Session parser version changes rebuild available Session projections on the next explicit Sync without replacing Usage solely because the Session contract changed. `db.py` owns the classification/Run-link constraint repair. `personal_insight_usage.py` separately creates insight accounting parents and canonical Usage Records from observed ephemeral CLI usage.
 - Consumers: Session inventory/detail, dashboard counts, normalized activity, retrieval, Workstream linking/suggestions, Runner context, search projection, Usage Records, and Usage Dashboard denominators. Sessions inventory headline, rows, pagination, and Project grouping share the same `work` plus `primary` denominator with no age cutoff. A selected source matches the stable `sources.kind`, not `provider_kind`, so personal and company Codex remain statistically separate while sharing one adapter.
-- Relations and deletion: physical `source_id` cascades; optional `workspace_id`, `parent_session_id`, and unique `maintenance_run_id` set null. After a successful scan of a present source root, disappearance of one previously imported native JSONL or confirmation that it remains a zero-Event, zero-Usage, zero-skill-observation stub is deletion authority for its normalized Session. Deleting that Session cascades `activity_events`, `usage_records`, derived `session_reference_scans` and `session_reference_evidence`, and the optional user-owned `session_pins` row; scanner also removes its search and source-file projection while preserving a present native stub. A wholly missing source root does not trigger the same stale-file reconciliation. `skill_observations` has no cascading FK and keeps admitted historical uses. Polymorphic links and checkpoint refs are application edges and can retain an unresolved historical ID.
+- Relations and deletion: physical `source_id` cascades; optional `workspace_id`, `parent_session_id`, and unique `maintenance_run_id` set null. After a successful scan of a present source root, stale-file reconciliation deletes a normalized Session when neither its owning native JSONL nor another tracked path remains valid; a valid tracked sibling instead becomes its owner. Parsed-empty reconciliation is a separate branch: for full-index Sessions, stale conversation/search can be cleared and the Session considered for retirement only when its current owner path belongs to the parsed-empty set AND every tracked sibling path also belongs to that set. A meaningful shared owner, including a source containing only admitted skill observations, prevents that parsed-empty cleanup; retained historical Usage keeps the Session meaningful even after its stale conversation is cleared. Deleting that Session cascades `activity_events`, `usage_records`, derived `session_reference_scans` and `session_reference_evidence`, and the optional user-owned `session_pins` row; scanner also removes its search and source-file projection while preserving a present native stub. A wholly missing source root does not trigger the same stale-file reconciliation. `skill_observations` has no cascading FK and keeps admitted historical uses. Polymorphic links and checkpoint refs are application edges and can retain an unresolved historical ID.
 - Recovery: rescan the authoritative native source file and reconcile parents. Restoring only a Task Runner stream cannot rebuild a Session or Usage Record; restore the selected runner's native Claude or Codex JSONL and the Run ledger together. The insight accounting exception is recoverable from the independent Run ledger plus retained usage summaries or CLI usage events. A full database rebuild cannot restore user-curated links, exact operational history, or confirmed review state without backup.
 - DDL ownership: fresh definition and `idx_sessions_last_event`, `idx_sessions_workspace` in `schema.sql`; compatible columns, backup-backed classification/Run-link table repair, and runtime-only `idx_sessions_class`, `idx_sessions_role`, `idx_sessions_parent` in `db.py`. Before that structural repair, startup preserves `localbrain.db-pre-maintenance-session-contract-v1.bak` and validates it with SQLite `quick_check`. An older additive layout may have the same approved columns in a different physical order; migration validates every name/type/null/default/key contract, copies values by canonical column name, and converges only the physical order.
 
@@ -185,15 +183,35 @@ Constraints: uniqueness of `canonical_path`. Explicit indexes: none.
 
 Constraints: `UNIQUE(source_id, external_id)`, unique nullable `maintenance_run_id`, checks for the two-value class, role, and index-policy vocabularies, and a linked-Session shape check requiring `maintenance`, `primary`, and `metadata_only`. Explicit indexes: `idx_sessions_last_event`, `idx_sessions_workspace`, `idx_sessions_class`, `idx_sessions_role`, `idx_sessions_parent`.
 
+The [conversation normalization contract](#conversation-normalization-and-empty-sources) details authored inputs, generated context, counterpart precedence and parsed-empty ownership. Explicit completion provenance belongs to [Activity Events](#assistant-response-phase-provenance).
+
+#### Conversation Normalization And Empty Sources
+
+Codex messages retain every user-authored input in source order, including the initial prompt and asynchronous question replies sharing one turn.
+A complete, validated `<send_user_message_question_reply>` array becomes readable question quotations followed by the authored answers, in batch order; `questionItemId` stays in the source JSONL.
+Missing optional questions permit an answer-only reply.
+Malformed or ambiguous JSON, empty answers, unsupported shapes, unknown fields, duplicate keys, embedded/fenced examples and assistant quotations remain literal rather than losing content.
+
+Source-expanded AGENTS instructions (with or without a repository path), environment instructions, `<skill>` bodies, known recommended-plugin catalogs and recovery/abort controls stay excluded from titles, conversation, search and reference evidence while literal `$skill` requests remain visible.
+Each native text block is classified separately: removing a generated block cannot discard neighboring authored input, and retaining authored input cannot expose generated siblings.
+General XML, image references and meaningful source notifications are not stripped merely for containing tags.
+
+Legacy `event_msg` user duplicates match normalized readable text within the same turn, with text fallback when either side lacks a turn ID; distinct known turns may repeat the same text.
+JSON layout differences do not duplicate the same question reply, and different questions sharing an answer remain distinct.
+Legacy assistant events retain precedence over response items for their turn.
+
+A parsed-empty source clears stale conversation and search only when the current Session owner path belongs to the parsed-empty set and no tracked sibling path lies outside that set; meaningful shared owners and retained Usage Records are preserved.
+For parsed-empty reconciliation, these ownership checks apply before retiring the Session as well as before clearing its stale conversation. A tracked meaningful source containing only admitted skill observations is still an owner and cannot be deleted because an empty sibling shares its native ID. For full-index Sessions, parsed-empty cleanup proceeds only when the current owner path is in the parsed-empty set AND every tracked sibling path is also in that set; retained historical Usage continues to keep the Session meaningful.
+
 ### `activity_events`
 
 - Purpose and authority: normalized, ordered Session events used for conversation presentation, activity calculation, retrieval evidence, and tool/message counts without exposing raw event payload files.
 - Lifecycle: source-derived and rebuildable. Scanner replaces the Session's event set atomically during re-import. Canonical Claude and personal Codex event IDs retain their existing deterministic values; an additional source key reusing either provider scopes the stored event ID by that source key so identical native event identities can coexist.
-- Producers: `ingest/scanner.py` from normalized parser events.
+- Producers: `ingest/scanner.py` from normalized parser events; provider-backed phase normalization retains only explicit, unambiguous completion or continuation evidence.
 - Consumers: `queries.py` Session detail and counts, `activity.py` active-time attribution, `retrieval.py` evidence loading, and `personal_insight_evidence.py` bounded read-only message sampling for later personal insight Runs. Primary Session `관련 자료` consumes the separate normalized reference-evidence projection rather than reparsing Activity Event text at request time; workspace membership alone is not a related-material relation. The projection adds no Session column or relationship row.
 - Relations and deletion: `session_id` cascades from `sessions`; replacement deletes prior rows before inserting the new normalized sequence.
 - Recovery: rescan the Session source. Opaque tool arguments/results are not indexed by default; a later concrete metadata requirement must introduce an explicit bounded contract rather than relying on an unused generic JSON slot.
-- DDL ownership: fresh definition in `schema.sql`; event ordering uses the leading `session_id, sequence` keys of the table's UNIQUE autoindex. Compatible migration removes the former redundant named index only after verifying that coverage and removes the legacy metadata column only when every value is `NULL`.
+- DDL ownership: fresh definition in `schema.sql`; event ordering uses the leading `session_id, sequence` keys of the table's UNIQUE autoindex. Compatible migration removes the former redundant named index only after verifying that coverage and removes the legacy metadata column only when every value is `NULL`. An additive nullable `message_phase` column preserves existing rows; the next explicit Claude or Codex Sync backfills available source phases through the versioned Session contract without repricing unchanged source files.
 
 | Column | Contract |
 | --- | --- |
@@ -206,8 +224,23 @@ Constraints: `UNIQUE(source_id, external_id)`, unique nullable `maintenance_run_
 | `text` | nullable `TEXT`; normalized human/assistant content eligible under ingestion policy. |
 | `tool_name` | nullable `TEXT`; tool identity without opaque arguments/results by default. |
 | `source_line` | `INTEGER NOT NULL`; source evidence location. |
+| `message_phase` | nullable `TEXT`, checked to `commentary` or `final_answer`; assistant-message phase normalized from explicit source evidence: Codex phase metadata or Claude `end_turn`/`tool_use` signals. Claude split records share signals only within the same native API message ID; missing IDs remain record-local and conflicting, malformed or error signals stay unmarked. `NULL` means unavailable or inapplicable; a final phase ends a response and does not establish task success. |
 
-Constraints: `UNIQUE(session_id, sequence, event_type, source_line)`. Explicit indexes: none; SQLite owns the composite uniqueness autoindex used for Session event ordering.
+Constraints: `UNIQUE(session_id, sequence, event_type, source_line)` and the nullable two-value `message_phase` check. Explicit indexes: none; SQLite owns the composite uniqueness autoindex used for Session event ordering.
+
+The [phase provenance contract](#assistant-response-phase-provenance) details provider signals, counterpart precedence and uncertainty handling.
+
+#### Assistant Response Phase Provenance
+
+Codex retains explicit assistant `commentary`/`final_answer` phases; one uniquely matched legacy/response counterpart may supply a missing phase. Ambiguous or conflicting counterpart hints leave a missing phase as `NULL`; an explicit phase on the retained native event stays authoritative. User messages, tool events, unknown source values and sources without a phase retain `NULL`; text and position never imply completion.
+
+Explicit Codex assistant `commentary`/`final_answer` phase is retained in Activity Events, including unambiguous matching response metadata for an otherwise unmarked legacy event; missing, unknown or ambiguous phase remains unmarked, and an explicit phase on the retained native event takes precedence over counterpart hints.
+Claude normalizes native `end_turn` to `final_answer` and `tool_use` to `commentary` for both primary Sessions and Subsessions.
+Split text, thinking and tool records share terminal signals only within the same native API message ID; records without a usable ID remain independent.
+Tool blocks prevent a contradictory completion signal from becoming final, and missing, unknown, malformed, conflicting or error signals stay unmarked.
+Message position, wording, the next user input and file end do not establish completion.
+
+#### Personal Insight Evidence Manifest
 
 The personal insight evidence manifest is a private derived value, not a new database subject or retained observation ledger. Its v1 producer selects only nonblank user/assistant message Events from `work`, `primary`, `full` Claude/Codex Sessions at or before a supplied request time. Optional local dates filter Event occurrence time; undated Events cannot satisfy a bounded date. It selects at most 100 Sessions, 300 excerpts, 600 characters per excerpt, and 120,000 excerpt characters overall, reporting eligible totals, source coverage, selection method, and omissions. Each Event reference carries its current Session/Event IDs and SHA-256 digest of the complete normalized text. Additive v1 metadata records each Session's eligible message count, each excerpt's zero-based position within that frozen scoped list, and the truncated-excerpt count. These positions support precise missing-message requests without changing selection or treating raw event sequence as a message index. Older frozen manifests may omit them. A later read reports a missing row as unavailable and a changed source, role, order, time, eligibility, or digest as stale. The value neither retains disappeared Session content nor claims current verification from a historical skill count. A later Run may freeze the value in its own private artifact owner; the producer itself persists nothing.
 

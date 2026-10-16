@@ -222,6 +222,22 @@
       "sources": [{"kind": "schema-check", "field": "sessions.index_policy"}]
     },
     {
+      "id": "activity-event.message-phase",
+      "subject": "workspace-and-session-activity",
+      "physical_fields": ["activity_events.message_phase"],
+      "values": ["commentary", "final_answer"],
+      "enforcement": "schema-check",
+      "axis": "assistant response phase normalized from explicit source signals",
+      "default": null,
+      "fallbacks": {"null": {"action": "internal"}, "unknown": {"action": "internal"}, "invalid": {"action": "reject"}, "future": {"action": "internal"}},
+      "producers": ["src/localbrain/ingest/claude.py", "src/localbrain/ingest/codex.py", "src/localbrain/ingest/scanner.py"],
+      "consumers": ["src/localbrain/queries.py", "src/localbrain/session_reading.py", "src/localbrain/templates/_conversation.html"],
+      "consequence": "Native Codex final_answer phases and Claude end_turn responses select a neutral conversation frame without implying task success. Claude tool_use maps to commentary; split records share signals within the same native API message ID. Missing, conflicting, malformed or error signals keep the ordinary assistant presentation.",
+      "presentation": {"mode": "internal-only", "labels": {}, "help": null},
+      "visible_consumers": [],
+      "sources": [{"kind": "schema-check", "field": "activity_events.message_phase"}]
+    },
+    {
       "id": "skill-observation.provider-kind",
       "subject": "workspace-and-session-activity",
       "physical_fields": ["skill_observations.provider_kind"],

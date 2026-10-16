@@ -118,6 +118,7 @@ Primitive tokens are raw constants. They do not describe components or screen ro
   --color-brand-100: #fff4f5;
   --color-brand-500: #fd4752;
   --color-brand-700: #da1e28;
+  --color-blue-50: #fdfeff;
   --color-blue-100: #e9f0fb;
   --color-blue-600: #315ea8;
   --color-green-100: #e5f4ee;
@@ -226,6 +227,7 @@ Components consume semantic roles only. Color, type, spacing, radius, elevation,
   /* Canvas and surfaces */
   --page-bg: var(--color-neutral-100);
   --surface-default: var(--color-neutral-0);
+  --surface-conversation-input: var(--color-blue-50);
   --surface-subtle: var(--color-neutral-200);
   --surface-muted: var(--color-neutral-300);
   --surface-disabled: var(--color-neutral-400);
@@ -364,6 +366,8 @@ Components consume semantic roles only. Color, type, spacing, radius, elevation,
   --elevation-navigation-active: inset var(--border-width-accent) 0 0 var(--border-brand);
   --elevation-filter-active: inset var(--border-width-focus) 0 0 var(--border-brand), var(--elevation-card);
   --elevation-current-record: inset var(--border-width-focus) 0 var(--text-link);
+  --elevation-conversation-input: inset var(--border-width-accent) 0 0 var(--border-info);
+  --elevation-conversation-result: inset 0 0 0 var(--border-width-control) var(--border-default);
   --state-disabled-opacity: var(--opacity-disabled);
   --state-muted-opacity: var(--opacity-muted);
 
@@ -799,9 +803,52 @@ preserve List/detail access and reduced motion retains controls and selection.
 
 ### Detail And Read
 
-- Natural search extends the Search family. Its header input precedes the
-  preserved keyword input in a two-column pair with explicit labels; both remain
-  accessible at narrow widths. Existing Atlassian header scope is preserved.
+- Session detail places the source-native identifier in the first metadata-strip
+  cell under **Session ID**. Mono text shows at least eight characters, extending
+  on collisions with different stored IDs; shorter IDs remain complete. Full
+  values remain available through a hover tooltip and an accessible focus
+  description; the adjacent ghost button copies the complete ID.
+- The copy button uses one custom tooltip for hover/focus explanation and
+  `Copied!` confirmation, with no native `title` tooltip. Pointer hover
+  uses a short entry delay; keyboard focus also exposes the explanation.
+  Both messages stay centered on the button rather than following pointer
+  movement. The tooltip stays outside the clipped metadata frame, within
+  horizontal viewport bounds, and flips above only when space below is
+  insufficient.
+- A successful clipboard write starts a two-second copied state: the glyph is
+  a success check and the tooltip says `Copied!`. Leaving or blurring the
+  button hides the tooltip without cancelling that state; reentry before its
+  deadline still shows `Copied!`. At the deadline the glyph and accessible
+  label reset together, and a still-hovered/focused button returns to its copy
+  explanation. Repeated successful copying restarts the deadline without
+  flashing the idle glyph. Escape, scrolling and resize dismiss the tooltip
+  without resetting the copied state; Escape remains dismissed until a new
+  entry, focus or copy action. Control geometry and surrounding metadata stay
+  stable. Only copy outcomes receive live announcements, and no copy outcome
+  uses the footer toast. Failure retains the idle glyph, exposes and selects
+  the full value for manual copying, and uses the same anchored recovery
+  message for up to five seconds.
+- The Session metadata strip sizes activity time to its content and gives
+  remaining wide-layout space to the branch. Its own reading-column width
+  enables six columns from the existing 700px narrow threshold. Below that,
+  up to three columns fit with a minimum cell width of four standard controls,
+  reducing columns as needed; narrow viewports use two columns and touch targets.
+  Source cues, shell, conversation frames and reading width retain their roles.
+
+- Session and Subsession conversation cards distinguish user-authored inputs
+  with a very light blue input surface, an inset left accent and a stronger
+  speaker name. Assistant messages normalized to `final_answer` from explicit
+  source completion signals receive a stronger neutral perimeter frame. Phase adds no visible label, badge or
+  status copy and conveys no task-success state. Commentary and unmarked
+  assistant messages retain their ordinary card treatment. Speaker/source and
+  time labels, message order, reading width and responsive flow stay consistent;
+  frame geometry as well as color distinguishes the two emphasized roles.
+
+- The Search family uses one shared-header query with the existing global
+  placeholder and no visible mode labels. A visually hidden label preserves
+  accessibility. Enter and the adjacent Search action submit the same query to
+  natural-language search. The input and action remain reachable at narrow
+  widths. Existing Atlassian header scope is preserved.
 - Natural-search results represent original Sessions or Local Context documents,
   with source cues and up to three linked evidence excerpts. Preparation, coverage
   and recovery stay next to the search form. Status updates preserve query,

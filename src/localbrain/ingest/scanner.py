@@ -540,6 +540,8 @@ def _remove_empty_session_candidates(
     source_id: int,
     candidates: Iterable[Tuple[Path, ParsedSession]],
 ) -> None:
+    candidates = list(candidates)
+    empty_paths = {str(path) for path, _ in candidates}
     for path, parsed in candidates:
         source_path = str(path)
         reference_source = connection.execute(
@@ -582,7 +584,7 @@ def _remove_empty_session_candidates(
 
         session_rows = connection.execute(
             """
-            SELECT id
+            SELECT id, source_path
             FROM sessions
             WHERE source_id = ?
               AND index_policy = 'full'
@@ -592,6 +594,31 @@ def _remove_empty_session_candidates(
         ).fetchall()
         for session_row in session_rows:
             session_id = int(session_row["id"])
+            tracked_paths = connection.execute(
+                "SELECT path FROM source_files WHERE session_id = ?",
+                (session_id,),
+            ).fetchall()
+            if (
+                session_row["source_path"] not in empty_paths
+                or any(row["path"] not in empty_paths for row in tracked_paths)
+            ):
+                # An empty sibling cannot retire another owner, including a
+                # meaningful source containing only admitted skill observations.
+                continue
+            # Only a confirmed empty owner can retire its old conversation.
+            # Historical Usage remains independent evidence for the Session.
+            connection.execute(
+                "DELETE FROM activity_events WHERE session_id = ?", (session_id,)
+            )
+            connection.execute(
+                "DELETE FROM search_index WHERE entity_type = 'session' AND entity_id = ?",
+                (str(session_id),),
+            )
+            connection.execute(
+                """UPDATE sessions SET event_count = 0, user_message_count = 0,
+                   assistant_message_count = 0 WHERE id = ?""",
+                (session_id,),
+            )
             meaningful = connection.execute(
                 """
                 SELECT
@@ -766,8 +793,8 @@ def _store_session(
             """
             INSERT INTO activity_events(
                 id, session_id, sequence, occurred_at, event_type, role, text,
-                tool_name, source_line
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                tool_name, source_line, message_phase
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             [
                 (
@@ -784,6 +811,7 @@ def _store_session(
                     event.text,
                     event.tool_name,
                     event.source_line,
+                    event.message_phase,
                 )
                 for event in parsed.events
             ],
