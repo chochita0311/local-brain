@@ -27,7 +27,7 @@
       const coverage = `검색 허용 범위 밖 세션 ${status.excluded_sessions || 0}개 · 본문 없는 원문 ${(status.empty_sessions || 0) + (status.empty_documents || 0)}개 · 앱 저장 영역의 문서 ${status.excluded_runtime_documents || 0}개 제외. 읽을 수 없는 Local Context 등록 경로 ${status.unreadable_context_roots || 0}개.`;
       const coverageCopy = region.querySelector("[data-search-coverage-copy]");
       if (coverageCopy.textContent !== coverage) coverageCopy.textContent = coverage;
-      region.querySelector("[data-search-install]").hidden = status.state !== "model-missing";
+      region.querySelector("[data-search-install]").hidden = !["disabled", "model-missing"].includes(status.state);
       region.querySelector("[data-search-prepare]").hidden = !["disabled", "failed", "partial", "model-missing"].includes(status.state);
       region.querySelector("[data-search-cancel]").hidden = !status.can_cancel;
       if (status.state === "ready" && sawPreparation) region.querySelector("[data-search-repeat]").hidden = false;

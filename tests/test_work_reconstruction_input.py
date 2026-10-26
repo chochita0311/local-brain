@@ -38,7 +38,7 @@ class ReconstructionInputTests(unittest.TestCase):
         self.db = self.root / "synthetic.sqlite"
         with sqlite3.connect(self.db) as connection:
             connection.executescript(SCHEMA)
-            connection.execute("INSERT INTO sources(id,kind,name,root_path) VALUES (1,'synthetic','Synthetic','/synthetic')")
+            connection.execute("INSERT INTO sources(id,provider_kind,name,root_path) VALUES (1,'synthetic','Synthetic','/synthetic')")
             connection.execute("""INSERT INTO sessions(id,source_id,external_id,source_path,title,event_count)
                 VALUES (1,1,'synthetic-native','/synthetic/session','Synthetic',1)""")
             connection.execute("""INSERT INTO activity_events(id,session_id,sequence,occurred_at,event_type,role,text,source_line)
@@ -325,7 +325,7 @@ class ReconstructionInputTests(unittest.TestCase):
 
     def test_current_preparation_source_limit_fails_before_body_reads(self):
         for sid in range(2, 10):
-            self.change("INSERT INTO sources(id,kind,name,root_path) VALUES (?,?,'Synthetic','/synthetic')", (sid, str(sid)))
+            self.change("INSERT INTO sources(id,provider_kind,name,root_path) VALUES (?,?,'Synthetic','/synthetic')", (sid, str(sid)))
             self.change("""INSERT INTO sessions(id,source_id,external_id,source_path,title,event_count)
                 VALUES (?,?,?,'/synthetic/extra','Synthetic',1)""", (sid, sid, str(sid)))
             self.change("""INSERT INTO activity_events(id,session_id,sequence,occurred_at,event_type,role,text,source_line)

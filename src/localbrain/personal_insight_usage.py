@@ -25,8 +25,8 @@ def insight_usage_cost(connection, run_id: str) -> dict | None:
                   usage.price_snapshot_id, prices.label AS price_label
            FROM usage_records AS usage
            LEFT JOIN usage_price_snapshots AS prices ON prices.id = usage.price_snapshot_id
-           WHERE usage.id = ? AND usage.normalizer_version = ?""",
-        (stable_id("personal-insight-usage", run_id), NORMALIZER_VERSION),
+           WHERE usage.source_record_id = ? AND usage.normalizer_version = ?""",
+        (run_id, NORMALIZER_VERSION),
     ).fetchone()
     if row is None:
         return None
@@ -48,10 +48,10 @@ def insight_usage_source(connection, options: dict) -> dict:
     root = (Path(options["codex_home"]).expanduser() / "sessions").resolve()
     matches = [
         dict(row) for row in connection.execute(
-            "SELECT id, kind, root_path FROM sources WHERE provider_kind = 'codex'"
+            "SELECT id, root_path FROM sources WHERE provider_kind = 'codex'"
         )
         if Path(row["root_path"]).expanduser().resolve() == root
-        and (not options.get("usage_source_key") or row["kind"] == options["usage_source_key"])
+        and (not options.get("usage_source_id") or row["id"] == options["usage_source_id"])
     ]
     if len(matches) != 1:
         raise ValueError("분석 프로필의 비용 집계 Source를 확인할 수 없습니다. Sources에서 해당 Codex 홈을 등록해 주세요.")
@@ -133,8 +133,8 @@ def store_insight_usage(connection, run: dict, usage: dict, *, observed_at: str,
     source = insight_usage_source(connection, options)
     record = _usage_record(run, usage, options, observed_at, source_line)
     existing = connection.execute(
-        "SELECT occurred_at, price_snapshot_id FROM usage_records WHERE id = ?",
-        (record.usage_record_id,),
+        "SELECT occurred_at, price_snapshot_id FROM usage_records WHERE source_id=? AND source_record_id=? AND normalizer_version=?",
+        (source["id"], run["id"], NORMALIZER_VERSION),
     ).fetchone()
     if existing:
         record.occurred_at = existing["occurred_at"]
@@ -177,8 +177,8 @@ def recover_insight_usage(connection) -> int:
         # The usage table can be large; use its primary key rather than scanning
         # all native observations for each retained analysis Run on startup.
         if connection.execute(
-            "SELECT 1 FROM usage_records WHERE id = ? AND normalizer_version = ?",
-            (stable_id("personal-insight-usage", run["id"]), NORMALIZER_VERSION),
+            "SELECT 1 FROM usage_records WHERE source_record_id = ? AND normalizer_version = ?",
+            (run["id"], NORMALIZER_VERSION),
         ).fetchone():
             continue
         try:

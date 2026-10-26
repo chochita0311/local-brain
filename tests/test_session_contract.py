@@ -108,7 +108,7 @@ class SessionContractTests(unittest.TestCase):
         connection = connection_for(SCHEMA_PATH.read_text(encoding="utf-8"))
         self.addCleanup(connection.close)
         source_id = connection.execute(
-            "INSERT INTO sources(kind, provider_kind, name, root_path) VALUES ('claude', 'claude', 'Claude', '/tmp')"
+            "INSERT INTO sources(provider_kind, name, root_path) VALUES ('claude', 'Claude', '/tmp')"
         ).lastrowid
         run_id = "lb-nativeparent01"
         connection.execute(
@@ -119,11 +119,10 @@ class SessionContractTests(unittest.TestCase):
         parent.session_class = "maintenance"
         parent.index_policy = "metadata_only"
         parent.maintenance_run_id = run_id
-        _store_session(connection, source_id, "claude", parent)
+        _store_session(connection, source_id, parent)
         _store_session(
             connection,
             source_id,
-            "claude",
             parsed_session("maintenance-child", "subsession", "maintenance-parent"),
         )
 
@@ -176,7 +175,7 @@ class SessionContractTests(unittest.TestCase):
         connection = connection_for(legacy_schema())
         self.addCleanup(connection.close)
         source_id = connection.execute(
-            "INSERT INTO sources(kind, provider_kind, name, root_path) VALUES ('codex', 'codex', 'Codex', '/tmp')"
+            "INSERT INTO sources(provider_kind, name, root_path) VALUES ('codex', 'Codex', '/tmp')"
         ).lastrowid
         connection.execute(
             """
@@ -237,12 +236,11 @@ class SessionContractTests(unittest.TestCase):
         connection = connection_for(SCHEMA_PATH.read_text(encoding="utf-8"))
         self.addCleanup(connection.close)
         source_id = connection.execute(
-            "INSERT INTO sources(kind, provider_kind, name, root_path) VALUES ('codex', 'codex', 'Codex', '/tmp')"
+            "INSERT INTO sources(provider_kind, name, root_path) VALUES ('codex', 'Codex', '/tmp')"
         ).lastrowid
         _store_session(
             connection,
             source_id,
-            "codex",
             parsed_session("child", "subsession", "parent"),
         )
         parent = parsed_session("parent")
@@ -255,11 +253,10 @@ class SessionContractTests(unittest.TestCase):
         parent.started_at = current_time
         parent.ended_at = current_time
         parent.last_event_at = current_time
-        _store_session(connection, source_id, "codex", parent)
+        _store_session(connection, source_id, parent)
         _store_session(
             connection,
             source_id,
-            "codex",
             parsed_session("grandchild", "subsession", "child"),
         )
         _reconcile_session_parents(connection, source_id, "codex")
@@ -314,14 +311,14 @@ class SessionContractTests(unittest.TestCase):
         connection = connection_for(SCHEMA_PATH.read_text(encoding="utf-8"))
         self.addCleanup(connection.close)
         source_id = connection.execute(
-            "INSERT INTO sources(kind, provider_kind, name, root_path) VALUES ('codex', 'codex', 'Codex', '/tmp')"
+            "INSERT INTO sources(provider_kind, name, root_path) VALUES ('codex', 'Codex', '/tmp')"
         ).lastrowid
         for item in (
             parsed_session("cycle-a", "subsession", "cycle-b"),
             parsed_session("cycle-b", "subsession", "cycle-a"),
             parsed_session("missing", "subsession", "not-imported"),
         ):
-            _store_session(connection, source_id, "codex", item)
+            _store_session(connection, source_id, item)
         _reconcile_session_parents(connection, source_id, "codex")
         rows = connection.execute(
             "SELECT session_role, parent_session_id FROM sessions"
@@ -338,10 +335,10 @@ class SessionContractTests(unittest.TestCase):
         connection = connection_for(SCHEMA_PATH.read_text(encoding="utf-8"))
         self.addCleanup(connection.close)
         source_id = connection.execute(
-            "INSERT INTO sources(kind, provider_kind, name, root_path) VALUES ('codex', 'codex', 'Codex', '/tmp')"
+            "INSERT INTO sources(provider_kind, name, root_path) VALUES ('codex', 'Codex', '/tmp')"
         ).lastrowid
-        _store_session(connection, source_id, "codex", parsed_session("parent"))
-        _store_session(connection, source_id, "codex", parsed_session("child"))
+        _store_session(connection, source_id, parsed_session("parent"))
+        _store_session(connection, source_id, parsed_session("child"))
         original_id = connection.execute(
             "SELECT id FROM sessions WHERE external_id = 'child'"
         ).fetchone()["id"]
@@ -368,7 +365,6 @@ class SessionContractTests(unittest.TestCase):
         _store_session(
             connection,
             source_id,
-            "codex",
             parsed_session("child", "subsession", "parent"),
         )
         _reconcile_session_parents(connection, source_id, "codex")

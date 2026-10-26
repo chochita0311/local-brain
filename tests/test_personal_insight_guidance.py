@@ -27,7 +27,7 @@ def manifest(question=None, excerpts=("Please explain this term", "Why did this 
                 "session_id": index,
                 "message_count": 3,
                 "events": [{
-                    "source_key": "codex-company",
+                    "source_id": 1,
                     "event_id": f"event-{index}",
                     "role": "user",
                     "message_index": 1,
@@ -78,7 +78,7 @@ def valid_result(finding):
         "title": "학습 방식 점검",
         "summary": "두 세션의 질문을 검토했다.",
         "selection_reason": "두 학습 질문을 후보로 살펴보되 정상적인 탐구일 가능성도 검토했다.",
-        "selection_evidence_ids": ["codex-company:event-1"],
+        "selection_evidence_ids": ["event-1"],
         "outcome": "findings",
         "findings": [finding],
         "no_finding_reason": "",
@@ -127,7 +127,7 @@ class PersonalInsightGuidanceTests(unittest.TestCase):
         schema = result_schema(selected)
         self.assertFalse(schema["additionalProperties"])
         result = valid_result(valid_finding(
-            "learning_explanation", ["codex-company:event-1", "codex-company:event-2"]
+            "learning_explanation", ["event-1", "event-2"]
         ))
         accepted = validate_guided_result(result, source, bundle)
         self.assertEqual(accepted, validate_guided_result(result, source, bundle))
@@ -141,7 +141,7 @@ class PersonalInsightGuidanceTests(unittest.TestCase):
         source = manifest()
         bundle = build_guide_bundle(source)
         result = valid_result(valid_finding(
-            "learning_explanation", ["codex-company:event-1", "codex-company:event-2"]
+            "learning_explanation", ["event-1", "event-2"]
         ))
         result["outcome"] = "no_actionable_finding"
         result["findings"] = []
@@ -152,8 +152,8 @@ class PersonalInsightGuidanceTests(unittest.TestCase):
         result["additional_evidence"] = {
             "kind": "conversation_neighbors",
             "question": "해당 질문 앞뒤 맥락을 확인할 수 있나요?",
-            "evidence_ids": ["codex-company:event-1"],
-            "message_requests": [{"anchor_evidence_id": "codex-company:event-1", "message_index": 0}],
+            "evidence_ids": ["event-1"],
+            "message_requests": [{"anchor_evidence_id": "event-1", "message_index": 0}],
         }
         self.assertEqual(
             validate_guided_result(result, source, bundle)["outcome"], "needs_evidence"
@@ -167,7 +167,7 @@ class PersonalInsightGuidanceTests(unittest.TestCase):
         bundle = build_guide_bundle(source)
         result = valid_result(valid_finding(
             bundle["playbooks"][0]["id"],
-            ["codex-company:event-1", "codex-company:event-2"],
+            ["event-1", "event-2"],
         ))
         result.update(
             outcome="no_actionable_finding",
@@ -181,7 +181,7 @@ class PersonalInsightGuidanceTests(unittest.TestCase):
     def test_additional_evidence_citation_limit_is_visible_and_enforced(self):
         source = manifest(excerpts=tuple(f"Explain example {index}" for index in range(6)))
         bundle = build_guide_bundle(source)
-        refs = [f"codex-company:event-{index}" for index in range(1, 7)]
+        refs = [f"event-{index}" for index in range(1, 7)]
         result = valid_result(valid_finding("learning_explanation", refs[:2]))
         result.update(outcome="needs_evidence", findings=[], no_finding_reason="현재 결과를 확인할 수 없다.")
         result["additional_evidence"] = {
@@ -201,13 +201,13 @@ class PersonalInsightGuidanceTests(unittest.TestCase):
         source = manifest(question="왜 같은 개념을 다시 물어보지?")
         bundle = build_guide_bundle(source)
         base = valid_result(valid_finding(
-            "learning_explanation", ["codex-company:event-1", "codex-company:event-2"]
+            "learning_explanation", ["event-1", "event-2"]
         ))
         changes = [
             lambda result: result.update(extra="unknown"),
             lambda result: result["findings"][0].update(type_id="unknown_type"),
             lambda result: result["findings"][0].update(evidence_ids=["codex-company:unknown"]),
-            lambda result: result["findings"][0].update(evidence_ids=["codex-company:event-1"]),
+            lambda result: result["findings"][0].update(evidence_ids=["event-1"]),
             lambda result: result["findings"][0].update(outcome_state="confirmed"),
             lambda result: result["findings"][0].update(title="x" * 161),
             lambda result: result.update(findings=result["findings"] * 4),
@@ -215,7 +215,7 @@ class PersonalInsightGuidanceTests(unittest.TestCase):
             lambda result: result["findings"][0].update(counterexample_status="observed"),
             lambda result: result["findings"][0].update(
                 counterexample_status="observed",
-                counterevidence_ids=["codex-company:event-1"],
+                counterevidence_ids=["event-1"],
             ),
         ]
         for change in changes:
@@ -228,7 +228,7 @@ class PersonalInsightGuidanceTests(unittest.TestCase):
         source = manifest(question="왜 같은 개념을 다시 물어보지?")
         bundle = build_guide_bundle(source)
         result = valid_result(valid_finding(
-            "learning_explanation", ["codex-company:event-1"]
+            "learning_explanation", ["event-1"]
         ))
         result["findings"][0]["pattern_scope"] = "single_observation"
         accepted = validate_guided_result(result, source, bundle)
@@ -238,9 +238,9 @@ class PersonalInsightGuidanceTests(unittest.TestCase):
     def test_conversation_request_rejects_supplied_or_invalid_targets(self):
         source = manifest()
         bundle = build_guide_bundle(source)
-        value = valid_result(valid_finding("request_feedback", ["codex-company:event-1"]))
+        value = valid_result(valid_finding("request_feedback", ["event-1"]))
         value.update(outcome="needs_evidence", findings=[], no_finding_reason="원래 답변이 빠져 있다.")
-        ref = "codex-company:event-1"
+        ref = "event-1"
         value["additional_evidence"] = {
             "kind": "conversation_neighbors", "question": "처음 답변이 무엇이었는지 확인한다.",
             "evidence_ids": [ref], "message_requests": [{"anchor_evidence_id": ref, "message_index": 0}],
@@ -252,7 +252,7 @@ class PersonalInsightGuidanceTests(unittest.TestCase):
             with self.subTest(index=index), self.assertRaises(ValueError):
                 validate_guided_result(candidate, source, bundle)
         for targets in ([], value["additional_evidence"]["message_requests"] * 2,
-                        [{"anchor_evidence_id": "codex-company:event-2", "message_index": 0}],
+                        [{"anchor_evidence_id": "event-2", "message_index": 0}],
                         [{"anchor_evidence_id": ref, "message_index": 0, "extra": True}]):
             candidate = copy.deepcopy(value)
             candidate["additional_evidence"]["message_requests"] = targets
@@ -274,7 +274,7 @@ class PersonalInsightGuidanceTests(unittest.TestCase):
     def test_selection_and_type_explanations_are_bounded_and_cited(self):
         source = manifest()
         bundle = build_guide_bundle(source)
-        value = valid_result(valid_finding("request_feedback", ["codex-company:event-1", "codex-company:event-2"]))
+        value = valid_result(valid_finding("request_feedback", ["event-1", "event-2"]))
         changes = (
             lambda v: v.update(selection_reason=""),
             lambda v: v.update(selection_reason="x" * 2001),
@@ -291,7 +291,7 @@ class PersonalInsightGuidanceTests(unittest.TestCase):
 
     def test_historical_reports_keep_their_frozen_contract(self):
         source = manifest()
-        value = valid_result(valid_finding("learning_explanation", ["codex-company:event-1", "codex-company:event-2"]))
+        value = valid_result(valid_finding("learning_explanation", ["event-1", "event-2"]))
         value["result_version"] = LEGACY_REPORT_VERSION
         del value["selection_reason"], value["selection_evidence_ids"]
         del value["additional_evidence"]["message_requests"]
@@ -311,7 +311,7 @@ class PersonalInsightGuidanceTests(unittest.TestCase):
 
     def test_previous_core_v4_keeps_report_v3_after_prose_numbering_correction(self):
         source = manifest()
-        value = valid_result(valid_finding("learning_explanation", ["codex-company:event-1", "codex-company:event-2"]))
+        value = valid_result(valid_finding("learning_explanation", ["event-1", "event-2"]))
         bundle = build_guide_bundle(source)
         bundle["core_version"] = "personal-improvement-core-v4"
         del bundle["report_version"]
@@ -325,7 +325,7 @@ class PersonalInsightGuidanceTests(unittest.TestCase):
     def test_previous_core_v5_keeps_its_report_contract(self):
         source = manifest()
         value = valid_result(valid_finding(
-            "learning_explanation", ["codex-company:event-1", "codex-company:event-2"]
+            "learning_explanation", ["event-1", "event-2"]
         ))
         bundle = build_guide_bundle(source)
         bundle["core_version"] = "personal-improvement-core-v5"
@@ -351,7 +351,7 @@ class PersonalInsightGuidanceTests(unittest.TestCase):
     def test_previous_core_v6_keeps_its_report_contract(self):
         source = manifest()
         value = valid_result(valid_finding(
-            "learning_explanation", ["codex-company:event-1", "codex-company:event-2"]
+            "learning_explanation", ["event-1", "event-2"]
         ))
         bundle = build_guide_bundle(source)
         bundle["core_version"] = "personal-improvement-core-v6"
@@ -390,7 +390,7 @@ class PersonalInsightGuidanceTests(unittest.TestCase):
     def test_previous_core_v7_keeps_its_report_contract(self):
         source = manifest()
         value = valid_result(valid_finding(
-            "learning_explanation", ["codex-company:event-1", "codex-company:event-2"]
+            "learning_explanation", ["event-1", "event-2"]
         ))
         bundle = build_guide_bundle(source)
         bundle["core_version"] = "personal-improvement-core-v7"

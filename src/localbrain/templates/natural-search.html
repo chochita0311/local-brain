@@ -10,7 +10,9 @@
     </div>
   </section>
 
+  <nav class="search-mode-nav" aria-label="검색 방식"><a href="/natural-search?{{ {'q':natural_query,'mode':'keyword'}|urlencode }}">키워드 검색</a><a aria-current="page" href="/natural-search?{{ {'q':natural_query,'mode':'ai'}|urlencode }}">AI 검색</a></nav>
   <form class="page-search natural-search-form" action="/natural-search" method="get">
+    <input type="hidden" name="mode" value="ai">
     <label for="natural-page-query"><span class="sr-only">찾고 싶은 내용</span>
       <input id="natural-page-query" name="q" type="search" maxlength="300" value="{{ natural_query }}" placeholder="만들던 앱 관련 세션을 보여줘">
     </label>
@@ -27,13 +29,8 @@
       <summary>검색 범위 상세</summary>
       <p data-search-coverage-copy>검색 허용 범위 밖 세션 {{ search_status.excluded_sessions|default(0) }}개 · 본문 없는 원문 {{ (search_status.empty_sessions|default(0)) + (search_status.empty_documents|default(0)) }}개 · 앱 저장 영역의 문서 {{ search_status.excluded_runtime_documents|default(0) }}개 제외. 읽을 수 없는 Local Context 등록 경로 {{ search_status.unreadable_context_roots|default(0) }}개.</p>
     </details>
-    <div data-search-install {% if search_status.state != 'model-missing' %}hidden{% endif %}>
-      <details>
-        <summary>로컬 모델 설치 방법</summary>
-        <p>소스 폴더에서 실행 중이면 <code>uv sync --python 3.11 --extra local-models --frozen</code>으로 실행 환경을 준비합니다.</p>
-        <p>설치형 앱이면 사용한 설치 파일에 <code>[local-models]</code>를 붙여 다시 설치합니다: <code>uv tool install --reinstall --python 3.11 "/설치파일경로/localbrain-version-py3-none-any.whl[local-models]"</code>. 경로와 버전은 실제 설치 파일로 바꿔 주세요.</p>
-        <p>이후 <code>localbrain models install embedding</code>으로 공개 검색 모델을 다운로드합니다. 소스 폴더에서는 명령 앞에 <code>uv run --no-sync</code>를 붙입니다. 서버를 재시작한 뒤 검색을 준비해 주세요.</p>
-      </details>
+    <div data-search-install {% if search_status.state not in ['disabled', 'model-missing'] %}hidden{% endif %}>
+      <p>AI 검색에는 로컬 검색 모델이 필요합니다. 키워드 검색은 바로 사용할 수 있습니다.</p><button class="secondary-button" type="button" data-settings-open="search">모델 설치 · 검색 설정</button>
     </div>
     <div class="natural-search-actions">
       <form action="/natural-search/prepare" method="post" data-search-prepare {% if search_status.state not in ['disabled', 'failed', 'partial', 'model-missing'] %}hidden{% endif %}>
@@ -44,7 +41,7 @@
         <input type="hidden" name="q" value="{{ natural_query }}">
         <button class="secondary-button" type="submit">준비 중단</button>
       </form>
-      <a class="back-link" href="/natural-search?{{ {'q': natural_query}|urlencode }}" data-search-repeat hidden>같은 검색 다시 실행</a>
+      <a class="back-link" href="/natural-search?{{ {'q': natural_query, 'mode': 'ai'}|urlencode }}" data-search-repeat hidden>같은 검색 다시 실행</a>
     </div>
     <noscript><p>진행 상태를 확인하려면 이 페이지를 새로고침해 주세요.</p></noscript>
   </section>
@@ -65,7 +62,7 @@
           <div>
             <h2><a href="{{ result.href }}">{{ result.title }}</a></h2>
             <p class="path-line">{{ result.path }}</p>
-            <p class="search-result-context">{{ value_label('source.kind', result.source_kind) }}{% if result.timestamp %} · <time datetime="{{ result.timestamp }}" data-local-time>{{ result.timestamp }}</time>{% endif %}{% if result.match_reason == 'exact' %} · 이름 일치{% endif %}</p>
+            <p class="search-result-context">{{ (source_profile(result.source_id).name if result.entity_type|default(result.kind) == 'session' else 'Local Context') }}{% if result.timestamp %} · <time datetime="{{ result.timestamp }}" data-local-time>{{ result.timestamp }}</time>{% endif %}{% if result.match_reason == 'exact' %} · 이름 일치{% endif %}</p>
             <ol class="natural-search-evidence-list">
               {% for evidence in result.evidence %}
                 <li>

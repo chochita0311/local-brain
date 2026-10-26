@@ -250,7 +250,7 @@ def _resource_manifest(connection, link: dict) -> Optional[dict]:
             """
             SELECT sessions.title, sessions.source_path, sessions.cwd_raw,
                    sessions.git_branch,
-                   sessions.last_event_at, sources.kind AS source_kind
+                   sessions.last_event_at, sources.provider_kind AS source_kind
             FROM sessions JOIN sources ON sources.id = sessions.source_id
             WHERE sessions.id = ? AND sessions.session_class = 'work'
               AND sessions.session_role = 'primary'

@@ -285,14 +285,14 @@ def _evidence(database, rows, sessions):
         for c in rows:
             item = {**c, "title": sessions[c["session_key"]]["title"], "available": False}
             r = source.execute("""SELECT s.id,s.source_id,s.external_id,s.title,s.session_class,
-                s.session_role,s.index_policy,p.kind,e.role,e.event_type,e.occurred_at,
+                s.session_role,s.index_policy,p.id AS registered_source_id,e.role,e.event_type,e.occurred_at,
                 substr(e.text,?,?) AS wording FROM activity_events e JOIN sessions s ON s.id=e.session_id
                 LEFT JOIN sources p ON p.id=s.source_id WHERE e.id=? AND s.id=?""",
                 (c["start"] + 1, c["end"] - c["start"], c["event_id"], sessions[c["session_key"]]["id"])).fetchone()
             if r:
                 r = dict(r)
                 text = r["wording"] or ""
-                valid = (_status(r) == "eligible" and digest([r["kind"], r["external_id"]]) == c["session_key"]
+                valid = (_status(r) == "eligible" and digest([r["registered_source_id"], r["external_id"]]) == c["session_key"]
                          and r["event_type"] == "message" and r["role"] == c["role"] and _date(r["occurred_at"]) == c["at"]
                          and len(text) == c["end"] - c["start"] and sha(text) == c["content_hash"]
                          and sha(input_text(r["title"][:300], r["role"], text)) == c["input_hash"])

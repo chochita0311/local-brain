@@ -20,7 +20,7 @@ class WorkflowEpisodeContractTests(unittest.TestCase):
     def session(self, **overrides):
         values = {
             "id": 17,
-            "source_key": "codex-company",
+            "source_id": 2,
             "external_id": "native-session-1",
             "session_class": "work",
             "session_role": "primary",
@@ -42,7 +42,7 @@ class WorkflowEpisodeContractTests(unittest.TestCase):
             self.session(id=99, title="Renamed", workspace_id=7)
         )
         another_source = workflow_episode_from_session(
-            self.session(source_key="codex")
+            self.session(source_id=1)
         )
 
         self.assertEqual(first.episode_key, same_native.episode_key)
@@ -52,8 +52,8 @@ class WorkflowEpisodeContractTests(unittest.TestCase):
 
     def test_length_delimited_key_avoids_boundary_collision(self):
         self.assertNotEqual(
-            workflow_episode_key("ab", "c"),
-            workflow_episode_key("a", "bc"),
+            workflow_episode_key(12, "3"),
+            workflow_episode_key(1, "23"),
         )
 
     def test_episode_uses_earliest_and_latest_valid_utc_observations(self):

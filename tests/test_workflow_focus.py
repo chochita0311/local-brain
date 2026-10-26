@@ -27,14 +27,8 @@ class WorkflowFocusTests(unittest.TestCase):
         self.connection.executescript(SCHEMA)
         self.connection.executemany(
             """
-            INSERT INTO sources(id, kind, provider_kind, name, root_path)
-            VALUES (?, ?, ?, ?, ?)
-            """,
-            (
-                (1, "codex", "codex", "Codex", "/synthetic/codex"),
-                (2, "claude", "claude", "Claude", "/synthetic/claude"),
-                (3, "context", "context", "Context", "/synthetic/context"),
-            ),
+            INSERT INTO sources(id, provider_kind, name, root_path) VALUES (?, ?, ?, ?)""",
+            ((1, "codex", "Codex", "/synthetic/codex"), (2, "codex", "Company", "/synthetic/company"), (3, "context", "Context", "/synthetic/context")),
         )
         self.connection.executemany(
             """

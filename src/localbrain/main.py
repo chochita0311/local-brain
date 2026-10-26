@@ -23,13 +23,22 @@ from fastapi.responses import (
 )
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StrictInt
 from starlette.concurrency import run_in_threadpool
 
+from . import __version__
 from .config import cache_directory, settings
+from .edition import DESKTOP, install_boundary, desktop_related_context
+from .preferences import effective_preferences, presentation_preferences
+from .path_display import home_relative_path
+from .session_sync import SessionSyncService
+from .context_sync import ContextSyncService
+from .local_operations import operation_lock
 from .auto_work import preview_page
 from .session_affinity import affinity_page
 from .contexts import (
+    ContextOrderConflict,
+    reorder_context_sources,
     add_apple_notes_source,
     add_context_file,
     add_context_root,
@@ -74,7 +83,7 @@ from .atlassian_browse import (
 from .atlassian_evidence_sync import sync_atlassian_local_evidence
 from .atlassian_evidence import atlassian_url_container_hint
 from .db import connect, init_db, transaction
-from .ingest.scanner import scan_all, scan_context_root, scan_session_sources
+from .ingest.scanner import scan_all, scan_context_root, scan_context_sources, scan_session_sources
 from .queries import (
     dashboard_stats,
     document_detail,
@@ -262,31 +271,80 @@ class ContextFileCreate(BaseModel):
     path: str = Field(min_length=1, max_length=4000)
 
 
+class ContextSourceOrder(BaseModel):
+    source_ids: list[StrictInt] = Field(max_length=10000)
+    expected_source_ids: list[StrictInt] = Field(max_length=10000)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    init_db()
-    from .storage_layout import maintain_derived_cache
-    maintain_derived_cache(cache_directory(settings))
-    with transaction() as connection:
-        app.state.session_source_registry = load_and_reconcile_session_sources(
-            connection, settings
-        )
-    reconcile_interrupted_runs()
-    reconcile_interrupted_insight_runs()
-    app.state.natural_search = SearchService(settings)
-    app.state.natural_search.start()
-    try:
-        yield
-    finally:
-        await run_in_threadpool(app.state.natural_search.stop)
-        await shutdown_runs()
-        await shutdown_insight_runs()
+    from .storage_recovery import backend_storage_lease
+    with backend_storage_lease(settings):
+        init_db()
+        from .source_settings import recover_source_reconnect, migrate_source_settings
+        recover_source_reconnect(settings)
+        migrate_source_settings(settings)
+        from .storage_layout import maintain_derived_cache
+        maintain_derived_cache(cache_directory(settings))
+        with transaction() as connection:
+            app.state.session_source_registry = load_and_reconcile_session_sources(
+                connection, settings
+            )
+        if not (settings.data_dir / "settings.toml").exists():
+            # Upgrading an already configured local installation does not force a setup loop.
+            from .preferences import read_preferences, save_preferences, PreferencesError
+            with connect() as connection:
+                has_context = connection.execute("SELECT 1 FROM context_roots WHERE enabled=1 LIMIT 1").fetchone()
+            try:
+                saved = read_preferences(settings)
+                existing = bool(app.state.session_source_registry.settings.entries or has_context)
+                # Save the fresh incomplete state too, so a partially configured
+                # first run is not mistaken for a legacy install after restart.
+                save_preferences({"onboarding_completed": existing}, saved["revision"], settings)
+            except PreferencesError:
+                pass  # The settings view reports the preserved file error.
+        if not DESKTOP:
+            reconcile_interrupted_runs()
+            reconcile_interrupted_insight_runs()
+        app.state.natural_search = SearchService(settings)
+        app.state.natural_search.start()
+        app.state.session_sync = SessionSyncService(settings, scan_session_sources)
+        app.state.session_sync.start()
+        app.state.context_sync = ContextSyncService(settings, scan_context_sources)
+        app.state.context_sync.start()
+        from .model_setup import ModelSetupService
+        app.state.model_setup = ModelSetupService(settings, app.state.natural_search)
+        try:
+            yield
+        finally:
+            await run_in_threadpool(app.state.model_setup.stop)
+            await run_in_threadpool(app.state.context_sync.stop)
+            await run_in_threadpool(app.state.session_sync.stop)
+            await run_in_threadpool(app.state.natural_search.stop)
+            if not DESKTOP:
+                await shutdown_runs()
+                await shutdown_insight_runs()
 
 
-app = FastAPI(title="LocalBrain", version="0.2.0", lifespan=lifespan)
+app = FastAPI(title="LocalBrain", version=__version__, lifespan=lifespan)
+install_boundary(app, settings)
 app.state.external_read_executor = None
 app.mount("/static", StaticFiles(directory=PACKAGE_ROOT / "static"), name="static")
-templates = Jinja2Templates(directory=PACKAGE_ROOT / "templates")
+from .source_profiles import canonical_source_id, profile_map
+
+
+def _profile_context(request):
+    snapshot = None
+    def source_profile(reference):
+        nonlocal snapshot
+        if snapshot is None:
+            with connect() as connection:
+                snapshot = profile_map(connection)
+        return snapshot.get(str(reference), {"id": None, "name": "Session", "provider_kind": "", "color": "gray"})
+    return {"source_profile": source_profile}
+
+
+templates = Jinja2Templates(directory=PACKAGE_ROOT / "templates", context_processors=[_profile_context])
 templates.env.globals["asset_version"] = max(
     path.stat().st_mtime_ns
     for path in (PACKAGE_ROOT / "static").iterdir()
@@ -294,7 +352,13 @@ templates.env.globals["asset_version"] = max(
 )
 templates.env.globals["value_label"] = display_value_label
 templates.env.globals["value_help"] = visible_value_help
-templates.env.globals["auto_work_available"] = True
+templates.env.globals["auto_work_available"] = not DESKTOP
+templates.env.globals["desktop_edition"] = DESKTOP
+templates.env.globals["app_version"] = __version__
+templates.env.globals["local_preferences"] = lambda: presentation_preferences(settings)
+templates.env.filters["project_path"] = lambda path: home_relative_path(path) or "미지정"
+from .settings_web import install_settings_routes
+install_settings_routes(app, templates)
 
 
 def _auto_work_local_request(request: Request):
@@ -355,6 +419,9 @@ async def auto_work_refresh(request: Request):
 
 @app.get("/", response_class=HTMLResponse)
 def dashboard(request: Request):
+    if DESKTOP:
+        values = effective_preferences()
+        return RedirectResponse("/" + values["startup_screen"] if values["onboarding_completed"] else "/onboarding", status_code=303)
     with connect() as connection:
         overview = dashboard_overview(connection)
     return templates.TemplateResponse(
@@ -386,7 +453,7 @@ def sessions_dashboard(
             breakdown=breakdown,
             from_value=from_date,
             to_value=to_date,
-            timezone_name=settings.timezone_name,
+            timezone_name=effective_preferences()["timezone"],
             visible_only=True,
         )
         page_context = {
@@ -441,7 +508,7 @@ def _session_insights_response(
                     }
                     result = json.loads(Path(selected["response_path"]).read_text(encoding="utf-8"))
                     admitted = {
-                        "{}:{}".format(event["source_key"], event["event_id"]): event
+                        event["event_id"]: event
                         for session in manifest["sessions"] for event in session["events"]
                     }
                     cited = {
@@ -453,7 +520,7 @@ def _session_insights_response(
                     cited.update(result.get("additional_evidence", {}).get("evidence_ids", []))
                     reference_states = {"current": 0, "stale": 0, "unavailable": 0}
                     for ref in cited:
-                        event = admitted.get(ref)
+                        event = admitted.get(ref.rsplit(":", 1)[-1])
                         state = (
                             resolve_insight_evidence_reference(connection, event)["status"]
                             if event else "unavailable"
@@ -666,9 +733,10 @@ def sessions_page(
         requested_page = 1
         page_is_valid = False
     with connect() as connection:
+        source = canonical_source_id(source)
         source_scopes = session_source_scopes(connection)
         source_scope_by_key = {
-            item["source_key"]: item for item in source_scopes
+            str(item["id"]): item for item in source_scopes
         }
         source_is_valid = source == "all" or source in source_scope_by_key
         workspace_is_valid = workspace is None or connection.execute(
@@ -746,6 +814,12 @@ def sessions_page(
             if request.query_params.get("sync") in {"complete", "partial", "failed"}
             else None,
         }
+        metadata = profile_map(connection)
+        for item in page_context["chart_sessions"]:
+            profile = metadata.get(str(item["source_id"]), {"id": item["source_id"], "color": "gray"})
+            item.update(source_id=profile["id"], color=profile["color"])
+            if item["project_key"]:
+                item["project_path"] = home_relative_path(item["project_key"])
     return templates.TemplateResponse("sessions.html", page_context)
 
 
@@ -754,8 +828,9 @@ def _save_chart_project_visibility(
 ) -> List[str]:
     try:
         with transaction() as connection:
+            source = canonical_source_id(source)
             if source != "all" and source not in {
-                item["source_key"] for item in session_source_scopes(connection)
+                str(item["id"]) for item in session_source_scopes(connection)
             }:
                 raise HTTPException(status_code=400, detail="Invalid source scope")
             if workspace is not None and connection.execute(
@@ -2872,39 +2947,18 @@ def projects_page(request: Request):
 
 @app.post("/sessions/sync")
 def sync_sessions_page(
+    request: Request,
     view: str = Query(default="sessions"),
     source: str = Query(default="all"),
     workspace: Optional[int] = Query(default=None),
     page: int = Query(default=1, ge=1),
     display: str = Query(default="list"),
 ):
-    report = scan_session_sources()
-    outcome = report.get("outcome")
-    if outcome not in {"complete", "partial", "failed"}:
-        outcome = "failed"
-    if view == "projects":
-        return RedirectResponse(
-            url="/projects?{}".format(urlencode({"sync": outcome})),
-            status_code=303,
-        )
-    params = {"sync": outcome}
-    if display == "chart":
-        params["display"] = "chart"
-    valid_source_keys = {
-        item.get("source_key")
-        for item in report.get("sources", [])
-        if isinstance(item, dict) and isinstance(item.get("source_key"), str)
-    }
-    if source in valid_source_keys:
-        params["source"] = source
-    if workspace is not None:
+    request.app.state.session_sync.request()
+    params = {"source": source, "display": display, "page": page}
+    if isinstance(workspace, int):
         params["workspace"] = workspace
-    if page > 1:
-        params["page"] = page
-    destination = "/sessions"
-    if params:
-        destination += "?{}".format(urlencode(params))
-    return RedirectResponse(url=destination, status_code=303)
+    return RedirectResponse(("/projects?" if view == "projects" else "/sessions?") + urlencode(params), status_code=303)
 
 
 def _session_pin_destination(
@@ -3057,8 +3111,9 @@ def _session_navigation_state(
     source: str,
     workspace: Optional[int],
 ):
+    source = canonical_source_id(source)
     valid_source_keys = {
-        item["source_key"] for item in session_source_scopes(connection)
+        str(item["id"]) for item in session_source_scopes(connection)
     }
     selected_source = source if source in valid_source_keys else "all"
     selected_workspace = workspace
@@ -3110,12 +3165,12 @@ def show_session(
         )
         parent = session_parent(connection, session_id)
         direct_children = session_subsessions(connection, session_id)
-        memberships = entity_memberships(connection, "session", session_id)
+        memberships = [] if DESKTOP else entity_memberships(connection, "session", session_id)
         related_context = None
         workflow_available = False
         if session["session_role"] == "primary":
             try:
-                workflow_available = workflow_session_is_eligible(
+                workflow_available = not DESKTOP and workflow_session_is_eligible(
                     connection, session_id
                 )
             except Exception:
@@ -3129,10 +3184,11 @@ def show_session(
             except Exception:
                 related_context = session_related_context_error()
 
+    related_context = desktop_related_context(related_context)
     subsessions = [
         {
             "url": "/sessions/{}{}".format(child["id"], navigation_query),
-            "source_kind": child["source_kind"],
+            "source_id": child["source_id"],
             "provider_kind": child["provider_kind"],
             "source_name": child["source_name"],
             "external_id": child["external_id"],
@@ -3158,7 +3214,7 @@ def show_session(
                     "url": "/sessions/{}/subsessions/{}".format(
                         session_id, quote(item["file_name"])
                     ) + navigation_query,
-                    "source_kind": session["source_kind"],
+                    "source_id": session["source_id"],
                     "provider_kind": session["provider_kind"],
                     "source_name": session["source_name"],
                     "external_id": item["external_id"],
@@ -3600,8 +3656,17 @@ def _natural_search_status(request):
 
 @app.get("/natural-search", response_class=HTMLResponse)
 def natural_search_page(request: Request, q: str = Query(default="", max_length=300),
-                        page: int = Query(default=1, ge=1, le=1000000)):
+                        page: int = Query(default=1, ge=1, le=1000000),
+                        mode: str = Query(default="keyword", pattern="^(keyword|ai)$")):
     _auto_work_local_request(request)
+    if mode == "keyword":
+        from .keyword_search import keyword_search
+        with connect() as connection:
+            results = keyword_search(connection, q) if q.strip() else []
+        return templates.TemplateResponse("keyword-search.html", {
+            "request": request, "active_page": "natural-search", "natural_query": q,
+            "results": results, "search_status": _natural_search_status(request), "search_mode": "keyword",
+        })
     status, result, query_error = _natural_search_status(request), None, None
     if q.strip() and status["state"] not in {"disabled", "model-missing", "no-data"}:
         try:
@@ -3615,9 +3680,9 @@ def natural_search_page(request: Request, q: str = Query(default="", max_length=
                 query_error = "검색을 완료하지 못했습니다. 잠시 후 다시 검색해 주세요."
     return templates.TemplateResponse("natural-search.html", {
         "request": request, "active_page": "natural-search", "natural_query": q,
-        "search_status": status, "search_response": result, "query_error": query_error,
-        "previous_url": "/natural-search?" + urlencode({"q": q, "page": max(1, page - 1)}),
-        "next_url": "/natural-search?" + urlencode({"q": q, "page": page + 1}),
+        "search_status": status, "search_response": result, "query_error": query_error, "search_mode": "ai",
+        "previous_url": "/natural-search?" + urlencode({"q": q, "mode": "ai", "page": max(1, page - 1)}),
+        "next_url": "/natural-search?" + urlencode({"q": q, "mode": "ai", "page": page + 1}),
     })
 
 
@@ -3643,7 +3708,7 @@ async def _natural_search_action(request, *, cancel=False):
             request.app.state.natural_search.request_prepare()
         except (OSError, ValueError) as error:
             raise HTTPException(503, "검색 설정을 저장하지 못했습니다.") from error
-    return RedirectResponse("/natural-search?" + urlencode({"q": query}), status_code=303)
+    return RedirectResponse("/natural-search?" + urlencode({"q": query, "mode": "ai"}), status_code=303)
 
 
 @app.post("/natural-search/prepare")
@@ -3690,6 +3755,8 @@ def search_page(
     workstream_id: Optional[int] = Query(default=None, ge=1),
 ):
     """Deprecated keyword-search entry point retained for existing URLs."""
+    if DESKTOP:
+        return RedirectResponse("/natural-search?" + urlencode({"q": q, "mode": "keyword"}), status_code=303)
     selected_source = (
         source if source in {"all", "sessions", "documents", "atlassian"} else "all"
     )
@@ -3749,7 +3816,7 @@ def api_create_workstream(payload: WorkstreamCreate):
 @app.post("/api/context-roots")
 def api_add_context_root(payload: ContextRootCreate):
     try:
-        with transaction() as connection:
+        with operation_lock(settings, "context-settings"), transaction() as connection:
             root_id = add_context_root(connection, payload.path)
             imported, skipped, failed = scan_context_root(
                 connection, root_id, force=True
@@ -3771,7 +3838,7 @@ def api_add_context_root(payload: ContextRootCreate):
 @app.post("/api/context-files")
 def api_add_context_file(payload: ContextFileCreate):
     try:
-        with transaction() as connection:
+        with operation_lock(settings, "context-settings"), transaction() as connection:
             source_id = add_context_file(connection, payload.path)
             imported, skipped, failed = scan_context_root(
                 connection, source_id, force=True
@@ -3792,7 +3859,7 @@ def api_add_context_file(payload: ContextFileCreate):
 
 @app.post("/api/context-sources/apple-notes")
 def api_add_apple_notes_source():
-    with transaction() as connection:
+    with operation_lock(settings, "context-settings"), transaction() as connection:
         source_id = add_apple_notes_source(connection)
         imported, skipped, failed = scan_context_root(
             connection, source_id, force=True
@@ -3809,10 +3876,22 @@ def api_add_apple_notes_source():
     }
 
 
+@app.post("/api/context-sources/order")
+def api_reorder_context_sources(payload: ContextSourceOrder):
+    try:
+        with operation_lock(settings, "context-settings"), transaction(immediate=True) as connection:
+            reorder_context_sources(connection, payload.source_ids, payload.expected_source_ids)
+    except ContextOrderConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"ok": True}
+
+
 @app.delete("/api/context-roots/{root_id}")
 def api_remove_context_root(root_id: int):
     try:
-        with transaction() as connection:
+        with operation_lock(settings, "context-settings"), transaction() as connection:
             remove_context_root(connection, root_id)
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -4043,56 +4122,34 @@ def scan_sources():
 
 
 @app.post("/api/sessions/sync")
-def sync_session_sources():
-    return {"ok": True, "report": scan_session_sources()}
+def sync_session_sources(request: Request):
+    return {"ok": True, "state": request.app.state.session_sync.request()}
 
 
-def _session_sync_event_stream():
-    events = queue.Queue()
-    finished = object()
-
-    def publish(event):
-        events.put(event)
-
-    def synchronize():
-        try:
-            report = scan_session_sources(progress=publish)
-            events.put({"type": "result", "ok": True, "report": report})
-        except Exception:
-            events.put(
-                {
-                    "type": "error",
-                    "ok": False,
-                    "message": (
-                        "Session sources could not be synchronized; "
-                        "existing data was retained."
-                    ),
-                }
-            )
-        finally:
-            events.put(finished)
-
-    worker = threading.Thread(target=synchronize, daemon=True)
-    worker.start()
-    while True:
-        event = events.get()
-        if event is finished:
-            break
-        yield json.dumps(event, ensure_ascii=False, separators=(",", ":")) + "\n"
+@app.get("/api/sessions/sync/status")
+def session_sync_status(request: Request):
+    return request.app.state.session_sync.status()
 
 
 @app.post("/api/sessions/sync/stream")
-def stream_session_sources():
-    return StreamingResponse(
-        _session_sync_event_stream(),
-        media_type="application/x-ndjson",
-        headers={
-            "Cache-Control": "no-store",
-            "X-Accel-Buffering": "no",
-        },
-    )
+def stream_session_sources(request: Request):
+    service = request.app.state.session_sync
+    service.request()
+    return StreamingResponse(_session_sync_event_stream(service), media_type="application/x-ndjson")
+
+
+def _session_sync_event_stream(service):
+    while True:
+        state = service.status()
+        if not state["running"] and not state["queued"]:
+            yield json.dumps({"type": "result", "ok": not bool(state.get("error")),
+                              "report": state.get("report", {}), "state": state}) + "\n"
+            break
+        if state.get("progress"):
+            yield json.dumps(state["progress"]) + "\n"
+        time.sleep(1)
 
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "database": str(settings.database_path)}
+    return {"status": "ok", "edition": "desktop" if DESKTOP else "web"}

@@ -6,6 +6,7 @@ import sqlite3
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
 from ..config import cache_directory, development_directory
 
@@ -36,6 +37,7 @@ class Source:
     source_kind: str
     timestamp: str
     blocks: list
+    source_id: Optional[int] = None
 
     @property
     def revision(self):
@@ -55,17 +57,21 @@ def _private_derived(path, config):
 
 def read_sources(config, keys=None):
     """A consistent snapshot. `keys` narrows current-result validation, never indexing."""
+    from ..source_settings import registered_session_roots
+    registered = registered_session_roots(config)
     selected = set(keys) if keys is not None else None
     values = []
     empty_sessions, empty_documents, excluded_runtime_documents = 0, 0, 0
     with source_connection(config.database_path) as connection:
         connection.execute("BEGIN")
         sessions = connection.execute("""
-            SELECT s.*, o.kind AS source_kind FROM sessions s JOIN sources o ON o.id=s.source_id
+            SELECT s.*, o.provider_kind AS source_kind, o.root_path AS registered_root FROM sessions s JOIN sources o ON o.id=s.source_id
             WHERE s.session_class='work' AND s.session_role='primary' AND s.index_policy='full'
             ORDER BY s.id
         """).fetchall()
         for row in sessions:
+            if registered.get(row["source_id"]) != row["registered_root"]:
+                continue
             key = "session:" + str(row["id"])
             if selected is not None and key not in selected:
                 continue
@@ -79,9 +85,9 @@ def read_sources(config, keys=None):
                 continue
             values.append(Source(key, "session", row["id"], row["title"],
                                  row["cwd_raw"] or row["source_path"], row["source_kind"],
-                                 row["last_event_at"] or row["ended_at"] or row["started_at"] or "", blocks))
+                                 row["last_event_at"] or row["ended_at"] or row["started_at"] or "", blocks, source_id=row["source_id"]))
         documents = connection.execute("""
-            SELECT d.*, o.kind AS source_kind FROM context_documents d
+            SELECT d.*, o.provider_kind AS source_kind FROM context_documents d
             JOIN context_roots r ON r.id=d.context_root_id JOIN sources o ON o.id=d.source_id
             WHERE r.enabled=1 AND r.readable=1 ORDER BY d.id
         """)
@@ -100,7 +106,7 @@ def read_sources(config, keys=None):
             values.append(Source(key, "document", row["id"], row["title"], row["path"],
                                  row["source_kind"], timestamp,
                                  [{"id": str(row["id"]), "role": "document", "text": row["body"],
-                                   "sequence": 0, "source_line": 1}]))
+                                   "sequence": 0, "source_line": 1}], source_id=row["source_id"]))
         unavailable = connection.execute(
             "SELECT count(*) FROM context_roots WHERE enabled=1 AND readable=0").fetchone()[0]
         excluded = connection.execute("""SELECT count(*) FROM sessions WHERE

@@ -26,7 +26,7 @@
             <a class="filter-item {% if selected_source and selected_source.id == source.id %}active{% endif %}" href="/context?root={{ source.id }}" title="{{ source.path }}" data-context-folder-source-link>
               <span><strong>{{ source.label }}</strong><small>{{ source.display_path }}</small></span><b>{{ source.document_count }}</b>
             </a>
-            <button class="context-root-remove" type="button" title="인덱스에서 Source 제거" aria-label="{{ source.label }} Source 제거" data-delete-context-source="{{ source.id }}">&times;</button>
+            <button class="context-root-remove" type="button" title="인덱스에서 Source 제거" aria-label="{{ source.label }} Source 제거" data-delete-context-source="{{ source.id }}" data-context-label="{{ source.label }}">&times;</button>
           </div>
         {% endfor %}
         <details class="context-root-add">
@@ -52,7 +52,7 @@
             <a class="filter-item {% if selected_source and selected_source.id == source.id %}active{% endif %}" href="/context?root={{ source.id }}" title="{{ source.path }}">
               <span><strong>{{ source.label }}</strong><small>{{ source.display_path }}</small></span><b>{{ source.document_count }}</b>
             </a>
-            <button class="context-root-remove" type="button" title="인덱스에서 Source 제거" aria-label="{{ source.label }} Source 제거" data-delete-context-source="{{ source.id }}">&times;</button>
+            <button class="context-root-remove" type="button" title="인덱스에서 Source 제거" aria-label="{{ source.label }} Source 제거" data-delete-context-source="{{ source.id }}" data-context-label="{{ source.label }}">&times;</button>
           </div>
         {% else %}
           <p class="source-group-empty">등록 파일 없음</p>

@@ -1,3 +1,7 @@
-{% macro source_cue(source_kind, provider_kind, display_label) -%}
-  {{- 'CC' if source_kind == 'codex-company' else ('CX' if source_kind == 'codex' else ('CL' if provider_kind == 'claude' else display_label[:2] | upper)) -}}
+{% macro source_cue(provider_kind, display_label) -%}
+  {{- 'CX' if provider_kind == 'codex' else ('CL' if provider_kind == 'claude' else display_label[:2] | upper) -}}
+{%- endmacro %}
+
+{% macro profile_attrs(reference) -%}
+  {% set profile = source_profile(reference) if source_profile is defined else {'id': reference, 'color': 'gray'} %}data-profile-id="{{ profile.id }}" data-profile-color="{{ profile.color }}"
 {%- endmacro %}

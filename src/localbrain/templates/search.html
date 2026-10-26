@@ -101,7 +101,7 @@
     <div class="search-results">
       {% for result in results %}
         <a class="search-result" href="{% if result.entity_type == 'session' %}/sessions/{{ result.entity_id }}{% elif result.entity_type == 'document' %}/documents/{{ result.entity_id }}{% elif result.entity_type == 'atlassian_structure_reference' %}/atlassian/references/{{ result.entity_id }}{% else %}/atlassian/items/{{ result.entity_id }}{% endif %}">
-            <div class="result-type {{ result.source_kind | replace(':', '-') }}">{% if result.entity_type == 'atlassian_structure_reference' %}{{ 'Jira' if result.service == 'jira' else 'Wiki' }} · 구조 참조{% elif result.entity_type == 'atlassian_item' %}{{ value_label("atlassian-space.service", result.source_kind.split(':')[-1]) }}{% else %}{{ value_label("source.kind", result.source_kind) }}{% endif %}</div>
+            <div class="result-type {{ result.source_kind | replace(':', '-') }}">{% if result.entity_type == 'atlassian_structure_reference' %}{{ 'Jira' if result.service == 'jira' else 'Wiki' }} · 구조 참조{% elif result.entity_type == 'atlassian_item' %}{{ value_label("atlassian-space.service", result.source_kind.split(':')[-1]) }}{% else %}{{ (source_profile(result.source_id).name if result.entity_type|default(result.kind) == 'session' else 'Local Context') }}{% endif %}</div>
             <div>
               <h2>{{ result.title }}</h2>
               <p class="path-line">{{ result.path }}</p>

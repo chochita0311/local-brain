@@ -9,7 +9,7 @@ def seed(database):
     schema = Path(__file__).resolve().parents[1] / "src/localbrain/schema.sql"
     with closing(sqlite3.connect(database)) as connection, connection:
         connection.executescript(schema.read_text(encoding="utf-8"))
-        connection.execute("INSERT INTO sources(id,kind,name,root_path) VALUES (1,'codex','Synthetic Codex','/synthetic')")
+        connection.execute("INSERT INTO sources(id,provider_kind,name,root_path) VALUES (1,'codex','Synthetic Codex','/synthetic')")
         connection.execute("INSERT INTO workstreams(id,name,summary) VALUES (1,'검색 경험 개선','기존 Workstream 유지 확인')")
         for index in range(1, 17):
             title = "검색 응답과 검증 흐름 {}".format(index)

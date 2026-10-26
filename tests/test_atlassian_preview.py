@@ -455,7 +455,7 @@ class AtlassianPreviewTests(unittest.TestCase):
         source_id = int(
             self.connection.execute(
                 """
-                INSERT INTO sources(kind, name, root_path)
+                INSERT INTO sources(provider_kind, name, root_path)
                 VALUES ('preview-evidence', 'Preview evidence',
                         '/synthetic/preview')
                 """

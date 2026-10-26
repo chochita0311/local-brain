@@ -125,10 +125,10 @@ def load_snapshots(database, manifest):
                     "coverage": dict(scope.get("coverage", {"complete": True, "unexamined": 0}))}
             for sid in scope["session_ids"]:
                 row = connection.execute("""SELECT s.id, s.source_id, s.external_id, s.session_class,
-                    s.session_role, s.index_policy, s.event_count, sources.kind AS source_key
+                    s.session_role, s.index_policy, s.event_count
                     FROM sessions s JOIN sources ON sources.id = s.source_id WHERE s.id = ?""", (sid,)).fetchone()
                 require(row is not None and row["source_id"] in manifest["source_ids"] and eligible(dict(row)), "INELIGIBLE_SOURCE")
-                data["sessions"].append({k: row[k] for k in row.keys() if k != "source_id"})
+                data["sessions"].append(dict(row))
             per_session_chars, per_session_events = {}, {}
             for choice in scope["events"]:
                 row = connection.execute("""SELECT id, session_id, occurred_at, event_type, role
@@ -225,7 +225,7 @@ def _references(connection, data, scope, start, cutoff):
             artifacts[artifact_key] = {"kind": kind, "source_scope": source_scope, "source_identity": identity,
                                        "identity_state": "resolved", "enabled": True, "is_container": False,
                                        "availability": "available", "freshness": "unknown"}
-            data["references"].append({"episode_key": workflow_episode_key(session["source_key"], session["external_id"]),
+            data["references"].append({"episode_key": workflow_episode_key(session["source_id"], session["external_id"]),
                                        "artifact_key": artifact_key, "reference_identity": str(row["id"]),
                                        "evidence_kind": row["evidence_kind"], "read_outcome": row["read_outcome"],
                                        "observed_at": row["observed_at"]})
@@ -234,11 +234,11 @@ def _references(connection, data, scope, start, cutoff):
 
 def _canonical_reference(connection, row):
     if row["target_kind"] == "context_document":
-        document = connection.execute("""SELECT d.relative_path, r.path, s.kind FROM context_documents d
+        document = connection.execute("""SELECT d.relative_path, r.path, s.id AS source_id FROM context_documents d
             JOIN context_roots r ON r.id = d.context_root_id
             JOIN sources s ON s.id = d.source_id WHERE d.id = ?""", (row["context_document_id"],)).fetchone()
         if document and document["relative_path"]:
-            return "context-document", key("source-scope", document["kind"], document["path"]), document["relative_path"]
+            return "context-document", key("source-scope", document["source_id"], document["path"]), document["relative_path"]
     elif row["target_kind"] == "atlassian_item":
         item = connection.execute("""SELECT i.service, i.remote_id, i.remote_key, s.normalized_domain
             FROM atlassian_items i JOIN atlassian_sites s ON s.id = i.site_id

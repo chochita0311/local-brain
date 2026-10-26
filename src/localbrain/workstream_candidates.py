@@ -207,7 +207,7 @@ def candidate_artifact_from_record(row: Mapping[str, object]) -> CandidateArtifa
 class CandidateSession(_Descriptor):
     episode_key: str
     session_id: int
-    source_key: str
+    source_id: int
     display_title: Optional[str]
     destination: str
 
@@ -234,12 +234,14 @@ def candidate_session_from_record(row: Mapping[str, object]) -> CandidateSession
         or session_id <= 0
     ):
         raise ValueError("session_id must be a positive integer")
-    source = _text(row.get("source_key"), "source_key", MAX_SOURCE_LENGTH)
+    source = row.get("source_id")
+    if type(source) is not int or source <= 0:
+        raise ValueError("source_id must be a positive integer")
     native_id = _text(row.get("external_id"), "external_id")
     return CandidateSession(
         episode_key=workflow_episode_key(source, native_id),
         session_id=session_id,
-        source_key=source,
+        source_id=source,
         display_title=_title(row.get("title")),
         destination="/sessions/{}".format(session_id),
     )

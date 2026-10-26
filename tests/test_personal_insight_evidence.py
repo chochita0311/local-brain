@@ -29,9 +29,8 @@ class PersonalInsightEvidenceTests(unittest.TestCase):
             ("unrelated", "other"),
         ):
             self.sources[key] = self.connection.execute(
-                "INSERT INTO sources(kind, provider_kind, name, root_path) "
-                "VALUES (?, ?, ?, ?)",
-                (key, provider, key, "/synthetic/" + key),
+                'INSERT INTO sources(provider_kind, name, root_path) VALUES (?, ?, ?)',
+                (provider, key, "/synthetic/" + key,),
             ).lastrowid
 
     def tearDown(self):
@@ -89,7 +88,7 @@ class PersonalInsightEvidenceTests(unittest.TestCase):
             {"mode": "discover", "question": "question"},
             {"mode": "discover", "date_from": "2026-09-31"},
             {"mode": "discover", "date_from": "2026-09-29", "date_to": "2026-09-28"},
-            {"mode": "discover", "source_keys": ["missing"]},
+            {"mode": "discover", "source_ids": ["missing"]},
             {"mode": "discover", "timezone": "Not/A_Zone"},
         ):
             with self.subTest(values=values), self.assertRaises(ValueError):
@@ -151,7 +150,7 @@ class PersonalInsightEvidenceTests(unittest.TestCase):
             {"first day boundary", "last day boundary"},
         )
         self.assertEqual(
-            set(result["coverage"]["sources"]), {"claude-code", "codex-company"}
+            set(result["coverage"]["sources"]), {1, 2}
         )
         self.assertEqual(result, self.manifest(date_from="2026-09-28", date_to="2026-09-28"))
 
@@ -188,12 +187,12 @@ class PersonalInsightEvidenceTests(unittest.TestCase):
         self.add_event(claude, 2, "unknown time", occurred_at=None)
         self.add_event(codex, 1, "future time", occurred_at="2026-10-01T00:00:00Z")
 
-        result = self.manifest(source_keys=["claude-code"])
+        result = self.manifest(source_ids=[self.sources["claude-code"]])
         self.assertEqual(result["coverage"]["eligible_messages"], 2)
         self.assertEqual(result["coverage"]["eligible_undated_messages"], 1)
         self.assertEqual(result["coverage"]["selected_undated_messages"], 1)
-        self.assertEqual(set(result["coverage"]["sources"]), {"claude-code"})
-        future_only = self.manifest(source_keys=["codex-company"])
+        self.assertEqual(set(result["coverage"]["sources"]), {1})
+        future_only = self.manifest(source_ids=[self.sources["codex-company"]])
         self.assertEqual(future_only["coverage"]["eligible_messages"], 0)
 
     def test_source_month_spread_and_session_excerpt_caps(self):
@@ -214,7 +213,7 @@ class PersonalInsightEvidenceTests(unittest.TestCase):
         self.assertIn("session_sample_limit", result["coverage"]["omission_reasons"])
         self.assertEqual(
             len({
-                (session["source_key"], session["events"][0]["occurred_at"][5:7])
+                (session["source_id"], session["events"][0]["occurred_at"][5:7])
                 for session in result["sessions"][:4]
             }),
             4,

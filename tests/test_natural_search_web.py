@@ -30,6 +30,9 @@ class NaturalSearchWebTests(unittest.TestCase):
         self.stack.enter_context(patch.object(web.app.state, 'natural_search', self.service, create=True))
 
     def call(self, url, *, method='GET', form=None, headers=()):
+        # These cases cover the AI mode. Keyword availability has its own cases.
+        if urlsplit(url).path == '/natural-search' and 'mode=' not in url:
+            url += ('&' if '?' in url else '?') + 'mode=ai'
         parsed = urlsplit(url)
         body = urlencode(form or {}).encode()
         header_list = [(b'host', b'127.0.0.1'), (b'content-type', b'application/x-www-form-urlencoded')]
@@ -102,7 +105,7 @@ class NaturalSearchWebTests(unittest.TestCase):
                 self.assertIn(b'q=', headers[b'location'])
                 operation.assert_called_once_with()
             status, _, _ = self.call('/natural-search/' + action, method='POST', headers=[('sec-fetch-site', 'cross-site')])
-            self.assertEqual(status, 400)
+            self.assertEqual(status, 403)
 
     def test_bounded_queries_and_escaped_text(self):
         self.assertEqual(self.call('/natural-search?' + urlencode({'q': '가'*301}))[0],422)
@@ -155,7 +158,7 @@ class NaturalSearchWebTests(unittest.TestCase):
         value = json.loads(body)
         self.assertEqual(status,200)
         self.assertEqual(value['state'],'ready')
-        self.assertEqual(headers[b'cache-control'],b'no-store')
+        self.assertIn(b'no-store', headers[b'cache-control'])
         self.assertNotIn('Atlas',body)
         self.assertNotIn('synthetic-event',body)
 

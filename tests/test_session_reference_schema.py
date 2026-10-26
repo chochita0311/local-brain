@@ -17,8 +17,7 @@ class SessionReferenceSchemaTests(unittest.TestCase):
         self.connection.executescript(SCHEMA_SQL)
         self.connection.executescript(
             """
-            INSERT INTO sources(id, kind, provider_kind, name, root_path)
-            VALUES (1, 'codex', 'codex', 'Codex', '/synthetic/codex');
+            INSERT INTO sources(id, provider_kind, name, root_path) VALUES (1, 'codex', 'Codex', '/synthetic/codex');
 
             INSERT INTO sessions(
                 id, source_id, external_id, source_path, title
@@ -280,8 +279,7 @@ class SessionReferenceSchemaTests(unittest.TestCase):
         connection.executescript(legacy_schema)
         connection.executescript(
             """
-            INSERT INTO sources(id, kind, provider_kind, name, root_path)
-            VALUES (1, 'codex', 'codex', 'Codex', '/synthetic');
+            INSERT INTO sources(id, provider_kind, name, root_path) VALUES (1, 'codex', 'Codex', '/synthetic');
             INSERT INTO sessions(id, source_id, external_id, source_path, title)
             VALUES (10, 1, 'session-10', '/synthetic/session.jsonl', 'Session');
             INSERT INTO source_files(

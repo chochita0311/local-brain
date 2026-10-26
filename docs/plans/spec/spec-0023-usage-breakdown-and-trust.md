@@ -76,3 +76,12 @@
 ## Continuity Notes
 
 - `2026-07-18`: approved with an eight-row native disclosure, compatible metric denominators, immutable Project grouping, and bounded source-success inference from current persistence.
+
+## Current Project Membership — 2026-10-20
+
+[The approved C07 correction](spec-0134-general-and-project-settings.md) narrows
+Project composition to work Sessions and work subsessions. All Maintenance is excluded
+from its rows and compatible denominator; overall/history and Source/Model retain that
+usage. Frozen Project identity stays unchanged. Maintenance-only zero-Session groups
+remain valid in Source/Model; Project may contain zero-Session work-subsession groups.
+Historical implementation/evaluation records above retain their original scope.

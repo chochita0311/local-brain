@@ -6,12 +6,17 @@
     <title>{% block title %}LocalBrain{% endblock %}</title>
     <link rel="icon" href="{{ url_for('static', path='/favicon.svg') }}?v={{ asset_version | default('dev') }}" type="image/svg+xml">
     <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}?v={{ asset_version | default('dev') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='/settings.css') }}?v={{ asset_version }}">
+    <script src="{{ url_for('static', path='/profiles.js') }}?v={{ asset_version }}" defer></script>
+    <script src="{{ url_for('static', path='/settings.js') }}?v={{ asset_version }}" defer></script>
     {% block styles %}{% endblock %}
     <script src="{{ url_for('static', path='/app.js') }}?v={{ asset_version | default('dev') }}" defer></script>
   </head>
-  <body>
-    <a class="skip-link" href="#main-content">본문으로 건너뛰기</a>
-    <div class="app-shell">
+  {% set preferences = local_preferences() %}
+  {% set setup_requested = (request is defined and request.query_params.get('setup') == '1') or (desktop_edition and active_page != 'settings' and not preferences.onboarding_completed) %}
+  <body data-timezone="{{ preferences.timezone }}"{% if setup_requested %} data-onboarding="true"{% endif %}>
+    <a class="skip-link" href="#main-content"{% if setup_requested %} inert{% endif %}>본문으로 건너뛰기</a>
+    <div class="app-shell"{% if setup_requested %} inert{% endif %}>
       <aside class="lnb">
         <a class="brand" href="/">
           <span class="brand-mark" aria-hidden="true">LB</span>
@@ -21,9 +26,11 @@
         <nav class="lnb-nav" aria-label="주요 탐색">
           <div class="nav-group">
             <span class="nav-group-label">Overview</span>
+            {% if not desktop_edition %}
             <a class="lnb-item {% if active_page == 'dashboard' %}active{% endif %}" href="/" {% if active_page == 'dashboard' %}aria-current="page"{% endif %}>
               <span class="nav-symbol" aria-hidden="true">01</span><span>Dashboard</span>
             </a>
+            {% endif %}
             <a class="lnb-item {% if active_page == 'sessions-dashboard' %}active{% endif %}" href="/sessions-dashboard" {% if active_page == 'sessions-dashboard' %}aria-current="page"{% endif %}>
               <span class="nav-symbol" aria-hidden="true">02</span><span>Sessions Dashboard</span>
             </a>
@@ -35,31 +42,42 @@
               <span class="nav-symbol" aria-hidden="true">AW</span><span>자동 작업</span>
             </a>
             {% endif %}
+            {% if not desktop_edition %}
             <a class="lnb-item {% if active_page == 'workstreams' %}active{% endif %}" href="/workstreams" {% if active_page == 'workstreams' %}aria-current="page"{% endif %}>
               <span class="nav-symbol" aria-hidden="true">03</span><span>Workstreams</span>
             </a>
+            {% endif %}
             <a class="lnb-item {% if active_page == 'sessions' %}active{% endif %}" href="/sessions" {% if active_page == 'sessions' %}aria-current="page"{% endif %}>
               <span class="nav-symbol" aria-hidden="true">04</span><span>Sessions</span>
             </a>
             <a class="lnb-item {% if active_page == 'context' %}active{% endif %}" href="/context" {% if active_page == 'context' %}aria-current="page"{% endif %}>
               <span class="nav-symbol" aria-hidden="true">05</span><span>Local Contexts</span>
             </a>
+            {% if not desktop_edition %}
             <a class="lnb-item {% if active_page == 'atlassian' %}active{% endif %}" href="/atlassian" {% if active_page == 'atlassian' %}aria-current="page"{% endif %}>
               <span class="nav-symbol" aria-hidden="true">06</span><span>Atlassian</span>
             </a>
+            {% endif %}
           </div>
+          {% if not desktop_edition %}
           <div class="nav-group">
             <span class="nav-group-label">System</span>
+            {% if not desktop_edition %}
             <a class="lnb-item {% if active_page == 'sources' %}active{% endif %}" href="/sources" {% if active_page == 'sources' %}aria-current="page"{% endif %}>
               <span class="nav-symbol" aria-hidden="true">07</span><span>Sources</span>
             </a>
+            {% endif %}
+            {% if not desktop_edition %}
             <a class="lnb-item {% if active_page == 'schema' %}active{% endif %}" href="/schema" {% if active_page == 'schema' %}aria-current="page"{% endif %}>
               <span class="nav-symbol" aria-hidden="true">08</span><span>Schema</span>
             </a>
+            {% endif %}
           </div>
+          {% endif %}
         </nav>
 
         <div class="lnb-footer">
+          <button type="button" class="secondary-button settings-gear" data-settings-open><span aria-hidden="true">⚙</span>설정</button>
           <span class="local-status"><span class="status-dot" aria-hidden="true"></span>Local index online</span>
           <small>Private on this Mac</small>
         </div>
@@ -73,6 +91,7 @@
             <a class="search-link" href="/natural-search">Search</a>
           {% else %}
             <form id="global-search" class="global-search" action="/natural-search" method="get">
+              <input type="hidden" name="mode" value="{{ search_mode | default('keyword') }}">
               <label class="sr-only" for="global-query">검색</label>
               <input id="global-query" name="q" type="search" maxlength="300" placeholder="세션, 질문, 문서 통합 검색" value="{{ natural_query | default(query | default('')) }}">
             </form>
@@ -84,6 +103,7 @@
         </main>
       </div>
     </div>
+    {% include "_settings.html" %}
     <div class="toast-region" data-toast-region aria-live="polite" aria-atomic="true"></div>
     {% block scripts %}{% endblock %}
   </body>

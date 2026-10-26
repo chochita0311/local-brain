@@ -2,7 +2,7 @@
 
 ## Authority And Scope
 
-[PRD-0020](../../plans/prd/prd-0020-local-natural-language-search.md) owns the product boundary. This document owns the search contracts; code and schema remain implementation truth. Natural-language search is the shared-header search entry point. The original keyword-search route `/search` is deprecated and retained for existing URLs; its FTS data and legacy query behavior remain available for compatibility.
+[PRD-0020](../../plans/prd/prd-0020-local-natural-language-search.md) owns the product boundary. This document owns the search contracts; code and schema remain implementation truth. The shared-header search entry point supports explicit keyword and AI modes under the approved [standalone settings PRD](../../plans/prd/prd-0021-macos-standalone-test-app-and-local-settings.md). Keyword mode is the model-free default. The original keyword-search route `/search` is deprecated and retained for existing URLs; its FTS data and legacy query behavior remain available for compatibility.
 
 The owner approved sequential implementation and local tests on 2026-10-12. No private corpus, query, vector, evaluation, model adapter or machine inventory is publishable. Public examples and fixtures are synthetic. No remote inference, implicit downloads, personal fine-tuning, source editing or Workstream reorganization.
 
@@ -10,7 +10,7 @@ The owner approved sequential implementation and local tests on 2026-10-12. No p
 
 | Model | Role in this work | Installed default search |
 | --- | --- | --- |
-| Qwen3-Embedding-0.6B | Encode eligible document fragments and search queries into comparable vectors | Required; the same pinned checkpoint serves both inputs |
+| Qwen3-Embedding-0.6B | Encode eligible document fragments and search queries into comparable vectors | Required only for AI mode; the same pinned checkpoint serves both inputs |
 | Laya multilingual | Judge supplied query/candidate relevance in explicit local comparisons | Not loaded |
 | Qwen3-Reranker-0.6B | Score supplied query/candidate pairs and reorder candidates in explicit local comparisons | Not loaded |
 | Qwen3-4B / Qwen3-8B | Separate generation and work-context inference experiments | Not loaded |
@@ -88,7 +88,7 @@ environment still exists.
 
 The shared header has one search input in the original global-search position, preserving the `세션, 질문, 문서 통합 검색` placeholder and the current query. Its label is available to assistive technology without visible search-mode copy. Enter and the header's Search submit button use the same native GET form targeting `/natural-search`; IME composition remains guarded. Keep Atlassian's current local-query exception and its header Search link to `/natural-search`. At narrow widths preserve keyboard reachability and containment. Use existing semantic tokens and search-result families; no fragment management UI or threshold control.
 
-The deprecated `/search` route remains directly reachable with its existing filters and query contract, and is marked deprecated in the route schema. Shared navigation, natural-search recovery and no-match guidance do not offer keyword search. This deprecation does not remove the legacy FTS table or the natural-search engine's lexical exact-identifier path.
+The deprecated `/search` route remains directly reachable with its existing filters and query contract, and is marked deprecated in the route schema. The shared `/natural-search` entry now offers keyword mode and an explicit AI mode. Keyword mode reuses the legacy FTS5 token-AND expression with the same registered local-source admission as AI mode; it is not substring LIKE. Missing-model/disabled/failure states link to local model settings and preserve the query when changing modes. An empty AI result never silently switches modes. The legacy `/search` redirects to this keyword entry in the desktop edition; its development-web compatibility route keeps existing behavior. Return links preserve mode, query, page and the result anchor.
 
 The natural-search page owns explicit first preparation/retry, truthful coverage, applied conditions, ranked parent results and source evidence navigation. Status polling cannot reset query, focus or scroll. Never put model internals or debug traces into normal result copy.
 
@@ -168,3 +168,7 @@ candidates and display, not which sources may be indexed.
 - General work search: [FEAT-0123](../../plans/feature/feat-0123-general-work-search.md) adds a conservative second query view and page-bounded excerpt reads. Its multi-domain comparison supersedes the original-query-only ranking default without changing the document index.
 - The [local comparison](../../plans/evaluation/eval-0121-functional-natural-search-local-comparison.md) owns the initial RRF baseline, model/profile selection and resource evidence. The [general-work evaluation](../../plans/evaluation/eval-0123-functional-general-work-search.md) owns current ranking observations and mixed quality results. Historical runtime measurements remain attached to their original environments; the [RUN-160 closeout](../../plans/run/run-20261013-160-general-work-search.md#session-closeout--2026-10-13) records subsequent environment and documentation verification.
 - Dependency depth beyond two is intentional: independent source/query/storage/evaluation contracts → working engine → UI and measured comparisons. Each prerequisite is stable and checked before its consumer executes.
+
+## Desktop And Shared Settings Integration
+
+Model download and resume require an explicit settings action. The app bundles the runtime libraries; only pinned public weights are downloaded. Install metadata retains its existing owner. Removed/unavailable Session registrations are excluded from both ordinary search modes. Sync health uses a separate local state file so health-only writes do not invalidate the source database stamp. Existing input hashes and incremental vector reuse remain authoritative.

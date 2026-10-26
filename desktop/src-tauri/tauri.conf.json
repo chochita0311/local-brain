@@ -1,0 +1,53 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "LocalBrain",
+  "version": "0.0.1",
+  "identifier": "com.localbrain.desktop",
+  "build": {
+    "frontendDist": "../ui"
+  },
+  "app": {
+    "windows": [],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost; object-src 'none'; base-uri 'self'",
+      "capabilities": [
+        {
+          "identifier": "main-window",
+          "windows": [
+            "main"
+          ],
+          "remote": {
+            "urls": [
+              "http://127.0.0.1:*"
+            ]
+          },
+          "permissions": [
+            "core:default",
+            "dialog:allow-open"
+          ]
+        }
+      ]
+    },
+    "withGlobalTauri": true
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "app"
+    ],
+    "resources": {
+      "../backend/": "backend/"
+    },
+    "category": "DeveloperTool",
+    "shortDescription": "Private local sessions and context",
+    "macOS": {
+      "minimumSystemVersion": "14.0",
+      "signingIdentity": "-",
+      "infoPlist": "Info.plist"
+    },
+    "icon": [
+      "icons/icon.icns",
+      "icons/icon.png"
+    ]
+  }
+}

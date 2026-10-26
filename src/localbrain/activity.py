@@ -134,13 +134,13 @@ def activity_summary(
     connection: sqlite3.Connection,
     start: Optional[datetime] = None,
     end: Optional[datetime] = None,
-    source_kind: Optional[str] = None,
+    source_id: Optional[str] = None,
 ) -> dict:
     params = []
     source_filter = ""
-    if source_kind:
-        source_filter = "AND sources.kind = ?"
-        params.append(source_kind)
+    if source_id:
+        source_filter = "AND sources.id = ?"
+        params.append(source_id)
     rows = connection.execute(
         """
         SELECT activity_events.session_id, activity_events.occurred_at

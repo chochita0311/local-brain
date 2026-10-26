@@ -196,7 +196,7 @@ def _session_resource(connection: sqlite3.Connection, session_id: int) -> Option
                sessions.last_event_at, sessions.event_count,
                sessions.user_message_count, sessions.assistant_message_count,
                sessions.git_branch,
-               sources.kind AS source_kind,
+               sources.provider_kind AS source_kind,
                workspaces.display_name AS workspace_name,
                workspaces.canonical_path AS workspace_path,
                workspaces.git_root

@@ -49,7 +49,7 @@ erDiagram
 | --- | --- |
 | `entity_type` | FTS5 `UNINDEXED`; application discriminator for `session`, `document`, `atlassian_item`, or `atlassian_structure_reference`. |
 | `entity_id` | FTS5 `UNINDEXED`; text identity of the projected source object. |
-| `source_kind` | FTS5 `UNINDEXED`; normalized source provenance used by consumers. |
+| `source_kind` | FTS5 `UNINDEXED`; provider/domain classification used by consumers, not a profile identifier. Session and Document profile ownership resolves through the owning entity’s `source_id`. |
 | `title` | indexed FTS5 text; display/search title. |
 | `body` | indexed FTS5 text; eligible message/document body. |
 | `path` | indexed FTS5 text; bounded source or relative-path search field. |

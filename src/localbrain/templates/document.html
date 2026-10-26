@@ -27,7 +27,7 @@
           <div><span>크기</span><strong>{{ document.size_bytes }} bytes</strong></div>
         </section>
 
-        {% if memberships %}
+        {% if memberships and not desktop_edition %}
           <section class="membership-strip">
             <span>연결된 작업</span>
             {% for membership in memberships %}<a href="/workstreams/{{ membership.workstream_id }}"><strong>{{ membership.workstream_name }}</strong>{% if membership.thread_title %}<small>{{ membership.thread_title }}</small>{% endif %}</a>{% endfor %}

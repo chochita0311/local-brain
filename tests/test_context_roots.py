@@ -7,6 +7,7 @@ from unittest.mock import patch
 from markupsafe import Markup
 
 from localbrain.contexts import (
+    ContextOrderConflict,
     add_apple_notes_source,
     add_context_file,
     add_context_root,
@@ -17,6 +18,7 @@ from localbrain.contexts import (
     list_context_sources,
     list_context_roots,
     remove_context_root,
+    reorder_context_sources,
 )
 from localbrain.ingest.scanner import scan_context_root
 from localbrain.markdown import MarkdownProperty, MarkdownRenderResult
@@ -41,6 +43,63 @@ class ContextRootTests(unittest.TestCase):
         self.connection.close()
         self.root_parent.cleanup()
         self.db_path.unlink(missing_ok=True)
+
+    def test_source_order_persists_without_changing_documents_or_scan_state(self):
+        ids = []
+        for name in ('alpha', 'bravo', 'charlie'):
+            root = Path(self.root_parent.name) / name
+            root.mkdir()
+            (root / 'note.md').write_text('# Synthetic note')
+            ids.append(add_context_root(self.connection, str(root)))
+            scan_context_root(self.connection, ids[-1], force=True)
+        before = [tuple(row) for row in self.connection.execute('SELECT * FROM context_documents')]
+        scans = [tuple(row) for row in self.connection.execute('SELECT id, status, last_scanned_at, updated_at FROM context_roots')]
+        requested = [ids[2], ids[0], ids[1]]
+        reorder_context_sources(self.connection, requested, ids)
+        self.connection.commit()
+        self.connection.close()
+        self.connection = sqlite3.connect(str(self.db_path))
+        self.connection.row_factory = sqlite3.Row
+        self.assertEqual([row['id'] for row in list_context_sources(self.connection)], requested)
+        self.assertEqual([tuple(row) for row in self.connection.execute('SELECT * FROM context_documents')], before)
+        self.assertEqual([tuple(row) for row in self.connection.execute('SELECT id, status, last_scanned_at, updated_at FROM context_roots')], scans)
+        added = Path(self.root_parent.name) / 'aardvark'
+        added.mkdir()
+        new_id = add_context_root(self.connection, str(added))
+        self.assertEqual([row['id'] for row in list_context_sources(self.connection)], requested + [new_id])
+        remove_context_root(self.connection, ids[0])
+        self.assertEqual(add_context_root(self.connection, str(Path(self.root_parent.name) / 'alpha')), ids[0])
+        self.assertEqual([row['id'] for row in list_context_sources(self.connection)], requested + [new_id])
+
+    def test_source_order_rejects_stale_incomplete_duplicate_and_disabled_ids(self):
+        ids = [add_apple_notes_source(self.connection)]
+        file = Path(self.root_parent.name) / 'note.md'
+        file.write_text('# Example')
+        ids.append(add_context_file(self.connection, str(file)))
+        reorder_context_sources(self.connection, ids[::-1], ids)
+        for invalid in ([ids[0]], [ids[0], ids[0]], [ids[0], 99999], [True, ids[1]]):
+            with self.assertRaises(ValueError):
+                reorder_context_sources(self.connection, invalid, ids[::-1])
+        with self.assertRaises(ContextOrderConflict):
+            reorder_context_sources(self.connection, ids, ids)
+        self.assertEqual([row['id'] for row in list_context_sources(self.connection)], ids[::-1])
+        remove_context_root(self.connection, ids[0])
+        with self.assertRaises(ContextOrderConflict):
+            reorder_context_sources(self.connection, ids, ids[::-1])
+
+    def test_compatible_order_column_keeps_legacy_source_order(self):
+        from localbrain.db import _run_compatible_migrations
+        self.connection.execute('ALTER TABLE context_roots DROP COLUMN display_order')
+        first = add_apple_notes_source(self.connection)
+        folder = Path(self.root_parent.name) / 'notes'
+        folder.mkdir()
+        second = add_context_root(self.connection, str(folder))
+        before = [tuple(row) for row in self.connection.execute('SELECT id, path, label, status, updated_at FROM context_roots')]
+        _run_compatible_migrations(self.connection, include_data_migrations=False)
+        _run_compatible_migrations(self.connection, include_data_migrations=False)
+        self.assertEqual([row['id'] for row in list_context_sources(self.connection)], [second, first])
+        self.assertEqual([tuple(row) for row in self.connection.execute('SELECT id, path, label, status, updated_at FROM context_roots')], before)
+        self.assertTrue(all(row['display_order'] is None for row in list_context_sources(self.connection)))
 
     def test_roots_can_be_added_scanned_removed_and_restored(self):
         root = Path(self.root_parent.name) / "sample-project"

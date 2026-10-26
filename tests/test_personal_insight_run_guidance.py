@@ -31,8 +31,7 @@ class PersonalInsightRunGuidanceTests(unittest.TestCase):
         self.connection.row_factory = sqlite3.Row
         self.connection.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
         source_id = self.connection.execute(
-            "INSERT INTO sources(kind, provider_kind, name, root_path) "
-            "VALUES ('codex-company', 'codex', 'Codex Company', ?)",
+            "INSERT INTO sources(provider_kind, name, root_path) VALUES ('codex', 'Codex Company', ?)",
             (str(Path(self.directory.name) / "sessions"),),
         ).lastrowid
         session_id = self.connection.execute(
@@ -106,7 +105,7 @@ class PersonalInsightRunGuidanceTests(unittest.TestCase):
             run = get_insight_run(self.connection, run_id)
             self.assertEqual(run["guide_version"], CORE_VERSION)
             options = json.loads(run["settings_json"])
-            self.assertEqual(options["usage_source_key"], "codex-company")
+            self.assertEqual(options["usage_source_id"], 1)
             self.assertEqual(options["service_tier"], "standard")
             self.assertTrue(options["guide"]["playbooks"])
             self.assertEqual(len(options["guide"]["core_sha256"]), 64)
@@ -133,14 +132,14 @@ class PersonalInsightRunGuidanceTests(unittest.TestCase):
                 "title": "추가 근거가 필요한 분석",
                 "summary": "현재 발췌만으로 반복 패턴을 확인할 수 없다.",
                 "selection_reason": "이해 목표와 질문을 살펴보았다.",
-                "selection_evidence_ids": ["codex-company:event-one"],
+                "selection_evidence_ids": ["event-one"],
                 "outcome": "needs_evidence",
                 "findings": [],
                 "no_finding_reason": "한 번의 질문은 정상적인 학습일 수 있다.",
                 "additional_evidence": {
                     "kind": "independent_session",
                     "question": "다른 세션에서도 같은 상황이 있었나요?",
-                    "evidence_ids": ["codex-company:event-one"],
+                    "evidence_ids": ["event-one"],
                     "message_requests": [],
                 },
                 "limits": "현재 근거는 한 세션의 메시지 한 건이다.",
@@ -160,7 +159,7 @@ class PersonalInsightRunGuidanceTests(unittest.TestCase):
                 "owner_goal": "개념 이해",
                 "pattern_scope": "single_observation",
                 "observation": "설명을 다시 요청했다.",
-                "evidence_ids": ["codex-company:event-one"],
+                "evidence_ids": ["event-one"],
                 "counterevidence_ids": [],
                 "counterexample_status": "not_observed",
                 "counterexample_check": "정상적으로 이해한 사례가 있는지 표본을 살펴봤다.",
@@ -197,8 +196,8 @@ class PersonalInsightRunGuidanceTests(unittest.TestCase):
             manifest["sessions"][0]["message_count"] = 2
             value["additional_evidence"] = {
                 "kind": "conversation_neighbors", "question": "이미 받은 질문을 다시 보내세요: UnwantedDuplicateRequest",
-                "evidence_ids": ["codex-company:event-one"],
-                "message_requests": [{"anchor_evidence_id": "codex-company:event-one", "message_index": 1}],
+                "evidence_ids": ["event-one"],
+                "message_requests": [{"anchor_evidence_id": "event-one", "message_index": 1}],
             }
             missing_report = _render_report(run, manifest, _validate_result(value, manifest, run))
             self.assertIn("범위 내 2번째 메시지의 전문", missing_report)

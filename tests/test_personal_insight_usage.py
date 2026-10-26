@@ -41,11 +41,11 @@ class PersonalInsightUsageTests(unittest.TestCase):
         self.home = self.root / "codex-company"
         self.home.mkdir()
         self.source_id = self.connection.execute(
-            "INSERT INTO sources(kind, provider_kind, name, root_path) VALUES ('codex-company', 'codex', 'Company', ?)",
+            "INSERT INTO sources(provider_kind, name, root_path) VALUES ('codex', 'Company', ?)",
             (str(self.home / "sessions"),),
         ).lastrowid
         self.connection.execute(
-            "INSERT INTO sources(kind, provider_kind, name, root_path) VALUES ('codex', 'codex', 'Personal', ?)",
+            "INSERT INTO sources(provider_kind, name, root_path) VALUES ('codex', 'Personal', ?)",
             (str(self.root / "personal/sessions"),),
         )
         self.sequence = 0
@@ -57,7 +57,7 @@ class PersonalInsightUsageTests(unittest.TestCase):
         root.mkdir(parents=True)
         options = {"codex_home": str(self.home)}
         if not legacy:
-            options.update(service_tier="standard", usage_source_key="codex-company")
+            options.update(service_tier="standard", usage_source_id=self.source_id)
         values = {
             "id": run_id, "mode": "discover", "status": status, "runner": "codex",
             "model": model, "settings_json": json.dumps(options),
@@ -95,10 +95,15 @@ class PersonalInsightUsageTests(unittest.TestCase):
                 self.assertEqual(data["aggregate"]["estimated_cost"], Decimal("0.0078"))
                 self.assertEqual(data["aggregate"]["session_count"], 0)
                 self.assertTrue(data["history_has_values"])
-        self.assertFalse(self.dashboard(source="codex")["has_usage"])
+        self.assertFalse(self.dashboard(source="2")["has_usage"])
         self.assertEqual(row["attribution_basis"], "unassigned")
         self.assertIsNone(row["workspace_id_snapshot"])
-        self.assertEqual(self.dashboard(breakdown="project")["breakdown"]["rows"][0]["label"], "Unassigned")
+        for visible_only in (True, False):
+            project = self.dashboard(breakdown="project", visible_only=visible_only)
+            self.assertEqual(project["breakdown"]["rows"], [])
+            self.assertEqual(project["breakdown"]["compatible_total_label"], "Unavailable")
+            self.assertEqual(project["aggregate"]["total_tokens"], 1100)
+            self.assertTrue(project["history_has_values"])
         self.assertEqual(session_inventory_page(self.connection)["total"], 0)
         self.assertIsNone(session_detail(self.connection, row["session_id"]))
         for table in ("activity_events", "search_index", "workspaces", "source_files"):
@@ -123,12 +128,78 @@ class PersonalInsightUsageTests(unittest.TestCase):
         native_root = self.home / "sessions"
         native_root.mkdir()
         _scan_session_source(
-            self.connection, "codex-company", "Company", native_root,
+            self.connection, self.source_id, "Company", native_root,
             parse_codex_session, CODEX_USAGE_CONTRACT_VERSION, provider_kind="codex",
         )
         self.assertEqual(self.connection.execute("SELECT COUNT(*) FROM usage_records").fetchone()[0], 1)
         store_insight_usage(self.connection, self.run_row(), USAGE, observed_at=NOW)
         self.assertEqual(self.dashboard()["aggregate"]["estimated_cost"], Decimal("0.0156"))
+
+    def test_project_excludes_assigned_and_unassigned_analysis_without_reassigning_usage(self):
+        internal_run = self.run_row()
+        unknown_run = self.run_row()
+        assigned_run = self.run_row()
+        for run in (internal_run, unknown_run, assigned_run):
+            store_insight_usage(self.connection, run, USAGE, observed_at=NOW)
+        # Work classification admits unknown work; a frozen Project key alone
+        # must not admit Maintenance accounting into Project composition.
+        self.connection.execute(
+            "UPDATE sessions SET external_id = 'localbrain-insight:no-owner', session_class = 'work' "
+            "WHERE external_id = ?", ("localbrain-insight:" + unknown_run["id"],),
+        )
+        self.connection.execute(
+            "UPDATE usage_records SET project_key = 'path:/tmp/original', "
+            "project_name_snapshot = 'Original project', project_path_snapshot = '/tmp/original', "
+            "attribution_basis = 'workspace_path' WHERE source_record_id = ?",
+            (assigned_run["id"],),
+        )
+        before = [dict(row) for row in self.connection.execute("SELECT * FROM usage_records ORDER BY id")]
+        changes = self.connection.total_changes
+        for visible_only in (True, False):
+            for metric in ("tokens", "cost"):
+                with self.subTest(visible_only=visible_only, metric=metric):
+                    project = self.dashboard(breakdown="project", metric=metric, visible_only=visible_only)
+                    groups = {row["key"]: row for row in project["breakdown"]["rows"]}
+                    self.assertEqual(set(groups), {"unassigned"})
+                    self.assertEqual(groups["unassigned"]["label"], "프로젝트 미지정")
+                    self.assertEqual(groups["unassigned"]["session_count"], 1)
+                    self.assertEqual(project["aggregate"]["total_tokens"], 3300)
+                    self.assertEqual(project["aggregate"]["estimated_cost"], Decimal("0.0234"))
+                    for group in groups.values():
+                        self.assertEqual(group["tokens"], 1100)
+                        self.assertEqual(group["estimated_cost"], Decimal("0.0078"))
+                        self.assertEqual(group["share_label"], "100.0%")
+                    for mode in ("source", "model"):
+                        other = self.dashboard(breakdown=mode, metric=metric, visible_only=visible_only)
+                        self.assertEqual(project["aggregate"], other["aggregate"])
+                        self.assertEqual(project["history"], other["history"])
+                        self.assertEqual(len(other["breakdown"]["rows"]), 1)
+                        self.assertEqual(other["breakdown"]["rows"][0]["tokens"], 3300)
+        self.assertEqual(changes, self.connection.total_changes)
+        self.assertEqual(before, [dict(row) for row in self.connection.execute("SELECT * FROM usage_records ORDER BY id")])
+
+    def test_project_admission_uses_work_class_independent_of_owner_or_index_policy(self):
+        run = self.run_row()
+        store_insight_usage(self.connection, run, USAGE, observed_at=NOW)
+        for external_id, session_class, index_policy in (
+            ("ordinary-session", "maintenance", "metadata_only"),
+            ("localbrain-insight:missing-owner", "maintenance", "metadata_only"),
+            ("localbrain-insight:" + run["id"], "work", "metadata_only"),
+            ("ordinary-session", "work", "full"),
+            ("localbrain-insight:" + run["id"], "maintenance", "full"),
+        ):
+            with self.subTest(external_id=external_id, session_class=session_class, index_policy=index_policy):
+                self.connection.execute(
+                    "UPDATE sessions SET external_id = ?, session_class = ?, index_policy = ?",
+                    (external_id, session_class, index_policy),
+                )
+                for visible_only in (True, False):
+                    groups = self.dashboard(breakdown="project", visible_only=visible_only)["breakdown"]["rows"]
+                    if session_class == "work":
+                        self.assertEqual(len(groups), 1)
+                        self.assertEqual((groups[0]["key"], groups[0]["label"]), ("unassigned", "프로젝트 미지정"))
+                    else:
+                        self.assertEqual(groups, [])
 
     def test_detail_reads_stored_estimates_and_distinguishes_unavailable_states(self):
         cases = (
@@ -214,12 +285,12 @@ class PersonalInsightUsageTests(unittest.TestCase):
         (self.home / "sessions").symlink_to(retained, target_is_directory=True)
         self.assertEqual(insight_usage_source(self.connection, {"codex_home": str(self.home)})["id"], self.source_id)
         self.connection.execute(
-            "INSERT INTO sources(kind, provider_kind, name, root_path) VALUES ('duplicate', 'codex', 'Duplicate', ?)",
+            "INSERT INTO sources(provider_kind, name, root_path) VALUES ('codex', 'Duplicate', ?)",
             (str(self.home / "sessions"),),
         )
         with self.assertRaises(ValueError):
             insight_usage_source(self.connection, {"codex_home": str(self.home)})
-        self.assertEqual(insight_usage_source(self.connection, {"codex_home": str(self.home), "usage_source_key": "codex-company"})["id"], self.source_id)
+        self.assertEqual(insight_usage_source(self.connection, {"codex_home": str(self.home), "usage_source_id": self.source_id})["id"], self.source_id)
 
     def test_startup_interrupts_and_recovers_emitted_usage_without_model_execution(self):
         run = self.run_row(status="running")

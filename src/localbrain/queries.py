@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from .activity import parse_timestamp
+from .path_display import home_relative_path
 
 SESSION_PAGE_SIZE = 15
 
@@ -45,14 +46,14 @@ def compact_pagination_items(
 
 
 def dashboard_stats(
-    connection: sqlite3.Connection, source_kind: Optional[str] = None
+    connection: sqlite3.Connection, source_id: Optional[str] = None
 ) -> dict:
     source_condition = (
-        " AND sessions.source_id = (SELECT id FROM sources WHERE kind = ?)"
-        if source_kind
+        " AND sessions.source_id = ?"
+        if source_id
         else ""
     )
-    source_params = (source_kind,) if source_kind else ()
+    source_params = (source_id,) if source_id else ()
     result = {
         "sessions": connection.execute(
             "SELECT COUNT(*) AS count FROM sessions "
@@ -82,7 +83,7 @@ def dashboard_stats(
             "SELECT COUNT(*) AS count FROM workspaces"
         ).fetchone()["count"],
     }
-    if source_kind:
+    if source_id:
         result["missing_workspaces"] = connection.execute(
             """
             SELECT COUNT(*) AS count
@@ -169,7 +170,7 @@ def daily_activity(connection: sqlite3.Connection, days: int = 14):
 def source_activity(connection: sqlite3.Connection):
     return connection.execute(
         """
-        SELECT sources.kind, sources.provider_kind, sources.name,
+        SELECT sources.id, sources.provider_kind, sources.name,
                COUNT(DISTINCT sessions.id) AS session_count,
                COUNT(activity_events.id) AS event_count,
                MAX(sessions.last_event_at) AS last_activity_at
@@ -224,7 +225,7 @@ def top_workspace_activity(connection: sqlite3.Connection, limit: int = 8):
 
 def recent_sessions(
     connection: sqlite3.Connection,
-    source_kind: Optional[str] = None,
+    source_id: Optional[str] = None,
     workspace_id: Optional[int] = None,
     limit: int = 100,
 ) -> List[sqlite3.Row]:
@@ -233,9 +234,9 @@ def recent_sessions(
         "sessions.session_role = 'primary'",
     ]
     params = []
-    if source_kind:
-        conditions.append("sources.kind = ?")
-        params.append(source_kind)
+    if source_id:
+        conditions.append("sources.id = ?")
+        params.append(source_id)
     if workspace_id:
         conditions.append("sessions.workspace_id = ?")
         params.append(workspace_id)
@@ -245,7 +246,7 @@ def recent_sessions(
         """
         SELECT
             sessions.*,
-            sources.kind AS source_kind,
+
             sources.provider_kind,
             sources.name AS source_name,
             workspaces.display_name AS workspace_name,
@@ -265,7 +266,7 @@ def recent_sessions(
 
 def session_inventory_page(
     connection: sqlite3.Connection,
-    source_kind: Optional[str] = None,
+    source_id: Optional[str] = None,
     workspace_id: Optional[int] = None,
     page: int = 1,
 ) -> dict:
@@ -274,9 +275,9 @@ def session_inventory_page(
         "sessions.session_role = 'primary'",
     ]
     params = []
-    if source_kind:
-        conditions.append("sources.kind = ?")
-        params.append(source_kind)
+    if source_id:
+        conditions.append("sources.id = ?")
+        params.append(source_id)
     if workspace_id is not None:
         conditions.append("sessions.workspace_id = ?")
         params.append(workspace_id)
@@ -297,7 +298,7 @@ def session_inventory_page(
         """
         SELECT
             sessions.*,
-            sources.kind AS source_kind,
+
             sources.provider_kind,
             sources.name AS source_name,
             workspaces.display_name AS workspace_name,
@@ -323,7 +324,7 @@ def session_inventory_page(
         placeholders = ", ".join("?" for _ in parent_ids)
         child_rows = connection.execute(
             """
-            SELECT children.*, sources.kind AS source_kind,
+            SELECT children.*,
                    sources.provider_kind,
                    sources.name AS source_name,
                    workspaces.display_name AS workspace_name,
@@ -365,7 +366,7 @@ def session_inventory_page(
 
 def session_chart_inventory(
     connection: sqlite3.Connection,
-    source_kind: Optional[str] = None,
+    source_id: Optional[str] = None,
     workspace_id: Optional[int] = None,
 ) -> list:
     """Read the complete inventory's metadata without pagination or inference."""
@@ -374,17 +375,17 @@ def session_chart_inventory(
         "sessions.session_role = 'primary'",
     ]
     params = []
-    if source_kind:
-        conditions.append("sources.kind = ?")
-        params.append(source_kind)
+    if source_id:
+        conditions.append("sources.id = ?")
+        params.append(source_id)
     if workspace_id is not None:
         conditions.append("sessions.workspace_id = ?")
         params.append(workspace_id)
     rows = connection.execute(
         """
-        SELECT sessions.id, sessions.title, sessions.started_at,
+        SELECT sessions.id, sessions.source_id, sessions.title, sessions.started_at,
                sessions.last_event_at, sessions.cwd_raw, sessions.git_branch,
-               sources.kind AS source_kind, sources.provider_kind,
+                sources.provider_kind,
                sources.name AS source_name
         FROM sessions JOIN sources ON sources.id = sessions.source_id
         WHERE {where}
@@ -400,16 +401,12 @@ def session_chart_inventory(
         if cwd == "~" or (cwd and cwd.startswith("~/")):
             cwd = home + cwd[1:]
         folder = posixpath.normpath(cwd) if cwd else ""
-        label = (
-            "~" + folder[len(home):]
-            if folder == home or folder.startswith(home + "/") else folder
-        )
         item["project_key"] = folder
         item["project_name"] = (
             "~" if folder == home
             else posixpath.basename(folder) or folder or "실행 폴더 없음"
         )
-        item["project_path"] = label
+        item["project_path"] = home_relative_path(folder)
         times = [
             parsed for parsed in (
                 parse_timestamp(row["last_event_at"]),
@@ -524,13 +521,13 @@ def context_documents(
 
 
 def project_activity(
-    connection: sqlite3.Connection, source_kind: Optional[str] = None
+    connection: sqlite3.Connection, source_id: Optional[str] = None
 ):
-    source_condition = "AND sources.kind = ?" if source_kind else ""
-    params = (source_kind,) if source_kind else ()
+    source_condition = "AND sources.id = ?" if source_id else ""
+    params = (source_id,) if source_id else ()
     workspace_condition = (
         "session_activity.workspace_id IS NOT NULL"
-        if source_kind
+        if source_id
         else "session_activity.workspace_id IS NOT NULL OR workspaces.git_root IS NOT NULL"
     )
     return connection.execute(
@@ -577,17 +574,16 @@ def project_activity(
 def session_source_scopes(connection: sqlite3.Connection):
     return connection.execute(
         """
-        SELECT sources.id, sources.kind AS source_key,
-               sources.provider_kind, sources.name AS display_label,
+        SELECT sources.id,
+               sources.profile_color AS color, sources.provider_kind, sources.name AS display_label,
                COUNT(CASE WHEN sessions.session_class = 'work'
                                 AND sessions.session_role = 'primary'
                           THEN 1 END) AS eligible_session_count
         FROM sources
         LEFT JOIN sessions ON sessions.source_id = sources.id
         WHERE sources.provider_kind != 'context'
-          AND sources.kind != 'context'
         GROUP BY sources.id
-        ORDER BY sources.id
+        ORDER BY sources.profile_position, sources.id
         """
     ).fetchall()
 
@@ -595,7 +591,7 @@ def session_source_scopes(connection: sqlite3.Connection):
 def source_inventory(connection: sqlite3.Connection):
     return connection.execute(
         """
-        SELECT sources.id, sources.kind, sources.provider_kind, sources.name,
+        SELECT sources.id, sources.provider_kind, sources.name,
                sources.root_path,
                sources.last_scanned_at, sources.last_scan_success_at,
                sources.last_scan_status, sources.last_scan_error,
@@ -615,7 +611,7 @@ def source_inventory(connection: sqlite3.Connection):
         LEFT JOIN context_documents ON context_documents.source_id = sources.id
         LEFT JOIN context_roots ON context_roots.id = context_documents.context_root_id
         GROUP BY sources.id
-        ORDER BY sources.name
+        ORDER BY sources.profile_position, sources.id
         """
     ).fetchall()
 
@@ -644,7 +640,7 @@ def session_id_prefix(connection: sqlite3.Connection, external_id: str) -> str:
 def session_detail(connection: sqlite3.Connection, session_id: int):
     return connection.execute(
         """
-        SELECT sessions.*, sources.kind AS source_kind,
+        SELECT sessions.*,
                sources.provider_kind, sources.name AS source_name,
                workspaces.display_name AS workspace_name,
                workspaces.canonical_path AS workspace_path,
@@ -698,7 +694,7 @@ def session_conversation_events(connection: sqlite3.Connection, session_id: int)
 def session_parent(connection: sqlite3.Connection, session_id: int):
     return connection.execute(
         """
-        SELECT parents.*, sources.kind AS source_kind,
+        SELECT parents.*,
                sources.provider_kind,
                sources.name AS source_name,
                workspaces.display_name AS workspace_name,
@@ -722,7 +718,7 @@ def session_parent(connection: sqlite3.Connection, session_id: int):
 def session_subsessions(connection: sqlite3.Connection, session_id: int):
     return connection.execute(
         """
-        SELECT children.*, sources.kind AS source_kind,
+        SELECT children.*,
                sources.provider_kind,
                sources.name AS source_name,
                workspaces.display_name AS workspace_name,
@@ -790,6 +786,8 @@ def search(
             for row in connection.execute(
                 """
                 SELECT entity_type, entity_id, source_kind, title, path,
+                       CASE WHEN entity_type='session' THEN (SELECT source_id FROM sessions WHERE id=entity_id)
+                            WHEN entity_type='document' THEN (SELECT source_id FROM context_documents WHERE id=entity_id) END AS source_id,
                        snippet(search_index, 4, '[[', ']]', ' ... ', 26) AS excerpt,
                        bm25(search_index) AS score
                 FROM search_index

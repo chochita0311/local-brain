@@ -10,6 +10,44 @@ Priority meaning:
 
 ## Current Focus
 
+- [ ] **Independent AI search indexing control (P2, deferred by owner 2026-10-24):**
+  separate automatic index refresh from AI search availability; preserve complete
+  index generations and reject deleted/changed evidence while paused. Define
+  resume/manual refresh, queued changes and failure recovery before implementation.
+  Source schedules proceed in [Run 190](../run/run-20261024-190-sync-settings-and-context-schedule.md);
+  existing activated search refresh remains unchanged. Do not expose a nonfunctional
+  settings control or download a model as part of this TODO.
+
+The current implementation is the approved standalone test app and common local
+settings under [PRD-0021](../prd/prd-0021-macos-standalone-test-app-and-local-settings.md).
+Local implementation and available browser/bundled-runtime verification are
+complete. Native direct interactions and the teammate download/run receipt remain
+open; [the integration report](../evaluation/eval-0139-functional-standalone-test-app.md)
+owns exact results, including the historical mixed-workspace inventory failures.
+
+The approved standalone Mac test app and local settings boundary is
+[PRD-0021](../prd/prd-0021-macos-standalone-test-app-and-local-settings.md).
+The owner authorized implementation and tests/browser/app verification; its
+13-Feature/21-commit estimate is a plan, not a count of created commits. Existing
+completed work and the stopped workflow track keep their current status.
+The owner's `2026-10-18` installed-edition scope retains Sessions Dashboard and
+excludes the top-level Dashboard/learning, Workstreams, Auto Work, Atlassian,
+Insights and Session workflow. The [decision status](../prd/prd-0021-macos-standalone-test-app-and-local-settings.md#decision-status--2026-10-18)
+records selected Tauri/Apple Silicon, generalized agent/project/document paths,
+legacy keyword-search reuse and accepted settings/runtime/lifecycle directions.
+Existing authorized communication and local storage remain; additional network
+controls and app encryption are excluded. The test-stage delivery decision uses a `.app`
+inside a ZIP for quick testing, with ad-hoc signing and app-specific first-launch
+guidance. Developer ID, notarization and DMG production are deferred; contracts
+are implemented and actual teammate execution remains pending. The later public-app goal requires normal macOS security without company prerequisites; paid signing/notarization and recipient acceptance remain release follow-up.
+The owner also selected periodic Session synchronization every 10 minutes in
+both local browser use and the packaged app, with the existing manual action.
+The common backend owns scheduling while running, independently of browser
+tabs, and local settings persist across restarts. The PRD's
+[sync boundary](../prd/prd-0021-macos-standalone-test-app-and-local-settings.md#periodic-session-synchronization)
+owns the implemented lifecycle, settings and view-preservation details; it is local
+Session collection and does not restore the excluded Auto Work product.
+
 The separately approved [Observed Session Chart](../prd/prd-0019-observed-session-chart.md)
 increment is tracked by [FEAT-0114](../feature/feat-0114-observed-session-chart.md).
 The owner treats the delivered Chart as the phase-one wrap-up point on 2026-10-12
@@ -314,6 +352,21 @@ single linked checkbox in the detailed backlog below.
 
 ## P2 - Quality And Distribution
 
+The approved first test-app increment is owned by
+[PRD-0021](../prd/prd-0021-macos-standalone-test-app-and-local-settings.md).
+Implementation is tracked by FEAT-0128–0140 and RUN-166–204. External receipt of
+and execution from the shared ZIP remain distinct from local verification.
+
+- [x] Lock and implement the shared settings, path/source, recovery and product
+  admission contracts. Additional network controls and app/backup encryption
+  remain outside the approved scope.
+- [x] Add common completion-based Session synchronization to web and app, default
+  10 minutes, with persisted 10/20/30/60/off settings, shared writer ownership,
+  retained manual action and refresh that preserves the reading/view state.
+  A separate Context schedule defaults to 30 minutes and uses the same choices;
+  each domain owns its completion clock. Neither schedule adds Git/external sync
+  or agent calls. AI indexing independent control remains deferred.
+
 - [ ] Close FEAT-0019's direct rendered evidence gap at `1440`, `700`, and `320`, including selector geometry, same-row containment, and the Session-only source summary.
 - [ ] Capture the Sessions `동기화` working, success, failure, focus, and scope-preservation states from a browser after a warm-cache revisit; versioned assets, local HTTP synchronization, and human PRD-0002 acceptance are complete, so this is non-blocking regression evidence.
 - [ ] Decide whether packaged development reload is needed. The installed `localbrain serve` command, loopback host/port options and source-independent wheel setup are delivered under the [installation contract](../../policies/project/installation-and-storage.md); source reload uses the documented explicit Uvicorn command.
@@ -323,19 +376,27 @@ single linked checkbox in the detailed backlog below.
 - [ ] Audit keyboard navigation, focus, contrast, empty states, long text, and narrow viewports.
 - [ ] Add a default `<meta name="description">` to the shared server-rendered shell and recheck Lighthouse SEO.
 - [ ] Add structured migrations and release compatibility checks before distributing builds.
-- [ ] Decide between Tauri, Electron, or a signed launcher after the localhost MVP stabilizes.
-- [ ] Package, sign, notarize, and document macOS permissions without broad filesystem entitlements.
-- [ ] Add controlled startup and reliable shutdown for an app-icon launch experience.
+- [x] Build and locally exercise the selected Tauri/Apple Silicon app with its
+  bundled Python runtime. Recorded local environment evidence does not establish
+  compatibility across all supported OS/memory configurations.
+- [ ] Prepare a ZIP containing the standalone test `.app`, ad-hoc signing,
+  first-launch guidance, local packaged-app evidence and a teammate's execution
+  of the same ZIP downloaded from internal Drive. Share the program only and
+  keep personal data on each Mac. Developer ID,
+  notarization and DMG production are deferred beyond this testing increment.
+- [x] Add controlled startup, single-instance reactivation and owned backend shutdown.
+- [ ] Revisit data/settings transfer after the initial installable app. The owner
+  deferred it on `2026-10-16`; [PRD-0021's follow-up boundary](../prd/prd-0021-macos-standalone-test-app-and-local-settings.md#deferred-data-and-settings-transfer)
+  owns the distinction from same-Mac backup/recovery and settings-format compatibility.
 
 ## Open Decisions
 
-- <a id="project-root-and-path-display-settings"></a>[ ] Review general settings
-  and Project base-path/display policy together. The base folder can currently
-  appear as `.` in By Project because its stored display name is relative to
-  that base. Decide whether the base path should be configurable and how
-  home/base folders and relative/absolute path labels should appear, accounting
-  for frozen historical Usage attribution. Tracking only at the owner's request
-  on `2026-10-16`; implementation and settings/display decisions are deferred.
+- <a id="project-root-and-path-display-settings"></a>[x] The owner removed Project
+  display settings and registered display roots on 2026-10-19. Paths use one fixed
+  current-home abbreviation (`~` / `~/…`); outside-home paths retain their form.
+  Existing root aliases/display preferences are inactive and preserved in the local
+  file. Source registration, original paths and frozen Usage attribution remain.
+  [C07](../feature/feat-0134-general-and-project-settings.md) owns the correction and evidence.
 - [ ] Whether full source text stays in SQLite, is stored only as searchable excerpts, or is read from the original source on demand.
 - [ ] Which external metadata may be persisted under applicable policy and which must remain ephemeral.
 - [ ] Whether AI summaries are local-only, use an approved model path, or require per-Run confirmation.

@@ -1,6 +1,7 @@
 import sqlite3
 from typing import Dict, Iterable, List, Optional
 
+from .path_display import home_relative_path
 from .workstreams import utc_now
 
 
@@ -79,6 +80,7 @@ def is_session_pinned(connection: sqlite3.Connection, session_id: int) -> bool:
 _PINNED_SESSION_SELECT = """
         SELECT
             sessions.id,
+            sessions.source_id,
             sessions.title,
             sessions.last_event_at,
             sessions.started_at,
@@ -86,7 +88,6 @@ _PINNED_SESSION_SELECT = """
             sessions.source_path,
             sessions.git_branch,
             sessions.workspace_id,
-            sources.kind AS source_kind,
             sources.provider_kind,
             sources.name AS source_name,
             workspaces.display_name AS workspace_name,
@@ -164,7 +165,10 @@ def group_pinned_sessions(
         groups.values(),
         key=lambda group: (
             0 if group["is_git"] else 1,
-            str(group["workspace_name"]).casefold(),
+            # Incremental imports can leave old display-name formats cached.
+            # Sort by the same current path label that the heading renders.
+            (home_relative_path(group["workspace_path"])
+             if group["workspace_path"] else str(group["workspace_name"])).casefold(),
             str(group["identity"]),
         ),
     )

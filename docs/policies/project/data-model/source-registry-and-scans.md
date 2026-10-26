@@ -14,7 +14,6 @@ Solid lines are physical foreign keys; dotted lines are scanner-managed correlat
 erDiagram
     SOURCES {
         integer id PK
-        string kind UK
         string provider_kind
         string root_path
         string last_scan_status
@@ -61,25 +60,34 @@ erDiagram
 
 ### `sources`
 
-- Purpose and authority: one application-managed registry row per stable source
-  key. The legacy physical `kind` name owns that stable key, while
-  `provider_kind` owns parser and normalization behavior. Configured Claude,
-  Codex, and Local Context source roots are authoritative; `ingest/scanner.py`
-  upserts their current registry representation with both dimensions.
+- Purpose and authority: one registry row per local source. Session profiles use
+  the existing numeric `id` in version-2 `session-sources.toml`, public settings
+  APIs and new filter links. `provider_kind` selects parsing and normalization;
+  `name`, `profile_color` and `profile_position` project the configured label,
+  palette color and TOML array order. Local Context remains separately registered.
+  `id` is the only profile identity. The old `kind` column is removed; no alias
+  table or replacement string identifier is created.
 - Lifecycle: source-derived registry. It is reproducible from configuration and registered roots, but its IDs are physical parents, so ordinary scans update rows in place.
+- Session registration enablement belongs to `session-sources.toml`, including
+  explicit `enabled = false` after removal. Disabled entries retain these parent
+  rows and descendants for browsing; collection and ordinary search exclude them.
+  Confirmed same-source reconnection updates paths while preserving these IDs.
+  [Desktop settings](../desktop-app-and-settings.md#source-lifecycle-contract)
+  owns the file/DB coordination and recovery journal.
 - Scan health: each registered Session source is dispatched in its own database
   transaction. A successful readable-root attempt may reconcile disappeared
   files only inside that Source ID. An unavailable root, invalid configuration,
   or unexpected source failure records bounded health separately and retains the
   source's existing descendants.
-- Producers: `ingest/scanner.py`; `db.py` reads kinds when migration changes must stale Session inputs.
+- Producers: `ingest/scanner.py`; `db.py` reads provider kinds when migration changes must stale Session inputs.
 - Consumers: `queries.py`, `activity.py`, `retrieval.py`, `usage_queries.py`, `workstreams.py`, `runner.py`, `main.py`, and CLI scan reporting.
-- Relations and deletion: physical parent of `source_files`, `sessions`, `usage_records`, and `context_documents`, all `ON DELETE CASCADE`. Deleting a source would remove normalized descendants and can invalidate application-enforced links or search rows, so no cleanup is implied.
+- Relations and deletion: physical parent of `source_files`, `sessions`, `usage_records`, and `context_documents`, all `ON DELETE CASCADE`, and retained `skill_observations` with `NO ACTION`. The latter prevents deleting a source with historical skill evidence. Deleting another source would remove normalized descendants and can invalidate application-enforced links or search rows, so no cleanup is implied.
 - Recovery: recreate registry rows through approved scans, then rescan source files. Preserve the database for user-curated links and review state that may refer to descendant IDs.
 - DDL ownership: complete fresh definition in `schema.sql`; `db.py` performs a
-  verified backup-backed compatible rebuild when `provider_kind` is absent and
-  removes the legacy unused `enabled` column during compatible startup. The
-  rebuild retains Source IDs and all child foreign keys. No explicit named
+  verified backup-backed compatible rebuild to remove `kind` and the retired
+  `enabled` column, supplying `provider_kind` for older schemas. The transaction
+  converts skill FKs, chart scopes, retained workflow boundaries and analysis
+  usage references while retaining Source IDs and child relationships. No explicit named
   indexes exist. Compatible startup adds absent scan-health columns without
   rebuilding rows; fresh DDL additionally enforces the bounded status/error
   checks.
@@ -87,19 +95,20 @@ erDiagram
 | Column | Contract |
 | --- | --- |
 | `id` | `INTEGER PRIMARY KEY`; stable local registry identity and physical parent key. |
-| `kind` | `TEXT NOT NULL UNIQUE`; stable local source key. Its legacy physical name does not make it the provider adapter identity. |
 | `provider_kind` | `TEXT NOT NULL DEFAULT 'unknown'`; bounded non-empty parser and normalization adapter identity. Application producers always supply it explicitly; `unknown` is reserved for direct legacy-style compatibility inserts. |
 | `name` | `TEXT NOT NULL`; user-facing source label. |
 | `root_path` | `TEXT NOT NULL`; configured local scan root or source locator; runtime values remain outside tracked docs. |
+| `profile_color` | nullable `TEXT`; green, blue, orange, yellow, red or gray. Session TOML owns the choice; null uses the provider default. |
+| `profile_position` | `INTEGER NOT NULL DEFAULT 2147483647`, nonnegative; projection of TOML array position. Omitted retained profiles sort last, then by ID. |
 | `last_scanned_at` | nullable `TEXT`; time recorded for the latest source-level scan attempt, whether it succeeded or not. |
 | `last_scan_success_at` | nullable `TEXT`; latest source-level attempt that completed or found a readable empty root. Errors do not advance it. |
 | `last_scan_status` | nullable `TEXT`; latest outcome: `completed`, `empty`, `unavailable`, `configuration_error`, or `scan_failed`. Null means the source has not yet been synchronized under this contract. |
 | `last_scan_error` | nullable `TEXT`; application-bounded failure consequence for the latest unsuccessful attempt, never a raw exception or source content. Successful attempts clear it. |
 | `created_at` | `TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; registry creation time. |
 
-Constraints: uniqueness of `kind`; fresh DDL bounds `last_scan_status` to the
-approved vocabulary and `last_scan_error` to at most 500 characters. Explicit
-indexes: none; SQLite owns the uniqueness autoindex.
+Constraints: `id` is the sole primary key; fresh DDL bounds `last_scan_status`
+to the approved vocabulary and `last_scan_error` to at most 500 characters.
+Explicit indexes: none.
 
 ### `source_files`
 

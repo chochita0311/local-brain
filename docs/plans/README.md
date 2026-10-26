@@ -16,6 +16,50 @@ Spec, Run, and Evaluation document owns its own detailed status and history.
 
 ## Open Planning Boundaries
 
+- [PRD-0021: macOS Standalone Test App And Local Settings](prd/prd-0021-macos-standalone-test-app-and-local-settings.md)
+  has completed local implementation and is `blocked` for final native/recipient
+  acceptance of the standalone Mac test app centered on Session browsing/detail,
+  Sessions Dashboard and Local Context, with private local settings, first-run
+  setup and model-optional search. It owns the 13-Feature/21-commit planning estimate,
+  selected Tauri/Apple Silicon direction, source contracts and release boundary.
+  The `2026-10-18` decisions retain Sessions Dashboard and exclude the top-level
+  Dashboard/learning, Workstreams, Auto Work, Atlassian, Insights and Session
+  workflow from the installed edition. Agent homes/session roots, Git projects
+  and document locations are generalized separately. Existing authorized network
+  and agent communication stays; additional network controls and app encryption
+  are outside this increment. Its [decision status](prd/prd-0021-macos-standalone-test-app-and-local-settings.md#decision-status--2026-10-18)
+  records accepted settings/runtime/lifecycle recommendations and reuse of the
+  deprecated keyword search. The later owner correction removes path-display
+  preferences and registered display roots: current-home abbreviation is fixed
+  across the app, with source registration and historical attribution preserved.
+  [C07](feature/feat-0134-general-and-project-settings.md) tracks that correction. The test-stage delivery decision targets quick testing
+  through one `.app` in a ZIP, with ad-hoc signing and app-specific first-launch
+  guidance. Developer ID, notarization and DMG production are deferred; contract
+  details are implemented; transferred-app execution evidence remains pending. The selected
+  delivery flow is local packaged-app validation, internal Drive ZIP sharing,
+  then a teammate's download and execution on a supported Mac; personal data
+  stays on each user's machine. The later 2026-10-20 direction is a company-independent public Mac app under normal macOS security; signing/notarization and recipient evidence remain release follow-up.
+  The owner also selected Session synchronization every 10 minutes in both local
+  browser use and the packaged app, retaining the existing manual sync action.
+  The shared backend owns scheduling while running; local settings persist
+  across restarts, and closing browser tabs does not stop a running server.
+  The implemented
+  lifecycle, settings and non-disruptive refresh are owned by its
+  [periodic sync boundary](prd/prd-0021-macos-standalone-test-app-and-local-settings.md#periodic-session-synchronization);
+  C13 adds two estimated commits, for 13 candidates and 21 commits overall.
+  The owner subsequently authorized implementation and related tests plus browser/app
+  execution. FEAT-0128–0140 and RUN-166–178 track the delivered code, local build
+  and evidence limits. Keyword-default/explicit-AI search is now the common entry.
+  Current source and documentation closeout after RUN-204 is recorded in the
+  [2026-10-26 verification](evaluation/eval-0139-functional-standalone-test-app.md#session-closeout--2026-10-26).
+  The historical 2026-10-19 [integration receipt](evaluation/eval-0139-functional-standalone-test-app.md)
+  records 1,174/1,178 passing tests (four pre-existing learning inventory failures),
+  browser checks, relocated ZIP/native execution and real model download/search.
+  The [startup repair](fix/fix-0131-desktop-startup-cookie.md) supersedes the original
+  ZIP after reproducing and fixing its first-page authentication/encoding failure;
+  actual WKWebView landing/API checks now pass. Native chooser/shortcut interactions and a teammate's actual Mac execution
+  remain open. Internal Drive upload is external follow-up; they are not implied by the developer Mac checks. The stopped
+  workflow track keeps its existing boundary.
 - [PRD-0020: Local Natural Language Search](prd/prd-0020-local-natural-language-search.md)
   is `approved` for Korean natural-language retrieval over all eligible Sessions
   and registered Local Context documents, with hidden document molecularization

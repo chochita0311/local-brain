@@ -46,7 +46,7 @@ def legacy_source_provider_schema() -> str:
 """
     if current not in schema:
         raise AssertionError("Source provider schema fixture no longer matches DDL")
-    return schema.replace(current, "", 1)
+    return schema.replace(current, "    kind TEXT NOT NULL UNIQUE,\n", 1)
 
 
 def legacy_source_provider_connection(path: str = ":memory:") -> sqlite3.Connection:
@@ -210,7 +210,7 @@ def insert_usage_record(
 ) -> None:
     connection.executescript(
         """
-        INSERT INTO sources(kind, name, root_path)
+        INSERT INTO sources(provider_kind, name, root_path)
             VALUES ('codex', 'Codex', '/synthetic/codex');
         INSERT INTO sessions(source_id, external_id, source_path, title)
             VALUES (1, 'session-1', '/synthetic/session.jsonl', 'Synthetic');
@@ -275,8 +275,7 @@ class MaintenanceSessionContractMigrationTests(unittest.TestCase):
     def test_fresh_contract_enforces_values_relation_cardinality_and_shape(self):
         connection = schema_connection()
         connection.execute(
-            "INSERT INTO sources(kind, name, root_path) "
-            "VALUES ('claude', 'Claude', '/synthetic/claude')"
+            "INSERT INTO sources(provider_kind, name, root_path) VALUES ('claude', 'Claude', '/synthetic/claude')"
         )
         connection.execute(
             "INSERT INTO maintenance_runs(id, status) VALUES ('lb-111111111111', 'prepared')"
@@ -406,8 +405,7 @@ class MaintenanceWorkstreamFKMigrationTests(unittest.TestCase):
             "VALUES ('lb-222222222223', NULL, 'prepared')"
         )
         connection.execute(
-            "INSERT INTO sources(kind, name, root_path) "
-            "VALUES ('claude', 'Claude', '/synthetic')"
+            "INSERT INTO sources(provider_kind, name, root_path) VALUES ('claude', 'Claude', '/synthetic')"
         )
         connection.execute(
             """
@@ -697,8 +695,7 @@ class MaintenanceSessionCompatibleMigrationTests(unittest.TestCase):
             with self.subTest(name=name):
                 connection = legacy_session_connection()
                 connection.execute(
-                    "INSERT INTO sources(kind, name, root_path) "
-                    "VALUES ('claude', 'Claude', '/synthetic/claude')"
+                    "INSERT INTO sources(provider_kind, name, root_path) VALUES ('claude', 'Claude', '/synthetic/claude')"
                 )
                 connection.execute(statement)
                 before_sql = connection.execute(
@@ -918,7 +915,6 @@ class SchemaIndexMigrationTests(unittest.TestCase):
 class SourceEnabledColumnMigrationTests(unittest.TestCase):
     retained_columns = (
         "id",
-        "kind",
         "provider_kind",
         "name",
         "root_path",
@@ -937,7 +933,7 @@ class SourceEnabledColumnMigrationTests(unittest.TestCase):
         connection.executescript(
             """
             INSERT INTO sources(
-                id, kind, name, root_path, last_scanned_at, created_at, enabled
+                id, provider_kind, name, root_path, last_scanned_at, created_at, enabled
             ) VALUES
                 (7, 'claude', 'Claude', '/synthetic/claude',
                  '2026-08-02T00:00:00+00:00', '2026-08-01 00:00:00', 0),
@@ -963,7 +959,7 @@ class SourceEnabledColumnMigrationTests(unittest.TestCase):
         columns = {
             row["name"] for row in connection.execute("PRAGMA table_info(sources)")
         }
-        self.assertEqual(columns, set(self.retained_columns))
+        self.assertEqual(columns, set(self.retained_columns) | {"profile_color", "profile_position"})
         connection.close()
 
     def test_legacy_field_is_removed_without_changing_sources_or_children(self):
@@ -1024,7 +1020,7 @@ class SourceEnabledColumnMigrationTests(unittest.TestCase):
             for index in connection.execute("PRAGMA index_list(sources)")
             if index["unique"]
         ]
-        self.assertIn(["kind"], unique_indexes)
+        self.assertNotIn(["kind"], unique_indexes)
 
         _run_compatible_migrations(connection, include_data_migrations=False)
         self.assertEqual(
@@ -1086,9 +1082,9 @@ class SourceProviderIdentityMigrationTests(unittest.TestCase):
         self.assertTrue(_source_provider_identity_contract_exists(connection))
         self.assertEqual(
             [tuple(row) for row in connection.execute(
-                "SELECT id, kind, provider_kind FROM sources ORDER BY id"
+                "SELECT id, provider_kind FROM sources ORDER BY id"
             )],
-            [(7, "claude", "claude"), (9, "codex", "codex")],
+            [(7, "claude"), (9, "codex")],
         )
         self.assertEqual(
             [tuple(row) for row in connection.execute("SELECT * FROM source_files ORDER BY id")],
@@ -1107,9 +1103,9 @@ class SourceProviderIdentityMigrationTests(unittest.TestCase):
         _run_compatible_migrations(connection, include_data_migrations=False)
         self.assertEqual(
             [tuple(row) for row in connection.execute(
-                "SELECT id, kind, provider_kind FROM sources ORDER BY id"
+                "SELECT id, provider_kind FROM sources ORDER BY id"
             )],
-            [(7, "claude", "claude"), (9, "codex", "codex")],
+            [(7, "claude"), (9, "codex")],
         )
 
     def test_file_upgrade_creates_non_overwriting_valid_backup(self):
@@ -1151,9 +1147,9 @@ class SourceProviderIdentityMigrationTests(unittest.TestCase):
             self.assertTrue(_source_provider_identity_contract_exists(upgraded))
             self.assertEqual(
                 [tuple(row) for row in upgraded.execute(
-                    "SELECT id, kind, provider_kind FROM sources ORDER BY id"
+                    "SELECT id, provider_kind FROM sources ORDER BY id"
                 )],
-                [(7, "claude", "claude"), (9, "codex", "codex")],
+                [(7, "claude"), (9, "codex")],
             )
             self.assertEqual(upgraded.execute("PRAGMA foreign_key_check").fetchall(), [])
             upgraded.close()
@@ -1172,31 +1168,18 @@ class SourceScanHealthMigrationTests(unittest.TestCase):
         )
         connection.execute(
             """
-            INSERT INTO sources(
-                kind, provider_kind, name, root_path,
-                last_scan_status, last_scan_error
-            ) VALUES ('codex-company', 'codex', 'Codex Company',
-                      '/synthetic/company', 'unavailable', ?)
-            """,
+            INSERT INTO sources(provider_kind, name, root_path, last_scan_status, last_scan_error) VALUES ('codex', 'Codex Company', '/synthetic/company', 'unavailable', ?)""",
             ("x" * 500,),
         )
         with self.assertRaises(sqlite3.IntegrityError):
             connection.execute(
                 """
-                INSERT INTO sources(
-                    kind, provider_kind, name, root_path, last_scan_status
-                ) VALUES ('invalid-status', 'codex', 'Invalid',
-                          '/synthetic/invalid', 'unknown')
-                """
+                INSERT INTO sources(provider_kind, name, root_path, last_scan_status) VALUES ('codex', 'Invalid', '/synthetic/invalid', 'unknown')"""
             )
         with self.assertRaises(sqlite3.IntegrityError):
             connection.execute(
                 """
-                INSERT INTO sources(
-                    kind, provider_kind, name, root_path, last_scan_error
-                ) VALUES ('long-error', 'codex', 'Long error',
-                          '/synthetic/long-error', ?)
-                """,
+                INSERT INTO sources(provider_kind, name, root_path, last_scan_error) VALUES ('codex', 'Long error', '/synthetic/long-error', ?)""",
                 ("x" * 501,),
             )
 
@@ -1205,14 +1188,7 @@ class SourceScanHealthMigrationTests(unittest.TestCase):
         self.addCleanup(connection.close)
         connection.executescript(
             """
-            INSERT INTO sources(
-                id, kind, provider_kind, name, root_path,
-                last_scanned_at, created_at
-            ) VALUES (
-                7, 'codex-company', 'codex', 'Codex Company',
-                '/synthetic/company', '2026-08-02T00:00:00+00:00',
-                '2026-08-01 00:00:00'
-            );
+            INSERT INTO sources(id, provider_kind, name, root_path, last_scanned_at, created_at) VALUES (7, 'codex', 'Codex Company', '/synthetic/company', '2026-08-02T00:00:00+00:00', '2026-08-01 00:00:00');
             INSERT INTO source_files(
                 id, source_id, path, size_bytes, mtime_ns, last_scanned_at
             ) VALUES (
@@ -1230,7 +1206,7 @@ class SourceScanHealthMigrationTests(unittest.TestCase):
         before_source = tuple(
             connection.execute(
                 """
-                SELECT id, kind, provider_kind, name, root_path,
+                SELECT id, provider_kind, name, root_path,
                        last_scanned_at, created_at
                 FROM sources WHERE id = 7
                 """
@@ -1258,7 +1234,7 @@ class SourceScanHealthMigrationTests(unittest.TestCase):
             tuple(
                 connection.execute(
                     """
-                    SELECT id, kind, provider_kind, name, root_path,
+                    SELECT id, provider_kind, name, root_path,
                            last_scanned_at, created_at
                     FROM sources WHERE id = 7
                     """
@@ -1315,7 +1291,7 @@ class ActivityEventMetadataMigrationTests(unittest.TestCase):
         connection.execute("ALTER TABLE activity_events ADD COLUMN metadata_json TEXT")
         connection.executescript(
             """
-            INSERT INTO sources(kind, name, root_path)
+            INSERT INTO sources(provider_kind, name, root_path)
                 VALUES ('codex', 'Codex', '/synthetic/codex');
             INSERT INTO sessions(source_id, external_id, source_path, title)
                 VALUES (1, 'session-1', '/synthetic/session.jsonl', 'Synthetic');
@@ -1405,7 +1381,7 @@ class ActivityEventPhaseMigrationTests(unittest.TestCase):
         self.addCleanup(connection.close)
         connection.execute("ALTER TABLE activity_events DROP COLUMN message_phase")
         connection.executescript("""
-            INSERT INTO sources(kind,name,root_path) VALUES ('codex','Codex','/synthetic');
+            INSERT INTO sources(provider_kind,name,root_path) VALUES ('codex','Codex','/synthetic');
             INSERT INTO sessions(source_id,external_id,source_path,title)
                 VALUES (1,'phase-test','/synthetic/session.jsonl','Phase test');
             INSERT INTO activity_events(id,session_id,sequence,event_type,role,text,source_line)
@@ -1615,7 +1591,7 @@ class SchemaIndexCompatibleMigrationTests(unittest.TestCase):
                 ON local_resources(path);
             CREATE INDEX idx_checkpoint_resource_refs
                 ON checkpoint_resource_refs(checkpoint_id, thread_id);
-            INSERT INTO sources(kind, name, root_path)
+            INSERT INTO sources(provider_kind, name, root_path)
                 VALUES ('codex', 'Codex', '/synthetic/codex');
             INSERT INTO workspaces(display_name, canonical_path)
                 VALUES ('Synthetic', '/synthetic/workspace');

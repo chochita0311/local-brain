@@ -1,0 +1,190 @@
+<dialog class="settings-dialog" id="settings-dialog" aria-labelledby="settings-title">
+  <header class="settings-header"><h2 id="settings-title">설정</h2><button class="secondary-button" type="button" data-settings-close aria-label="설정 닫기">닫기</button></header>
+  <div class="settings-layout">
+    <nav class="settings-nav" aria-label="설정 항목">
+      <button type="button" data-settings-tab="general" aria-current="page">일반</button>
+      <button type="button" data-settings-tab="sessions">세션 소스</button>
+      <button type="button" data-settings-tab="context">Local Context</button>
+      <button type="button" data-settings-tab="search">검색 모델</button>
+      <button type="button" data-settings-tab="sync">동기화</button>
+      <button type="button" data-settings-tab="storage">저장공간</button>
+      <button type="button" data-settings-tab="about">앱 정보</button>
+    </nav>
+    <div class="settings-body">
+      <p class="settings-message" data-settings-message role="status" aria-live="polite"></p>
+      <button class="secondary-button" type="button" data-onboarding-retry hidden>다시 불러오기</button>
+      <div class="settings-panels">
+      <section data-settings-panel="welcome" class="onboarding-welcome" hidden>
+        <span class="brand-mark" aria-hidden="true">LB</span>
+        <h3 tabindex="-1">LocalBrain에 오신 것을 환영합니다</h3>
+        <p>흩어진 세션과 문서를 연결하고,<br>하던 작업을 이어가세요.</p>
+        <p class="onboarding-note">사용할 위치를 차례로 선택합니다.<br>필요한 항목만 연결하고, 나머지는 나중에 설정하세요.</p>
+        <small>데이터와 설정은 이 Mac에 보관됩니다.</small>
+      </section>
+      <section data-settings-panel="general">
+        <h3>일반</h3><p>설정은 이 Mac에 저장됩니다.</p>
+        <form data-general-form class="settings-form">
+          <div class="settings-field">
+            <label id="settings-startup-label" for="settings-startup">시작 화면</label>
+            <div class="settings-select" data-settings-select>
+              <input type="hidden" name="startup_screen">
+              <button id="settings-startup" class="settings-select-trigger" type="button" role="combobox" aria-labelledby="settings-startup-label" aria-expanded="false" aria-haspopup="listbox" aria-controls="settings-startup-options" disabled><span data-select-value>Sessions</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></button>
+              <div id="settings-startup-options" class="settings-select-menu" role="listbox" aria-labelledby="settings-startup-label" hidden>
+                <div id="settings-startup-dashboard" role="option" data-value="sessions-dashboard" aria-selected="false">Sessions Dashboard</div>
+                <div id="settings-startup-sessions" role="option" data-value="sessions" aria-selected="false">Sessions</div>
+                <div id="settings-startup-context" role="option" data-value="context" aria-selected="false">Local Context</div>
+              </div>
+            </div>
+          </div>
+          <div class="settings-field">
+            <label id="settings-timezone-label" for="settings-timezone">시간대</label>
+            <div class="settings-select" data-settings-select>
+              <input type="hidden" name="timezone">
+              <button id="settings-timezone" class="settings-select-trigger" type="button" role="combobox" aria-labelledby="settings-timezone-label" aria-describedby="settings-timezone-help" aria-expanded="false" aria-haspopup="listbox" aria-controls="settings-timezone-options" disabled><span data-select-value>Asia/Seoul</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></button>
+              <div id="settings-timezone-options" class="settings-select-menu" role="listbox" aria-labelledby="settings-timezone-label" hidden>
+                <div id="settings-timezone-utc" role="option" data-value="UTC" aria-selected="false">UTC</div>
+                <div id="settings-timezone-seoul" role="option" data-value="Asia/Seoul" aria-selected="false">Asia/Seoul</div>
+              </div>
+            </div>
+            <small id="settings-timezone-help">세션·대화·차트의 시각 표시와 대시보드의 날짜별 집계 기준에 적용됩니다.</small>
+          </div>
+        </form>
+      </section>
+      <section data-settings-panel="sessions" hidden>
+        <div class="settings-source-heading">
+          <h3 data-source-heading>세션 소스</h3>
+          <button class="secondary-button settings-source-add" type="button" data-source-add aria-controls="source-editor"><span aria-hidden="true">＋</span> 프로필 추가</button>
+        </div>
+        <div data-source-overview>
+          <p id="profile-order-help" class="sr-only">순서 핸들을 드래그하거나 위·아래 방향키로 이동하세요.</p><div data-source-list class="settings-source-list"></div><p class="sr-only" data-profile-status role="status"></p>
+          <details class="settings-source-discovery" data-source-discovery hidden><summary>이 Mac에서 찾은 프로필</summary><div data-source-candidates></div><small>선택한 경로를 확인한 뒤 추가하세요.</small></details>
+        </div>
+        <form data-source-form id="source-editor" class="settings-form settings-source-editor" aria-labelledby="source-editor-title" hidden>
+          <h4 id="source-editor-title" data-source-form-title class="sr-only">프로필 추가</h4><input type="hidden" name="source_id">
+          <fieldset class="settings-source-fields">
+            <div class="settings-field">
+              <label id="source-provider-label" for="source-provider">Tool</label>
+              <div class="settings-select" data-settings-select>
+                <input type="hidden" name="provider_kind" value="codex">
+                <button id="source-provider" class="settings-select-trigger" type="button" role="combobox" aria-labelledby="source-provider-label" aria-expanded="false" aria-haspopup="listbox" aria-controls="source-provider-options"><span data-select-value>Codex</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></button>
+                <div id="source-provider-options" class="settings-select-menu" role="listbox" aria-labelledby="source-provider-label" hidden>
+                  <div id="source-provider-codex" role="option" data-value="codex" aria-selected="true">Codex</div>
+                  <div id="source-provider-claude" role="option" data-value="claude" aria-selected="false">Claude Code</div>
+                </div>
+              </div>
+            </div>
+            <label><span>Profile name <small class="settings-required">필수</small></span><input name="display_label" maxlength="160" required placeholder="Codex"></label>
+            <label class="settings-source-folder"><span>Home <small class="settings-required" data-source-home-required>필수</small></span><div class="settings-path"><input name="agent_home" required placeholder="~/.codex" aria-describedby="source-record-path"><button class="secondary-button" type="button" data-pick="agent_home">찾아보기</button></div><small id="source-record-path" hidden></small></label>
+            <details class="settings-source-advanced" data-source-advanced><summary>Custom session folder</summary><label><span>Session folder</span><div class="settings-path"><input name="root" placeholder="~/.codex/sessions"><button class="secondary-button" type="button" data-pick="root">찾아보기</button></div></label><button class="secondary-button" type="button" data-source-use-default hidden>기본 폴더 사용</button></details>
+            <label class="settings-source-reconnect" data-reconnect-confirm hidden><span><input type="checkbox" name="confirm_same_source"> 기존 세션이 있는 같은 프로필의 새 위치입니다.</span></label>
+          </fieldset>
+          <div class="settings-source-editor-actions"><button class="secondary-button" type="button" data-source-cancel>취소</button><button class="primary-button" type="submit" data-source-submit>추가</button></div>
+        </form>
+      </section>
+      <section data-settings-panel="context" hidden>
+        <div class="settings-source-heading"><h3 data-context-heading>Local Context</h3><button class="secondary-button settings-source-add" type="button" data-context-add>＋ 추가</button></div>
+        <div data-context-overview>
+          <p class="sr-only" id="context-order-help">순서 이동 버튼을 드래그하거나 위아래 화살표 키로 이동하세요.</p>
+          <p class="sr-only" data-context-status role="status"></p>
+          <div data-context-list class="settings-source-list"></div>
+        </div>
+        <div data-context-editor hidden>
+        <form data-context-form class="settings-form settings-source-editor">
+          <fieldset class="settings-context-fields">
+          <div class="settings-field"><label id="context-kind-label" for="context-kind">문서 종류</label>
+            <div class="settings-select" data-settings-select>
+              <input type="hidden" name="kind" value="roots">
+              <button id="context-kind" class="settings-select-trigger" type="button" role="combobox" aria-labelledby="context-kind-label" aria-expanded="false" aria-haspopup="listbox" aria-controls="context-kind-options"><span data-select-value>폴더</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></button>
+              <div id="context-kind-options" class="settings-select-menu" role="listbox" aria-labelledby="context-kind-label" hidden>
+                <div id="context-kind-folder" role="option" data-value="roots" aria-selected="true">폴더</div>
+                <div id="context-kind-file" role="option" data-value="files" aria-selected="false">파일</div>
+              </div>
+            </div>
+          </div>
+          <label>위치<div class="settings-path"><input name="path" required placeholder="~/Documents" aria-describedby="context-path-help"><button class="secondary-button" type="button" data-context-pick>찾아보기</button></div><small id="context-path-help">선택한 위치의 문서만 가져옵니다. 원본은 변경하지 않습니다.</small></label>
+          </fieldset>
+          <div class="settings-source-editor-actions"><button class="secondary-button" type="button" data-context-cancel>취소</button><button class="primary-button" type="submit" data-context-submit>추가</button></div>
+        </form>
+        <div class="settings-section" data-context-notes><h4>Apple Notes</h4><p>연결할 때 macOS 접근 권한을 요청할 수 있습니다.</p><button class="secondary-button" type="button" data-notes-add>Apple Notes 연결</button></div>
+        </div>
+      </section>
+      <section data-settings-panel="search" hidden>
+        <h3>검색 모델</h3><p>키워드 검색은 바로 사용할 수 있습니다.<br>AI 검색을 사용하려면 로컬 모델을 다운로드하세요.</p>
+        <div class="settings-model">
+          <div class="settings-model-title"><strong>Qwen3-Embedding-0.6B</strong><span>약 1.21GB</span></div>
+          <p data-model-status role="status"></p>
+          <div class="settings-actions"><button class="primary-button" type="button" data-model-action="install">모델 다운로드</button><button class="secondary-button" type="button" data-model-action="prepare">AI 검색 준비</button><button class="secondary-button" type="button" data-model-action="cancel" hidden>진행 중단</button></div>
+          <p class="settings-caption">다운로드에는 인터넷 연결이 필요합니다. 검색 내용과 문서는 외부로 전송하지 않습니다.</p>
+        </div>
+        <div class="settings-section"><h4>AI 검색</h4><p data-search-state></p><button class="secondary-button" type="button" data-model-action="disable">AI 검색 끄기</button></div>
+        <details class="settings-disclosure"><summary>모델 보관과 다운로드</summary><p>중단해도 완료된 다운로드 조각은 남아 재개할 수 있습니다. 모델은 로컬 공개 모델 캐시에 저장되며 개인 데이터 백업에 포함되지 않습니다.</p></details>
+      </section>
+      <section data-settings-panel="sync" hidden>
+        <h3>동기화</h3>
+        <form data-sync-form class="settings-form">
+          {% for kind, label in [('session', '세션'), ('context', 'Local Context')] %}
+          <fieldset class="settings-sync-group">
+            <legend>{{ label }}</legend>
+            <div class="settings-field">
+              <div class="settings-select" data-settings-select data-select-suffix="분">
+                <input type="hidden" name="{{ kind }}_sync_choice" data-sync-kind="{{ kind }}">
+                <button id="settings-{{ kind }}-sync" class="settings-select-trigger" type="button" role="combobox" aria-label="{{ label }} 동기화" aria-expanded="false" aria-haspopup="listbox" aria-controls="settings-{{ kind }}-sync-options" disabled><span data-select-value>—</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></button>
+                <div id="settings-{{ kind }}-sync-options" class="settings-select-menu" role="listbox" aria-label="{{ label }} 동기화" hidden>
+                  {% for minutes in [10, 20, 30, 60] %}
+                  <div id="settings-{{ kind }}-sync-{{ minutes }}" role="option" data-value="{{ minutes }}" aria-selected="false">{{ minutes }}분</div>
+                  {% endfor %}
+                  <div id="settings-{{ kind }}-sync-off" role="option" data-value="off" aria-selected="false">끄기</div>
+                </div>
+              </div>
+            </div>
+          </fieldset>
+          {% endfor %}
+        </form>
+      </section>
+      <section data-settings-panel="storage" hidden>
+        <h3>저장공간</h3><div data-storage-summary></div>
+        <div class="settings-section"><h4>백업</h4><p>DB와 앱 설정을 보관합니다. 원본 세션·문서·모델은 포함하지 않습니다. 개인 자료가 담긴 백업은 이 Mac에서만 복원할 수 있습니다.</p><button class="secondary-button" type="button" data-backup>백업 파일 저장</button></div>
+        <details class="settings-section settings-disclosure"><summary>백업에서 복원</summary>
+          <form data-restore-form class="settings-form"><label>LocalBrain 백업 ZIP<input type="file" name="archive" accept=".zip" required></label><label class="settings-check"><input type="checkbox" name="confirm" required><span>다음 실행에서 현재 데이터와 설정을 백업 상태로 교체합니다.</span></label><div class="settings-actions"><button type="submit" class="secondary-button">복원 예약</button></div><small>앱과 별도로 실행한 웹 서버를 모두 종료한 후 다시 실행해 주세요. 복원 전 사본은 로컬 recovery 폴더에 남깁니다.</small></form>
+        </details>
+        <div class="settings-section"><h4>캐시</h4><p>사용하지 않는 검색 캐시와 만료된 분석 캐시를 정리합니다. 원본과 공개 모델 파일은 보존하며, 검색 캐시는 AI 검색을 켤 때 다시 만듭니다.</p><button class="secondary-button" type="button" data-cache-clear>캐시 정리</button></div>
+      </section>
+      <section data-settings-panel="about" hidden>
+        <div class="settings-about-identity">
+          <span class="brand-mark" aria-hidden="true">LB</span>
+          <div><h3>LocalBrain</h3><p class="settings-about-version">v{{ app_version }}</p></div>
+        </div>
+      </section>
+      </div>
+    </div>
+  </div>
+  <footer class="onboarding-footer" data-onboarding-footer hidden>
+    <div class="onboarding-navigation">
+      <button class="secondary-button" type="button" data-onboarding-back><span aria-hidden="true">‹</span> 이전</button>
+      <div class="onboarding-actions">
+        <button class="secondary-button" type="button" data-onboarding-skip>건너뛰기</button>
+        <button class="primary-button" type="button" data-onboarding-next>다음</button>
+      </div>
+    </div>
+    <ol class="onboarding-progress" data-onboarding-progress aria-label="시작 설정 단계" hidden>
+      <li data-onboarding-step="welcome"><span class="onboarding-dot" aria-hidden="true"></span><span class="sr-only">1 / 4 · 환영</span></li>
+      <li data-onboarding-step="sessions"><span class="onboarding-dot" aria-hidden="true"></span><span class="sr-only">2 / 4 · 세션</span></li>
+      <li data-onboarding-step="context"><span class="onboarding-dot" aria-hidden="true"></span><span class="sr-only">3 / 4 · 문서</span></li>
+      <li data-onboarding-step="search"><span class="onboarding-dot" aria-hidden="true"></span><span class="sr-only">4 / 4 · 검색</span></li>
+    </ol>
+  </footer>
+</dialog>
+<dialog class="settings-confirm-dialog" id="context-remove-dialog" aria-labelledby="context-remove-title" aria-describedby="context-remove-description">
+  <h2 id="context-remove-title">Local Context 등록을 해제할까요?</h2>
+  <p class="settings-confirm-name" data-context-remove-name></p>
+  <p id="context-remove-description">동기화와 검색 목록에서 제외됩니다.<br>원본 파일과 Apple Notes는 삭제되지 않습니다.</p>
+  <p class="settings-confirm-error" data-context-remove-error role="alert" hidden></p>
+  <div class="settings-confirm-actions"><button class="secondary-button" type="button" data-context-remove-cancel autofocus>취소</button><button class="secondary-button" type="button" data-context-remove-confirm>등록 해제</button></div>
+</dialog>
+<dialog class="settings-confirm-dialog" id="source-remove-dialog" aria-labelledby="source-remove-title" aria-describedby="source-remove-description">
+  <h2 id="source-remove-title">프로필 등록을 해제할까요?</h2>
+  <p class="settings-confirm-name" data-source-remove-name></p>
+  <p id="source-remove-description">동기화와 일반 검색에서 제외됩니다.<br>가져온 기록과 원본 파일은 보존됩니다.</p>
+  <p class="settings-confirm-error" data-source-remove-error role="alert" hidden></p>
+  <div class="settings-confirm-actions"><button class="secondary-button" type="button" data-source-remove-cancel autofocus>취소</button><button class="secondary-button" type="button" data-source-remove-confirm>등록 해제</button></div>
+</dialog>

@@ -28,13 +28,13 @@ class WorkstreamTests(unittest.TestCase):
         self.connection.execute("PRAGMA foreign_keys = ON")
         self.connection.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
         self.connection.execute(
-            "INSERT INTO sources(kind, name, root_path) VALUES ('codex', 'Codex', '/tmp')"
+            "INSERT INTO sources(provider_kind, name, root_path) VALUES ('codex', 'Codex', '/tmp')"
         )
         self.connection.execute(
-            "INSERT INTO sources(kind, name, root_path) VALUES ('claude', 'Claude', '/tmp/claude')"
+            "INSERT INTO sources(provider_kind, name, root_path) VALUES ('claude', 'Claude', '/tmp/claude')"
         )
         source_id = self.connection.execute(
-            "SELECT id FROM sources WHERE kind = 'codex'"
+            "SELECT id FROM sources WHERE provider_kind = 'codex'"
         ).fetchone()["id"]
         self.connection.execute(
             "INSERT INTO workspaces(canonical_path, display_name) VALUES ('/tmp/sample-project', 'sample-project')"
@@ -53,7 +53,7 @@ class WorkstreamTests(unittest.TestCase):
                 (source_id, workspace_id, external_id, "/tmp/" + external_id, title),
             )
         claude_source_id = self.connection.execute(
-            "SELECT id FROM sources WHERE kind = 'claude'"
+            "SELECT id FROM sources WHERE provider_kind = 'claude'"
         ).fetchone()["id"]
         self.connection.execute(
             """

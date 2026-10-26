@@ -19,6 +19,7 @@ MIGRATION_BACKUP_SUFFIXES = (
     "-pre-external-resource-url-scope-v1.bak",
     "-pre-atlassian-site-access-v1.bak",
     "-pre-source-provider-identity-v1.bak",
+    "-pre-source-primary-key-v1.bak",
 )
 BACKUP_RETENTION_DAYS = 7
 

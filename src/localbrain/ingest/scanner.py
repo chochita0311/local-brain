@@ -1,8 +1,11 @@
+from contextvars import ContextVar
+
 import hashlib
 import json
 import mimetypes
 import sqlite3
 import subprocess
+import time
 from datetime import datetime, timezone
 from html.parser import HTMLParser
 from pathlib import Path
@@ -21,6 +24,7 @@ from ..atlassian_structure_references import (
 )
 from ..config import settings
 from ..db import init_db, transaction
+from ..path_display import home_relative_path
 from ..session_sources import (
     SessionSourceRegistration,
     load_and_reconcile_session_sources,
@@ -144,36 +148,17 @@ def _emit_scan_progress(
         return
 
 
-def _upsert_source(
-    connection: sqlite3.Connection,
-    source_key: str,
-    provider_kind: str,
-    name: str,
-    root: Path,
-) -> int:
-    existing = connection.execute(
-        "SELECT id, provider_kind FROM sources WHERE kind = ?", (source_key,)
-    ).fetchone()
-    if existing and existing["provider_kind"] != provider_kind:
-        raise ValueError(
-            "Source key {!r} is already bound to provider {!r}".format(
-                source_key, existing["provider_kind"]
-            )
-        )
-    connection.execute(
-        """
-        INSERT INTO sources(kind, provider_kind, name, root_path)
-        VALUES (?, ?, ?, ?)
-        ON CONFLICT(kind) DO UPDATE SET
-            name = excluded.name,
-            root_path = excluded.root_path
-        """,
-        (source_key, provider_kind, name, str(root)),
-    )
-    row = connection.execute(
-        "SELECT id FROM sources WHERE kind = ?", (source_key,)
-    ).fetchone()
-    return int(row["id"])
+def _upsert_source(connection, source_id, provider_kind, name, root) -> int:
+    if source_id is None:
+        return connection.execute(
+            "INSERT INTO sources(provider_kind,name,root_path) VALUES (?,?,?)",
+            (provider_kind, name, str(root)),
+        ).lastrowid
+    existing = connection.execute("SELECT provider_kind FROM sources WHERE id=?", (source_id,)).fetchone()
+    if not existing or existing["provider_kind"] != provider_kind:
+        raise ValueError("Source ID is not registered with this provider")
+    connection.execute("UPDATE sources SET name=?,root_path=? WHERE id=?", (name, str(root), source_id))
+    return source_id
 
 
 def _source_file_row_is_current(
@@ -312,11 +297,7 @@ def _upsert_workspace(
     exists_now = path.exists()
     canonical = str(path.resolve()) if exists_now else str(path)
     git_root = _find_git_root(path)
-    projects_root = Path.home() / "Projects"
-    try:
-        display_name = str(path.relative_to(projects_root))
-    except ValueError:
-        display_name = path.name or canonical
+    display_name = home_relative_path(canonical)
 
     connection.execute(
         """
@@ -523,7 +504,7 @@ def _session_eligibility_repair_required(
               AND NOT EXISTS (
                   SELECT 1 FROM skill_observations
                   JOIN sources AS skill_sources
-                    ON skill_sources.kind = skill_observations.source_key
+                    ON skill_sources.id = skill_observations.source_id
                   WHERE skill_sources.id = sessions.source_id
                     AND skill_observations.external_session_id = sessions.external_id
                     AND skill_observations.state = 'observed'
@@ -650,16 +631,11 @@ def _remove_empty_session_candidates(
         )
 
 
-def _usage_identity_scope(source_key: str, provider_kind: str) -> Optional[str]:
-    return source_key if source_key != provider_kind else None
-
-
 def _store_parsed_usage(
     connection: sqlite3.Connection,
     *,
     source_id: int,
     session_id: int,
-    source_key: str,
     provider_kind: str,
     workspace_id: Optional[int],
     usage_contract_version: Optional[str],
@@ -682,7 +658,6 @@ def _store_parsed_usage(
                 else "legacy-v1"
             )
         ),
-        identity_scope=_usage_identity_scope(source_key, provider_kind),
         cache=usage_cache,
     )
 
@@ -690,14 +665,13 @@ def _store_parsed_usage(
 def _store_session(
     connection: sqlite3.Connection,
     source_id: int,
-    source_key: str,
     parsed: ParsedSession,
     usage_contract_version: Optional[str] = None,
     provider_kind: Optional[str] = None,
     include_usage: bool = True,
     usage_cache: Optional[UsagePersistenceCache] = None,
 ) -> int:
-    effective_provider_kind = provider_kind or source_key
+    effective_provider_kind = provider_kind or connection.execute("SELECT provider_kind FROM sources WHERE id=?", (source_id,)).fetchone()["provider_kind"]
     workspace_id = _upsert_workspace(connection, parsed.cwd_raw, parsed.last_event_at)
     maintenance_run_id = parsed.maintenance_run_id
     if maintenance_run_id and not connection.execute(
@@ -770,19 +744,19 @@ def _store_session(
         (source_id, parsed.external_id),
     ).fetchone()
     session_id = int(session_row["id"])
-    identity_scope = _usage_identity_scope(source_key, effective_provider_kind)
     if include_usage:
         _store_parsed_usage(
             connection,
             source_id=source_id,
             session_id=session_id,
-            source_key=source_key,
             provider_kind=effective_provider_kind,
             workspace_id=workspace_id,
             usage_contract_version=usage_contract_version,
             parsed=parsed,
             usage_cache=usage_cache,
         )
+    event_ids = {(row["sequence"], row["event_type"], row["source_line"]): row["id"] for row in connection.execute(
+        "SELECT id,sequence,event_type,source_line FROM activity_events WHERE session_id=?", (session_id,))}
     connection.execute("DELETE FROM activity_events WHERE session_id = ?", (session_id,))
     connection.execute(
         "DELETE FROM search_index WHERE entity_type = 'session' AND entity_id = ?",
@@ -798,11 +772,8 @@ def _store_session(
             """,
             [
                 (
-                    stable_id(
-                        "source-scoped-event", source_key, event.event_id
-                    )
-                    if identity_scope
-                    else event.event_id,
+                    event_ids.get((event.sequence, event.event_type, event.source_line),
+                                  stable_id("source-event", source_id, event.event_id)),
                     session_id,
                     event.sequence,
                     event.occurred_at,
@@ -822,7 +793,7 @@ def _store_session(
                 connection,
                 "session",
                 str(session_id),
-                source_key,
+                effective_provider_kind,
                 parsed.title,
                 body,
                 parsed.cwd_raw or parsed.source_path,
@@ -923,9 +894,25 @@ def _reconcile_session_parents(
             )
 
 
+_SCAN_CANCELLED = ContextVar("localbrain_scan_cancelled", default=None)
+
+
+def _check_scan_cancelled():
+    callback = _SCAN_CANCELLED.get()
+    if callback and callback():
+        raise InterruptedError("Source scan stopped")
+
+
+def _session_paths(root, path_filter):
+    for path in root.rglob("*.jsonl"):
+        _check_scan_cancelled()
+        if path_filter is None or path_filter(root, path):
+            yield path
+
+
 def _scan_session_source(
     connection: sqlite3.Connection,
-    source_key: str,
+    source_id: int,
     name: str,
     root: Path,
     parser,
@@ -937,9 +924,9 @@ def _scan_session_source(
     reference_lookup_cache: Optional[SessionReferenceLookupCache] = None,
     progress: Optional[ScanProgressCallback] = None,
 ) -> Tuple[int, int, int]:
-    effective_provider_kind = provider_kind or source_key
+    effective_provider_kind = provider_kind or connection.execute("SELECT provider_kind FROM sources WHERE id=?", (source_id,)).fetchone()["provider_kind"]
     source_id = _upsert_source(
-        connection, source_key, effective_provider_kind, name, root
+        connection, source_id, effective_provider_kind, name, root
     )
     imported = skipped = failed = 0
     usage_cache = UsagePersistenceCache()
@@ -948,11 +935,7 @@ def _scan_session_source(
     if not root.exists():
         return imported, skipped, failed
 
-    paths = sorted(
-        path
-        for path in root.rglob("*.jsonl")
-        if path_filter is None or path_filter(root, path)
-    )
+    paths = sorted(_session_paths(root, path_filter))
     session_contract_repair_required = bool(
         session_contract_version is not None
         and connection.execute(
@@ -1005,7 +988,7 @@ def _scan_session_source(
         progress,
         {
             "type": "source_plan",
-            "source_key": source_key,
+            "source_id": source_id,
             "display_label": name,
             "mode": (
                 "forced"
@@ -1123,7 +1106,7 @@ def _scan_session_source(
             progress,
             {
                 "type": "source_progress",
-                "source_key": source_key,
+                "source_id": source_id,
                 "display_label": name,
                 "processed_files": processed_files,
                 "total_files": len(paths),
@@ -1134,6 +1117,7 @@ def _scan_session_source(
         )
 
     for processed_files, path in enumerate(paths, start=1):
+        _check_scan_cancelled()
         source_path = str(path)
         current_stat = path.stat()
         tracked_file = tracked_files.get(source_path)
@@ -1227,7 +1211,6 @@ def _scan_session_source(
                 session_id = _store_session(
                     connection,
                     source_id,
-                    source_key,
                     parsed,
                     usage_contract_version=usage_contract_version,
                     provider_kind=effective_provider_kind,
@@ -1250,7 +1233,6 @@ def _scan_session_source(
                         connection,
                         source_id=source_id,
                         session_id=session_id,
-                        source_key=source_key,
                         provider_kind=effective_provider_kind,
                         workspace_id=session_row["workspace_id"],
                         usage_contract_version=usage_contract_version,
@@ -1260,7 +1242,7 @@ def _scan_session_source(
             current_session_id = session_id
             store_skill_observations(
                 connection,
-                source_key=source_key,
+                source_id=source_id,
                 provider_kind=effective_provider_kind,
                 parsed=parsed,
             )
@@ -1297,14 +1279,10 @@ def _scan_session_source(
             if refresh_references:
                 reference_sessions_to_finalize.add(session_id)
             if usage_contract_repair_required:
-                expected_usage_record_ids.update(
-                    stable_id(
-                        "source-scoped-usage", source_key, record.usage_record_id
-                    )
-                    if source_key != effective_provider_kind
-                    else record.usage_record_id
-                    for record in parsed.usage_records
-                )
+                native_ids = {record.source_record_id for record in parsed.usage_records}
+                expected_usage_record_ids.update(row["id"] for row in connection.execute(
+                    "SELECT id,source_record_id FROM usage_records WHERE session_id=?", (session_id,))
+                    if row["source_record_id"] in native_ids)
             imported += 1
             report_file_progress(processed_files)
         except Exception as exc:
@@ -1383,13 +1361,13 @@ def _scan_session_source(
     connection.execute(
         """
         UPDATE skill_observations SET state = 'corrected'
-        WHERE source_key = ? AND state = 'observed'
+        WHERE source_id = ? AND state = 'observed'
           AND external_session_id IN (
               SELECT external_id FROM sessions
               WHERE source_id = ? AND session_class = 'maintenance'
           )
         """,
-        (source_key, source_id),
+        (source_id, source_id),
     )
     connection.execute(
         "UPDATE sources SET last_scanned_at = ? WHERE id = ?", (utc_now(), source_id)
@@ -1600,19 +1578,33 @@ def _safe_virtual_component(value: str) -> str:
 def _scan_apple_notes(
     connection: sqlite3.Connection, source_id: int, root_row: sqlite3.Row
 ) -> Tuple[int, int, int]:
-    result = subprocess.run(
+    with subprocess.Popen(
         ["/usr/bin/osascript", "-l", "JavaScript", "-e", APPLE_NOTES_SCRIPT],
-        capture_output=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
         text=True,
-        timeout=120,
-        check=False,
-    )
-    if result.returncode != 0:
-        raise RuntimeError(result.stderr.strip() or "Apple Notes could not be read")
-    notes = json.loads(result.stdout or "[]")
+    ) as process:
+        deadline = time.monotonic() + 120
+        try:
+            while True:
+                _check_scan_cancelled()
+                try:
+                    stdout, stderr = process.communicate(timeout=0.5)
+                    break
+                except subprocess.TimeoutExpired:
+                    if time.monotonic() >= deadline:
+                        raise TimeoutError("Apple Notes could not be read within 120 seconds") from None
+        except BaseException:
+            process.kill()
+            process.communicate()
+            raise
+    if process.returncode != 0:
+        raise RuntimeError(stderr.strip() or "Apple Notes could not be read")
+    notes = json.loads(stdout or "[]")
     valid_paths = set()
     imported = 0
     for note in notes:
+        _check_scan_cancelled()
         note_id = str(note.get("id") or "").strip()
         if not note_id:
             continue
@@ -1683,7 +1675,7 @@ def _scan_context_documents(
 ) -> Tuple[int, int, int]:
     source_id = _upsert_source(
         connection,
-        "context",
+        _context_source_id(connection),
         "context",
         "Local Contexts",
         settings.context_root,
@@ -1701,6 +1693,7 @@ def _scan_context_documents(
         raise LookupError("Local Context root not found")
 
     for root_row in roots:
+        _check_scan_cancelled()
         if root_row["source_type"] in {"file", "apple_notes"}:
             try:
                 if root_row["source_type"] == "file":
@@ -1712,6 +1705,8 @@ def _scan_context_documents(
                 imported += values[0]
                 skipped += values[1]
                 failed += values[2]
+            except InterruptedError:
+                raise
             except Exception as exc:
                 failed += 1
                 now = utc_now()
@@ -1741,14 +1736,13 @@ def _scan_context_documents(
             )
             continue
 
-        paths = [
-            path
-            for path in sorted(root.rglob("*.md"))
-            if not any(
-                part.startswith(".") or part in IGNORED_CONTEXT_DIRECTORIES
-                for part in path.relative_to(root).parts
-            )
-        ]
+        paths = []
+        for path in root.rglob("*.md"):
+            _check_scan_cancelled()
+            if not any(part.startswith(".") or part in IGNORED_CONTEXT_DIRECTORIES
+                       for part in path.relative_to(root).parts):
+                paths.append(path)
+        paths.sort()
         valid_paths = {str(path) for path in paths}
         existing = connection.execute(
             "SELECT id, path FROM context_documents WHERE context_root_id = ?",
@@ -1770,6 +1764,7 @@ def _scan_context_documents(
             )
 
         for path in paths:
+            _check_scan_cancelled()
             if not force and _file_is_current(connection, source_id, path):
                 document = connection.execute(
                     """
@@ -1924,14 +1919,19 @@ def _source_scan_counts(
     return int(row["eligible_sessions"]), int(row["tracked_files"])
 
 
-def _source_row(connection: sqlite3.Connection, source_key: str):
+def _context_source_id(connection):
+    row = connection.execute("SELECT id FROM sources WHERE provider_kind='context' ORDER BY id LIMIT 1").fetchone()
+    return row["id"] if row else None
+
+
+def _source_row(connection: sqlite3.Connection, source_id: int):
     return connection.execute(
         """
-        SELECT id, kind, provider_kind, name, root_path,
+        SELECT id, provider_kind, name, root_path,
                last_scanned_at, last_scan_success_at
-        FROM sources WHERE kind = ?
+        FROM sources WHERE id = ?
         """,
-        (source_key,),
+        (source_id,),
     ).fetchone()
 
 
@@ -1973,7 +1973,7 @@ def _record_scan_health(
 
 def _source_report(
     *,
-    source_key: str,
+    source_id: int,
     display_label: str,
     provider_kind: str,
     root: str,
@@ -1989,7 +1989,7 @@ def _source_report(
     error_message: Optional[str] = None,
 ) -> Dict[str, Any]:
     return {
-        "source_key": source_key,
+        "source_id": source_id,
         "display_label": display_label,
         "provider_kind": provider_kind,
         "root": root,
@@ -2043,7 +2043,7 @@ def _configuration_source_report(registration, diagnostic=None) -> Dict[str, Any
         error_message = "This source was not synchronized because its configuration needs attention; existing data was retained."
     error_message = error_message[:500]
     with transaction() as connection:
-        row = _source_row(connection, registration.source_key)
+        row = _source_row(connection, registration.source_id)
         source_id = int(row["id"]) if row else registration.source_id
         eligible, tracked = _source_scan_counts(connection, source_id)
         _record_scan_health(
@@ -2055,7 +2055,7 @@ def _configuration_source_report(registration, diagnostic=None) -> Dict[str, Any
         )
         last_success = row["last_scan_success_at"] if row else None
     return _source_report(
-        source_key=registration.source_key,
+        source_id=registration.source_id,
         display_label=registration.display_label,
         provider_kind=registration.provider_kind,
         root=registration.root,
@@ -2079,7 +2079,7 @@ def _scan_registered_session_source(
     if registration.status == "unavailable":
         message = "This source root is unavailable; it was not synchronized and existing data was retained."
         with transaction() as connection:
-            row = _source_row(connection, registration.source_key)
+            row = _source_row(connection, registration.source_id)
             source_id = int(row["id"]) if row else registration.source_id
             eligible, tracked = _source_scan_counts(connection, source_id)
             _record_scan_health(
@@ -2087,7 +2087,7 @@ def _scan_registered_session_source(
             )
             last_success = row["last_scan_success_at"] if row else None
         return _source_report(
-            source_key=registration.source_key,
+            source_id=registration.source_id,
             display_label=registration.display_label,
             provider_kind=registration.provider_kind,
             root=registration.root,
@@ -2111,7 +2111,7 @@ def _scan_registered_session_source(
         with transaction() as connection:
             values = _scan_session_source(
                 connection,
-                registration.source_key,
+                registration.source_id,
                 registration.display_label,
                 Path(registration.root),
                 parser,
@@ -2125,7 +2125,7 @@ def _scan_registered_session_source(
                 reference_lookup_cache=reference_lookup_cache,
                 progress=progress,
             )
-            row = _source_row(connection, registration.source_key)
+            row = _source_row(connection, registration.source_id)
             source_id = int(row["id"])
             eligible, tracked = _source_scan_counts(connection, source_id)
             status = "scan_failed" if values[2] else ("empty" if tracked == 0 else "completed")
@@ -2137,7 +2137,7 @@ def _scan_registered_session_source(
             _record_scan_health(connection, source_id, status, attempted_at, message)
             last_success = attempted_at if status in SESSION_SCAN_SUCCESS_STATUSES else row["last_scan_success_at"]
         return _source_report(
-            source_key=registration.source_key,
+            source_id=registration.source_id,
             display_label=registration.display_label,
             provider_kind=registration.provider_kind,
             root=registration.root,
@@ -2152,10 +2152,12 @@ def _scan_registered_session_source(
             error_code="file_scan_failed" if values[2] else None,
             error_message=message,
         )
+    except InterruptedError:
+        raise
     except Exception:
         message = _bounded_scan_failure(registration.provider_kind)
         with transaction() as connection:
-            row = _source_row(connection, registration.source_key)
+            row = _source_row(connection, registration.source_id)
             source_id = int(row["id"]) if row else registration.source_id
             eligible, tracked = _source_scan_counts(connection, source_id)
             _record_scan_health(
@@ -2163,7 +2165,7 @@ def _scan_registered_session_source(
             )
             last_success = row["last_scan_success_at"] if row else None
         return _source_report(
-            source_key=registration.source_key,
+            source_id=registration.source_id,
             display_label=registration.display_label,
             provider_kind=registration.provider_kind,
             root=registration.root,
@@ -2179,26 +2181,29 @@ def _scan_registered_session_source(
 
 def _scan_session_sources(
     force: bool = False,
-    selected_keys: Optional[Set[str]] = None,
+    selected_ids: Optional[Set[int]] = None,
+    selected_provider: Optional[str] = None,
     progress: Optional[ScanProgressCallback] = None,
 ) -> Dict[str, Any]:
+    from ..source_settings import migrate_source_settings
+    migrate_source_settings(settings)
     with transaction() as connection:
         registry = load_and_reconcile_session_sources(connection, settings)
 
     reports = []
     reference_lookup_cache = SessionReferenceLookupCache()
     registrations = list(registry.registrations)
-    represented = {item.source_key for item in registrations}
+    represented = {item.source_id for item in registrations}
     diagnostics_by_key = {
-        item.source_key: item
+        item.source_id: item
         for item in registry.diagnostics
-        if item.source_key and item.source_key not in represented
+        if item.source_id and item.source_id not in represented
     }
     if registry.settings.file_error:
         with transaction() as connection:
             rows = connection.execute(
                 """
-                SELECT id, kind, provider_kind, name, root_path
+                SELECT id, provider_kind, name, root_path
                 FROM sources
                 WHERE provider_kind IN ('claude', 'codex')
                 ORDER BY id
@@ -2206,12 +2211,11 @@ def _scan_session_sources(
             ).fetchall()
         registrations = [
             SessionSourceRegistration(
-                source_key=row["kind"],
+                source_id=int(row["id"]),
                 provider_kind=row["provider_kind"],
                 display_label=row["name"],
                 root=row["root_path"],
                 status="configuration_error",
-                source_id=int(row["id"]),
             )
             for row in rows
         ]
@@ -2222,7 +2226,7 @@ def _scan_session_sources(
             )[:500]
             reports.append(
                 _source_report(
-                    source_key="settings",
+                    source_id=None,
                     display_label="Session source settings",
                     provider_kind="unknown",
                     root=str(registry.settings.settings_path),
@@ -2233,28 +2237,30 @@ def _scan_session_sources(
                 )
             )
     else:
-        by_key = {item.source_key: item for item in registrations}
-        for source_key, diagnostic in diagnostics_by_key.items():
+        by_key = {item.source_id: item for item in registrations}
+        for source_id, diagnostic in diagnostics_by_key.items():
             with transaction() as connection:
-                row = _source_row(connection, source_key)
-            by_key[source_key] = SessionSourceRegistration(
-                source_key=source_key,
+                row = _source_row(connection, source_id)
+            by_key[source_id] = SessionSourceRegistration(
+                source_id=source_id,
                 provider_kind=row["provider_kind"] if row else "unknown",
-                display_label=row["name"] if row else source_key,
+                display_label=row["name"] if row else str(source_id),
                 root=row["root_path"] if row else "",
                 status="configuration_error",
-                source_id=int(row["id"]) if row else None,
             )
         registrations = [
-            by_key[key] for key in registry.settings.declared_source_keys if key in by_key
+            by_key[key] for key in registry.settings.declared_source_ids if key in by_key
         ] + [
-            item for item in registrations if item.source_key not in registry.settings.declared_source_keys
+            item for item in registrations if item.source_id not in registry.settings.declared_source_ids
         ]
 
+    disabled_keys = {entry.source_id for entry in registry.settings.entries if not entry.enabled}
     selected_registrations = [
         registration
         for registration in registrations
-        if selected_keys is None or registration.source_key in selected_keys
+        if registration.source_id not in disabled_keys
+        and (selected_ids is None or registration.source_id in selected_ids)
+        and (selected_provider is None or registration.provider_kind == selected_provider)
     ]
     _emit_scan_progress(
         progress,
@@ -2264,17 +2270,18 @@ def _scan_session_sources(
         },
     )
     for source_index, registration in enumerate(selected_registrations, start=1):
+        _check_scan_cancelled()
         _emit_scan_progress(
             progress,
             {
                 "type": "source_started",
-                "source_key": registration.source_key,
+                "source_id": registration.source_id,
                 "display_label": registration.display_label,
                 "source_index": source_index,
                 "source_count": len(selected_registrations),
             },
         )
-        diagnostic = diagnostics_by_key.get(registration.source_key)
+        diagnostic = diagnostics_by_key.get(registration.source_id)
         if registry.settings.file_error:
             diagnostic = registry.diagnostics[0]
         if diagnostic or registration.status not in {"ready", "unavailable"}:
@@ -2293,7 +2300,7 @@ def _scan_session_sources(
             progress,
             {
                 "type": "source_result",
-                "source_key": source_report["source_key"],
+                "source_id": source_report["source_id"],
                 "display_label": source_report["display_label"],
                 "status": source_report["status"],
                 "imported": source_report["imported"],
@@ -2330,45 +2337,78 @@ def _scan_claude_source(
     )
 
 
+def _scan_provider_sessions(provider: str, force: bool) -> Dict[str, int]:
+    from ..local_operations import operation_lock
+    with operation_lock(settings, "session-sync"):
+        init_db()
+        report = _scan_session_sources(force=force, selected_provider=provider)
+    return {name: sum(source.get(field, 0) for source in report["sources"])
+            for name, field in (("imported", "imported"), ("skipped", "unchanged"), ("failed", "failed_files"))}
+
+
 def scan_claude_sessions(force: bool = False) -> Dict[str, int]:
-    init_db()
-    report = _scan_session_sources(force=force, selected_keys={"claude"})
-    source = report["sources"][0] if report["sources"] else {}
-    return {
-        "imported": source.get("imported", 0),
-        "skipped": source.get("unchanged", 0),
-        "failed": source.get("failed_files", 0),
-    }
+    return _scan_provider_sessions("claude", force)
 
 
 def scan_codex_sessions(force: bool = False) -> Dict[str, int]:
-    init_db()
-    report = _scan_session_sources(force=force, selected_keys={"codex"})
-    source = report["sources"][0] if report["sources"] else {}
-    return {
-        "imported": source.get("imported", 0),
-        "skipped": source.get("unchanged", 0),
-        "failed": source.get("failed_files", 0),
-    }
+    return _scan_provider_sessions("codex", force)
 
 
 def scan_session_sources(
     force: bool = False,
     progress: Optional[ScanProgressCallback] = None,
+    cancelled: Optional[Callable[[], bool]] = None,
 ) -> Dict[str, Any]:
-    init_db()
-    return _scan_session_sources(force=force, progress=progress)
+    from ..local_operations import operation_lock
+    token = _SCAN_CANCELLED.set(cancelled)
+    try:
+        with operation_lock(settings, "session-sync"):
+            _check_scan_cancelled()
+            init_db()
+            return _scan_session_sources(force=force, progress=progress)
+    finally:
+        _SCAN_CANCELLED.reset(token)
 
 
 def scan_all(force: bool = False) -> Dict[str, Any]:
+    from ..local_operations import operation_lock
+    with operation_lock(settings, "scan-all"):
+        return _scan_all(force)
+
+
+def _scan_all(force: bool = False) -> Dict[str, Any]:
     init_db()
     report = _scan_session_sources(force=force)
+    context = _scan_context_sources(force=force)
+    return _aggregate_scan_report(report["sources"] + context["sources"])
+
+
+def scan_context_sources(
+    force: bool = False,
+    progress: Optional[ScanProgressCallback] = None,
+    cancelled: Optional[Callable[[], bool]] = None,
+) -> Dict[str, Any]:
+    """Collect registered Context sources without scanning Session profiles."""
+    from ..local_operations import operation_lock
+    token = _SCAN_CANCELLED.set(cancelled)
+    try:
+        with operation_lock(settings, "context-sync"):
+            _check_scan_cancelled()
+            init_db()
+            report = _scan_context_sources(force=force)
+            _emit_scan_progress(progress, {"type": "sync_complete", "report": report})
+            return report
+    finally:
+        _SCAN_CANCELLED.reset(token)
+
+
+def _scan_context_sources(force: bool = False) -> Dict[str, Any]:
     attempted_at = utc_now()
     context_report = None
     try:
         with transaction() as connection:
             values = _scan_context_documents(connection, force=force)
-            row = _source_row(connection, "context")
+            row = _source_row(connection, _context_source_id(connection))
             source_id = int(row["id"]) if row else None
             eligible, tracked = _source_scan_counts(connection, source_id)
             status = "scan_failed" if values[2] else ("empty" if tracked == 0 else "completed")
@@ -2376,7 +2416,7 @@ def scan_all(force: bool = False) -> Dict[str, Any]:
             _record_scan_health(connection, source_id, status, attempted_at, message)
             last_success = attempted_at if status in SESSION_SCAN_SUCCESS_STATUSES else (row["last_scan_success_at"] if row else None)
             context_report = _source_report(
-                source_key="context", display_label="Local Contexts",
+                source_id=source_id, display_label="Local Contexts",
                 provider_kind="context", root=str(settings.context_root),
                 status=status, imported=values[0], unchanged=values[1],
                 failed_files=values[2], tracked_files=tracked,
@@ -2384,19 +2424,21 @@ def scan_all(force: bool = False) -> Dict[str, Any]:
                 error_code="file_scan_failed" if values[2] else None,
                 error_message=message,
             )
+    except InterruptedError:
+        raise
     except Exception:
         message = "Local Context files could not be scanned; existing data was retained."
         with transaction() as connection:
-            row = _source_row(connection, "context")
+            row = _source_row(connection, _context_source_id(connection))
             source_id = int(row["id"]) if row else None
             _, tracked = _source_scan_counts(connection, source_id)
             _record_scan_health(connection, source_id, "scan_failed", attempted_at, message)
             last_success = row["last_scan_success_at"] if row else None
         context_report = _source_report(
-            source_key="context", display_label="Local Contexts",
+            source_id=source_id, display_label="Local Contexts",
             provider_kind="context", root=str(settings.context_root),
             status="scan_failed", tracked_files=tracked,
             last_attempt_at=attempted_at, last_success_at=last_success,
             error_code="source_scan_failed", error_message=message,
         )
-    return _aggregate_scan_report(report["sources"] + [context_report])
+    return _aggregate_scan_report([context_report])

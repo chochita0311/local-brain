@@ -21,10 +21,10 @@ class RetrievalTests(unittest.TestCase):
         self.connection.execute("PRAGMA foreign_keys = ON")
         self.connection.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
         self.connection.execute(
-            "INSERT INTO sources(kind, name, root_path) VALUES ('codex', 'Codex', '/tmp')"
+            "INSERT INTO sources(provider_kind, name, root_path) VALUES ('codex', 'Codex', '/tmp')"
         )
         self.connection.execute(
-            "INSERT INTO sources(kind, name, root_path) VALUES ('context', 'Context', '/tmp/context')"
+            "INSERT INTO sources(provider_kind, name, root_path) VALUES ('context', 'Context', '/tmp/context')"
         )
         self.connection.execute(
             "INSERT INTO workstreams(name, summary) VALUES ('샘플 플랫폼 유지보수', '인증 작업')"
@@ -57,7 +57,7 @@ class RetrievalTests(unittest.TestCase):
 
     def _insert_sessions(self):
         source_id = self.connection.execute(
-            "SELECT id FROM sources WHERE kind = 'codex'"
+            "SELECT id FROM sources WHERE provider_kind = 'codex'"
         ).fetchone()["id"]
         for session_number in range(10):
             cursor = self.connection.execute(
@@ -169,7 +169,7 @@ class RetrievalTests(unittest.TestCase):
 
     def _insert_documents(self):
         source_id = self.connection.execute(
-            "SELECT id FROM sources WHERE kind = 'context'"
+            "SELECT id FROM sources WHERE provider_kind = 'context'"
         ).fetchone()["id"]
         for document_number in range(10):
             body = "# 검색 필터 개선 인증 문서\n검색 필터 개선 근거\n검색 필터 인증 근거"

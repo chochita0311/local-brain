@@ -38,7 +38,6 @@ REQUIRED_BOOLEAN_FIELDS = {
 }
 
 REQUIRED_APPLICATION_FAMILIES = {
-    "source.kind",
     "source.provider-kind",
     "source.scan-status",
     "source-file.status",

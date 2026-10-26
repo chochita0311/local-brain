@@ -41,7 +41,10 @@ def safe_return(value):
         return "/natural-search"
     if len(query) > 300 or not 1 <= page <= 1000000:
         return "/natural-search"
-    result = "/natural-search?" + urlencode({"q": query, "page": page})
+    mode = fields.get("mode", ["ai"])[-1]
+    if mode not in {"keyword", "ai"}:
+        return "/natural-search"
+    result = "/natural-search?" + urlencode({"q": query, "page": page, "mode": mode})
     if parsed.fragment.startswith("natural-result-") and all(c.isalnum() or c == "-" for c in parsed.fragment):
         result += "#" + parsed.fragment
     return result

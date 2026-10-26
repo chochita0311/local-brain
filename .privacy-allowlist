@@ -4,3 +4,7 @@
 # one path per line only after confirming it contains no private local or company
 # information. Blank lines and comments are ignored.
 src/localbrain/static/vendor/mermaid/mermaid.esm.min.js
+
+# LocalBrain app icons generated from the existing public SVG favicon.
+desktop/src-tauri/icons/icon.png
+desktop/src-tauri/icons/icon.icns

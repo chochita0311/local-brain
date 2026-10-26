@@ -4,7 +4,8 @@
 
 - ID: `spec-0084`
 - Status: `approved`
-- Run ID: `run-20260902-94`
+- Run ID: `run-20261026-204`
+- Prior scroll-containment evidence: [Run 181](../run/run-20261020-181-pinned-scroll-containment.md)
 - Attempt: `1`
 - Parent Feature: [feat-0084-project-grouped-pinned-sessions](../feature/feat-0084-project-grouped-pinned-sessions.md)
 - Parent PRD: [prd-0009-data-model-value-dictionaries-and-pinned-session-recall](../prd/prd-0009-data-model-value-dictionaries-and-pinned-session-recall.md)
@@ -13,7 +14,7 @@
 - Surface Lanes: read model → grouped inventory presentation → durable contract
 - Required Evaluators: `contract`, `design`, `functional`, `ux-heuristic`
 - Created: `2026-09-02`
-- Updated: `2026-09-02`
+- Updated: `2026-10-26`
 
 ## Source Set
 
@@ -30,8 +31,8 @@
 
 - Query `sessions.git_branch` and `workspaces.git_root` with every pinned Session.
 - Build groups by workspace ID; use current cwd identity only as a defensive fallback when the workspace relation is unavailable.
-- Label a group from workspace display name, then workspace path, then cwd, then the existing unavailable-path copy.
-- Sort groups by Git-backed first, then case-insensitive label, then stable identity. Do not infer Git state from whether one Session has a branch.
+- Render the home-abbreviated workspace path, falling back to cwd, then workspace display name, then the existing unavailable-path copy.
+- Sort groups by Git-backed first, then that case-insensitive displayed heading, then stable identity. Cached display names may use mixed formats after incremental imports and must not override an available current path. Do not infer Git state from whether one Session has a branch.
 - Preserve the existing activity/pin/ID order while appending Sessions within each group.
 - Render a semantic group heading, source cue, title, optional branch, and activity date. Keep the total pin count based on Session membership.
 
@@ -100,3 +101,19 @@
 ## Continuity Notes
 
 - `2026-09-02`: approved after the owner selected Git-first alphabetical group ordering.
+- `2026-10-26`: [Run 204](../run/run-20261026-204-pin-order-and-palette-focus.md) aligns sorting with the current home-path heading renderer after the owner reported changed ordering; pin membership, grouping identity and within-group ordering remain unchanged.
+
+## Pinned Scroll Containment Correction — 2026-10-20
+
+The owner reported blank document scrolling below Sessions. The current correction
+uses the Frontend profile, Pinned Sessions scroll-containment lane, and
+screen-alignment `extend`; [Run 181](../run/run-20261020-181-pinned-scroll-containment.md)
+owns execution. The original grouping implementation and evidence remain historical.
+
+Anchor absolutely positioned accessibility text inside the bounded Pinned Sessions
+scroller so offscreen rows cannot enlarge the document. Preserve screen-reader
+labels, all pins, ordering, recall links, panel height/insets, wide internal scrolling,
+narrow document flow, pagination and pin-refresh scroll/focus continuity. Verify
+empty/short/overflowing panels, long and short main lists, breakpoint reflow and
+repeated scrolling in ordinary web and bundled WebKit. Refresh the delivered app's
+CSS, signature and ZIP without changing stored data or backend behavior.

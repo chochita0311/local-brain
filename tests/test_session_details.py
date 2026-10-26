@@ -26,7 +26,7 @@ class SessionDetailTests(unittest.TestCase):
         self.connection.execute("PRAGMA foreign_keys = ON")
         self.connection.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
         self.connection.execute(
-            "INSERT INTO sources(kind, name, root_path) VALUES ('codex', 'Codex', '/tmp/codex')"
+            "INSERT INTO sources(provider_kind, name, root_path) VALUES ('codex', 'Codex', '/tmp/codex')"
         )
         self.parent = self._session("parent", "primary", event_count=4)
         self.child = self._session(
@@ -145,7 +145,7 @@ class SessionDetailTests(unittest.TestCase):
         target = "unique01-synthetic"
         self._session(target, "primary")
         source_id = self.connection.execute(
-            "INSERT INTO sources(kind,name,root_path) VALUES (?, ?, ?)",
+            'INSERT INTO sources(provider_kind,name,root_path) VALUES (?, ?, ?)',
             ("codex-company", "Codex Company", "/synthetic/company"),
         ).lastrowid
         self.connection.execute(

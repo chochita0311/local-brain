@@ -8,15 +8,18 @@ Product terminology and organization rules are defined in [Product Model](produc
 
 ## Runtime Shape
 
-- Runtime: local web server and browser UI
+- Runtime: local web server with browser UI, or Tauri window with a bundled backend
 - Backend: Python and FastAPI
 - Database: SQLite
 - Search: existing SQLite FTS5 plus optional local Qwen semantic ordering and lexical exact-identifier admission
 - Frontend: server-rendered Jinja2 with small JSON API interactions
 - External integration boundary: approved MCP Gateway and source-specific adapters
-- Later packaging: Tauri when feasible, with Electron as an alternative if integration constraints require it
+- Desktop packaging: Tauri 2 and a PyInstaller Python 3.11 bundle, Apple Silicon
 
-The local web runtime validates the product workflow before native macOS lifecycle and distribution work begins.
+The standalone test edition admits Sessions, Sessions Dashboard, Local Context,
+search, settings and onboarding. Its immutable runtime boundary excludes the
+unfinished development surfaces; [Desktop App And Settings](desktop-app-and-settings.md)
+owns lifecycle, local authentication and source/settings contracts.
 
 The [installation/storage contract](installation-and-storage.md) owns independent
 macOS source/tool/wheel setup and optional local-model requirements. Packaged
@@ -51,13 +54,23 @@ Approved external sources through MCP Gateway
 
 ## Package Ownership
 
+- `preferences.py`, `source_settings.py`, `settings_web.py`: shared local preferences,
+  optimistic configuration revisions, source registration/reconnection and UI APIs.
+- `source_sync.py`, `session_sync.py`, `context_sync.py`, `local_operations.py`: independent
+  completion-based Session and Context scheduling, persisted health outside the main DB,
+  and process/thread exclusion for mutations.
+- `edition.py`, `desktop.py`, `desktop/src-tauri/`: route/runtime admission, per-launch
+  local authentication, native window/process lifecycle and bundled resources.
+- `keyword_search.py`, `model_setup.py`, `storage_recovery.py`: model-free eligible
+  FTS retrieval, explicit cancellable public-model installation, private backup,
+  restart-only restore and bounded owned-cache cleanup.
 - `natural_search/`: eligible read-only source snapshot, original-span molecularization,
   private SQLite/FTS/vector generations, persistent offline Qwen encoder, explicit
   condition interpretation, parent-ranked retrieval and Sync refresh worker.
   `main.py` owns loopback routes and app lifecycle; templates and `natural-search.js`
-  own the single natural-language header search and evidence navigation.
-  The legacy keyword-search `/search` route is deprecated and retained for
-  existing URLs. [Natural-Language Search](natural-language-search.md)
+  own the shared header and evidence navigation. Keyword search is the default;
+  AI search is explicit. The legacy `/search` URL redirects to keyword mode in
+  the desktop edition and remains compatible in development web. [Natural-Language Search](natural-language-search.md)
   owns the detailed source, score, input-budget, refresh and recovery contracts.
   Laya and Qwen Reranker are development comparisons, not runtime dependencies.
 
@@ -267,19 +280,23 @@ Current adapters:
 - Apple Notes through local macOS Automation
 - local project and Git metadata discovered during scans
 
-Each local Session source has a stable source key independent from its provider
-kind. Source keys own provenance, filtering, and statistics; provider kind selects
-the parser, Usage normalizer, and other adapter-specific semantics. Multiple
-source keys may therefore reuse the Codex provider without sharing Session or
-Usage identity.
+Each Session profile uses the existing numeric `sources.id` independently from
+`provider_kind`, which chooses parsing and usage normalization. Multiple profiles
+can use Codex without sharing Session or Usage identity. The redundant `kind`
+column is removed. A one-time migration converts structured dependents to the
+existing PK; no alias field or mapping table remains. Event/Usage PKs are retained
+by matching existing native unique keys on re-ingestion.
 
-The ordered local AI Session-source list is owned by private
-`<LOCALBRAIN_DATA_DIR>/session-sources.toml`. A missing file is atomically seeded
-once from the legacy Claude/Codex root settings plus the Codex Company default.
-Established-file syntax and identity validation precede registry mutation;
-omission, invalid paths, provider conflict, or an occupied-root change cannot
-delete or silently relocate retained normalized data. Scanner dispatch consumes
-this registry in the following multi-source synchronization contract.
+The ordered Session list is owned by private `session-sources.toml` in the data
+directory. Version 2 uses `source_id`, name, provider, root, color and optional
+Home/enablement. Fresh installation writes an empty list; an established database
+can seed retained registrations. Valid v1 files migrate without moving originals
+or replacing record IDs. Color/order project into `sources.profile_color` and
+`profile_position`; settings and source filters share numeric IDs and TOML order.
+Invalid identities, provider conflicts or occupied-root changes preserve retained
+data. Provider-level scan entry points collect each registered matching profile.
+The [source settings contract](desktop-app-and-settings.md#generalized-session-profiles)
+owns editing, persistence and reconnect rules.
 
 Current external-access foundation:
 
@@ -397,9 +414,11 @@ Checkpoint records are versioned, user-confirmed resume states. Confirmation cap
   Importing or calling this contract performs no SQLite, filesystem, source,
   connector, network, model, embedding, or maintenance work.
 - One Episode corresponds only to an eligible primary work Session. Its opaque
-  key is derived from a length-delimited stable source key and source-native
+  key is derived from a length-delimited numeric source ID and source-native
   Session ID; local row ID is carried only as the current `/sessions/{id}`
-  navigation destination. No Episode table or migration exists.
+  navigation destination. No Episode table exists. The source-PK upgrade converts
+  retained assertion boundaries for existing Sessions; assertion IDs and history
+  remain unchanged.
 - Observation time, activity, lifecycle, closure reason, and authority remain
   separate descriptor fields. `sessions.ended_at` may extend the observation
   bound but cannot infer lifecycle closure.
@@ -645,7 +664,7 @@ contract: [SPEC-0096](../../plans/spec/spec-0096-auto-work-inspection.md).
   graphical viewport yields to the server lineage. Renderer failure does the
   same while leaving controls disabled and Trace navigable.
 
-Original Claude and Codex JSONL remains the authoritative Session source. LocalBrain stores normalized searchable text, selected metadata, source paths, source line numbers, and deterministic IDs so the index can be rebuilt. Provider-native event and Usage identities are additionally source-key scoped when a noncanonical source such as Codex Company reuses the Codex adapter, preventing globally keyed descendants from colliding while preserving existing personal Codex IDs.
+Original Claude and Codex JSONL remains the authoritative Session source. LocalBrain stores normalized searchable text, selected metadata, source paths, source line numbers, and deterministic IDs so the index can be rebuilt. New provider-native event and Usage identities are scoped by the numeric Source ID when profiles share an adapter. Re-ingestion matches retained native unique keys to preserve existing event and Usage PKs; the one-time upgrade may read old string keys solely to migrate dependent references.
 
 ### Session Eligibility
 
@@ -678,15 +697,15 @@ Each new Usage Record also freezes its first-observation Project attribution. A 
 
 Activity time is derived separately from usage and cost. Valid Activity Event timestamps form per-Session segments: a gap of exactly 30 minutes remains continuous, while a greater gap starts a new segment. Segments end at the last observed event, are clipped with inclusive-start/exclusive-end range boundaries, and are merged across concurrent Sessions before estimated active seconds and the longest active segment are calculated. Observed Session span remains a separate first-to-last-event value. Single-event segments contribute zero inferred duration, and no value is extended to the current time. Local day and Monday-week boundaries use an explicit IANA timezone.
 
-The Sessions Dashboard read model normalizes `view`, `source`, `metric`, `from`, and `to` GET state before querying Usage Records. Its accepted Source options are loaded in Source-ID order from registered Claude/Codex adapter sources, with `All` first; an unknown stable key falls back to `All`. Exact facts use `sources.kind`, while `provider_kind` remains only the adapter semantic for rules such as Claude synthetic exclusion and may be shared by personal Codex and Codex Company. Daily uses 30 inclusive local days, Weekly uses 12 Monday-based local weeks, and Monthly uses separate monthly buckets from the earliest eligible real-model usage date. Legacy `view=cumulative` links still produce monthly running totals but are absent from the visible range control. Valid paired custom dates replace only the bounds; malformed, partial, or reversed pairs retain the selected view, source, and metric while falling back to the view default. Token and priced-cost totals include direct real-model records, including maintenance and subsession records, while the usage-linked Session denominator includes only primary work Sessions. Claude records whose raw model is exactly `<synthetic>` remain persisted but are removed at the dashboard query boundary from dates, totals, coverage, breakdowns, and Session counts. The same boundary excludes Codex `last_token_usage` rows with zero request components and a source total that only repeats earlier history; those rows remain in the database. Records without usable timestamps remain explicit history limitations. Unsupported or incomplete pricing never becomes zero: the cost value is unavailable when none can be priced and carries a compact partial indicator when only some records can be priced.
+The Sessions Dashboard read model normalizes `view`, `source`, `metric`, `from`, and `to` GET state before querying Usage Records. Its accepted Source options are loaded in configured TOML order from registered Claude/Codex profiles, with `All` first; an unknown ID falls back to `All`. Old nonnumeric source-key links fall back to `All`. Exact filters use `sources.id`, while `provider_kind` remains only the adapter semantic for rules such as Claude synthetic exclusion and may be shared by personal Codex and Codex Company. Daily uses 30 inclusive local days, Weekly uses 12 Monday-based local weeks, and Monthly uses separate monthly buckets from the earliest eligible real-model usage date. Legacy `view=cumulative` links still produce monthly running totals but are absent from the visible range control. Valid paired custom dates replace only the bounds; malformed, partial, or reversed pairs retain the selected view, source, and metric while falling back to the view default. Token and priced-cost totals include direct real-model records, including maintenance and subsession records, while the usage-linked Session denominator includes only primary work Sessions. Claude records whose raw model is exactly `<synthetic>` remain persisted but are removed at the dashboard query boundary from dates, totals, coverage, breakdowns, and Session counts. The same boundary excludes Codex `last_token_usage` rows with zero request components and a source total that only repeats earlier history; those rows remain in the database. Records without usable timestamps remain explicit history limitations. Unsupported or incomplete pricing never becomes zero: the cost value is unavailable when none can be priced and carries a compact partial indicator when only some records can be priced.
 
-The rendered Sessions Dashboard uses the existing Usage Record table directly, without a materialized aggregate or separate snapshot database. Its `All` query uses the `(occurred_at, id)` index; source-scoped queries retain the `(source_id, occurred_at)` index. SQL limits candidate rows to the selected UTC dates plus adjacent source dates, then Python applies the exact inclusive-start/exclusive-end UTC bounds so source offsets do not change selection. A narrow SQL probe includes unusual or unusable timestamps outside that indexed window for the history limitation state; the two ordered cursors are merged without loading or counting records twice. Monthly's earliest-date lookup reads index-ordered candidates only through the offset-safe earliest window. The rendered route streams selected rows and computes summary, history, and composition in one pass without retaining a selected-row list. The full compatibility read model still materializes its rows for MTD and price-snapshot details but uses the same selected-range projection. The rendered route omits unshown activity-time, MTD, projection, freshness, and price-snapshot detail calculations.
+The rendered Sessions Dashboard uses the existing Usage Record table directly, without a materialized aggregate or separate snapshot database. Its `All` query uses the `(occurred_at, id)` index; source-scoped queries retain the `(source_id, occurred_at)` index. SQL limits candidate rows to the selected UTC dates plus adjacent source dates, then Python applies the exact inclusive-start/exclusive-end UTC bounds so source offsets do not change selection. A narrow SQL probe includes unusual or unusable timestamps outside that indexed window for the history limitation state; the two ordered cursors are merged without loading or counting records twice. Monthly's earliest-date lookup reads index-ordered candidates only through the offset-safe earliest window. The rendered route streams selected rows and computes summary, history, and composition in one pass without retaining a selected-row list. After accumulating overall values and history, the shared projection admits only `session_class=work` records to Project groups and their compatible share denominator; work subsessions remain included. Maintenance is excluded before group identity, ordering, latest activity and evidence are derived. Source/Model keep all eligible records. The full compatibility read model still materializes its rows for MTD and price-snapshot details but uses the same selected-range projection. The rendered route omits unshown activity-time, MTD, projection, freshness, and price-snapshot detail calculations.
 
 For every default or custom range, history buckets start and end at the first and last buckets whose selected metric has a positive value. The same rule applies to All and every registered source, source/metric/view switches, date changes, and direct or history navigation, across Daily, Weekly, Monthly, and legacy Cumulative views. The requested start and end dates continue to govern row selection, totals, date inputs, and URL state; only the rendered history bounds are shortened. Empty buckets between those endpoints remain visible to preserve calendar gaps. Default Daily and Weekly query windows remain 30 inclusive local days and 12 Monday-based local weeks, while their rendered bucket counts follow the selected data. If the selected metric has no positive bucket, its existing unavailable or zero-history behavior applies. Daily axis labels mark the first and last rendered buckets and the 1st and 15th of each visible month; Weekly and Monthly retain their regular bucket labels with both endpoints.
 
 Cost is the default `metric` when the query parameter is absent or invalid. The visible metric control orders Cost before Tokens. History retains Decimal values for bar height, aggregation, and accessible detail while its bar-top display rounds to whole dollars or compact whole token units; positive costs below one dollar display `<$1`.
 
-The same read model normalizes `breakdown=source|model|project`. It groups by stable source key with configured display name and separate provider cue, normalized model while retaining raw identities, or the immutable Usage Record Project key; current workspace joins may enable a browse link but never change a historical group. Personal and company Codex therefore remain separate source rows. Compatible shares use the selected supported token total or priced-cost total, and the `All` compatible total equals its source-row sum. The first eight ranked groups remain visible and additional groups use native disclosure. While expanded, the same summary control follows the additional rows, placing `Show less` at the bottom of the composition table; collapsing returns `Show N more` below the initial eight rows. Pointer and keyboard disclosure behavior remains native and works without JavaScript. Repeated hidden column headings stay anchored to their own cells so the expanded table's horizontal overflow remains inside its local scroller. Aggregate freshness consumes the persistent latest FEAT-0068 source attempt, success, status, and bounded error plus source-file stale/error evidence. Completed/empty is current; unavailable, configuration error, or scan failure requires attention; legacy rows without a source-level result retain file-status fallback. Previously calculated records remain visible and the last source success remains distinct from the failed attempt.
+The same read model normalizes `breakdown=source|model|project`. It groups by numeric source ID with configured display name and profile color, normalized model while retaining raw identities, or the immutable Usage Record Project key; current workspace joins may enable a browse link but never change a historical group. Personal and company Codex therefore remain separate source rows. Compatible shares use the selected supported token total or priced-cost total, and the `All` compatible total equals its source-row sum. The first eight ranked groups remain visible and additional groups use native disclosure. While expanded, the same summary control follows the additional rows, placing `Show less` at the bottom of the composition table; collapsing returns `Show N more` below the initial eight rows. Pointer and keyboard disclosure behavior remains native and works without JavaScript. Repeated hidden column headings stay anchored to their own cells so the expanded table's horizontal overflow remains inside its local scroller. Aggregate freshness consumes the persistent latest FEAT-0068 source attempt, success, status, and bounded error plus source-file stale/error evidence. Completed/empty is current; unavailable, configuration error, or scan failure requires attention; legacy rows without a source-level result retain file-status fallback. Previously calculated records remain visible and the last source success remains distinct from the failed attempt.
 
 The read model retains model-group Session evidence metadata for compatibility, but the composition table does not render an evidence column. A single-Session destination is exact only when a model group contains one distinct primary work Session in the selected usage rows. The Sessions inventory has source and current-workspace filters, not a model-usage filter, so the read model does not generate an inventory URL for model groups with multiple or no primary work Sessions.
 
@@ -694,19 +713,29 @@ Current-month projection remains a non-persisted compatibility calculation in th
 
 ### Synchronization And Session Inventory Read Models
 
-The Sessions inventory owns a Session-only incremental synchronization action. It scans every validated source in the ordered private Session-source registry—currently Claude, personal Codex, and Codex Company—regardless of the selected inventory filter, and does not scan Local Context sources. Each accepted file carries independent Session-projection, Usage-normalizer, and generalized-reference versions. A version mismatch reparses the source files needed by that concern but writes only the owned derived lane; a natural file change, missing Session mapping, forced scan, or eligibility repair still refreshes every affected lane. Each source has an independent transaction, source-file set, stale-deletion boundary, and persistent latest attempt/success/status/error health. Unavailable or invalid sources skip stale reconciliation and retain their normalized data; an unexpected failure rolls back only that source. The existing JSON API returns a bounded per-source report plus complete, partial, or failed aggregate outcome. An additive NDJSON endpoint emits bounded source key/label, repair kinds, and throttled file counts to the same Sessions result region; it emits no paths or content, and callback/display failure cannot change synchronization. The Sources inventory owns the wider scan that appends every enabled Local Context root without weakening those Session-source commit boundaries. Both web actions retain the source-file freshness check. An otherwise-current source is reparsed only when its versioned Atlassian evidence scan or enabled configured-Site fingerprint is missing or changed; once all owned contracts are current, the source is skipped.
+The Sessions inventory owns a Session-only incremental synchronization action. It scans every validated source in the ordered private Session-source registry—the user’s enabled Codex/Claude profiles—regardless of the selected inventory filter, and does not scan Local Context sources. Each accepted file carries independent Session-projection, Usage-normalizer, and generalized-reference versions. A version mismatch reparses the source files needed by that concern but writes only the owned derived lane; a natural file change, missing Session mapping, forced scan, or eligibility repair still refreshes every affected lane. Each source has an independent transaction, source-file set, stale-deletion boundary, and persistent latest attempt/success/status/error health. Unavailable or invalid sources skip stale reconciliation and retain their normalized data; an unexpected failure rolls back only that source. The JSON request API queues or joins the common collector; its status API exposes the bounded per-source report plus complete, partial, or failed aggregate outcome. An additive NDJSON endpoint emits bounded source ID/label, repair kinds, and throttled file counts to the same Sessions result region; it emits no paths or content, and callback/display failure cannot change synchronization. The development-web Sources inventory owns the wider scan that appends every enabled Local Context root without weakening those Session-source commit boundaries. Both web actions retain the source-file freshness check. An otherwise-current source is reparsed only when its versioned Atlassian evidence scan or enabled configured-Site fingerprint is missing or changed; once all owned contracts are current, the source is skipped.
+
+The shared backend schedules Session and Local Context collection independently,
+defaulting to 10 and 30 minutes after each domain's completion. The Sync settings
+use 10/20/30/60-minute or Off choices and preserve existing saved intervals.
+Manual requests and multiple backends share one writer lock and coalesce pending
+work. Each domain's latest health lives outside the primary DB; per-source/file
+state stays in the registry. Background collection does not reload the reading
+surface or add a status banner. The existing Sessions manual action remains.
+See [the common runtime contract](desktop-app-and-settings.md); shared scheduling
+checks do not establish simultaneous native/web startup acceptance.
 
 Sessions browsing derives its ordered peer source controls from the same registry
-and uses the stable source key, never provider kind, as GET and query identity.
+and uses the numeric source ID, never provider kind, as GET and query identity.
 `all` plus each source-specific view share one primary-work/primary-role
 denominator across headline count, inventory, pagination, and Project grouping;
-the inventory adds no timestamp cutoff. Unknown source keys and missing workspace
+the inventory adds no timestamp cutoff. Unknown source IDs and missing workspace
 IDs normalize to a valid URL while preserving the other valid scope. Ordinary
-inventory and Pinned cards expose source-specific `CL`, `CX`, or `CC` cues with
+inventory and Pinned cards expose provider `CL` or `CX` cues with
 the configured display label in accessible text instead of repeating it visibly.
 Detail headings and normalized or lazy Subsession projections derive the same
-cue and provenance class from stable source identity rather than shared provider
-kind. Their configured source display label remains in accessible cue text rather
+provider cue and the registered profile’s accessible name; numeric source IDs
+continue to identify filters and data. Their configured source display label remains in accessible cue text rather
 than being repeated visibly in detail headings or parent-detail Subsession rows.
 The child projection carries the existing `user_message_count` beside
 `event_count`; a lazy Claude child derives the same question count from its
@@ -862,7 +891,7 @@ Scanner persists source-scoped evidence during changed-file ingestion, and Sessi
 
 The Insights database projection groups all observed evidence once per source, native Session and normalized skill, independently of requests and event count. Its compatible fields carry Session counts and latest admitted reference times under the ledger contract. GET does not reread transcripts or join current Sessions for row details, and Usage & Cost remains independent. This measures use/reference reach rather than successful application.
 
-The same Insights route separately browses `personal_insight_runs`. A submitted question or discovery request freezes at most 100 eligible primary-work Sessions, 300 excerpts, and 120,000 excerpt characters into a private evidence manifest. The current versioned core supplies all eleven detailed playbooks and selects a finding type from the owner's goal and observed friction, rather than excluding types through lexical cues. The exact prompt, core/playbook versions and digests, and report-v3 JSON schema are frozen for that Run; historical core v2/v3 keeps the v2 result shape. Additive eligible-message positions and counts allow the validator to reject conversation requests for fully supplied messages. Reports explain candidate/type selection and show frozen source, count, time, and truncation coverage. Conversation requests are rendered from validated missing-message targets; no automatic expansion or paid retry occurs. Codex CLI uses the Run's frozen local `CODEX_HOME` profile, no native Session persistence, and no model tools, so the analysis conversation does not enter ordinary Session evidence or feed later analysis. The home is chosen from `LOCALBRAIN_INSIGHT_CODEX_HOME`, `CODEX_HOME`, an existing `~/.codex-company`, or `~/.codex`, in that order. A validated result has at most three findings, an explicit no-finding outcome, or a bounded request for more evidence. Findings must cite IDs from the frozen manifest; recurrence requires independent Sessions. The Run stores CLI-observed usage before report validation and retains the private validated value, Markdown report, and source excerpts outside Git. `personal_insight_usage.py` projects one latest usage summary per Run into canonical Usage Records using a metadata-only Maintenance Session with external identity `localbrain-insight:<Run ID>`. This accounting parent contains no messages, events, workspace, or search entry and remains excluded from work-Session counts and future analysis. Source attribution matches the frozen Codex home to the registered sessions root; Project attribution is unassigned because execution occurs in the private Run artifact directory, not an originating work repository. New Runs explicitly select Standard service tier. Historical unmarked Runs use a labeled default-tier assumption. Input includes cache reads, so normalization subtracts cached input before pricing it separately; reasoning stays within output. Aggregate inputs above a request-price threshold remain partial because request-level context is unavailable. Failure, cancellation, and interruption preserve any emitted usage; startup can recover retained summaries or terminal stream evidence without a provider call. Stable identities and frozen snapshots prevent replay double counting. It never starts implementation work. Opening Insights, downloading a report, or syncing a source starts no model Run. The Usage & Cost opening query remains independent of this path.
+The same Insights route separately browses `personal_insight_runs`. A submitted question or discovery request freezes at most 100 eligible primary-work Sessions, 300 excerpts, and 120,000 excerpt characters into a private evidence manifest. The current versioned core supplies all eleven detailed playbooks and selects a finding type from the owner's goal and observed friction, rather than excluding types through lexical cues. The exact prompt, core/playbook versions and digests, and report-v3 JSON schema are frozen for that Run; historical core v2/v3 keeps the v2 result shape. Additive eligible-message positions and counts allow the validator to reject conversation requests for fully supplied messages. Reports explain candidate/type selection and show frozen source, count, time, and truncation coverage. Conversation requests are rendered from validated missing-message targets; no automatic expansion or paid retry occurs. Codex CLI uses the Run's frozen local `CODEX_HOME` profile, no native Session persistence, and no model tools, so the analysis conversation does not enter ordinary Session evidence or feed later analysis. The home is chosen from `LOCALBRAIN_INSIGHT_CODEX_HOME`, `CODEX_HOME`, an existing `~/.codex-company`, or `~/.codex`, in that order. A validated result has at most three findings, an explicit no-finding outcome, or a bounded request for more evidence. Findings must cite IDs from the frozen manifest; recurrence requires independent Sessions. The Run stores CLI-observed usage before report validation and retains the private validated value, Markdown report, and source excerpts outside Git. `personal_insight_usage.py` projects one latest usage summary per Run into canonical Usage Records using a metadata-only Maintenance Session with external identity `localbrain-insight:<Run ID>`. This accounting parent contains no messages, events, workspace, or search entry and remains excluded from work-Session counts and future analysis. Source attribution matches the frozen Codex home to the registered sessions root; Project attribution is unassigned because execution occurs in the private Run artifact directory, not an originating work repository. The dashboard excludes this Maintenance accounting from Project composition while retaining it in overall usage, history and Source/Model. Frozen attribution stays unchanged. New Runs explicitly select Standard service tier. Historical unmarked Runs use a labeled default-tier assumption. Input includes cache reads, so normalization subtracts cached input before pricing it separately; reasoning stays within output. Aggregate inputs above a request-price threshold remain partial because request-level context is unavailable. Failure, cancellation, and interruption preserve any emitted usage; startup can recover retained summaries or terminal stream evidence without a provider call. Stable identities and frozen snapshots prevent replay double counting. It never starts implementation work. Opening Insights, downloading a report, or syncing a source starts no model Run. The Usage & Cost opening query remains independent of this path.
 
 Session branch metadata is stored per Session from authoritative JSONL. Workspaces retain the currently discovered canonical `git_root` of the containing repository and do not store a branch value; historical Project attribution belongs to Usage Record snapshots instead.
 

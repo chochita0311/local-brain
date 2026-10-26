@@ -42,11 +42,15 @@ def fixture(root):
     data.mkdir(parents=True)
     config = Settings(data, data / "localbrain.db", root / "context", root / "claude", root / "codex",
                       20, "Asia/Seoul", cache_dir=root / "cache", development_dir=root / "evidence")
+    config.codex_root.mkdir()
+    from localbrain.preferences import toml_text
+    (data / "session-sources.toml").write_text(toml_text({"schema_version": 2, "session_sources": [
+        {"source_id": 1, "provider_kind": "codex", "display_label": "synthetic-fixture", "root": str(config.codex_root)}]}))
     with sqlite3.connect(config.database_path) as connection:
         schema = Path(__file__).resolve().parents[1] / "src/localbrain/schema.sql"
         connection.executescript(schema.read_text())
-        connection.execute("INSERT INTO sources(id,kind,provider_kind,name,root_path) VALUES (1,'codex','codex','synthetic-fixture','/synthetic/sessions')")
-        connection.execute("INSERT INTO sources(id,kind,provider_kind,name,root_path) VALUES (2,'context','context','synthetic-fixture','/synthetic/context')")
+        connection.execute("INSERT INTO sources(id, provider_kind, name, root_path) VALUES (1, 'codex', 'synthetic-fixture', '/synthetic/sessions')")
+        connection.execute("INSERT INTO sources(id, provider_kind, name, root_path) VALUES (2, 'context', 'synthetic-fixture', '/synthetic/context')")
         connection.execute("INSERT INTO context_roots(id,path,label) VALUES (1,'/synthetic/context','synthetic-fixture')")
         for ident, title, body, kind, role in (
             (1, 'Atlas 모바일 앱', '모바일 앱의 로그인과 오프라인 저장을 구현했다. API 이름은 atlas.', 'work', 'primary'),
@@ -69,4 +73,5 @@ def fixture(root):
             (id,source_id,context_root_id,path,relative_path,title,body,size_bytes,mtime_ns,content_hash)
             VALUES (1,2,1,'/synthetic/context/mobile.md','mobile.md','모바일 앱 설계',
                     '오프라인에서도 입력한 기록을 저장하는 모바일 앱 설계 문서.',100,1791252000000000000,'synthetic')""")
+        connection.execute("UPDATE sources SET root_path=? WHERE provider_kind='codex'", (str(config.codex_root),))
     return config

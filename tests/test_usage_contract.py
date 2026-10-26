@@ -46,10 +46,10 @@ class UsageContractTests(unittest.TestCase):
         self.connection.execute("PRAGMA foreign_keys = ON")
         self.connection.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
         self.claude_source_id = self.connection.execute(
-            "INSERT INTO sources(kind, provider_kind, name, root_path) VALUES ('claude', 'claude', 'Claude', '/tmp/claude')"
+            "INSERT INTO sources(provider_kind, name, root_path) VALUES ('claude', 'Claude', '/tmp/claude')"
         ).lastrowid
         self.codex_source_id = self.connection.execute(
-            "INSERT INTO sources(kind, provider_kind, name, root_path) VALUES ('codex', 'codex', 'Codex', '/tmp/codex')"
+            "INSERT INTO sources(provider_kind, name, root_path) VALUES ('codex', 'Codex', '/tmp/codex')"
         ).lastrowid
 
     def tearDown(self):
@@ -107,7 +107,7 @@ class UsageContractTests(unittest.TestCase):
         )
         self.assertEqual(record.capability_state, "complete")
 
-        _store_session(self.connection, self.claude_source_id, "claude", parsed)
+        _store_session(self.connection, self.claude_source_id, parsed)
         stored = self.connection.execute("SELECT * FROM usage_records").fetchone()
         self.assertEqual(stored["calculation_state"], "priced")
         self.assertEqual(stored["estimated_cost_usd"], "0.001134000000")
@@ -245,7 +245,7 @@ class UsageContractTests(unittest.TestCase):
             (600, 200, 400, 80, 1200, 1200),
         )
 
-        _store_session(self.connection, self.codex_source_id, "codex", parsed)
+        _store_session(self.connection, self.codex_source_id, parsed)
         stored = self.connection.execute(
             """
             SELECT COUNT(*) AS records,
@@ -370,7 +370,7 @@ class UsageContractTests(unittest.TestCase):
         )
 
         parsed = parse_codex_session(path)
-        _store_session(self.connection, self.codex_source_id, "codex", parsed)
+        _store_session(self.connection, self.codex_source_id, parsed)
         rows = self.connection.execute(
             """
             SELECT estimated_cost_usd, price_snapshot_id, calculator_version
@@ -546,7 +546,7 @@ class UsageContractTests(unittest.TestCase):
         )
 
         parsed = parse_codex_session(path)
-        _store_session(self.connection, self.codex_source_id, "codex", parsed)
+        _store_session(self.connection, self.codex_source_id, parsed)
         row = self.connection.execute(
             """
             SELECT model_name, input_tokens, cache_read_tokens, output_tokens,
@@ -714,7 +714,7 @@ class UsageContractTests(unittest.TestCase):
             record.price_snapshot_id, "official-openai-gpt-5-5-fast-20260423-v1"
         )
 
-        _store_session(self.connection, self.codex_source_id, "codex", parsed)
+        _store_session(self.connection, self.codex_source_id, parsed)
         stored = self.connection.execute(
             "SELECT raw_model, model_name, price_snapshot_id FROM usage_records"
         ).fetchone()
@@ -755,14 +755,13 @@ class UsageContractTests(unittest.TestCase):
         _store_session(
             self.connection,
             self.codex_source_id,
-            "codex",
             parsed,
             usage_contract_version="codex-latest-turn-v1",
         )
         original = self.connection.execute(
             """
             SELECT price_snapshot_id, project_path_snapshot
-            FROM usage_records WHERE id = 'old-turn-record'
+            FROM usage_records WHERE source_record_id = 'turn-1'
             """
         ).fetchone()
 
@@ -804,23 +803,22 @@ class UsageContractTests(unittest.TestCase):
         _store_session(
             self.connection,
             self.codex_source_id,
-            "codex",
             parsed,
             usage_contract_version=CODEX_USAGE_CONTRACT_VERSION,
         )
         reconcile_usage_record_contract(
             self.connection,
             self.codex_source_id,
-            {"delta-1", "delta-2"},
+            {row[0] for row in self.connection.execute("SELECT id FROM usage_records WHERE source_record_id IN ('line-8','line-12')")},
         )
         rows = self.connection.execute(
             """
-            SELECT id, price_snapshot_id, project_path_snapshot, normalizer_version
-            FROM usage_records ORDER BY id
+            SELECT source_record_id, price_snapshot_id, project_path_snapshot, normalizer_version
+            FROM usage_records ORDER BY source_line
             """
         ).fetchall()
 
-        self.assertEqual([row["id"] for row in rows], ["delta-1", "delta-2"])
+        self.assertEqual([row["source_record_id"] for row in rows], ["line-8", "line-12"])
         self.assertTrue(
             all(
                 row["price_snapshot_id"] == CODEX_FAST_TIERED_PRICE_SNAPSHOT_ID
@@ -839,7 +837,6 @@ class UsageContractTests(unittest.TestCase):
         _store_session(
             self.connection,
             self.codex_source_id,
-            "codex",
             parsed,
             usage_contract_version=CODEX_USAGE_CONTRACT_VERSION,
         )
@@ -879,7 +876,6 @@ class UsageContractTests(unittest.TestCase):
         _store_session(
             self.connection,
             self.codex_source_id,
-            "codex",
             parsed,
             usage_contract_version="codex-latest-turn-v1",
         )
@@ -921,17 +917,16 @@ class UsageContractTests(unittest.TestCase):
             _store_session(
                 self.connection,
                 self.codex_source_id,
-                "codex",
                 parsed,
                 usage_contract_version=CODEX_USAGE_CONTRACT_VERSION,
             )
 
         rows = self.connection.execute(
-            "SELECT id, normalizer_version FROM usage_records"
+            "SELECT source_record_id, normalizer_version FROM usage_records"
         ).fetchall()
         self.assertEqual(
-            [(row["id"], row["normalizer_version"]) for row in rows],
-            [("retained-old-record", "codex-latest-turn-v1")],
+            [(row["source_record_id"], row["normalizer_version"]) for row in rows],
+            [("old", "codex-latest-turn-v1")],
         )
 
     def test_source_file_contract_version_participates_in_freshness(self):
@@ -1025,7 +1020,7 @@ class UsageContractTests(unittest.TestCase):
 
             imported, skipped, failed = _scan_session_source(
                 self.connection,
-                "claude",
+                self.claude_source_id,
                 "Claude",
                 root,
                 parse_claude_session,
@@ -1054,7 +1049,6 @@ class UsageContractTests(unittest.TestCase):
             _store_session(
                 self.connection,
                 self.claude_source_id,
-                "claude",
                 parsed,
                 usage_contract_version="claude-test-v1",
             )
@@ -1068,7 +1062,7 @@ class UsageContractTests(unittest.TestCase):
 
             imported, skipped, failed = _scan_session_source(
                 self.connection,
-                "claude",
+                self.claude_source_id,
                 "Claude",
                 root,
                 parse_claude_session,
@@ -1094,7 +1088,7 @@ class UsageContractTests(unittest.TestCase):
 
             imported, skipped, failed = _scan_session_source(
                 self.connection,
-                "claude",
+                self.claude_source_id,
                 "Claude",
                 root,
                 parse_claude_session,
@@ -1155,7 +1149,7 @@ class UsageContractTests(unittest.TestCase):
 
             imported, skipped, failed = _scan_session_source(
                 self.connection,
-                "claude",
+                self.claude_source_id,
                 "Claude",
                 root,
                 parse_then_append,
@@ -1173,7 +1167,7 @@ class UsageContractTests(unittest.TestCase):
 
             imported, skipped, failed = _scan_session_source(
                 self.connection,
-                "claude",
+                self.claude_source_id,
                 "Claude",
                 root,
                 parse_claude_session,
@@ -1228,8 +1222,8 @@ class UsageContractTests(unittest.TestCase):
             parent_external_id="parent",
             usage_records=[record],
         )
-        _store_session(self.connection, self.codex_source_id, "codex", parsed)
-        _store_session(self.connection, self.codex_source_id, "codex", parsed)
+        _store_session(self.connection, self.codex_source_id, parsed)
+        _store_session(self.connection, self.codex_source_id, parsed)
         self.assertEqual(
             self.connection.execute("SELECT COUNT(*) FROM usage_records").fetchone()[0],
             1,
@@ -1289,11 +1283,11 @@ class UsageContractTests(unittest.TestCase):
             events=[],
             usage_records=[unknown, malformed],
         )
-        _store_session(self.connection, self.codex_source_id, "codex", parsed)
+        _store_session(self.connection, self.codex_source_id, parsed)
         rows = {
-            row["id"]: row
+            row["source_record_id"]: row
             for row in self.connection.execute(
-                "SELECT id, calculation_state, estimated_cost_usd FROM usage_records"
+                "SELECT source_record_id, calculation_state, estimated_cost_usd FROM usage_records"
             )
         }
         self.assertEqual(rows["unknown"]["calculation_state"], "unpriced")
@@ -1329,7 +1323,7 @@ class UsageContractTests(unittest.TestCase):
             events=[],
             usage_records=[record],
         )
-        _store_session(self.connection, self.codex_source_id, "codex", parsed)
+        _store_session(self.connection, self.codex_source_id, parsed)
         original = self.connection.execute(
             "SELECT price_snapshot_id, estimated_cost_usd FROM usage_records"
         ).fetchone()
@@ -1348,7 +1342,7 @@ class UsageContractTests(unittest.TestCase):
             record.cache_read_tokens = 800
             record.source_total_tokens = 2400
             record.total_tokens = 2400
-            _store_session(self.connection, self.codex_source_id, "codex", parsed)
+            _store_session(self.connection, self.codex_source_id, parsed)
 
         updated = self.connection.execute(
             "SELECT price_snapshot_id, estimated_cost_usd FROM usage_records"

@@ -56,11 +56,11 @@ class SkillObservationTests(unittest.TestCase):
         self.connection.execute("PRAGMA foreign_keys = ON")
         self.connection.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
         self.connection.execute(
-            "INSERT INTO sources(kind, provider_kind, name, root_path) "
-            "VALUES ('codex', 'codex', 'Codex', '/synthetic')"
+            "INSERT INTO sources(provider_kind, name, root_path) VALUES ('codex', 'Codex', '/synthetic')"
         )
-        source_id = self.connection.execute(
-            "SELECT id FROM sources WHERE kind = 'codex'"
+        self.connection.executemany("INSERT INTO sources(id,provider_kind,name,root_path) VALUES (?,?,?,?)", [(2,"codex","Second","/synthetic/two"),(3,"claude","Third","/synthetic/three")])
+        source_id = self.source_id = self.connection.execute(
+            "SELECT id FROM sources WHERE provider_kind = 'codex'"
         ).fetchone()["id"]
         self.connection.execute(
             "INSERT INTO sessions(source_id, external_id, source_path, title) "
@@ -75,20 +75,20 @@ class SkillObservationTests(unittest.TestCase):
         old = parsed_session("old-session", "event-1")
         self.assertEqual(
             store_skill_observations(
-                self.connection, source_key="codex", provider_kind="codex", parsed=old
+                self.connection, source_id=1, provider_kind="codex", parsed=old
             ),
             1,
         )
         self.assertEqual(
             store_skill_observations(
-                self.connection, source_key="codex", provider_kind="codex", parsed=old
+                self.connection, source_id=1, provider_kind="codex", parsed=old
             ),
             0,
         )
         old.source_path = "/synthetic/moved/old-session.jsonl"
         self.assertEqual(
             store_skill_observations(
-                self.connection, source_key="codex", provider_kind="codex", parsed=old
+                self.connection, source_id=1, provider_kind="codex", parsed=old
             ),
             0,
         )
@@ -96,7 +96,7 @@ class SkillObservationTests(unittest.TestCase):
         self.assertEqual(
             store_skill_observations(
                 self.connection,
-                source_key="codex",
+                source_id=1,
                 provider_kind="codex",
                 parsed=resumed,
             ),
@@ -113,7 +113,7 @@ class SkillObservationTests(unittest.TestCase):
         self.assertEqual(
             store_skill_observations(
                 self.connection,
-                source_key="codex",
+                source_id=1,
                 provider_kind="codex",
                 parsed=renamed,
             ),
@@ -126,7 +126,7 @@ class SkillObservationTests(unittest.TestCase):
         self.assertEqual(
             store_skill_observations(
                 self.connection,
-                source_key="codex",
+                source_id=1,
                 provider_kind="codex",
                 parsed=resumed,
             ),
@@ -136,7 +136,7 @@ class SkillObservationTests(unittest.TestCase):
         new = parsed_session("new-session", "event-1")
         self.assertEqual(
             store_skill_observations(
-                self.connection, source_key="codex", provider_kind="codex", parsed=new
+                self.connection, source_id=1, provider_kind="codex", parsed=new
             ),
             1,
         )
@@ -214,14 +214,14 @@ class SkillObservationTests(unittest.TestCase):
             signal_kind="claude_skill_tool", occurred_at="2026-09-01T03:00:00Z",
         )
         store_skill_observations(
-            self.connection, source_key="codex", provider_kind="codex", parsed=first
+            self.connection, source_id=1, provider_kind="codex", parsed=first
         )
         store_skill_observations(
-            self.connection, source_key="codex-company", provider_kind="codex",
+            self.connection, source_id=2, provider_kind="codex",
             parsed=second,
         )
         store_skill_observations(
-            self.connection, source_key="claude", provider_kind="claude", parsed=third
+            self.connection, source_id=3, provider_kind="claude", parsed=third
         )
 
         ranking = skill_insights_data(self.connection)["ranking"]
@@ -230,8 +230,8 @@ class SkillObservationTests(unittest.TestCase):
         self.assertEqual(ranking[0]["last_used_at"], "2026-09-02T02:00:00Z")
         self.assertEqual(
             {row[0] for row in self.connection.execute(
-                "SELECT source_key FROM skill_observations")},
-            {"codex", "codex-company", "claude"},
+                "SELECT source_id FROM skill_observations")},
+            {1, 2, 3},
         )
 
     def test_equal_counts_use_stable_name_order_and_keep_missing_time_unknown(self):
@@ -246,7 +246,7 @@ class SkillObservationTests(unittest.TestCase):
         )
         for parsed in (zulu, alpha):
             store_skill_observations(
-                self.connection, source_key="codex", provider_kind="codex",
+                self.connection, source_id=1, provider_kind="codex",
                 parsed=parsed,
             )
         ranking = skill_insights_data(self.connection)["ranking"]
@@ -257,12 +257,12 @@ class SkillObservationTests(unittest.TestCase):
         child = parsed_session("work-child", "child-event")
         child.session_role = "subsession"
         self.assertEqual(store_skill_observations(
-            self.connection, source_key="codex", provider_kind="codex",
+            self.connection, source_id=1, provider_kind="codex",
             parsed=child,
         ), 1)
         child.session_class = "maintenance"
         self.assertEqual(store_skill_observations(
-            self.connection, source_key="codex", provider_kind="codex",
+            self.connection, source_id=1, provider_kind="codex",
             parsed=child,
         ), 0)
         self.assertEqual(self.connection.execute(
@@ -271,7 +271,7 @@ class SkillObservationTests(unittest.TestCase):
         maintenance = parsed_session("maintenance", "event-1")
         maintenance.session_class = "maintenance"
         self.assertEqual(store_skill_observations(
-            self.connection, source_key="codex", provider_kind="codex",
+            self.connection, source_id=1, provider_kind="codex",
             parsed=maintenance,
         ), 0)
         self.assertIsNone(skill_insights_data(self.connection)["top"])
@@ -279,7 +279,7 @@ class SkillObservationTests(unittest.TestCase):
                          "not_scanned")
 
         source_id = self.connection.execute(
-            "SELECT id FROM sources WHERE kind = 'codex'"
+            "SELECT id FROM sources WHERE provider_kind = 'codex'"
         ).fetchone()["id"]
         for path, version in (("/synthetic/current", CODEX_SESSION_CONTRACT_VERSION),
                               ("/synthetic/old", "old-version")):
@@ -325,7 +325,7 @@ class SkillObservationTests(unittest.TestCase):
 
             def scan():
                 return scanner._scan_session_source(
-                    self.connection, "codex", "Codex", root,
+                    self.connection, self.source_id, "Codex", root,
                     parse_codex_session, CODEX_USAGE_CONTRACT_VERSION,
                     provider_kind="codex",
                     session_contract_version=CODEX_SESSION_CONTRACT_VERSION,
@@ -360,8 +360,7 @@ class SkillObservationTests(unittest.TestCase):
             legacy.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
             legacy.execute("DROP TABLE skill_observations")
             legacy.execute(
-                "INSERT INTO sources(kind, provider_kind, name, root_path) "
-                "VALUES ('codex', 'codex', 'Codex', '/synthetic')"
+                "INSERT INTO sources(provider_kind, name, root_path) VALUES ('codex', 'Codex', '/synthetic')"
             )
             legacy.execute(
                 "INSERT INTO sessions(source_id, external_id, source_path, title) "
@@ -400,24 +399,24 @@ class SkillObservationTests(unittest.TestCase):
     def test_targeted_correction_invalidates_only_proven_native_event(self):
         old = parsed_session("old-session", "event-1", "event-2")
         store_skill_observations(
-            self.connection, source_key="codex", provider_kind="codex", parsed=old
+            self.connection, source_id=1, provider_kind="codex", parsed=old
         )
         self.connection.execute("DELETE FROM sessions WHERE external_id = 'old-session'")
         self.assertEqual(correct_skill_observation(
-            self.connection, source_key="codex", external_session_id="old-session",
+            self.connection, source_id=1, external_session_id="old-session",
             native_event_id="not-present",
         ), 0)
         self.assertEqual(correct_skill_observation(
-            self.connection, source_key="codex", external_session_id="old-session",
+            self.connection, source_id=1, external_session_id="old-session",
             native_event_id="event-1",
         ), 1)
         self.assertEqual(correct_skill_observation(
-            self.connection, source_key="codex", external_session_id="old-session",
+            self.connection, source_id=1, external_session_id="old-session",
             native_event_id="event-1",
         ), 0)
         self.assertEqual(skill_insights_data(self.connection)["top"]["use_count"], 1)
         self.assertEqual(store_skill_observations(
-            self.connection, source_key="codex", provider_kind="codex", parsed=old
+            self.connection, source_id=1, provider_kind="codex", parsed=old
         ), 0)
         self.assertEqual(skill_insights_data(self.connection)["top"]["use_count"], 1)
 

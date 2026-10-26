@@ -20,28 +20,27 @@ class IngestPolicyTests(unittest.TestCase):
         self.connection.execute("PRAGMA foreign_keys = ON")
         self.connection.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
         self.connection.execute(
-            "INSERT INTO sources(kind, provider_kind, name, root_path) "
-            "VALUES ('codex', 'codex', 'Codex', '/tmp')"
+            "INSERT INTO sources(provider_kind, name, root_path) VALUES ('codex', 'Codex', '/tmp')"
         )
         self.source_id = self.connection.execute(
-            "SELECT id FROM sources WHERE kind = 'codex'"
+            "SELECT id FROM sources WHERE provider_kind = 'codex'"
         ).fetchone()["id"]
 
     def tearDown(self):
         self.connection.close()
         self.path.unlink(missing_ok=True)
 
-    def test_source_key_is_stable_and_cannot_change_provider(self):
+    def test_source_pk_is_stable_and_cannot_change_provider(self):
         source_id = _upsert_source(
             self.connection,
-            "codex-company",
+            None,
             "codex",
             "Codex Company",
             Path("/tmp/codex-company"),
         )
         updated_id = _upsert_source(
             self.connection,
-            "codex-company",
+            source_id,
             "codex",
             "Company Codex",
             Path("/tmp/company-codex"),
@@ -55,10 +54,10 @@ class IngestPolicyTests(unittest.TestCase):
         self.assertEqual(row["name"], "Company Codex")
         self.assertEqual(row["root_path"], "/tmp/company-codex")
 
-        with self.assertRaisesRegex(ValueError, "already bound to provider 'codex'"):
+        with self.assertRaisesRegex(ValueError, "not registered with this provider"):
             _upsert_source(
                 self.connection,
-                "codex-company",
+                source_id,
                 "claude",
                 "Wrong Provider",
                 Path("/tmp/wrong-provider"),
@@ -69,10 +68,10 @@ class IngestPolicyTests(unittest.TestCase):
         ).fetchone()
         self.assertEqual(dict(unchanged), dict(row))
 
-    def test_same_external_id_is_isolated_by_source_key(self):
+    def test_same_external_id_is_isolated_by_source_pk(self):
         company_source_id = _upsert_source(
             self.connection,
-            "codex-company",
+            None,
             "codex",
             "Codex Company",
             Path("/tmp/codex-company"),
@@ -94,36 +93,34 @@ class IngestPolicyTests(unittest.TestCase):
         _store_session(
             self.connection,
             self.source_id,
-            "codex",
             parsed("/tmp/codex/shared.jsonl"),
             provider_kind="codex",
         )
         _store_session(
             self.connection,
             company_source_id,
-            "codex-company",
             parsed("/tmp/codex-company/shared.jsonl"),
             provider_kind="codex",
         )
         rows = self.connection.execute(
             """
-            SELECT sources.kind, sources.provider_kind, sessions.external_id
+            SELECT sources.id, sources.provider_kind, sessions.external_id
             FROM sessions
             JOIN sources ON sources.id = sessions.source_id
             WHERE sessions.external_id = 'shared-session-id'
-            ORDER BY sources.kind
+            ORDER BY sources.id
             """
         ).fetchall()
         self.assertEqual(
             [dict(row) for row in rows],
             [
                 {
-                    "kind": "codex",
+                    "id": self.source_id,
                     "provider_kind": "codex",
                     "external_id": "shared-session-id",
                 },
                 {
-                    "kind": "codex-company",
+                    "id": company_source_id,
                     "provider_kind": "codex",
                     "external_id": "shared-session-id",
                 },
@@ -153,7 +150,7 @@ class IngestPolicyTests(unittest.TestCase):
             index_policy="metadata_only",
             maintenance_run_id="lb-123456789abc",
         )
-        _store_session(self.connection, self.source_id, "codex", parsed)
+        _store_session(self.connection, self.source_id, parsed)
         session = self.connection.execute("SELECT * FROM sessions").fetchone()
         self.assertEqual(session["session_class"], "maintenance")
         self.assertEqual(session["event_count"], 0)
@@ -196,13 +193,11 @@ class IngestPolicyTests(unittest.TestCase):
         _store_session(
             self.connection,
             self.source_id,
-            "codex",
             marker_session("maintenance-one"),
         )
         with self.assertRaises(sqlite3.IntegrityError):
             _store_session(
                 self.connection,
                 self.source_id,
-                "codex",
                 marker_session("maintenance-two"),
             )

@@ -11,7 +11,7 @@ from typing import Any, Iterable
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 
-MANIFEST_VERSION = "personal-insight-evidence-v1"
+MANIFEST_VERSION = "personal-insight-evidence-v2"
 MAX_SESSIONS = 100
 MAX_EXCERPTS = 300
 MAX_EXCERPT_CHARS = 600
@@ -72,12 +72,12 @@ def _event_conditions(
 
 def _source_registry(connection: sqlite3.Connection) -> dict[str, str]:
     return {
-        row["kind"]: row["provider_kind"]
+        row["id"]: row["provider_kind"]
         for row in connection.execute(
             """
-            SELECT kind, provider_kind FROM sources
+            SELECT id, provider_kind FROM sources
             WHERE provider_kind IN ('claude', 'codex')
-            ORDER BY kind
+            ORDER BY id
             """
         )
     }
@@ -85,16 +85,16 @@ def _source_registry(connection: sqlite3.Connection) -> dict[str, str]:
 
 def _eligible_sessions(
     connection: sqlite3.Connection,
-    source_keys: list[str],
+    source_ids: list[int],
     event_where: str,
     event_params: list[str],
 ) -> list[dict[str, Any]]:
-    if not source_keys:
+    if not source_ids:
         return []
-    placeholders = ", ".join("?" for _ in source_keys)
+    placeholders = ", ".join("?" for _ in source_ids)
     rows = connection.execute(
         f"""
-        SELECT s.id AS session_id, src.kind AS source_key,
+        SELECT s.id AS session_id, src.id AS source_id,
                src.provider_kind,
                COUNT(e.id) AS message_count,
                SUM(CASE WHEN julianday(e.occurred_at) IS NULL THEN 1 ELSE 0 END)
@@ -108,12 +108,12 @@ def _eligible_sessions(
           AND s.session_role = 'primary'
           AND s.index_policy = 'full'
           AND src.provider_kind IN ('claude', 'codex')
-          AND src.kind IN ({placeholders})
+          AND src.id IN ({placeholders})
           AND {event_where}
-        GROUP BY s.id, src.kind, src.provider_kind
+        GROUP BY s.id, src.id, src.provider_kind
         ORDER BY s.id
         """,
-        [*source_keys, *event_params],
+        [*source_ids, *event_params],
     ).fetchall()
     return [dict(row) for row in rows]
 
@@ -125,7 +125,7 @@ def _spread_order(
     for row in rows:
         latest = _event_time(row["latest_event_at"])
         month = latest.astimezone(zone).strftime("%Y-%m") if latest else "unknown"
-        buckets[(row["source_key"], month)].append(row)
+        buckets[(row["source_id"], month)].append(row)
     for key, bucket in buckets.items():
         buckets[key] = deque(
             sorted(
@@ -245,7 +245,7 @@ def build_insight_evidence_manifest(
     mode: str,
     requested_at: datetime,
     question: str | None = None,
-    source_keys: Iterable[str] | None = None,
+    source_ids: Iterable[int] | None = None,
     date_from: str | None = None,
     date_to: str | None = None,
     timezone: str = "Asia/Seoul",
@@ -275,14 +275,14 @@ def build_insight_evidence_manifest(
         raise ValueError("discover does not accept a question")
     else:
         normalized_question = None
-    if source_keys is not None:
-        if isinstance(source_keys, str):
-            raise ValueError("source_keys must be a collection of source keys")
-        requested_sources = list(source_keys)
+    if source_ids is not None:
+        if isinstance(source_ids, str):
+            raise ValueError("source_ids must be a collection of numeric source IDs")
+        requested_sources = list(source_ids)
         if not requested_sources or any(
-            not isinstance(key, str) or not key for key in requested_sources
+            type(key) is not int or key <= 0 for key in requested_sources
         ):
-            raise ValueError("source_keys must be nonempty source keys")
+            raise ValueError("source_ids must be nonempty positive source IDs")
         requested_sources = sorted(set(requested_sources))
     else:
         requested_sources = None
@@ -309,7 +309,7 @@ def build_insight_evidence_manifest(
         else:
             unknown = set(requested_sources) - set(registry)
             if unknown:
-                raise ValueError("source_keys contains an unknown Claude/Codex source")
+                raise ValueError("source_ids contains an unknown Claude/Codex source")
             selected_sources = requested_sources
         eligible = _eligible_sessions(
             connection, selected_sources, event_where, event_params
@@ -327,7 +327,7 @@ def build_insight_evidence_manifest(
                   AND s.session_role = 'primary'
                   AND s.index_policy = 'full'
                   AND src.provider_kind IN ('claude', 'codex')
-                  AND src.kind IN ({placeholders})
+                  AND src.id IN ({placeholders})
                   AND e.event_type = 'message'
                   AND e.role IN ('user', 'assistant')
                   AND e.text IS NOT NULL AND length(trim(e.text)) > 0
@@ -350,7 +350,7 @@ def build_insight_evidence_manifest(
             for key in selected_sources
         }
         for row in eligible:
-            source = coverage_by_source[row["source_key"]]
+            source = coverage_by_source[row["source_id"]]
             source["eligible_sessions"] += 1
             source["eligible_messages"] += row["message_count"]
 
@@ -396,13 +396,13 @@ def build_insight_evidence_manifest(
                 if occurred:
                     selected_time = occurred.astimezone(datetime_timezone.utc)
                     selected_times.append(selected_time)
-                    selected_times_by_source[session["source_key"]].append(selected_time)
+                    selected_times_by_source[session["source_id"]].append(selected_time)
                 else:
                     unknown_selected_times += 1
-                    coverage_by_source[session["source_key"]]["selected_undated_messages"] += 1
+                    coverage_by_source[session["source_id"]]["selected_undated_messages"] += 1
                 events.append(
                     {
-                        "source_key": session["source_key"],
+                        "source_id": session["source_id"],
                         "provider_kind": session["provider_kind"],
                         "session_id": session["session_id"],
                         "event_id": event["id"],
@@ -425,7 +425,7 @@ def build_insight_evidence_manifest(
             if events:
                 included_sessions.append(
                     {
-                        "source_key": session["source_key"],
+                        "source_id": session["source_id"],
                         "provider_kind": session["provider_kind"],
                         "session_id": session["session_id"],
                         "session_url": f"/sessions/{session['session_id']}",
@@ -433,7 +433,7 @@ def build_insight_evidence_manifest(
                         "message_count": session["message_count"],
                     }
                 )
-                source = coverage_by_source[session["source_key"]]
+                source = coverage_by_source[session["source_id"]]
                 source["selected_sessions"] += 1
                 source["selected_excerpts"] += len(events)
 
@@ -464,7 +464,7 @@ def build_insight_evidence_manifest(
             "scope": {
                 "mode": mode,
                 "question": normalized_question,
-                "source_keys": selected_sources,
+                "source_ids": selected_sources,
                 "date_from": date_from,
                 "date_to": date_to,
                 "timezone": timezone,
@@ -509,7 +509,7 @@ def resolve_insight_evidence_reference(
 ) -> dict[str, Any]:
     """Review a frozen reference against current normalized source evidence."""
     required = {
-        "source_key", "provider_kind", "session_id", "event_id", "sequence",
+        "provider_kind", "session_id", "event_id", "sequence",
         "role", "occurred_at", "text_revision",
     }
     if not isinstance(reference, dict) or not required.issubset(reference):
@@ -520,7 +520,7 @@ def resolve_insight_evidence_reference(
     row = connection.execute(
         """
         SELECT s.id AS session_id, s.session_class, s.session_role, s.index_policy,
-               src.kind AS source_key, src.provider_kind,
+               src.id AS source_id, src.provider_kind,
                e.id AS event_id, e.event_type, e.sequence, e.role,
                e.occurred_at, e.text
         FROM sessions AS s
@@ -540,7 +540,7 @@ def resolve_insight_evidence_reference(
         row["session_class"] == "work"
         and row["session_role"] == "primary"
         and row["index_policy"] == "full"
-        and row["source_key"] == reference["source_key"]
+        and row["source_id"] == reference.get("source_id", row["source_id"])
         and row["provider_kind"] == reference["provider_kind"]
         and row["event_type"] == "message"
         and row["role"] in {"user", "assistant"}

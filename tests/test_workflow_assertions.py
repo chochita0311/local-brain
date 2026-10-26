@@ -31,8 +31,7 @@ class WorkflowAssertionTests(unittest.TestCase):
         self.connection.executescript(SCHEMA)
         self.connection.executescript(
             """
-            INSERT INTO sources(id, kind, provider_kind, name, root_path)
-            VALUES (1, 'codex', 'codex', 'Codex', '/synthetic/codex');
+            INSERT INTO sources(id, provider_kind, name, root_path) VALUES (1, 'codex', 'Codex', '/synthetic/codex');
             INSERT INTO workspaces(
                 id, canonical_path, display_name, git_root, exists_now
             ) VALUES (

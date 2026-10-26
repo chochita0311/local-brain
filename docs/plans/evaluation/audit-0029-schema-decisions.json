@@ -3,13 +3,13 @@
   "review_status": "complete",
   "manifest": {
     "path": "src/localbrain/schema-presentation.json",
-    "sha256": "177995de6118ea67a5ecaca2b4b1d745dea60607ef291e0d922f816d849d4b0d",
+    "sha256": "c3f2ea523efd49794988c6578ab4342eaa8eff060bc55696b2420000d5498bfe",
     "expected": {
       "tables": 46,
-      "columns": 521,
+      "columns": 523,
       "indexes": 51,
-      "physical_relations": 57,
-      "application_relations": 29
+      "physical_relations": 58,
+      "application_relations": 28
     }
   },
   "decision_defaults": {
@@ -37,7 +37,7 @@
   "table_decisions": {
     "skill_observations": {"decision": "keep", "risk": "high", "rationale": "Required retained source-backed skill evidence with source-scoped event replay guards and explicit correction state; ordinary Session or file removal must not erase historical observations, and missing native files require database-backup recovery."},
     "personal_insight_runs": {"decision": "keep", "risk": "high", "rationale": "Required independent analysis execution and report history with frozen settings, coverage, evidence and artifact references; database-plus-artifact recovery preserves past results without replaying a paid model call. Optional metadata-only usage accounting remains separate from ordinary work Sessions."},
-    "sources": {"decision": "keep", "risk": "low", "rationale": "Required stable parent registry for every imported source domain; scan producers and cross-domain consumers depend on its IDs and kind uniqueness."},
+    "sources": {"decision": "keep", "risk": "low", "rationale": "Required stable parent registry for every imported source domain; scan producers and cross-domain consumers depend on its numeric primary key. Provider, display name, color, path and order are separate attributes; no legacy string alias remains in the current schema."},
     "source_files": {"decision": "keep", "risk": "low", "rationale": "Required rebuildable fingerprint and retry ledger; it separates scan state from normalized descendants and drives idempotent ingestion."},
     "external_source_instances": {"decision": "keep", "risk": "high", "rationale": "Required non-rebuildable local identity for independently configured external access boundaries; provider capability observations and later source Items depend on its stable ID."},
     "external_source_capabilities": {"decision": "keep", "risk": "medium", "rationale": "Required latest rebuildable capability observation; its one-to-one lifecycle preserves fail-closed availability and policy-version evidence without mixing user-managed Source Instance identity."},
@@ -83,6 +83,9 @@
     "search_index": {"decision": "keep", "risk": "low", "rationale": "Required fully derived FTS projection; explicit lifecycle deletion and full rescan recovery make its application relations appropriate."}
   },
   "column_overrides": {
+    "sources.profile_color": {"decision": "keep", "risk": "low", "rationale": "User-selected profile presentation, constrained to the shared palette and projected from the settings owner; never a provider or identity key."},
+    "sources.profile_position": {"decision": "keep", "risk": "low", "rationale": "Projects registered TOML list order into shared source filters; retained unconfigured sources follow configured profiles without changing imported IDs."},
+    "context_roots.display_order": {"decision": "keep", "risk": "medium", "rationale": "Preserves user-controlled Local Context list order independently of imported document identity, content and scan status."},
     "activity_events.message_phase": {
       "decision": "keep",
       "risk": "low",
@@ -223,7 +226,7 @@
   "test_evidence": {
     "skill_observations": ["tests/test_skill_observations.py", "tests/test_automatic_skill_loads.py"],
     "personal_insight_runs": ["tests/test_personal_insight_run_guidance.py", "tests/test_personal_insight_usage.py", "tests/test_personal_insight_ui.py"],
-    "sources": ["tests/test_ingest_policy.py", "tests/test_session_contract.py", "tests/test_usage_dashboard.py"],
+    "sources": ["tests/test_ingest_policy.py", "tests/test_session_contract.py", "tests/test_usage_dashboard.py", "tests/test_source_profiles.py", "tests/test_session_source_settings.py"],
     "source_files": ["tests/test_session_contract.py", "tests/test_usage_contract.py"],
     "external_source_instances": ["tests/test_external_access.py"],
     "external_source_capabilities": ["tests/test_external_access.py"],
@@ -272,7 +275,7 @@
     "unused_fields": ["FEAT-0032 removed the supported unused Activity Event metadata field after all-null preflight"],
     "duplicated_facts": ["Session/event counts retained as rebuildable summary caches", "Session reference evidence stores only bounded observed identity and source location rather than copying Activity Event text or shared target content", "External capability JSON is the canonical minimal logical-operation projection rather than duplicated Source Instance identity", "The external-sync relational row is a bounded query projection derived atomically from the versioned detailed Run manifest", "The retained skill-load ledger owns observed native events; an analysis Run owns frozen execution artifacts, while canonical Usage Records own normalized accounting derived from its retained CLI summary."],
     "wrong_ownership": ["No existing table owner move proposed; all 45 manifest tables have exactly one Data Model subject owner, including the dedicated user-owned Workflow assertion ledger, Session pins, source-neutral Session reference evidence, and the Atlassian domain-first Site, explicit access binding, Item evidence, stable structure-reference identity/URL ownership, structure evidence, and local-classification extensions."],
-    "polymorphic_referential_gaps": ["All 29 application relations retained; stable Episode-key assertion resolution, add_link target validation, intentional historical unresolved links, and projection/source correlations—including the stable structure-reference Search projection—have explicit lifecycle rules", "Skill observations use optional current Source/Session lookup without cascading retained history. Each insight usage projection uses the frozen source and deterministic Run-derived Session external ID; it has no physical Run or maintenance-Run FK."],
+    "polymorphic_referential_gaps": ["All 28 current application relations retained; the Source relation of skill observations is now physical without deletion cascade; stable Episode-key assertion resolution, add_link target validation, intentional historical unresolved links, and projection/source correlations—including the stable structure-reference Search projection—have explicit lifecycle rules", "Skill observations require a physical Source reference without deletion cascade and optionally resolve a current Session without cascading retained history. Each insight usage projection uses the frozen source and deterministic Run-derived Session external ID; it has no physical Run or maintenance-Run FK."],
     "identifier_inconsistencies": ["INTEGER local identities and TEXT stable/source/run identities retained by authority boundary; polymorphic entity_id remains TEXT by contract"],
     "missing_or_redundant_indexes": ["FEAT-0030 removed three proven redundant names and added query-prefix indexes; FEAT-0045 adds external-sync prefixes; FEAT-0046 adds Site, Space, Item, URL, canonical-URL, and freshness query coverage; FEAT-0047 adds Item, Session-location, and Document-location evidence prefixes; FEAT-0050 adds the classification-first membership prefix used by Topic/Tag browse filters; FEAT-0062 adds Source-first Site-binding lookup coverage; FEAT-0072 adds Session-target grouping plus Document and Atlassian target lifecycle prefixes; FEAT-0083 adds Site/kind reference lookup, canonical/alias ownership, and reference/Session/Document evidence prefixes; FEAT-0088 adds source/target Episode-key chronology prefixes for active assertion overlay.", "Skill observations retain state/group/event-time and source/native-Session prefixes; analysis Runs retain created-time/ID and status/update-time indexes for history and active lifecycle lookup."],
     "timestamp_inconsistency": ["canonical-timestamp-contract"],

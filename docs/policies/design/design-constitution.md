@@ -247,7 +247,18 @@ Components consume semantic roles only. Color, type, spacing, radius, elevation,
   --surface-brand-soft: var(--color-brand-100);
   --surface-source-claude: var(--color-claude-100);
   --surface-source-codex: var(--color-codex-100);
-  --surface-source-codex-company: var(--color-blue-100);
+  --surface-profile-green: var(--color-codex-100);
+  --text-profile-green: var(--color-codex-700);
+  --surface-profile-blue: var(--color-blue-100);
+  --text-profile-blue: var(--color-blue-600);
+  --surface-profile-orange: var(--color-claude-100);
+  --text-profile-orange: var(--color-claude-700);
+  --surface-profile-yellow: var(--color-amber-100);
+  --text-profile-yellow: var(--color-amber-700);
+  --surface-profile-red: var(--color-red-100);
+  --text-profile-red: var(--color-red-700);
+  --surface-profile-gray: var(--color-neutral-400);
+  --text-profile-gray: var(--color-neutral-900);
 
   /* Text */
   --text-primary: var(--color-neutral-1000);
@@ -264,7 +275,6 @@ Components consume semantic roles only. Color, type, spacing, radius, elevation,
   --text-danger: var(--color-red-700);
   --text-source-claude: var(--color-claude-700);
   --text-source-codex: var(--color-codex-700);
-  --text-source-codex-company: var(--color-blue-600);
   --text-code-reading: var(--color-neutral-100);
   --text-code-muted: var(--color-neutral-550);
   --text-code-keyword: var(--color-code-blue-500);
@@ -286,7 +296,6 @@ Components consume semantic roles only. Color, type, spacing, radius, elevation,
   --border-danger: var(--color-red-700);
   --border-source-claude: var(--color-claude-700);
   --border-source-codex: var(--color-codex-700);
-  --border-source-codex-company: var(--color-blue-600);
   --focus-ring: var(--color-blue-600);
   --focus-ring-soft: var(--color-blue-100);
   --divider-row: var(--color-neutral-450);
@@ -416,7 +425,6 @@ Semantic provenance families are separate from status:
 |---|---|---|---|---|
 | Claude | `--surface-source-claude` | `--text-source-claude` | `--border-source-claude` | `CL` plus accessible configured label |
 | Codex | `--surface-source-codex` | `--text-source-codex` | `--border-source-codex` | `CX` plus accessible configured label |
-| Codex Company | `--surface-source-codex-company` | `--text-source-codex-company` | `--border-source-codex-company` | `CC` plus accessible configured label |
 | Other or unknown | `--surface-muted` | `--text-secondary` | `--border-subtle` | readable source-kind label |
 
 Provenance color identifies origin only. It never communicates health, success, failure, selection, confidence, or action priority. When source identity and a product state appear together, each keeps its own label and structural role.
@@ -594,6 +602,7 @@ Running and working indicators may animate with motion tokens. Under `prefers-re
 
 ### Cards And Panels
 
+- General-settings dropdowns share the same compact width, below-trigger menu, disclosure cue and selected checkmark. `--settings-select-width` caps the control at six touch-control height units (240px at the default scale); the control and matching menu shrink to the available pane width. Helper text keeps the wider form reading measure. The source-tool and Context-kind selectors share this below-trigger menu. Settings fields and action buttons use the desktop 32px control role, 40px at the narrow breakpoint, and centered action labels. The dedicated Sync pane groups Session and Local Context schedules, each with a single dropdown for 10/20/30/60 minutes, then Off. Sync sizes the same control family to the label, disclosure and selected marker (about 79px at the default scale), expanding for longer saved values; its menu matches that width. Off preserves the saved interval; choosing minutes enables that schedule. Omit the range/runtime help sentence.
 - Cards use `--surface-default`, `--border-subtle`, `--radius-card`, `--space-card`, and `--elevation-card`.
 - Panels use `--surface-default`, `--radius-panel`, and `--space-panel`; they may omit elevation when the border or surrounding surface already establishes containment.
 - Hover may move from resting to raised elevation without layout shift.
@@ -605,6 +614,37 @@ Running and working indicators may animate with motion tokens. Under `prefers-re
 - Dense tables use stable column zones, a subtle header surface, and row labels that remain available when secondary columns hide.
 - At the narrow breakpoint, a table either keeps the minimum meaningful columns or converts each row into a labeled card. Horizontal scrolling is reserved for data whose column comparison is essential.
 - Variable titles and summaries truncate only inside an explicit bounded zone. Full values remain available through the destination, disclosure, or accessible label.
+- Session profile and Local Context settings use separate, compact rows without an enclosing rounded
+  frame or shared dividers. Each row uses the white/default surface, subtle border
+  and resting card elevation. Keep the whole row untinted in hover, focus and drag;
+  control-level focus rings, row gaps, a visible
+  drag handle and a clear insertion line expose independent movement. While dragging,
+  the whole row follows the pointer over a reserved slot and neighboring rows
+  transition into position using the shared motion roles. Scroll the pane near its
+  edges; cancellation restores the original order. Keyboard movement uses the same
+  visual continuity. Reduced-motion preference removes decorative transitions.
+  Keep separate Edit and
+  Unregister actions per registered profile and a separate Add action. Row buttons
+  use compact label type and control-gap inline padding, retaining shared minimum
+  control heights; narrow rows place actions below the identity. Keep names and collection paths primary;
+  show errors and disabled registration state without repeating healthy machine
+  status. Add/Edit replaces the list with the shared form inside the same pane.
+  Make agent home the primary path and show its derived record location. Keep
+  custom session folders in a disclosure, open when an override exists; retain
+  same-source confirmation beside a changed collection path. Use Tool, Profile name,
+  Home, Custom session folder and Session folder labels. Red textual required markers
+  match actual input requirements. The name placeholder follows the selected tool,
+  without replacing entered names. Unregister uses a compact named confirmation
+  dialog with Cancel initially focused, explicit consequences and row-focus return.
+  Keep the underlying settings dialog inert while that confirmation is open.
+  Field labels, focus, validation and save/skip authority remain intact in first-use setup.
+- Local Context settings reuse the row identity/path/action family. Omit routine
+  document counts and healthy status; keep pending, unreadable, missing and failed
+  states visible. Add opens a separate in-pane editor with Cancel; leaving or
+  reclicking the category clears the draft, while wizard Back retains it. The optional
+  Notes action appears in the editor only when Notes is not registered. Context
+  unregister uses the same named in-app confirmation family from settings and the
+  explorer, preserving Cancel-first focus, busy/error behavior and focus return.
 - Repeated cards align footer metadata independently of variable body length.
 
 ### Navigation, Tabs, Chips, And Status Badges
@@ -613,6 +653,36 @@ Running and working indicators may animate with motion tokens. Under `prefers-re
 - Tabs represent mutually exclusive views; filters or tags use chips. A visual chip must not imply filtering unless it is interactive.
 - Status badges use only the six semantic status families from Section 6 and always include readable text.
 - Pills are limited to counts, compact filters, and status tokens; ordinary buttons and fields use `--radius-control`.
+
+### User-managed Session profile cues
+
+Profile identity is the existing numeric source ID. Provider controls CX/CL on
+record cues; user-selected palette color controls those cues across Sessions, pins,
+child/detail views, charts and Sessions Dashboard. Settings use a compact diagonal
+tag trigger and a vertical menu of horizontal tags with the point and hole on the
+left. Match the menu frame to the trigger background's left and right edges, and
+match the horizontal/diagonal painted glyph widths and both edges. Choices retain
+accessible color names and radio selection without color-name hover tooltips;
+a profile-colored outline and quiet fill indicate the selected color without a
+check column. Keyboard focus remains distinct from selection, including arrow-key
+navigation after a pointer open. Decorative tag glyphs pass pointer hits through
+to the owning button so WebKit does not infer keyboard focus from an SVG hit.
+The frame uses the
+trigger's control width (32px by default, 40px in the narrow layout); choices fill
+the space inside its border. Keep content-sized height and no inter-choice gap or
+padding. Fine-pointer choices are 24px high (control height minus control gap);
+coarse-pointer choices retain 40px height. This compact palette exception does not
+resize other controls. Short-window scrolling has no width-consuming scrollbar
+gutter; all choices remain reachable by scrolling and keyboard focus.
+Source filter toggles use saved names without color dots or badges; names distinguish
+same-provider profiles. TOML array order governs profile filters with All first.
+Color choices use the profile roles above. The compact palette opens directly below
+its tag trigger, above surrounding content; viewport space bounds its own scrolling.
+Outside interaction, Escape, category change and movement of the anchor close it.
+Up/Down and Home/End move through choices; Escape returns focus to the trigger.
+Selection closes the palette and preserves existing saved-color/readback behavior;
+reordering supports both a drag handle and keyboard, returns focus to that handle
+and preserves the active numeric filter.
 
 ### Search And Filters
 
@@ -635,6 +705,28 @@ Running and working indicators may animate with motion tokens. Under `prefers-re
 
 ### Empty, Loading, Error, And Working States
 
+- Settings use a compact centered dialog: `--settings-width` and `--settings-height`
+  cap it at 18 by 14 touch-control height units (720 by 560px at the default scale),
+  shrinking within the viewport. The desktop category rail uses four such units
+  (160px). The header and close action stay visible while the content pane owns
+  vertical scrolling. At the shared 700px narrow breakpoint, categories become a
+  horizontal scrollable row. Changing categories starts the new pane at its top;
+  controls and text size retain the shared geometry. Leaving or reclicking the Session-source category discards its unsaved editor and returns to its list; wizard Back retains its draft.
+  Save/error feedback is brought into view in the scrolling pane.
+- The About category uses a quiet identity row: existing LocalBrain mark, product
+  name and application version. Keep the shared settings shell and type roles;
+  omit operational paragraphs and reference-only licensing/build claims.
+- First-use setup extends the same compact settings dialog above the real main
+  surface. Keep a quiet header, a single content stage and a stable footer with
+  Previous/Next/Skip above four small progress dots. Current progress uses shape
+  and tone plus `aria-current` and accessible step names; dots are indicators,
+  not shortcuts past form saves. Use existing control, type, spacing and surface
+  tokens. Crossfade the content with a small directional offset using shared
+  motion roles, isolate both panels during the handoff and focus the new heading
+  afterward. Reduced motion swaps immediately. The main surface is inert before
+  initialization. Optional skip and Set up later remain visible; failed writes
+  retain the current step. At the shared narrow breakpoint, forms become one
+  column and the footer can wrap without horizontal overflow.
 - Empty states explain what is absent and provide one relevant recovery path.
 - Loading and working states remain inside the owning panel, list, or console; the persistent shell stays stable.
 - Errors preserve the user's entered data and show a retry or correction path when recovery is possible.
@@ -666,7 +758,8 @@ Running and working indicators may animate with motion tokens. Under `prefers-re
   scan path.
 - Pinned Sessions uses one compact workspace heading per group, places
   Git-backed Project groups before non-Git path groups, alphabetizes within
-  those sections, and keeps Session activity ordering inside each group. The
+  those sections by the displayed home-abbreviated path (fallback: workspace
+  label), and keeps Session activity ordering inside each group. The
   heading owns repeated Project/path context; each row retains source, title,
   optional Session branch, and activity date without an empty branch
   placeholder. Group boundaries and row boundaries have single ownership

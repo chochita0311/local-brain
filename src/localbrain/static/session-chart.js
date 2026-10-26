@@ -58,10 +58,11 @@
     const byId = new Map();
     const dated = [];
     const undated = [];
-    const dateLabel = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' });
-    const yearDate = new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-    const fullDate = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
-    const tickTime = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const timeZone = document.body.dataset.timezone || undefined;
+    const dateLabel = new Intl.DateTimeFormat(undefined, { timeZone, month: 'short', day: 'numeric' });
+    const yearDate = new Intl.DateTimeFormat(undefined, { timeZone, year: 'numeric', month: 'short', day: 'numeric' });
+    const fullDate = new Intl.DateTimeFormat(undefined, { timeZone, dateStyle: 'medium', timeStyle: 'short' });
+    const tickTime = new Intl.DateTimeFormat(undefined, { timeZone, month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     for (const record of records) {
       if (!Number.isSafeInteger(record.id) || record.id <= 0 || byId.has(record.id)) continue;
       const item = { ...record, pinned: pinnedIds.has(record.id), time: record.observed_at ? Date.parse(record.observed_at) : NaN };
@@ -380,7 +381,7 @@
       else motionTime = 0;
     }
     function sourceCue(item) {
-      return item.source_kind === 'codex-company' ? 'CC' : item.source_kind === 'codex' ? 'CX' : item.provider_kind === 'claude' ? 'CL' : item.source_name.slice(0, 2).toUpperCase();
+      return item.provider_kind === 'codex' ? 'CX' : item.provider_kind === 'claude' ? 'CL' : item.source_name.slice(0, 2).toUpperCase();
     }
     function pinIcon() {
       const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -403,8 +404,8 @@
       button.setAttribute('aria-controls', 'session-chart-preview');
       const cue = document.createElement('span');
       cue.className = 'session-chart-source';
-      cue.dataset.kind = item.source_kind;
-      cue.dataset.provider = item.provider_kind;
+      cue.dataset.profileId = item.source_id;
+      cue.dataset.profileColor = item.color;
       cue.setAttribute('aria-hidden', 'true');
       cue.textContent = sourceCue(item);
       const copy = document.createElement('span');
@@ -625,10 +626,10 @@
           const badge = button.querySelector('.session-chart-stack-count');
           badge.hidden = item.stack.length < 2;
           badge.textContent = item.stack.length;
-          const mixedSource = new Set(item.stack.map(peer => peer.source_kind)).size > 1;
+          const mixedSource = new Set(item.stack.map(peer => peer.source_id)).size > 1;
           const cue = button.querySelector('.session-chart-source');
-          cue.dataset.kind = mixedSource ? '' : item.source_kind;
-          cue.dataset.provider = mixedSource ? '' : item.provider_kind;
+          cue.dataset.profileId = mixedSource ? '' : item.source_id;
+          cue.dataset.profileColor = mixedSource ? 'gray' : item.color;
           cue.textContent = mixedSource ? '+' : sourceCue(item);
           button.querySelector('.session-chart-node-copy strong').textContent = item.stack.length > 1 ? `세션 ${item.stack.length}개` : item.title;
           const pinnedCount = item.stack.filter(peer => peer.pinned).length;
@@ -1156,6 +1157,14 @@
       }
       scheduleRender();
     }
+    document.addEventListener('localbrain-profiles-changed', event => {
+      const profiles = new Map(event.detail.sources.map(source => [source.id, source]));
+      for (const item of byId.values()) {
+        const profile = profiles.get(item.source_id);
+        if (profile) { item.source_name = profile.name; item.color = profile.color; }
+      }
+      updateUndated(); scheduleRender();
+    });
     initializeHomes(); buildProjectFilter(); updateUndated(); updatePreview(); resize(true);
     if (preferenceLoadFailed) showPreferenceError('load');
     if (canMigratePreference && projectPreference !== null) saveProjectPreference(true);

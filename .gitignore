@@ -39,3 +39,12 @@ playwright/.cache/
 *.p8
 *.p12
 *.mobileprovision
+
+# Standalone application build outputs (never user data).
+desktop/backend/
+desktop/src-tauri/target/
+desktop/src-tauri/gen/schemas/
+dist/
+
+desktop/ui/app-styles.css
+desktop/node_modules/

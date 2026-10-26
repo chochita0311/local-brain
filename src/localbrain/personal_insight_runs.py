@@ -173,7 +173,7 @@ def _open_private_binary(path: Path):
 
 def _evidence_lookup(manifest: dict) -> dict[str, dict]:
     return {
-        "{}:{}".format(event["source_key"], event["event_id"]): {
+        event["event_id"]: {
             **event, "session_id": session["session_id"]
         }
         for session in manifest["sessions"]
@@ -190,12 +190,12 @@ def _prompt(manifest: dict, guide_bundle: dict) -> str:
         "omissions": manifest["coverage"]["omission_reasons"],
         "sessions": [
             {
-                "source_key": session["source_key"],
+                "source_id": session["source_id"],
                 "session_id": session["session_id"],
                 "message_count": session.get("message_count"),
                 "events": [
                     {
-                        "evidence_id": "{}:{}".format(event["source_key"], event["event_id"]),
+                        "evidence_id": event["event_id"],
                         "role": event["role"],
                         "occurred_at": event["occurred_at"],
                         "excerpt": event["excerpt"],
@@ -249,7 +249,7 @@ def prepare_insight_run(connection, *, mode: str, question: str | None, runner: 
         **_runner_settings(choices[runner]), "guide": guide_metadata,
         "sampling_description": _sampling_description(manifest),
     }
-    runner_settings["usage_source_key"] = insight_usage_source(connection, runner_settings)["kind"]
+    runner_settings["usage_source_id"] = insight_usage_source(connection, runner_settings)["id"]
     run_id = "ins-" + uuid.uuid4().hex[:16]
     root = _run_root(run_id)
     root.parent.mkdir(parents=True, exist_ok=True, mode=0o700)

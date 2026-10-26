@@ -115,23 +115,11 @@ class UsageDashboardTests(unittest.TestCase):
         self.connection.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
         self.claude_id = self.connection.execute(
             """
-            INSERT INTO sources(
-                kind, provider_kind, name, root_path, last_scanned_at
-            ) VALUES (
-                'claude', 'claude', 'Claude', '/tmp/claude',
-                '2026-07-18T08:00:00Z'
-            )
-            """
+            INSERT INTO sources(provider_kind, name, root_path, last_scanned_at) VALUES ('claude', 'Claude', '/tmp/claude', '2026-07-18T08:00:00Z')"""
         ).lastrowid
         self.codex_id = self.connection.execute(
             """
-            INSERT INTO sources(
-                kind, provider_kind, name, root_path, last_scanned_at
-            ) VALUES (
-                'codex', 'codex', 'Codex', '/tmp/codex',
-                '2026-07-18T09:00:00Z'
-            )
-            """
+            INSERT INTO sources(provider_kind, name, root_path, last_scanned_at) VALUES ('codex', 'Codex', '/tmp/codex', '2026-07-18T09:00:00Z')"""
         ).lastrowid
 
     def tearDown(self):
@@ -141,7 +129,6 @@ class UsageDashboardTests(unittest.TestCase):
         _store_session(
             self.connection,
             self.claude_id,
-            "claude",
             parsed_session(
                 "claude-primary",
                 [
@@ -156,7 +143,6 @@ class UsageDashboardTests(unittest.TestCase):
         _store_session(
             self.connection,
             self.codex_id,
-            "codex",
             parsed_session(
                 "codex-primary",
                 [
@@ -170,7 +156,6 @@ class UsageDashboardTests(unittest.TestCase):
         _store_session(
             self.connection,
             self.codex_id,
-            "codex",
             parsed_session(
                 "codex-maintenance",
                 [usage_record("codex-maintenance", "2026-07-18T11:00:00Z")],
@@ -202,14 +187,7 @@ class UsageDashboardTests(unittest.TestCase):
     ):
         company_id = self.connection.execute(
             """
-            INSERT INTO sources(
-                kind, provider_kind, name, root_path, last_scanned_at,
-                last_scan_success_at, last_scan_status, last_scan_error
-            ) VALUES (
-                'codex-company', 'codex', 'Codex Company', '/tmp/codex-company',
-                '2026-07-18T10:00:00Z', ?, ?, ?
-            )
-            """,
+            INSERT INTO sources(provider_kind, name, root_path, last_scanned_at, last_scan_success_at, last_scan_status, last_scan_error) VALUES ('codex', 'Codex Company', '/tmp/codex-company', '2026-07-18T10:00:00Z', ?, ?, ?)""",
             (last_success, scan_status, scan_error),
         ).lastrowid
         for identity, session_class, session_role in (
@@ -220,7 +198,6 @@ class UsageDashboardTests(unittest.TestCase):
             _store_session(
                 self.connection,
                 company_id,
-                "codex-company",
                 parsed_session(
                     identity,
                     [usage_record(identity, "2026-07-18T10:00:00Z")],
@@ -271,7 +248,7 @@ class UsageDashboardTests(unittest.TestCase):
         self._seed_usage()
         result = usage_dashboard_data(
             self.connection,
-            source="claude",
+            source="1",
             timezone_name="UTC",
             today=date(2026, 7, 18),
         )
@@ -281,6 +258,26 @@ class UsageDashboardTests(unittest.TestCase):
             "1 of 1 usage record priced · trend estimate",
         )
         self.assertEqual(result["summary"][1]["detail"], "1 usage record")
+
+    def test_timezone_changes_daily_bucket_without_rewriting_usage(self):
+        timestamp = "2026-10-18T15:30:00Z"
+        _store_session(
+            self.connection, self.codex_id, parsed_session("timezone-boundary", [usage_record("timezone-boundary", timestamp)]),
+            provider_kind="codex",
+        )
+        before = [tuple(row) for row in self.connection.execute("SELECT * FROM usage_records")]
+        for zone, expected_day in (("UTC", date(2026, 10, 18)), ("Asia/Seoul", date(2026, 10, 19))):
+            with self.subTest(timezone=zone):
+                result = usage_dashboard_data(
+                    self.connection, timezone_name=zone, metric="tokens",
+                    from_value="2026-10-18", to_value="2026-10-19",
+                    today=date(2026, 10, 19),
+                )
+                nonzero = [row for row in result["history"] if row["value"] > 0]
+                self.assertEqual([row["date"] for row in nonzero], [expected_day])
+                self.assertEqual(result["aggregate"]["total_tokens"], 170)
+        after = [tuple(row) for row in self.connection.execute("SELECT * FROM usage_records")]
+        self.assertEqual(after, before)
 
     def test_registry_sources_keep_company_usage_independent_and_sum_to_all(self):
         self._seed_usage()
@@ -293,19 +290,19 @@ class UsageDashboardTests(unittest.TestCase):
         all_usage = usage_dashboard_data(self.connection, **common)
         per_source = {
             source: usage_dashboard_data(self.connection, source=source, **common)
-            for source in ("claude", "codex", "codex-company")
+            for source in ("1", "2", "3")
         }
-        company = per_source["codex-company"]
+        company = per_source["3"]
 
         self.assertEqual(
             [item["value"] for item in all_usage["controls"]["sources"]],
-            ["all", "claude", "codex", "codex-company"],
+            ["all", "1", "2", "3"],
         )
         self.assertEqual(company["scope"]["source_label"], "Codex Company")
         self.assertEqual(company["aggregate"]["total_tokens"], 510)
         self.assertEqual(company["aggregate"]["usage_record_count"], 3)
         self.assertEqual(company["aggregate"]["session_count"], 1)
-        self.assertEqual(per_source["codex"]["aggregate"]["total_tokens"], 510)
+        self.assertEqual(per_source["2"]["aggregate"]["total_tokens"], 510)
         for field in (
             "total_tokens",
             "estimated_cost",
@@ -333,12 +330,12 @@ class UsageDashboardTests(unittest.TestCase):
         source_rows = {
             row["key"]: row for row in all_usage["breakdown"]["rows"]
         }
-        self.assertEqual(set(source_rows), {"claude", "codex", "codex-company"})
-        self.assertEqual(source_rows["codex-company"]["label"], "Codex Company")
-        self.assertEqual(source_rows["codex-company"]["provider_kind"], "codex")
+        self.assertEqual(set(source_rows), {"1", "2", "3"})
+        self.assertEqual(source_rows["3"]["label"], "Codex Company")
+        self.assertEqual(source_rows["3"]["provider_kind"], "codex")
         self.assertEqual(
-            source_rows["codex-company"]["evidence_url"],
-            "/sessions?source=codex-company",
+            source_rows["3"]["evidence_url"],
+            "/sessions?source=3",
         )
         self.assertEqual(
             all_usage["breakdown"]["compatible_total_label"],
@@ -353,7 +350,7 @@ class UsageDashboardTests(unittest.TestCase):
         custom = usage_dashboard_data(
             self.connection,
             view="weekly",
-            source="codex-company",
+            source="3",
             metric="cost",
             breakdown="model",
             from_value="2026-07-01",
@@ -363,11 +360,11 @@ class UsageDashboardTests(unittest.TestCase):
         personal_url = next(
             item["url"]
             for item in custom["controls"]["sources"]
-            if item["value"] == "codex"
+            if item["value"] == "2"
         )
         for value in (
             "view=weekly",
-            "source=codex",
+            "source=2",
             "metric=cost",
             "breakdown=model",
             "from=2026-07-01",
@@ -383,7 +380,7 @@ class UsageDashboardTests(unittest.TestCase):
         )
         result = usage_dashboard_data(
             self.connection,
-            source="codex-company",
+            source="3",
             timezone_name="UTC",
             today=date(2026, 7, 18),
         )
@@ -402,7 +399,6 @@ class UsageDashboardTests(unittest.TestCase):
         _store_session(
             self.connection,
             self.claude_id,
-            "claude",
             parsed_session(
                 "synthetic-primary",
                 [synthetic_usage_record("synthetic-primary", "2026-06-01T09:00:00Z")],
@@ -411,7 +407,6 @@ class UsageDashboardTests(unittest.TestCase):
         _store_session(
             self.connection,
             self.claude_id,
-            "claude",
             parsed_session(
                 "haiku-subsession",
                 [
@@ -482,7 +477,7 @@ class UsageDashboardTests(unittest.TestCase):
 
         claude = usage_dashboard_data(
             self.connection,
-            source="claude",
+            source="1",
             timezone_name="UTC",
             today=date(2026, 7, 18),
         )
@@ -494,7 +489,7 @@ class UsageDashboardTests(unittest.TestCase):
         result = normalize_usage_scope(
             self.connection,
             view="weekly",
-            source="codex",
+            source="2",
             metric="cost",
             breakdown="model",
             from_value="2026-07-18",
@@ -504,7 +499,7 @@ class UsageDashboardTests(unittest.TestCase):
         )
         self.assertFalse(result["custom"])
         self.assertEqual(result["view"], "weekly")
-        self.assertEqual(result["source"], "codex")
+        self.assertEqual(result["source"], "2")
         self.assertEqual(result["metric"], "cost")
         self.assertEqual(result["breakdown"], "model")
         self.assertEqual(result["from_iso"], "2026-04-27")
@@ -523,7 +518,6 @@ class UsageDashboardTests(unittest.TestCase):
         _store_session(
             self.connection,
             self.codex_id,
-            "codex",
             parsed_session(
                 "future",
                 [usage_record("future", "2026-07-18T09:00:00Z", "future-model")],
@@ -548,7 +542,6 @@ class UsageDashboardTests(unittest.TestCase):
         _store_session(
             self.connection,
             self.codex_id,
-            "codex",
             parsed_session(
                 "aliased-model",
                 [
@@ -583,7 +576,7 @@ class UsageDashboardTests(unittest.TestCase):
                 project_name_snapshot = 'Original name',
                 project_path_snapshot = '/tmp/original',
                 attribution_basis = 'workspace_path'
-            WHERE id = 'record-claude-primary'
+            WHERE source_record_id = 'claude-primary'
             """,
             (workspace_id,),
         )
@@ -599,12 +592,85 @@ class UsageDashboardTests(unittest.TestCase):
         )
         labels = [row["label"] for row in project["breakdown"]["rows"]]
         self.assertIn("Original name", labels)
-        self.assertIn("Unassigned", labels)
+        self.assertIn("프로젝트 미지정", labels)
         snapshot = next(
             row for row in project["breakdown"]["rows"] if row["label"] == "Original name"
         )
         self.assertEqual(snapshot["evidence_url"], "/sessions?workspace={}".format(workspace_id))
         self.assertNotIn("Later rename", labels)
+
+    def test_project_composition_uses_work_usage_and_preserves_overall_usage(self):
+        home_key = "path:" + str(Path.home())
+        cases = (
+            ("home-work", "work", "primary", home_key, 100, "1", "09:00"),
+            ("project-work", "work", "primary", "git:/tmp/alpha", 200, "2", "09:10"),
+            ("project-child", "work", "subsession", "git:/tmp/alpha", 50, ".5", "09:20"),
+            ("unknown-work", "work", "primary", None, 50, ".5", "09:30"),
+            ("home-maintenance", "maintenance", "primary", home_key, 400, "4", "10:00"),
+            ("project-maintenance", "maintenance", "subsession", "git:/tmp/alpha", 500, "5", "10:10"),
+            ("unknown-maintenance", "maintenance", "primary", None, 1000, "10", "10:20"),
+            ("maintenance-only", "maintenance", "subsession", "path:/tmp/maintenance", 100, "1", "10:30"),
+        )
+        for identity, kind, role, key, tokens, cost, time in cases:
+            _store_session(self.connection, self.codex_id, parsed_session(
+                identity, [usage_record(identity, "2026-07-18T" + time + ":00Z")],
+                session_class=kind, session_role=role,
+            ))
+            self.connection.execute(
+                "UPDATE usage_records SET project_key = ?, project_name_snapshot = ?, "
+                "total_tokens = ?, estimated_cost_usd = ?, calculation_state = 'priced' WHERE source_record_id = ?",
+                (key, key, tokens, cost, identity),
+            )
+        before = [dict(row) for row in self.connection.execute("SELECT * FROM usage_records ORDER BY id")]
+        changes = self.connection.total_changes
+        for visible_only in (False, True):
+            for metric in ("tokens", "cost"):
+                for source in ("all", "2"):
+                    with self.subTest(visible_only=visible_only, metric=metric, source=source):
+                        options = dict(source=source, metric=metric, visible_only=visible_only,
+                                       timezone_name="UTC", today=date(2026, 7, 18))
+                        project = usage_dashboard_data(self.connection, breakdown="project", **options)
+                        rows = project["breakdown"]["rows"]
+                        self.assertEqual([row["key"] for row in rows], ["git:/tmp/alpha", home_key, "unassigned"])
+                        self.assertEqual([row["tokens"] for row in rows], [250, 100, 50])
+                        self.assertEqual([row["estimated_cost"] for row in rows], [Decimal("2.5"), Decimal("1"), Decimal(".5")])
+                        self.assertEqual([row["share_label"] for row in rows], ["62.5%", "25.0%", "12.5%"])
+                        self.assertEqual([row["usage_record_count"] for row in rows], [2, 1, 1])
+                        self.assertEqual([row["session_count"] for row in rows], [1, 1, 1])
+                        self.assertEqual(rows[0]["last_activity_at"].hour, 9)
+                        self.assertEqual(rows[0]["last_activity_at"].minute, 20)
+                        self.assertEqual(rows[2]["label"], "프로젝트 미지정")
+                        self.assertEqual(project["breakdown"]["compatible_total_label"], "400" if metric == "tokens" else "$4.00")
+                        self.assertEqual(project["aggregate"]["total_tokens"], 2400)
+                        self.assertEqual(project["aggregate"]["estimated_cost"], Decimal("24"))
+                        self.assertEqual(project["aggregate"]["session_count"], 3)
+                        for mode in ("source", "model"):
+                            other = usage_dashboard_data(self.connection, breakdown=mode, **options)
+                            for field in ("aggregate", "summary", "history", "month_to_date", "projection", "freshness"):
+                                self.assertEqual(project.get(field), other.get(field), field)
+                            self.assertEqual(sum(row["tokens"] for row in other["breakdown"]["rows"]), 2400)
+                        self.assertEqual(project["breakdown"]["title"], "By Project")
+                        self.assertEqual(project["controls"]["breakdowns"][2]["label"], "Project")
+        self.assertEqual(changes, self.connection.total_changes)
+        self.assertEqual(before, [dict(row) for row in self.connection.execute("SELECT * FROM usage_records ORDER BY id")])
+
+    def test_project_zero_and_unpriced_work_do_not_use_maintenance_cost(self):
+        for identity, kind in (("work", "work"), ("maintenance", "maintenance")):
+            _store_session(self.connection, self.codex_id, parsed_session(
+                identity, [usage_record(identity, "2026-07-18T09:00:00Z")], session_class=kind,
+            ))
+        for state, cost, expected in (("unpriced", None, "Unavailable"), ("priced", "0", "$0.0000")):
+            self.connection.execute(
+                "UPDATE usage_records SET calculation_state = ?, estimated_cost_usd = ? WHERE source_record_id = 'work'",
+                (state, cost),
+            )
+            for visible_only in (True, False):
+                data = usage_dashboard_data(self.connection, breakdown="project", metric="cost",
+                                            today=date(2026, 7, 18), visible_only=visible_only)
+                self.assertGreater(data["aggregate"]["estimated_cost"], 0)
+                self.assertEqual(data["breakdown"]["compatible_total_label"], expected)
+                self.assertEqual(data["breakdown"]["rows"][0]["cost_label"], expected)
+                self.assertIsNone(data["breakdown"]["rows"][0]["share"])
 
     def test_breakdown_cardinality_is_bounded_and_source_errors_retain_usage(self):
         self._seed_usage()
@@ -612,7 +678,6 @@ class UsageDashboardTests(unittest.TestCase):
             _store_session(
                 self.connection,
                 self.codex_id,
-                "codex",
                 parsed_session(
                     "model-{}".format(index),
                     [
@@ -649,7 +714,7 @@ class UsageDashboardTests(unittest.TestCase):
         )
         result = usage_dashboard_data(
             self.connection,
-            source="codex",
+            source="2",
             metric="cost",
             breakdown="model",
             timezone_name="UTC",
@@ -684,7 +749,7 @@ class UsageDashboardTests(unittest.TestCase):
 
         claude = usage_dashboard_data(
             self.connection,
-            source="claude",
+            source="1",
             metric="cost",
             timezone_name="UTC",
             today=date(2026, 7, 18),
@@ -739,13 +804,11 @@ class UsageDashboardTests(unittest.TestCase):
         unpriced_connection.execute("PRAGMA foreign_keys = ON")
         unpriced_connection.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
         source_id = unpriced_connection.execute(
-            "INSERT INTO sources(kind, provider_kind, name, root_path) "
-            "VALUES ('codex', 'codex', 'Codex', '/tmp')"
+            "INSERT INTO sources(provider_kind, name, root_path) VALUES ('codex', 'Codex', '/tmp')"
         ).lastrowid
         _store_session(
             unpriced_connection,
             source_id,
-            "codex",
             parsed_session(
                 "only-unpriced",
                 [

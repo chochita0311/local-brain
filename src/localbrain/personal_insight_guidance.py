@@ -211,7 +211,7 @@ def _validate_message_requests(request: dict, manifest: dict) -> None:
     if not targets:
         raise ValueError("conversation requests must identify missing messages")
     anchors = {
-        f"{event['source_key']}:{event['event_id']}": (session, event)
+        event["event_id"]: (session, event)
         for session in manifest["sessions"] for event in session["events"]
     }
     seen = set()
@@ -267,7 +267,7 @@ def validate_guided_result(value: Any, manifest: dict, bundle: dict) -> dict:
         _required_text(value["no_finding_reason"], maximum=8000, field="no_finding_reason")
 
     lookup = {
-        f"{event['source_key']}:{event['event_id']}": session["session_id"]
+        event["event_id"]: session["session_id"]
         for session in manifest["sessions"] for event in session["events"]
     }
     selected_ids = {item["id"] for item in bundle["playbooks"]}

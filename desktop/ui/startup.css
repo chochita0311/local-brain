@@ -1,0 +1,4 @@
+body { margin: var(--space-none); min-height: 100vh; display: grid; place-items: center; background: var(--surface-default); color: var(--text-primary); }
+main { max-width: var(--shell-reading-max); padding: var(--space-page-inline); }
+p { color: var(--text-secondary); }
+[hidden] { display: none; }

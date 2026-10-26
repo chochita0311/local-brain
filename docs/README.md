@@ -30,6 +30,9 @@ Durable rules and current contracts live under `docs/policies/`.
 - [Operator Briefing And Review Receipts](policies/harness/operator-briefing-and-review-receipts.md): orientation, work-start, direction-change, review, block, and handoff continuity
 - [Interaction Evaluation](policies/experience/interaction-evaluation.md): reusable interaction continuity and UX checks
 
+- [Desktop App And Common Local Settings](policies/project/desktop-app-and-settings.md): settings, source identity/lifecycle, synchronization and recovery contracts
+- [Standalone Test App Guide](policies/project/standalone-test-app-guide.md): first use, local storage, manual replacement and test-distribution limits
+
 ## Design System
 
 - [Creative Design Brief](../DESIGN.md): visual north star, source interpretation, and creative rationale

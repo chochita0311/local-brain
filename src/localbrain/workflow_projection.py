@@ -83,9 +83,11 @@ def _mapping_value(row: Mapping[str, object], key: str) -> object:
         return None
 
 
-def workflow_episode_key(source_key: object, external_id: object) -> str:
+def workflow_episode_key(source_id: object, external_id: object) -> str:
     """Return an opaque stable key for one source-scoped native Session."""
-    normalized_source = _required_text(source_key, "source_key")
+    if type(source_id) is not int or source_id <= 0:
+        raise ValueError("source_id must be a positive integer")
+    normalized_source = str(source_id)
     normalized_external = _required_text(external_id, "external_id")
     source_bytes = normalized_source.encode("utf-8")
     external_bytes = normalized_external.encode("utf-8")
@@ -102,7 +104,7 @@ def workflow_episode_key(source_key: object, external_id: object) -> str:
 class WorkflowEpisode:
     episode_key: str
     session_id: int
-    source_key: str
+    source_id: int
     destination: str
     observed_start_at: Optional[str]
     last_observed_at: Optional[str]
@@ -124,7 +126,7 @@ class WorkflowEpisode:
         return {
             "episode_key": self.episode_key,
             "session_id": self.session_id,
-            "source_key": self.source_key,
+            "source_id": self.source_id,
             "destination": self.destination,
             "observed_start_at": self.observed_start_at,
             "last_observed_at": self.last_observed_at,
@@ -171,7 +173,9 @@ def workflow_episode_from_session(
     ):
         raise ValueError("session_id must be a positive integer")
 
-    source_key = _required_text(_mapping_value(row, "source_key"), "source_key")
+    source_id = _mapping_value(row, "source_id")
+    if type(source_id) is not int or source_id <= 0:
+        raise ValueError("source_id must be a positive integer")
     external_id = _required_text(
         _mapping_value(row, "external_id"), "external_id"
     )
@@ -222,9 +226,9 @@ def workflow_episode_from_session(
     normalized_counts.sort(key=lambda item: item[0])
 
     return WorkflowEpisode(
-        episode_key=workflow_episode_key(source_key, external_id),
+        episode_key=workflow_episode_key(source_id, external_id),
         session_id=raw_session_id,
-        source_key=source_key,
+        source_id=source_id,
         destination="/sessions/{}".format(raw_session_id),
         observed_start_at=observed_start_at,
         last_observed_at=last_observed_at,

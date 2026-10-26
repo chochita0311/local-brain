@@ -52,8 +52,8 @@ Development archive; tracked fixtures and reports contain authored synthetic
 material. See [Natural-Language Search](natural-language-search.md) for current
 eligibility checks and stale-evidence refusal.
 
-`session-sources.toml` stores only a stable local source key, display label,
-provider kind, and local root path. It contains no credential, account identity,
+`session-sources.toml` stores a numeric source PK, display label, provider kind,
+local root/Home paths, color, order and registration enablement. It contains no credential, account identity,
 or Session content, is created with owner-only permissions, and remains outside
 Git. Removing or mistyping an entry is configuration state, not deletion
 authority: the registry row and normalized descendants remain in SQLite.
@@ -83,7 +83,7 @@ The personal insight evidence producer is a read-only projection of currently no
 Recognized provider-internal Codex guardian JSONL follows the same content boundary without becoming a LocalBrain Run: LocalBrain retains only its normalized Session metadata, parent relation, and direct Usage Records. Approval-review prompts and decisions, including embedded Session history, remain outside Activity Events, search, question counts, and ordinary Session/Subsession presentation.
 
 Workflow Episode and direction descriptors are ephemeral derived state. Their
-opaque Episode key hashes only the length-delimited stable source key and
+opaque Episode key hashes only the length-delimited numeric source ID and
 source-native Session ID, while serialized output excludes that native ID,
 source paths, messages, document bodies, excerpts, and opaque provider payloads.
 The pure contract persists no graph, reads no local or external source, and
@@ -96,7 +96,7 @@ Their pure normalizer accepts only supplied canonical metadata/reference facts
 and proposed pairs. Artifact scope/identity and source occurrence identity are
 hashed before serialization; raw paths, source-native Session/occurrence IDs,
 bodies, excerpts, opaque payloads, and extra input fields are not copied.
-Attributed bounded titles, Session source keys, local Session destinations,
+Attributed bounded titles, Session source IDs, local Session destinations,
 opaque evidence keys, observation/source states, and coverage may be returned.
 Candidate/membership authority remains inferred, distinct from source evidence.
 Unknown timestamps and partial coverage never become fabricated progress or

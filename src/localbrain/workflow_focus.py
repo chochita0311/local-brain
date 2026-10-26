@@ -79,7 +79,7 @@ class WorkflowEvidenceItem:
     source_family: str
     identity: str
     destination: Optional[str]
-    source_key: Optional[str]
+    source_id: Optional[int]
     evidence_kind: str
     admission_reasons: Tuple[str, ...]
     observed_at: Optional[str]
@@ -92,7 +92,7 @@ class WorkflowEvidenceItem:
             "source_family": self.source_family,
             "identity": self.identity,
             "destination": self.destination,
-            "source_key": self.source_key,
+            "source_id": self.source_id,
             "evidence_kind": self.evidence_kind,
             "admission_reasons": list(self.admission_reasons),
             "observed_at": self.observed_at,
@@ -235,7 +235,7 @@ def _session_row(
 ) -> Optional[sqlite3.Row]:
     return connection.execute(
         """
-        SELECT sessions.*, sources.kind AS source_key,
+        SELECT sessions.*,
                workspaces.display_name AS workspace_name,
                workspaces.git_root,
                (
@@ -287,7 +287,7 @@ def workflow_session_is_eligible(
 def _eligible_session_rows(connection: sqlite3.Connection) -> List[sqlite3.Row]:
     return connection.execute(
         """
-        SELECT sessions.*, sources.kind AS source_key,
+        SELECT sessions.*,
                workspaces.display_name AS workspace_name,
                workspaces.git_root,
                (
@@ -975,7 +975,7 @@ def _related_evidence(
                     source_family=family,
                     identity=identity,
                     destination=_bounded_optional_text(raw.get("href"), 8_000),
-                    source_key=fact.episode.source_key if direct else "localbrain",
+                    source_id=fact.episode.source_id if direct else None,
                     evidence_kind=evidence_kind,
                     admission_reasons=tuple(sorted(set(reasons))),
                     observed_at=observed_at,
@@ -1037,7 +1037,7 @@ def _membership_evidence(
                 source_family="organization",
                 identity=_bounded_optional_text(row["identity"]) or "Untitled",
                 destination=destination,
-                source_key="localbrain",
+                source_id=None,
                 evidence_kind="{}-membership".format(scope_kind),
                 admission_reasons=("{}-membership".format(scope_kind),),
                 observed_at=_utc_timestamp(row["created_at"]),
@@ -1054,7 +1054,7 @@ def _subsession_evidence(
     rows = connection.execute(
         """
         SELECT children.id, children.title, children.started_at,
-               children.last_event_at, sources.kind AS source_key,
+               children.last_event_at, sources.id AS source_id,
                COUNT(*) OVER () AS observed_total
         FROM sessions AS parents
         JOIN sessions AS children ON children.parent_session_id = parents.id
@@ -1079,7 +1079,7 @@ def _subsession_evidence(
                 source_family="session",
                 identity=_bounded_optional_text(row["title"]) or "Untitled Session",
                 destination="/sessions/{}".format(int(row["id"])),
-                source_key=str(row["source_key"]),
+                source_id=row["source_id"],
                 evidence_kind="subsession",
                 admission_reasons=("subsession",),
                 observed_at=_utc_timestamp(
@@ -1135,7 +1135,7 @@ def _structure_evidence(
                 identity=_bounded_optional_text(row["reference_identity"])
                 or str(row["reference_kind"]),
                 destination="/atlassian/references/{}".format(int(row["id"])),
-                source_key="atlassian:{}".format(str(row["service"])),
+                source_id=None,
                 evidence_kind="structure-reference",
                 admission_reasons=("structure-reference",),
                 observed_at=_utc_timestamp(row["observed_at"]),

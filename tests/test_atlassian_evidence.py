@@ -35,7 +35,7 @@ class AtlassianEvidenceTests(unittest.TestCase):
         self.source_id = int(
             self.connection.execute(
                 """
-                INSERT INTO sources(kind, name, root_path)
+                INSERT INTO sources(provider_kind, name, root_path)
                 VALUES ('codex', 'Codex', '/tmp')
                 """
             ).lastrowid
@@ -455,7 +455,7 @@ class AtlassianEvidenceTests(unittest.TestCase):
         context_source = int(
             self.connection.execute(
                 """
-                INSERT INTO sources(kind, name, root_path)
+                INSERT INTO sources(provider_kind, name, root_path)
                 VALUES ('context', 'Context', '/tmp/context')
                 """
             ).lastrowid

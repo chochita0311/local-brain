@@ -1,11 +1,12 @@
 {% extends "base.html" %}
+{% from "_source_cue.html" import profile_attrs with context %}
 {% block title %}Sessions Dashboard · LocalBrain{% endblock %}
 {% block page_location %}Sessions Dashboard{% endblock %}
 {% block content %}
   {% macro breakdown_row(item) -%}
     <tr>
       <th class="usage-breakdown-identity" scope="row"{% if usage.scope.breakdown == 'model' and item.raw_models %} title="Raw: {{ item.raw_models | join(', ') }}"{% endif %}>
-        <span class="usage-breakdown-label">{% if item.provider_kind %}<i class="source-indicator {{ item.provider_kind }}" aria-hidden="true"></i>{% endif %}<span>{{ item.label }}</span></span>
+        <span class="usage-breakdown-label">{% if item.provider_kind %}<i class="source-indicator" {{ profile_attrs(item.key) }} aria-hidden="true"></i>{% endif %}<span{% if usage.scope.breakdown == 'source' %} data-profile-label="{{ item.key }}"{% endif %}{% if usage.scope.breakdown == 'project' %} title="{{ item.label }}"{% endif %}>{% if usage.scope.breakdown == 'project' and (item.key.startswith('git:') or item.key.startswith('path:')) %}{{ item.key.split(':', 1)[1] | project_path }}{% else %}{{ item.label }}{% endif %}</span></span>
         {% if usage.scope.breakdown == 'model' and item.raw_models %}<span class="sr-only">Raw: {{ item.raw_models | join(', ') }}</span>{% endif %}
       </th>
       <td>{{ item.tokens_label }}</td>
@@ -40,15 +41,15 @@
       <h1>Sessions Dashboard</h1>
       <p class="heading-copy">등록된 로컬 AI 소스의 사용량, 추정 비용, 활동 흐름을 같은 범위에서 확인합니다.</p>
     </div>
-    <a class="secondary-button" href="/sessions-dashboard/insights">Insights</a>
+{% if not desktop_edition %}    <a class="secondary-button" href="/sessions-dashboard/insights">Insights</a>{% endif %}
   </section>
 
   <section class="usage-scope-toolbar" aria-label="Usage scope">
     <div class="usage-scope-groups">
       <div class="usage-scope-group">
-        <nav class="segmented-control usage-source-control" aria-label="Source filter">
+        <nav class="segmented-control usage-source-control" data-profile-filters aria-label="Source filter">
           {% for control in usage.controls.sources %}
-            <a class="{% if usage.scope.source == control.value %}selected{% endif %}" href="{{ control.url }}" data-usage-scope-link data-usage-control="source" data-usage-value="{{ control.value }}" {% if usage.scope.source == control.value %}aria-current="page"{% endif %}>{{ control.label }}</a>
+            <a {% if control.value != 'all' %}{{ profile_attrs(control.value) }} data-profile-label="{{ control.value }}"{% endif %} class="{% if usage.scope.source == control.value %}selected{% endif %}" href="{{ control.url }}" data-usage-scope-link data-usage-control="source" data-usage-value="{{ control.value }}" {% if usage.scope.source == control.value %}aria-current="page"{% endif %}>{{ control.label }}</a>
           {% endfor %}
         </nav>
       </div>
@@ -93,7 +94,7 @@
   <article class="analysis-panel usage-history-panel">
     <header class="usage-history-heading">
       <div>
-        <p class="eyebrow">{{ usage.scope.view | upper }} · {{ usage.scope.source_label | upper }}</p>
+        <p class="eyebrow">{{ usage.scope.view | upper }} · <span{% if usage.scope.source != 'all' %} data-profile-label="{{ usage.scope.source }}"{% endif %}>{{ usage.scope.source_label }}</span></p>
         <h2>{{ usage.history_title }}</h2>
         <p>{{ usage.scope.period_label }} · {{ usage.history_unit }}</p>
       </div>
@@ -107,7 +108,7 @@
     {% if not usage.has_usage %}
       <div class="usage-chart-empty" role="status">
         <h3>{% if usage.empty_kind == 'source' %}No usage indexed{% else %}No matching usage{% endif %}</h3>
-        <p>{% if usage.empty_kind == 'source' %}{{ usage.scope.source_label }}에 동기화된 사용량이 아직 없습니다.{% else %}선택한 기간과 {{ usage.scope.source_label }} 범위에 해당하는 사용량이 없습니다.{% endif %}</p>
+        <p>{% if usage.empty_kind == 'source' %}<span data-profile-label="{{ usage.scope.source }}">{{ usage.scope.source_label }}</span>에 동기화된 사용량이 아직 없습니다.{% else %}선택한 기간과 {{ usage.scope.source_label }} 범위에 해당하는 사용량이 없습니다.{% endif %}</p>
       </div>
     {% elif not usage.history_has_values %}
       <div class="usage-chart-empty" role="status">
@@ -160,7 +161,7 @@
     {% else %}
       <div class="usage-chart-empty" role="status">
         <h3>No composition to show</h3>
-        <p>선택한 범위에 분해할 수 있는 사용량이 없습니다.</p>
+        <p>{% if usage.scope.breakdown == 'project' %}선택한 범위에 일반 작업 세션의 프로젝트 사용량이 없습니다.{% else %}선택한 범위에 분해할 수 있는 사용량이 없습니다.{% endif %}</p>
       </div>
     {% endif %}
   </article>

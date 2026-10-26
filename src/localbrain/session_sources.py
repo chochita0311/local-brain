@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-import json
 import os
-import re
 import sqlite3
 import tempfile
 from dataclasses import dataclass
@@ -17,18 +15,17 @@ except ImportError:  # pragma: no cover - exercised by the supported Python 3.9 
     import tomli as tomllib
 
 from .config import Settings
+from .source_profiles import PALETTE, default_color, valid_source_id
 
 
-SESSION_SOURCE_SCHEMA_VERSION = 1
+SESSION_SOURCE_SCHEMA_VERSION = 2
 SESSION_SOURCES_FILENAME = "session-sources.toml"
 SUPPORTED_SESSION_PROVIDERS = frozenset({"claude", "codex"})
-SOURCE_KEY_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
-MAX_SOURCE_KEY_LENGTH = 64
 MAX_DISPLAY_LABEL_LENGTH = 160
 MAX_ROOT_LENGTH = 4096
 MAX_DIAGNOSTIC_LENGTH = 360
 ENTRY_FIELDS = frozenset(
-    {"source_key", "display_label", "provider_kind", "root"}
+    {"source_id", "display_label", "provider_kind", "root", "agent_home", "enabled", "color"}
 )
 
 
@@ -37,16 +34,19 @@ class SessionSourceDiagnostic:
     code: str
     message: str
     settings_path: str
-    source_key: Optional[str] = None
+    source_id: Optional[int] = None
 
 
 @dataclass(frozen=True)
 class SessionSourceEntry:
-    source_key: str
+    source_id: int
     display_label: str
     provider_kind: str
     root: Path
     availability: str
+    agent_home: Optional[Path] = None
+    enabled: bool = True
+    color: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -54,19 +54,19 @@ class SessionSourceSettingsResult:
     settings_path: Path
     entries: Tuple[SessionSourceEntry, ...]
     diagnostics: Tuple[SessionSourceDiagnostic, ...]
-    declared_source_keys: Tuple[str, ...]
+    declared_source_ids: Tuple[int, ...]
     bootstrapped: bool = False
     file_error: bool = False
+    schema_version: int = 2
 
 
 @dataclass(frozen=True)
 class SessionSourceRegistration:
-    source_key: str
+    source_id: int
     provider_kind: str
     display_label: str
     root: str
     status: str
-    source_id: Optional[int] = None
 
 
 @dataclass(frozen=True)
@@ -88,44 +88,46 @@ def _bounded_message(value: str) -> str:
 
 
 def _diagnostic(
-    path: Path, code: str, message: str, source_key: Optional[str] = None
+    path: Path, code: str, message: str, source_id: Optional[int] = None
 ) -> SessionSourceDiagnostic:
     return SessionSourceDiagnostic(
         code=code,
         message=_bounded_message(message),
         settings_path=str(path),
-        source_key=source_key,
+        source_id=source_id,
     )
 
 
-def _toml_string(value: str) -> str:
-    return json.dumps(value, ensure_ascii=False)
+def session_sources_text(entries) -> str:
+    """Keep profile fields readable without changing values or display order."""
+    from .preferences import toml_text
+
+    fields = ("source_id", "provider_kind", "display_label", "root", "color", "agent_home", "enabled")
+    ordered = []
+    for entry in entries:
+        values = {key: entry[key] for key in fields if key in entry}
+        values.update(entry)
+        ordered.append(values)
+    return toml_text({"schema_version": SESSION_SOURCE_SCHEMA_VERSION, "session_sources": ordered})
 
 
 def _bootstrap_text(settings: Settings) -> str:
-    entries = (
-        ("claude", "Claude Code", "claude", settings.claude_root),
-        ("codex", "Codex", "codex", settings.codex_root),
-        (
-            "codex-company",
-            "Codex Company",
-            "codex",
-            Path.home() / ".codex-company" / "sessions",
-        ),
-    )
-    lines = ["schema_version = 1", ""]
-    for source_key, display_label, provider_kind, root in entries:
-        lines.extend(
-            [
-                "[[session_sources]]",
-                "source_key = {}".format(_toml_string(source_key)),
-                "display_label = {}".format(_toml_string(display_label)),
-                "provider_kind = {}".format(_toml_string(provider_kind)),
-                "root = {}".format(_toml_string(str(root.expanduser()))),
-                "",
-            ]
-        )
-    return "\n".join(lines)
+    # Migrate known registrations, never discover/register someone's folders as
+    # a side effect of starting a fresh installation.
+    entries = []
+    if settings.database_path.exists():
+        with sqlite3.connect(settings.database_path) as connection:
+            if connection.execute("SELECT 1 FROM sqlite_master WHERE name='sources'").fetchone():
+                columns = {row[1] for row in connection.execute("PRAGMA table_info(sources)")}
+                color = "profile_color" if "profile_color" in columns else "NULL"
+                order = "profile_position,id" if "profile_position" in columns else "id"
+                entries = connection.execute("SELECT id,name,provider_kind,root_path," + color + " FROM sources "
+                                             "WHERE provider_kind IN ('claude','codex') ORDER BY " + order).fetchall()
+    return session_sources_text([
+        dict(source_id=source_id, provider_kind=provider_kind, display_label=display_label,
+             root=str(Path(root).expanduser()), color=color or default_color(provider_kind))
+        for source_id, display_label, provider_kind, root, color in entries
+    ])
 
 
 def _write_bootstrap(path: Path, settings: Settings) -> bool:
@@ -164,7 +166,7 @@ def _file_error(
         settings_path=path,
         entries=(),
         diagnostics=(_diagnostic(path, code, message),),
-        declared_source_keys=(),
+        declared_source_ids=(),
         bootstrapped=bootstrapped,
         file_error=True,
     )
@@ -175,11 +177,6 @@ def _normalized_root(path: Path, raw_root: str) -> Path:
     if not root.is_absolute():
         root = path.parent / root
     return Path(os.path.abspath(str(root)))
-
-
-def _entry_identity(raw: Dict[str, Any]) -> Optional[str]:
-    value = raw.get("source_key")
-    return value.strip() if isinstance(value, str) and value.strip() else None
 
 
 def load_session_source_settings(settings: Settings) -> SessionSourceSettingsResult:
@@ -207,11 +204,12 @@ def load_session_source_settings(settings: Settings) -> SessionSourceSettingsRes
             "Expected only schema_version and session_sources at the top level.",
             bootstrapped=bootstrapped,
         )
-    if raw.get("schema_version") != SESSION_SOURCE_SCHEMA_VERSION:
+    version = raw.get("schema_version")
+    if type(version) is not int or version != SESSION_SOURCE_SCHEMA_VERSION:
         return _file_error(
             path,
             "unsupported_schema_version",
-            "Supported session source schema_version is 1.",
+            "Session source schema_version must be 2; older files need the startup upgrade.",
             bootstrapped=bootstrapped,
         )
     raw_entries = raw.get("session_sources")
@@ -223,8 +221,12 @@ def load_session_source_settings(settings: Settings) -> SessionSourceSettingsRes
             bootstrapped=bootstrapped,
         )
 
+    def identity(value):
+        source_id = value.get("source_id")
+        return source_id if valid_source_id(source_id) else None
+
     declared_keys = tuple(
-        key for key in (_entry_identity(item) for item in raw_entries if isinstance(item, dict))
+        key for key in (identity(item) for item in raw_entries if isinstance(item, dict))
         if key is not None
     )
     duplicate_keys = sorted(
@@ -233,8 +235,8 @@ def load_session_source_settings(settings: Settings) -> SessionSourceSettingsRes
     if duplicate_keys:
         return _file_error(
             path,
-            "duplicate_source_key",
-            "Duplicate source_key values: {}.".format(", ".join(duplicate_keys)),
+            "duplicate_source_id",
+            "Duplicate profile identities: {}.".format(", ".join(map(str, duplicate_keys))),
             bootstrapped=bootstrapped,
         )
 
@@ -246,62 +248,83 @@ def load_session_source_settings(settings: Settings) -> SessionSourceSettingsRes
                 _diagnostic(path, "invalid_entry", "Entry {} must be a TOML table.".format(index))
             )
             continue
-        source_key = _entry_identity(value)
-        if set(value) != ENTRY_FIELDS:
+        source_id = identity(value)
+        fields = ENTRY_FIELDS
+        if not (fields - {"agent_home", "enabled", "color"}) <= set(value) or not set(value) <= fields:
             diagnostics.append(
                 _diagnostic(
                     path,
                     "invalid_entry_schema",
-                    "Entry {} must contain exactly source_key, display_label, provider_kind, and root.".format(index),
-                    source_key,
+                    "Entry {} has missing or unsupported profile fields.".format(index),
+                    source_id,
                 )
             )
             continue
-        if (
-            source_key is None
-            or len(source_key) > MAX_SOURCE_KEY_LENGTH
-            or not SOURCE_KEY_PATTERN.fullmatch(source_key)
-        ):
-            diagnostics.append(
-                _diagnostic(path, "invalid_source_key", "Entry {} has an invalid source_key.".format(index), source_key)
-            )
+        if source_id is None:
+            diagnostics.append(_diagnostic(path, "invalid_source_id", "source_id must be a positive safe integer."))
             continue
         display_label = value["display_label"]
         provider_kind = value["provider_kind"]
+        color = value.get("color")
+        if color is not None and (not isinstance(color, str) or color not in PALETTE):
+            diagnostics.append(_diagnostic(path, "invalid_color", "Choose a supported profile color.", source_id))
+            continue
         raw_root = value["root"]
+        enabled = value.get("enabled", True)
+        if not isinstance(enabled, bool):
+            diagnostics.append(_diagnostic(path, "invalid_enabled", "enabled must be a boolean.", source_id))
+            continue
+        agent_home = value.get("agent_home")
+        if agent_home is not None and (not isinstance(agent_home, str) or not agent_home.strip() or len(agent_home) > MAX_ROOT_LENGTH):
+            diagnostics.append(_diagnostic(path, "invalid_agent_home", "agent_home must be a nonempty path.", source_id))
+            continue
         if not isinstance(display_label, str) or not display_label.strip() or len(display_label.strip()) > MAX_DISPLAY_LABEL_LENGTH:
-            diagnostics.append(_diagnostic(path, "invalid_display_label", "display_label must contain 1 to 160 characters.", source_key))
+            diagnostics.append(_diagnostic(path, "invalid_display_label", "display_label must contain 1 to 160 characters.", source_id))
             continue
         if not isinstance(provider_kind, str) or provider_kind not in SUPPORTED_SESSION_PROVIDERS:
-            diagnostics.append(_diagnostic(path, "unsupported_provider", "provider_kind must be claude or codex.", source_key))
+            diagnostics.append(_diagnostic(path, "unsupported_provider", "provider_kind must be claude or codex.", source_id))
             continue
         if not isinstance(raw_root, str) or not raw_root.strip() or len(raw_root) > MAX_ROOT_LENGTH:
-            diagnostics.append(_diagnostic(path, "invalid_root", "root must contain 1 to 4096 characters.", source_key))
+            diagnostics.append(_diagnostic(path, "invalid_root", "root must contain 1 to 4096 characters.", source_id))
             continue
         root = _normalized_root(path, raw_root.strip())
-        if root.exists() and not root.is_dir():
-            diagnostics.append(_diagnostic(path, "root_not_directory", "Configured root is not a directory.", source_key))
+        if enabled and root.exists() and not root.is_dir():
+            diagnostics.append(_diagnostic(path, "root_not_directory", "Configured root is not a directory.", source_id))
             continue
-        if root.exists() and not os.access(str(root), os.R_OK | os.X_OK):
-            diagnostics.append(_diagnostic(path, "root_unreadable", "Configured root is not readable.", source_key))
+        if enabled and root.exists() and not os.access(str(root), os.R_OK | os.X_OK):
+            diagnostics.append(_diagnostic(path, "root_unreadable", "Configured root is not readable.", source_id))
             continue
         candidates.append(
             SessionSourceEntry(
-                source_key=source_key,
+                source_id=source_id,
                 display_label=display_label.strip(),
                 provider_kind=provider_kind,
                 root=root,
                 availability="ready" if root.is_dir() else "unavailable",
+                agent_home=_normalized_root(path, agent_home) if agent_home else None,
+                enabled=enabled,
+                color=color,
             )
         )
 
     roots: Dict[str, list] = {}
     for entry in candidates:
-        roots.setdefault(str(entry.root), []).append(entry.source_key)
+        if not entry.enabled:
+            continue
+        roots.setdefault(str(entry.root), []).append(entry.source_id)
     duplicate_roots = {
         root: keys for root, keys in roots.items() if len(keys) > 1
     }
     invalid_root_keys = {key for keys in duplicate_roots.values() for key in keys}
+    for index, entry in enumerate(candidates):
+        root = entry.root.resolve()
+        for other in candidates[index + 1:]:
+            other_root = other.root.resolve()
+            if (entry.enabled and other.enabled and entry.root != other.root
+                    and (root == other_root or root in other_root.parents or other_root in root.parents)):
+                invalid_root_keys.update((entry.source_id, other.source_id))
+                for key in (entry.source_id, other.source_id):
+                    diagnostics.append(_diagnostic(path, "overlapping_root", "Session profile folders must not overlap.", key))
     for root, keys in sorted(duplicate_roots.items()):
         for key in keys:
             diagnostics.append(
@@ -309,21 +332,22 @@ def load_session_source_settings(settings: Settings) -> SessionSourceSettingsRes
                     path,
                     "duplicate_root",
                     "Configured root is also assigned to: {}.".format(
-                        ", ".join(other for other in keys if other != key)
+                        ", ".join(str(other) for other in keys if other != key)
                     ),
                     key,
                 )
             )
     entries = tuple(
-        entry for entry in candidates if entry.source_key not in invalid_root_keys
+        entry for entry in candidates if entry.source_id not in invalid_root_keys
     )
     return SessionSourceSettingsResult(
         settings_path=path,
         entries=entries,
         diagnostics=tuple(diagnostics),
-        declared_source_keys=declared_keys,
+        declared_source_ids=declared_keys,
         bootstrapped=bootstrapped,
         file_error=False,
+        schema_version=version,
     )
 
 
@@ -345,57 +369,57 @@ def reconcile_session_source_settings(
 
     registrations = []
     diagnostics = list(result.diagnostics)
-    for entry in result.entries:
+    for position, entry in enumerate(result.entries):
         existing = connection.execute(
-            "SELECT id, provider_kind, name, root_path FROM sources WHERE kind = ?",
-            (entry.source_key,),
+            "SELECT id,provider_kind,name,root_path,profile_color FROM sources WHERE id = ?",
+            (entry.source_id,),
         ).fetchone()
         if existing is None:
             cursor = connection.execute(
-                """
-                INSERT INTO sources(kind, provider_kind, name, root_path)
-                VALUES (?, ?, ?, ?)
-                """,
-                (entry.source_key, entry.provider_kind, entry.display_label, str(entry.root)),
+                "INSERT INTO sources(id,provider_kind,name,root_path,profile_color,profile_position) VALUES (?,?,?,?,?,?)",
+                (entry.source_id, entry.provider_kind, entry.display_label, str(entry.root),
+                 entry.color or default_color(entry.provider_kind), position),
             )
             registrations.append(
                 SessionSourceRegistration(
-                    entry.source_key, entry.provider_kind, entry.display_label,
-                    str(entry.root), entry.availability, int(cursor.lastrowid)
+                    entry.source_id, entry.provider_kind, entry.display_label,
+                    str(entry.root), entry.availability
                 )
             )
             continue
         source_id = int(existing["id"])
         if existing["provider_kind"] != entry.provider_kind:
-            diagnostics.append(_diagnostic(result.settings_path, "identity_conflict", "The existing source key is bound to another provider.", entry.source_key))
-            registrations.append(SessionSourceRegistration(entry.source_key, existing["provider_kind"], existing["name"], existing["root_path"], "identity_conflict", source_id))
+            diagnostics.append(_diagnostic(result.settings_path, "identity_conflict", "The existing source ID is bound to another provider.", entry.source_id))
+            registrations.append(SessionSourceRegistration(entry.source_id, existing["provider_kind"], existing["name"], existing["root_path"], "identity_conflict"))
             continue
         if existing["root_path"] != str(entry.root) and _source_has_descendants(connection, source_id):
-            diagnostics.append(_diagnostic(result.settings_path, "root_change_conflict", "The configured root cannot change while the source owns imported data.", entry.source_key))
-            registrations.append(SessionSourceRegistration(entry.source_key, entry.provider_kind, existing["name"], existing["root_path"], "root_change_conflict", source_id))
+            diagnostics.append(_diagnostic(result.settings_path, "root_change_conflict", "The configured root cannot change while the source owns imported data.", entry.source_id))
+            registrations.append(SessionSourceRegistration(entry.source_id, entry.provider_kind, existing["name"], existing["root_path"], "root_change_conflict"))
             continue
         connection.execute(
-            "UPDATE sources SET name = ?, root_path = ? WHERE id = ?",
-            (entry.display_label, str(entry.root), source_id),
+            "UPDATE sources SET name=?,root_path=?,profile_color=?,profile_position=? WHERE id=?",
+            (entry.display_label, str(entry.root), entry.color or default_color(entry.provider_kind),
+             position, source_id),
         )
-        registrations.append(SessionSourceRegistration(entry.source_key, entry.provider_kind, entry.display_label, str(entry.root), entry.availability, source_id))
+        registrations.append(SessionSourceRegistration(source_id, entry.provider_kind, entry.display_label, str(entry.root), entry.availability))
 
-    declared = set(result.declared_source_keys)
+    declared = set(result.declared_source_ids)
     retained = connection.execute(
         """
-        SELECT id, kind, provider_kind, name, root_path
+        SELECT id, provider_kind, name, root_path
         FROM sources
         WHERE provider_kind IN ('claude', 'codex')
         ORDER BY id
         """
     ).fetchall()
-    represented = {item.source_key for item in registrations}
+    represented = {item.source_id for item in registrations}
     for existing in retained:
-        key = existing["kind"]
+        key = existing["id"]
         if key in declared or key in represented:
             continue
+        connection.execute("UPDATE sources SET profile_position=2147483647 WHERE id=?", (existing["id"],))
         diagnostics.append(_diagnostic(result.settings_path, "config_missing", "The retained source is omitted from the settings file; its data was preserved.", key))
-        registrations.append(SessionSourceRegistration(key, existing["provider_kind"], existing["name"], existing["root_path"], "config_missing", int(existing["id"])))
+        registrations.append(SessionSourceRegistration(key, existing["provider_kind"], existing["name"], existing["root_path"], "config_missing"))
 
     return SessionSourceRegistryResult(
         settings=result,

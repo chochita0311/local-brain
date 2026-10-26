@@ -48,7 +48,7 @@ def schema_connection(*, include_pin_table: bool = True) -> sqlite3.Connection:
 def seed_sessions(connection: sqlite3.Connection) -> dict[str, int]:
     source_id = connection.execute(
         """
-        INSERT INTO sources(kind, name, root_path)
+        INSERT INTO sources(provider_kind, name, root_path)
         VALUES ('claude', 'Claude', '/synthetic/claude')
         """
     ).lastrowid
@@ -223,7 +223,7 @@ class SessionPinOperationTests(unittest.TestCase):
         )
         self.assertIsNone(rows[0]["last_event_at"])
         self.assertEqual(rows[0]["started_at"], "2026-07-25T02:00:00+00:00")
-        self.assertEqual(rows[0]["source_kind"], "claude")
+        self.assertEqual(rows[0]["provider_kind"], "claude")
         self.assertEqual(rows[0]["git_branch"], "feature/pins")
         self.assertEqual(rows[0]["workspace_name"], "Synthetic Work")
         self.assertEqual(rows[0]["workspace_path"], "/synthetic/work")
@@ -234,7 +234,7 @@ class SessionPinOperationTests(unittest.TestCase):
 
     def test_groups_git_projects_first_then_alphabetically_and_keeps_inner_activity_order(self):
         source_id = self.connection.execute(
-            "SELECT id FROM sources WHERE kind = 'claude'"
+            "SELECT id FROM sources WHERE provider_kind = 'claude'"
         ).fetchone()[0]
 
         def workspace(name, *, git):
@@ -308,9 +308,42 @@ class SessionPinOperationTests(unittest.TestCase):
         self.assertTrue(groups[0]["is_git"])
         self.assertFalse(groups[2]["is_git"])
 
+    def test_group_order_ignores_mixed_cached_names_after_home_path_display_change(self):
+        self.connection.execute(
+            "UPDATE workspaces SET canonical_path = ?, display_name = ?, git_root = ?",
+            ("/synthetic/home/Projects/zulu", "zulu", "/synthetic/home/Projects/zulu"),
+        )
+        alpha = self.connection.execute(
+            "INSERT INTO workspaces(canonical_path, display_name, git_root) VALUES (?, ?, ?)",
+            ("/synthetic/home/Projects/alpha", "alpha", "/synthetic/home/Projects/alpha"),
+        ).lastrowid
+        self.connection.execute(
+            "UPDATE sessions SET workspace_id = ? WHERE id = ?",
+            (alpha, self.rows["primary-a"]),
+        )
+        for key in ("primary-a", "primary-b"):
+            pin_session(self.connection, self.rows[key])
+        pins_before = list(self.connection.execute("SELECT * FROM session_pins ORDER BY session_id"))
+
+        with patch("localbrain.path_display.Path.home", return_value=Path("/synthetic/home")):
+            before = group_pinned_sessions(list_all_pinned_sessions(self.connection))
+            # Only one project has been revisited by incremental synchronization.
+            self.connection.execute(
+                "UPDATE workspaces SET display_name = ? WHERE id = ?", ("~/Projects/alpha", alpha)
+            )
+            after = group_pinned_sessions(list_all_pinned_sessions(self.connection))
+
+        self.assertEqual([group["workspace_path"] for group in after], [
+            "/synthetic/home/Projects/alpha", "/synthetic/home/Projects/zulu",
+        ])
+        self.assertEqual([group["identity"] for group in before], [group["identity"] for group in after])
+        self.assertEqual([row["id"] for group in after for row in group["sessions"]],
+                         [self.rows["primary-a"], self.rows["primary-b"]])
+        self.assertEqual(pins_before, list(self.connection.execute("SELECT * FROM session_pins ORDER BY session_id")))
+
     def test_all_pinned_list_has_no_silent_product_cap(self):
         source_id = self.connection.execute(
-            "SELECT id FROM sources WHERE kind = 'claude'"
+            "SELECT id FROM sources WHERE provider_kind = 'claude'"
         ).fetchone()[0]
         workspace_id = self.connection.execute(
             "SELECT id FROM workspaces WHERE canonical_path = '/synthetic/work'"

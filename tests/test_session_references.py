@@ -31,10 +31,7 @@ class SessionReferenceTests(unittest.TestCase):
         self.connection.executescript(SCHEMA_SQL)
         self.connection.executescript(
             """
-            INSERT INTO sources(id, kind, provider_kind, name, root_path)
-            VALUES
-                (1, 'codex', 'codex', 'Codex', '/sessions'),
-                (2, 'context', 'context', 'Context', '/workspace');
+            INSERT INTO sources(id, provider_kind, name, root_path) VALUES (1, 'codex', 'Codex', '/sessions'), (2, 'context', 'Context', '/workspace');
 
             INSERT INTO workspaces(id, canonical_path, display_name, exists_now)
             VALUES (1, '/workspace', 'workspace', 1);
@@ -758,10 +755,11 @@ class SessionReferenceTests(unittest.TestCase):
             connection.row_factory = sqlite3.Row
             connection.execute("PRAGMA foreign_keys = ON")
             connection.executescript(SCHEMA_SQL)
+            connection.execute("INSERT INTO sources(id,provider_kind,name,root_path) VALUES (1,'codex','Company',?)", (str(source_root),))
             try:
                 first_report = scanner._scan_session_source(
                     connection,
-                    "codex-company",
+                    1,
                     "Codex Company",
                     source_root,
                     scanner.parse_codex_session,
@@ -795,7 +793,7 @@ class SessionReferenceTests(unittest.TestCase):
                 write_session(first_path, first_urls[:-1])
                 second_report = scanner._scan_session_source(
                     connection,
-                    "codex-company",
+                    1,
                     "Codex Company",
                     source_root,
                     scanner.parse_codex_session,
@@ -814,7 +812,7 @@ class SessionReferenceTests(unittest.TestCase):
                 second_path.unlink()
                 delete_sibling_report = scanner._scan_session_source(
                     connection,
-                    "codex-company",
+                    1,
                     "Codex Company",
                     source_root,
                     scanner.parse_codex_session,
@@ -836,7 +834,7 @@ class SessionReferenceTests(unittest.TestCase):
                 first_path.unlink()
                 scanner._scan_session_source(
                     connection,
-                    "codex-company",
+                    1,
                     "Codex Company",
                     source_root,
                     scanner.parse_codex_session,

@@ -6,14 +6,14 @@ This is the durable human entry point for LocalBrain's effective SQLite model. I
 
 ## Baseline Identity
 
-- Baseline: `localbrain-data-model-2026-10-07`
+- Baseline: `localbrain-data-model-2026-10-26`
 - Ordinary tables: `45`
 - FTS5 virtual tables: `1` (`search_index`)
-- Physical foreign keys: `57`
+- Physical foreign keys: `58`
 - Effective explicitly named indexes: `51`
 - Focused subject areas: `10`
-- `schema.sql` SHA-256: `c94a88e3fb41a43219b22f5c731e4828cbd56eab7c1b4ce21f54478f87b45599`
-- `db.py` SHA-256: `5a315feb476886a6d988a876bfa9441d0e2047162504f7a20e6ef3c08480fd79`
+- `schema.sql` SHA-256: `f5e39ce91d3162a1ca8828df1d50598b27efe198e1d97e8f24c00a79398ba356`
+- `db.py` SHA-256: `72d05b3e2ba1ab7efce4f267873093021ccf6a26e9157131317f8e8cb9821f79`
 
 SQLite primary-key and uniqueness autoindexes and FTS5 shadow tables are implementation internals and are not counted as primary objects or explicitly named indexes. Validation applies `schema.sql` only to an in-memory database; no user database or runtime row is read.
 
@@ -150,7 +150,7 @@ erDiagram
     CHECKPOINTS ||--o{ CHECKPOINT_RESOURCE_REFS : "physical CASCADE"
 
     SOURCE_FILES ||..o| SESSIONS : "app source_path"
-    SOURCES o|..o{ SKILL_OBSERVATIONS : "app retained source key"
+    SOURCES ||--o{ SKILL_OBSERVATIONS : "physical NO_ACTION retained evidence"
     SESSIONS o|..o{ SKILL_OBSERVATIONS : "app current native Session"
     PERSONAL_INSIGHT_RUNS o|..o| SESSIONS : "app usage accounting"
     SOURCE_FILES ||..o| CONTEXT_DOCUMENTS : "app path"
@@ -213,7 +213,7 @@ erDiagram
   normalized Session with `ON DELETE SET NULL`; `source_files.path` still
   correlates legacy Session `source_path` and Context Document `path` values for
   scanner-managed reconciliation.
-- `skill_observations.source_key` retains the stable `sources.kind` value, while its native Session identity optionally resolves to a current `sessions` row. Both application joins may become unavailable without removing the historical observation.
+- `skill_observations.source_id` references `sources.id` without deletion cascade; a source with retained evidence cannot be deleted. Its native Session identity optionally resolves to a current `sessions` row; Session deletion or registration removal retains historical observations.
 - `workflow_assertions.source_episode_key` and optional `target_episode_key`
   application-address FEAT-0085 source-scoped Session Episode identities.
   Nullable Session FKs accelerate current resolution but never replace those
@@ -242,6 +242,7 @@ The owning subject document records the precise deletion effect and recovery bou
 
 - `schema.sql` creates all 45 ordinary tables, `search_index`, all physical constraints, and 43 explicit indexes for a new database. Its idempotent application also creates the retained skill-observation ledger, Session pin, scoped Chart visibility preference, Session reference scan/evidence, append-only Workflow assertion ledger, external-source capability, external-sync, independent personal-insight Run, Atlassian source-memory and optional Site-binding, local-classification, bounded Item evidence, and stable structure-reference identity/URL/evidence tables on older databases without rewriting existing objects.
 - `db.py` idempotently adds columns introduced after older installations, including Source latest-success/status/error health, Session-file owner and independent Session/Usage/reference contract mapping, Atlassian Space canonical URL, coverage, and nullable Item/Space access ownership, backup-rebuilds the Source registry to add provider identity while preserving stable Source IDs and descendants, removes the legacy unused `sources.enabled` field and obsolete `workspaces.git_branch`, removes the legacy Activity Event metadata column only after an all-null preflight, backfills non-null continuity and attribution values, migrates Context root associations, and performs the approved backup-backed Usage attribution, Maintenance Run Workstream FK, Maintenance Session, External Resource URL-scope, and Atlassian optional-access repairs without changing retained rows or polymorphic relations. The Atlassian repair makes the legacy Site parent nullable, creates explicit bindings, and backfills current Item/Space access.
+- The approved profile upgrade removes `sources.kind` and the retained skill ledger’s string source key in favor of `sources.id`. It preserves Source/Session/Event/Usage IDs and frozen attribution, remaps structured Chart/Workflow/analysis references, and adds the non-cascading skill Source FK. Source color/order and Context display order are independent user presentation attributes. The database-compatible path and known-version TOML upgrade preserve unrelated values and stop on ambiguous identity; the [source owner](data-model/source-registry-and-scans.md) records the detailed lifecycle.
 - Startup detects the legacy `usage_facts` table before fresh DDL, refuses an ambiguous database where it coexists with `usage_records`, and otherwise renames it in place while replacing only the three explicit legacy index names. Rows, identifiers, columns, constraints, and foreign-key validity remain unchanged.
 - Schema presentation generation invokes the same compatible structural and index path with data migrations disabled, so its in-memory database cannot inspect Context paths or mutate rows; normal application startup retains data migrations by default.
 - `db.py` converges the fresh index declarations safely and contributes eight effective runtime-only names: `idx_sessions_class`, `idx_sessions_role`, `idx_sessions_parent`, `idx_maintenance_runs_workstream`, `idx_maintenance_runs_status`, `idx_suggestions_origin_run`, `idx_documents_context_root`, and `idx_source_files_session`.

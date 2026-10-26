@@ -30,7 +30,7 @@ class OfficialSolPricingTests(unittest.TestCase):
         self.connection.execute("PRAGMA foreign_keys = ON")
         self.connection.executescript(SCHEMA.read_text())
         self.source_id = self.connection.execute(
-            "INSERT INTO sources(kind, provider_kind, name, root_path) VALUES ('codex', 'codex', 'Synthetic', ?)",
+            "INSERT INTO sources(provider_kind, name, root_path) VALUES ('codex', 'Synthetic', ?)",
             (str(self.root),),
         ).lastrowid
         self.sequence = 0
@@ -55,7 +55,7 @@ class OfficialSolPricingTests(unittest.TestCase):
         self.assertEqual(len(parsed.usage_records), 1)
         if unavailable:
             parsed.usage_records[0].price_snapshot_id = UNAVAILABLE_SNAPSHOT_ID
-        _store_session(self.connection, self.source_id, "codex", parsed)
+        _store_session(self.connection, self.source_id, parsed)
         return dict(self.connection.execute(
             "SELECT usage_records.* FROM usage_records JOIN sessions ON sessions.id = usage_records.session_id "
             "WHERE sessions.external_id = ?", (external_id,),

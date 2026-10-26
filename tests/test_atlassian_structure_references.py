@@ -90,9 +90,7 @@ class AtlassianStructureReferenceTests(unittest.TestCase):
         self.source_id = int(
             self.connection.execute(
                 """
-                INSERT INTO sources(kind, provider_kind, name, root_path)
-                VALUES ('context', 'context', 'Context', '/synthetic/context')
-                """
+                INSERT INTO sources(provider_kind, name, root_path) VALUES ('context', 'Context', '/synthetic/context')"""
             ).lastrowid
         )
         self.root_id = int(

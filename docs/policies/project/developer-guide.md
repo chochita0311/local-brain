@@ -107,15 +107,20 @@ LocalBrain reads these environment variables at process startup:
 | `LOCALBRAIN_DATA_DIR` | `~/Library/Application Support/LocalBrain` | Primary DB, private configuration, model registrations and saved Runs |
 | `LOCALBRAIN_CACHE_DIR` | `~/Library/Caches/LocalBrain` | Rebuildable search indexes, simulation and preview results |
 | `LOCALBRAIN_DEVELOPMENT_DIR` | `~/Library/Application Support/LocalBrain-Development` | Explicit development evaluations; never created by ordinary app startup |
-| `LOCALBRAIN_CONTEXT_ROOT` | `~/Projects/context` | Initial Local Context folder discovery |
-| `LOCALBRAIN_CLAUDE_ROOT` | `~/.claude/projects` | One-time Claude root seed when `session-sources.toml` is first absent |
-| `LOCALBRAIN_CODEX_ROOT` | `~/.codex/sessions` | One-time personal Codex root seed when `session-sources.toml` is first absent |
+| `LOCALBRAIN_CONTEXT_ROOT` | `~/Projects/context` | Legacy Context migration/fallback root. Discovery may run only when no registrations exist, indexed documents already exist and this path is a directory. It selects non-hidden child directories containing Markdown; if none qualify, it selects the root only when top-level Markdown exists. Fresh installs require explicit registration. |
+| `LOCALBRAIN_CLAUDE_ROOT` | `~/.claude/projects` | Legacy Claude reader root; new registrations are explicit in settings |
+| `LOCALBRAIN_CODEX_ROOT` | `~/.codex/sessions` | Legacy Codex reader root; new registrations are explicit in settings |
 | `LOCALBRAIN_CLAUDE_BIN` | resolved from `PATH` | Claude CLI executable used by the Task Runner |
 | `LOCALBRAIN_CODEX_BIN` | resolved from `PATH` | Codex CLI executable available to source-neutral external synchronization |
 | `LOCALBRAIN_INSIGHT_CODEX_HOME` | `CODEX_HOME`, then existing `~/.codex-company`, then `~/.codex` | Codex profile home for new personal improvement analysis Runs |
 | `LOCALBRAIN_INSIGHT_CODEX_MODEL` | `gpt-6-astra` | Model identifier frozen for new personal improvement analysis Runs |
 | `LOCALBRAIN_MCP_CALL_BUDGET` | `20` | Advisory legacy-task budget and hard selected-request ceiling for external synchronization |
-| `LOCALBRAIN_TIMEZONE` | system IANA timezone, then `UTC` | Local calendar boundaries for usage and activity reports |
+
+General user preferences (startup screen, timezone and automatic sync) follow
+`settings.toml`, with defaults only for missing fields. The former
+`LOCALBRAIN_STARTUP_SCREEN`, `LOCALBRAIN_TIMEZONE`, `LOCALBRAIN_SESSION_SYNC_ENABLED`
+and `LOCALBRAIN_SESSION_SYNC_MINUTES` overrides are ignored. The default timezone
+comes from the Mac system zoneinfo setting, then UTC, independently of process `TZ`.
 
 For a custom `LOCALBRAIN_DATA_DIR`, unspecified cache/development locations are sibling directories named `<data-name>-cache` and `<data-name>-development`. Explicit variables override those defaults. Stop the app before moving existing state; use [the storage migration guide](installation-and-storage.md#upgrade-an-existing-storage-layout).
 
@@ -143,26 +148,34 @@ For conversation requests, report v3 identifies up to five missing messages by a
 
 Application startup creates `<LOCALBRAIN_DATA_DIR>/session-sources.toml` with
 mode `0600` when it is first absent. The file is the established local AI
-Session-source authority and contains an ordered `schema_version = 1` list:
+Session-source authority and contains an ordered `schema_version = 2` list:
 
 ```toml
-schema_version = 1
+schema_version = 2
 
 [[session_sources]]
-source_key = "codex-company"
-display_label = "Codex Company"
+source_id = 1
 provider_kind = "codex"
-root = "/absolute/path/to/.codex-company/sessions"
+display_label = "Personal"
+root = "/absolute/path/to/agent-home/sessions"
+color = "green"
 ```
 
-The bootstrapped file also contains explicit `claude` and `codex` peers. Once it
-exists, changing the two legacy root environment variables does not override it.
-Missing roots remain registered as unavailable. Malformed files, provider
-conflicts, omitted entries, and changes to a root that already owns imported data
-preserve the last registered Source and every normalized descendant; source
-deletion and occupied-root relocation require separate future workflows.
+A fresh file contains `session_sources = []`; the example above is an explicitly
+registered profile, not a default registration. The ID is the local `sources.id` PK; it is not
+a provider code or editable nickname. An existing DB's registered
+sources seed a missing file during upgrade. Existing files keep their IDs, roots
+and order, independent of legacy root environment variables. Settings add optional
+`agent_home` and `enabled` fields (`enabled` defaults to true for older files).
 
-Sessions synchronization dispatches every validated entry in file order, using
+Missing roots retain imported data and report unavailability. Invalid files,
+provider conflicts, manually omitted entries and unconfirmed root changes preserve
+existing records. The settings UI coordinates confirmed same-source reconnection;
+registration removal writes `enabled = false`, stops collection/search and retains
+browseable imported records. Re-registering retains the original identity. See
+[the source lifecycle contract](desktop-app-and-settings.md#source-lifecycle-contract).
+
+Sessions synchronization dispatches every enabled, validated entry in file order, using
 one transaction per Source. The structured report names every Source and records
 latest attempt, latest success, outcome, counts, and a bounded consequence. A
 missing or invalid root never authorizes stale deletion; only a completed scan of

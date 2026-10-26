@@ -33,13 +33,13 @@ class SchemaPresentationBuildTests(unittest.TestCase):
         self.assertEqual(len(manifest["subjects"]), 10)
         self.assertEqual(len(manifest["tables"]), 46)
         self.assertEqual(
-            sum(len(table["columns"]) for table in manifest["tables"]), 521
+            sum(len(table["columns"]) for table in manifest["tables"]), 523
         )
         self.assertEqual(
             sum(len(table["indexes"]) for table in manifest["tables"]), 51
         )
-        self.assertEqual(len(manifest["relationships"]["physical"]), 57)
-        self.assertEqual(len(manifest["relationships"]["application"]), 29)
+        self.assertEqual(len(manifest["relationships"]["physical"]), 58)
+        self.assertEqual(len(manifest["relationships"]["application"]), 28)
 
         owned = [
             table_id

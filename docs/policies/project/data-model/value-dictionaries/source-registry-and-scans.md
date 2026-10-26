@@ -5,21 +5,21 @@ Durable table owner: [docs/policies/project/data-model/source-registry-and-scans
 
 This companion owns bounded physical/logical/presentation mappings only. It does not duplicate the table catalog.
 
-## `source.kind`
+## `source.profile-color`
 
-- Physical field or projection: `sources.kind`
-- Allowed values: `claude`, `codex`, `codex-company`, `context`
-- Enforcement: `application-stored`
-- Logical axis: stable local source identity
+- Physical field or projection: `sources.profile_color`
+- Allowed values: `green`, `blue`, `orange`, `yellow`, `red`, `gray`
+- Enforcement: `schema-check`
+- Logical axis: user-selected profile color
 - Default: `NULL`
-- Fallbacks: `null`: reject; `unknown`: label → 알 수 없는 소스; `invalid`: reject; `future`: label → 새 소스
-- Producers: `src/localbrain/ingest/scanner.py`
-- Consumers: `src/localbrain/templates/sources.html`, `src/localbrain/templates/sessions.html`, `src/localbrain/templates/session.html`, `src/localbrain/templates/sessions_dashboard.html`, `src/localbrain/templates/search.html`, `src/localbrain/templates/natural-search.html`
-- Consequence: Selects source ownership, filtering, statistics, and visible provenance independently from provider behavior.
+- Fallbacks: `null`: label → 기본 색상; `unknown`: label → 알 수 없는 색상; `invalid`: reject; `future`: label → 새 색상
+- Producers: `src/localbrain/session_sources.py`
+- Consumers: `src/localbrain/source_profiles.py`
+- Consequence: Projects the configured profile color without changing provider or imported identity.
 - Presentation mode: `logical-label`
-- Labels: `claude` → Claude; `codex` → Codex; `codex-company` → Codex Company; `context` → Local Context
-- Help: 어디에서 가져온 기록인지 나타냅니다.
-- Visible consumer inventory: `src/localbrain/templates/sources.html` (registry-backed); `src/localbrain/templates/sessions.html` (registry-backed); `src/localbrain/templates/session.html` (registry-backed); `src/localbrain/templates/search.html` (registry-backed); `src/localbrain/templates/natural-search.html` (registry-backed)
+- Labels: `green` → 녹색; `blue` → 파란색; `orange` → 주황색; `yellow` → 노란색; `red` → 빨간색; `gray` → 회색
+- Help: 프로필을 구분하는 색상입니다.
+- Visible consumer inventory: `src/localbrain/source_profiles.py` (registry-backed)
 
 ## `source.provider-kind`
 
@@ -35,7 +35,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Presentation mode: `logical-label`
 - Labels: `claude` → Claude; `codex` → Codex; `context` → Local Context; `unknown` → 알 수 없는 어댑터
 - Help: 같은 어댑터를 사용하는 여러 로컬 소스를 구분해 처리합니다.
-- Visible consumer inventory: none.
+- Visible consumer inventory: `src/localbrain/templates/sources.html` (registry-backed)
 
 ## `source.scan-status`
 
@@ -153,5 +153,6 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 
 | Pattern | Owner | Reason |
 | --- | --- | --- |
+| `sources.id and sources.profile_position` | numeric profile registry and Session TOML | id is the sole numeric profile PK; profile_position is a nonnegative TOML array-position projection. Neither is a closed presentation vocabulary. |
 | `version, fingerprint, error-code, tool-operation, capability JSON fields` | versioned protocol producers | Internal versioned protocol identifiers, not user-visible bounded database state. |
 | `identifiers, paths, names, timestamps, hashes, error text, JSON payloads` | owning table producer | Free-form identity, evidence, or content fields are not bounded value families. |

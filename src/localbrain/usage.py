@@ -972,7 +972,6 @@ def store_usage_records(
     usage_records: Iterable[ParsedUsageRecord],
     workspace_id: Optional[int] = None,
     normalizer_version: str = "legacy-v1",
-    identity_scope: Optional[str] = None,
     cache: Optional[UsagePersistenceCache] = None,
 ) -> None:
     persistence_cache = cache or UsagePersistenceCache()
@@ -987,12 +986,12 @@ def store_usage_records(
     ).fetchall()
     existing_by_id = {row["id"]: row for row in existing_rows}
 
+    existing_by_native = {row["source_record_id"]: row for row in existing_rows}
+
     def stored_record_id(record: ParsedUsageRecord) -> str:
-        if identity_scope is None:
-            return record.usage_record_id
-        return stable_id(
-            "source-scoped-usage", identity_scope, record.usage_record_id
-        )
+        existing = existing_by_native.get(record.source_record_id)
+        return existing["id"] if existing else stable_id("source-usage", source_id, record.usage_record_id)
+
     contract_changed = bool(existing_rows) and any(
         row["normalizer_version"] != normalizer_version for row in existing_rows
     )

@@ -155,7 +155,7 @@ def _date(value):
 
 
 def _status(row):
-    if row["kind"] is None:
+    if row["registered_source_id"] is None:
         return "excluded-missing-source"
     if row["session_class"] != "work":
         return "excluded-maintenance"
@@ -188,9 +188,9 @@ def inventory(database, chunk_chars, visit=None):
 
     with read_only_database(database, timeout=600) as source:
         for row in source.execute("""SELECT s.id,s.source_id,s.external_id,s.title,s.session_class,
-                s.session_role,s.index_policy,p.kind FROM sessions s
-                LEFT JOIN sources p ON p.id=s.source_id ORDER BY p.kind,s.external_id,s.id"""):
-            skey = digest([row["kind"] or "missing-source-{}".format(row["source_id"]), row["external_id"]])
+                s.session_role,s.index_policy,p.id AS registered_source_id FROM sessions s
+                LEFT JOIN sources p ON p.id=s.source_id ORDER BY p.id,s.external_id,s.id"""):
+            skey = digest([row["registered_source_id"] or "missing-source-{}".format(row["source_id"]), row["external_id"]])
             status = _status(row)
             session = {"key": skey, "id": row["id"], "title": row["title"][:300], "status": status}
             counters["total_sessions"] += 1
@@ -266,12 +266,12 @@ def source_texts(database, rows):
     with read_only_database(database) as source:
         for chunk in rows:
             row = source.execute("""SELECT substr(e.text,?,?) AS text,e.role,s.title,
-                    s.session_class,s.session_role,s.index_policy,p.kind,s.external_id
+                    s.session_class,s.session_role,s.index_policy,p.id AS registered_source_id,s.external_id
                     FROM activity_events e JOIN sessions s ON s.id=e.session_id
                     JOIN sources p ON p.id=s.source_id WHERE e.id=?""",
                     (chunk["start"] + 1, chunk["end"] - chunk["start"], chunk["event_id"])).fetchone()
             require(row is not None and eligible(dict(row)) and
-                    digest([row["kind"], row["external_id"]]) == chunk["session_key"] and
+                    digest([row["registered_source_id"], row["external_id"]]) == chunk["session_key"] and
                     isinstance(row["text"], str) and sha(row["text"]) == chunk["content_hash"], "SOURCE_CHANGED")
             text = input_text(row["title"][:300], row["role"], row["text"])
             require(sha(text) == chunk["input_hash"], "SOURCE_CHANGED")

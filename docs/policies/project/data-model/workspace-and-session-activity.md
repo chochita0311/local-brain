@@ -34,7 +34,7 @@ erDiagram
     }
     SKILL_OBSERVATIONS {
         string id PK
-        string source_key
+        integer source_id FK
         string external_session_id
         string native_event_id
         string skill_group_key
@@ -77,7 +77,7 @@ erDiagram
     WORKSPACES o|--o{ SESSIONS : "physical SET_NULL"
     SESSIONS o|--o{ SESSIONS : "physical parent SET_NULL"
     SESSIONS ||--o{ ACTIVITY_EVENTS : "physical CASCADE"
-    SOURCES o|..o{ SKILL_OBSERVATIONS : "app retained source key"
+    SOURCES ||--o{ SKILL_OBSERVATIONS : "physical NO_ACTION retained evidence"
     SESSIONS o|..o{ SKILL_OBSERVATIONS : "app current native Session"
     SESSIONS ||--o| SESSION_PINS : "physical CASCADE"
     SESSIONS ||--o| SESSION_REFERENCE_SCANS : "physical CASCADE"
@@ -152,7 +152,7 @@ Constraints: uniqueness of `canonical_path`. Explicit indexes: none.
   operational artifact only.
   Ephemeral personal insight executions are a bounded exception: a retained CLI usage observation creates a metadata-only Maintenance Session accounting parent with identity `localbrain-insight:<Run ID>`. It contains no conversation, events, search entry, workspace, or native source-file registration. The independent Run is its application owner; native-source disappearance does not delete this accounting projection.
 - Producers: `ingest/scanner.py` plus Claude/Codex parsers create Sessions and Usage Records; parent reconciliation updates self-references and propagates maintenance policy to Claude or Codex children. `runner.py` synchronizes the selected native source after terminal and recovered Runs. Session projection freshness is independently versioned in `source_files`, so classification/parser changes can rebuild Sessions, Activity Events, and search without replacing Usage merely because the Session contract changed. Session parser version changes rebuild available Session projections on the next explicit Sync without replacing Usage solely because the Session contract changed. `db.py` owns the classification/Run-link constraint repair. `personal_insight_usage.py` separately creates insight accounting parents and canonical Usage Records from observed ephemeral CLI usage.
-- Consumers: Session inventory/detail, dashboard counts, normalized activity, retrieval, Workstream linking/suggestions, Runner context, search projection, Usage Records, and Usage Dashboard denominators. Sessions inventory headline, rows, pagination, and Project grouping share the same `work` plus `primary` denominator with no age cutoff. A selected source matches the stable `sources.kind`, not `provider_kind`, so personal and company Codex remain statistically separate while sharing one adapter.
+- Consumers: Session inventory/detail, dashboard counts, normalized activity, retrieval, Workstream linking/suggestions, Runner context, search projection, Usage Records, and Usage Dashboard denominators. Sessions inventory headline, rows, pagination, and Project grouping share the same `work` plus `primary` denominator with no age cutoff. A selected source matches the stable `sources.id`, not `provider_kind`, so personal and company Codex remain statistically separate while sharing one adapter.
 - Relations and deletion: physical `source_id` cascades; optional `workspace_id`, `parent_session_id`, and unique `maintenance_run_id` set null. After a successful scan of a present source root, stale-file reconciliation deletes a normalized Session when neither its owning native JSONL nor another tracked path remains valid; a valid tracked sibling instead becomes its owner. Parsed-empty reconciliation is a separate branch: for full-index Sessions, stale conversation/search can be cleared and the Session considered for retirement only when its current owner path belongs to the parsed-empty set AND every tracked sibling path also belongs to that set. A meaningful shared owner, including a source containing only admitted skill observations, prevents that parsed-empty cleanup; retained historical Usage keeps the Session meaningful even after its stale conversation is cleared. Deleting that Session cascades `activity_events`, `usage_records`, derived `session_reference_scans` and `session_reference_evidence`, and the optional user-owned `session_pins` row; scanner also removes its search and source-file projection while preserving a present native stub. A wholly missing source root does not trigger the same stale-file reconciliation. `skill_observations` has no cascading FK and keeps admitted historical uses. Polymorphic links and checkpoint refs are application edges and can retain an unresolved historical ID.
 - Recovery: rescan the authoritative native source file and reconcile parents. Restoring only a Task Runner stream cannot rebuild a Session or Usage Record; restore the selected runner's native Claude or Codex JSONL and the Run ledger together. The insight accounting exception is recoverable from the independent Run ledger plus retained usage summaries or CLI usage events. A full database rebuild cannot restore user-curated links, exact operational history, or confirmed review state without backup.
 - DDL ownership: fresh definition and `idx_sessions_last_event`, `idx_sessions_workspace` in `schema.sql`; compatible columns, backup-backed classification/Run-link table repair, and runtime-only `idx_sessions_class`, `idx_sessions_role`, `idx_sessions_parent` in `db.py`. Before that structural repair, startup preserves `localbrain.db-pre-maintenance-session-contract-v1.bak` and validates it with SQLite `quick_check`. An older additive layout may have the same approved columns in a different physical order; migration validates every name/type/null/default/key contract, copies values by canonical column name, and converges only the physical order.
@@ -206,7 +206,7 @@ For parsed-empty reconciliation, these ownership checks apply before retiring th
 ### `activity_events`
 
 - Purpose and authority: normalized, ordered Session events used for conversation presentation, activity calculation, retrieval evidence, and tool/message counts without exposing raw event payload files.
-- Lifecycle: source-derived and rebuildable. Scanner replaces the Session's event set atomically during re-import. Canonical Claude and personal Codex event IDs retain their existing deterministic values; an additional source key reusing either provider scopes the stored event ID by that source key so identical native event identities can coexist.
+- Lifecycle: source-derived and rebuildable. Scanner replaces the Session's event set atomically during re-import. Existing event PKs are retained by matching `(session_id, sequence, event_type, source_line)`. New event IDs include the numeric source PK, so identical native events in different profiles coexist without an alias.
 - Producers: `ingest/scanner.py` from normalized parser events; provider-backed phase normalization retains only explicit, unambiguous completion or continuation evidence.
 - Consumers: `queries.py` Session detail and counts, `activity.py` active-time attribution, `retrieval.py` evidence loading, and `personal_insight_evidence.py` bounded read-only message sampling for later personal insight Runs. Primary Session `관련 자료` consumes the separate normalized reference-evidence projection rather than reparsing Activity Event text at request time; workspace membership alone is not a related-material relation. The projection adds no Session column or relationship row.
 - Relations and deletion: `session_id` cascades from `sessions`; replacement deletes prior rows before inserting the new normalized sequence.
@@ -215,7 +215,7 @@ For parsed-empty reconciliation, these ownership checks apply before retiring th
 
 | Column | Contract |
 | --- | --- |
-| `id` | `TEXT PRIMARY KEY`; deterministic normalized event identity, source-key scoped for additional provider-sharing sources. |
+| `id` | `TEXT PRIMARY KEY`; deterministic normalized event identity, scoped by numeric Source ID for newly observed records; re-ingestion preserves retained PKs through native unique-key matching. |
 | `session_id` | `INTEGER NOT NULL` FK to `sessions.id`, `ON DELETE CASCADE`. |
 | `sequence` | `INTEGER NOT NULL`; normalized order within the Session. |
 | `occurred_at` | nullable `TEXT`; observed event time. |
@@ -247,17 +247,17 @@ The personal insight evidence manifest is a private derived value, not a new dat
 ### `skill_observations`
 
 - Purpose and authority: durable native calls/contexts, successful instruction reads, named conversation references and identifiable skill script executions. Names are established by source evidence within the Session; availability catalogs alone do not count. References are matched by identifiers without interpreting use wording or language. All observed evidence contributes to use/reference Session reach, not proof of application, success or benefit. Previously recorded declarations are retained as historical references; no new phrase-based declarations are extracted.
-- Lifecycle: retained historical observation. Parser-version upgrades backfill available files once; subsequent changed/resumed files insert only new events. Native events deduplicate by source, Session and event identity; read/mention/script events also include normalized skill identity. Earlier declaration identities guard equivalent mention replay, including corrections. Request identity remains provenance, with null scope allowed. Missing files/Source/Session rows do not retract evidence. Maintenance Sessions and reconciled children are invalidated, and targeted corrections remain supported. Insights counts each normalized skill at most once per source and native Session across all requests/signals. Constituent events remain in the ledger.
+- Lifecycle: retained historical observation. Parser-version upgrades backfill available files once; subsequent changed/resumed files insert only new events. Native events deduplicate by source, Session and event identity; read/mention/script events also include normalized skill identity. Earlier declaration identities guard equivalent mention replay, including corrections. Request identity remains provenance, with null scope allowed. Missing files or Session rows, and removal of source registration, do not retract evidence. Maintenance Sessions and reconciled children are invalidated, and targeted corrections remain supported. Insights counts each normalized skill at most once per source and native Session across all requests/signals. Constituent events remain in the ledger.
 - Producers: Claude/Codex parsers, `ingest/skill_loads.py` and `ingest/skill_usage.py` extract bounded signals; `ingest/scanner.py` and `skill_observations.py` persist them within the source scan transaction and reconcile maintenance exclusion. Native Codex turn IDs, Claude user UUIDs or retained user-message identity establish request scope. A targeted native-event correction can set erroneous evidence to `corrected` without making ordinary disappearance a deletion signal.
 - Consumers: `skill_observations.py` all-time use/reference Session ranking, latest admitted reference time and extraction coverage for Insights. Compatible `use_count` and `last_used_at` fields mean Session count and latest reference time. No files means `not_scanned`; stale parser contracts mean `partial`. Historical observations without current files remain distinguishable. Usage & Cost does not query this table.
-- Relations and deletion: `source_key` application-addresses current `sources.kind`; (`source_key`, `external_session_id`) may resolve to a current `sessions` row. Neither is an FK: ordinary source or Session deletion must not cascade into this ledger. Evidence links appear only after a successful current-row join.
+- Relations and deletion: `source_id` is a non-null FK to `sources.id` with `NO ACTION`; a source with retained skill evidence cannot be deleted. (`source_id`, `external_session_id`) may resolve to a current `sessions` row. Session deletion and registration removal do not cascade into this ledger. Evidence links appear only after a successful current-row join.
 - Recovery: restore the database to retain observations whose native Session files have disappeared. Still-available files can be rescanned, but cannot reproduce lost historical events.
 - DDL ownership: fresh additive table and `idx_skill_observations_group`, `idx_skill_observations_source_session` in `schema.sql`; compatible startup creates the absent table without rewriting existing Session rows.
 
 | Column | Contract |
 | --- | --- |
 | `id` | `TEXT PRIMARY KEY`; deterministic source/Session/event evidence identity; read/declaration/mention/script IDs also include normalized skill name. Existing opaque IDs are retained. |
-| `source_key` | `TEXT NOT NULL`; stable local Source key, distinct for personal and company Codex. |
+| `source_id` | `INTEGER NOT NULL REFERENCES sources(id)`; the existing numeric source PK, independently identifying profiles of the same provider. |
 | `provider_kind` | `TEXT NOT NULL`; checked to `claude` or `codex`, identifying the source parser family. |
 | `external_session_id` | `TEXT NOT NULL`; native Session identity for optional current-row lookup. |
 | `native_event_id` | native provider identity for calls/contexts/reads; `mention:` prefixes a native message ID or deterministic normalized message fallback; `script:` prefixes a native execution ID. Historical `declaration:` identities remain retained. |
@@ -271,7 +271,7 @@ The personal insight evidence manifest is a private derived value, not a new dat
 | `state` | `observed` or `corrected`, default `observed`; only observed evidence enters Insights. |
 | `recorded_at` | `TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; first local persistence time. |
 
-Constraints: `UNIQUE(source_key, external_session_id, native_event_id, skill_group_key)` plus application evidence guards, bounded fields and checked provider/signal/state values. Indexes: `idx_skill_observations_group` and `idx_skill_observations_source_session`. Startup extends the signal CHECK and optional legacy request field transactionally with exact retained-row parity. The Session-count change adds signal values without changing table/column/index counts.
+Constraints: `UNIQUE(source_id, external_session_id, native_event_id, skill_group_key)` plus application evidence guards, bounded fields and checked provider/signal/state values. Indexes: `idx_skill_observations_group` and `idx_skill_observations_source_session`. Startup extends the signal CHECK and optional legacy request field transactionally with exact retained-row parity. The Session-count change adds signal values without changing table/column/index counts.
 
 ### `session_pins`
 
@@ -302,7 +302,7 @@ Constraints: one row per Session, required pin time, and cascading physical owne
 
 | Column | Contract |
 | --- | --- |
-| `source_scope` | `TEXT NOT NULL`; logical source filter key, with `all` as the unfiltered scope. First composite primary-key column. |
+| `source_scope` | `TEXT NOT NULL`; numeric source PK serialized as text, with `all` as the unfiltered scope. First composite primary-key column. |
 | `workspace_scope` | `TEXT NOT NULL DEFAULT ''`; empty string for all workspaces, otherwise the validated workspace ID serialized as text. Second composite primary-key column; not a cascading reference. |
 | `hidden_projects_json` | `TEXT NOT NULL`; JSON array of deduplicated, sorted recorded folder keys, including the empty missing-folder key. Application validates array/string shape and size; only currently known keys affect rendering. |
 | `updated_at` | `TEXT NOT NULL`; UTC time of the latest committed preference write, unchanged when migration encounters an existing row. |
@@ -395,7 +395,7 @@ Constraints: exact target-kind/FK/normalized-URL parity; exact evidence-kind/rea
   versioned `workflow_projection.py` descriptors are in-memory, fully
   rebuildable views over approved normalized facts.
 - One Episode is eligible only when its source row is a primary work Session.
-  Its opaque stable key hashes the length-delimited `sources.kind` and
+  Its opaque stable key hashes the length-delimited `sources.id` and
   `sessions.external_id`; `sessions.id` remains the current local navigation
   identity and is excluded from the rebuild-stable key. The descriptor never
   serializes the source-native ID or a source path.
@@ -418,7 +418,7 @@ Constraints: exact target-kind/FK/normalized-URL parity; exact evidence-kind/rea
   Session-owned `git_branch`, privacy-minimized reference target keys, and
   exact user organization membership; it does not read Activity Event text.
 - Direct-child rows contribute only a bounded `session` evidence family with
-  their current local destination and source key. They retain their existing
+  their current local destination and numeric source ID. They retain their existing
   subordinate ownership and never become Episode peers. The Focus projection
   has no lifecycle row, foreign key, cascade, migration, restore action, or
   purge action of its own.

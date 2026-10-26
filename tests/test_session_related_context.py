@@ -28,10 +28,7 @@ class SessionRelatedContextTests(unittest.TestCase):
         self.connection.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
         self.connection.executescript(
             """
-            INSERT INTO sources(id, kind, provider_kind, name, root_path)
-            VALUES
-                (1, 'codex', 'codex', 'Codex', '/synthetic/codex'),
-                (2, 'context', 'context', 'Local Context', '/synthetic/context');
+            INSERT INTO sources(id, provider_kind, name, root_path) VALUES (1, 'codex', 'Codex', '/synthetic/codex'), (2, 'context', 'Local Context', '/synthetic/context');
 
             INSERT INTO workspaces(id, canonical_path, display_name, exists_now)
             VALUES

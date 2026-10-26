@@ -8,6 +8,28 @@ Durable tokens, component contracts, layout rules, state mappings, and implement
 
 ## Source Set And Interpretation
 
+The first-use setup adapts the owner's [Tesla homepage](https://www.tesla.com/)
+reference (2026-10-23) for quiet centered hierarchy, stable navigation, bottom page
+dots and a coherent crossfade. LocalBrain keeps its compact settings-dialog
+geometry, neutral surfaces, warm actions, SF-oriented type and shared motion
+tokens. The four actual steps determine the dot count; source registration and
+explicit model-install authority determine navigation. No promotional imagery,
+auto-advance or foreign theme is imported.
+
+Session profile settings draw on the owner's [iPhone Duo reference](https://www.apple.com/iphone-duo/)
+(2026-10-23): concise headings, deliberate whitespace, grouped surfaces and detail
+revealed when requested. A compact overview leads to an editor within the same
+pane. The later Home-first correction makes agent home primary and discloses only
+a custom Session-folder override. Collection
+paths, errors and explicit registration authority remain visible at their relevant
+decision points. LocalBrain keeps its control geometry and restrained palette;
+Apple product imagery, promotional scale and pill-shaped controls do not transfer.
+
+The owner-supplied desktop About-dialog reference (2026-10-24) contributes only
+its icon/name/version hierarchy and whitespace. LocalBrain uses its existing LB
+mark and settings family; reference branding, license text and screenshots are
+not product assets. The About pane keeps only identity and the actual version.
+
 The starting point is a screen-plus-context source set:
 
 - **Qoo10 Design System (AI)** supplies upstream palette, typography, spacing, shape, and component cues. It was reviewed through authenticated Figma access during the initial design pass on 2026-07-15. External file identifiers are intentionally not retained here.
@@ -70,6 +92,11 @@ hover passage so moving into the card feels stable. Card reading remains tempora
 and local; leaving its pointer/focus ownership closes it after a short grace.
 
 ## Creative North Star
+
+The 2026-10-25 profile-settings refinement uses the owner's [Notion reference](https://www.notion.com/ko)
+as direction for light, independently movable rows. LocalBrain keeps its own shell,
+tokens and supported actions. Color-only tag controls evoke familiar label palettes;
+source toggles stay textual while record cues retain provider letters and colors.
 
 **The Trusted Tool**
 

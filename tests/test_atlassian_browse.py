@@ -274,7 +274,7 @@ class AtlassianBrowseTests(unittest.TestCase):
         source_id = int(
             self.connection.execute(
                 """
-                INSERT INTO sources(kind, name, root_path)
+                INSERT INTO sources(provider_kind, name, root_path)
                 VALUES ('context', 'Structure fixture', '/synthetic/structure')
                 """
             ).lastrowid
@@ -1041,7 +1041,7 @@ class AtlassianBrowseTests(unittest.TestCase):
         source_id = int(
             self.connection.execute(
                 """
-                INSERT INTO sources(kind, name, root_path)
+                INSERT INTO sources(provider_kind, name, root_path)
                 VALUES ('codex', 'Canonical owner source',
                         '/synthetic/canonical-owner')
                 """
@@ -1277,7 +1277,7 @@ class AtlassianBrowseTests(unittest.TestCase):
         )
         source_id = self.connection.execute(
             """
-            INSERT INTO sources(kind, name, root_path)
+            INSERT INTO sources(provider_kind, name, root_path)
             VALUES ('codex', 'Codex', '/synthetic/codex')
             """
         ).lastrowid

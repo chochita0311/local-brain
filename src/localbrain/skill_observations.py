@@ -15,7 +15,7 @@ def normalized_skill_name(value: str) -> str:
 def store_skill_observations(
     connection: sqlite3.Connection,
     *,
-    source_key: str,
+    source_id: int,
     provider_kind: str,
     parsed: ParsedSession,
 ) -> int:
@@ -24,9 +24,9 @@ def store_skill_observations(
         connection.execute(
             """
             UPDATE skill_observations SET state = 'corrected'
-            WHERE source_key = ? AND external_session_id = ? AND state = 'observed'
+            WHERE source_id = ? AND external_session_id = ? AND state = 'observed'
             """,
-            (source_key, parsed.external_id),
+            (source_id, parsed.external_id),
         )
         return 0
     inserted = 0
@@ -52,12 +52,12 @@ def store_skill_observations(
         existing = connection.execute(
             """
             SELECT id, request_key FROM skill_observations
-            WHERE source_key = ? AND external_session_id = ?
+            WHERE source_id = ? AND external_session_id = ?
               AND native_event_id IN (?, ?)
               AND (? = 0 OR skill_group_key = ?)
             LIMIT 1
             """,
-            (source_key, parsed.external_id, native_id, legacy_id, int(multiple_skills), group_key),
+            (source_id, parsed.external_id, native_id, legacy_id, int(multiple_skills), group_key),
         ).fetchone()
         request_key = item.request_key
         if request_key is not None and (not request_key or len(request_key) > 160):
@@ -73,20 +73,20 @@ def store_skill_observations(
             ("skill-observation-declaration-v1" if item.signal_kind.endswith("_declaration")
              else "skill-observation-reference-v1" if item.signal_kind.endswith(("_mention", "_script"))
              else "skill-observation-read-v1" if multiple_skills else "skill-observation-v2"),
-            source_key, parsed.external_id, native_id,
+            source_id, parsed.external_id, native_id,
             *([group_key] if multiple_skills else []),
         )
         cursor = connection.execute(
             """
             INSERT OR IGNORE INTO skill_observations(
-                id, source_key, provider_kind, external_session_id,
+                id, source_id, provider_kind, external_session_id,
                 native_event_id, skill_name, skill_group_key, skill_locator,
                 signal_kind, source_line, occurred_at, request_key
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 observation_id,
-                source_key,
+                source_id,
                 provider_kind,
                 parsed.external_id,
                 native_id,
@@ -106,7 +106,7 @@ def store_skill_observations(
 def correct_skill_observation(
     connection: sqlite3.Connection,
     *,
-    source_key: str,
+    source_id: int,
     external_session_id: str,
     native_event_id: str,
 ) -> int:
@@ -114,10 +114,10 @@ def correct_skill_observation(
     cursor = connection.execute(
         """
         UPDATE skill_observations SET state = 'corrected'
-        WHERE source_key = ? AND external_session_id = ?
+        WHERE source_id = ? AND external_session_id = ?
           AND native_event_id = ? AND state = 'observed'
         """,
-        (source_key, external_session_id, native_event_id),
+        (source_id, external_session_id, native_event_id),
     )
     return cursor.rowcount
 
@@ -131,7 +131,7 @@ def skill_insights_data(connection: sqlite3.Connection) -> Dict[str, Any]:
                    MAX(julianday(occurred_at)) AS occurred_at
             FROM skill_observations
             WHERE state = 'observed'
-            GROUP BY source_key, external_session_id, skill_group_key
+            GROUP BY source_id, external_session_id, skill_group_key
         )
         SELECT skill_group_key, MIN(skill_name) AS skill_name,
                COUNT(*) AS use_count,

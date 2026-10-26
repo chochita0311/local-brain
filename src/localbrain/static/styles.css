@@ -124,9 +124,20 @@
   --surface-warning: var(--color-amber-100);
   --surface-danger: var(--color-red-100);
   --surface-brand-soft: var(--color-brand-100);
+  --surface-profile-green: var(--color-codex-100);
+  --text-profile-green: var(--color-codex-700);
+  --surface-profile-blue: var(--color-blue-100);
+  --text-profile-blue: var(--color-blue-600);
+  --surface-profile-orange: var(--color-claude-100);
+  --text-profile-orange: var(--color-claude-700);
+  --surface-profile-yellow: var(--color-amber-100);
+  --text-profile-yellow: var(--color-amber-700);
+  --surface-profile-red: var(--color-red-100);
+  --text-profile-red: var(--color-red-700);
+  --surface-profile-gray: var(--color-neutral-400);
+  --text-profile-gray: var(--color-neutral-900);
   --surface-source-claude: var(--color-claude-100);
   --surface-source-codex: var(--color-codex-100);
-  --surface-source-codex-company: var(--color-blue-100);
 
   /* Semantic text */
   --text-primary: var(--color-neutral-1000);
@@ -143,7 +154,6 @@
   --text-danger: var(--color-red-700);
   --text-source-claude: var(--color-claude-700);
   --text-source-codex: var(--color-codex-700);
-  --text-source-codex-company: var(--color-blue-600);
   --text-code-reading: var(--color-neutral-100);
   --text-code-muted: var(--color-neutral-550);
   --text-code-keyword: var(--color-code-blue-500);
@@ -165,7 +175,6 @@
   --border-danger: var(--color-red-700);
   --border-source-claude: var(--color-claude-700);
   --border-source-codex: var(--color-codex-700);
-  --border-source-codex-company: var(--color-blue-600);
   --focus-ring: var(--color-blue-600);
   --focus-ring-soft: var(--color-blue-100);
   --divider-row: var(--color-neutral-450);
@@ -685,7 +694,6 @@ h1 { margin: var(--space-none); font-family: var(--type-display-font); font-size
 }
 .session-source.claude { color: var(--text-source-claude); background: var(--surface-source-claude); border: var(--border-width-control) solid var(--border-source-claude); }
 .session-source.codex { color: var(--text-source-codex); background: var(--surface-source-codex); border: var(--border-width-control) solid var(--border-source-codex); }
-.session-source.codex-company { color: var(--text-source-codex-company); background: var(--surface-source-codex-company); border: var(--border-width-control) solid var(--border-source-codex-company); }
 .session-source.large { width: 46px; height: 46px; font-size: var(--type-label-size); }
 .session-main { min-width: 0; }
 .session-title-line { display: flex; align-items: center; gap: var(--space-control-gap); min-width: 0; }
@@ -873,6 +881,8 @@ h1 { margin: var(--space-none); font-family: var(--type-display-font); font-size
 .document-list span { margin-top: var(--space-micro); color: var(--text-secondary); font-size: var(--type-micro-size); }
 .pinned-session-list {
   display: grid;
+  /* Keep offscreen accessibility labels inside this scroller's bounds. */
+  position: relative;
   max-height: 420px;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -918,7 +928,6 @@ h1 { margin: var(--space-none); font-family: var(--type-display-font); font-size
 }
 .pinned-session-source.claude { color: var(--text-source-claude); background: var(--surface-source-claude); border: var(--border-width-control) solid var(--border-source-claude); }
 .pinned-session-source.codex { color: var(--text-source-codex); background: var(--surface-source-codex); border: var(--border-width-control) solid var(--border-source-codex); }
-.pinned-session-source.codex-company { color: var(--text-source-codex-company); background: var(--surface-source-codex-company); border: var(--border-width-control) solid var(--border-source-codex-company); }
 .pinned-session-copy { min-width: 0; }
 .pinned-session-copy strong,
 .pinned-session-branch,
@@ -3113,3 +3122,13 @@ a.workflow-evidence-item:hover strong { color: var(--text-link); text-decoration
   .auto-work-summary strong { flex-shrink: 0; }
   .auto-work-scope dl { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* User-owned profile color, independent from parser/provider identity. */
+[data-profile-color="green"] { --profile-surface: var(--surface-profile-green); --profile-ink: var(--text-profile-green); }
+[data-profile-color="blue"] { --profile-surface: var(--surface-profile-blue); --profile-ink: var(--text-profile-blue); }
+[data-profile-color="orange"] { --profile-surface: var(--surface-profile-orange); --profile-ink: var(--text-profile-orange); }
+[data-profile-color="yellow"] { --profile-surface: var(--surface-profile-yellow); --profile-ink: var(--text-profile-yellow); }
+[data-profile-color="red"] { --profile-surface: var(--surface-profile-red); --profile-ink: var(--text-profile-red); }
+[data-profile-color="gray"] { --profile-surface: var(--surface-profile-gray); --profile-ink: var(--text-profile-gray); }
+:is(.session-source, .pinned-session-source, .session-chart-source)[data-profile-color] { color: var(--profile-ink); background: var(--profile-surface); border: var(--border-width-control) solid var(--profile-ink); }
+.source-indicator[data-profile-color] { background: var(--profile-ink); }

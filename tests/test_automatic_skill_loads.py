@@ -58,6 +58,7 @@ class AutomaticSkillLoadTests(unittest.TestCase):
         self.connection = sqlite3.connect(":memory:")
         self.connection.row_factory = sqlite3.Row
         self.connection.executescript(SCHEMA.read_text(encoding="utf-8"))
+        self.connection.executemany("INSERT INTO sources(id,provider_kind,name,root_path) VALUES (?,?,?,?)", [(1,"codex","First","/synthetic/one"),(2,"codex","Second","/synthetic/two"),(3,"claude","Third","/synthetic/three")])
 
     def tearDown(self):
         self.connection.close()
@@ -71,7 +72,7 @@ class AutomaticSkillLoadTests(unittest.TestCase):
         return (parse_codex_session if provider == "codex" else parse_claude_session)(path)
 
     def store(self, parsed, provider="codex", source="codex"):
-        return store_skill_observations(self.connection, source_key=source, provider_kind=provider, parsed=parsed)
+        return store_skill_observations(self.connection, source_id={"codex": 1, "codex-company": 2, "claude": 3}[source], provider_kind=provider, parsed=parsed)
 
     def test_context_counts_once_while_later_reads_remain_evidence(self):
         records = [turn("request-1"), context("load-1", "review-skill"),
@@ -347,7 +348,8 @@ class AutomaticSkillLoadTests(unittest.TestCase):
         old = sqlite3.connect(":memory:")
         old.row_factory = sqlite3.Row
         old.executescript(old_schema)
-        old.execute("INSERT INTO skill_observations(id,source_key,provider_kind,external_session_id,native_event_id,skill_name,skill_group_key,signal_kind,source_line,state,recorded_at) VALUES ('old-id','codex','codex','gone','load','review-skill','review-skill','codex_skill_context',1,'corrected','2026-09-01')")
+        old.execute("INSERT INTO sources(id,provider_kind,name,root_path) VALUES (1,'codex','Synthetic','/synthetic')")
+        old.execute("INSERT INTO skill_observations(id,source_id,provider_kind,external_session_id,native_event_id,skill_name,skill_group_key,signal_kind,source_line,state,recorded_at) VALUES ('old-id',1,'codex','gone','load','review-skill','review-skill','codex_skill_context',1,'corrected','2026-09-01')")
         before = dict(old.execute("SELECT * FROM skill_observations").fetchone())
         _migrate_skill_observation_contract(old)
         _migrate_skill_observation_contract(old)
@@ -355,6 +357,6 @@ class AutomaticSkillLoadTests(unittest.TestCase):
         self.assertIsNone(after.pop("request_key"))
         self.assertEqual(after, before)
         self.assertEqual(old.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='index' AND tbl_name='skill_observations' AND sql IS NOT NULL").fetchone()[0], 2)
-        old.execute("INSERT INTO skill_observations(id,source_key,provider_kind,external_session_id,native_event_id,skill_name,skill_group_key,signal_kind,source_line,request_key) VALUES ('read-id','codex','codex','gone','read','review-skill','review-skill','codex_skill_read',2,'request')")
+        old.execute("INSERT INTO skill_observations(id,source_id,provider_kind,external_session_id,native_event_id,skill_name,skill_group_key,signal_kind,source_line,request_key) VALUES ('read-id',1,'codex','gone','read','review-skill','review-skill','codex_skill_read',2,'request')")
         self.assertEqual(old.execute("PRAGMA quick_check").fetchone()[0], "ok")
         old.close()

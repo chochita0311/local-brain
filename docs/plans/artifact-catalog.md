@@ -6,7 +6,7 @@ Edit the owning artifact, then run `uv run python scripts/build-plan-artifact-ca
 
 Status and relation values are preserved from each owner artifact. `—` means the field is not declared or does not apply; historical Spec `passed` and Run `complete` values are legacy aliases preserved under [Execution Artifact Status](../policies/harness/execution-loop-governance.md#execution-artifact-status).
 
-## PRDs (20)
+## PRDs (21)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -30,8 +30,9 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [PRD-0018: Personal AI-Use Improvement Insights](prd/prd-0018-personal-ai-use-improvement-insights.md) | `approved` | — |
 | [PRD-0019: Observed Session Chart](prd/prd-0019-observed-session-chart.md) | `approved` | — |
 | [PRD-0020: Local Natural Language Search](prd/prd-0020-local-natural-language-search.md) | `approved` | — |
+| [PRD-0021: macOS Standalone Test App And Local Settings](prd/prd-0021-macos-standalone-test-app-and-local-settings.md) | `blocked` | — |
 
-## Features (123)
+## Features (136)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -158,8 +159,21 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [FEAT-0121: Natural Search Local Comparison](feature/feat-0121-natural-search-local-comparison.md) | `passed` | PRD-0020 |
 | [FEAT-0122: Natural Search Ranking Precision](feature/feat-0122-natural-search-ranking-precision.md) | `passed` | PRD-0020 |
 | [FEAT-0123: General Work Search](feature/feat-0123-general-work-search.md) | `passed` | PRD-0020 |
+| [FEAT-0128: 공통 로컬 설정 계약](feature/feat-0128-local-settings-contract.md) | `passed` | PRD-0021 — C01 |
+| [FEAT-0129: 사용자 세션 소스와 수집 소유 계약](feature/feat-0129-session-source-lifecycle-contract.md) | `passed` | PRD-0021 — C02 |
+| [FEAT-0130: 모델 선택 검색 계약](feature/feat-0130-search-availability-contract.md) | `passed` | PRD-0021 — C03 |
+| [FEAT-0131: Tauri 독립 실행 앱](feature/feat-0131-standalone-macos-runtime.md) | `blocked` | PRD-0021 — C04 |
+| [FEAT-0132: 설정 창과 제품 탐색](feature/feat-0132-settings-and-product-navigation.md) | `blocked` | PRD-0021 — C05 |
+| [FEAT-0133: 사용자 소스 설정](feature/feat-0133-user-managed-source-settings.md) | `blocked` | PRD-0021 — C06 |
+| [FEAT-0134: 일반 설정과 프로젝트 표시](feature/feat-0134-general-and-project-settings.md) | `blocked` | PRD-0021 — C07 |
+| [FEAT-0135: 모델 없는 통합 검색](feature/feat-0135-model-optional-keyword-search.md) | `blocked` | PRD-0021 — C08 |
+| [FEAT-0136: 선택형 검색 모델 설치](feature/feat-0136-optional-search-model-setup.md) | `blocked` | PRD-0021 — C09 |
+| [FEAT-0137: 첫 실행 안내](feature/feat-0137-first-run-local-setup.md) | `blocked` | PRD-0021 — C10 |
+| [FEAT-0138: 로컬 저장소 확인과 복구](feature/feat-0138-local-storage-recovery.md) | `blocked` | PRD-0021 — C11 |
+| [FEAT-0139: 독립 테스트 앱 전달](feature/feat-0139-standalone-test-app-delivery.md) | `blocked` | PRD-0021 — C12 |
+| [FEAT-0140: 공통 10분 세션 동기화](feature/feat-0140-periodic-local-session-sync.md) | `blocked` | PRD-0021 — C13 |
 
-## Specs (132)
+## Specs (145)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -295,8 +309,21 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [SPEC-0121: Natural Search Local Comparison](spec/spec-0121-natural-search-local-comparison.md) | `approved` | FEAT-0121 |
 | [SPEC-0122: Natural Search Ranking Precision](spec/spec-0122-natural-search-ranking-precision.md) | `approved` | FEAT-0122 |
 | [SPEC-0123: General Work Search](spec/spec-0123-general-work-search.md) | `approved` | FEAT-0123 |
+| [SPEC-0128: 공통 로컬 설정 계약](spec/spec-0128-local-settings-contract.md) | `approved` | FEAT-0128 |
+| [SPEC-0129: 사용자 세션 소스와 수집 소유 계약](spec/spec-0129-session-source-lifecycle-contract.md) | `approved` | FEAT-0129 |
+| [SPEC-0130: 모델 선택 검색 계약](spec/spec-0130-search-availability-contract.md) | `approved` | FEAT-0130 |
+| [SPEC-0131: Tauri 독립 실행 앱](spec/spec-0131-standalone-macos-runtime.md) | `approved` | FEAT-0131 |
+| [SPEC-0132: 설정 창과 제품 탐색](spec/spec-0132-settings-and-product-navigation.md) | `approved` | FEAT-0132 |
+| [SPEC-0133: 사용자 소스 설정](spec/spec-0133-user-managed-source-settings.md) | `approved` | FEAT-0133 |
+| [SPEC-0134: 일반 설정과 프로젝트 표시](spec/spec-0134-general-and-project-settings.md) | `approved` | FEAT-0134 |
+| [SPEC-0135: 모델 없는 통합 검색](spec/spec-0135-model-optional-keyword-search.md) | `approved` | FEAT-0135 |
+| [SPEC-0136: 선택형 검색 모델 설치](spec/spec-0136-optional-search-model-setup.md) | `approved` | FEAT-0136 |
+| [SPEC-0137: 첫 실행 안내](spec/spec-0137-first-run-local-setup.md) | `approved` | FEAT-0137 |
+| [SPEC-0138: 로컬 저장소 확인과 복구](spec/spec-0138-local-storage-recovery.md) | `approved` | FEAT-0138 |
+| [SPEC-0139: 독립 테스트 앱 전달](spec/spec-0139-standalone-test-app-delivery.md) | `approved` | FEAT-0139 |
+| [SPEC-0140: 공통 10분 세션 동기화](spec/spec-0140-periodic-local-session-sync.md) | `approved` | FEAT-0140 |
 
-## Runs (161)
+## Runs (200)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -461,8 +488,47 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [RUN-159: Natural Search Ranking Precision](run/run-20261012-159-natural-search-ranking-precision.md) | `passed` | FEAT-0122 |
 | [RUN-160: General Work Search](run/run-20261013-160-general-work-search.md) | `passed` | FEAT-0123 |
 | [RUN-161: Session Parsing And Search Closeout](run/run-20261016-161-session-parsing-and-search-closeout.md) | `passed` | PRD-0002, PRD-0004, PRD-0020 |
+| [run-20261018-166-local-settings-contract](run/run-20261018-166-local-settings-contract.md) | `passed` | FEAT-0128 |
+| [run-20261018-167-session-source-lifecycle-contract](run/run-20261018-167-session-source-lifecycle-contract.md) | `passed` | FEAT-0129 |
+| [run-20261018-168-search-availability-contract](run/run-20261018-168-search-availability-contract.md) | `passed` | FEAT-0130 |
+| [run-20261018-169-standalone-macos-runtime](run/run-20261018-169-standalone-macos-runtime.md) | `blocked` | FEAT-0131 |
+| [run-20261018-170-settings-and-product-navigation](run/run-20261018-170-settings-and-product-navigation.md) | `blocked` | FEAT-0132 |
+| [run-20261018-171-user-managed-source-settings](run/run-20261018-171-user-managed-source-settings.md) | `blocked` | FEAT-0133 |
+| [run-20261018-172-general-and-project-settings](run/run-20261018-172-general-and-project-settings.md) | `blocked` | FEAT-0134 |
+| [run-20261018-173-model-optional-keyword-search](run/run-20261018-173-model-optional-keyword-search.md) | `blocked` | FEAT-0135 |
+| [run-20261018-174-optional-search-model-setup](run/run-20261018-174-optional-search-model-setup.md) | `blocked` | FEAT-0136 |
+| [run-20261018-175-first-run-local-setup](run/run-20261018-175-first-run-local-setup.md) | `blocked` | FEAT-0137 |
+| [run-20261018-176-local-storage-recovery](run/run-20261018-176-local-storage-recovery.md) | `blocked` | FEAT-0138 |
+| [run-20261018-177-standalone-test-app-delivery](run/run-20261018-177-standalone-test-app-delivery.md) | `blocked` | FEAT-0139 |
+| [run-20261018-178-periodic-local-session-sync](run/run-20261018-178-periodic-local-session-sync.md) | `blocked` | FEAT-0140 |
+| [run-20261020-179-work-session-project-usage](run/run-20261020-179-work-session-project-usage.md) | `passed` | FEAT-0134 |
+| [run-20261020-180-project-copy-removal](run/run-20261020-180-project-copy-removal.md) | `passed` | FEAT-0134 |
+| [run-20261020-181-pinned-scroll-containment](run/run-20261020-181-pinned-scroll-containment.md) | `passed` | FEAT-0084 |
+| [run-20261020-182-portable-python-build-metadata](run/run-20261020-182-portable-python-build-metadata.md) | `passed` | FEAT-0139 |
+| [run-20261020-183-general-settings-autosave](run/run-20261020-183-general-settings-autosave.md) | `passed` | FEAT-0134 |
+| [run-20261023-184-first-use-overlay-wizard](run/run-20261023-184-first-use-overlay-wizard.md) | `passed` | FEAT-0137 |
+| [run-20261023-185-onboarding-visual-refinement](run/run-20261023-185-onboarding-visual-refinement.md) | `passed` | FEAT-0137 |
+| [run-20261023-186-session-source-presentation](run/run-20261023-186-session-source-presentation.md) | `passed` | FEAT-0133 |
+| [run-20261023-187-settings-control-consistency](run/run-20261023-187-settings-control-consistency.md) | `passed` | FEAT-0134 |
+| [run-20261024-188-sync-checkbox-and-presets](run/run-20261024-188-sync-checkbox-and-presets.md) | `passed` | FEAT-0134 |
+| [run-20261024-189-about-identity-and-version](run/run-20261024-189-about-identity-and-version.md) | `passed` | FEAT-0132 |
+| [run-20261024-190-sync-settings-and-context-schedule](run/run-20261024-190-sync-settings-and-context-schedule.md) | `passed` | FEAT-0140 |
+| [run-20261024-191-single-sync-select](run/run-20261024-191-single-sync-select.md) | `passed` | FEAT-0140 |
+| [run-20261024-192-home-first-source-editor](run/run-20261024-192-home-first-source-editor.md) | `passed` | FEAT-0133 |
+| [run-20261024-193-profile-list-actions](run/run-20261024-193-profile-list-actions.md) | `passed` | FEAT-0133 |
+| [run-20261024-194-compact-profile-controls](run/run-20261024-194-compact-profile-controls.md) | `passed` | FEAT-0133 |
+| [run-20261024-195-generalized-session-profiles](run/run-20261024-195-generalized-session-profiles.md) | `passed` | FEAT-0133 |
+| [run-20261024-196-source-primary-key-identity](run/run-20261024-196-source-primary-key-identity.md) | `passed` | FEAT-0133 |
+| [run-20261025-197-profile-settings-presentation](run/run-20261025-197-profile-settings-presentation.md) | `passed` | FEAT-0133 |
+| [run-20261025-198-context-settings-alignment](run/run-20261025-198-context-settings-alignment.md) | `passed` | FEAT-0133 |
+| [run-20261025-199-settings-row-shadow-lines](run/run-20261025-199-settings-row-shadow-lines.md) | `passed` | FEAT-0133 |
+| [run-20261025-200-profile-color-menu-and-local-picker](run/run-20261025-200-profile-color-menu-and-local-picker.md) | `passed` | FEAT-0133 |
+| [run-20261026-201-settings-order-motion-and-compact-colors](run/run-20261026-201-settings-order-motion-and-compact-colors.md) | `passed` | FEAT-0133 |
+| [run-20261026-202-profile-tag-alignment](run/run-20261026-202-profile-tag-alignment.md) | `passed` | FEAT-0133 |
+| [run-20261026-203-profile-palette-width](run/run-20261026-203-profile-palette-width.md) | `passed` | FEAT-0133 |
+| [run-20261026-204-pin-order-and-palette-focus](run/run-20261026-204-pin-order-and-palette-focus.md) | `passed` | FEAT-0084, FEAT-0133 |
 
-## Evaluations And Schema Audits (432)
+## Evaluations And Schema Audits (438)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -898,8 +964,14 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [자연어 검색 순위 개선 검증](evaluation/eval-0122-functional-natural-search-ranking-precision.md) | `complete` | FEAT-0122 |
 | [Contract Evaluation: General Work Search](evaluation/eval-0123-contract-general-work-search.md) | `complete` | FEAT-0123 |
 | [업무 전반의 자연어 검색 개선 검증](evaluation/eval-0123-functional-general-work-search.md) | `complete` | FEAT-0123 |
+| [EVAL-0128: 공통 로컬 설정 계약 contract](evaluation/eval-0128-contract-local-settings-contract.md) | `complete` | FEAT-0128 |
+| [EVAL-0129: 사용자 세션 소스와 수집 소유 계약 contract](evaluation/eval-0129-contract-session-source-lifecycle-contract.md) | `complete` | FEAT-0129 |
+| [EVAL-0130: 모델 선택 검색 계약 contract](evaluation/eval-0130-contract-search-availability-contract.md) | `complete` | FEAT-0130 |
+| [EVAL-0139: Standalone Integration Contracts](evaluation/eval-0139-contract-standalone-test-app.md) | `complete` | FEAT-0139 |
+| [EVAL-0139: Settings And Shared Product Surfaces](evaluation/eval-0139-design-standalone-test-app.md) | `complete` | FEAT-0139, integrating FEAT-0132–0138/0140 |
+| [EVAL-0139: Standalone Test App Integration](evaluation/eval-0139-functional-standalone-test-app.md) | `complete` | FEAT-0139 |
 
-## Fix Logs (24)
+## Fix Logs (25)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -927,6 +999,7 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [FIX-0077: Atlassian Structural Scope Parity](fix/fix-0077-atlassian-structural-scope-parity.md) | `complete` | FEAT-0077 |
 | [FIX-0089: Workflow Correction Restoration Snapshot](fix/fix-0089-workflow-correction-restoration-snapshot.md) | `complete` | FEAT-0089 |
 | [FIX-0108: Output Review Scope](fix/fix-0108-output-review-scope.md) | `complete` | FEAT-0108 |
+| [FIX-0131: macOS First-Page Authentication](fix/fix-0131-desktop-startup-cookie.md) | `complete` | FEAT-0131 |
 
 ## Heuristic Backlogs (0)
 

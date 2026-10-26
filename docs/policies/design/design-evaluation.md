@@ -174,6 +174,12 @@
 - When a feature is scoped to one surface, unchanged shell regions must remain visually intact unless the approved feature explicitly includes them.
 - Local surface redesign must not quietly restyle the left, top, or bottom shell.
 
+#### Requested Control Preservation
+
+- A placement or overlap correction preserves the requested control type and task flow unless the owner explicitly approves a different interaction. Replacing a dropdown with radio choices does not establish that the dropdown defect is fixed.
+- Turn the reported relationship into an observable comparison: for a menu requested below its control, inspect the actual expanded top edge, matching width, trigger visibility, clipping and selected-item states at wide and narrow widths.
+- A passing layout test for a substituted interaction is evidence for that implementation only. Correct the acceptance target and repeat rendered evaluation before reporting the requested fix complete.
+
 #### Shell Handoff Visual Continuity
 
 - When navigation changes the active surface while keeping a shared shell, evaluate outgoing, mid-handoff, incoming, and settled frames separately.

@@ -35,9 +35,9 @@ class SessionChartPreferenceTests(unittest.TestCase):
 
     def test_scope_and_missing_folder_keys_are_retained_independently(self):
         set_project_visibility(self.connection, "all", None, ["", "/demo/absent"])
-        set_project_visibility(self.connection, "codex", 7, ["/demo/other"])
+        set_project_visibility(self.connection, "1", 7, ["/demo/other"])
         self.assertEqual(get_project_visibility(self.connection, "all", None), ["", "/demo/absent"])
-        self.assertEqual(get_project_visibility(self.connection, "codex", 7), ["/demo/other"])
+        self.assertEqual(get_project_visibility(self.connection, "1", 7), ["/demo/other"])
         self.assertIsNone(get_project_visibility(self.connection, "codex", None))
         self.assertIsNone(get_project_visibility(self.connection, "all", 7))
 
@@ -91,8 +91,8 @@ class SessionChartObservationTests(unittest.TestCase):
     def setUp(self):
         self.connection = connection_for()
         self.addCleanup(self.connection.close)
-        self.connection.execute("INSERT INTO sources(id,kind,name,root_path,provider_kind) VALUES (1,'codex','Synthetic Codex','/demo/input','codex')")
-        self.connection.execute("INSERT INTO sources(id,kind,name,root_path,provider_kind) VALUES (2,'codex-company','Synthetic Company','/demo/company','codex')")
+        self.connection.execute("INSERT INTO sources(id, name, root_path, provider_kind) VALUES (1, 'Synthetic Codex', '/demo/input', 'codex')")
+        self.connection.execute("INSERT INTO sources(id, name, root_path, provider_kind) VALUES (2, 'Synthetic Company', '/demo/company', 'codex')")
         self.connection.execute("INSERT INTO workspaces(id,canonical_path,display_name) VALUES (7,'/demo/registered','Synthetic Workspace')")
 
     def session(self, number, *, source=1, workspace=None, folder="/demo/project", branch="main", started="2026-01-01T00:00:00Z", latest="2026-01-02T00:00:00Z", session_class="work", role="primary"):
@@ -114,8 +114,8 @@ class SessionChartObservationTests(unittest.TestCase):
         self.session(23, role="subsession")
         self.session(24, session_class="maintenance")
         self.assertEqual(len(session_chart_inventory(self.connection)), 22)
-        self.assertEqual(len(session_chart_inventory(self.connection, "codex", 7)), 21)
-        self.assertEqual([item["id"] for item in session_chart_inventory(self.connection, "codex-company")], [22])
+        self.assertEqual(len(session_chart_inventory(self.connection, "1", 7)), 21)
+        self.assertEqual([item["id"] for item in session_chart_inventory(self.connection, "2")], [22])
 
     def test_folder_normalization_is_lexical_and_raw_head_is_preserved(self):
         self.session(1, folder="~/Projects/alpha/../beta", branch="HEAD")

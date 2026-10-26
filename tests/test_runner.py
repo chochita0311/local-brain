@@ -98,7 +98,7 @@ class RunnerTests(unittest.TestCase):
 
     def test_manifest_excludes_linked_subsessions_and_maintenance_sessions(self):
         source_id = self.connection.execute(
-            "INSERT INTO sources(kind, name, root_path) VALUES ('claude', 'Claude', '/tmp')"
+            "INSERT INTO sources(provider_kind, name, root_path) VALUES ('claude', 'Claude', '/tmp')"
         ).lastrowid
         work_id = self.connection.execute(
             """

@@ -2,12 +2,58 @@
 
 LocalBrain is a local-first developer work context hub. It reconnects AI sessions, local projects, files, notes, Git activity, and external references around user-defined Workstreams so interrupted work can be understood and resumed.
 
-The current MVP runs as a FastAPI web application on the local machine. A native macOS wrapper remains a later packaging step after the workflow is validated.
+LocalBrain runs as a local FastAPI web application and as an Apple Silicon macOS
+test app with a Tauri window and bundled Python runtime. Both share local settings,
+search and periodic Session synchronization.
+
+## macOS Test App
+
+Unzip `LocalBrain-apple-silicon.zip` and open `LocalBrain.app`. Recipients need no
+Python, uv, Homebrew or source checkout. This ad-hoc signed test build is not
+notarized; see the [first-launch and update guide](docs/policies/project/standalone-test-app-guide.md).
+The app provides Sessions, Sessions Dashboard, Local Context, search and settings.
+The other development-web capabilities below remain outside this app edition.
+On first use, a setup window overlays the main screen and walks through Welcome,
+Session sources, documents and search. Use Previous/Next, skip optional steps or
+choose Set up later; model installation is always an explicit choice.
+Bundled Python paths follow the app's runtime location; data and settings use the
+current user's home. Packaging rejects known private build paths, including those
+inside compressed Python modules.
+
+Use the bottom-left gear or **⌘,** for settings. General options save locally when
+selected, without a separate Save button; only missing fields use defaults. Register
+Codex/Claude profiles by choosing their agent home: records come from its `sessions`
+or `projects` folder respectively. An advanced record-location override supports
+relocated transcripts and preserves existing custom paths. Connect document sources
+separately. New users start with empty registrations; detected candidates require
+explicit selection.
+On macOS, **Browse** opens a local folder or file chooser in both the app and
+browser. Choosing a path fills the form; Add or the setup wizard's Next registers
+it. Cancel preserves the current input.
+Session and Local Context settings use separate movable rows. Drag their handles
+or use the up/down keys to save source order locally. Local Context's Add control
+opens its registration form; unregistering a source requires confirmation and
+never deletes original files or Notes.
+Paths always abbreviate the current user's home as `~`; paths outside home stay
+absolute. There is no path-display setting or Project display-root registration.
+Keyword search works without a model. Optional AI search downloads public weights
+only when requested and performs indexing and search locally.
+
+Automatic Session synchronization runs **10 minutes after the previous completion**
+in both the app and local web server. Registered Local Context sources have a
+separate schedule, enabled every **30 minutes** by default. **Settings → 동기화**,
+between Search model and Storage, provides a separate 10/20/30/60-minute or Off
+dropdown for each source type. Off preserves its saved interval and records;
+selecting minutes enables that schedule. Existing Session settings are preserved. The red
+Sessions **동기화** button remains available. Closing a browser tab does not
+stop its server. Closing the app window hides it; **⌘Q** stops the app and backend.
+Settings, imported data and private caches stay on the user's Mac and are excluded
+from the program ZIP. See [local settings and recovery](docs/policies/project/desktop-app-and-settings.md).
 
 ## Current Capabilities
 
 - Ingest local Claude and Codex session history.
-- Search eligible Sessions and Local Context with local Korean natural-language retrieval from the shared header.
+- Search eligible Sessions and Local Context with model-free keyword search or explicitly selected local AI search from the shared header.
 - Register and browse folders, individual files, and Apple Notes as Local Context sources.
 - Read safe, locally rendered Markdown in Local Context previews, context-aware full Document views, and Session or Subsession conversations.
 - Browse Jira and Confluence links plus URL-derived Project, Board, Filter,
@@ -78,9 +124,9 @@ The current MVP runs as a FastAPI web application on the local machine. A native
   use the full selected range. Daily labels appear at both ends and each month's
   1st and 15th.
 - Cost history opens first; the chart switch places Cost before Tokens, and bar-top labels use whole-number compact values.
-- Compare Source, Model, and Project composition in one table with shared column headings for Tokens, Cost, Sessions, and share; expand the list to see additional groups, then use `Show less` below the final row to collapse it.
+- Compare Source, Model, and Project composition in one table with shared column headings for Tokens, Cost, Sessions, and share; expand the list to see additional groups, then use `Show less` below the final row to collapse it. Project includes ordinary work and its subsessions, grouped by the original Git root or execution folder (including `~`); its total and shares exclude analysis and Maintenance. Work without attribution remains `프로젝트 미지정`.
 - Switch the Sessions Dashboard heading between Usage & Cost and Insights. Insights ranks skills by the number of Sessions that used or referenced them, counting a skill at most once per source and native Session across repeated reads and requests. The list shows the latest reference time and retains history after a local file disappears. This measures use/reference reach, not execution frequency or successful application. See the [Insights contract](docs/policies/project/product.md#insights) for admitted evidence and coverage limits.
-- The Insights improvement analyzer accepts a question or discovers opportunities from bounded primary-work Session excerpts. One explicit click starts one analysis-only Codex CLI Run; its status, observed usage, stored estimated cost, source-backed Markdown report, repeatable download, and earlier Runs remain available in Insights. Open the report settings to inspect its calculation state and frozen price basis; missing usage or prices remain explicitly unavailable. Reanalysis creates a new Run. Observed analysis tokens and estimated cost also enter Usage & Cost under the selected Codex source, with Project `Unassigned`; analysis remains outside ordinary Sessions and future analysis evidence. Each Run executes in its private runtime artifact directory. New Runs require that Codex home to be registered in Sources and explicitly use Standard service tier.
+- The Insights improvement analyzer accepts a question or discovers opportunities from bounded primary-work Session excerpts. One explicit click starts one analysis-only Codex CLI Run; its status, observed usage, stored estimated cost, source-backed Markdown report, repeatable download, and earlier Runs remain available in Insights. Open the report settings to inspect its calculation state and frozen price basis; missing usage or prices remain explicitly unavailable. Reanalysis creates a new Run. Observed analysis tokens and estimated cost also enter Usage & Cost under the selected Codex source, including overall totals, history and Source/Model composition; analysis is excluded from Project composition. Stored Project attribution stays unassigned, and analysis remains outside ordinary Sessions and future analysis evidence. Each Run executes in its private runtime artifact directory. New Runs require that Codex home to be registered in Sources and explicitly use Standard service tier.
 - Open `작업 흐름` from an eligible primary Session to inspect a deterministic
   Episode lineage, bounded branches, relation reasons, and grouped source
   evidence. Contextual Trace controls can preview and append reversible
@@ -92,7 +138,8 @@ Detailed behavior belongs to the [Product Model](docs/policies/project/product.m
 
 ## Quick Start
 
-LocalBrain currently targets macOS. The [macOS Installation And Local Storage
+For the standalone app, use the ZIP instructions above. The following commands
+are the alternative Python/web installation. LocalBrain targets macOS. The [macOS Installation And Local Storage
 guide](docs/policies/project/installation-and-storage.md) covers a new Mac with
 no Python or development tools, a dedicated application installation, optional
 local models, updates, and bounded storage. Local models are optional feature
@@ -114,18 +161,24 @@ package owns its code, templates, browser assets and commands; it can run withou
 a source checkout. Development setup belongs to the
 [Developer Guide](docs/policies/project/developer-guide.md#setup-and-run).
 
-Open `http://127.0.0.1:8000`. The local database is created automatically on first startup. Stop the server with `Ctrl+C`.
+Open `http://127.0.0.1:8000`. The local database and default `settings.toml` are
+created automatically on first startup. The app and web server follow the saved
+settings on later launches; only missing fields use defaults. Stop the server with `Ctrl+C`.
 
-### Search Sessions And Local Context In Natural Language
+### Search Sessions And Local Context
 
 Use the **search input in the header**, or open `/natural-search`, and describe
-what you want to find, for example `만들던 앱 관련 세션을 보여줘`. Press Enter or
-click **Search** to submit the same query to natural-language search. The header
-keeps its `세션, 질문, 문서 통합 검색` placeholder without search-mode labels.
-Results group related passages under their original Session or Document, with
-links to the exact evidence and back to results. The original keyword-search
-route `/search` is deprecated and retained only for existing URLs; ordinary
-search navigation no longer offers it.
+what you want to find. The default **키워드** mode uses the existing FTS5 token-AND
+search without a model. Select **AI 검색** for a natural-language question such as
+`만들던 앱 관련 세션을 보여줘`. The shared input preserves the query across modes;
+missing models or failed preparation show a recovery action, not zero results.
+AI results group related passages under their original Session or Document, with
+links to evidence and back to the same search mode. The legacy `/search` URL
+redirects to keyword mode in the app; it remains a compatibility route in the
+development web edition.
+
+In the app, install and prepare the optional model through **설정 → 검색 모델**.
+For Python/web installations, the equivalent commands are:
 
 Install the [optional local model runtime](docs/policies/project/installation-and-storage.md#install-the-local-model-runtime), then:
 
@@ -218,17 +271,18 @@ and the simulation's 30-day derived-state owner retain their existing lifecycles
 ### Import Local Sessions
 
 On first startup, LocalBrain creates a private `session-sources.toml` beside
-`localbrain.db`. It registers Claude, personal Codex, and Codex Company
-(`~/.codex-company/sessions`) as peer local Session sources and can hold future
-roots. This runtime configuration must not be committed. See
+`localbrain.db`. Fresh installations have no registered sources. Register each
+profile and its actual Session directory in settings; existing registrations and
+source identities survive upgrades. This runtime configuration must not be committed. See
 [Configuration](docs/policies/project/developer-guide.md#configuration) for its
 schema, bootstrap behavior, and safe-change rules.
 
-To import local AI sessions, use **동기화** on the Sessions page. One action scans
-every validated registry entry; a missing or invalid source keeps its existing
+Registered sources import in the background, then every 10 minutes after completion.
+Use **동기화** on the Sessions page for an immediate request. Each collection scans
+every enabled, validated registry entry; a missing or invalid source keeps its existing
 indexed data and appears as needing attention. Longer contract upgrades show the
 current source, repair reason, and file progress in the existing result area.
-The **Sources** page keeps the wider scan across Session sources and enabled
+The development-web **Sources** page keeps the wider scan across Session sources and enabled
 Local Context folders, files, and Apple Notes. Installation downloads public
 Python packages; indexed content and runtime data remain on the local machine.
 
@@ -238,6 +292,17 @@ Installation and network-certificate troubleshooting belong to
 [the installation guide](docs/policies/project/installation-and-storage.md).
 Source development, configuration and verification belong to the
 [Developer Guide](docs/policies/project/developer-guide.md).
+
+Session profiles are managed in Settings → 세션 소스. Each profile keeps its
+numeric local ID while its name, color and position can change. Drag the handle
+(or focus it and use Up/Down) to reorder the Sessions and Sessions Dashboard
+filters; choose the tag button to open its color menu. The local
+`session-sources.toml` array owns this order. Existing v1 configuration migrates
+in place while preserving imported records; see the
+[profile contract](docs/policies/project/desktop-app-and-settings.md#generalized-session-profiles).
+Both Session-source and Local Context lists show the moving row and its destination
+while dragging, and scroll near the pane edges. Release saves the order; Escape
+cancels it. Local Context keeps its order in the local database.
 
 <a id="experimental-work-reconstruction"></a>
 

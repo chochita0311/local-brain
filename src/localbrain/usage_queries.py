@@ -8,6 +8,7 @@ from urllib.parse import urlencode
 from zoneinfo import ZoneInfo
 
 from .activity import activity_summary, parse_timestamp
+from .source_profiles import canonical_source_id
 
 
 VALID_VIEWS = {"daily", "weekly", "monthly", "cumulative"}
@@ -31,16 +32,16 @@ CODEX_ZERO_TOKEN_SNAPSHOT_SQL = """(
 def _usage_source_options(connection: sqlite3.Connection) -> List[dict]:
     return [
         {
-            "value": row["kind"],
+            "value": str(row["id"]),
             "label": row["name"],
             "provider_kind": row["provider_kind"],
         }
         for row in connection.execute(
             """
-            SELECT kind, provider_kind, name
+            SELECT id, provider_kind, name
             FROM sources
             WHERE provider_kind IN ('claude', 'codex')
-            ORDER BY id
+            ORDER BY profile_position, id
             """
         ).fetchall()
     ]
@@ -59,7 +60,7 @@ def _eligible_usage_where(source: str) -> Tuple[str, List[str]]:
     params = [CLAUDE_SYNTHETIC_MODEL]
     source_filter = ""
     if source != "all":
-        source_filter = "AND sources.kind = ?"
+        source_filter = "AND sources.id = ?"
         params.append(source)
     return (
         """
@@ -182,6 +183,7 @@ def normalize_usage_scope(
 ) -> dict:
     selected_view = view if view in VALID_VIEWS else "daily"
     source_options = _usage_source_options(connection)
+    source = canonical_source_id(source)
     source_options_by_key = {item["value"]: item for item in source_options}
     selected_source = source if source in source_options_by_key else "all"
     selected_source_label = (
@@ -299,12 +301,12 @@ def _usage_rows(
     if visible_only:
         columns = """
             usage_records.id, usage_records.occurred_at,
-            usage_records.session_id,
+            usage_records.session_id, usage_records.source_id,
             usage_records.raw_model, usage_records.model_name,
             usage_records.total_tokens, usage_records.estimated_cost_usd,
             usage_records.calculation_state,
             usage_records.project_key, usage_records.project_name_snapshot,
-            sources.kind AS source_kind, sources.provider_kind,
+             sources.provider_kind,
             sources.name AS source_name,
             sessions.session_class, sessions.session_role,
             NULL AS current_workspace_id
@@ -312,7 +314,7 @@ def _usage_rows(
         auxiliary_joins = ""
     else:
         columns = """
-            usage_records.*, sources.kind AS source_kind,
+            usage_records.*,
             sources.provider_kind, sources.name AS source_name,
             sessions.session_class, sessions.session_role,
             sessions.title AS session_title,
@@ -496,11 +498,11 @@ def _freshness(connection: sqlite3.Connection, source: str) -> dict:
     params: List[str] = []
     source_filter = ""
     if source != "all":
-        source_filter = "AND sources.kind = ?"
+        source_filter = "AND sources.id = ?"
         params.append(source)
     rows = connection.execute(
         """
-        SELECT sources.kind, sources.provider_kind, sources.name,
+        SELECT sources.id, sources.provider_kind, sources.name,
                sources.last_scanned_at AS last_attempt_at,
                sources.last_scan_success_at,
                sources.last_scan_status,
@@ -512,7 +514,7 @@ def _freshness(connection: sqlite3.Connection, source: str) -> dict:
         FROM sources
         LEFT JOIN source_files ON source_files.source_id = sources.id
         WHERE sources.provider_kind IN ('claude', 'codex') {source_filter}
-        GROUP BY sources.id, sources.kind, sources.provider_kind, sources.name,
+        GROUP BY sources.id, sources.provider_kind, sources.name,
                  sources.last_scanned_at, sources.last_scan_success_at,
                  sources.last_scan_status, sources.last_scan_error
         ORDER BY sources.id
@@ -537,7 +539,7 @@ def _freshness(connection: sqlite3.Connection, source: str) -> dict:
             row_status = "not_synchronized"
         source_rows.append(
             {
-                "kind": row["kind"],
+                "id": row["id"],
                 "provider_kind": row["provider_kind"],
                 "name": row["name"],
                 "status": row_status,
@@ -582,15 +584,13 @@ def _freshness(connection: sqlite3.Connection, source: str) -> dict:
 
 def _breakdown_identity(row: sqlite3.Row, mode: str) -> Tuple[str, str]:
     if mode == "source":
-        return row["source_kind"], row["source_name"]
+        return str(row["source_id"]), row["source_name"]
     if mode == "model":
         identity = row["model_name"] or row["raw_model"]
         return identity or "unknown-model", identity or "Unknown model"
-    return (
-        (row["project_key"], row["project_name_snapshot"] or "Attributed project")
-        if row["project_key"]
-        else ("unassigned", "Unassigned")
-    )
+    if row["project_key"]:
+        return row["project_key"], row["project_name_snapshot"] or "Attributed project"
+    return "unassigned", "프로젝트 미지정"
 
 
 def _breakdown_from_groups(
@@ -646,7 +646,7 @@ def _breakdown_from_groups(
             {
                 "key": group["key"],
                 "label": group["label"],
-                "source_kind": group["source_kind"],
+                "source_id": group["source_id"],
                 "provider_kind": group["provider_kind"],
                 "tokens": tokens,
                 "tokens_label": _format_tokens(tokens),
@@ -750,6 +750,11 @@ def _dashboard_projection(
         if bucket_value is not None:
             buckets[_bucket_start(local_day, view)] += Decimal(bucket_value)
 
+        # Overall usage and history include Maintenance. Project composition and
+        # its share denominator include only work Sessions, including subsessions.
+        if mode == "project" and row["session_class"] != "work":
+            continue
+
         key, label = _breakdown_identity(row, mode)
         group = grouped.get(key)
         if group is None:
@@ -765,7 +770,7 @@ def _dashboard_projection(
                 "primary_session_ids": set(),
                 "last_activity_at": occurred_at,
                 "current_workspace_id": row["current_workspace_id"],
-                "source_kind": row["source_kind"] if mode == "source" else None,
+                "source_id": row["source_id"] if mode == "source" else None,
                 "provider_kind": row["provider_kind"] if mode == "source" else None,
             }
             grouped[key] = group
@@ -1038,7 +1043,7 @@ def usage_dashboard_data(
             connection,
             start=scope["start_utc"],
             end=scope["end_utc"],
-            source_kind=None if scope["source"] == "all" else scope["source"],
+            source_id=None if scope["source"] == "all" else scope["source"],
         )
         current_moment = now or (
             datetime.combine(today, datetime.min.time(), tzinfo=zone)
@@ -1112,7 +1117,7 @@ def usage_dashboard_data(
         {
             "label": "Primary work Sessions",
             "value": "{:,}".format(aggregate["session_count"]),
-            "detail": "usage-linked; maintenance and subsessions excluded only here",
+            "detail": "usage-linked primary work Sessions; excludes maintenance and subsessions",
             "state": "default",
         },
         {
@@ -1173,9 +1178,9 @@ def usage_dashboard_data(
         freshness = _freshness(connection, scope["source"])
         source_usage_record_counts: DefaultDict[str, int] = defaultdict(int)
         for row, _ in selected_rows:
-            source_usage_record_counts[row["source_kind"]] += 1
+            source_usage_record_counts[row["source_id"]] += 1
         for source_row in freshness["sources"]:
-            source_row["selected_usage_record_count"] = source_usage_record_counts[source_row["kind"]]
+            source_row["selected_usage_record_count"] = source_usage_record_counts[source_row["id"]]
         projection = current_month_projection(
             month_rows,
             scope,

@@ -3,11 +3,12 @@ PRAGMA foreign_keys = ON;
 
 CREATE TABLE IF NOT EXISTS sources (
     id INTEGER PRIMARY KEY,
-    kind TEXT NOT NULL UNIQUE,
     provider_kind TEXT NOT NULL DEFAULT 'unknown'
         CHECK(length(trim(provider_kind)) BETWEEN 1 AND 64),
     name TEXT NOT NULL,
     root_path TEXT NOT NULL,
+    profile_color TEXT CHECK(profile_color IN ('green','blue','orange','yellow','red','gray')),
+    profile_position INTEGER NOT NULL DEFAULT 2147483647 CHECK(profile_position >= 0),
     last_scanned_at TEXT,
     last_scan_success_at TEXT,
     last_scan_status TEXT CHECK(last_scan_status IN (
@@ -89,6 +90,7 @@ CREATE TABLE IF NOT EXISTS context_roots (
     id INTEGER PRIMARY KEY,
     path TEXT NOT NULL UNIQUE,
     label TEXT NOT NULL,
+    display_order INTEGER CHECK(display_order >= 0),
     source_type TEXT NOT NULL DEFAULT 'folder',
     readable INTEGER NOT NULL DEFAULT 1,
     status TEXT NOT NULL DEFAULT 'ready',
@@ -154,7 +156,7 @@ CREATE TABLE IF NOT EXISTS activity_events (
 
 CREATE TABLE IF NOT EXISTS skill_observations (
     id TEXT PRIMARY KEY,
-    source_key TEXT NOT NULL,
+    source_id INTEGER NOT NULL REFERENCES sources(id),
     provider_kind TEXT NOT NULL
         CHECK(provider_kind IN ('claude', 'codex')),
     external_session_id TEXT NOT NULL,
@@ -179,7 +181,7 @@ CREATE TABLE IF NOT EXISTS skill_observations (
     state TEXT NOT NULL DEFAULT 'observed'
         CHECK(state IN ('observed', 'corrected')),
     recorded_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(source_key, external_session_id, native_event_id, skill_group_key)
+    UNIQUE(source_id, external_session_id, native_event_id, skill_group_key)
 );
 
 CREATE TABLE IF NOT EXISTS session_pins (
@@ -1253,7 +1255,7 @@ CREATE INDEX IF NOT EXISTS idx_sessions_workspace
 CREATE INDEX IF NOT EXISTS idx_skill_observations_group
     ON skill_observations(state, skill_group_key, occurred_at DESC);
 CREATE INDEX IF NOT EXISTS idx_skill_observations_source_session
-    ON skill_observations(source_key, external_session_id);
+    ON skill_observations(source_id, external_session_id);
 CREATE INDEX IF NOT EXISTS idx_session_reference_evidence_session
     ON session_reference_evidence(
         session_id,

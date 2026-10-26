@@ -297,13 +297,13 @@ def _suggestion_resource_label(
         session_id = entity_id if entity_type == "session" else locator
         row = connection.execute(
             """
-            SELECT sources.kind
+            SELECT sources.provider_kind
             FROM sessions JOIN sources ON sources.id = sessions.source_id
             WHERE sessions.id = ?
             """,
             (session_id,),
         ).fetchone()
-        source_kind = (row["kind"] if row else "").lower()
+        source_kind = (row["provider_kind"] if row else "").lower()
         if source_kind == "claude":
             return "Claude Session"
         if source_kind == "codex":
@@ -686,7 +686,7 @@ def picker_resources(connection: sqlite3.Connection) -> dict:
         "sessions": connection.execute(
             """
             SELECT sessions.id, sessions.title, sessions.cwd_raw, sessions.last_event_at,
-                   sources.kind AS source_kind
+                   sources.provider_kind AS source_kind
             FROM sessions JOIN sources ON sources.id = sessions.source_id
             WHERE sessions.session_class = 'work'
               AND sessions.session_role = 'primary'
@@ -729,7 +729,7 @@ def resolve_links(connection: sqlite3.Connection, links: Iterable[sqlite3.Row]) 
             entity = connection.execute(
                 """
                 SELECT sessions.id, sessions.title, sessions.cwd_raw AS detail,
-                       sessions.last_event_at AS activity_at, sources.kind AS source_kind
+                       sessions.last_event_at AS activity_at, sources.provider_kind AS source_kind
                 FROM sessions JOIN sources ON sources.id = sessions.source_id
                 WHERE sessions.id = ?
                 """,
@@ -842,7 +842,7 @@ def dashboard_overview(connection: sqlite3.Connection) -> dict:
     unlinked_sessions = connection.execute(
         """
         SELECT sessions.id, sessions.title, sessions.last_event_at,
-               workspaces.display_name AS workspace_name, sources.kind AS source_kind
+               workspaces.display_name AS workspace_name, sources.provider_kind AS source_kind
         FROM sessions
         JOIN sources ON sources.id = sessions.source_id
         LEFT JOIN workspaces ON workspaces.id = sessions.workspace_id

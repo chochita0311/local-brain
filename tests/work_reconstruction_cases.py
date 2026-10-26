@@ -4,7 +4,7 @@ import copy
 
 
 def session(number):
-    return {"id": number, "source_key": "synthetic", "external_id": str(number),
+    return {"id": number, "source_id": 1, "external_id": str(number),
             "session_class": "work", "session_role": "primary", "index_policy": "full",
             "event_count": 1}
 

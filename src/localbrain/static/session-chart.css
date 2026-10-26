@@ -104,7 +104,6 @@
 .session-chart-pin-status { display: inline-flex; flex: 0 0 auto; align-items: center; gap: var(--space-compact); color: var(--text-info); font-size: var(--type-caption-size); white-space: nowrap; }
 .session-chart-preview-heading > [data-chart-preview-source] { min-width: 0; margin-right: auto; overflow-wrap: anywhere; }
 .session-chart-source[data-provider="codex"] { color: var(--text-source-codex); background: var(--surface-source-codex); border-color: var(--border-source-codex); }
-.session-chart-source[data-kind="codex-company"] { color: var(--text-source-codex-company); background: var(--surface-source-codex-company); border-color: var(--border-source-codex-company); }
 .session-chart-node-copy { position: absolute; left: calc(var(--space-compact) + var(--session-chart-point-size) + var(--space-control-gap)); width: calc(var(--session-chart-node-width) - var(--control-min-height-touch)); min-width: 0; display: grid; gap: var(--space-micro); pointer-events: none; }
 .session-chart-node-copy strong { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: var(--type-body-small-size); line-height: var(--type-line-ui); font-weight: var(--type-semibold); }
 .session-chart.is-overview .session-chart-node-copy, .session-chart.is-overview .session-chart-stack-count { display: none !important; }

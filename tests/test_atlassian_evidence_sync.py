@@ -69,7 +69,7 @@ class AtlassianEvidenceSyncTests(unittest.TestCase):
     def _source(self, kind, root_path):
         return int(
             self.connection.execute(
-                "INSERT INTO sources(kind, name, root_path) VALUES (?, ?, ?)",
+                'INSERT INTO sources(provider_kind, name, root_path) VALUES (?, ?, ?)',
                 (kind, kind.title(), root_path),
             ).lastrowid
         )

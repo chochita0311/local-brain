@@ -25,9 +25,7 @@ class SessionWorkflowMapTests(unittest.TestCase):
         self.connection.executescript(SCHEMA)
         self.connection.execute(
             """
-            INSERT INTO sources(id, kind, provider_kind, name, root_path)
-            VALUES (1, 'codex', 'codex', 'Codex', '/synthetic/codex')
-            """
+            INSERT INTO sources(id, provider_kind, name, root_path) VALUES (1, 'codex', 'Codex', '/synthetic/codex')"""
         )
         self.connection.execute(
             """

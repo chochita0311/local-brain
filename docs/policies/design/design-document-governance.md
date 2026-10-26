@@ -202,6 +202,30 @@ A constitution change fails when:
 | 2026-10-15 | v44 | Session ID copy outcomes use a live bubble below the owning button instead of the footer toast. Copied! confirmation and local failure recovery remain unclipped, viewport-bounded and transient while preserving check feedback and control/metadata geometry. |
 | 2026-10-15 | v45 | Session ID copy behavior follows the observed GitHub interaction: shared button-centered hover/result tooltip, no native title, independent two-second copied state, automatic glyph/help reset while hovered, deadline-preserving exit/reentry and repeat-copy refresh without flicker. Escape dismissal and outcome-only live announcements preserve existing geometry and failure recovery. |
 | 2026-10-16 | v46 | Unified the shared header into one natural-language search field with the original placeholder, an accessible hidden label and a native Search submit action shared with Enter. Removed visible mode labels and ordinary keyword-search navigation while preserving the Atlassian local-query exception and existing shell tokens. |
+| 2026-10-19 | v52 | Settings use a compact 720 by 560px maximum dialog with a 160px desktop category rail, viewport containment, a fixed header/close action and content-owned vertical scrolling. Narrow categories follow the shared 700px horizontal-row breakpoint; category changes reveal their heading without resetting unsaved inputs, and save/error feedback is brought into view. Existing type and controls remain. |
+| 2026-10-25 | v53 | Owner-requested profile settings refinement separates draggable rows from a shared enclosing frame, adds an insertion line, and uses color-only tag/palette controls. Source toggles keep saved names/order without colored dots; record cues retain their profile colors and provider letters. Existing keyboard/focus, editor, removal and first-use contracts remain. |
+| 2026-10-25 | v54 | Give independent settings rows quiet resting containment; extend the shared list/editor, order and named confirmation family to Local Context. |
+| 2026-10-25 | v55 | Correct settings-row containment to white surfaces with a subtle edge and resting shadow; remove whole-row resting/hover/drag tints while retaining control focus and movement cues. |
+| 2026-10-25 | v56 | Replace the horizontal solid-swatch palette with a vertical menu of colored tags below its trigger; define outside dismissal, bounded scrolling and keyboard/focus behavior. |
+| 2026-10-26 | v57 | Session/Context ordering shows a whole-row drag preview, reserved slot, animated neighbors and edge scrolling with cancel/keyboard/reduced-motion continuity. Color choices use horizontal tags, content-sized menus and zero gap/padding; fine-pointer choices are 32×24px and coarse-pointer choices retain 40px targets. |
+| 2026-10-26 | v58 | Restore diagonal profile-row tags; menu tags remain horizontal with their point/hole on the left and align to the trigger glyph's visible left edge. Selected color uses a quiet profile fill/outline instead of a check column, retaining accessible radio selection and separate keyboard focus. |
+| 2026-10-26 | v59 | Match the color menu frame to both edges of its trigger background and match horizontal/diagonal painted tag widths. Remove menu color-name hover tooltips while preserving accessible names; retain compact heights and scrolling without a width-changing gutter. |
+| 2026-10-26 | v60 | Run204 ties Pinned group ordering to the displayed home-abbreviated path with stable identity fallback, and distinguishes selected palette state from pointer/keyboard focus while preserving visible keyboard navigation. |
+
+## Shared Evaluation Experience — 2026-10-26
+
+The owner authorized generalizing this session's reusable UI/UX findings into
+ai-assets. [Commit dc15bf9](https://github.com/chochita0311/ai-assets/commit/dc15bf9ad9aae2eaa6c819117a28e807cfbdb755)
+updates its Design/Interaction Evaluation policies and standalone screen-alignment
+procedure, with three generalized evidence records. The eight concerns are
+requested-control preservation; frame/painted/hit-area geometry; sequential input
+and focus; reorder feedback and commit; autosave confirmation and races; displayed
+sort semantics; actual-host/native-action evidence; and hidden-content overflow.
+Two documentation reviews corrected export-link portability and record subject
+discovery; package, schema, links and public-fitness checks passed. This is shared
+source publication, not a refresh of LocalBrain's installed harness or proof of
+improved future agent behavior. Private original receipts remain at their owners;
+public examples retain recorded-execution and unrun-scenario limits.
 
 ## Practical Summary
 

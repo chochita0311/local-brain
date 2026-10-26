@@ -95,13 +95,13 @@ class WorkReconstructionTests(unittest.TestCase):
         data, _ = long_history()
         original = reconstruct(data)
         for s in data["sessions"]:
-            s["source_key"] = "synthetic-{}".format(s["id"] % 3)
+            s["source_id"] = s["id"] % 3 + 1
             s["workspace_id"] = s["id"] % 4 + 1
             identity = "document-{}".format(s["id"])
             data["artifacts"].append({"kind": "context-document", "source_scope": "synthetic", "source_identity": identity,
                                       "identity_state": "resolved", "enabled": True, "is_container": False,
                                       "availability": "available", "freshness": "stale"})
-            data["references"].append({"episode_key": workflow_episode_key(s["source_key"], s["external_id"]),
+            data["references"].append({"episode_key": workflow_episode_key(s["source_id"], s["external_id"]),
                                        "artifact_key": candidate_artifact_key("context-document", "synthetic", identity),
                                        "reference_identity": str(s["id"]), "evidence_kind": "user_mention",
                                        "read_outcome": None, "observed_at": "2030-01-01T00:00:00Z"})
@@ -185,7 +185,7 @@ class WorkReconstructionTests(unittest.TestCase):
         data["artifacts"] = [{"kind": "context-document", "source_scope": "synthetic", "source_identity": str(n),
                               "identity_state": "resolved", "enabled": True, "is_container": False,
                               "availability": "available", "freshness": "current"} for n in range(10)]
-        data["references"] = [{"episode_key": workflow_episode_key("synthetic", str(s)),
+        data["references"] = [{"episode_key": workflow_episode_key(1, str(s)),
                                "artifact_key": candidate_artifact_key("context-document", "synthetic", str(a)),
                                "reference_identity": "{}:{}".format(s, a), "evidence_kind": "user_mention",
                                "read_outcome": None, "observed_at": "2030-01-01T00:00:00Z"}
@@ -212,7 +212,7 @@ class WorkReconstructionTests(unittest.TestCase):
         data["artifacts"] = [{"kind": "context-document", "source_scope": "synthetic", "source_identity": str(i),
                               "identity_state": "resolved", "enabled": True, "is_container": False,
                               "availability": "available", "freshness": "current"} for i in range(92)]
-        data["references"] = [{"episode_key": workflow_episode_key("synthetic", str(s)),
+        data["references"] = [{"episode_key": workflow_episode_key(1, str(s)),
                                "artifact_key": candidate_artifact_key("context-document", "synthetic", str(i)),
                                "reference_identity": "{}:{}".format(s, i), "evidence_kind": "user_mention",
                                "read_outcome": None, "observed_at": "2030-01-01T00:00:00Z"}

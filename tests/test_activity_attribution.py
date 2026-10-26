@@ -59,7 +59,7 @@ class ActivityAttributionTests(unittest.TestCase):
         self.connection.execute("PRAGMA foreign_keys = ON")
         self.connection.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
         self.source_id = self.connection.execute(
-            "INSERT INTO sources(kind, name, root_path) VALUES ('codex', 'Codex', '/tmp')"
+            "INSERT INTO sources(provider_kind, name, root_path) VALUES ('codex', 'Codex', '/tmp')"
         ).lastrowid
 
     def tearDown(self):
@@ -73,14 +73,13 @@ class ActivityAttributionTests(unittest.TestCase):
             _store_session(
                 self.connection,
                 self.source_id,
-                "codex",
                 parsed_session("session", str(project), [first]),
             )
             first_snapshot = self.connection.execute(
                 """
                 SELECT project_key, project_path_snapshot,
                        project_git_root_snapshot, attribution_basis, attributed_at
-                FROM usage_records WHERE id = 'record-first'
+                FROM usage_records WHERE source_record_id = 'first'
                 """
             ).fetchone()
             self.assertEqual(first_snapshot["attribution_basis"], "workspace_path")
@@ -94,26 +93,25 @@ class ActivityAttributionTests(unittest.TestCase):
             _store_session(
                 self.connection,
                 self.source_id,
-                "codex",
                 parsed_session("session", str(project), [first, second]),
             )
             rows = {
-                row["id"]: row
+                row["source_record_id"]: row
                 for row in self.connection.execute(
                     """
-                    SELECT id, project_key, project_git_root_snapshot,
+                    SELECT source_record_id, project_key, project_git_root_snapshot,
                            attribution_basis, attributed_at
                     FROM usage_records ORDER BY id
                     """
                 )
             }
-            self.assertEqual(rows["record-first"]["project_key"], first_snapshot["project_key"])
+            self.assertEqual(rows["first"]["project_key"], first_snapshot["project_key"])
             self.assertEqual(
-                rows["record-first"]["attributed_at"], first_snapshot["attributed_at"]
+                rows["first"]["attributed_at"], first_snapshot["attributed_at"]
             )
-            self.assertEqual(rows["record-second"]["attribution_basis"], "git_root")
+            self.assertEqual(rows["second"]["attribution_basis"], "git_root")
             self.assertEqual(
-                rows["record-second"]["project_key"], "git:{}".format(project.resolve())
+                rows["second"]["project_key"], "git:{}".format(project.resolve())
             )
 
             (project / ".git").rmdir()
@@ -121,17 +119,16 @@ class ActivityAttributionTests(unittest.TestCase):
             _store_session(
                 self.connection,
                 self.source_id,
-                "codex",
                 parsed_session("session", str(project), [first, second, third]),
             )
             rows = {
-                row["id"]: row
+                row["source_record_id"]: row
                 for row in self.connection.execute(
-                    "SELECT id, project_key, attribution_basis FROM usage_records"
+                    "SELECT source_record_id, project_key, attribution_basis FROM usage_records"
                 )
             }
-            self.assertEqual(rows["record-second"]["attribution_basis"], "git_root")
-            self.assertEqual(rows["record-third"]["attribution_basis"], "workspace_path")
+            self.assertEqual(rows["second"]["attribution_basis"], "git_root")
+            self.assertEqual(rows["third"]["attribution_basis"], "workspace_path")
             current_git_root = self.connection.execute(
                 "SELECT git_root FROM workspaces"
             ).fetchone()[0]
@@ -142,7 +139,6 @@ class ActivityAttributionTests(unittest.TestCase):
         _store_session(
             self.connection,
             self.source_id,
-            "codex",
             parsed_session("unassigned-session", None, [first]),
         )
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -150,20 +146,19 @@ class ActivityAttributionTests(unittest.TestCase):
             _store_session(
                 self.connection,
                 self.source_id,
-                "codex",
                 parsed_session(
                     "unassigned-session", temporary_directory, [first, second]
                 ),
             )
         rows = {
-            row["id"]: row
+            row["source_record_id"]: row
             for row in self.connection.execute(
-                "SELECT id, project_key, attribution_basis FROM usage_records"
+                "SELECT source_record_id, project_key, attribution_basis FROM usage_records"
             )
         }
-        self.assertEqual(rows["record-unassigned"]["attribution_basis"], "unassigned")
-        self.assertIsNone(rows["record-unassigned"]["project_key"])
-        self.assertEqual(rows["record-assigned"]["attribution_basis"], "workspace_path")
+        self.assertEqual(rows["unassigned"]["attribution_basis"], "unassigned")
+        self.assertIsNone(rows["unassigned"]["project_key"])
+        self.assertEqual(rows["assigned"]["attribution_basis"], "workspace_path")
 
     def test_exact_gap_threshold_and_incomplete_session_use_last_event(self):
         summary = activity_summary_from_events(
@@ -272,7 +267,7 @@ class ActivityAttributionTests(unittest.TestCase):
             """
         )
         source_id = legacy.execute(
-            "INSERT INTO sources(kind, name, root_path) VALUES ('codex', 'Codex', '/tmp')"
+            "INSERT INTO sources(provider_kind, name, root_path) VALUES ('codex', 'Codex', '/tmp')"
         ).lastrowid
         session_id = legacy.execute(
             """

@@ -5,7 +5,34 @@ from typing import Optional
 from .atlassian_evidence import clear_context_root_evidence
 from .markdown import render_markdown
 from .markdown_references import MarkdownDocumentReference, MarkdownReferenceContext
+from .path_display import home_relative_path
 from .workstreams import utc_now
+
+
+_SOURCE_ORDER = """
+    context_roots.display_order IS NULL, context_roots.display_order,
+    CASE context_roots.source_type WHEN 'folder' THEN 0 WHEN 'apple_notes' THEN 1 ELSE 2 END,
+    context_roots.label, context_roots.path
+"""
+
+
+class ContextOrderConflict(ValueError):
+    """The caller's source list no longer matches the saved order."""
+
+
+def reorder_context_sources(connection, source_ids, expected_source_ids) -> None:
+    current = [row[0] for row in connection.execute(
+        "SELECT id FROM context_roots WHERE enabled = 1 ORDER BY " + _SOURCE_ORDER
+    )]
+    if expected_source_ids != current:
+        raise ContextOrderConflict("목록이 변경되었습니다. 새 목록을 확인한 뒤 다시 이동해 주세요.")
+    if (any(type(value) is not int for value in source_ids)
+            or len(source_ids) != len(set(source_ids)) or set(source_ids) != set(current)):
+        raise ValueError("등록된 Local Context 전체의 순서를 지정해 주세요.")
+    connection.executemany(
+        "UPDATE context_roots SET display_order = ? WHERE id = ?",
+        enumerate(source_ids),
+    )
 
 
 def _canonical_directory(path: str) -> Path:
@@ -181,12 +208,8 @@ def list_context_sources(connection: sqlite3.Connection) -> list:
           ON context_documents.context_root_id = context_roots.id
         WHERE context_roots.enabled = 1
         GROUP BY context_roots.id
-        ORDER BY CASE context_roots.source_type
-                    WHEN 'folder' THEN 0 WHEN 'apple_notes' THEN 1 ELSE 2 END,
-                 context_roots.label, context_roots.path
-        """
+        ORDER BY """ + _SOURCE_ORDER
     ).fetchall()
-    home = Path.home()
     result = []
     for row in rows:
         item = dict(row)
@@ -195,10 +218,7 @@ def list_context_sources(connection: sqlite3.Connection) -> list:
             item["exists_now"] = Path("/System/Applications/Notes.app").exists()
         else:
             path = Path(item["path"])
-            try:
-                item["display_path"] = "~/{}".format(path.relative_to(home))
-            except ValueError:
-                item["display_path"] = str(path)
+            item["display_path"] = home_relative_path(path)
             item["exists_now"] = (
                 path.is_file() if item["source_type"] == "file" else path.is_dir()
             )

@@ -86,7 +86,7 @@ def embedding_inventory(snapshot, repository):
     return files
 
 
-def install_embedding(root, *, local_only=False):
+def install_embedding(root, *, local_only=False, progress=None):
     os.environ.update(HF_HUB_DISABLE_TELEMETRY="1", DO_NOT_TRACK="1",
                       HF_HUB_DISABLE_IMPLICIT_TOKEN="1", HF_HUB_DISABLE_XET="1")
     with embedding_installation(root) as root:
@@ -98,6 +98,8 @@ def install_embedding(root, *, local_only=False):
             require(repository in path.resolve().parents, "INVALID_MODEL")
         if not snapshot.is_dir() or not all((snapshot / name).is_file() for name in EMBEDDING_ASSETS):
             require(not local_only, "MODEL_NOT_CACHED")
+            if progress:
+                progress("downloading")
             from huggingface_hub import snapshot_download
             snapshot = Path(snapshot_download(repo_id=EMBEDDING_ID, revision=EMBEDDING_REVISION,
                             cache_dir=cache, allow_patterns=list(EMBEDDING_ASSETS),
@@ -105,6 +107,8 @@ def install_embedding(root, *, local_only=False):
         relative = (repository / "snapshots" / EMBEDDING_REVISION).relative_to(cache).as_posix()
         expected, repository = hub_snapshot(EMBEDDING_ID, EMBEDDING_REVISION, relative)
         require(snapshot == expected, "INVALID_MODEL")
+        if progress:
+            progress("verifying")
         files = embedding_inventory(snapshot, repository)
         atomic_json(root / "model.json", {"schema": EMBEDDING_SCHEMA, "model_id": EMBEDDING_ID,
                     "requested_revision": EMBEDDING_REVISION, "resolved_revision": EMBEDDING_REVISION,

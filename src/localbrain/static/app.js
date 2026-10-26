@@ -3,6 +3,7 @@ function formatLocalTime(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return new Intl.DateTimeFormat("ko-KR", {
+    timeZone: document.body.dataset.timezone || undefined,
     month: "short",
     day: "numeric",
     hour: "2-digit",
@@ -14,8 +15,11 @@ function formatCompactLocalDateTime(value) {
   if (!value) return value;
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  const twoDigits = (part) => String(part).padStart(2, "0");
-  return `${date.getFullYear()}.${twoDigits(date.getMonth() + 1)}.${twoDigits(date.getDate())} ${twoDigits(date.getHours())}:${twoDigits(date.getMinutes())}`;
+  const parts = Object.fromEntries(new Intl.DateTimeFormat("en-CA", {
+    timeZone: document.body.dataset.timezone || undefined, year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+  }).formatToParts(date).map(part => [part.type, part.value]));
+  return `${parts.year}.${parts.month}.${parts.day} ${parts.hour}:${parts.minute}`;
 }
 
 function formatLocalTimes(root = document) {
@@ -648,7 +652,7 @@ function renderScanReport(result, report, actionLabel) {
     row.className = `scan-source-result ${source.status || "scan_failed"}`;
     const identity = document.createElement("span");
     const label = document.createElement("strong");
-    label.textContent = source.display_label || source.source_key || "Session source";
+    label.textContent = source.display_label || source.source_id || "Session source";
     const state = document.createElement("small");
     state.textContent = scanStatusLabels[source.status] || "확인 필요";
     identity.append(label, state);
@@ -724,116 +728,45 @@ function restoreScanAction(button, idle, working) {
 
 function bindSessionSyncAction(button, result) {
   if (!button || !result) return;
-  const eventTarget = button.form || button;
-  const eventName = button.form ? "submit" : "click";
-  eventTarget.addEventListener(eventName, async (event) => {
+  (button.form || button).addEventListener(button.form ? "submit" : "click", async (event) => {
     event.preventDefault();
-    const idle = button.querySelector(".button-idle");
-    const working = button.querySelector(".button-working");
-    const plans = new Map();
     button.disabled = true;
-    button.setAttribute("aria-busy", "true");
-    idle.hidden = true;
-    working.hidden = false;
-    result.textContent = "동기화 준비 중...";
-    result.className = "scan-result working";
-    result.setAttribute("role", "status");
-    result.hidden = false;
-
-    const renderProgress = (message) => {
-      result.textContent = message;
-      result.className = "scan-result working";
-      result.setAttribute("role", "status");
-      result.hidden = false;
-    };
-
-    const consumeEvent = (payload) => {
-      const label = payload.display_label || payload.source_key || "Session source";
-      if (payload.type === "source_started") {
-        renderProgress(`${label} 준비 중...`);
-      } else if (payload.type === "source_plan") {
-        plans.set(payload.source_key, payload);
-        const repairLabels = { session: "Session", usage: "Usage", reference: "참조" };
-        const repairs = Array.isArray(payload.repair_kinds)
-          ? payload.repair_kinds.map((kind) => repairLabels[kind]).filter(Boolean)
-          : [];
-        const activity = repairs.length
-          ? `${repairs.join(" · ")} 계약 업그레이드`
-          : payload.mode === "forced"
-            ? "전체 다시 처리"
-            : "변경 확인";
-        renderProgress(`${label} ${activity} · 0/${Number(payload.total_files || 0)}`);
-      } else if (payload.type === "source_progress") {
-        const plan = plans.get(payload.source_key);
-        const repair = plan && Array.isArray(plan.repair_kinds) && plan.repair_kinds.length;
-        const activity = repair ? "계약 업그레이드" : "동기화";
-        renderProgress(
-          `${label} ${activity} · ${Number(payload.processed_files || 0)}/${Number(payload.total_files || 0)}`,
-        );
-      } else if (payload.type === "source_result") {
-        renderProgress(
-          `${label} 완료 · ${Number(payload.imported || 0)}개 처리 · ${Number(payload.unchanged || 0)}개 변경 없음`,
-        );
-      } else if (payload.type === "sync_complete") {
-        renderProgress("동기화 결과를 정리하는 중...");
-      }
-    };
-
     try {
-      const supportsStreaming = Boolean(window.ReadableStream && window.TextDecoder);
-      const response = await fetch(
-        supportsStreaming ? "/api/sessions/sync/stream" : "/api/sessions/sync",
-        { method: "POST" },
-      );
-      if (!response.ok) throw new Error("request-failed");
-
-      let report = null;
-      if (!supportsStreaming) {
-        const data = await response.json();
-        report = data.report;
-      } else {
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
-        let terminalError = false;
-        const consumeLine = (line) => {
-          if (!line.trim()) return;
-          const payload = JSON.parse(line);
-          if (payload.type === "result" && payload.ok) {
-            report = payload.report;
-          } else if (payload.type === "error") {
-            terminalError = true;
-          } else {
-            consumeEvent(payload);
-          }
-        };
-        while (true) {
-          const { value, done } = await reader.read();
-          buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
-          const lines = buffer.split("\n");
-          buffer = lines.pop() || "";
-          lines.forEach(consumeLine);
-          if (done) break;
-        }
-        consumeLine(buffer);
-        if (terminalError || !report) throw new Error("sync-failed");
-      }
-
-      const outcome = renderScanReport(result, report, "동기화");
-      if (outcome === "complete") {
-        window.setTimeout(() => window.location.reload(), 900);
-        return;
-      }
-      restoreScanAction(button, idle, working);
-    } catch (_error) {
-      result.textContent = "동기화 요청을 처리하지 못했습니다. 기존 데이터는 유지됩니다. 다시 시도하거나 소스 설정을 확인하세요.";
-      result.className = "scan-result scan-report error";
-      result.setAttribute("role", "alert");
+      const response = await fetch("/api/sessions/sync", {method: "POST"});
+      const value = await response.json();
+      if (!response.ok) throw new Error(value.detail || "동기화 요청을 처리하지 못했습니다.");
+      result.textContent = "동기화를 요청했습니다. 기존 화면을 유지하며 진행합니다.";
       result.hidden = false;
-      restoreScanAction(button, idle, working);
-    }
+      window.dispatchEvent(new Event("localbrain-sync-requested"));
+    } catch (error) {
+      result.textContent = error.message; result.hidden = false;
+    } finally { button.disabled = false; }
   });
 }
+
+(() => {
+  let timer = null, fetching = false;
+  async function poll() {
+    if (fetching) return;
+    fetching = true;
+    clearTimeout(timer);
+    let active = false;
+    try {
+      const response = await fetch("/api/sessions/sync/status");
+      if (!response.ok) throw new Error();
+      const state = await response.json();
+      window.dispatchEvent(new CustomEvent("localbrain-sync-status", {detail: state}));
+      active = state.running || state.queued;
+      const button = document.querySelector("#session-sync-button");
+      if (button) {button.disabled = active; button.setAttribute("aria-busy", String(active));}
+    } catch (_) {
+      // Keep the last known control state and retry on the next poll.
+    }
+    finally {fetching = false; timer = setTimeout(poll, active ? 1500 : 15000);}
+  }
+  window.addEventListener("localbrain-sync-requested", poll);
+  poll();
+})();
 
 bindScanAction(
   document.querySelector("#scan-button"),
@@ -1505,19 +1438,11 @@ document.querySelectorAll("[data-delete-link]").forEach((button) => {
 });
 
 document.querySelectorAll("[data-delete-context-root], [data-delete-context-source]").forEach((button) => {
-  button.addEventListener("click", async () => {
-    if (!window.confirm("이 Source를 Local Contexts 인덱스에서 제거할까요? 실제 파일과 Apple Notes는 삭제되지 않습니다.")) return;
-    button.disabled = true;
-    try {
-      const sourceId = button.dataset.deleteContextSource || button.dataset.deleteContextRoot;
-      await requestJson(`/api/context-sources/${sourceId}`, {
-        method: "DELETE",
-      });
-      window.location.assign("/context");
-    } catch (error) {
-      showNotice(error.message);
-      button.disabled = false;
-    }
+  button.addEventListener("click", () => {
+    window.dispatchEvent(new CustomEvent("localbrain:remove-context", {detail: {
+      source: {id: Number(button.dataset.deleteContextSource || button.dataset.deleteContextRoot), label: button.dataset.contextLabel},
+      trigger: button,
+    }}));
   });
 });
 

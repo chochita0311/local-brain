@@ -191,7 +191,7 @@ class Retriever:
                     groups[key]["evidence"].append(self._ids[i])
             total = len(groups)
             results = list(groups.values())[(page - 1) * page_size:page * page_size]
-            return_url = "/natural-search?" + urlencode({"q": query, "page": page})
+            return_url = "/natural-search?" + urlencode({"q": query, "page": page, "mode": "ai"})
             for item in results:
                 # Rank and count all eligible parents, but load text only for
                 # the displayed page. This bounds SQLite reads for broad queries.

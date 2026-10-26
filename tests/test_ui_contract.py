@@ -78,6 +78,8 @@ def template_environment(path=ROOT / "src/localbrain/templates"):
     )
     environment.globals["value_label"] = display_value_label
     environment.globals["value_help"] = visible_value_help
+    environment.globals["local_preferences"] = lambda: {"timezone": "UTC"}
+    environment.filters["project_path"] = lambda path: path
     return environment
 
 
@@ -131,6 +133,95 @@ class UiContractTests(unittest.TestCase):
         component_rules = self.styles[token_end:]
         self.assertIsNone(re.search(r"#[0-9a-fA-F]{3,8}\b", component_rules))
         self.assertIsNone(re.search(r"rgba?\(", component_rules))
+
+    def test_general_settings_dropdowns_keep_below_control_geometry(self):
+        template = (ROOT / "src/localbrain/templates/_settings.html").read_text()
+        script = (ROOT / "src/localbrain/static/settings.js").read_text()
+        styles = (ROOT / "src/localbrain/static/settings.css").read_text()
+        self.assertNotIn('type="radio" name="startup_screen"', template)
+        self.assertNotIn('data-timezone-search', template)
+        general = template.split("<form data-general-form", 1)[1].split("</form>", 1)[0]
+        self.assertEqual(general.count('role="combobox"'), 2)
+        self.assertEqual(general.count('role="listbox"'), 2)
+        self.assertIn('설정은 이 Mac에 저장됩니다.</p>', template)
+        sync = template.split('<form data-sync-form', 1)[1].split('</form>', 1)[0]
+        self.assertNotIn('type="checkbox"', sync)
+        self.assertIn('data-value="off" aria-selected="false">끄기</div>', sync)
+        self.assertNotIn('sync_enabled', general)
+        self.assertEqual(re.findall(r'data-settings-tab="([^"]+)"', template),
+                         ['general', 'sessions', 'context', 'search', 'sync', 'storage', 'about'])
+        self.assertNotIn('자동 동기화', template)
+        self.assertNotIn('자동 동기화', script)
+        for removed in ('data-settings-sync-status', 'data-settings-sync-times', 'data-settings-sync>', '지금 동기화', '일반 설정 저장'):
+            self.assertNotIn(removed, template)
+        self.assertNotIn('renderSync', script)
+        for removed in ('환경변수', 'data-effective', 'renderEffective', '저장값:', '현재 적용:'):
+            self.assertNotIn(removed, template)
+            self.assertNotIn(removed, script)
+        for retired in ('project_display', 'data-project-list', 'data-add-project', '프로젝트 기준 위치'):
+            self.assertNotIn(retired, template)
+            self.assertNotIn(retired, script)
+        self.assertNotIn('.settings-project', styles)
+        for field in ("startup_screen", "timezone"):
+            self.assertIn(f'<input type="hidden" name="{field}">', template)
+            self.assertNotIn(f'<select name="{field}"', template)
+        timezone_menu = template.split('id="settings-timezone-options"', 1)[1].split('</div>', 3)
+        self.assertEqual(re.findall(r'data-value="([^"]+)"', ''.join(timezone_menu[:3])), ["UTC", "Asia/Seoul"])
+        self.assertIn('>Asia/Seoul</div>', template)
+        self.assertIn('대시보드의 날짜별 집계 기준', template)
+        self.assertNotIn('시작 화면은 다음 앱 실행부터', template)
+        self.assertNotIn('시간대는 다음 화면부터', template)
+        self.assertNotIn('화면 표시 변경은 다음 페이지부터', script)
+        self.assertNotIn("message('일반 설정을 저장했습니다.');", script)
+        self.assertIn("generalForm.elements[key].value = saved[key]", script)
+        self.assertIn("|| input.value", script)
+        self.assertIn("event.key === 'Escape'", script)
+        self.assertIn("event.key === 'Tab'", script)
+        self.assertIn("aria-activedescendant", script)
+        self.assertIn(".settings-select { position: relative;", styles)
+        self.assertIn("width: min(100%, var(--settings-select-width));", styles)
+        self.assertIn("--settings-select-width: calc(var(--control-min-height-touch) * 6);", styles)
+        self.assertIn(".settings-sync-group .settings-select { width: max-content; max-width: 100%; }", styles)
+        self.assertIn("top: calc(100% + var(--space-compact)); left: 0; right: 0;", styles)
+        self.assertIn(".settings-select-menu[hidden] { display: none; }", styles)
+
+    def test_general_settings_autosave_keeps_revision_and_recovery_boundaries(self):
+        template = (ROOT / "src/localbrain/templates/_settings.html").read_text()
+        script = (ROOT / "src/localbrain/static/settings.js").read_text()
+        general = template.split('<form data-general-form', 1)[1].split('</form>', 1)[0]
+        self.assertNotIn('type="submit"', general)
+        source_form = template.split('data-source-form', 1)[1].split('</form>', 1)[0]
+        self.assertRegex(source_form, r'<button\b[^>]*type="submit"')
+        self.assertIn("if (changed) input.dispatchEvent(new Event('change', {bubbles: true}));", script)
+        self.assertIn("form.addEventListener('change'", script)
+        self.assertIn("form.addEventListener('submit', event => event.preventDefault())", script)
+        self.assertIn("revision: state.preferences.revision, changes", script)
+        self.assertIn("const disabled = !preferences || generalSaving || generalLoading;", script)
+        self.assertIn("await generalSave;", script)
+        self.assertIn("if (version !== loadVersion) return;", script)
+        self.assertIn("state.preferences = (await api('/api/settings')).preferences;", script)
+        self.assertIn("Object.entries(changes).every", script)
+        self.assertIn("state.preferences = null;", script)
+        self.assertIn("현재 저장된 값으로 되돌렸습니다", script)
+        self.assertIn("설정을 닫았다가 다시 열어 주세요", script)
+
+    def test_settings_dialog_is_compact_with_bounded_content_scrolling(self):
+        styles = (ROOT / "src/localbrain/static/settings.css").read_text()
+        script = (ROOT / "src/localbrain/static/settings.js").read_text()
+        self.assertIn('--settings-width: calc(var(--control-min-height-touch) * 18)', styles)
+        self.assertIn('--settings-height: calc(var(--control-min-height-touch) * 14)', styles)
+        self.assertIn('--settings-nav-width: calc(var(--control-min-height-touch) * 4)', styles)
+        self.assertIn('.settings-dialog[open] { display: flex; flex-direction: column; }', styles)
+        self.assertIn('.settings-layout { display: grid; flex: 1; min-height: 0;', styles)
+        self.assertIn('grid-template-rows: minmax(0, 1fr);', styles)
+        self.assertIn('overflow-y: auto; overscroll-behavior: contain; min-width: 0; min-height: 0;', styles)
+        self.assertIn('@media (max-width: 700px)', styles)
+        self.assertNotIn('height: calc(100% - 5rem)', styles)
+        self.assertNotIn('@media (max-width: 640px)', styles)
+        tab = script.split('function tab(name)', 1)[1].split('async function open', 1)[0]
+        self.assertIn("$('.settings-body').scrollTop = 0;", tab)
+        self.assertNotIn('form.reset()', tab)
+        self.assertIn("if (text && dialog.open) $('.settings-body').scrollTop = 0;", script)
 
     def test_native_selects_share_one_disclosure_geometry(self):
         for token in (
@@ -646,6 +737,8 @@ class UiContractTests(unittest.TestCase):
         self.assertNotIn('<span>Range</span>', self.sessions_dashboard)
         self.assertNotIn("Projected month end", self.sessions_dashboard)
         self.assertNotIn("usage.projection", self.sessions_dashboard)
+        self.assertNotIn("usage-breakdown-scope", self.sessions_dashboard)
+        self.assertNotIn("usage.breakdown.compatible_total_label", self.sessions_dashboard)
         self.assertNotIn("Allocation", self.sessions_dashboard)
         self.assertNotIn("budget", self.sessions_dashboard.lower())
         self.assertNotIn("quota", self.sessions_dashboard.lower())
@@ -699,20 +792,11 @@ class UiContractTests(unittest.TestCase):
         connection.executescript(SCHEMA.read_text(encoding="utf-8"))
         connection.execute(
             """
-            INSERT INTO sources(
-                kind, provider_kind, name, root_path, last_scanned_at,
-                last_scan_success_at, last_scan_status, last_scan_error
-            ) VALUES (
-                'codex-company', 'codex', 'Codex Company', '/synthetic/company',
-                '2026-07-18T10:00:00Z', '2026-07-01T08:00:00Z',
-                'unavailable',
-                'This source was not synchronized; existing data was retained.'
-            )
-            """
+            INSERT INTO sources(provider_kind, name, root_path, last_scanned_at, last_scan_success_at, last_scan_status, last_scan_error) VALUES ('codex', 'Codex Company', '/synthetic/company', '2026-07-18T10:00:00Z', '2026-07-01T08:00:00Z', 'unavailable', 'This source was not synchronized; existing data was retained.')"""
         )
         usage = usage_dashboard_data(
             connection,
-            source="codex-company",
+            source="1",
             timezone_name="UTC",
             today=date(2026, 7, 18),
         )
@@ -721,9 +805,9 @@ class UiContractTests(unittest.TestCase):
         ).render(active_page="sessions-dashboard", usage=usage)
         connection.close()
 
-        self.assertIn('data-usage-value="codex-company"', html)
+        self.assertIn('data-usage-value="1"', html)
         self.assertIn(">Codex Company</a>", html)
-        self.assertIn("DAILY · CODEX COMPANY", html)
+        self.assertIn('data-profile-label="1">Codex Company</span>', html)
         self.assertNotIn("Data freshness", html)
         self.assertNotIn("Coverage &amp; freshness", html)
         self.assertEqual(
@@ -998,17 +1082,21 @@ class UiContractTests(unittest.TestCase):
         self.assertIn(".segmented-control a,\n.inventory-switch a", self.styles)
         self.assertIn('document.querySelector("#session-sync-button")', self.script)
         self.assertIn('"/api/sessions/sync"', self.script)
-        self.assertIn('"/api/sessions/sync/stream"', self.script)
+        self.assertIn('"/api/sessions/sync/status"', self.script)
         self.assertIn("function bindSessionSyncAction", self.script)
-        self.assertIn("계약 업그레이드", self.script)
-        self.assertIn("const eventTarget = button.form || button;", self.script)
-        self.assertIn('eventTarget.addEventListener(eventName', self.script)
+        self.assertNotIn("업데이트된 기록 보기", self.base)
+        self.assertNotIn("data-sync-status", self.base)
+        self.assertNotIn("data-sync-label", self.script)
+        self.assertNotIn("data-sync-refresh", self.script)
+        self.assertIn('new CustomEvent("localbrain-sync-status", {detail: state})', self.script)
+        self.assertIn('button.disabled = active', self.script)
+        self.assertIn('(button.form || button).addEventListener', self.script)
 
     def test_sync_report_and_source_inventory_expose_bounded_per_source_health(self):
         for marker in (
             "const scanStatusLabels",
             "function renderScanReport",
-            "source.display_label || source.source_key",
+            "source.display_label || source.source_id",
             "source.error_message",
             "기존 데이터는 유지됩니다",
         ):
@@ -1246,7 +1334,7 @@ class UiContractTests(unittest.TestCase):
         )
 
         self.assertEqual(html.count('class="session-page-numbers'), 2)
-        self.assertEqual(html.count('aria-current="page"'), 5)
+        self.assertEqual(html.split('<dialog', 1)[0].count('aria-current="page"'), 5)
 
     def test_session_inventory_separates_parent_links_and_child_disclosure(self):
         for marker in (
@@ -1267,10 +1355,10 @@ class UiContractTests(unittest.TestCase):
         self.assertNotIn('<a class="session-row"', self.sessions)
         self.assertNotIn('class="session-provenance"', self.sessions)
         self.assertIn(
-            '<span class="sr-only">{{ session.source_name }} ·',
+            '<span class="sr-only"><span data-profile-label="{{ session.source_id }}">{{ session.source_name }}</span> ·',
             self.sessions,
         )
-        self.assertIn("{{ child.source_name }} · 질문", self.sessions)
+        self.assertIn("{{ child.source_name }}</span> · 질문", self.sessions)
 
         for behavior in (
             'trigger.addEventListener("click"',
@@ -1297,22 +1385,20 @@ class UiContractTests(unittest.TestCase):
     def test_session_source_scopes_keep_compact_accessible_inventory_provenance(self):
         for marker in (
             "{% for source_scope in source_scope_items %}",
-            "source_scope.source_key",
+            "source_scope.id",
             "source_scope.display_label",
-            'class="session-source {{ session.source_kind }}"',
-            '<span class="sr-only">{{ session.source_name }} ·',
-            'class="pinned-session-source {{ pinned_session.source_kind }}"',
-            '<span class="sr-only">{{ pinned_session.source_name }}</span>',
+            'class="session-source" {{ profile_attrs(session.source_id) }}',
+            '<span class="sr-only"><span data-profile-label="{{ session.source_id }}">{{ session.source_name }}</span> ·',
+            'class="pinned-session-source" {{ profile_attrs(pinned_session.source_id) }}',
+            '<span class="sr-only"><span data-profile-label="{{ pinned_session.source_id }}">{{ pinned_session.source_name }}</span></span>',
             'class="pinned-session-group-heading"',
             'class="pinned-session-branch"',
             "child.source_name",
         ):
             self.assertIn(marker, self.sessions)
         for marker in (
-            "{% macro source_cue(source_kind, provider_kind, display_label)",
-            "source_kind == 'codex-company'",
-            "'CC'",
-            "source_kind == 'codex'",
+            "{% macro source_cue(provider_kind, display_label)",
+            "provider_kind == 'codex'",
             "'CX'",
             "provider_kind == 'claude'",
             "'CL'",
@@ -1327,14 +1413,10 @@ class UiContractTests(unittest.TestCase):
             self.styles,
         )
         self.assertIn(".session-source-control a { flex: 0 0 auto; }", self.styles)
-        for marker in (
-            "--surface-source-codex-company: var(--color-blue-100);",
-            "--text-source-codex-company: var(--color-blue-600);",
-            "--border-source-codex-company: var(--color-blue-600);",
-            ".session-source.codex-company {",
-            ".pinned-session-source.codex-company {",
-        ):
-            self.assertIn(marker, self.styles)
+        for color in ('green', 'blue', 'orange', 'yellow', 'red', 'gray'):
+            self.assertIn('[data-profile-color="' + color + '"]', self.styles)
+        self.assertNotIn('.session-source.codex-company', self.styles)
+        self.assertIn('var(--profile-ink)', self.styles)
 
     def test_session_details_render_conversations_without_tool_rows(self):
         for template in (self.session_detail, self.subsession_detail):
@@ -1355,7 +1437,7 @@ class UiContractTests(unittest.TestCase):
             self.session_detail,
         )
         self.assertIn(
-            '<span class="sr-only">{{ session.source_name or value_label("source.kind", session.source_kind) }} ·',
+            '<span class="sr-only"><span data-profile-label="{{ session.source_id }}">{{ session.source_name }}</span> ·',
             self.session_detail,
         )
         self.assertIn(
@@ -1410,19 +1492,19 @@ class UiContractTests(unittest.TestCase):
     def test_session_detail_source_cues_use_stable_source_identity(self):
         for template in (self.sessions, self.session_detail, self.subsession_detail):
             self.assertIn(
-                '{% from "_source_cue.html" import source_cue %}',
+                '{% from "_source_cue.html" import source_cue, profile_attrs with context %}',
                 template,
             )
         for marker in (
-            'class="session-source large {{ session.source_kind }}"',
-            "source_cue(session.source_kind, session.provider_kind, session.source_name)",
-            'class="session-source {{ subsession.source_kind }}"',
-            "source_cue(subsession.source_kind, subsession.provider_kind, subsession.source_name)",
+            'class="session-source large" {{ profile_attrs(session.source_id) }}',
+            "source_cue(session.provider_kind, session.source_name)",
+            'class="session-source" {{ profile_attrs(subsession.source_id) }}',
+            "source_cue(subsession.provider_kind, subsession.source_name)",
         ):
             self.assertIn(marker, self.session_detail)
         for marker in (
-            'class="session-source large {{ session.source_kind }}"',
-            "source_cue(session.source_kind, session.provider_kind, session.source_name)",
+            'class="session-source large" {{ profile_attrs(session.source_id) }}',
+            "source_cue(session.provider_kind, session.source_name)",
         ):
             self.assertIn(marker, self.subsession_detail)
         self.assertNotIn(

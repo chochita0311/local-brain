@@ -73,16 +73,16 @@ def validate_snapshot(data):
     ids = []
     for session in sessions:
         require(isinstance(session, dict) and set(session) <= {
-            "id", "source_key", "external_id", "session_class", "session_role", "index_policy",
+            "id", "source_id", "external_id", "session_class", "session_role", "index_policy",
             "event_count", "title", "workspace_id", "ended_at", "has_activity_events", "has_usage_records"})
         sid = session.get("id")
         require(type(sid) is int and sid > 0)
-        identifier(session.get("source_key")); identifier(session.get("external_id"))
+        require(type(session.get("source_id")) is int and session["source_id"] > 0); identifier(session.get("external_id"))
         require(type(session.get("event_count")) is int and session["event_count"] >= 0)
         require(session.get("title") is None or isinstance(session["title"], str) and len(session["title"]) <= 500)
         ids.append(sid)
     require(len(ids) == len(set(ids)))
-    require(len({s["source_key"] for s in sessions}) <= 8, "INPUT_LIMIT")
+    require(len({s["source_id"] for s in sessions}) <= 8, "INPUT_LIMIT")
     records = bounded_list(data.get("records"), MAX_RECORDS)
     seen, totals, counts, kinds = set(), Counter(), Counter(), Counter()
     for record in records:

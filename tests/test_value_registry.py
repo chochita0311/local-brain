@@ -99,15 +99,15 @@ class ValueRegistryContractTests(unittest.TestCase):
     def test_incomplete_mapping_and_raw_consumer_fallback_fail(self):
         incomplete = copy.deepcopy(self.registry)
         family = next(
-            item for item in incomplete["families"] if item["id"] == "source.kind"
+            item for item in incomplete["families"] if item["id"] == "source.scan-status"
         )
-        del family["presentation"]["labels"]["context"]
+        del family["presentation"]["labels"]["completed"]
         with self.assertRaisesRegex(ValueRegistryError, "do not cover"):
             validate_value_registry(incomplete)
 
         raw_consumer = copy.deepcopy(self.registry)
         family = next(
-            item for item in raw_consumer["families"] if item["id"] == "source.kind"
+            item for item in raw_consumer["families"] if item["id"] == "source.scan-status"
         )
         family["visible_consumers"][0]["state"] = "registry-backed"
         family["visible_consumers"][0]["path"] = "README.md"

@@ -1,5 +1,56 @@
 # Project Roadmap
 
+Current review boundary: local implementation of the approved
+[standalone test app](#macos-standalone-test-app--2026-10-18) and common settings is
+complete; direct native interactions and the teammate Mac receipt remain open.
+
+## macOS Standalone Test App — 2026-10-18
+
+The owner requested a PRD for the first standalone Mac test app focused on
+Session browsing/detail, Sessions Dashboard and Local Context, with local
+settings, first-run setup and optional model installation. The approved
+[PRD-0021](../prd/prd-0021-macos-standalone-test-app-and-local-settings.md) owns the
+scope, 13-Feature/21-commit planning estimate and remaining distribution evidence.
+It prioritizes these three areas for test distribution before completing the
+broader Workstream workflow. The owner deferred data/settings transfer and chose
+same-Mac backup/recovery. On `2026-10-18`, the owner required a shared settings
+layer and local storage, and excluded the top-level Dashboard/learning,
+Workstreams, Auto Work, Atlassian, Insights and Session workflow from the
+installed edition; Sessions Dashboard stays in scope. Menu, API and runtime
+admission must agree.
+The PRD's [decision status](../prd/prd-0021-macos-standalone-test-app-and-local-settings.md#decision-status--2026-10-18)
+records Tauri/Apple Silicon selection, accepted settings/runtime/lifecycle
+recommendations, reuse of deprecated keyword search and separate agent,
+project and document path configuration. Additional network restrictions and app
+encryption were declined; existing authorized communication and local storage
+remain. The test-stage delivery decision prioritizes quick testing with one `.app` in a ZIP,
+ad-hoc signing and app-specific first-launch guidance. Developer ID, notarization
+and DMG production are deferred. Contracts are implemented; transferred-app execution
+evidence remains pending. Internal Drive is the selected program-delivery channel;
+local packaged-app success and a teammate's execution of the downloaded ZIP are
+separate evidence, with personal data remaining on each Mac.
+The owner subsequently selected periodic local Session synchronization with a
+10-minute default in both local browser use and the packaged app, with the
+existing manual action retained. The shared backend owns scheduling while
+running; local settings persist across restarts. Closing a browser tab leaves
+sync running if the server remains active; stopping the backend stops sync.
+The PRD's [sync boundary](../prd/prd-0021-macos-standalone-test-app-and-local-settings.md#periodic-session-synchronization)
+owns completion-based scheduling, shared execution ownership and refresh
+that preserves the current view; C13 brings the estimate to 13 candidates and
+21 commits. This does not restore the excluded Auto Work product.
+The owner authorized the full bounded implementation and related tests/browser/app
+checks. The Tauri bundle, common settings and keyword/AI entry are implemented
+under FEAT-0128–0140. The stopped workflow-map track remains unchanged. Local app
+verification does not complete the separately required teammate Mac receipt.
+Current source and documentation closeout after RUN-204 is recorded in the
+[2026-10-26 verification](../evaluation/eval-0139-functional-standalone-test-app.md#session-closeout--2026-10-26).
+The historical 2026-10-19 [integration report](../evaluation/eval-0139-functional-standalone-test-app.md)
+records the final relocated ZIP execution, public model download/resume and AI
+search, recovery/cache checks, and the four pre-existing failures among 1,178 tests.
+The [startup repair](../fix/fix-0131-desktop-startup-cookie.md) replaces the original
+authentication-failing ZIP and adds actual WKWebView landing/API evidence.
+No upload, teammate message or Git commit was performed in that 2026-10-19 execution. The current closeout authorizes source commit/push only; the later public-app goal remains subject to its separate signing/notarization and recipient acceptance.
+
 ## Local Natural Language Search — 2026-10-13
 
 [PRD-0020](../prd/prd-0020-local-natural-language-search.md) is approved for
@@ -289,7 +340,7 @@ Recently completed cross-surface reconciliation:
 | 4. External read-only sources | Connect approved ticket, conversation, Git, and document systems | Atlassian local vertical slice, Site-first follow-up, and standard-URL structure references implemented; connected validation and other sources planned |
 | 5. Context reconciliation | Produce reviewable current context while preserving uncertainty | Planned |
 | 6. Handoff and controlled actions | Support low-friction AI handoff and explicitly approved actions | Planned |
-| 7. macOS packaging | Package the validated workflow as a native-feeling application | Planned |
+| 7. macOS packaging | Package Sessions, Sessions Dashboard and Context as a standalone test app | Local bundle implemented; teammate download/run evidence pending |
 
 ## Phase 0: Discovery And Constraints
 
@@ -526,7 +577,7 @@ Exit criteria:
 
 Work:
 
-- wrap the existing frontend with Tauri when feasible
+- Tauri 2 wraps the shared frontend with a bundled Python runtime for Apple Silicon
 - manage backend startup, shutdown, and local port lifecycle
 - add launcher or menu-bar behavior only when it improves daily use
 - expose data location, backup, export, and recovery controls
@@ -552,7 +603,7 @@ Deferred beyond that boundary:
 - mobile support
 - complex graph editing
 - mandatory external AI or embedding APIs
-- native packaging before workflow validation
+- broader packaging and identified distribution beyond the approved three-area test app
 
 ## Validation Strategy
 

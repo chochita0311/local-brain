@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "_conversation.html" import conversation_message %}
 {% from "_session_pin.html" import session_pin_control with context %}
-{% from "_source_cue.html" import source_cue %}
+{% from "_source_cue.html" import source_cue, profile_attrs with context %}
 {% set session_return_to = (request.url.path ~ (('?' ~ request.url.query) if request.url.query else '')) if request is defined else '/sessions/' ~ session.id %}
 {% set session_pin_error = request.query_params.get('pin_error') if request is defined else none %}
 {% block title %}{{ session.title }} · LocalBrain{% endblock %}
@@ -22,11 +22,11 @@
     </div>
   {% endif %}
   <section class="session-heading">
-    <div class="session-source large {{ session.source_kind }}"><span aria-hidden="true">{{ source_cue(session.source_kind, session.provider_kind, session.source_name) }}</span><span class="sr-only">{{ session.source_name or value_label("source.kind", session.source_kind) }} · {{ value_label("session.role", session.session_role) }}</span></div>
+    <div class="session-source large" {{ profile_attrs(session.source_id) }}><span aria-hidden="true">{{ source_cue(session.provider_kind, session.source_name) }}</span><span class="sr-only"><span data-profile-label="{{ session.source_id }}">{{ session.source_name }}</span> · {{ value_label("session.role", session.session_role) }}</span></div>
     <div class="session-heading-copy">
       {% if parent %}<p class="eyebrow">{{ value_label("session.role", "subsession") | upper }}</p>{% endif %}
       <h1>{{ session.title }}</h1>
-      <p class="heading-copy path-copy">{{ session.workspace_path or session.cwd_raw or session.source_path }}</p>
+      <p class="heading-copy path-copy">{{ (session.workspace_path or session.cwd_raw or session.source_path) | project_path }}</p>
     </div>
     {% if not parent and session.session_role == 'primary' %}
       <div class="session-heading-action">
@@ -57,10 +57,10 @@
       </section>
 
       {% if parent %}
-        <section class="scope-notice parent-session-notice"><span>상위 Session · {{ parent.source_name }}</span><a href="{{ parent_url | default('/sessions/' ~ parent.id) }}">{{ parent.title }}</a></section>
+        <section class="scope-notice parent-session-notice"><span>상위 Session · <span data-profile-label="{{ parent.source_id }}">{{ parent.source_name }}</span></span><a href="{{ parent_url | default('/sessions/' ~ parent.id) }}">{{ parent.title }}</a></section>
       {% endif %}
 
-      {% if memberships %}
+      {% if memberships and not desktop_edition %}
         <section class="membership-strip">
           <span>연결된 작업</span>
           {% for membership in memberships %}<a href="/workstreams/{{ membership.workstream_id }}"><strong>{{ membership.workstream_name }}</strong>{% if membership.thread_title %}<small>{{ membership.thread_title }}</small>{% endif %}</a>{% endfor %}
@@ -73,7 +73,7 @@
           <div class="subsession-list">
             {% for subsession in subsessions %}
               <a href="{{ subsession.url }}">
-                <span class="session-source {{ subsession.source_kind }}"><span aria-hidden="true">{{ source_cue(subsession.source_kind, subsession.provider_kind, subsession.source_name) }}</span><span class="sr-only">{{ subsession.source_name or value_label("source.kind", subsession.source_kind) }} · {{ value_label("session.role", "subsession") }}</span></span>
+                <span class="session-source" {{ profile_attrs(subsession.source_id) }}><span aria-hidden="true">{{ source_cue(subsession.provider_kind, subsession.source_name) }}</span><span class="sr-only"><span data-profile-label="{{ subsession.source_id }}">{{ subsession.source_name }}</span> · {{ value_label("session.role", "subsession") }}</span></span>
                 <div><strong>{{ subsession.title }}</strong><small>{{ subsession.external_id }}</small></div>
                 <span class="subsession-question-count">질문 {{ subsession.user_message_count }}</span>
                 <span class="subsession-event-count">이벤트 {{ subsession.event_count }}</span>

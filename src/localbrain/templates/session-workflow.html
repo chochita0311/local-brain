@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_source_cue.html" import source_cue %}
+{% from "_source_cue.html" import source_cue, profile_attrs with context %}
 {% from "_workflow_correction.html" import assertion_summary, correction_action %}
 {% block title %}{% if workflow.status == 'ready' %}{{ workflow.selected_episode.title }} · 작업 흐름{% else %}작업 흐름{% endif %} · LocalBrain{% endblock %}
 {% block page_location %}Session workflow{% endblock %}
@@ -12,7 +12,8 @@
       </nav>
 
       <header class="workflow-heading">
-        <div class="session-source large {{ workflow.selected_episode.source_key }}"><span aria-hidden="true">{{ source_cue(workflow.selected_episode.source_key, workflow.selected_episode.source_key, workflow.selected_episode.source_key) }}</span><span class="sr-only">{{ workflow.selected_episode.source_key }} Session</span></div>
+        {% set profile = source_profile(workflow.selected_episode.source_id) %}
+        <div class="session-source large {{ profile.provider_kind }}" {{ profile_attrs(workflow.selected_episode.source_id) }}><span aria-hidden="true">{{ source_cue(profile.provider_kind, profile.name) }}</span><span class="sr-only">{{ profile.name }} Session</span></div>
         <div>
           <p class="eyebrow">SOURCE-BACKED WORKFLOW FOCUS</p>
           <h1>{{ workflow.selected_episode.title }}</h1>
@@ -65,7 +66,7 @@
                     <li class="workflow-episode-position" data-workflow-episode-position data-episode-key="{{ item.episode_key }}">
                       <article class="workflow-episode-card{% if item.selected %} is-selected{% endif %}{% if item.user_confirmed %} is-user-confirmed{% endif %}" data-workflow-episode-card data-workflow-authority="{{ item.authority }}" data-workflow-lifecycle="{{ item.lifecycle_state }}">
                         <button type="button" class="workflow-episode-select" data-workflow-episode data-workflow-destination="{{ item.workflow_destination }}" aria-pressed="{{ 'true' if item.selected else 'false' }}" aria-controls="workflow-trace-{{ loop.index }}">
-                          <span class="workflow-episode-topline"><span class="session-source {{ item.source_key }}" aria-hidden="true">{{ source_cue(item.source_key, item.source_key, item.source_key) }}</span><span>{{ item.source_key }}</span><span class="workflow-selected-label" data-workflow-selected-label{% if not item.selected %} hidden{% endif %}>선택됨</span></span>
+                          <span class="workflow-episode-topline"><span class="session-source {{ source_profile(item.source_id).provider_kind }}" {{ profile_attrs(item.source_id) }} aria-hidden="true">{{ source_cue(source_profile(item.source_id).provider_kind, source_profile(item.source_id).name) }}</span><span>{{ source_profile(item.source_id).name if item.source_id else item.source_family }}</span><span class="workflow-selected-label" data-workflow-selected-label{% if not item.selected %} hidden{% endif %}>선택됨</span></span>
                           <strong>{{ item.title }}</strong>
                           <span class="workflow-episode-meta">
                             {% if item.last_observed_at or item.observed_start_at %}<time datetime="{{ item.last_observed_at or item.observed_start_at }}" data-local-time>{{ item.last_observed_at or item.observed_start_at }}</time>{% else %}<span>관측 시간 없음</span>{% endif %}
@@ -88,7 +89,7 @@
               <ol class="workflow-lineage-episodes">
                 {% for item in workflow.episodes %}
                   <li{% if item.selected %} class="current"{% endif %}>
-                    <a href="{{ item.workflow_destination }}"><strong>{{ item.title }}</strong><span>{{ item.source_key }} · {% if item.selected %}선택됨 · {% endif %}{% if item.last_observed_at or item.observed_start_at %}<time datetime="{{ item.last_observed_at or item.observed_start_at }}" data-local-time>{{ item.last_observed_at or item.observed_start_at }}</time>{% else %}관측 시간 없음{% endif %}</span></a>
+                    <a href="{{ item.workflow_destination }}"><strong>{{ item.title }}</strong><span>{{ source_profile(item.source_id).name if item.source_id else item.source_family }} · {% if item.selected %}선택됨 · {% endif %}{% if item.last_observed_at or item.observed_start_at %}<time datetime="{{ item.last_observed_at or item.observed_start_at }}" data-local-time>{{ item.last_observed_at or item.observed_start_at }}</time>{% else %}관측 시간 없음{% endif %}</span></a>
                   </li>
                 {% endfor %}
               </ol>
@@ -119,8 +120,8 @@
             {% for item in workflow.episodes %}
               <section class="workflow-trace-panel" id="workflow-trace-{{ loop.index }}" data-workflow-episode-trace="{{ item.episode_key }}"{% if not item.selected %} hidden{% endif %}>
                 <div class="workflow-trace-title">
-                  <span class="session-source {{ item.source_key }}" aria-hidden="true">{{ source_cue(item.source_key, item.source_key, item.source_key) }}</span>
-                  <div><span>{{ item.source_key }} · {{ item.authority_label }}</span><h3>{{ item.title }}</h3></div>
+                  <span class="session-source {{ source_profile(item.source_id).provider_kind }}" {{ profile_attrs(item.source_id) }} aria-hidden="true">{{ source_cue(source_profile(item.source_id).provider_kind, source_profile(item.source_id).name) }}</span>
+                  <div><span>{{ source_profile(item.source_id).name if item.source_id else item.source_family }} · {{ item.authority_label }}</span><h3>{{ item.title }}</h3></div>
                 </div>
                 <dl class="workflow-trace-facts">
                   <div><dt>마지막 관측</dt><dd>{% if item.last_observed_at or item.observed_start_at %}<time datetime="{{ item.last_observed_at or item.observed_start_at }}" data-local-time>{{ item.last_observed_at or item.observed_start_at }}</time>{% else %}없음{% endif %}</dd></div>
@@ -176,7 +177,7 @@
                         <div class="workflow-evidence-list">
                           {% for evidence in group['items'] %}
                             {% if evidence.destination %}<a class="workflow-evidence-item" href="{{ evidence.destination }}"{% if evidence.destination.startswith('http') %} rel="noopener noreferrer external"{% endif %}>{% else %}<div class="workflow-evidence-item unavailable">{% endif %}
-                              <span class="session-source {{ evidence.source_family }}" aria-hidden="true">{{ source_cue(evidence.source_family, evidence.source_family, evidence.source_label) }}</span>
+                              <span class="session-source {{ evidence.source_family }}" aria-hidden="true">{{ source_cue(evidence.source_family, evidence.source_label) }}</span>
                               <span class="workflow-evidence-copy"><strong>{{ evidence.identity }}</strong><small>{{ evidence.kind_label }} · {{ evidence.authority_label }}</small><small>{{ evidence.admission_labels | join(' · ') }}{% if evidence.observed_at %} · <time datetime="{{ evidence.observed_at }}" data-local-time>{{ evidence.observed_at }}</time>{% endif %}</small></span>
                               <span class="workflow-evidence-state {{ evidence.availability }}">{{ evidence.availability_label }}</span>
                             {% if evidence.destination %}</a>{% else %}</div>{% endif %}

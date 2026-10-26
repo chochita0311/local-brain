@@ -2,10 +2,12 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import patch, Mock
+from types import SimpleNamespace
 
 from localbrain.config import Settings
 from localbrain import db
+from localbrain.source_settings import migrate_source_settings
 from localbrain.ingest import scanner
 from localbrain.ingest.common import REFERENCE_EXTRACTOR_VERSION
 from localbrain.main import (
@@ -206,8 +208,8 @@ root = "{company}"
 
         self.assertEqual(report["outcome"], "complete")
         self.assertEqual(
-            [item["source_key"] for item in report["sources"]],
-            ["claude", "codex", "codex-company"],
+            [item["source_id"] for item in report["sources"]],
+            [1, 2, 3],
         )
         self.assertEqual(report["summary"]["imported"], 8)
         self.assertEqual(report["summary"]["unchanged"], 13)
@@ -215,7 +217,7 @@ root = "{company}"
         self.assertEqual(
             set(report["sources"][0]),
             {
-                "source_key",
+                "source_id",
                 "display_label",
                 "provider_kind",
                 "root",
@@ -254,10 +256,11 @@ root = "{company}"
                 scanner, "settings", settings
             ):
                 db.init_db()
+                migrate_source_settings(settings)
                 with db.connect() as connection:
                     source_id = scanner._upsert_source(
                         connection,
-                        "codex",
+                        2,
                         "codex",
                         "Codex",
                         settings.codex_root,
@@ -269,7 +272,6 @@ root = "{company}"
                     guardian_id = scanner._store_session(
                         connection,
                         source_id,
-                        "codex",
                         parsed_guardian,
                         usage_contract_version="codex-legacy-guardian-work-v1",
                         provider_kind="codex",
@@ -296,7 +298,7 @@ root = "{company}"
                                    assistant_message_count
                             FROM sessions
                             JOIN sources ON sources.id = sessions.source_id
-                            WHERE sources.kind = 'codex'
+                            WHERE sources.id = 2
                             ORDER BY sessions.external_id
                             """
                         ).fetchall()
@@ -322,7 +324,7 @@ root = "{company}"
                     guardian_detail = session_detail(connection, guardian["id"])
 
         codex_report = next(
-            item for item in report["sources"] if item["source_key"] == "codex"
+            item for item in report["sources"] if item["source_id"] == 2
         )
         self.assertEqual(codex_report["status"], "completed")
         self.assertEqual(guardian["title"], "Codex guardian")
@@ -383,10 +385,11 @@ root = "{company}"
                 scanner, "settings", settings
             ):
                 db.init_db()
+                migrate_source_settings(settings)
                 with db.connect() as connection:
                     scanner._scan_session_source(
                         connection,
-                        "claude",
+                        1,
                         "Claude Code",
                         settings.claude_root,
                         scanner.parse_claude_session,
@@ -397,9 +400,8 @@ root = "{company}"
                     scanner._store_session(
                         connection,
                         connection.execute(
-                            "SELECT id FROM sources WHERE kind = 'claude'"
+                            "SELECT id FROM sources WHERE provider_kind = 'claude'"
                         ).fetchone()["id"],
-                        "claude",
                         parsed_journal,
                         usage_contract_version=scanner.CLAUDE_USAGE_CONTRACT_VERSION,
                         provider_kind="claude",
@@ -407,7 +409,7 @@ root = "{company}"
                     scanner._record_source_file(
                         connection,
                         connection.execute(
-                            "SELECT id FROM sources WHERE kind = 'claude'"
+                            "SELECT id FROM sources WHERE provider_kind = 'claude'"
                         ).fetchone()["id"],
                         journal_path,
                         usage_contract_version=scanner.CLAUDE_USAGE_CONTRACT_VERSION,
@@ -417,7 +419,7 @@ root = "{company}"
                         SELECT sessions.id
                         FROM sessions
                         JOIN sources ON sources.id = sessions.source_id
-                        WHERE sources.kind = 'claude'
+                        WHERE sources.id = 1
                           AND sessions.source_path = ?
                           AND sessions.session_role = 'primary'
                         """,
@@ -433,7 +435,7 @@ root = "{company}"
                                sessions.parent_external_id
                         FROM sessions
                         JOIN sources ON sources.id = sessions.source_id
-                        WHERE sources.kind = 'claude'
+                        WHERE sources.id = 1
                         ORDER BY sessions.external_id
                         """
                     ).fetchall()
@@ -442,7 +444,7 @@ root = "{company}"
                         SELECT source_files.path
                         FROM source_files
                         JOIN sources ON sources.id = source_files.source_id
-                        WHERE sources.kind = 'claude'
+                        WHERE sources.id = 1
                         ORDER BY source_files.path
                         """
                     ).fetchall()
@@ -462,7 +464,7 @@ root = "{company}"
             {str(child_path), str(primary_path)},
         )
         claude = next(
-            source for source in report["sources"] if source["source_key"] == "claude"
+            source for source in report["sources"] if source["source_id"] == 1
         )
         self.assertEqual(claude["status"], "completed")
         self.assertEqual(claude["eligible_sessions"], 1)
@@ -504,10 +506,11 @@ root = "{company}"
                 scanner, "settings", settings
             ):
                 db.init_db()
+                migrate_source_settings(settings)
                 with db.connect() as connection:
                     source_id = scanner._upsert_source(
                         connection,
-                        "claude",
+                        1,
                         "claude",
                         "Claude Code",
                         settings.claude_root,
@@ -516,7 +519,6 @@ root = "{company}"
                     legacy_session_id = scanner._store_session(
                         connection,
                         source_id,
-                        "claude",
                         parsed_empty,
                         usage_contract_version=scanner.CLAUDE_USAGE_CONTRACT_VERSION,
                         provider_kind="claude",
@@ -543,7 +545,7 @@ root = "{company}"
                         SELECT sessions.external_id
                         FROM sessions
                         JOIN sources ON sources.id = sessions.source_id
-                        WHERE sources.kind = 'claude'
+                        WHERE sources.id = 1
                         ORDER BY sessions.external_id
                         """
                     ).fetchall()
@@ -552,7 +554,7 @@ root = "{company}"
                         SELECT source_files.path
                         FROM source_files
                         JOIN sources ON sources.id = source_files.source_id
-                        WHERE sources.kind = 'claude'
+                        WHERE sources.id = 1
                         ORDER BY source_files.path
                         """
                     ).fetchall()
@@ -577,7 +579,7 @@ root = "{company}"
                         SELECT COUNT(*)
                         FROM sessions
                         JOIN sources ON sources.id = sessions.source_id
-                        WHERE sources.kind = 'claude'
+                        WHERE sources.id = 1
                           AND sessions.external_id = 'empty-stub'
                         """
                     ).fetchone()[0]
@@ -586,7 +588,7 @@ root = "{company}"
                         SELECT COUNT(*)
                         FROM source_files
                         JOIN sources ON sources.id = source_files.source_id
-                        WHERE sources.kind = 'claude'
+                        WHERE sources.id = 1
                           AND source_files.path = ?
                         """,
                         (str(empty_path),),
@@ -612,7 +614,7 @@ root = "{company}"
                         SELECT sessions.event_count
                         FROM sessions
                         JOIN sources ON sources.id = sessions.source_id
-                        WHERE sources.kind = 'claude'
+                        WHERE sources.id = 1
                           AND sessions.external_id = 'empty-stub'
                         """
                     ).fetchone()
@@ -621,7 +623,7 @@ root = "{company}"
                         SELECT COUNT(*)
                         FROM source_files
                         JOIN sources ON sources.id = source_files.source_id
-                        WHERE sources.kind = 'claude'
+                        WHERE sources.id = 1
                           AND source_files.path = ?
                         """,
                         (str(empty_path),),
@@ -646,13 +648,13 @@ root = "{company}"
         self.assertEqual(restored_file_count, 1)
 
         first_claude = next(
-            source for source in first["sources"] if source["source_key"] == "claude"
+            source for source in first["sources"] if source["source_id"] == 1
         )
         second_claude = next(
-            source for source in second["sources"] if source["source_key"] == "claude"
+            source for source in second["sources"] if source["source_id"] == 1
         )
         third_claude = next(
-            source for source in third["sources"] if source["source_key"] == "claude"
+            source for source in third["sources"] if source["source_id"] == 1
         )
         self.assertEqual(
             (first_claude["eligible_sessions"], first_claude["tracked_files"]),
@@ -694,10 +696,11 @@ root = "{company}"
                 scanner, "settings", settings
             ):
                 db.init_db()
+                migrate_source_settings(settings)
                 with db.connect() as connection:
                     source_id = scanner._upsert_source(
                         connection,
-                        "claude",
+                        1,
                         "claude",
                         "Claude Code",
                         settings.claude_root,
@@ -705,7 +708,6 @@ root = "{company}"
                     legacy_session_id = scanner._store_session(
                         connection,
                         source_id,
-                        "claude",
                         scanner.parse_claude_session(empty_path),
                         usage_contract_version=scanner.CLAUDE_USAGE_CONTRACT_VERSION,
                         provider_kind="claude",
@@ -733,7 +735,7 @@ root = "{company}"
                                sessions.source_path
                         FROM sessions
                         JOIN sources ON sources.id = sessions.source_id
-                        WHERE sources.kind = 'claude'
+                        WHERE sources.id = 1
                           AND sessions.external_id = 'shared-session'
                         """
                     ).fetchone()
@@ -758,7 +760,7 @@ root = "{company}"
         self.assertEqual(empty_tracking, 0)
         self.assertTrue(empty_source_preserved)
         claude = next(
-            source for source in report["sources"] if source["source_key"] == "claude"
+            source for source in report["sources"] if source["source_id"] == 1
         )
         self.assertEqual(
             (claude["eligible_sessions"], claude["tracked_files"]),
@@ -788,10 +790,10 @@ root = "{company}"
                 with db.connect() as connection:
                     rows = connection.execute(
                         """
-                        SELECT sources.kind, sessions.id
+                        SELECT sources.id AS profile_id, sessions.id
                         FROM sessions JOIN sources ON sources.id = sessions.source_id
                         WHERE sessions.external_id = 'shared-native-id'
-                        ORDER BY sources.kind
+                        ORDER BY sources.id
                         """
                     ).fetchall()
                     scan_errors = connection.execute(
@@ -799,13 +801,13 @@ root = "{company}"
                     ).fetchall()
                     references = connection.execute(
                         """
-                        SELECT sources.kind,
+                        SELECT sources.id AS profile_id,
                                session_reference_evidence.normalized_url
                         FROM session_reference_evidence
                         JOIN sessions
                           ON sessions.id = session_reference_evidence.session_id
                         JOIN sources ON sources.id = sessions.source_id
-                        ORDER BY sources.kind
+                        ORDER BY sources.id
                         """
                     ).fetchall()
                     self.assertEqual(
@@ -816,15 +818,15 @@ root = "{company}"
                         connection.execute("SELECT COUNT(*) FROM usage_records").fetchone()[0],
                         2,
                     )
-                    self.assertEqual([row["kind"] for row in rows], ["codex", "codex-company"])
+                    self.assertEqual([row["profile_id"] for row in rows], [2, 3])
                     self.assertEqual(
                         [
-                            (row["kind"], row["normalized_url"])
+                            (row["profile_id"], row["normalized_url"])
                             for row in references
                         ],
                         [
-                            ("codex", "https://personal.example.test/reference"),
-                            ("codex-company", "https://company.example.test/reference"),
+                            (2, "https://personal.example.test/reference"),
+                            (3, "https://company.example.test/reference"),
                         ],
                     )
                     connection.executemany(
@@ -838,14 +840,14 @@ root = "{company}"
                 with db.connect() as connection:
                     retained = connection.execute(
                         """
-                        SELECT sources.kind, sessions.id
+                        SELECT sources.id AS profile_id, sessions.id
                         FROM sessions JOIN sources ON sources.id = sessions.source_id
                         WHERE sessions.external_id = 'shared-native-id'
                         """
                     ).fetchall()
                     pins = connection.execute(
                         """
-                        SELECT sources.kind
+                        SELECT sources.id AS profile_id
                         FROM session_pins
                         JOIN sessions ON sessions.id = session_pins.session_id
                         JOIN sources ON sources.id = sessions.source_id
@@ -853,11 +855,11 @@ root = "{company}"
                     ).fetchall()
 
         self.assertEqual(first["outcome"], "complete", (first, [dict(row) for row in scan_errors]))
-        self.assertEqual([row["kind"] for row in retained], ["codex-company"])
-        self.assertEqual([row["kind"] for row in pins], ["codex-company"])
-        outcomes = {item["source_key"]: item for item in second["sources"]}
-        self.assertEqual(outcomes["codex"]["status"], "empty")
-        self.assertEqual(outcomes["codex-company"]["status"], "completed")
+        self.assertEqual([row["profile_id"] for row in retained], [3])
+        self.assertEqual([row["profile_id"] for row in pins], [3])
+        outcomes = {item["source_id"]: item for item in second["sources"]}
+        self.assertEqual(outcomes[2]["status"], "empty")
+        self.assertEqual(outcomes[3]["status"], "completed")
 
     def test_unavailable_root_preserves_prior_session_and_other_sources_commit(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -881,30 +883,30 @@ root = "{company}"
                 with db.connect() as connection:
                     sessions = connection.execute(
                         """
-                        SELECT sources.kind, sessions.external_id
+                        SELECT sources.id AS profile_id, sessions.external_id
                         FROM sessions JOIN sources ON sources.id = sessions.source_id
-                        ORDER BY sources.kind, sessions.external_id
+                        ORDER BY sources.id, sessions.external_id
                         """
                     ).fetchall()
                     company_health = connection.execute(
                         """
                         SELECT last_scan_status, last_scan_error
-                        FROM sources WHERE kind = 'codex-company'
+                        FROM sources WHERE id = 3
                         """
                     ).fetchone()
 
         self.assertEqual(report["outcome"], "partial")
         self.assertEqual(
-            [(row["kind"], row["external_id"]) for row in sessions],
+            [(row["profile_id"], row["external_id"]) for row in sessions],
             [
-                ("codex", "personal-one"),
-                ("codex", "personal-two"),
-                ("codex-company", "company-one"),
+                (2, "personal-one"),
+                (2, "personal-two"),
+                (3, "company-one"),
             ],
         )
-        outcomes = {item["source_key"]: item for item in report["sources"]}
-        self.assertEqual(outcomes["codex-company"]["status"], "unavailable")
-        self.assertTrue(outcomes["codex-company"]["retained_data"])
+        outcomes = {item["source_id"]: item for item in report["sources"]}
+        self.assertEqual(outcomes[3]["status"], "unavailable")
+        self.assertTrue(outcomes[3]["retained_data"])
         self.assertEqual(company_health["last_scan_status"], "unavailable")
         self.assertIn("retained", company_health["last_scan_error"])
 
@@ -932,7 +934,7 @@ root = "{company}"
                         SELECT COUNT(*)
                         FROM sessions
                         JOIN sources ON sources.id = sessions.source_id
-                        WHERE sources.kind = 'codex-company'
+                        WHERE sources.id = 3
                           AND sessions.external_id = 'company-one'
                         """
                     ).fetchone()[0]
@@ -961,8 +963,8 @@ root = "{company}"
 
         self.assertEqual(report["outcome"], "partial")
         self.assertEqual(
-            [source["source_key"] for source in report["sources"]],
-            ["claude", "codex", "codex-company", "context"],
+            [source["source_id"] for source in report["sources"]],
+            [1, 2, 3, None],
         )
         context = report["sources"][-1]
         self.assertEqual(context["status"], "scan_failed")
@@ -988,17 +990,17 @@ root = "{company}"
                 )
                 original_scan = scanner._scan_session_source
 
-                def fail_company(connection, source_key, *args, **kwargs):
-                    if source_key == "codex-company":
+                def fail_company(connection, source_id, *args, **kwargs):
+                    if source_id == 3:
                         connection.execute(
                             """
                             DELETE FROM sessions WHERE source_id = (
-                                SELECT id FROM sources WHERE kind = 'codex-company'
+                                SELECT id FROM sources WHERE id = 3
                             )
                             """
                         )
                         raise RuntimeError("private parser payload must not leak")
-                    return original_scan(connection, source_key, *args, **kwargs)
+                    return original_scan(connection, source_id, *args, **kwargs)
 
                 with patch.object(
                     scanner, "_scan_session_source", side_effect=fail_company
@@ -1007,37 +1009,32 @@ root = "{company}"
                 with db.connect() as connection:
                     sessions = connection.execute(
                         """
-                        SELECT sources.kind, sessions.external_id
+                        SELECT sources.id AS profile_id, sessions.external_id
                         FROM sessions JOIN sources ON sources.id = sessions.source_id
-                        ORDER BY sources.kind, sessions.external_id
+                        ORDER BY sources.id, sessions.external_id
                         """
                     ).fetchall()
 
         self.assertEqual(report["outcome"], "partial")
         self.assertEqual(
-            [(row["kind"], row["external_id"]) for row in sessions],
+            [(row["profile_id"], row["external_id"]) for row in sessions],
             [
-                ("codex", "personal-one"),
-                ("codex", "personal-two"),
-                ("codex-company", "company-one"),
+                (2, "personal-one"),
+                (2, "personal-two"),
+                (3, "company-one"),
             ],
         )
-        outcomes = {item["source_key"]: item for item in report["sources"]}
-        self.assertEqual(outcomes["codex-company"]["status"], "scan_failed")
-        self.assertNotIn("private parser", outcomes["codex-company"]["error_message"])
-        self.assertTrue(outcomes["codex-company"]["retained_data"])
+        outcomes = {item["source_id"]: item for item in report["sources"]}
+        self.assertEqual(outcomes[3]["status"], "scan_failed")
+        self.assertNotIn("private parser", outcomes[3]["error_message"])
+        self.assertTrue(outcomes[3]["retained_data"])
 
-    def test_sessions_sync_endpoint_uses_session_only_scanner(self):
-        expected = {
-            "outcome": "complete",
-            "summary": {"source_count": 0},
-            "sources": [],
-        }
-        with patch("localbrain.main.scan_session_sources", return_value=expected):
-            self.assertEqual(
-                sync_session_sources(),
-                {"ok": True, "report": expected},
-            )
+    def test_sessions_sync_endpoint_requests_common_coordinator(self):
+        service = Mock()
+        service.request.return_value = {"queued": True}
+        request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace(session_sync=service)))
+        self.assertEqual(sync_session_sources(request), {"ok": True, "state": {"queued": True}})
+        service.request.assert_called_once_with()
 
     def test_contract_repairs_touch_only_their_owned_derived_lanes(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -1054,7 +1051,7 @@ root = "{company}"
                 scanner.scan_session_sources()
                 with db.connect() as connection:
                     source_id = connection.execute(
-                        "SELECT id FROM sources WHERE kind = 'codex'"
+                        "SELECT id FROM sources WHERE provider_kind = 'codex'"
                     ).fetchone()["id"]
                     usage_unowned_before = {
                         table: self._table_rows(connection, table)
@@ -1239,9 +1236,9 @@ root = "{company}"
                 self.assertEqual(report["outcome"], "complete")
                 self.assertEqual(report["summary"]["imported"], 2)
                 self.assertEqual(
-                    [(event["source_key"], event["repair_kinds"]) for event in progress
+                    [(event["source_id"], event["repair_kinds"]) for event in progress
                      if event["type"] == "source_plan" and event["repair_kinds"]],
-                    [("codex", ["session"]), ("codex-company", ["session"])],
+                    [(2, ["session"]), (3, ["session"])],
                 )
                 with db.connect() as connection:
                     rows_after = connection.execute(
@@ -1384,9 +1381,9 @@ root = "{company}"
                 self.assertEqual(report["summary"]["imported"], 1)
                 self.assertEqual(usage.call_count, 0)
                 self.assertEqual(
-                    [(event["source_key"], event["repair_kinds"]) for event in progress
+                    [(event["source_id"], event["repair_kinds"]) for event in progress
                      if event["type"] == "source_plan" and event["repair_kinds"]],
-                    [("claude", ["session"])],
+                    [(1, ["session"])],
                 )
                 with db.connect() as connection:
                     self.assertEqual([tuple(row) for row in connection.execute(
@@ -1478,9 +1475,9 @@ root = "{company}"
                 self.assertEqual(report["summary"]["imported"], 2)
                 self.assertEqual(usage.call_count, 0)
                 self.assertEqual(
-                    [(event["source_key"], event["repair_kinds"]) for event in progress
+                    [(event["source_id"], event["repair_kinds"]) for event in progress
                      if event["type"] == "source_plan" and event["repair_kinds"]],
-                    [("codex", ["session"]), ("codex-company", ["session"])],
+                    [(2, ["session"]), (3, ["session"])],
                 )
                 with db.connect() as connection:
                     self.assertEqual([tuple(row) for row in connection.execute(
@@ -1492,8 +1489,8 @@ root = "{company}"
                     ).fetchone()), claude_before)
                     for key in ("codex", "codex-company"):
                         session_id = connection.execute(
-                            "SELECT s.id FROM sessions s JOIN sources p ON p.id=s.source_id WHERE p.kind=?",
-                            (key,),
+                            "SELECT s.id FROM sessions s JOIN sources p ON p.id=s.source_id WHERE p.id=?",
+                            ({"codex": 2, "codex-company": 3}[key],),
                         ).fetchone()[0]
                         self.assertEqual([tuple(row) for row in connection.execute(
                             "SELECT role,text FROM activity_events WHERE session_id=? ORDER BY sequence", (session_id,),
@@ -1681,7 +1678,7 @@ root = "{company}"
                         UPDATE source_files
                         SET session_contract_version = NULL
                         WHERE source_id = (
-                            SELECT id FROM sources WHERE kind = 'codex'
+                            SELECT id FROM sources WHERE provider_kind = 'codex'
                         )
                         """
                     )
@@ -1697,7 +1694,7 @@ root = "{company}"
                         SELECT session_contract_version
                         FROM source_files
                         WHERE source_id = (
-                            SELECT id FROM sources WHERE kind = 'codex'
+                            SELECT id FROM sources WHERE provider_kind = 'codex'
                         )
                         """
                     ).fetchone()["session_contract_version"]
@@ -1705,7 +1702,7 @@ root = "{company}"
         plan = next(
             event
             for event in events
-            if event["type"] == "source_plan" and event["source_key"] == "codex"
+            if event["type"] == "source_plan" and event["source_id"] == 2
         )
         self.assertEqual(plan["repair_kinds"], ["session"])
         self.assertEqual(report["summary"]["imported"], 1)
@@ -1739,13 +1736,13 @@ root = "{company}"
         codex_plan = next(
             event
             for event in events
-            if event["type"] == "source_plan" and event["source_key"] == "codex"
+            if event["type"] == "source_plan" and event["source_id"] == 2
         )
         codex_progress = next(
             event
             for event in events
             if event["type"] == "source_progress"
-            and event["source_key"] == "codex"
+            and event["source_id"] == 2
         )
         self.assertEqual(codex_plan["total_files"], 1)
         self.assertEqual(codex_progress["processed_files"], 1)
@@ -1753,47 +1750,25 @@ root = "{company}"
         self.assertEqual(report["outcome"], "complete")
         self.assertEqual(callback_safe_report["outcome"], "complete")
 
-    def test_session_sync_stream_emits_progress_and_terminal_report(self):
-        expected = {
-            "outcome": "complete",
-            "summary": {"source_count": 1},
-            "sources": [],
-        }
-
-        def synchronize(progress=None):
-            progress({"type": "source_progress", "processed_files": 1, "total_files": 2})
-            return expected
-
-        with patch("localbrain.main.scan_session_sources", side_effect=synchronize):
-            payloads = [json.loads(line) for line in _session_sync_event_stream()]
-
+    def test_session_sync_stream_observes_common_progress_and_report(self):
+        service = Mock()
+        done = {"running": False, "queued": False, "report": {"outcome": "complete"}}
+        service.status.side_effect = [{"running": True, "queued": False, "progress": {"type": "source_progress"}}, done]
+        with patch("localbrain.main.time.sleep"):
+            payloads = [json.loads(line) for line in _session_sync_event_stream(service)]
         self.assertEqual(payloads[0]["type"], "source_progress")
-        self.assertEqual(
-            payloads[-1], {"type": "result", "ok": True, "report": expected}
-        )
+        self.assertEqual(payloads[-1]["report"], done["report"])
+        self.assertTrue(payloads[-1]["ok"])
 
     def test_sessions_sync_form_fallback_preserves_inventory_scope(self):
-        with patch(
-            "localbrain.main.scan_session_sources",
-            return_value={
-                "outcome": "partial",
-                "summary": {},
-                "sources": [{"source_key": "codex"}],
-            },
-        ) as scan_sources:
-            projects = sync_sessions_page(view="projects")
-            sessions = sync_sessions_page(
-                view="sessions", source="codex", workspace=7, page=3
-            )
-
+        service = Mock()
+        request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace(session_sync=service)))
+        projects = sync_sessions_page(request, view="projects", source="all", page=1, display="list")
+        sessions = sync_sessions_page(request, view="sessions", source="codex", workspace=7, page=3, display="list")
         self.assertEqual(projects.status_code, 303)
-        self.assertEqual(projects.headers["location"], "/projects?sync=partial")
-        self.assertEqual(sessions.status_code, 303)
-        self.assertEqual(
-            sessions.headers["location"],
-            "/sessions?sync=partial&source=codex&workspace=7&page=3",
-        )
-        self.assertEqual(scan_sources.call_count, 2)
+        self.assertTrue(projects.headers["location"].startswith("/projects?"))
+        self.assertEqual(sessions.headers["location"], "/sessions?source=codex&display=list&page=3&workspace=7")
+        self.assertEqual(service.request.call_count, 2)
 
     def test_sources_scan_form_fallback_reports_aggregate_outcome(self):
         with patch(

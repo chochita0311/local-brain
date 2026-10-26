@@ -46,7 +46,7 @@ class WorkstreamCandidateContractTests(unittest.TestCase):
     def session(self, number=1, **overrides):
         row = {
             "id": number,
-            "source_key": "synthetic-codex",
+            "source_id": 1,
             "external_id": "native-session-{}".format(number),
             "session_class": "work",
             "session_role": "primary",
@@ -64,7 +64,7 @@ class WorkstreamCandidateContractTests(unittest.TestCase):
 
     def reference(self, session, artifact, occurrence="event-1:1", **overrides):
         row = {
-            "episode_key": workflow_episode_key(session["source_key"], session["external_id"]),
+            "episode_key": workflow_episode_key(session["source_id"], session["external_id"]),
             "artifact_key": self.artifact_key(artifact),
             "reference_identity": occurrence,
             "evidence_kind": "user_mention",
@@ -92,12 +92,12 @@ class WorkstreamCandidateContractTests(unittest.TestCase):
     def test_candidate_spans_sources_workspaces_and_more_than_focus_limit(self):
         data = self.fixture(26)
         for index, session in enumerate(data[1]):
-            session["source_key"] = ("synthetic-claude", "synthetic-codex", "synthetic-company")[index % 3]
+            session["source_id"] = (3, 1, 2)[index % 3]
         data = (data[0], data[1], [self.reference(s, a) for s in data[1] for a in data[0]], data[3])
         candidate = self.candidate(data)
         self.assertEqual(len(candidate.members), 26)
         self.assertEqual({a.kind for a in candidate.anchors}, {"context-document", "wiki-item"})
-        self.assertEqual(len({member.session.source_key for member in candidate.members}), 3)
+        self.assertEqual(len({member.session.source_id for member in candidate.members}), 3)
 
     def test_keys_are_scoped_length_delimited_and_pair_order_independent(self):
         first = candidate_artifact_key("context-document", "ab", "c")
@@ -111,7 +111,7 @@ class WorkstreamCandidateContractTests(unittest.TestCase):
     def test_same_native_session_id_in_two_sources_remains_two_members(self):
         artifacts, sessions, refs, pairs = self.fixture()
         sessions[1].update(
-            source_key="synthetic-claude", external_id=sessions[0]["external_id"]
+            source_id=3, external_id=sessions[0]["external_id"]
         )
         refs = [self.reference(s, a) for s in sessions for a in artifacts]
         candidate = self.candidate((artifacts, sessions, refs, pairs))
@@ -167,7 +167,7 @@ class WorkstreamCandidateContractTests(unittest.TestCase):
         pairs += [tuple(self.artifact_key(a) for a in artifacts[2:])]
         result = normalize_workstream_candidates(artifacts, sessions, refs, pairs)
         self.assertEqual(len(result.candidates), 2)
-        mixed_key = workflow_episode_key(sessions[0]["source_key"], sessions[0]["external_id"])
+        mixed_key = workflow_episode_key(sessions[0]["source_id"], sessions[0]["external_id"])
         for candidate in result.candidates:
             self.assertIn(mixed_key, {m.session.episode_key for m in candidate.members})
             allowed = {a.artifact_key for a in candidate.anchors}

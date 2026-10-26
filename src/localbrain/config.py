@@ -10,9 +10,6 @@ DEFAULT_DEVELOPMENT_DIR = Path.home() / "Library" / "Application Support" / "Loc
 
 
 def _system_timezone_name() -> str:
-    configured = os.environ.get("TZ")
-    if configured:
-        return configured
     try:
         resolved = str(Path("/etc/localtime").resolve())
         marker = "/zoneinfo/"
@@ -73,9 +70,7 @@ def load_settings() -> Settings:
             )
         ).expanduser(),
         mcp_call_budget=mcp_call_budget,
-        timezone_name=os.environ.get(
-            "LOCALBRAIN_TIMEZONE", _system_timezone_name()
-        ),
+        timezone_name=_system_timezone_name(),
         session_sources_path=data_dir / "session-sources.toml",
         cache_dir=Path(os.environ.get("LOCALBRAIN_CACHE_DIR", str(
             DEFAULT_CACHE_DIR if data_dir == DEFAULT_DATA_DIR

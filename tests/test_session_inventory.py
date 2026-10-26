@@ -49,10 +49,10 @@ class SessionInventoryTests(unittest.TestCase):
         self.connection.execute("PRAGMA foreign_keys = ON")
         self.connection.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
         self.connection.execute(
-            "INSERT INTO sources(kind, provider_kind, name, root_path) VALUES ('codex', 'codex', 'Codex', '/tmp/codex')"
+            "INSERT INTO sources(provider_kind, name, root_path) VALUES ('codex', 'Codex', '/tmp/codex')"
         ).lastrowid
         self.connection.execute(
-            "INSERT INTO sources(kind, provider_kind, name, root_path) VALUES ('claude', 'claude', 'Claude', '/tmp/claude')"
+            "INSERT INTO sources(provider_kind, name, root_path) VALUES ('claude', 'Claude', '/tmp/claude')"
         )
         self.connection.execute(
             """
@@ -178,7 +178,7 @@ class SessionInventoryTests(unittest.TestCase):
         self.assertEqual(compact_pagination_items(10, 10), [1, None, 8, 9, 10])
 
     def test_filters_apply_before_count_and_page_bounds(self):
-        codex = session_inventory_page(self.connection, source_kind="codex", page=2)
+        codex = session_inventory_page(self.connection, source_id="1", page=2)
         self.assertEqual(codex["total"], 24)
         self.assertEqual(codex["total_pages"], 2)
         self.assertEqual(len(codex["items"]), 9)
@@ -188,15 +188,13 @@ class SessionInventoryTests(unittest.TestCase):
 
     def test_source_inventory_has_no_false_enablement_projection(self):
         sources = source_inventory(self.connection)
-        self.assertEqual([source["kind"] for source in sources], ["claude", "codex"])
+        self.assertEqual([source["id"] for source in sources], [1, 2])
         self.assertTrue(all("enabled" not in source.keys() for source in sources))
 
     def test_registry_scopes_counts_and_projects_use_one_primary_work_denominator(self):
         company_source_id = self.connection.execute(
             """
-            INSERT INTO sources(kind, provider_kind, name, root_path)
-            VALUES ('codex-company', 'codex', 'Codex Company', '/tmp/company')
-            """
+            INSERT INTO sources(provider_kind, name, root_path) VALUES ('codex', 'Codex Company', '/tmp/company')"""
         ).lastrowid
         company_session_id = self.connection.execute(
             """
@@ -231,17 +229,17 @@ class SessionInventoryTests(unittest.TestCase):
 
         scopes = session_source_scopes(self.connection)
         scope_counts = {
-            row["source_key"]: row["eligible_session_count"] for row in scopes
+            row["id"]: row["eligible_session_count"] for row in scopes
         }
         company = session_inventory_page(
-            self.connection, source_kind="codex-company"
+            self.connection, source_id="3"
         )
-        personal = session_inventory_page(self.connection, source_kind="codex")
+        personal = session_inventory_page(self.connection, source_id="1")
         combined = session_inventory_page(self.connection)
 
         self.assertEqual(
-            [row["source_key"] for row in scopes],
-            ["codex", "claude", "codex-company"],
+            [row["id"] for row in scopes],
+            [1, 2, 3],
         )
         self.assertEqual(scopes[-1]["display_label"], "Codex Company")
         self.assertEqual(company["total"], 1)
@@ -249,9 +247,9 @@ class SessionInventoryTests(unittest.TestCase):
         self.assertEqual(personal["total"], 24)
         self.assertEqual(combined["total"], sum(scope_counts.values()))
         self.assertEqual(
-            dashboard_stats(self.connection, "codex-company")["sessions"], 1
+            dashboard_stats(self.connection, "3")["sessions"], 1
         )
-        company_projects = project_activity(self.connection, "codex-company")
+        company_projects = project_activity(self.connection, "3")
         self.assertEqual(
             [(row["display_name"], row["session_count"]) for row in company_projects],
             [("two", 1)],
@@ -260,9 +258,7 @@ class SessionInventoryTests(unittest.TestCase):
     def test_route_normalizes_unknown_source_and_accepts_company_stable_key(self):
         company_source_id = self.connection.execute(
             """
-            INSERT INTO sources(kind, provider_kind, name, root_path)
-            VALUES ('codex-company', 'codex', 'Codex Company', '/tmp/company')
-            """
+            INSERT INTO sources(provider_kind, name, root_path) VALUES ('codex', 'Codex Company', '/tmp/company')"""
         ).lastrowid
         company_session_id = self.connection.execute(
             """
@@ -295,33 +291,33 @@ class SessionInventoryTests(unittest.TestCase):
                 page="4",
             )
             missing_workspace = sessions_page(
-                self._request(b"source=codex-company&workspace=999&page=4"),
-                source="codex-company",
+                self._request(b"source=3&workspace=999&page=4"),
+                source="3",
                 workspace=999,
                 page="4",
             )
             company = sessions_page(
-                self._request(b"source=codex-company&workspace=2"),
-                source="codex-company",
+                self._request(b"source=3&workspace=2"),
+                source="3",
                 workspace=2,
                 page="1",
             )
             detail = show_session(
                 self._request(
-                    b"source=codex-company&workspace=2",
+                    b"source=3&workspace=2",
                     path="/sessions/{}".format(company_session_id),
                 ),
                 company_session_id,
-                source="codex-company",
+                source="3",
                 workspace=2,
             )
             child_detail = show_session(
                 self._request(
-                    b"source=codex-company&workspace=2",
+                    b"source=3&workspace=2",
                     path="/sessions/{}".format(company_child_id),
                 ),
                 company_child_id,
-                source="codex-company",
+                source="3",
                 workspace=2,
             )
 
@@ -330,24 +326,24 @@ class SessionInventoryTests(unittest.TestCase):
         self.assertEqual(missing_workspace.status_code, 303)
         self.assertEqual(
             missing_workspace.headers["location"],
-            "/sessions?source=codex-company",
+            "/sessions?source=3",
         )
         html = company.body.decode("utf-8")
-        self.assertIn("Codex Company 세션", html)
+        self.assertIn('data-profile-label="3">Codex Company</span> 세션', html)
         self.assertIn("Company one", html)
         self.assertNotIn("Parent 47", html)
         self.assertIn(
-            'href="/sessions?source=codex-company&workspace=2"', html
+            'href="/sessions?source=3&workspace=2"', html
         )
         detail_html = detail.body.decode("utf-8")
         self.assertIn("Codex Company", detail_html)
         self.assertNotIn('<p class="eyebrow">Codex Company</p>', detail_html)
         self.assertIn(
-            'class="session-source large codex-company"><span aria-hidden="true">CC</span>',
+            'data-profile-id="3" data-profile-color="green"><span aria-hidden="true">CX</span>',
             detail_html,
         )
         self.assertIn(
-            'class="session-source codex-company"><span aria-hidden="true">CC</span>',
+            'data-profile-id="3" data-profile-color="green"><span aria-hidden="true">CX</span>',
             detail_html,
         )
         self.assertIn("<small>company-child</small>", detail_html)
@@ -360,7 +356,7 @@ class SessionInventoryTests(unittest.TestCase):
         )
         self.assertLess(question_count, event_count)
         self.assertIn(
-            'href="/sessions?source=codex-company&amp;workspace=2"',
+            'href="/sessions?source=3&amp;workspace=2"',
             detail_html,
         )
         child_detail_html = child_detail.body.decode("utf-8")
@@ -370,7 +366,7 @@ class SessionInventoryTests(unittest.TestCase):
         )
         self.assertIn('<p class="eyebrow">SUBSESSION</p>', child_detail_html)
         self.assertIn(
-            'class="session-source large codex-company"><span aria-hidden="true">CC</span>',
+            'data-profile-id="3" data-profile-color="green"><span aria-hidden="true">CX</span>',
             child_detail_html,
         )
 

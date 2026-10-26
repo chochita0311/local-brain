@@ -26,6 +26,8 @@ class SearchService:
     def start(self):
         if self._thread and self._thread.is_alive():
             return
+        self._stop.clear()
+        self._wake.clear()
         self._thread = threading.Thread(target=self._watch, name="natural-search-refresh", daemon=True)
         self._thread.start()
 

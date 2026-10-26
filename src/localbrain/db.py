@@ -21,7 +21,7 @@ EXTERNAL_RESOURCE_URL_SCOPE_BACKUP_SUFFIX = (
     "-pre-external-resource-url-scope-v1.bak"
 )
 ATLASSIAN_SITE_ACCESS_BACKUP_SUFFIX = "-pre-atlassian-site-access-v1.bak"
-SOURCE_PROVIDER_IDENTITY_BACKUP_SUFFIX = "-pre-source-provider-identity-v1.bak"
+SOURCE_PROVIDER_IDENTITY_BACKUP_SUFFIX = "-pre-source-primary-key-v1.bak"
 USAGE_ATTRIBUTION_CHECK = (
     "CHECK(attribution_basis IN ('git_root', 'workspace_path', 'unassigned'))"
 )
@@ -125,6 +125,7 @@ def init_db() -> None:
         ):
             _ensure_usage_attribution_backup(connection, settings.database_path)
         _migrate_legacy_usage_table_name(connection)
+        _repair_source_provider_identity_contract(connection)
         _migrate_skill_observation_contract(connection)
         connection.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
         _validate_structure_reference_contract(connection)
@@ -219,7 +220,7 @@ def _migrate_skill_observation_contract(connection: sqlite3.Connection) -> None:
         return
     columns = _column_names(connection, table)
     expected = {
-        "id", "source_key", "provider_kind", "external_session_id", "native_event_id",
+        "id", "source_id", "provider_kind", "external_session_id", "native_event_id",
         "skill_name", "skill_group_key", "skill_locator", "signal_kind", "source_line",
         "occurred_at", "state", "recorded_at", "request_key",
     }
@@ -401,7 +402,7 @@ def _source_provider_identity_contract_exists(
     return bool(
         provider
         and provider["notnull"]
-        and ["kind"] in _unique_index_columns(connection, "sources")
+        and "kind" not in columns
     )
 
 
@@ -435,144 +436,9 @@ def _ensure_source_provider_identity_backup(
     return backup_path
 
 
-def _canonical_sources_sql() -> str:
-    reference = sqlite3.connect(":memory:")
-    try:
-        reference.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
-        row = reference.execute(
-            "SELECT sql FROM sqlite_master "
-            "WHERE type = 'table' AND name = 'sources'"
-        ).fetchone()
-        if row is None:
-            raise RuntimeError("Canonical Source registry schema is unavailable")
-        return row[0]
-    finally:
-        reference.close()
-
-
-def _repair_source_provider_identity_contract(
-    connection: sqlite3.Connection,
-) -> bool:
-    if _source_provider_identity_contract_exists(connection):
-        return False
-    source_sql = _table_sql(connection, "sources")
-    if not source_sql:
-        return False
-    columns = [
-        row["name"] for row in connection.execute("PRAGMA table_info(sources)")
-    ]
-    required = {
-        "id",
-        "kind",
-        "name",
-        "root_path",
-        "last_scanned_at",
-        "created_at",
-    }
-    if not required.issubset(columns):
-        raise RuntimeError(
-            "Source provider identity migration found an unexpected table shape"
-        )
-    legacy_table = "sources__provider_identity_legacy"
-    if _table_sql(connection, legacy_table):
-        raise RuntimeError(
-            "Source provider identity migration target already exists"
-        )
-    retained_columns = (
-        "id",
-        "kind",
-        "name",
-        "root_path",
-        "last_scanned_at",
-        "created_at",
-    )
-    column_list = ", ".join(retained_columns)
-    before_rows = [
-        tuple(row)
-        for row in connection.execute(
-            "SELECT {} FROM sources ORDER BY id".format(column_list)
-        )
-    ]
-    child_tables = ("source_files", "sessions", "usage_records", "context_documents")
-    before_children = {
-        table: [
-            tuple(row)
-            for row in connection.execute(
-                "SELECT * FROM {} ORDER BY rowid".format(table)
-            )
-        ]
-        for table in child_tables
-        if _table_sql(connection, table)
-    }
-    foreign_keys_enabled = bool(
-        connection.execute("PRAGMA foreign_keys").fetchone()[0]
-    )
-    connection.commit()
-    connection.execute("PRAGMA foreign_keys = OFF")
-    connection.execute("PRAGMA legacy_alter_table = ON")
-    try:
-        connection.execute("BEGIN IMMEDIATE")
-        connection.execute(
-            "ALTER TABLE sources RENAME TO {}".format(
-                _quote_identifier(legacy_table)
-            )
-        )
-        connection.execute(_canonical_sources_sql())
-        connection.execute(
-            """
-            INSERT INTO sources(
-                id, kind, provider_kind, name, root_path,
-                last_scanned_at, created_at
-            )
-            SELECT id, kind, kind, name, root_path, last_scanned_at, created_at
-            FROM {legacy}
-            ORDER BY id
-            """.format(legacy=_quote_identifier(legacy_table))
-        )
-        after_rows = [
-            tuple(row)
-            for row in connection.execute(
-                "SELECT {} FROM sources ORDER BY id".format(column_list)
-            )
-        ]
-        if after_rows != before_rows:
-            raise RuntimeError(
-                "Source provider identity migration changed retained Source rows"
-            )
-        for table, rows in before_children.items():
-            after = [
-                tuple(row)
-                for row in connection.execute(
-                    "SELECT * FROM {} ORDER BY rowid".format(table)
-                )
-            ]
-            if after != rows:
-                raise RuntimeError(
-                    "Source provider identity migration changed {} rows".format(table)
-                )
-        connection.execute(
-            "DROP TABLE {}".format(_quote_identifier(legacy_table))
-        )
-        connection.commit()
-    except Exception:
-        connection.rollback()
-        raise
-    finally:
-        connection.execute("PRAGMA legacy_alter_table = OFF")
-        connection.execute(
-            "PRAGMA foreign_keys = {}".format(
-                "ON" if foreign_keys_enabled else "OFF"
-            )
-        )
-    if not _source_provider_identity_contract_exists(connection):
-        raise RuntimeError(
-            "Source provider identity migration did not restore the contract"
-        )
-    if connection.execute("PRAGMA foreign_key_check").fetchall():
-        raise RuntimeError(
-            "Source provider identity migration foreign key check failed"
-        )
-    return True
+def _repair_source_provider_identity_contract(connection: sqlite3.Connection) -> bool:
+    from .source_identity_migration import migrate_registry
+    return migrate_registry(connection, settings, SCHEMA_PATH.read_text(encoding="utf-8"))
 
 
 def _unique_index_columns(
@@ -1734,6 +1600,8 @@ def _run_compatible_migrations(
 ) -> None:
     # The local index is rebuildable, but user-curated workstreams are not. Keep
     # upgrades additive so both kinds of data survive normal application updates.
+    _ensure_column(connection, "sources", "profile_color", "TEXT CHECK(profile_color IN ('green','blue','orange','yellow','red','gray'))")
+    _ensure_column(connection, "sources", "profile_position", "INTEGER NOT NULL DEFAULT 2147483647 CHECK(profile_position >= 0)")
     session_contract_changed = any(
         (
             _ensure_column(connection, "sessions", "git_branch", "TEXT"),
@@ -1862,6 +1730,7 @@ def _run_compatible_migrations(
             "TEXT NOT NULL DEFAULT 'text/markdown'",
         ),
         ("context_roots", "source_type", "TEXT NOT NULL DEFAULT 'folder'"),
+        ("context_roots", "display_order", "INTEGER CHECK(display_order >= 0)"),
         ("context_roots", "readable", "INTEGER NOT NULL DEFAULT 1"),
         ("context_roots", "status", "TEXT NOT NULL DEFAULT 'ready'"),
         ("context_roots", "error", "TEXT"),
@@ -2058,7 +1927,10 @@ def _migrate_context_roots(connection: sqlite3.Connection) -> None:
     root_rows = connection.execute(
         "SELECT id FROM context_roots LIMIT 1"
     ).fetchone()
-    if not root_rows and root.is_dir():
+    # Only migrate already-indexed documents. A developer's conventional folder
+    # is not consent to register sources on a fresh Mac.
+    has_legacy_documents = connection.execute("SELECT 1 FROM context_documents LIMIT 1").fetchone()
+    if not root_rows and root.is_dir() and has_legacy_documents:
         children = sorted(
             child for child in root.iterdir()
             if child.is_dir() and not child.name.startswith(".")

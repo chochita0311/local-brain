@@ -2,12 +2,20 @@
 
 ## Supported Installation
 
-LocalBrain runs as a local web application on macOS. uv installs its Python
+LocalBrain offers an Apple Silicon standalone test app and a Python/web installation.
+The `.app` bundles Tauri, Python and optional-search execution libraries; recipients
+unzip and launch it without installing development tools. Public model weights
+remain an explicit optional download. Use the [test app guide](standalone-test-app-guide.md)
+for first launch, ad-hoc signing, supported-environment evidence and manual updates.
+The [settings contract](desktop-app-and-settings.md) owns the shared preferences,
+source lifecycle and restart-only same-Mac recovery.
+
+For the alternative local web installation, uv installs its Python
 environment and dependencies. Local models and authenticated CLI integrations
 are optional feature prerequisites; the base application can start with an
 empty database. Python 3.11 is the recommended installation and verification
 target; the base package metadata accepts Python 3.9+.
-Native app/binary packaging remains future work. A packaged wheel already owns
+A packaged wheel also owns
 the web assets, schema, guides, and commands below; it does not need the source
 checkout at runtime.
 
@@ -17,6 +25,9 @@ must repeat the standalone wheel startup/page checks before widening those
 constraints, since an unconstrained newer framework can break template calls.
 
 ### A New Mac With No Development Tools
+
+Use the supplied `.app` ZIP for the standalone test edition. The following steps
+install the alternative Python/web edition and its broader development features.
 
 1. Install uv using its [official macOS installer](https://docs.astral.sh/uv/getting-started/installation/):
 
@@ -39,9 +50,10 @@ constraints, since an unconstrained newer framework can break template calls.
    ```
 
    Open `http://127.0.0.1:8000`. The first startup creates one primary
-   `localbrain.db` and a private Session-source configuration outside the install
-   directory. Empty or missing source directories do not prevent startup. Import
-   Sessions through the explicit Sync action when sources are available.
+   `localbrain.db`, default `settings.toml` and a private Session-source configuration
+   outside the install directory. Empty or missing source directories do not prevent startup. Import
+   Sessions after explicitly registering sources in settings; automatic collection
+   defaults to 10 minutes after completion and the Sync action remains available.
    Stop the server with `Ctrl+C`. Port selection is available with
    `localbrain serve --port 8001`; the command permits only loopback addresses.
 
@@ -255,8 +267,19 @@ model identity.
 `LOCALBRAIN_DATA_DIR` selects private application state. Paths inside a Git
 repository or the installed/source package are rejected before creating the DB.
 New runtime directories use `0700`; the primary DB and private configuration
-use `0600`. A future desktop wrapper must reuse this path resolver, command and
-storage contract instead of introducing machine-specific project paths.
+use `0600`. The desktop wrapper reuses this path resolver, command and storage
+contract. Application files can move independently of these user data locations.
+
+General preferences live in `<data>/settings.toml`; Session registration stays in
+`session-sources.toml`, search choices in `natural-search.json`, and Context
+registration in the DB. Rebuildable synchronization health is separate
+`session-sync-state.json` and `context-sync-state.json`, so health-only writes do
+not invalidate search input. Their completion clocks and intervals are independent.
+General preferences follow `settings.toml`; missing fields use defaults. Environment
+variables do not override these preferences. The UI edits that same local value set.
+The app and web server create the file with default values on first startup if it
+does not exist. Later startups preserve the saved file; initial creation does not
+require completing onboarding or saving the settings screen.
 
 Confirmed Sessions Chart Project visibility belongs to the primary DB's
 `session_chart_preferences` table, per logical source/workspace scope. It is user

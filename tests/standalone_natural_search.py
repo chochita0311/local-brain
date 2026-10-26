@@ -34,8 +34,8 @@ def main():
     document = context / 'mobile.md'
     document.write_text(body)
     with sqlite3.connect(settings.database_path) as connection:
-        connection.execute("INSERT INTO sources(id,kind,provider_kind,name,root_path) VALUES (101,'codex','codex','synthetic-fixture','/synthetic/sessions')")
-        connection.execute("INSERT INTO sources(id,kind,provider_kind,name,root_path) VALUES (102,'context','context','synthetic-fixture',?)", (str(context),))
+        connection.execute("INSERT INTO sources(id, provider_kind, name, root_path) VALUES (101, 'codex', 'synthetic-fixture', '/synthetic/sessions')")
+        connection.execute("INSERT INTO sources(id, provider_kind, name, root_path) VALUES (102, 'context', 'synthetic-fixture', ?)", (str(context),))
         connection.execute("INSERT INTO context_roots(id,path,label) VALUES (101,?,'synthetic-fixture')", (str(context),))
         for ident, text in [(101, body), (102, '토마토 화분에 물을 주고 햇빛이 드는 곳으로 옮겼다.')]:
             connection.execute("""INSERT INTO sessions

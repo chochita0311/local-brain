@@ -46,13 +46,14 @@ erDiagram
 - Consumers: Context source listing/detail in `contexts.py` and `queries.py`, scanner source enumeration, Workstream pickers/suggestions, and document visibility filters.
 - Relations and deletion: optional physical parent of `context_documents` with `ON DELETE SET NULL`; ordinary removal disables the root and removes indexed rows for that source boundary rather than deleting the registry row or original local content.
 - Recovery: restore the LocalBrain database or re-register every root manually, then scan. Original files/Notes remain external authorities.
-- DDL ownership: fresh definition in `schema.sql`; `db.py` compatibly adds `source_type`, `readable`, `status`, and `error` and migrates document ownership.
+- DDL ownership: fresh definition in `schema.sql`; `db.py` compatibly adds `source_type`, `display_order`, `readable`, `status`, and `error` and migrates document ownership.
 
 | Column | Contract |
 | --- | --- |
 | `id` | `INTEGER PRIMARY KEY`; stable Context registration identity. |
 | `path` | `TEXT NOT NULL UNIQUE`; canonical local path or source locator. |
 | `label` | `TEXT NOT NULL`; user-facing source label. |
+| `display_order` | nullable `INTEGER`, nonnegative when set; user-owned source order. Positioned rows precede unset rows; ties/unset rows retain folder/Notes/file, label and path ordering. Reorder compares the prior ordered active IDs and saves a complete permutation atomically without changing scan timestamps. New roots are unset; re-registration retains a saved position. |
 | `source_type` | `TEXT NOT NULL DEFAULT 'folder'`; folder, file, or approved adapter type. |
 | `readable` | `INTEGER NOT NULL DEFAULT 1`; current source readability signal. |
 | `status` | `TEXT NOT NULL DEFAULT 'ready'`; ready, scanning, error, or other bounded source state. |

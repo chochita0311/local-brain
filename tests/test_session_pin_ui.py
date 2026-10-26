@@ -21,6 +21,8 @@ class SessionPinUiTests(unittest.TestCase):
         )
         environment.globals["value_label"] = display_value_label
         environment.globals["value_help"] = visible_value_help
+        environment.globals["local_preferences"] = lambda: {"timezone": "UTC"}
+        environment.filters["project_path"] = lambda path: path
         return environment
 
     @staticmethod
@@ -130,10 +132,10 @@ class SessionPinUiTests(unittest.TestCase):
             ],
             sources=[],
             session_source_scopes=[
-                {"source_key": "claude", "display_label": "Claude"},
-                {"source_key": "codex", "display_label": "Codex"},
+                {"id": 1, "display_label": "Claude"},
+                {"id": 2, "display_label": "Codex"},
                 {
-                    "source_key": "codex-company",
+                    "id": 3,
                     "display_label": "Codex Company",
                 },
             ],
@@ -156,9 +158,9 @@ class SessionPinUiTests(unittest.TestCase):
             response.index(">Codex</a>"), response.index(">Codex Company</a>")
         )
         self.assertIn(
-            'href="/sessions?source=codex-company&workspace=7"', response
+            'href="/sessions?source=3&workspace=7"', response
         )
-        self.assertNotIn("source=codex-company&workspace=7&page=", response)
+        self.assertNotIn("source=3&workspace=7&page=", response)
         self.assertNotIn("최근 컨텍스트", response)
         self.assertNotIn('href="/documents/', response)
         self.assertIn('action="/sessions/1/unpin"', response)
@@ -175,28 +177,28 @@ class SessionPinUiTests(unittest.TestCase):
             response.index("source-status-section")
         ]
         self.assertIn("Codex", pinned_panel)
-        self.assertIn('class="pinned-session-source codex"', pinned_panel)
+        self.assertIn('class="pinned-session-source"', pinned_panel)
         self.assertIn('<span aria-hidden="true">CX</span>', pinned_panel)
-        self.assertIn('<span class="sr-only">Codex</span>', pinned_panel)
-        self.assertIn('class="pinned-session-source codex-company"', pinned_panel)
-        self.assertIn('<span aria-hidden="true">CC</span>', pinned_panel)
-        self.assertIn('<span class="sr-only">Codex Company</span>', pinned_panel)
+        self.assertRegex(pinned_panel, r'class="sr-only"><span data-profile-label="[^"]*">Codex</span></span>')
+        self.assertEqual(pinned_panel.count('class="pinned-session-source"'), 2)
+        self.assertIn('<span aria-hidden="true">CX</span>', pinned_panel)
+        self.assertRegex(pinned_panel, r'class="sr-only"><span data-profile-label="[^"]*">Codex Company</span></span>')
         self.assertNotIn('class="pinned-session-provenance"', pinned_panel)
         self.assertIn('class="pinned-session-list-content"', pinned_panel)
         self.assertEqual(pinned_panel.count('class="pinned-session-group"'), 2)
         self.assertLess(
-            pinned_panel.index(">Company Work</h3>"),
-            pinned_panel.index(">Synthetic Work</h3>"),
+            pinned_panel.index(">/synthetic/company</h3>"),
+            pinned_panel.index(">/synthetic/work</h3>"),
         )
-        self.assertEqual(pinned_panel.count("Company Work"), 1)
-        self.assertEqual(pinned_panel.count("Synthetic Work"), 1)
+        self.assertEqual(pinned_panel.count(">/synthetic/company</h3>"), 1)
+        self.assertEqual(pinned_panel.count(">/synthetic/work</h3>"), 1)
         self.assertIn(
             '<span class="pinned-session-branch" title="feature/pins">feature/pins</span>',
             pinned_panel,
         )
         company_group = pinned_panel[
-            pinned_panel.index(">Company Work</h3>"):
-            pinned_panel.index(">Synthetic Work</h3>")
+            pinned_panel.index(">/synthetic/company</h3>"):
+            pinned_panel.index(">/synthetic/work</h3>")
         ]
         self.assertNotIn("pinned-session-branch", company_group)
         self.assertIn("data-local-time", pinned_panel)
@@ -210,9 +212,9 @@ class SessionPinUiTests(unittest.TestCase):
         self.assertGreater(first_row.index("data-session-pin-form"), link_end)
         self.assertGreater(first_row.index("data-subsession-menu"), link_end)
         self.assertIn("질문 3 · 이벤트 8", first_row)
-        self.assertIn('class="session-source codex"', first_row)
+        self.assertIn('class="session-source"', first_row)
         self.assertIn('<span aria-hidden="true">CX</span>', first_row)
-        self.assertIn('<span class="sr-only">Codex ·', first_row)
+        self.assertRegex(first_row, r'class="sr-only"><span data-profile-label="[^"]*">Codex</span> ·')
         self.assertNotIn('class="session-provenance"', first_row)
         self.assertNotIn("Subsession · 질문", first_row)
         self.assertLess(first_row.index("질문 3"), first_row.index("이벤트 8"))
@@ -227,11 +229,11 @@ class SessionPinUiTests(unittest.TestCase):
             '<div class="session-row">', company_row_start + 1
         )
         company_row = response[company_row_start:company_row_end]
-        self.assertIn('class="session-source codex-company"', company_row)
-        self.assertIn('<span aria-hidden="true">CC</span>', company_row)
-        self.assertIn('<span class="sr-only">Codex Company ·', company_row)
+        self.assertIn('class="session-source"', company_row)
+        self.assertIn('<span aria-hidden="true">CX</span>', company_row)
+        self.assertRegex(company_row, r'class="sr-only"><span data-profile-label="[^"]*">Codex Company</span> ·')
         self.assertNotIn('class="session-provenance"', company_row)
-        self.assertIn('class="session-source claude"', response)
+        self.assertIn('class="session-source"', response)
         self.assertIn('<span aria-hidden="true">CL</span>', response)
 
     def test_empty_panel_never_falls_back_to_recent_documents(self):
@@ -379,6 +381,22 @@ class SessionPinUiTests(unittest.TestCase):
         )
         self.assertIn("window.scrollTo(0, windowScrollY);", script)
         self.assertIn("adoptedControl?.focus({ preventScroll: true });", script)
+
+    def test_pinned_scroller_contains_absolute_accessibility_labels(self):
+        styles = (ROOT / "src/localbrain/static/styles.css").read_text(
+            encoding="utf-8"
+        )
+        list_rule = styles.split(".pinned-session-list {", 1)[1].split("}", 1)[0]
+        self.assertIn("position: relative;", list_rule)
+        self.assertIn("overflow-y: auto;", list_rule)
+        self.assertIn("max-height: 420px;", list_rule)
+        template = (ROOT / "src/localbrain/templates/sessions.html").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn(
+            '<span class="sr-only"><span data-profile-label="{{ pinned_session.source_id }}">{{ pinned_session.source_name }}</span></span>',
+            template,
+        )
 
     def test_pinned_session_scroll_content_owns_desktop_end_inset(self):
         styles = (ROOT / "src/localbrain/static/styles.css").read_text(
