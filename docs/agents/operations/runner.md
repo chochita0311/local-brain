@@ -11,10 +11,10 @@
 - [Default Invocation Order](#default-invocation-order)
 - [Invocation Rules](#invocation-rules)
 - [Default Closing Sequence](#default-closing-sequence)
+- [Optional Harness Improvement](#optional-harness-improvement)
 - [Prompt Frame](#prompt-frame)
 - [Role Prompts](#role-prompts)
 - [Invocation Examples](#invocation-examples)
-- [Environment Rule](#environment-rule)
 - [Continuation Rule](#continuation-rule)
 
 ## Purpose
@@ -56,7 +56,7 @@
 - If the same run loops or is corrected materially, record attempts inside the run document rather than implying one uninterrupted straight-line pass.
 - Put that run identifier into:
   - the run document
-  - the spec document
+  - the active spec document or designated docs-content writing contract
   - evaluator reports
   - fix logs
   - heuristic backlog entries
@@ -72,6 +72,8 @@
 8. Fix Agent
 9. Re-run the needed evaluators
 
+For `docs-content`, apply the [writing-contract route](../../policies/harness/execution-loop-governance.md#docs-content-writing-contract): omit a separate Spec Agent pass only when the Orchestrator has designated a sufficient contract. Use that contract's ID and locator in the `Active spec` prompt field and all downstream reports.
+
 ## Invocation Rules
 - Fresh execution should start with `Orchestrator`, not directly with `Builder`, evaluators, or `Fix Agent`.
 - Invoke one role at a time.
@@ -79,7 +81,7 @@
   - run ID
   - active feature path
   - active PRD path
-  - active spec path once it exists
+  - active spec ID and repository-relative file or section anchor once designated
   - execution profile
   - surface lane when relevant
 - Keep the role prompt anchored to approved docs.
@@ -89,19 +91,40 @@
 - After post-run human review sends work upward and that layer is corrected, start a new run from the corrected layer rather than continuing as if the earlier attempt remained valid.
 - After the run exists, prefer continuing from the run document plus active spec and latest reports instead of re-invoking only from the feature path.
 - Direct role invocation without `Orchestrator` is an exception path for tightly controlled continuation work, not the default operating pattern.
+- Use optional skills or MCP tools when available and relevant; each role remains operable through its base contract when they are unavailable.
 
 ## Default Closing Sequence
 - When all related runs for the active feature or PRD increment are complete, do not jump straight to acceptance.
 - Confirm that required evaluator reports are present and that any partial or unavailable evidence is recorded with its acceptance impact.
 - First summarize any reusable `design` or `interaction` evaluation candidates discovered during the run set.
+- When Harness Improvement is configured, include supported common-harness promotion candidates in this same review, with their intended owners. Complete local stage recording independently of the promotion decision.
 - Ask the human owner whether each candidate should be added or discarded.
 - After that decision, report that the related runs are complete and ask for:
   - PRD or feature acceptance when relevant
   - run acceptance
   - final close or follow-up direction
 
+## Optional Harness Improvement
+
+When the capability is selected and its private binding is ready, perform
+[ordinary stage work](harness-improvement.md#ordinary-stage-work) around every
+actual role invocation, including controlled direct continuation, fixes and
+evaluator reruns. Retrieve relevant improvement records before the role works; record
+observed components and task outcomes during and after it. The performer
+supplies evidence and the coordinator owns the write. Reuse an existing
+stage/attempt identity on resume or duplicate hook entry. Logical roles need
+not be separate runtime agents.
+
+This requires no extra improvement prompt from the user. If persistence is
+unresolved, use session-only observations and report the gap. Keep audience-safe
+references rather than duplicating private records in the run. An improvement
+request or relevant problem may warrant the operation's bounded comparison;
+ordinary completion does not. Export a common lesson only through its authorized
+source-owner route. Capability absence requires no migration and the existing
+closing sequence, design/interaction decisions and human acceptance remain.
+
 ## Prompt Frame
-Use this base frame for every execution-role prompt in a repository. For `Orchestrator` and initial `Spec Agent` prompts, set `Active spec` to `none yet` when the spec has not been created.
+Use this base frame for every execution-role prompt in a repository. For `Orchestrator` and initial `Spec Agent` prompts, set `Active spec` to `none yet` when no contract has been designated. For `docs-content`, use the writing contract’s real ID and repository-relative file or section anchor once designated; do not create a spec file just to fill a prompt.
 
 ```text
 Run ID:
@@ -114,7 +137,7 @@ Parent PRD:
 - docs/plans/prd/prd-####-slug.md
 
 Active spec:
-- docs/plans/spec/spec-####-slug.md
+- <active-spec-ID> — <repo-relative path or path#section>
 
 Execution profile:
 - profile-name
@@ -194,7 +217,7 @@ Run ID:
 
 Inputs:
 - docs/plans/feature/feat-####-slug.md
-- docs/plans/spec/spec-####-slug.md
+- <active-spec-ID> — <repo-relative path or path#section>
 - Execution profile: profile-name
 - Surface lane: lane-name or none
 
@@ -217,7 +240,7 @@ Run ID:
 
 Inputs:
 - docs/plans/feature/feat-####-slug.md
-- docs/plans/spec/spec-####-slug.md
+- <active-spec-ID> — <repo-relative path or path#section>
 - Execution profile: profile-name
 - Surface lane: lane-name or none
 - relevant schemas, payloads, generated artifacts, fixtures, commands, route contracts, config, or policy docs
@@ -242,7 +265,7 @@ Run ID:
 
 Inputs:
 - docs/plans/feature/feat-####-slug.md
-- docs/plans/spec/spec-####-slug.md
+- <active-spec-ID> — <repo-relative path or path#section>
 - relevant golden sources
 - relevant design policies
 - active execution profile and surface lane when relevant
@@ -266,7 +289,7 @@ Run ID:
 
 Inputs:
 - docs/plans/feature/feat-####-slug.md
-- docs/plans/spec/spec-####-slug.md
+- <active-spec-ID> — <repo-relative path or path#section>
 - relevant architecture and contract docs
 - active execution profile and surface lane when relevant
 - current implementation
@@ -289,7 +312,7 @@ Run ID:
 
 Inputs:
 - docs/plans/feature/feat-####-slug.md
-- docs/plans/spec/spec-####-slug.md
+- <active-spec-ID> — <repo-relative path or path#section>
 - Execution profile: profile-name
 - Surface lane: lane-name or none
 - current implementation
@@ -314,7 +337,7 @@ Run ID:
 
 Inputs:
 - docs/plans/feature/feat-####-slug.md
-- docs/plans/spec/spec-####-slug.md
+- <active-spec-ID> — <repo-relative path or path#section>
 - Execution profile: profile-name
 - Surface lane: lane-name or none
 - relevant evaluator reports
@@ -399,10 +422,6 @@ Task:
 - use the latest spec and latest evaluator or fix artifacts already linked there
 - run Orchestrator first if the next role is not already explicit
 ```
-
-## Environment Rule
-- If optional skills or MCP tools are available and relevant, roles should use them.
-- If they are not available, the roles must still remain operable through their base contract.
 
 ## Continuation Rule
 - Continue the loop from the latest approved feature, active spec, and latest evaluator or fix artifacts.

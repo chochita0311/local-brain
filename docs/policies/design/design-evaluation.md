@@ -55,6 +55,7 @@
 - Treat the outer-frame inset and the visible separation between content and the scrollbar as different relationships. When a scrollbar is present, measure the end edges of text, truncation boundaries, dividers, and focus surfaces against the scrollbar track rather than inferring breathing room from the panel edge alone.
 - Preserve the approved content-to-scrollbar separation without inflating the opposite inset merely to create coordinate symmetry. The implementation may use a content-owned inner wrapper or another layout mechanism as long as the visible result and overflow ownership remain stable.
 - Evaluators should inspect short, threshold, and long-list states, plus the breakpoint where nested scrolling becomes normal document flow. Compare all four edges, corner radii, overflow behavior, and active-scrollbar end insets, and confirm that scrollbar-specific compensation does not leave an unexplained gap after the scrollbar lane disappears.
+- When a page scrolls beyond its visible content, inspect positioned, transformed, and visually hidden accessibility descendants as possible contributors to scroll extent. Verify their containing blocks and compare the last visible item with the actual document end on short and long lists. Removing accessible labels or clipping reachable content is not a valid containment repair.
 
 #### Parallel Reading Region Scroll Ownership
 
@@ -81,32 +82,58 @@
 
 - Commands, code, schemas, diagrams, traces, and similarly wide technical assets must remain inside a bounded presentation region rather than widening the outer document.
 - Choose the internal scrolling axis from the content shape, and keep the asset's label, purpose, and any essential instruction or action readable without requiring the user to traverse the full overflow region first.
-- Evaluators should exercise representative maximum-length content at supported viewport boundaries and verify keyboard and touch reachability without hover dependence, bounded local overflow ownership, and no unintended outer-document overflow.
+- Evaluators should exercise representative maximum-length content at supported viewport boundaries and verify both that the asset remains keyboard- and touch-reachable without hover dependence and that the outer document does not acquire unintended overflow.
+- Locate overflow ownership at the document, outer surface, reading body, generated wrapper, and leaf asset. Intentional horizontal overflow must belong to one bounded local owner; an equal document `clientWidth` and `scrollWidth` alone does not prove that intermediate cards or transformed leaves are contained.
+
+#### Content-Triggered Rendering Evidence
+
+- Technical prose, logs, paths, identifiers, URLs, stack traces, and code-like output must remain literal unless they unambiguously match an approved rich-content syntax. Punctuation, including pairs of dollar signs, brackets, backticks, angle brackets, or underscores, must not silently convert unrelated text into math, links, emphasis, or another semantic element.
+- A generic long string or lorem-ipsum fixture is not equivalent evidence for a content-triggered defect. Preserve the reported trigger's structural shape in a privacy-safe witness, including the relevant punctuation, indentation, line breaks, nesting, and unbroken-token behavior.
+- Inspect the produced semantic DOM as well as the screenshot. Unexpected `math`, anchor, `pre`, `code`, table, or other generated elements can change sizing and accessibility even when the visible text initially looks plausible.
+- After a correction, retain a deterministic regression at the lowest shared renderer or component that owns the trigger and render at least one representative consumer when the failure depends on browser layout.
 
 #### Technical Canvas Control And Fallback Legibility
 
 - Dense diagrams, maps, and other technical canvases should expose visible controls for supported navigation such as zoom, reset, or fit; a modifier gesture may accelerate the task but should not be the only discoverable path.
 - Keep the control group, current scale or state, diagram legend, and canvas visually related without collapsing them into one ambiguous action cluster. Controls that depend on successful rendering should remain truthfully unavailable until the canvas is ready.
-- Evaluators should compare wide and narrow layouts, long labels, disabled and bounded states, render failure, keyboard and touch reachability, and the non-interactive or textual fallback. Canvas navigation must not widen the outer document or make the fallback feel like error residue.
+- Evaluators should compare wide and narrow layouts, long labels, disabled and bounded states, render failure, keyboard and touch reachability, and the non-interactive or textual fallback. Canvas navigation must not widen the outer document or make the fallback feel like an error residue.
+
+#### Finite Canvas Coverage And Navigation Bounds
+
+- When the approved canvas is bounded by a finite image or content region, its allowed zoom and translation should respect the actual rendered viewport and coverage region, including reserved shell space. A fixed minimum scale alone does not establish coverage across aspect ratios.
+- For supported input paths, evaluate rendered coverage after wheel or pinch zoom, visible controls, dragging, reset, automatic focusing, animated intermediate states, and resizing. A valid final position does not excuse an uncovered or abruptly corrected intermediate frame. [Technical Canvas Input Ownership](../experience/interaction-evaluation.md#technical-canvas-input-ownership) owns gesture and control behavior.
+- Evaluators should exercise minimum zoom, each edge and corner, focus near a boundary, and resize after panning at supported wide and narrow viewports. Observe both the rendered background and its transformed bounds; outer-document overflow checks alone cannot prove canvas coverage.
+- Intentional margins, elastic overscroll, tiled maps, and unbounded canvases follow their own approved contracts. Do not impose finite-image coverage on them or use clipping to hide an unreachable destination.
+- Measure the actual usable frame, including axis or label lanes, open panes, reserved controls, and the rendered content footprint. The nominal element box alone does not establish that a boundary item or its reading target remains visible and reachable.
+- When visible membership, filtering, or pane geometry changes, recompute the relevant content extent and usable space. Preserve the approved anchor, refit, or clamp behavior rather than retaining bounds from a different visible set or silently resetting the view.
+- Check each axis separately after fit and resize. Compare the preserved anchor in a fitted dimension and the available translation range in a still-overflowing dimension against the actual usable frame and approved refit or clamp rule. Gesture response belongs to [Technical Canvas Input Ownership](../experience/interaction-evaluation.md#technical-canvas-input-ownership).
+- If bounded elastic overshoot is approved, observe its temporary limit and return to settled bounds on release. The overshoot must not become a persisted navigation position; compare interruption and resizing during the return under the product's contract.
+
+#### Semantic Orientation Across Zoom
+
+- Evaluate semantic orientation separately from geometric fit. Across the full approved visible scope, users should be able to identify the required groups, axes, and relationships and recover the reading context; fitting every box inside the viewport does not establish that coverage.
+- Define which labels are retained, compressed, aggregated, or omitted at minimum zoom, overview, reading recovery, and narrow layouts. Check the approved recovery route for labels and relationships required for reading context rather than silently losing that orientation.
+- Compare text, box, and heading scaling together at the supported levels. Check overlap, clipping, and unintended omission, including a heading that scales differently from its group or a readable label whose surrounding box no longer supports its role.
+- Evaluators should inspect the complete required group, axis, and relationship coverage at overview and exercise the offered reading-recovery path. Font floors, always-visible labels, and uniform shrinking are product choices rather than universal acceptance rules.
+
+#### Image-Backed Surface Foreground Hierarchy
+
+- On image-backed interactive surfaces, foreground content, controls, selection, and transient feedback should remain distinguishable while the image retains its approved role, whether primary, contextual, or for inspection.
+- Tone changes should be evaluated in both directions: an image can overwhelm foreground content, but excessive dimming can also erase the subject or useful spatial landmarks. Brightness, overlay, saturation, and vignette values are implementation choices, not reusable acceptance thresholds.
+- Evaluators should compare bright and dark image regions, idle and selected content, active feedback, supported zoom levels, and wide and narrow layouts. Inspect the actual composite, including overlays and filters; a declared filter or stacking order alone does not prove legibility.
+- Auxiliary overview or orientation tools should earn their screen area through an approved navigation need. When removing one, verify that the remaining controls and context still support orientation and recovery rather than treating removal as a universal simplification rule.
 
 #### Scrollable Table Frame And Fill
 
 - A table that scrolls locally should keep overflow and outer frame ownership in a wrapper while retaining native table layout inside it. When columns are narrower than the reading region, header and row surfaces should fill that region instead of ending at intrinsic cell width.
-- Evaluators should compare short or two-column tables with wide multi-column tables. Check wrapper, table, and final-cell edges, border and radius continuity, local overflow, and outer-document overflow.
-- If one renderer or table primitive serves several reading surfaces, apply [Shared Owner And Propagation Evidence](#shared-owner-and-propagation-evidence) instead of treating the reported document or route as the entire scope.
+- Evaluators should compare short or two-column tables with wide multi-column tables. Check the wrapper edge, table edge, final header- and body-cell edges, border and radius continuity, local overflow, and outer-document overflow rather than accepting the presence of a scrollbar as sufficient evidence.
+- If one renderer or table primitive serves several reading surfaces, apply [Shared Owner And Propagation Evidence](#shared-owner-and-propagation-evidence) instead of treating the reported document or route as the entire defect scope.
 
 #### Technical Reading Surface Role Separation
 
 - Code embedded in a reading surface does not automatically share the visual role of a terminal, Run console, status panel, brand accent, or provenance marker merely because both use monospace text.
-- Inspect whether background, border, label, default text, and syntax colors express sustained reading without borrowing semantic roles that imply execution or status.
+- Evaluators should inspect whether background, border, label, default text, and syntax colors express sustained reading without borrowing semantic roles that imply execution or status. Dedicated semantic reading roles are preferable when existing console or feedback roles create the wrong meaning or an unnecessarily harsh tone.
 - A visual reference may calibrate hierarchy, contrast, and palette variety, but it does not require importing the reference theme, decorative chrome, gradients, or shell. Compare generic and highlighted code across every shared reading consumer in scope.
-
-#### Content-Triggered Rendering Evidence
-
-- Technical prose, logs, paths, identifiers, URLs, stack traces, and code-like output must remain literal unless they unambiguously match an approved rich-content syntax. Punctuation must not silently convert unrelated text into math, links, emphasis, or another semantic element.
-- A generic long string is not equivalent evidence for a content-triggered defect. Preserve the reported trigger's structural shape in a privacy-safe witness, including relevant punctuation, indentation, line breaks, nesting, and unbroken-token behavior.
-- Inspect the produced semantic DOM as well as screenshots, and locate overflow ownership at the document, outer surface, reading body, generated wrapper, and leaf asset. Intentional horizontal overflow must belong to one bounded local owner.
-- Retain a deterministic regression at the lowest shared renderer or component that owns the trigger and render at least one representative consumer when the failure depends on browser layout.
 
 ### Information Hierarchy And Metric Meaning
 
@@ -114,7 +141,17 @@
 
 - Persisted evidence is not automatically eligible for a user-facing metric, rank, date range, or category row.
 - Diagnostic, synthetic, fallback, or error records may remain valuable for traceability while being excluded from ordinary analytical presentation when they do not represent the measured concept.
-- Evaluators should confirm that summary, history, composition, coverage, and linked counts use one coherent eligible set so an excluded record does not leak through a secondary consumer.
+- Evaluators should confirm that summary, history, composition, coverage, and linked counts for the same measured concept use one coherent eligible set so an excluded record does not leak through a secondary consumer.
+- Hiding background, child, test, or analysis work from an ordinary work inventory does not by itself exclude its consumed resources from accounting. Check each consumer's declared population, including unsuccessful work with observed usage; apply [Adjacent Metric Denominator Clarity](#adjacent-metric-denominator-clarity) when populations differ.
+- Eligibility for a meaningful grouping value is distinct from retention of the record that carries it. Known semantic values, sentinel placeholders, reference-only markers, and unknown values should keep their source-established roles; normalize them in presentation only under a recognized source contract while preserving raw evidence and authority.
+- Evaluators should compare all-known, all-unknown, and mixed populations. An ineligible grouping value must not become a meaningful category merely because its raw string is present, and excluding that value must not silently drop an otherwise retained record. [Nested Collection Hierarchy And Ordering](#nested-collection-hierarchy-and-ordering) owns how eligible and intentionally empty groups are presented.
+
+#### Analytical Selection And Display-Domain Consistency
+
+- Distinguish the selected record population, requested date bounds, aggregation interval, metric, and rendered axis extent. A display transformation should preserve the selection, totals, URL state, and date fields unless changing them is an explicit part of the approved interaction.
+- Define whether the history retains, trims, aggregates, or compresses empty periods. Apply that policy to the currently selected data rather than retaining bounds from another source or using different rules for default and manually entered dates. Preserve intermediate time gaps or show their approved compression explicitly.
+- Keep genuine zero, missing observations, unavailable calculation, and no matching records distinguishable under the metric's contract. A compact axis must not turn unknown coverage into zero activity or imply that the displayed endpoints are the requested query bounds.
+- Evaluators should compare dense and sparse histories, empty leading/trailing and interior periods, all-zero and unavailable metrics, and source/metric/interval changes through controls, direct URLs, and back/forward navigation. Check selection and summary against the rendered extent; [Equivalent Scope Consistency](../experience/interaction-evaluation.md#equivalent-scope-consistency) and [In-Place Analytical Switch Continuity](../experience/interaction-evaluation.md#in-place-analytical-switch-continuity) own the associated transition behavior. Fixed axis padding, trimming, or bucket counts remain product choices.
 
 #### Secondary Metric Explanatory Burden
 
@@ -134,11 +171,33 @@
 - When one metric includes background or child activity while another counts only primary work, the distinction should be visible at the point of comparison or in a bounded trust explanation.
 - Evaluators should inspect denominator definitions together with hierarchy and supporting copy rather than assuming shared placement means shared scope.
 
+#### Estimate State And Calculation Basis
+
+- When execution cost or another estimate is part of interpreting a result, keep the selected record's value and calculation state discoverable beside that result. An aggregate total alone does not explain the selected operation.
+- Distinguish genuine zero, a positive amount below display precision, missing observations, unavailable calculation inputs or rates, partial coverage, and calculation failure. A blank, dash, rounded zero, or shared success treatment must not imply that all these states mean no consumption.
+- Keep the calculation basis that belongs to the recorded estimate inspectable through a bounded explanation. Do not label a historical estimate with today's settings or present a provider-reported amount, local estimate, and actual bill as interchangeable.
+- Evaluators should compare these states independently of execution success, plus a historical record whose basis differs from current defaults. Check list/detail consistency and expanded explanations without adding unnecessary metric panels.
+
+#### Analysis Coverage And Selection Rationale
+
+- A discovery, ranking, or analysis result should distinguish the eligible population, the selected input, and the candidate discussed. Describe actual inspection only to the extent supported by evidence. Report known sampling limits, omitted or clipped content, and material recency or distribution preferences without implying an exhaustive review.
+- Explain why the candidate and its category fit the user's goal and observed work. Incidental words in source material, activity volume, spend, or a working directory alone do not establish the problem type or improvement priority.
+- Explain the selection policy at the decision point and retain the actual scope with the result. Automatic selection must not imply randomness, project balance, a new candidate on every run, or a proven best opportunity unless the product establishes those properties.
+- Evaluators should compare summaries and detailed coverage, historical results without the new metadata, and repeated outputs from the same input. Keep observed selection behavior separate from untested explanations of why the model chose it.
+
 #### User-Facing Terminology Boundary And Consistency
 
+- Compact technical notation, abbreviations, and relative path labels should expose the reference frame needed for the approved task, such as home, a configured base, workspace, repository, or source. Changing a label or display preference must not silently reassign a record or imply that its historical attribution changed. Compare current labels, stored identity, and retained historical snapshots where applicable; evaluate settings through the existing product contract rather than requiring a new configuration flow.
 - Internal storage, schema, or type names do not automatically own the user-facing vocabulary; visible labels should express the user's concept without requiring the internal contract to be renamed.
 - Once a user-facing term is chosen, apply it consistently across summaries, details, empty or unavailable states, errors, trust or calculation explanations, and accessibility text, including singular, plural, and number formatting.
 - Evaluators should confirm that nearby labels still distinguish the concept from adjacent records or events and that internal aliases do not leak through secondary presentation consumers.
+
+#### Compact Identifier Display And Action Identity
+
+- When an identifier is shortened for reading, keep its displayed form distinct from the canonical identity, source namespace, and action target. Provide the approved complete-value inspection or reuse path when the user's task requires it, including keyboard and assistive access rather than hover alone.
+- Define abbreviation and collision handling within the relevant identity scope. Different records that share a prefix must remain distinguishable; identical native values from different sources or tenants must not silently merge their identities. A fixed prefix length is not a universal requirement.
+- Copy, reference, export, or resume actions should use the value and namespace required by their approved contract. When a complete identifier is required, the rendered prefix or a local navigation-row identifier must not silently replace it.
+- Evaluators should compare short and long values, shared prefixes, identical values across source boundaries, narrow layouts, and the actual value delivered by the action. Visual abbreviation, full-value accessibility, and action identity should remain coherent; [In-Place Utility Action Continuity](../experience/interaction-evaluation.md#in-place-utility-action-continuity) owns feedback and interaction-state preservation.
 
 #### Authority Region Separation
 
@@ -146,6 +205,21 @@
 - Cached or last-known external facts must not visually imply a live read. Local notes or classifications must not look provider-owned, and evidence or execution status must not compete with the primary record as if it were current source content.
 - A related or contextual item should state why it appears and where it came from; global proximity or recency alone should not look like an explained relationship.
 - Evaluators should inspect fully populated, partially available, stale, failed, and secondary-panel error states together. Headings, provenance, timestamps, relationship reasons, status copy, and explicit external-navigation or refresh actions should make each authority and its update path understandable without relying on color alone.
+
+#### Imported Transcript Provenance And Conservative Normalization
+
+- Imported transcript, history, audit, or activity surfaces should keep user-authored content, provider- or system-injected context, and tool or command output in their truthful roles. Generated scaffolding must not impersonate a user message merely because the source format stores both through one message-shaped envelope.
+- Source retention and user-facing presentation are separate decisions. A valid record may remain visible when it is sparse, command-only, or not safely normalized, while generated context may remain retained as provenance without becoming a visible title, message, search term, or derived reference.
+- Normalize only source envelopes with a stable, recognized contract. Preserve the raw source, and render an unknown or ambiguous envelope literally, escaped, or with a truthful source label instead of guessing its meaning, dropping the record, or reattributing its content.
+- Evaluators should compare a visible prompt paired with generated context, a command-only record, an unknown envelope, and a source-version change. Confirm both that retained evidence remains inspectable at its owning layer and that the presentation projection preserves authored content and role boundaries.
+- Preserve authored input at the source's actual message boundaries: one turn or batch may contain an initial request, follow-up answers, and additional input. Deduplicate repeated source representations through the recognized identity or duplication contract; equal wording alone must not erase distinct authored messages. Keep question/answer association and source order intact.
+- Evaluators should also inspect the first and last authored inputs, multiple inputs within one turn, split text blocks mixed with generated siblings, genuine retransmissions, and repeated wording across distinct records or turns. Confirm that removing a generated block cannot discard neighboring authored input, and retaining authored input cannot expose generated siblings.
+
+#### Conversation Role And Completion Legibility
+
+- Where a conversation or history distinguishes authored input, intermediate assistance, and completed responses, make those roles understandable without changing the body or source order. Use the approved combination of speaker identity, spacing, boundaries, tone, and accessible semantics; extra status labels or one particular border treatment are not universal requirements.
+- A response-completion treatment should follow each source's declared terminal or phase contract. Missing, unknown, interrupted, or contradictory evidence should retain its truthful uncertainty rather than acquiring completion from message position or wording alone. A completed response does not establish successful execution of the user's task.
+- Evaluators should compare intermediate, completed, and unmarked responses across supported source adapters, profiles, primary histories, and child histories. Shared presentation should retain source-specific evidence rather than require identical native fields. Check body contrast and structural cues when tint is reduced, and evaluate any necessary accessible completion meaning separately from the visible treatment.
 
 #### Subject-Relative Relationship Evidence
 
@@ -156,9 +230,26 @@
 
 #### Source Identity Cue Propagation And Redundancy
 
-- A stable source identity should produce the same compact cue across inventory rows, pinned or saved views, detail headers, and parent-owned child rows. Derived child presentation follows the owning record's source.
+- A stable source identity should produce the same compact cue across inventory rows, pinned or saved views, detail headers, and parent-owned child rows. Derived child presentation follows the owning record's source instead of falling back to a provider-wide default.
 - Compact lettermarks, icons, and color accents require accessible text identity; color alone must not distinguish sources that share a parser or visual family.
 - Do not repeat a full provider or source label in every card, heading, badge, and child row when one nearby cue already establishes identity. Remove redundant copy only after direct entry, mixed-source lists, assistive output, and narrow layouts remain understandable.
+
+#### Nested Collection Hierarchy And Ordering
+
+- A region title, semantic group, subgroup or kind, and repeated item should not collapse into one undifferentiated typographic tone. Use role-appropriate combinations of size, weight, spacing, and boundary strength so hierarchy remains legible without relying on color alone.
+- When one category applies to a contiguous run of items, prefer one owning group heading over repeating the same category label in every row. Group boundaries should read more strongly than item separation; repeated row rules should remain lighter or give way to spacing so they do not compete with the semantic grouping. Apply [Single Boundary Ownership](#single-boundary-ownership) where adjacent regions meet.
+- Define ordering independently at each hierarchy level. A stable categorical order may support predictable scanning while source occurrence, chronology, priority, or task order may better preserve meaning within a group; one global sort rule should not be assumed to serve both.
+- When the contract promises name or path ordering, compare the actual comparator with the meaning displayed to the user. Shortened paths, aliases, and cached labels must not silently substitute a different sorting key; test mixed old/new or partially refreshed records, missing-value fallbacks, and stable tie-breaking by the approved identity.
+- Label, path, or formatting changes should preserve a separately configured manual, chronological, priority, or per-group order unless the approved change includes reordering. Verify order after refresh and across consumers that promise to share it, while keeping the selected record tied to its identity.
+- Evaluators should compare single- and multi-group states, single- and multi-item groups, intentional empty orientation groups, retained overflow, and narrow layouts. Confirm that pagination or disclosure does not duplicate headings, split boundaries ambiguously, or reorder items against the approved per-level contract.
+- Derive ordinary headings from meaningful eligible grouping values. Sentinel, reference-only, or unknown values should not create a ghost category outside their declared presentation role. Compare all-known, all-unknown, and mixed states so retained ungrouped items are not mistaken for an empty collection. Keep intentionally empty orientation groups only under their approved role; source-specific value recognition follows [Presentation Eligibility Is A Separate Contract](#presentation-eligibility-is-a-separate-contract), while ordering and layout remain governed by the per-level contract.
+
+#### Display Aggregation And Original Records
+
+- When records are aggregated only to reduce display density, preserve their original members, identifiers, true count, and approved individual inspection and action paths. Visual proximity, including a shared day, must not imply a business relationship or ancestry that the source does not establish.
+- Logical selection should remain attached to the original selected record when zoom or regrouping changes its display host or representative. Distinguish member selection from group selection, and compare visible state and action identity before and after aggregation or expansion. [Temporary Inspection And Committed Selection](../experience/interaction-evaluation.md#temporary-inspection-and-committed-selection) owns temporary versus committed interaction state.
+- Define the reduction used for each group-level source, pin, and status cue and retain the true member count. A reduced cue should express that summary without implying that every member has the representative's value; original per-member state remains inspectable. Badge glyphs, muted tones, or an any-member-pinned rule are not universal requirements.
+- Evaluators should compare homogeneous and mixed-source, pin, and status groups, individual inspection and actions, changing representatives, and aggregation or expansion while an original member is selected. Check membership and count against the originals rather than accepting the rendered representative as the entire record set.
 
 #### Independent State-Axis Legibility
 
@@ -176,8 +267,8 @@
 
 #### Requested Control Preservation
 
-- A placement or overlap correction preserves the requested control type and task flow unless the owner explicitly approves a different interaction. Replacing a dropdown with radio choices does not establish that the dropdown defect is fixed.
-- Turn the reported relationship into an observable comparison: for a menu requested below its control, inspect the actual expanded top edge, matching width, trigger visibility, clipping and selected-item states at wide and narrow widths.
+- A placement, size, or overlap correction preserves the requested control type and task flow unless the owner explicitly approves a different interaction. Replacing a dropdown with radio choices does not establish that the dropdown defect is fixed.
+- Turn the reported relationship into an observable comparison: for a menu requested below its control, inspect the actual expanded top edge, matching width, trigger visibility, clipping, and selected-item states at the supported wide and narrow viewport boundaries.
 - A passing layout test for a substituted interaction is evidence for that implementation only. Correct the acceptance target and repeat rendered evaluation before reporting the requested fix complete.
 
 #### Shell Handoff Visual Continuity
@@ -224,6 +315,8 @@
 
 - When a control must match a reference, compare text-relative padding, content width, selected-surface bounds, and indicator position in addition to the outer width and height.
 - Equal outer tracks can still fail parity when labels have different lengths or the reference sizes segments from their content.
+- Distinguish the outer frame, painted glyph or shape, and interactive hit area. A transformed icon or inset SVG path can have different visible edges despite equal CSS boxes; measure the painted relationship named by the request as well as its container.
+- Compact visible geometry must preserve the approved hit area, keyboard focus visibility, and accessible control identity. Do not shrink the hit area merely to make icon bounds match; inspect closed, expanded, hover, selected, and focus states at the applicable narrow and scroll boundaries.
 - Evaluators should test short and long labels and measure the selected geometry rather than inferring parity from one shared minimum width.
 - For controls with a disclosure indicator, including native selects, measure the selected-text reserve, indicator bounds, and indicator-to-edge inset as separate relationships. Verify that one indicator remains legible without duplication and that focus, disabled, invalid, compact, narrow, and touch states preserve the intended alignment.
 
@@ -255,6 +348,7 @@
 
 #### Metadata Layer Separation
 
+- Evaluate width allocation when compact metadata combines short, fixed-form values with long, variable fields. Compare localized dates, short and long identifiers or paths, wide layouts, and the actual reading-container width with adjacent panes open or closed. Check unexplained empty bands and clipping rather than assuming equal-width slots establish balanced density; control-state changes should preserve neighboring geometry.
 - Distinct metadata layers inside a compact card should not visually occupy the same horizontal band.
 - Tag chips and collection or locator labels should read as separate rows or clearly separated zones, not as partially overlapping content.
 - Evaluators should check long-content cases, multi-tag cases, and short-summary cases to confirm the metadata hierarchy still reads cleanly.
@@ -308,8 +402,9 @@
 - Before classifying or correcting a rendered mismatch, confirm the exact route, region, and scroll owner named by the report. A visually similar peer is useful comparison evidence, but it is not a substitute for observing the affected surface.
 - Broad screen-family work should sample LocalBrain's supported viewport boundaries and representative long-content, empty, unavailable, error, and active-interaction states. Exact widths and required states belong to the approved Feature, active Spec, or selected profile.
 - Record the effective viewport rendered by the page rather than assuming that a requested window size was applied exactly. Browser minimum-window constraints, device-pixel ratio, zoom, or tool clamping can change the observed width; use viewport or device emulation when needed to reach a required minimum boundary.
+- At the supported minimum width, include a classic vertical scrollbar where the supported environment reserves space for one, and inspect expanded disclosures as well as the initial state. Record viewport width, document client width and scroll width: a page can fit the requested viewport while still exceeding the usable width after the scrollbar consumes space. Confirm that root minimum widths do not widen the document and that any intentional local scrolling remains reachable; clipping overflow is not evidence of containment.
 - Use synthetic or explicitly approved content when captures, fixtures, or audit artifacts could otherwise expose private runtime data.
-- If the required rendered evidence cannot be collected, record the evidence gap explicitly and do not describe unobserved runtime behavior as a verified pass. The owning Feature, active Spec, or selected profile decides whether that gap blocks acceptance.
+- If the required rendered evidence cannot be collected, record the evidence gap explicitly and do not describe unobserved runtime behavior as a verified pass. The owning feature, active spec, or selected profile decides whether that gap blocks acceptance.
 
 #### Shared Owner And Propagation Evidence
 

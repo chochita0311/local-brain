@@ -11,6 +11,12 @@ __pycache__/
 !.env.example
 .privacy-patterns.local
 
+# Private harness experience; shared policies and templates remain versioned.
+/docs/evidence/STORE.md
+/docs/evidence/stages/
+/docs/evidence/improvements/
+/docs/evidence/experiments/
+
 # Runtime and exported personal data must never be committed.
 data/
 runs/

@@ -11,10 +11,10 @@
 
 ## Input Contract
 - one approved feature document
-- one active spec document
+- one active spec document or designated [docs-content writing contract](../../policies/harness/execution-loop-governance.md#docs-content-writing-contract)
 - candidate implementation
 - golden sources or design rules when relevant
-- relevant interaction-quality policies when the feature changes visible behavior or navigation continuity
+- relevant interaction-quality policies, including [Interaction Evaluation](../../policies/experience/interaction-evaluation.md) when installed, for visible behavior or navigation continuity
 
 ## Capability Guidance
 - When checking live interaction clarity, prefer an appropriate available browser automation or inspection tool over pure static reasoning.
@@ -30,6 +30,7 @@
 - Frame findings in terms of user comprehension, feedback, and friction.
 - Evaluate relationship and provenance copy from the current task subject's perspective. Do not accept internal mechanism names or ambient proximity as meaningful context unless they explain why the item matters to the user.
 - For one action spanning independent targets, compare aggregate and per-target feedback, partial failure, retention or removal consequences, and scoped recovery instead of evaluating only the happy-path completion message.
+- Treat generated analysis and its route into action as part of the user experience. Apply the relevant coverage, evidence-request, application, and saved-result checks in the installed review policies; report demonstrated usability separately from unobserved user benefit.
 
 ## Required Output
 Produce findings grouped by:

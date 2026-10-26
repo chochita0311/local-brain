@@ -28,6 +28,7 @@ Durable rules and current contracts live under `docs/policies/`.
 - [Harness Policies](policies/harness/): planning approval, execution routing, profiles, delegation, operator continuity, and traceability
 - [Competence-First Delegation](policies/harness/competence-first-delegation.md): delegation admission, worker suitability, context transfer, fallback, and binding lifecycle
 - [Operator Briefing And Review Receipts](policies/harness/operator-briefing-and-review-receipts.md): orientation, work-start, direction-change, review, block, and handoff continuity
+- [Harness Improvement](policies/harness/harness-improvement.md): configured private stage experience, reusable improvement records, comparisons, and reviewed common export
 - [Interaction Evaluation](policies/experience/interaction-evaluation.md): reusable interaction continuity and UX checks
 
 - [Desktop App And Common Local Settings](policies/project/desktop-app-and-settings.md): settings, source identity/lifecycle, synchronization and recovery contracts
@@ -44,9 +45,11 @@ Durable rules and current contracts live under `docs/policies/`.
 
 - `docs/agents/roles/`: planning, build, evaluation, orchestration, and fix role contracts
 - `docs/agents/flows/`: default baton flow and stop points
-- `docs/agents/operations/`: prompts for starting and continuing a Run
+- `docs/agents/operations/`: prompts for starting and continuing a Run, plus Harness Improvement procedures
 - `docs/agents/profiles/`: frontend, backend, fullstack, foundation, infrastructure, and docs profiles
-- `docs/agents/templates/`: reusable operator-facing briefing scaffolds
+- `docs/agents/templates/`: reusable operator-facing briefing and blank harness experience scaffolds
+- `docs/agents/schemas/`: shared Improvement Record metadata schema
+- `docs/evidence/`: ignored local harness experience outputs and separately selected public references; [Harness Experience](agents/README.md#harness-experience) owns discovery and separation
 
 ## Plans
 

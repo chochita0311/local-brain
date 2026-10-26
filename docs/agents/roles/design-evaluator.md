@@ -11,7 +11,7 @@
 
 ## Input Contract
 - one approved feature document
-- one active spec document
+- one active spec document or designated [docs-content writing contract](../../policies/harness/execution-loop-governance.md#docs-content-writing-contract)
 - build output or implementation snapshot
 - the [Design Constitution](../../policies/design/design-constitution.md) as the durable visual baseline
 - relevant checks from [Design Evaluation](../../policies/design/design-evaluation.md)
@@ -32,17 +32,12 @@
 - Distinguish direct spec failures from optional improvement ideas.
 - Treat missing visual states as findings only if the feature or spec required them.
 - Report concrete mismatches with enough detail for targeted fixes.
-- Compare internal geometry such as text insets, indicator bounds, and content-relative padding when parity is required; matching only the outer control size is insufficient.
 - Use rendered evidence for geometry, overflow, focus, contrast, and responsive claims that source inspection cannot establish. Record partial evidence instead of claiming an unobserved visual pass.
 - For content-dependent rendering failures, reproduce a privacy-safe structural witness of the reported trigger instead of substituting generic long content. Inspect generated DOM semantics and overflow ownership from the document through intermediate containers to the leaf asset.
 - When source identity or another inherited cue appears on several surfaces, compare list, saved or pinned, direct-detail, and parent-owned child presentation before accepting a shared-owner fix; remove repeated visible labels only when orientation and accessible identity remain intact.
 
 ## Blocking Layout Integrity Checks
-- Treat these as blocking failures, not optional polish:
-  - text escaping the intended card or surface bounds
-  - tags, metadata, or footer content spilling outside the component
-  - card or panel containment breaking across supported breakpoints
-  - layout collapse that makes the approved surface unreadable or structurally incoherent
+- Treat an approved surface that becomes unreadable or escapes its intended bounds as a blocking failure, not optional polish. Apply the detailed containment, breakpoint, and geometry checks owned by Design Evaluation when that review asset is installed.
 
 ## Routing Guidance
 - Route to `implementation bug` when:

@@ -43,6 +43,8 @@ Out of scope unless explicitly planned:
 
 Durable runtime data belongs under `~/Library/Application Support/LocalBrain`; private rebuildable caches belong under `~/Library/Caches/LocalBrain`. Development evidence has a separate private archive. These are outside the codebase; [Installation And Local Storage](docs/policies/project/installation-and-storage.md) owns their configuration and lifecycle.
 
+Agent harness experience uses the separate, ignored [consumer evidence layout](docs/policies/harness/harness-improvement.md#consumer-evidence-layout); application data and original development evaluation evidence keep the owners above.
+
 ## Source Of Truth
 
 - Keep `AGENTS.md` short and operational.
@@ -65,6 +67,7 @@ Durable runtime data belongs under `~/Library/Application Support/LocalBrain`; p
 - Use [Agent Workflow](docs/agents/README.md) when a request enters the shared PRD, feature, spec, or execution-loop process.
 - Before delegating bounded work, apply [Competence-First Delegation](docs/policies/harness/competence-first-delegation.md) for admission, worker selection, context transfer, fallback, and primary-agent ownership.
 - When prior context materially affects an orientation, work start, direction change, review boundary, block, or handoff, apply [Operator Briefing And Review Receipts](docs/policies/harness/operator-briefing-and-review-receipts.md) without changing the underlying workflow or approval state.
+- When Harness Improvement is selected, follow its [operation](docs/agents/operations/harness-improvement.md) for relevant experience retrieval, observed component use, and closing reflection at each actual planning or execution stage. Discover the private binding at `docs/evidence/STORE.md` or its approved override; preserve existing records and report unresolved persistence with session-only observations. Short common-export requests follow that operation's request scope; existing task approvals and separate source-edit/disclosure authority still apply.
 - A PRD request is planning-only until the human owner approves its boundary.
 - A `draft` PRD or unapproved Feature must not trigger spec work, code changes, or evaluation.
 - If an open point can change scope, acceptance, dependency, or user-visible behavior, stop and ask instead of carrying the ambiguity into implementation.

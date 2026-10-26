@@ -11,10 +11,10 @@
 
 ## Input Contract
 - one approved feature document
-- one active spec document
+- one active spec document or designated [docs-content writing contract](../../policies/harness/execution-loop-governance.md#docs-content-writing-contract)
 - candidate implementation
 - relevant runtime behavior context
-- relevant interaction-quality policies when visible state changes or flow continuity are in scope
+- relevant interaction-quality policies, including [Interaction Evaluation](../../policies/experience/interaction-evaluation.md) when installed, for visible state or flow continuity
 
 ## Core Rules
 - Evaluate only what the feature and spec actually require.

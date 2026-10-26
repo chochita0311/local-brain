@@ -1,18 +1,18 @@
 # Feature Planner
 
 ## Goal
-- Decompose a normalized PRD into implementation-ready feature units for iterative build and evaluation loops.
+- Decompose an approved normalized PRD into implementation-ready feature units for iterative build and evaluation loops.
 - Propose an execution order that minimizes dependency risk and scope drift.
 - Keep the boundary stable enough that later spec, evaluator, and fix roles can run repeatedly.
 - Identify the likely surface, execution profile, and contract surfaces before spec handoff.
 
 ## When To Use
-- A PRD package is already normalized and bounded.
+- A normalized, bounded parent PRD is human-approved under [PRD And Feature Management](../../policies/harness/prd-feature-management.md#planning-gate-summary).
 - The work needs to be split into small reusable loops.
 - The team wants feature proposals before locking the implementation order.
 
 ## Input Contract
-- normalized PRD package from `PRD Normalizer`
+- approved normalized parent PRD package from `PRD Normalizer`
 - golden sources referenced by that package
 - relevant system or product docs
 - current implementation shape when working on an existing product
@@ -21,8 +21,8 @@
 - Do not invent features outside the normalized PRD.
 - Do not broaden scope to make the plan feel more complete.
 - Carry forward explicit exclusions and non-goals.
-- Keep unresolved items visible instead of burying them inside feature definitions.
-- Treat planning output as a proposal until a human locks the boundary.
+- Keep unresolved items visible instead of burying them inside feature definitions. An approved PRD may retain explicitly recorded open items that do not block safe feature planning.
+- Treat feature planning output as a proposal until a human locks the feature boundary.
 
 ## Good Feature Unit Rules
 A good feature unit must satisfy all of the following:
@@ -87,6 +87,12 @@ Produce:
 4. Recommended implementation order
 5. Uncertainties that block clean decomposition
 6. Explicit non-goals carried from the PRD
+
+## Foundation Dependency Rule
+
+- Do not hand a product feature to spec work if a required foundation feature is still unresolved.
+- If a proposed product feature still contains contract ambiguity, split out a foundation feature instead of letting the product feature absorb that ambiguity.
+- If a proposed feature spans multiple surfaces, declare lane dependencies or split it until each feature has a clear execution shape.
 
 ## Suggested Output Shape
 ```yaml
@@ -192,11 +198,15 @@ non_goals:
 - Any proposed feature that still depends on unresolved uncertainty should be held back or split again.
 - Planner output should make later acceptance checklist generation almost mechanical.
 
-## Foundation Dependency Rule
+## Optional Experience
 
-- Do not hand a product feature to spec work if a required foundation feature is still unresolved.
-- If a proposed product feature still contains contract ambiguity, split out a foundation feature instead of letting the product feature absorb that ambiguity.
-- If a proposed feature spans multiple surfaces, declare lane dependencies or split it until each feature has a clear execution shape.
+When Harness Improvement is selected and configured, use its
+[ordinary stage hooks](../operations/harness-improvement.md#ordinary-stage-work)
+on entry and handoff, including direct role invocation. Use the actual planning
+target/stage, not a fictitious run. Reuse a stage already opened by the workflow.
+Relevant experience can inform decomposition; it does not approve a proposed
+feature or resolve product uncertainty. An unresolved private binding permits
+session-only observation, with the gap reported.
 
 ## Non-Goals
 - writing implementation specs directly

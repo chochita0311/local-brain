@@ -30,6 +30,12 @@ and integration contracts. Names and relationships from an operator's private
 local project inventory belong in local context, including when documenting
 optional model installation or development validation.
 
+## Private Harness Experience
+
+[Harness Improvement](../harness/harness-improvement.md#consumer-evidence-layout) has a separate consumer-owned agent experience store. Its binding/index and stage, improvement, and comparison records may use the ignored local `docs/evidence/` layout after exclusion, ownership, access, and tracked/staged checks pass. These records are separate from application runtime data and original development evaluation artifacts, which retain their existing owners outside the repository. Link original inputs and outputs instead of copying private Session or document bodies into the harness store.
+
+Keep completed private bindings, identifying locators, experience indexes, records, and exchange receipts out of tracked documentation and the harness import manifest. Shared blank templates and schemas remain versioned under `docs/agents/`; explicitly selected public records/catalogs may be versioned under `docs/evidence/`. They do not share ownership with the ignored local outputs. The [setup operation](../../agents/operations/harness-improvement.md#configure-local-experience) owns binding discovery and conflict handling; an ignore rule does not untrack existing files or authorize publication.
+
 ## Local Persistence
 
 The default runtime directory is:

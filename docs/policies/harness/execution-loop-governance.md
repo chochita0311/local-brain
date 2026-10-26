@@ -43,12 +43,19 @@
 - Keep evaluator outcome separate from evidence coverage.
 - `Result` uses `PASS`, `PASS WITH SUGGESTIONS`, or `FAIL` and describes the evaluator's conclusion for the checks actually performed.
 - `Evidence Coverage` uses `complete`, `partial`, or `unavailable` and describes whether the required environments and states were directly observed.
-- Judge evidence coverage against the evidence required by the approved Feature, active Spec, and selected execution profile rather than against every theoretically possible environment.
+- Judge evidence coverage against the evidence required by the approved feature, active spec, and selected execution profile rather than against every theoretically possible environment.
 - Do not invent compound result labels such as `PASS WITH BROWSER GAP`; record `Result: PASS`, `Evidence Coverage: partial`, and name the unverified claims instead.
-- Partial or unavailable evidence does not automatically convert a result to `FAIL`, but the owning Feature, active Spec, or selected profile decides whether the gap blocks Run or human acceptance.
+- Partial or unavailable evidence does not automatically convert a result to `FAIL`, but the owning feature, active spec, or selected profile decides whether the gap blocks run or human acceptance.
 - Before classifying required rendered, runtime, interaction, migration, or integration evidence as unavailable, inspect the relevant automation and inspection capabilities actually available in the current environment. A missing preferred skill, tool, or adapter does not by itself prove that every valid evidence path is unavailable.
 - An evaluator must not describe an unobserved rendered, runtime, interaction, migration, or integration state as verified merely because source inspection or a narrower automated check passed.
-- Before terminating a Run, the Orchestrator must inspect evidence gaps and their acceptance impact; keep the evaluator result unchanged when an evidence gap requires more collection or blocks acceptance.
+- Before terminating a run, the Orchestrator must inspect evidence gaps and their acceptance impact; keep the evaluator result unchanged when an evidence gap requires more collection or blocks acceptance.
+
+## Docs-Content Writing Contract
+
+- A `docs-content` run may use a compact writing contract in place of a separate spec document. This is an alternate form of the active spec, not permission to build or evaluate without an execution contract.
+- The contract must identify the approved feature, source set and authority, affected document owners, permitted changes and preservation constraints, and acceptance checks with evaluator ownership. Reuse an existing approved feature section or another owned document when it already supplies these details; do not create a new file merely to satisfy the shape.
+- Before build or evaluation, the Orchestrator records the chosen contract's stable ID and relative path or section anchor in the run's `Active Spec` field. Use that same real ID and locator in spec fields throughout role handoffs, reports, and fix logs; do not invent a missing spec file. Retain run, attempt, and profile provenance.
+- This designated writing contract satisfies downstream roles' active-spec input. Skip a separate Spec Agent pass only when the contract is already sufficient; otherwise prepare or clarify it before execution. Return scope changes to planning and contract gaps to spec review under the normal rules.
 
 ## Execution Return Model
 The normal operating structure is:
@@ -127,7 +134,7 @@ Route based on the first broken layer:
 ## Profile-Aware Loop Assembly
 - Use [Execution Profiles](execution-profiles.md) as the single owner for profile selection, surface lanes, and evaluator routing.
 - Once the evaluator set is selected, apply this policy's result, evidence-gap, return, and termination rules to every report.
-- Record any Run-specific evaluator addition or omission in the active Run artifact instead of changing the shared matrix locally.
+- Record any run-specific evaluator addition or omission in the active run artifact instead of changing the shared matrix locally.
 
 ## Heuristic Side-Channel Rule
 - `UX Heuristic Evaluator` is a signal emitter, not a default blocking gate.
@@ -159,7 +166,7 @@ Do not start executable spec work when:
 
 ## Traceability Rules
 - Use one run identifier such as `run-YYYYMMDD-01` for each active execution pass.
-- Use one spec document per active feature loop.
+- Use one active spec per feature loop: a spec document, or the designated [docs-content writing contract](#docs-content-writing-contract).
 - A run may include multiple attempts when execution loops locally or is retried after a technical blocker.
 - Record return-to-spec or return-to-planning as post-run human decisions rather than as silent in-run redirects.
 - Use evaluator reports that name:

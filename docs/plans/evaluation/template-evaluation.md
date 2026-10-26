@@ -14,6 +14,8 @@
 - Evidence Coverage: `complete` | `partial` | `unavailable`
 - Created: `YYYY-MM-DD`
 
+For `docs-content`, replace the Spec example with the designated writing contract’s real ID and repository-relative file or section anchor. Do not invent a spec file.
+
 ## Scope
 - Active feature:
 - Active spec:
@@ -25,18 +27,18 @@
 ## Evidence
 - Environments checked: source inspection, automated tests, fresh isolated runtime, active long-running runtime, rendered browser, or another relevant surface.
 - Record only directly observed evidence and identify synthetic fixtures or approved runtime data boundaries.
-- Record whether each reported exemplar is instance-specific or exercises a shared renderer, component, token, control, or state owner; for shared owners, name the representative peer consumers or equivalent scopes checked.
-- For a content-triggered presentation defect, record the privacy-safe witness shape, generated semantic DOM, overflow owner at relevant container levels, and the deterministic regression retained at the shared owner. Generic long-content evidence is not a substitute when punctuation, indentation, nesting, or transformation caused the failure.
-- For inherited identity cues, record the cross-surface states checked, including direct entry and parent-owned child presentation when applicable.
-- For multi-target actions, record the per-target states and outcomes checked, including partial outcomes and user-visible consequences when applicable.
-- For a remote, costly, destructive, or multi-target action, record preview or preflight evidence separately from execution evidence, including scope, target or operation counts, readiness gating, and any verified no-side-effect path.
+- Select applicable detailed checks from [Design Evaluation](../../policies/design/design-evaluation.md) and [Interaction Evaluation](../../policies/experience/interaction-evaluation.md) when those review assets are installed. Record the concrete witness, owner, peer consumers, state transitions, and limitations required by the active feature.
+- For source normalization, complex collection or scroll behavior, remote or multi-target actions, and long-running work, follow the relevant owned checks rather than treating a generic fixture or successful endpoint as sufficient evidence.
+- For generated analysis, identify comparison inputs and configuration, original outputs, review scope, and observed variation. Separate content, interface, application, and user-outcome evidence using the corresponding Interaction Evaluation checks; identify settings that were only requested and outcomes that were not observed.
+- When Harness Improvement is selected and configured, use its [ordinary stage operation](../../agents/operations/harness-improvement.md#ordinary-stage-work) for evaluator-role provenance, relevant experience and closing reflection. A logical evaluator role does not establish a separate runtime agent. Keep an audience-safe stage/improvement reference only when useful and permitted.
+- When a related harness comparison's first authorized trial has actually started, use [Harness Improvement](../../agents/operations/harness-improvement.md) if installed and record an audience-safe experiment reference. Keep per-edit effects with that record's owner; Result and Evidence Coverage here still evaluate this run's declared criteria. Ordinary evaluation alone leaves a change effect `not assessed`. Omit references that are unused or would expose private locators or identifying record IDs; this does not prevent authorized private recording.
 
 ## Evidence Gaps
 - List required but unavailable evidence and the claims that remain unverified.
-- Owning requirement: Feature acceptance point, Spec requirement, or profile evidence rule.
+- Owning requirement: feature acceptance point, spec requirement, or profile evidence rule.
 - Acceptance impact: `blocking` | `non-blocking` | `not applicable`.
 - Keep `Result` for the evaluator outcome; do not invent a new result label to encode evidence coverage.
-- A `PASS` with partial or unavailable evidence must state whether the gap blocks acceptance under the owning Feature, Spec, or profile.
+- A `PASS` with partial or unavailable evidence must state whether the gap blocks acceptance under the owning feature, spec, or profile.
 
 ## Contract Evidence
 - Use when evaluator type is `contract`.

@@ -41,7 +41,7 @@
 - Do not silently reinterpret a source-of-truth request as a generated-output-only adjustment.
 
 ## Required Output
-Produce a normalized PRD package with these sections:
+Produce a normalized PRD package that follows the [PRD Rules](../../policies/harness/prd-feature-management.md#prd-rules) and includes these sections:
 
 1. Request summary
 2. Product intent in plain language
@@ -52,6 +52,9 @@ Produce a normalized PRD package with these sections:
 7. Constraints
 8. Acceptance seeds for downstream spec work
 9. Source map
+10. Proposed feature candidates for human boundary review
+
+Feature candidates remain proposals; they do not authorize spec work, implementation, or evaluation.
 
 ## Suggested Output Shape
 ```yaml
@@ -83,6 +86,9 @@ acceptance_seeds:
   - invalid credentials produce a visible failure state
   - successful authentication transitions to the intended next view
 
+proposed_feature_candidates:
+  - Login entry and credential submission flow, proposed for human boundary review.
+
 source_map:
   - human_request: primary
   - screenshot_01: primary
@@ -93,6 +99,16 @@ source_map:
 - Output should already separate `confirmed`, `excluded`, and `uncertain`.
 - The next role should be able to decompose only the confirmed scope.
 - If a likely interaction is missing but only inferable from heuristics, leave it uncertain and do not upgrade it into scope.
+
+## Optional Experience
+
+When Harness Improvement is selected and configured, use its
+[ordinary stage hooks](../operations/harness-improvement.md#ordinary-stage-work)
+on entry and handoff, including direct role invocation. Use the actual planning
+target/stage, not a fictitious run. Reuse a stage already opened by the workflow.
+Relevant experience can inform the method; it does not add product scope or
+replace human PRD review. An unresolved private binding permits session-only
+observation, with the gap reported.
 
 ## Non-Goals
 - detailed feature sequencing

@@ -19,7 +19,7 @@
 
 ## Input Contract
 - one approved feature document
-- one active spec document when it already exists
+- one active spec document or designated docs-content writing contract when it already exists
 - declared feature type, surface, execution profile, and surface lanes when available
 - current evaluator and fix artifacts when the loop is already running
 - relevant execution governance rules
@@ -33,7 +33,8 @@
 
 ### Apply Profile And Evaluator Policy
 - Read the approved feature metadata and apply the execution-profile policy without reproducing its profile definitions or evaluator matrix locally.
-- Record the selected profile, surface lanes, evaluator set, and any run-specific deviation in the active Run artifact.
+- Record the selected profile, surface lanes, evaluator set, and any run-specific deviation in the active run artifact.
+- For `docs-content`, designate the active spec or compact writing contract through [execution-loop governance](../../policies/harness/execution-loop-governance.md#docs-content-writing-contract) before handing off to build or evaluation.
 
 ### Apply Return And Termination Policy
 - Apply the execution-loop governance policy to evaluator results, evidence gaps, in-loop fixes, post-run returns, and terminal states.

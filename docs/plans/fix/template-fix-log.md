@@ -12,6 +12,8 @@
 - Created: `YYYY-MM-DD`
 - Updated: `YYYY-MM-DD`
 
+For `docs-content`, replace the Spec example with the designated writing contract’s real ID and repository-relative file or section anchor. Do not invent a spec file.
+
 ## Input Reports
 - Evaluator reports addressed:
 
@@ -19,7 +21,7 @@
 - List the defects being addressed in this fix pass.
 
 ## Changes Applied
-- Summarize the code or contract surfaces changed.
+- Summarize the code, contract, or document surfaces changed.
 
 ## Contract Or Lane Impact
 - Contract surfaces touched:
@@ -29,7 +31,10 @@
 ## Remaining Issues
 - Record unresolved findings, if any.
 
-## Return Decision
+## Recommended Route
+
+Record the Fix Agent's recommendation. A return to spec or planning requires the human owner's post-run decision; follow [Execution Loop Governance](../../policies/harness/execution-loop-governance.md#execution-return-model) for routing and early technical blockers.
+
 - `re-evaluate`
 - `spec-review`
 - `planning-review`
