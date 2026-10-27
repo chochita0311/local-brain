@@ -16,6 +16,19 @@ Spec, Run, and Evaluation document owns its own detailed status and history.
 
 ## Open Planning Boundaries
 
+- [PRD-0024: Deployed App Docs](prd/prd-0024-deployed-app-docs.md)
+  has delivered English in-app Docs immediately above settings, fixed /help routes,
+  first-use access and offline package content. The owner's latest correction
+  selects six canonical guides, removes reader clutter and keeps necessary recovery
+  guidance in feature pages under [FEAT-0144](feature/feat-0144-canonical-product-docs.md)
+  and [Run 208](run/run-20261027-208-canonical-product-docs.md). Later owner review
+  removed About, retained path-label meaning in Sessions and corrected search and
+  source-removal guidance. The final Docs-only snapshot passes all 1,257 tests,
+  six-guide desktop/narrow browser checks and relocated-wheel guide tests.
+  Earlier [Run 207](run/run-20261026-207-app-docs-reader.md)
+  owns the initial reader/offline/relocated-wheel evidence and five unrelated
+  schema/value inventory failures reproduced without Docs. The PRD remains `in-loop`
+  for human review; a rebuilt native app/ZIP and recipient execution are unverified.
 - [PRD-0021: macOS Standalone Test App And Local Settings](prd/prd-0021-macos-standalone-test-app-and-local-settings.md)
   has completed local implementation and is `blocked` for final native/recipient
   acceptance of the standalone Mac test app centered on Session browsing/detail,

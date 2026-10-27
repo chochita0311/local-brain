@@ -120,6 +120,9 @@ _SINGLE_LINE_MATH_RULE = math_inline_dollar(
     allow_double=False,
 )
 _MAX_EMBED_DEPTH = 3
+_APP_DOC_ROUTE_PATTERN = re.compile(
+    r"/(?:help(?:/[a-z-]+)?|sessions-dashboard|sessions|projects|context|natural-search|settings)"
+)
 _MATHML_NAMESPACE = "http://www.w3.org/1998/Math/MathML"
 _MATHML_ELEMENTS = {
     "math",
@@ -579,7 +582,7 @@ def _render_link_open(renderer, tokens, idx, options, env) -> str:
         close_tags.append("span")
         return '<span class="markdown-reference markdown-reference-missing" data-reference-state="missing">'
 
-    if decoded in env.get("trusted_session_routes", ()):
+    if decoded in env.get("trusted_session_routes", ()) or decoded in env.get("app_doc_routes", ()):
         token.attrSet("href", decoded)
         token.attrSet("class", "markdown-reference markdown-reference-internal")
         token.attrSet("data-reference-state", "resolved")
@@ -830,6 +833,7 @@ def render_markdown(
     *,
     reference_context: Optional[MarkdownReferenceContext] = None,
     trusted_session_routes: Optional[set[str]] = None,
+    app_doc_routes: Optional[set[str]] = None,
     _embed_depth: int = 0,
     _embed_stack: Tuple[int, ...] = (),
 ) -> MarkdownRenderResult:
@@ -855,6 +859,12 @@ def render_markdown(
         "trusted_session_routes": frozenset(
             route for route in (trusted_session_routes or ())
             if isinstance(route, str) and re.fullmatch(r"/sessions/[1-9][0-9]*", route)
+        ),
+        # Only the first-party app guide supplies these exact product links.
+        # Imported source text keeps its existing unresolved-reference behavior.
+        "app_doc_routes": frozenset(
+            route for route in (app_doc_routes or ())
+            if isinstance(route, str) and _APP_DOC_ROUTE_PATTERN.fullmatch(route)
         ),
         "anchor_source": render_source,
         "embed_depth": _embed_depth,

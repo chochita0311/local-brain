@@ -198,6 +198,7 @@
   --type-section-size: var(--size-18);
   --type-title-size: var(--size-16);
   --type-body-size: var(--size-14);
+  --type-prose-size: var(--size-16);
   --type-body-small-size: var(--size-13);
   --type-label-size: var(--size-12);
   --type-caption-size: var(--size-11);
@@ -2430,7 +2431,11 @@ select:not([multiple]) {
   .app-shell { display: block; }
   .lnb { position: relative; width: 100%; height: auto; display: block; padding: var(--space-row-block) var(--space-row-block) var(--space-control-gap); }
   .lnb .brand { margin: var(--space-none) var(--space-compact) var(--space-row-block); }
-  .brand-copy small, .nav-group-label, .lnb-footer { display: none; }
+  .brand-copy small, .nav-group-label { display: none; }
+  .lnb-footer { display: flex; gap: var(--space-control-gap); margin-top: var(--space-control-gap); padding: var(--space-none); border-top: var(--border-width-none); }
+  .lnb-footer .local-status, .lnb-footer small { display: none; }
+  .lnb-footer .lnb-item { min-height: var(--control-min-height-touch); }
+  .lnb-footer .settings-gear { width: auto; min-height: var(--control-min-height-touch); margin-bottom: var(--space-none); }
   .lnb-nav { display: flex; gap: var(--space-compact); overflow-x: auto; padding-bottom: var(--space-micro); }
   .nav-group { display: contents; }
   .lnb-item { flex: 0 0 auto; width: auto; min-height: var(--control-min-height-touch); grid-template-columns: auto; padding: var(--space-none) var(--space-row-block); }

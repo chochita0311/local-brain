@@ -1,0 +1,43 @@
+.app-docs {
+  display: grid;
+  grid-template-columns: var(--rail-filter-width) minmax(0, 1fr);
+  gap: var(--space-page-start);
+  align-items: start;
+  min-width: 0;
+}
+.app-docs-contents { position: sticky; top: var(--shell-sticky-offset); min-width: 0; }
+.app-docs-contents .eyebrow { margin-bottom: var(--space-card); }
+.app-docs-contents nav { display: grid; gap: var(--space-compact); }
+.app-docs-topic {
+  display: flex;
+  align-items: center;
+  min-height: var(--control-min-height);
+  padding: var(--space-control-gap) var(--space-row-block);
+  color: var(--text-secondary);
+  border-radius: var(--radius-control);
+  font-size: var(--type-label-size);
+  overflow-wrap: anywhere;
+}
+.app-docs-topic:hover { color: var(--text-primary); background: var(--surface-subtle); }
+.app-docs-topic.active { color: var(--text-link); background: var(--surface-info); font-weight: var(--type-semibold); }
+.app-docs-topic:focus-visible, .app-docs-pagination a:focus-visible {
+  outline: var(--border-width-focus) solid var(--focus-ring);
+  outline-offset: var(--space-micro);
+}
+.app-docs-article { min-width: 0; max-width: var(--content-reading-max); }
+.app-docs-heading { margin-bottom: var(--space-page-start); }
+.app-docs-heading .heading-copy { max-width: none; line-height: var(--type-line-reading); }
+.app-docs-body { font-size: var(--type-prose-size); line-height: var(--type-line-reading); }
+.app-docs-body :is(h2, h3) { scroll-margin-top: var(--shell-sticky-offset); }
+.app-docs-pagination { display: flex; flex-wrap: wrap; gap: var(--space-section); margin-top: var(--space-page-start); padding-top: var(--space-section); border-top: var(--border-width-control) solid var(--border-subtle); }
+.app-docs-pagination a { display: grid; gap: var(--space-compact); min-height: var(--control-min-height); color: var(--text-link); font-size: var(--type-body-small-size); }
+.app-docs-pagination a span { color: var(--text-secondary); }
+.app-docs-next { margin-left: auto; text-align: right; }
+@media (max-width: 920px) {
+  .app-docs { grid-template-columns: minmax(0, 1fr); gap: var(--space-section); }
+  .app-docs-contents { position: static; padding-bottom: var(--space-section); border-bottom: var(--border-width-control) solid var(--border-subtle); }
+  .app-docs-contents nav { display: flex; flex-wrap: wrap; gap: var(--space-compact); }
+}
+@media (max-width: 700px) {
+  .app-docs-topic { min-height: var(--control-min-height-touch); }
+}

@@ -85,6 +85,11 @@ unverified behavior belong in the Feature and Run records.
   and the current step. Back retains drafts. Skip does not register a draft.
   Empty sources and model-free search are valid; no step navigation downloads
   or prepares a model. The existing explicit model actions retain that authority.
+- Welcome links to the bundled English Getting Started guide. Docs pages do not
+  auto-open onboarding over their content; reading the guide does not complete
+  setup or register sources. Explicit setup requests and ordinary startup keep
+  the existing completion behavior. [In-App Documentation](app-documentation.md)
+  owns the reader, route and packaging contract.
 - Final Next/Skip or explicit Set up later (also Escape) saves
   `onboarding_completed = true` with a fresh revision, then opens the saved
   startup surface. A failed completion keeps the modal open; an ambiguous write
@@ -355,7 +360,7 @@ their existing explicit authority. Picking does not persist a path independently
   stops scheduling. The packaged app owns its backend, closes windows without
   quitting, and shuts down the backend on explicit app quit.
 - The packaged edition exposes Sessions, Sessions Dashboard, Context, search,
-  onboarding and settings. Dashboard/learning, Workstreams, Auto Work, Atlassian,
+  onboarding, settings and bundled Docs. Dashboard/learning, Workstreams, Auto Work, Atlassian,
   Insights, Session workflow and Schema cannot be enabled by user settings or
   direct HTTP access. The normal development web edition keeps its other routes.
 - The desktop server binds loopback on an available port, authenticates its

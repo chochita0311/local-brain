@@ -17,7 +17,7 @@ Product terminology and organization rules are defined in [Product Model](produc
 - Desktop packaging: Tauri 2 and a PyInstaller Python 3.11 bundle, Apple Silicon
 
 The standalone test edition admits Sessions, Sessions Dashboard, Local Context,
-search, settings and onboarding. Its immutable runtime boundary excludes the
+search, settings, onboarding and bundled English Docs. Its immutable runtime boundary excludes the
 unfinished development surfaces; [Desktop App And Settings](desktop-app-and-settings.md)
 owns lifecycle, local authentication and source/settings contracts.
 
@@ -54,6 +54,7 @@ Approved external sources through MCP Gateway
 
 ## Package Ownership
 
+- `app_docs.py`, package `content/docs/`, `templates/app-docs.html` and `static/app-docs.css`: fixed user-guide registry, canonical English content and in-app reader. [In-App Documentation](app-documentation.md) owns the product routes, shared Markdown link exception, package delivery and content boundary.
 - `preferences.py`, `source_settings.py`, `settings_web.py`: shared local preferences,
   optimistic configuration revisions, source registration/reconnection and UI APIs.
 - `source_sync.py`, `session_sync.py`, `context_sync.py`, `local_operations.py`: independent

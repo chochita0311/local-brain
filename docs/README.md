@@ -32,6 +32,7 @@ Durable rules and current contracts live under `docs/policies/`.
 - [Interaction Evaluation](policies/experience/interaction-evaluation.md): reusable interaction continuity and UX checks
 
 - [Desktop App And Common Local Settings](policies/project/desktop-app-and-settings.md): settings, source identity/lifecycle, synchronization and recovery contracts
+- [In-App Documentation](policies/project/app-documentation.md): bundled English user-guide ownership, /help routes, reader and shared Markdown link authority, packaging and privacy
 - [Standalone Test App Guide](policies/project/standalone-test-app-guide.md): first use, local storage, manual replacement and test-distribution limits
 
 ## Design System

@@ -13,7 +13,7 @@
     <script src="{{ url_for('static', path='/app.js') }}?v={{ asset_version | default('dev') }}" defer></script>
   </head>
   {% set preferences = local_preferences() %}
-  {% set setup_requested = (request is defined and request.query_params.get('setup') == '1') or (desktop_edition and active_page != 'settings' and not preferences.onboarding_completed) %}
+  {% set setup_requested = (request is defined and request.query_params.get('setup') == '1') or (desktop_edition and active_page not in ['settings', 'docs'] and not preferences.onboarding_completed) %}
   <body data-timezone="{{ preferences.timezone }}"{% if setup_requested %} data-onboarding="true"{% endif %}>
     <a class="skip-link" href="#main-content"{% if setup_requested %} inert{% endif %}>본문으로 건너뛰기</a>
     <div class="app-shell"{% if setup_requested %} inert{% endif %}>
@@ -77,6 +77,7 @@
         </nav>
 
         <div class="lnb-footer">
+          <a class="lnb-item{% if active_page == 'docs' %} active{% endif %}" href="/help"{% if active_page == 'docs' %} aria-current="page"{% endif %}><span class="nav-symbol" aria-hidden="true">?</span><span>Docs</span></a>
           <button type="button" class="secondary-button settings-gear" data-settings-open><span aria-hidden="true">⚙</span>설정</button>
           <span class="local-status"><span class="status-dot" aria-hidden="true"></span>Local index online</span>
           <small>Private on this Mac</small>

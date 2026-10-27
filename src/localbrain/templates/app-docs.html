@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}{{ guide.title if guide else 'Guide not found' }} · Docs · LocalBrain{% endblock %}
+{% block page_location %}Docs{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{{ url_for('static', path='/app-docs.css') }}?v={{ asset_version }}">{% endblock %}
+{% block content %}
+  <div class="app-docs" lang="en">
+    <aside class="app-docs-contents">
+      <p class="eyebrow">LOCALBRAIN DOCS</p>
+      <nav aria-label="Documentation contents">
+        {% for item in guides %}
+          <a class="app-docs-topic{% if guide == item %} active{% endif %}" href="{{ item.href }}"{% if guide == item %} aria-current="page"{% endif %}>{{ item.title }}</a>
+        {% endfor %}
+      </nav>
+    </aside>
+    <article class="app-docs-article" aria-labelledby="guide-title">
+      <header class="app-docs-heading">
+        <div>
+          <h1 id="guide-title">{{ guide.title if guide else 'Guide not found' }}</h1>
+          {% if guide %}<p class="heading-copy">{{ guide.description }}</p>{% endif %}
+        </div>
+      </header>
+      {% if guide_error %}
+        <div class="empty-state" role="status"><p>{{ guide_error }}</p><a href="/help">Back to Getting started</a></div>
+      {% else %}
+        <div class="markdown-body app-docs-body" data-markdown-body>{{ body.html }}</div>
+        <nav class="app-docs-pagination" aria-label="Adjacent guides">
+          {% if previous_guide %}<a href="{{ previous_guide.href }}"><span>Previous</span>{{ previous_guide.title }}</a>{% endif %}
+          {% if next_guide %}<a class="app-docs-next" href="{{ next_guide.href }}"><span>Next</span>{{ next_guide.title }}</a>{% endif %}
+        </nav>
+      {% endif %}
+    </article>
+  </div>
+{% endblock %}

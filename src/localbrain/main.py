@@ -358,7 +358,9 @@ templates.env.globals["app_version"] = __version__
 templates.env.globals["local_preferences"] = lambda: presentation_preferences(settings)
 templates.env.filters["project_path"] = lambda path: home_relative_path(path) or "미지정"
 from .settings_web import install_settings_routes
+from .app_docs import install_routes as install_app_docs_routes
 install_settings_routes(app, templates)
+install_app_docs_routes(app, templates)
 
 
 def _auto_work_local_request(request: Request):

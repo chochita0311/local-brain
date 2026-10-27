@@ -98,6 +98,14 @@ class DesktopBoundaryTests(unittest.TestCase):
         self.assertEqual(self.request("/workstreams", headers=self.authenticated()).status_code, 404)
         self.assertEqual(self.request("http://example.invalid/sessions", headers=self.authenticated()).status_code, 403)
 
+    def test_bundled_docs_require_auth_and_do_not_open_developer_routes(self):
+        for slug in ("", "/settings", "/sessions-dashboard", "/sessions", "/local-contexts", "/search"):
+            path = "/help" + slug
+            self.assertEqual(self.request(path).status_code, 401)
+            self.assertEqual(self.request(path, headers=self.authenticated()).status_code, 200)
+        for path in ("/docs", "/openapi.json", "/help/workstreams", "/help/schema", "/help/settings/extra", "/help/troubleshooting"):
+            self.assertEqual(self.request(path, headers=self.authenticated()).status_code, 404)
+
 
 if __name__ == "__main__":
     unittest.main()

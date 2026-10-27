@@ -6,7 +6,7 @@ Edit the owning artifact, then run `uv run python scripts/build-plan-artifact-ca
 
 Status and relation values are preserved from each owner artifact. `—` means the field is not declared or does not apply; historical Spec `passed` and Run `complete` values are legacy aliases preserved under [Execution Artifact Status](../policies/harness/execution-loop-governance.md#execution-artifact-status).
 
-## PRDs (21)
+## PRDs (22)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -31,8 +31,9 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [PRD-0019: Observed Session Chart](prd/prd-0019-observed-session-chart.md) | `approved` | — |
 | [PRD-0020: Local Natural Language Search](prd/prd-0020-local-natural-language-search.md) | `approved` | — |
 | [PRD-0021: macOS Standalone Test App And Local Settings](prd/prd-0021-macos-standalone-test-app-and-local-settings.md) | `blocked` | — |
+| [PRD-0024: Deployed App Docs](prd/prd-0024-deployed-app-docs.md) | `in-loop` | — |
 
-## Features (136)
+## Features (140)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -172,8 +173,12 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [FEAT-0138: 로컬 저장소 확인과 복구](feature/feat-0138-local-storage-recovery.md) | `blocked` | PRD-0021 — C11 |
 | [FEAT-0139: 독립 테스트 앱 전달](feature/feat-0139-standalone-test-app-delivery.md) | `blocked` | PRD-0021 — C12 |
 | [FEAT-0140: 공통 10분 세션 동기화](feature/feat-0140-periodic-local-session-sync.md) | `blocked` | PRD-0021 — C13 |
+| [FEAT-0141: App Docs Delivery Contract](feature/feat-0141-app-docs-delivery-contract.md) | `passed` | PRD-0024 |
+| [FEAT-0142: In-App Docs Reader](feature/feat-0142-app-docs-reader.md) | `passed` | PRD-0024 |
+| [FEAT-0143: English App Guides](feature/feat-0143-english-app-guides.md) | `passed` | PRD-0024 |
+| [FEAT-0144: Canonical Product Docs](feature/feat-0144-canonical-product-docs.md) | `passed` | PRD-0024 |
 
-## Specs (145)
+## Specs (148)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -322,8 +327,11 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [SPEC-0138: 로컬 저장소 확인과 복구](spec/spec-0138-local-storage-recovery.md) | `approved` | FEAT-0138 |
 | [SPEC-0139: 독립 테스트 앱 전달](spec/spec-0139-standalone-test-app-delivery.md) | `approved` | FEAT-0139 |
 | [SPEC-0140: 공통 10분 세션 동기화](spec/spec-0140-periodic-local-session-sync.md) | `approved` | FEAT-0140 |
+| [SPEC-0141: App Docs Delivery Contract](spec/spec-0141-app-docs-delivery-contract.md) | `approved` | FEAT-0141 |
+| [SPEC-0142: In-App Docs Reader](spec/spec-0142-app-docs-reader.md) | `approved` | FEAT-0142 |
+| [SPEC-0144: Canonical Product Docs](spec/spec-0144-canonical-product-docs.md) | `approved` | FEAT-0144 |
 
-## Runs (200)
+## Runs (204)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -527,8 +535,12 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [run-20261026-202-profile-tag-alignment](run/run-20261026-202-profile-tag-alignment.md) | `passed` | FEAT-0133 |
 | [run-20261026-203-profile-palette-width](run/run-20261026-203-profile-palette-width.md) | `passed` | FEAT-0133 |
 | [run-20261026-204-pin-order-and-palette-focus](run/run-20261026-204-pin-order-and-palette-focus.md) | `passed` | FEAT-0084, FEAT-0133 |
+| [Run 205: App Docs Delivery Contract](run/run-20261026-205-app-docs-delivery-contract.md) | `passed` | FEAT-0141 |
+| [Run 206: English App Guides](run/run-20261026-206-english-app-guides.md) | `passed` | FEAT-0143 |
+| [Run 207: In-App Docs Reader](run/run-20261026-207-app-docs-reader.md) | `passed` | FEAT-0142 |
+| [Run 208: Canonical Product Docs](run/run-20261027-208-canonical-product-docs.md) | `passed` | FEAT-0144 |
 
-## Evaluations And Schema Audits (438)
+## Evaluations And Schema Audits (444)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -970,6 +982,12 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [EVAL-0139: Standalone Integration Contracts](evaluation/eval-0139-contract-standalone-test-app.md) | `complete` | FEAT-0139 |
 | [EVAL-0139: Settings And Shared Product Surfaces](evaluation/eval-0139-design-standalone-test-app.md) | `complete` | FEAT-0139, integrating FEAT-0132–0138/0140 |
 | [EVAL-0139: Standalone Test App Integration](evaluation/eval-0139-functional-standalone-test-app.md) | `complete` | FEAT-0139 |
+| [EVAL-0141: App Docs Delivery Contract](evaluation/eval-0141-contract-app-docs-delivery.md) | `complete` | FEAT-0141 |
+| [EVAL-0142: Docs Reader Contracts](evaluation/eval-0142-contract-app-docs-reader.md) | `complete` | FEAT-0142 |
+| [EVAL-0142: Docs Design And Interaction](evaluation/eval-0142-design-app-docs-reader.md) | `complete` | FEAT-0142 |
+| [EVAL-0142: Docs Functional Evaluation](evaluation/eval-0142-functional-app-docs-reader.md) | `complete` | FEAT-0142 |
+| [EVAL-0143: English App Guides](evaluation/eval-0143-english-app-guides.md) | `complete` | FEAT-0143 |
+| [EVAL-0144: Canonical Product Docs](evaluation/eval-0144-canonical-product-docs.md) | `complete` | FEAT-0144 |
 
 ## Fix Logs (25)
 

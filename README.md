@@ -11,7 +11,11 @@ search and periodic Session synchronization.
 Unzip `LocalBrain-apple-silicon.zip` and open `LocalBrain.app`. Recipients need no
 Python, uv, Homebrew or source checkout. This ad-hoc signed test build is not
 notarized; see the [first-launch and update guide](docs/policies/project/standalone-test-app-guide.md).
-The app provides Sessions, Sessions Dashboard, Local Context, search and settings.
+The app provides Sessions, Sessions Dashboard, Local Context, search, settings and
+bundled English Docs. Open **Docs**, immediately above Settings, for Getting
+Started, settings, screen guides and search, with backup and recovery under
+Settings → Storage. The guide works offline without a model or registered sources;
+it describes the distributed app.
 The other development-web capabilities below remain outside this app edition.
 On first use, a setup window overlays the main screen and walks through Welcome,
 Session sources, documents and search. Use Previous/Next, skip optional steps or

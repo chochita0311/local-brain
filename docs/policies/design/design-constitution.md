@@ -321,6 +321,7 @@ Components consume semantic roles only. Color, type, spacing, radius, elevation,
   --type-section-size: var(--size-18);
   --type-title-size: var(--size-16);
   --type-body-size: var(--size-14);
+  --type-prose-size: var(--size-16);
   --type-body-small-size: var(--size-13);
   --type-label-size: var(--size-12);
   --type-caption-size: var(--size-11);
@@ -460,6 +461,14 @@ The persistent navigation has three groups and nine stable destinations:
 - **System:** Sources, Schema
 
 Active navigation uses text, surface, and an accent indicator. Narrow navigation preserves every destination, supports horizontal scrolling, and keeps the active item visible.
+
+The shared footer places Docs immediately above Settings. Compact layouts keep
+both utilities reachable while hiding nonessential footer status text. Product
+Docs retain the app shell and a compact current-topic contents list beside the
+reading area; at 920px and below the contents enter normal flow. English guide
+prose uses the shared Markdown and reading-width/type roles, with local table
+overflow rather than page-wide overflow. Docs do not create a separate visual
+system or require setup/model installation for reading.
 
 Sessions owns two mutually exclusive local inventory views: `Sessions` is the default and `Projects` is its Session-derived path grouping. Their selected indicator may move with the shared motion roles, but the visible label and matching programmatic current state remain authoritative under normal and reduced motion.
 
