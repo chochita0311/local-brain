@@ -754,8 +754,12 @@ and deep links. Atlassian Item matches group identity, eligible remote
 metadata/body, and local note/Topic/Tag roles back to one stable Item result
 with its Source domain, coverage, and freshness. A non-archived Atlassian
 structure reference remains a separately typed result projected only from its
-reference identity, generated family label, and privacy-safe locator. Browsing
-and search are local reads and never trigger remote or model work.
+reference identity, generated family label, and privacy-safe locator. Atlassian
+browsing and exact retrieval are local reads that invoke no remote service or
+model. Shared-header keyword and AI search follow the
+[search contract](natural-language-search.md): keyword queries need no model;
+explicit AI search encodes queries locally with the prepared embedding model.
+These searches send neither user queries nor source text to a remote service.
 
 ### Insights
 

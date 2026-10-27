@@ -230,6 +230,11 @@ Last reviewed: 2026-09-24
 
 ## Current Direction
 
+The workflow-map direction below is retained for resumption; implementation and
+calculations on that track are stopped. The current review concerns the standalone
+app's native interactions and teammate download/run evidence, described in the
+[standalone-app boundary](#macos-standalone-test-app--2026-10-18).
+
 ### Current Validation State
 
 LocalBrain is validating how to move from manually maintained Workstream and

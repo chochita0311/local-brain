@@ -192,11 +192,16 @@ single linked checkbox in the detailed backlog below.
 - [ ] Define an export workflow with destination confirmation, content preview, and redaction options.
 - [ ] Add per-source delete, purge, and re-index operations that distinguish index removal from original-source deletion.
 - [ ] Decide whether database encryption at rest is required and, if so, keep keys in macOS Keychain.
-- [ ] Define user backup, restore/export, and database corruption recovery procedures.
-  Independent macOS installation, LocalBrain-owned optional model setup, and
-  bounded seven-day migration-copy retirement are implemented under
-  [macOS Installation And Local Storage](../../policies/project/installation-and-storage.md).
-  Native binary packaging and a broader user-facing recovery flow remain open.
+- [ ] Complete general export and database-corruption recovery procedures beyond
+  the implemented same-installation, same-Mac backup/restore flow. Independent
+  macOS installation, LocalBrain-owned optional model setup and bounded seven-day
+  migration-copy retirement follow [Installation And Local Storage](../../policies/project/installation-and-storage.md).
+  The [local recovery contract](../../policies/project/desktop-app-and-settings.md#local-recovery)
+  owns backup, restart-only restore and bounded cache cleanup; the
+  [Settings guide](../../../src/localbrain/content/docs/settings.md#storage) owns their user procedures.
+  Local Tauri/Apple Silicon packaging is implemented. Direct native interactions
+  and teammate download/run acceptance remain open under
+  [PRD-0021](../prd/prd-0021-macos-standalone-test-app-and-local-settings.md).
 - [ ] Ensure logs and error pages omit note bodies, Session excerpts, credentials, and full prompts by default.
 - [ ] Replace private data in tracked test fixtures and screenshots with generated examples.
 

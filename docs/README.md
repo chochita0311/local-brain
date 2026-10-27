@@ -5,9 +5,31 @@ This directory separates durable project contracts from active planning artifact
 ## Start Here
 
 - Use [the root README](../README.md) for the product overview and quick start.
+- Use the [Developer Guide](policies/project/developer-guide.md) for source setup, development-web workflows, builds, configuration and verification.
 - Use [AGENTS.md](../AGENTS.md) for repository-local operating rules and source-of-truth routing.
 - Use [Agent Workflow](agents/README.md) for structured PRD, feature, spec, build, and evaluation loops.
 - Use this file to find the document that owns a product, implementation, or planning fact.
+
+## User Guides
+
+The distributed app's English user guides live in `src/localbrain/content/docs/`
+and are read through **Docs** in the app. They own ordinary screen usage and
+settings procedures; [In-App Documentation](policies/project/app-documentation.md)
+owns their content and delivery rules.
+
+| Guide | Responsibility |
+| --- | --- |
+| [Getting Started](../src/localbrain/content/docs/getting-started.md) | Setup, first use, quitting and updates |
+| [Settings](../src/localbrain/content/docs/settings.md) | Preferences, source registration, synchronization, backup and recovery |
+| [Sessions](../src/localbrain/content/docs/sessions.md) | Conversations, projects, pins and Chart |
+| [Sessions Dashboard](../src/localbrain/content/docs/sessions-dashboard.md) | Usage, cost estimates and coverage |
+| [Local Contexts](../src/localbrain/content/docs/local-contexts.md) | Document sources, reading and format limits |
+| [Search](../src/localbrain/content/docs/search.md) | Keyword search, optional AI setup and readiness |
+
+The [macOS test distribution guide](policies/project/standalone-test-app-guide.md)
+owns artifact-specific first-launch requirements and distribution verification
+limits. Build commands belong to the Developer Guide. Internal product contracts
+and development progress remain in the layers below.
 
 ## Policies
 
@@ -22,7 +44,7 @@ Durable rules and current contracts live under `docs/policies/`.
 - [Value Dictionaries](policies/project/data-model/value-dictionaries.md): generated subject map from physical and derived bounded values to complete presentation modes, labels, fallbacks, and consumer ownership
 - [Schema Presentation](policies/project/schema-presentation.md): deterministic package manifest, source ownership, loader/failure behavior, and downstream Schema consumer contract
 - [Privacy And Data Handling](policies/project/privacy-and-data.md): repository boundary, local persistence, external access, and disclosure constraints
-- [Developer Guide](policies/project/developer-guide.md): source development setup, configuration, model experiments, private evaluation archives and verification
+- [Developer Guide](policies/project/developer-guide.md): source setup, development-web workflows, distribution builds, configuration, model experiments, private evaluation archives and verification
 - [Markdown Rendering Contract](policies/project/markdown-rendering.md): shared syntax, trust, local-reference, highlighting, consumer, and fallback rules
 - [Maintenance Task Runner](policies/operations/claude-task-runner.md): in-app Claude/Codex maintenance execution, retrieval, external-sync boundaries, persistence, and review behavior
 - [Harness Policies](policies/harness/): planning approval, execution routing, profiles, delegation, operator continuity, and traceability
@@ -33,7 +55,7 @@ Durable rules and current contracts live under `docs/policies/`.
 
 - [Desktop App And Common Local Settings](policies/project/desktop-app-and-settings.md): settings, source identity/lifecycle, synchronization and recovery contracts
 - [In-App Documentation](policies/project/app-documentation.md): bundled English user-guide ownership, /help routes, reader and shared Markdown link authority, packaging and privacy
-- [Standalone Test App Guide](policies/project/standalone-test-app-guide.md): first use, local storage, manual replacement and test-distribution limits
+- [macOS Test Distribution Guide](policies/project/standalone-test-app-guide.md): artifact-specific first launch, manual replacement, environment evidence and recipient-validation limits
 
 ## Design System
 
@@ -66,7 +88,8 @@ Sequencing and unresolved work live under `docs/plans/`.
 
 ## Ownership Rules
 
-- `README.md` explains what LocalBrain is and how to start it.
+- `README.md` owns the public product overview, installation entry and short first-use path; detailed screen usage belongs to the app guides above.
+- `src/localbrain/content/docs/` owns the distributed app's user-guide bodies. Update the relevant guide with a public behavior change, following [In-App Documentation](policies/project/app-documentation.md).
 - `AGENTS.md` routes contributors and agents without duplicating deeper contracts.
 - `docs/policies/` owns facts that should remain true across implementation cycles.
 - `docs/plans/` owns facts expected to change as work is completed or reprioritized.

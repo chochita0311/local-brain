@@ -48,7 +48,8 @@ Agent harness experience uses the separate, ignored [consumer evidence layout](d
 ## Source Of Truth
 
 - Keep `AGENTS.md` short and operational.
-- Keep product overview and first-run commands in `README.md`.
+- Keep the product overview and first-use path in `README.md`.
+- Keep detailed app usage in `src/localbrain/content/docs/`; [In-App Documentation](docs/policies/project/app-documentation.md) owns that guide set.
 - Keep durable rules, definitions, contracts, and guides under `docs/policies/`.
 - Keep sequencing, priorities, unresolved work, and roadmaps under `docs/plans/`.
 - Treat code and database schema as implementation truth; update their owner docs when behavior changes.
@@ -89,7 +90,7 @@ Agent harness experience uses the separate, ignored [consumer evidence layout](d
 - Update the document that owns a changed fact in the same turn as the behavior change.
 - Use kebab-case filenames under `docs/`.
 - Remove duplicate guidance by linking to one canonical owner.
-- Update `README.md` for user-visible setup or usage changes.
+- Update `README.md` when the product overview, installation entry, or first-use path changes. Update the owning app guide for screen usage and settings procedures.
 - Update `docs/policies/` for durable behavior, constraints, and contracts.
 - Update `docs/plans/` for priorities, sequencing, and unresolved work.
 - Keep machine-specific workflow inventories and handoff context out of Git; tracked owner docs are the repository source of truth.

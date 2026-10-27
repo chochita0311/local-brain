@@ -48,6 +48,72 @@ assets and records LocalBrain's installation metadata. `uv run --no-sync localbr
 `uv run --no-sync localbrain models status` inspect readiness without reading sources or
 downloading/running models.
 
+## Development Web Workflows
+
+The development web server exposes the wider project workflows below. The
+distributed macOS app has the narrower [desktop product boundary](desktop-app-and-settings.md#runtime-and-product-boundary).
+Ordinary app usage belongs to the [bundled user guides](app-documentation.md).
+
+| Workflow | Entry and owning contract |
+| --- | --- |
+| Work organization | Workstreams and Threads; [Product Model](product.md#workstream-first) owns user-created organization, linked resources, checkpoints and reversible Suggestions. [Maintenance Task Runner](../operations/claude-task-runner.md) owns Claude-backed organization, checkpoint and priority tasks. |
+| Atlassian references | Atlassian; [Explorer contract](product.md#atlassian-explorer-add-connections-sync-and-refresh) distinguishes local Browse, Add and evidence Sync from Connections and remote Refresh. |
+| Personal improvement | Sessions Dashboard → Insights; [Personal Improvement Analysis](#personal-improvement-analysis) covers configuration and explicit analysis Runs. |
+| Affinity inspection | `/auto-work`; [Auto Work Inspection](product.md#auto-work-inspection) owns the observation-only map and separate earlier sample. |
+| Session workflow | Session detail → `작업 흐름`; [Episode and direction](product.md#workflow-episode-and-direction) and [correction](product.md#workflow-assertion-and-correction) contracts own deterministic lineage and reversible user assertions. |
+| Schema reference | System → Schema; [Schema Presentation](schema-presentation.md) owns read-only access to the packaged data model, subject ERDs and table contracts. |
+
+### Search Sessions And Local Context
+
+Use the shared header or `/natural-search`. Keyword mode needs no model. For AI
+search in a source checkout, install the [optional model runtime](installation-and-storage.md#install-the-local-model-runtime), then run:
+
+```bash
+uv run --no-sync localbrain models install embedding
+uv run --no-sync localbrain search prepare
+uv run --no-sync localbrain search status
+```
+
+Installed Python/web applications use the same commands without `uv run --no-sync`.
+After preparation, select **AI 검색** and try `만들던 앱 관련 세션을 보여줘`.
+Restart a running server after changing code or model dependencies. First
+preparation reads all eligible primary-work Sessions and enabled, readable Local
+Context bodies; long histories can take substantial time. Maintenance and
+subsessions are excluded. Enabled search refreshes after collected material
+changes. The [search contract](natural-language-search.md) owns query modes,
+model roles, ranking, evidence navigation and recovery; [storage ownership](installation-and-storage.md#natural-language-search-storage)
+owns its private index and public model cache.
+
+### Browse The Full-History Affinity Map
+
+Prepare the result with the [full-history simulation commands](#full-history-simulation-and-model-trials),
+then open **자동 작업** above **Workstreams**, or `/auto-work`.
+
+- **전체 이력 지도** runs left-to-right in actual message time. Select a strand
+  for its full evidence or a knot for that period's original passages.
+- Use **선택 주변 확대** to bring the selected neighborhood closer, or
+  **세부 묶음 펼치기 → 세션 가까이 보기** for a finer scope.
+- Scroll horizontally through time and vertically to other strands, use the
+  **← / →** controls, or drag to pan. Zoom/reset and **Ctrl/⌘ + wheel** change
+  the view. **전체 기간** fits the full time axis; the initial view is 200%.
+- Ordinary scrolling moves the map inside its bounded viewport and the document
+  outside it. Back restores the selected view. Only the text list is paginated;
+  its pages preserve the map and camera.
+
+Curved strands group similar records, knots show observed activity and dashed
+gaps show periods with no observed records. Unknown dates stay unplaced; none
+of these marks establishes continuous work duration or causal work relationships.
+The [product contract](product.md#auto-work-inspection) owns whole-population
+coverage, coarse/finer grouping, occurrence-based knot sizes, overlap and
+fragmentation disclosures, title search and narrow/no-script evidence access.
+
+Browsing never starts a model, ingestion or regrouping. Missing, changed or
+expired results show recovery rather than a replacement sample. Restart an
+already running server after code changes. **이전 표본 · 규칙 기반**
+(`/auto-work?mode=sample`) keeps the earlier Session/document comparator; its
+**결과 갱신** refreshes only that model-free sample. Its seven-day preview and
+the simulation's 30-day derived state retain separate lifecycles.
+
 ## Build An Installable Distribution
 
 Build from a reviewed source checkout:
@@ -67,6 +133,28 @@ publishing it. Check startup, the empty-source pages, static assets and optional
 model prerequisites from that environment; a source-checkout run alone does not
 establish that a distribution works. Building a wheel does not publish a release
 or provide a native macOS executable.
+
+### Build The macOS App
+
+Build on an Apple Silicon Mac with Xcode Command Line Tools, Rust stable and
+Node. Recipients do not need these build tools.
+
+```bash
+uv sync --python 3.11 --extra local-models --extra desktop-build --frozen
+npm ci --prefix desktop
+uv run --no-sync python scripts/build-desktop.py
+```
+
+Outputs are `dist/LocalBrain-apple-silicon.zip`, its matching `.sha256`, and the
+unpacked app folder. The build includes the source package and execution
+libraries without copying private runtime folders or shared public model weights.
+The [desktop runtime contract](desktop-app-and-settings.md#runtime-and-product-boundary)
+owns bundled Python path resolution and rejection of private build paths,
+including compressed Python code. Data and settings stay under each user's home.
+The [test distribution guide](standalone-test-app-guide.md) owns first launch,
+supported-environment evidence, manual replacement and recipient validation.
+Uploading the program ZIP to internal Drive and notifying teammates are separate
+delivery actions.
 
 ## Dependency Certificate Troubleshooting
 
@@ -127,6 +215,14 @@ For a custom `LOCALBRAIN_DATA_DIR`, unspecified cache/development locations are 
 Do not place secrets in tracked environment files. See [Privacy And Data Handling](privacy-and-data.md) before changing data locations or persistence behavior.
 
 ### Personal Improvement Analysis
+
+Open **Sessions Dashboard → Insights**, enter a question and select **질문 분석**,
+or select **개선 기회 찾기** without a question. Starting a Run sends selected
+local Session excerpts to the model service through Codex CLI and may use
+substantial tokens. The report appears below the Run list when complete. Use
+**Markdown 다운로드** for a copy to take into a separate work Session; repeating
+analysis creates a new Run and preserves earlier reports. The selected profile
+and model are retained with each Run; the default model is `gpt-6-astra`.
 
 The Insights analyzer currently uses Codex CLI. `LOCALBRAIN_INSIGHT_CODEX_HOME` takes priority over `CODEX_HOME`; without either setting, an existing `~/.codex-company` home is preferred to `~/.codex`. A new Run freezes that home, selected model, exact prompt, core v8, all eleven playbook versions/digests, and the report-v3 response schema. Request-and-feedback uses v4; other playbooks use v1. Historical core v4/v5/v6/v7 retain report v3, and core v2/v3 retain report v2 and saved reports. Changing environment settings or the package guide affects future Runs only. The guide sources are `src/localbrain/personal_insight_guides/`; private evidence, prompts, responses, validated results, diagnostics, and reports are kept under `<LOCALBRAIN_DATA_DIR>/personal-insight-runs/<id>/`, outside Git. An explicit Run start sends selected Session excerpts to the configured model service; opening the screen or a past report does not.
 
@@ -289,7 +385,8 @@ Do not claim full verification when a required local source, macOS permission, C
 
 ## Documentation Updates
 
-- Update `README.md` for first-run or user-visible usage changes.
+- Update `README.md` when the product overview, installation entry or first-use path changes. Keep it focused on the distributed app rather than adding development progress or detailed screen contracts.
+- Update the owning [app guide](app-documentation.md) for user-visible screen usage, settings and recovery procedures. Keep development-web usage and build commands in this guide.
 - Update [Product Model](product.md) for durable product and organization rules.
 - Update [Project Architecture](architecture.md) for runtime ownership, source adapters, data model, or ingestion behavior.
 - After the PRD-0003 baseline exists, update only the affected data-model subject documents for ordinary schema deltas; update their entry map when subject files or cross-domain ownership changes.

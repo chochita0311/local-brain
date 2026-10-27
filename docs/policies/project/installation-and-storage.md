@@ -168,7 +168,7 @@ model. Local inference does not train or update shared pretrained weights.
 
 | Feature | Local model requirement | Asset download |
 | --- | --- | --- |
-| Session ingestion, reading, deprecated keyword search, deterministic views | None | None |
+| Session ingestion, reading, keyword search, deterministic views | None | None |
 | Natural-language Session / Local Context search | Qwen3-Embedding-0.6B | Same shared asset as affinity |
 | Prepared full-history affinity map | Qwen3-Embedding-0.6B | About 1.21 GB |
 | Explicit experimental context trials | Qwen3-4B or Qwen3-8B | About 8.06 GB or 16.40 GB |
@@ -461,5 +461,9 @@ user-authorized removal; backup cleanup does not erase them.
 Before a new feature writes files, specify its owner, path, whether it is user
 data or rebuildable output, retention, cleanup trigger, and behavior after
 failure. Development diagnostics must have a private owner and cleanup condition;
-they must not become automatic per-startup production output. General user-facing
-backup/restore/export and native binary packaging remain separate future work.
+they must not become automatic per-startup production output. User-facing backup,
+restore and cache cleanup follow the [local recovery contract](desktop-app-and-settings.md#local-recovery);
+their procedures belong to the [Settings guide](../../../src/localbrain/content/docs/settings.md#storage).
+Native packaging and its verification limits belong to the
+[test distribution guide](standalone-test-app-guide.md). General export remains
+separate future work.

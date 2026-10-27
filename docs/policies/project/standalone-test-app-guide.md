@@ -1,4 +1,8 @@
-# LocalBrain macOS 테스트 앱
+# LocalBrain macOS 테스트 배포 가이드
+
+이 문서는 테스트 배포물의 최초 실행 조건, 지원 환경과 확인 한계, 수동 교체 및
+수신자 검증을 담당합니다. 일반 사용법은 앱의 **Docs → Getting Started**에서
+시작하고, 설정·동기화·백업·복원은 **Docs → Settings**에서 확인합니다.
 
 ## 받아서 실행하기
 
@@ -161,19 +165,5 @@ Git 루트 또는 실행 폴더(`~` 포함)로 묶고, 귀속 정보가 없는 �
 
 ## 개발자가 다시 빌드하기
 
-Apple Silicon Mac, Xcode Command Line Tools, Rust stable과 Node가 필요합니다.
-사용자 실행에는 필요하지 않은 빌드 도구입니다.
-
-```bash
-uv sync --python 3.11 --extra local-models --extra desktop-build --frozen
-npm ci --prefix desktop
-uv run --no-sync python scripts/build-desktop.py
-```
-
-산출물은 `dist/LocalBrain-apple-silicon.zip`, 같은 이름의 `.sha256`, 풀린 앱 폴더입니다.
-빌드 스크립트는 소스 패키지와 실행 라이브러리만 가져옵니다. 개인 runtime 폴더나
-공유 모델 가중치를 앱에 복사하지 않습니다. Python 설치 메타데이터는 실행 중인 앱의
-동봉 런타임 위치를 기준으로 구하며, 빌드한 사용자의 홈·소스 경로가 일반 파일이나
-압축된 Python 코드에 남으면 ZIP 생성을 중단합니다. 사용자 데이터·설정은 각자의
-홈 아래에 그대로 저장합니다. 프로그램 ZIP을 내부 Drive에 올리는
-작업과 팀원 통지는 별도로 수행합니다.
+필수 도구, 빌드 명령과 산출물은 [GitHub 개발자 가이드](https://github.com/chochita0311/local-brain/blob/master/docs/policies/project/developer-guide.md#build-the-macos-app)에 있습니다.
+빌드 후 최초 실행·앱 교체·다른 Mac 검증은 이 문서의 조건에 따라 별도로 확인합니다.

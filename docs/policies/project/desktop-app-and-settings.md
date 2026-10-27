@@ -170,9 +170,11 @@ unverified behavior belong in the Feature and Run records.
 ## App Information And Version
 
 - About shows the existing LocalBrain mark, product name and `v` plus the running
-  application version. Keep it concise; quit/background-sync/update instructions
-  remain in the test-app guide. Do not add invented build, copyright or license
-  claims from a reference screen.
+  application version. Keep it concise. [Getting Started](../../../src/localbrain/content/docs/getting-started.md)
+  owns quitting and updates; [Settings](../../../src/localbrain/content/docs/settings.md#synchronization)
+  owns background synchronization. Artifact-specific launch and distribution checks
+  remain in the [test distribution guide](standalone-test-app-guide.md). Do not add
+  invented build, copyright or license claims from a reference screen.
 - The owner resets the initial app version to `0.0.1`. The Python constant owns
   About and FastAPI version rendering; Python distribution/lock, desktop package/
   lock, Cargo package/lock and Tauri configuration declare the same release.
