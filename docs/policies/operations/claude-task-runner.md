@@ -67,6 +67,8 @@ The current Claude CLI can cap monetary spend but does not expose a hard MCP cal
 
 This is a soft policy, not strict enforcement. A future MCP proxy or broker boundary is required for a hard call-count limit.
 
+External synchronization has a hard external-read authorization and dispatch boundary; the older Workstream gap-fill task retains its separately documented soft MCP call budget until an approved follow-up changes that existing behavior.
+
 ## Persistence
 
 Run metadata is stored in `maintenance_runs`; external synchronization adds exactly one `external_sync_runs` query projection. The selected runner's native Session and Usage Records are normalized into `sessions` and `usage_records` inside `localbrain.db`. Artifacts are stored under:
@@ -101,7 +103,3 @@ Maintenance prompt headers identify housekeeping activity:
 ```
 
 Sessions beginning with this exact internal header retain source metadata but are excluded from activity events, full-text search, workflow statistics, and the Sessions Dashboard primary-work Session denominator. A registered Run ID populates the unique Run FK; an unregistered header remains maintenance with no physical Run relation. Claude and Codex child Sessions inherit maintenance classification and metadata-only indexing from a linked maintenance parent while retaining their own directly observed Usage Records; only the primary holds the unique Run FK. Direct Maintenance Usage Records remain eligible for token and estimated-cost totals. Run artifacts remain outside ordinary Session and Local Context ingestion.
-
-## Required Follow-up
-
-Queue recovery, concurrency limits, process timeout, and broader orphan detection remain open in the [Project Backlog](../../plans/project/backlog.md). External synchronization has a hard external-read authorization and dispatch boundary; the older Workstream gap-fill task retains its separately documented soft MCP call budget until an approved follow-up changes that existing behavior.

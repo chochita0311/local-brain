@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document owns LocalBrain's durable implementation shape: runtime layers, package responsibilities, source adapters, persistence, ingestion behavior, and the current implementation baseline.
+This document owns LocalBrain's durable implementation shape: runtime layers, package responsibilities, source adapters, persistence, ingestion behavior, and the current capabilities and their owners.
 
 Product terminology and organization rules are defined in [Product Model](product.md). In-app maintenance execution is defined in [Maintenance Task Runner](../operations/claude-task-runner.md).
 
@@ -94,19 +94,19 @@ Approved external sources through MCP Gateway
   `work_context_evaluation.py`:
   explicit public-model installation, independently verified offline generation,
   exact quoted work-unit/pair-relation contracts and synthetic-only admission
-  evaluation. [SPEC-0098](../../plans/spec/spec-0098-local-work-context-inference.md)
-  owns the frozen model/prompt/output boundaries. The evaluation opens no source
+  evaluation. The current [quoted work-context contract](#quoted-work-context-model-contract)
+  owns the model, packet, generation and output boundaries. The evaluation opens no source
   DB and introduces no product consumer, training, organization write or automatic
   inference. Quoted fields retain role and locator; validity is not entailment.
   Staged inference validates intermediate source quotes and keeps full original
   context; it never fills missing output evidence. Thinking-mode protocol strips
   reasoning before decoding/storage. Strategy/stage/runtime identities separate
   caches; development and holdout gates are independent.
-  MPS generation uses eager attention after the observed fused-path numerical
-  failure; the attention implementation is part of the runtime fingerprint.
-  The installer admits only the approved pinned 4B/8B catalog. Verification
+  MPS generation uses eager attention; the attention implementation is part of
+  the runtime fingerprint.
+  The installer admits only the allowlisted pinned 4B/8B catalog. Verification
   resolves the owner and model-specific assets, and inference identity uses that
-  verified model; the historical 4B default must not label an 8B result.
+  verified model; a 4B default must not label an 8B result.
   `model_cache.py` resolves public pretrained assets in the user-wide Hugging
   Face Hub cache. Installation metadata remains in the explicit private model
   root: the directory owner marker stays v1, while a
@@ -164,7 +164,7 @@ Approved external sources through MCP Gateway
   reversed option orders remain explicit. Scoring compares role sets per context,
   not incompatible raw call counts; relationship controls are scored separately.
   An execution meter wraps existing `choose` without changing the decoder or
-  historical strategies. Every choice reserves cumulative call/time accounting;
+  existing strategies. Every choice reserves cumulative call/time accounting;
   incomplete observations have bounded attempts, while completed refusals/errors
   are hashed and replayed. Existing private evaluation storage ownership applies.
   Prompt/template/token audits are synthetic diagnostics, not private-source
@@ -434,11 +434,11 @@ Every directly observed Usage Record is eligible regardless of Session class or 
 
 When a normalizer contract changes, ordinary Session synchronization performs a versioned Usage-only repair rather than requiring a user-facing aggregate reset. If any current file for a source has an older Usage contract version, synchronization reparses every current file for that source and reconciles their complete native Usage Record union inside one source-level savepoint: matching identities update, new identities insert, and obsolete source identities delete. It does not replace the Session, Activity Event, search, Atlassian evidence, or generalized-reference lanes merely because the Usage contract changed. This boundary preserves all observations when one Session identity spans several files. A repair identity inherits the closest prior price snapshot and frozen Project attribution unless an approved corrective producer explicitly assigns a new immutable snapshot to repair an invalid token or service-tier contract. Ordinary new records under an unchanged contract receive the snapshot and current Project evidence available when first observed. Immutable snapshot/model price lookups are cached for one source repair and each Session's Usage upserts are issued as one batch without changing identity, ordering, values, or savepoint rollback. Any parse or persistence failure rolls back the complete source replacement and does not advance its source-file contract versions. Source freshness retains the size and modification time observed before parsing, so bytes appended to an active JSONL during the read remain detectable on the next synchronization. The next unchanged synchronization skips all now-current files, making the repair idempotent. Native stale-Session and Usage reconciliation preserve independent insight accounting parents and their Usage Records.
 
-Estimated USD cost is a local API-equivalent trend estimate, not billed spend or subscription credit use. Each Usage Record retains an immutable price-snapshot identifier, calculator version, calculation time, and explicit `priced`, `unpriced`, `partial`, or `failed` state. A growing source record normally keeps its cited snapshot. The approved 2026-09-25 correction reparses native usage and reprices existing records from newly seeded official snapshots; prior snapshot rows remain immutable, and Usage IDs, token counts, and frozen Project attribution are preserved. Later publisher price changes require new dated snapshots and an explicit historical correction when appropriate.
+Estimated USD cost is a local API-equivalent trend estimate, not billed spend or subscription credit use. Each Usage Record retains an immutable price-snapshot identifier, calculator version, calculation time, and explicit `priced`, `unpriced`, `partial`, or `failed` state. A growing source record normally keeps its cited snapshot. A corrective producer can reparse native usage and assign newly seeded official snapshots to existing records only through an explicit correction; prior snapshot rows remain immutable, and Usage IDs, token counts, and frozen Project attribution are preserved. Later publisher price changes require new dated snapshots and an explicit historical correction when appropriate.
 
-The legacy ccusage 20.0.14/20.0.17 catalogs remain as historical evidence. Current pricing comes from frozen model-specific OpenAI and Anthropic entries with published effective dates, except for the explicitly chosen Spark and historical Fast long-context proxies. The Codex adapter reads `thread_settings_applied` in file order: `priority`/`fast` uses Fast, `default` uses Standard, and unmarked/unsupported settings fall back to that source home's current config with provenance recorded in `capability_json`. GPT-5.6 Terra/Luna change on July 30, Sol on August 21, GPT-6 Astra starts on September 3, and GPT-6 Sol/Luna start on September 22. The pre-July-30 GPT-5.6 Priority 2x multiplier is labeled as a historical inference because an archived publisher tier table was unavailable. For other models, an exact model/tier/context combination with no published price remains partial; a Standard rate is not silently substituted for Fast. Exact GPT-5.3-Codex-Spark has no independently published API rate; the approved exception borrows ccusage 20.0.17's GPT-5.3-Codex Standard or Fast estimate in a separate labeled snapshot. Startup reprices previously unpriced Spark records and eligible partial Fast long-context records with explicit proxy snapshots, retaining Usage identity, tokens, and attribution. The dashboard excludes persisted Codex zero-request rows whose source total repeats earlier history, preserving their local source and database evidence.
+The legacy ccusage 20.0.14/20.0.17 catalogs remain as historical evidence. Current pricing comes from frozen model-specific OpenAI and Anthropic entries with published effective dates, except for the explicitly chosen Spark and historical Fast long-context proxies. The Codex adapter reads `thread_settings_applied` in file order: `priority`/`fast` uses Fast, `default` uses Standard, and unmarked/unsupported settings fall back to that source home's current config with provenance recorded in `capability_json`. GPT-5.6 Terra/Luna change on July 30, Sol on August 21, GPT-6 Astra starts on September 3, and GPT-6 Sol/Luna start on September 22. The pre-July-30 GPT-5.6 Priority 2x multiplier is labeled as a historical inference because an archived publisher tier table was unavailable. For other models, an exact model/tier/context combination with no published price remains partial; a Standard rate is not silently substituted for Fast. Exact GPT-5.3-Codex-Spark has no independently published API rate; the explicit proxy borrows ccusage 20.0.17's GPT-5.3-Codex Standard or Fast estimate in a separate labeled snapshot. Startup reprices previously unpriced Spark records and eligible partial Fast long-context records with explicit proxy snapshots, retaining Usage identity, tokens, and attribution. The dashboard excludes persisted Codex zero-request rows whose source total repeats earlier history, preserving their local source and database evidence.
 
-`usage_model_prices` stores optional threshold and above-threshold component rates. Calculator v3 evaluates each Usage Record independently from non-cached input plus cache read, keeps the exact threshold on the base tier, and uses long-context rates only above it; compaction can return a later record in the same Session to the base tier. GPT-5.6 Fast long context before its August 5 API availability and GPT-5.5 Fast long context have no published applicable tier rate. The approved ccusage-style proxy uses the contemporaneous short-context Fast rate, doubles input and cached input for requests above 272K input tokens, and multiplies output by 1.5; a separate snapshot label and source identify this as a trend estimate, never an official historical Fast long-context rate. New records select that proxy only for the matching model, date, tier, and request size. Claude's observed 1-hour cache writes use their separate publisher rate; Codex logs do not expose cache writes as a separate component, so that component is absent from the estimate. No catalog creates a runtime ccusage, network, or page-render dependency. Future unknown model names remain unpriced until a cited entry is added.
+`usage_model_prices` stores optional threshold and above-threshold component rates. Calculator v3 evaluates each Usage Record independently from non-cached input plus cache read, keeps the exact threshold on the base tier, and uses long-context rates only above it; compaction can return a later record in the same Session to the base tier. GPT-5.6 Fast long context before its August 5 API availability and GPT-5.5 Fast long context have no published applicable tier rate. The explicitly labeled ccusage-style proxy uses the contemporaneous short-context Fast rate, doubles input and cached input for requests above 272K input tokens, and multiplies output by 1.5; a separate snapshot label and source identify this as a trend estimate, never an official historical Fast long-context rate. New records select that proxy only for the matching model, date, tier, and request size. Claude's observed 1-hour cache writes use their separate publisher rate; Codex logs do not expose cache writes as a separate component, so that component is absent from the estimate. No catalog creates a runtime ccusage, network, or page-render dependency. Future unknown model names remain unpriced until a cited entry is added.
 
 Each new Usage Record also freezes its first-observation Project attribution. A currently discovered Git root produces a `git:<canonical-root>` key; otherwise a resolved workspace produces a `path:<canonical-path>` key; missing evidence stays `unassigned`. Workspace ID, name, canonical path, Git root, basis, and attribution time are snapshots rather than live Project joins. Conflict updates preserve them, so a later Git initialization, path move, or workspace enrichment can affect only new records. Current `workspaces.git_root` follows current filesystem evidence and may change without rewriting historical usage. Legacy or previously unassigned records are not reconciled automatically.
 
@@ -1170,13 +1170,82 @@ Fixed diagnostics distinguish `invalid-artifact`, `invalid-session`,
 
 This remains a pure supplied-fact contract, with no admitted discovery/review/
 promotion consumer, table, route, cache, schedule, model or organization mutation.
-Historical candidate-review proposals do not become current execution authority.
+
+### Quoted Work-Context Model Contract
+
+The quoted extractor and pair-relation validator consume supplied conversation
+packets; they do not discover private input. `extract` accepts exactly
+`{"messages": [...]}`; `relate` accepts exactly `{"left": [...], "right": [...]}`.
+Each message has exactly `id`, `role`, `at` and `text`: the ID matches
+`[A-Za-z0-9_-]{1,64}`, role is `user` or `assistant`, `at` is null or a string,
+and text is a nonblank string. Each admitted message collection contains 1–128
+messages with unique IDs and at most 40,000 total text characters. A pair must
+also satisfy these bounds and ID uniqueness across the combined left/right
+collection. Source records are untrusted evidence, never instructions.
+
+The `quoted-work-context.v2` prompt distinguishes independently resumable
+outcomes from messages, references and phases: investigation, implementation and
+testing of one goal stay together. Requests/plans do not establish completion;
+assistant claims are not user confirmation. Unknown fields remain null or empty.
+
+| Wire object | Current contract |
+| --- | --- |
+| Free-form model response | One JSON object, at most 24,000 characters; duplicate keys, non-finite constants and invalid JSON refuse |
+| Evidence | Exactly `message` and `quote`; an admitted message ID and a nonblank exact original substring of 1–600 characters occurring exactly once in that message |
+| Extract response | Exactly `units`; at most eight units. Each has exactly `goal`, `target`, `progress`, `results`, `remaining`; goal/target are null or evidence objects, each list has at most eight evidence objects and no repeated `(message,start,end)` span |
+| Unit validity | At least one populated field; duplicate grounded unit identities refuse. Grounding adds exact start/end, speaker, time and `source-attributed` authority; unit IDs hash the grounded fields and retain `inferred-work-unit` authority |
+| Pair response | Exactly `relation`, `evidence`, `link`; relation is `continues`, `related`, `independent` or `uncertain`, with at most eight distinct grounded evidence spans |
+| Pair evidence | Every non-uncertain label cites both conversations. `continues` requires a grounded link in the right conversation whose message is also cited; all other labels require `link=null` |
+
+Continuation semantically requires compatible goals and an explicit right-side
+link to earlier work. Shared words, artifacts, repositories or nearby dates are
+insufficient; a time gap alone does not disprove continuation. `related` records
+a shared topic without established same-goal continuity or distinct outcomes;
+`independent` needs distinct goals/targets or an explicit denial; insufficient
+evidence remains `uncertain`. Structural quote validation cannot prove these
+semantic judgments. Output retains `authority: inferred` and the prompt version.
+
+The generator verifies an installed allowlisted model/revision and its assets
+before use. `auto` selects MPS when available, otherwise CUDA, otherwise CPU;
+explicit `mps`, `cuda` and `cpu` remain available. CPU uses float32, other devices
+bfloat16; MPS uses eager attention and other devices use SDPA. Model/revision,
+asset fingerprint, device, dtype, attention, Python/Torch/Transformers versions,
+generation settings, strategy prompts/projection/bounds and output protocol are
+part of the compatible inference identity. Public pinned 4B and 8B installations
+retain separate identities; neither a default model label nor cache relocation
+can substitute for verified assets.
+
+| Generation setting | Current accepted value |
+| --- | --- |
+| `thinking` / decoding | Actual boolean; `greedy` or `sampled`, with thinking allowed only with sampled decoding |
+| Non-thinking token budgets | Combined default/ceiling 8,192; generated default/ceiling 2,048 |
+| Thinking token budgets | Combined default/ceiling 16,384; reasoning-plus-final generated default/ceiling 8,192 |
+| Reduced budgets | Actual integers: combined at least 1,024, output at least 128, each within its mode ceiling, and output strictly below combined |
+| Call time | Soft generation limit: actual integer 1–180 seconds, default 180; operation-specific smaller limits still apply; no hard preemption of an in-flight model call |
+| Sampling | Non-thinking: temperature 0.7/top-p 0.8; thinking: 0.6/0.95; top-k 20 and stable `sha256-system-and-content-prefix32` seed; greedy has no sampling object |
+| Output protocol | `qwen-final-only.v1`; reasoning is counted but never decoded or retained, and only the final answer is validated/stored |
+
+Tokenization never truncates: rendered input tokens plus the reserved
+`max_output` must not exceed `max_tokens`, otherwise generation refuses with
+`CONTEXT_TOO_LARGE`. Constrained choice reserves its finite code/EOS grammar
+instead. A free-form response must finish with EOS; missing EOS is
+`OUTPUT_TRUNCATED`. Thinking output requires exactly one closing `</think>`
+token and at least one final-answer token before EOS; non-thinking output refuses
+thinking delimiters. Reasoning token IDs are counted without decoding them.
+These checks enforce protocol and bounds, not semantic truth.
+
+`single`, `staged`, `classified`, `selected` and `evidence` keep separate
+fingerprints and failure behavior. Source-choice modes serialize only explicitly
+model-selected original quotes, never repair missing citations or turn syntax
+into truth. Their packet/case bounds and protocol/admission operations are in the
+[Developer Guide](developer-guide.md#local-work-context-model-trial). No quoted
+strategy is admitted to a private-history or product reconstruction consumer.
 
 ### Isolated Work Reconstruction Experiment
 
 - The `work_reconstruction*` modules own only the versioned experimental
   `localbrain.work-reconstruction.v1` shape. Their only app consumer is the
-  explicitly approved Auto Work inspection adapter below. They have no schema,
+  current sample-mode Auto Work inspection adapter below. They have no schema,
   migration, schedule, production identity, or assertion-ledger ownership.
 - Extraction consumes supplied bounded text. Evidence keys and offsets retain
   source attribution; normalized goal identity is separate from wording, labels,
@@ -1206,9 +1275,156 @@ Historical candidate-review proposals do not become current execution authority.
   the repository is bounded, never overwrites an existing result, and records
   its owner and expiry. The tool adds no retention scheduler or whole-DB copy.
   Quality and stability measurements do not automatically approve viability.
-- The frozen [experiment protocol](../../plans/spec/spec-0095-bounded-work-reconstruction-experiment.md)
-  retains trial-specific shapes and verification/admission gates. It is
-  experimental evidence, not authority for current product identity or quality.
+#### Reconstruction Input And Bounds
+
+The pure snapshot has `version: 1`, a nonempty name, `sessions`, `records`,
+`artifacts`, `references`, `coverage` and `organization_links`; unknown
+fields refuse. Identifiers are nonempty strings of at most 500 characters unless
+an explicit integer identity is required below. Supplied timestamps are aware
+ISO timestamps of at most 80 characters. A Session record uses positive actual
+integer `id`/`source_id`, nonempty `external_id`, nonnegative actual integer
+`event_count`, eligibility fields `session_class`, `session_role`, `index_policy`,
+and optional `title`, `workspace_id`, `ended_at`, `has_activity_events`,
+`has_usage_records`; titles are null or at most 500 characters. Session IDs are
+unique. Artifact/reference field allowlists and semantic validation reuse
+[Candidate Inputs And Producer Duties](#candidate-inputs-and-producer-duties).
+
+| Boundary | Current hard limit |
+| --- | --- |
+| Snapshot history | 1–12 distinct named snapshots |
+| Sources / Sessions per snapshot | At most eight Sources and 60 Sessions; work/primary/full eligibility remains mandatory for private admission |
+| Records / total text | At most 12,060 records and 2,500,000 text characters |
+| Session evidence | At most 200 records and 32,000 characters per Session; each selected message span at most 4,000 characters |
+| Other evidence | At most 20 Documents, 20 Items and 20 organization records; each Document/Item span at most 8,000 characters, organization span at most 2,000 |
+| Metadata | At most 2,000 artifacts, 12,000 references and 200 organization links |
+| Metadata comparator pairs | At most 4,096 qualifying pairs; overflow fails rather than clipping |
+| Corrections | At most 100 unique correction IDs; each names at most 12,060 unique statement keys, with no key reused across corrections; optional label is null or 1–500 characters |
+| File / worker | Input and encoded output at most 10 MiB; each admission/analysis/scoring worker at most 120 seconds and 512 MiB peak RSS |
+
+Every text record has a unique `key`, a `kind` (`session`, `document`, `item`,
+`organization`), `session_id`, `role`, nonnegative actual integer `offset`,
+nullable aware `at`, and text. Session records require a selected Session ID and
+user/assistant role; other records require a null Session ID and document/owner
+role. Coverage has actual boolean `complete` and nonnegative actual integer
+`unexamined`; complete coverage requires zero unexamined items. Bounds do not
+convert omitted or unsupported source into a complete reconstruction.
+
+A private selection manifest has exactly `version: 1`, `source_ids`, `start`,
+`end`, `snapshots`, `owner`, `expires_at`. Source IDs are 1–8 unique positive
+actual integers. Its aware start is no later than end. Each snapshot has unique
+`name`, ordered `as_of` within that interval, `session_ids`, `events`,
+`documents`, `items`, `organization`, `organization_links`, and optional explicit
+coverage. Session/link IDs are unique positive actual integers. A text selection
+has `id`, `start`, `end`, `sha256`, plus `table` only for organization:
+`id` is an actual integer or nonempty string whose spelling is at most 500
+characters; offsets are actual integers with `0 <= start < end`, obey their
+kind's span limit, and use a lowercase 64-hex UTF-8 SHA-256. Only one selection
+per record identity is allowed. Organization tables are exactly `workstreams`,
+`threads`, `checkpoints`. No arbitrary table/column is admitted.
+
+The explicit database must be an existing absolute nonsymlink file. A URI
+`mode=ro` connection, `query_only`, memory-only temporary storage, one read
+transaction, SQLite authorizer and deadline prohibit writes/attachment/extension
+loading. Session admission requires a registered Source in the selected set and
+work/primary/full classification. Selected Events must be user/assistant
+messages in that Session. Documents require an enabled, readable, ready root;
+Items require indexed content and no disabled bound Source. Organization uses
+current summary/goal text and user-created links to selected Sessions only.
+Each selected record's relevant occurrence/import/application/update/link time
+must lie within start and snapshot cutoff. Bounds and permission checks precede
+selected text reads; exact selected substrings must still match their hashes.
+
+Reference projection reads persisted evidence only, capped at 12,000 rows across
+selected Sessions. Missing/non-ok scans, missing times or unresolved canonical
+references make coverage partial; known out-of-scope references are excluded.
+Only selected Documents/Items participate. Document identity uses Context scope
+and relative path; Jira uses Site/issue key, Wiki Site/page identity; generic
+references require safe persisted credential-free HTTP(S) URLs. The comparator
+receives canonical metadata and admitted source spans, never text. It enumerates
+artifact pairs independently supported by two Sessions through the unchanged
+candidate normalizer; references cannot force goal identity.
+
+Explicit preparation uses `localbrain.chronological-spread.v1`: metadata selects
+up to 60 Sessions evenly across their earliest eligible message times, including
+both chronological endpoints, before predictions or body reads. It selects up
+to 32 evenly spread message records per selected Session, at most the first
+1,000 characters each; up to 20 referenced Documents and 20 referenced Items,
+8,000 characters each; up to 20 linked organization records, 2,000 each, and
+200 user links. It creates up to three distinct chronological cutoffs, records
+outside-sample/omitted/truncated/unknown-time counts and revalidates the frozen
+manifest through the same permission/hash adapter. No eligible population or
+more than eight Sources refuses. This bounded preparation is distinct from the
+full-history simulation below. Unassessed expectations have no groups or
+negative answer key and at least one unresolved item, so they cannot pass quality.
+
+#### Reconstruction Output And Assessment
+
+Sentence/newline extraction retains original record offsets and wording.
+NFKC/casefold/whitespace normalization affects identity, never source coordinates.
+The bounded Korean/English action vocabulary supports reduce/increase/improve/
+fix/add/remove/replace/enable/disable. Unsupported negation, goals or subjects
+remain explicit unassigned spans; subjects over 300 characters, URLs and braces
+are unsupported. Investigation/implementation/verification are subordinate
+phases. A reported `completed`/`done`/`완료` statement remains a source outcome,
+not verified completion. Flow identity hashes normalized subject/change and a
+compatible explicit completion criterion; a missing criterion stays unassigned
+when several explicit criteria conflict. Lifecycle remains unknown.
+
+Output `localbrain.work-reconstruction.v1` has `flows`, `unassigned`, `coverage`,
+`corrections` and `routine_confirmations: 0`. Each flow retains `flow_id`,
+subject/change/completion, derived label, nullable user label, inferred authority,
+unknown lifecycle, ordered members and content revision. Members retain statement
+key, exact record/start/end, Session/kind/role/time, normalized fields, original
+wording and field evidence. Statement identity includes exact wording, so an
+equal-length source edit is new evidence; unrelated appended text does not
+invalidate an unchanged statement. Exact-scope corrections move only named
+currently present statements into a correction-ID flow, mark those members
+`user-corrected` and report their active count; the flow remains inferred, and
+absent keys cannot target new claims.
+The metadata arm retains spans and candidate identity/revision, not goal labels.
+
+Independent expectations bind each snapshot digest before either arm executes.
+A version-1 expectation supplies at most 100 distinct keyed groups with subject,
+change, nullable completion, member spans and nullable acceptable labels (at most
+20 nonempty labels, each at most 500 characters), `negative` spans and a
+nonnegative unresolved count. Each group/negative list has at most 12,060 unique
+exact record/start/end spans; spans must be inside admitted text, and negative
+spans cannot overlap positives. Expected labels and unresolved assignments remain
+unassessed when missing; predictions never supply the key. A predicted member
+must be contained in an expected record/span and match its normalized
+subject/completion and exact change value; Session overlap or a generated label
+is not enough.
+Every emitted assignment is correct, wrong or unassessed. Recovery, wrong
+assignments, excess/unsupported groups, assessed correction freedom and stability
+retain exact integer numerators/denominators; no rounding or zero denominator
+can manufacture a pass. Correction-free requires one correctly supported flow,
+an independently acceptable label, no assignment error and all expected member
+contributions; an unknown label or missing contribution is not success.
+
+The report compares text/metadata arms both with and without organization,
+replays text deterministically, and reports per-arm resources/scores, source and
+expectation digests, sample sufficiency and consecutive-snapshot identity,
+assignment and label stability. Score gates require at least 80% goal recovery,
+at most 10% incorrect membership, at most one excess/unsupported group per ten
+recovered goals, no incompatible-outcome merges, at least 90% correction-free
+recovered goals, and zero routine confirmations. Incomplete coverage, unresolved
+expectations, unknown assignments, unassessed labels, no expected groups or no
+members make quality insufficient rather than pass. Private sufficiency also
+requires 40–60 eligible Sessions, at least ten expected efforts, an expected
+effort spanning more than 24 Sessions and at least three snapshots. The report
+lists independent local expectations, mandatory synthetic safety witnesses and
+weak-reference/unrelated-append assessment as required evaluator checks. The
+evaluator must verify at least 95% identity/assignment preservation after
+unrelated append, without harmful reassignment. Source rename/loss and exact-scope
+correction behavior also require separate synthetic witnesses. These evaluator
+duties are not automatically computed CLI gates. Both arms use identical input; the metadata arm's poor quality does
+not excuse a failed absolute text gate. Do not resample or tune against the
+private answer key. These are separate checks, not an automatic viability
+decision: reports retain `viability: unverified`.
+The [privacy policy](privacy-and-data.md#local-persistence) owns the finite
+human-review allowance and unknown/spent-budget refusal. No technical pass,
+unassessed execution, reproduction or replay authorizes a new review batch,
+production transition or product identity.
 
 ### Full-History Simulation Producer
 
@@ -1333,7 +1549,7 @@ Knot radius grows logarithmically with occurrence count and is capped; it is not
 a cohesion, confidence or importance score. A group observed in only one period
 can therefore remain a lone point even after both grouping stages. Neither the
 generative work-context trials nor the source-claim/state projector feeds this
-reader. The earlier rule-based sample is a separate consumer, not a third merge.
+reader. The rule-based sample is a separate consumer, not a third merge.
 Unknown times stay outside the dated plane. The renderer locks x to time and
 uses deterministic affinity ordering/vertical attraction, curved strands and
 explicit empty-period gaps; dates and labels remain readable under zoom. A
@@ -1448,40 +1664,38 @@ the prior valid result on failure; staging is removed on every write outcome.
 Expired valid owned output is removed on a subsequent visit under that lock.
 There is no startup/GET analysis, background job, source sync, model, migration,
 or organization write. The sidebar link is capability-gated during mixed-version
-template/server updates; a server restart activates the new route. The frozen
-[preview protocol](../../plans/spec/spec-0096-auto-work-inspection.md) retains
-its original experiment/admission evidence.
+template/server updates; a server restart activates the new route.
 
-## Current Implementation Baseline
+<a id="current-implementation-baseline"></a>
 
-Implemented in the current vertical slice:
+## Current Capabilities And Owners
 
-- additive SQLite startup migrations over the local index
-- user-created Workstreams and nested Threads
-- versioned checkpoints with linked-resource snapshots
-- Thread-first links to Sessions, Local Contexts, projects, local paths, and external references
-- Workstream-level links for resources shared by multiple Threads
-- manual Jira, Wiki, Slack, Git, document, and generic URL references
-- reversible keyword-based Session and Document link Suggestions
-- Workstream-first Dashboard and separate Sessions Dashboard
-- maintenance Session exclusion and source-neutral Claude/Codex subsession normalization
-- source-neutral Claude/Codex Usage Records with immutable local trend-cost snapshots
-- reproducible Sessions Dashboard usage summary, GET scope, and Daily, Weekly, or Monthly token/cost history
-- all-time Session Insights use/reference Session ranking with durable source-backed evidence
-- durable Maintenance Task Runner history, Claude/Codex external-sync parity, streaming result handling, cancellation, and reviewable structured output
-- deterministic SQLite/FTS5 retrieval without hard candidate or evidence-count caps
-- normalized many-to-many Thread resource matches with reusable fingerprints and deduplicated evidence
-- source browsing for folders, files, and Apple Notes
-- context-aware full Document reading with an owning FOLDERS tree, bounded non-FOLDERS fallback, and source-preserving Markdown presentation
-- safe Markdown conversation reading for visible Session and Subsession user and assistant messages without Local Context source guessing
-- Atlassian stable source memory, bounded Session/Local Context URL evidence,
-  strict zero-configuration local Site/Item admission, Site-first Explorer
-  hierarchy with read-only canonical-URL container hints, grouped local search,
-  Item detail, notes, Topic/Tag classification, exact Workstream/Thread links,
-  explicit partial Space discovery, and explicit known-Item refresh previews
-  without implicit remote ingestion or model calls
+This map locates current behavior; each linked owner retains its detailed
+contract, permission and admission limits.
 
-Open implementation work is tracked in the [Project Backlog](../../plans/project/backlog.md).
+| Current capability | Owning contract |
+| --- | --- |
+| Additive SQLite startup migrations over the local index | [Persistence Model](#persistence-model) |
+| User-created Workstreams and nested Threads | [Product organization](product.md#workstream-first) |
+| Versioned checkpoints with linked-resource snapshots | [Product organization](product.md#workstream-first) |
+| Thread-first links to Sessions, Local Contexts, projects, local paths and external references | [Product organization](product.md#workstream-first) |
+| Workstream-level links for resources shared by multiple Threads | [Product organization](product.md#workstream-first) |
+| Manual Jira, Wiki, Slack, Git, document and generic URL references | [Product domain](product.md#domain-boundaries) |
+| Reversible keyword-based Session and Document link Suggestions | [Product Suggestions](product.md#automatic-capture-explicit-organization) |
+| Workstream-first Dashboard and separate Sessions Dashboard | [Dashboard](product.md#dashboard) |
+| Maintenance Session exclusion and source-neutral Claude/Codex subsession normalization | [Session Eligibility](#session-eligibility) and [Session Policies](#session-policies) |
+| Source-neutral Claude/Codex Usage Records with immutable local trend-cost snapshots | [Usage Normalization And Repair](#usage-normalization-and-repair) |
+| Reproducible Sessions Dashboard usage summary, GET scope and Daily/Weekly/Monthly token/cost history | [Analytical Read Models](#analytical-read-models) |
+| All-time Session Insights use/reference Session ranking with durable source-backed evidence | [Session Insights](#session-insights) |
+| Durable Maintenance Task Runner history, Claude/Codex external-sync parity, streaming result handling, cancellation and reviewable structured output | [Task Runner](../operations/claude-task-runner.md) |
+| Deterministic SQLite/FTS5 retrieval without hard candidate or evidence-count caps | [Search and retrieval](#package-ownership) |
+| Normalized many-to-many Thread resource matches with reusable fingerprints and deduplicated evidence | [Persistence Model](#persistence-model) and [Product Suggestions](product.md#automatic-capture-explicit-organization) |
+| Source browsing for folders, files and Apple Notes | [Local Context Sources](#local-context-sources) |
+| Context-aware full Document reading with an owning FOLDERS tree, bounded non-FOLDERS fallback and source-preserving Markdown presentation | [Document reading](#local-context-sources) and [Markdown rendering](markdown-rendering.md) |
+| Safe Markdown conversation reading for visible Session/Subsession user and assistant messages without Local Context source guessing | [Session Conversation And Identity Reading](#session-conversation-and-identity-reading) |
+| Atlassian stable source memory; bounded Session/Local Context URL evidence; strict zero-configuration local Site/Item admission; Site-first Explorer hierarchy with read-only canonical-URL container hints; grouped local search; Item detail, notes and Topic/Tag classification; exact Workstream/Thread links; explicit partial Space discovery and known-Item refresh previews without implicit remote ingestion or model calls | [Reference Evidence And Reconciliation](#reference-evidence-and-reconciliation) and [External Access And Synchronization Constraints](#external-access-and-synchronization-constraints) |
+
+Implementation priorities and unresolved work belong in the [Project Backlog](../../plans/project/backlog.md).
 
 ## Architectural Constraints
 

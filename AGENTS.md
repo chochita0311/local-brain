@@ -51,7 +51,7 @@ Agent harness experience uses the separate, ignored [consumer evidence layout](d
 - Keep the product overview and first-use path in `README.md`.
 - Keep detailed app usage in `src/localbrain/content/docs/`; [In-App Documentation](docs/policies/project/app-documentation.md) owns that guide set.
 - Keep durable rules, definitions, contracts, and guides under `docs/policies/`.
-- Keep sequencing, priorities, unresolved work, and roadmaps under `docs/plans/`.
+- Keep sequencing, priorities, unresolved work, roadmaps, and project approval/change/execution records under `docs/plans/`.
 - Treat code and database schema as implementation truth; update their owner docs when behavior changes.
 
 ## Working Rules
@@ -90,7 +90,8 @@ Agent harness experience uses the separate, ignored [consumer evidence layout](d
 - Update the document that owns a changed fact in the same turn as the behavior change.
 - Use kebab-case filenames under `docs/`.
 - Remove duplicate guidance by linking to one canonical owner.
-- When documenting settled behavior, keep definitions complete in their owning policy or guide; use planning links as scope, approval or historical evidence.
+- Keep current definitions and contracts complete in their owning policy or guide. Project-specific plans, approvals, delivery changes, and execution/evaluation history belong under `docs/plans/`, including when previously placed in policy appendices.
+- Planning and execution records reference current canonical definitions. Generic workflow rules and required record destinations remain part of their operational owner.
 - Update `README.md` when the product overview, installation entry, or first-use path changes. Update the owning app guide for screen usage and settings procedures.
 - Update `docs/policies/` for durable behavior, constraints, and contracts.
 - Update `docs/plans/` for priorities, sequencing, and unresolved work.

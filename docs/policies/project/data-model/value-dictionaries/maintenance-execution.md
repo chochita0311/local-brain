@@ -74,12 +74,12 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Physical field or projection: `maintenance_runs.mcp_budget_exceeded`
 - Allowed values: `0`, `1`
 - Enforcement: `boolean-like`
-- Logical axis: external read budget result
+- Logical axis: MCP call budget result
 - Default: `0`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/external_sync.py`
+- Producers: `src/localbrain/external_sync.py`, `src/localbrain/runner.py`
 - Consumers: `src/localbrain/runner.py`, `src/localbrain/templates/run.html`
-- Consequence: Stops additional approved MCP calls while retaining partial results.
+- Consequence: Records observed budget breaches; the flag does not itself stop calls. Legacy CLI tasks use advisory accounting, while external synchronization rejects selected requests above its hard budget before execution.
 - Presentation mode: `logical-label`
 - Labels: `0` → 예산 내; `1` → 호출 예산 초과
 - Help: 승인된 실행의 MCP 호출 상한을 넘었는지 나타냅니다.

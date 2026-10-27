@@ -284,6 +284,12 @@ Completed integrated checks:
 
 ## Reproduction And Evidence Ownership
 
+The comparison checkpoints were downloaded separately into the same user-level
+public Hub cache as the embedding checkpoint. Each model had its own pinned
+weights; sharing a cache did not make them one model. Comparison Python packages
+were isolated from the app runtime. These setup observations do not establish
+that the historical comparison environment is still present.
+
 [Developer Guide](../../policies/project/developer-guide.md#natural-language-search-comparisons)
 provides exact scripts, pinned optional runtime setup, asset preparation and fresh
 private output requirements. Source scripts and authored fixtures are public;

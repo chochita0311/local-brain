@@ -61,13 +61,12 @@ batch (`야간 데이터 배치`). The bare word `배치`, missing clues, or clu
 the bounded input can still produce mixed results. This mechanism does not
 establish complete intent understanding or reasoning over every Session together.
 
-The comparison checkpoints were downloaded separately into the same user-level
-public Hub cache as the embedding checkpoint. Each model has its own pinned
-weights; sharing a cache does not make them one model. Comparison Python packages
-were isolated from the app runtime. [Installation And Local Storage](installation-and-storage.md#optional-local-models)
+Each comparison model has its own pinned weights in the user-level public Hub
+cache. Sharing that cache with the embedding checkpoint does not make them one
+model. [Installation And Local Storage](installation-and-storage.md#optional-local-models)
 owns these asset boundaries; the [Developer Guide](developer-guide.md#natural-language-search-comparisons)
-owns reproduction and private loader adaptations. Keeping downloaded comparison
-weights does not enable those models in the app or establish that a past test
+owns reproduction, comparison-runtime isolation and private loader adaptations.
+Keeping downloaded comparison weights does not enable those models in the app or establish that a past test
 environment still exists.
 
 ## Query And Results
@@ -165,6 +164,9 @@ The deprecated `/search` route remains directly reachable with its existing filt
 
 The natural-search page owns explicit first preparation/retry, truthful coverage, applied conditions, ranked parent results and source evidence navigation. Status polling cannot reset query, focus or scroll. Never put model internals or debug traces into normal result copy.
 
+Search performs no automatic query collection or personal training and has no
+threshold settings screen.
+
 ## Evaluation Criteria And Evidence Limits
 
 - Prioritize useful related sources near the top, coverage of multiple relevant sources, how much irrelevant results displace useful ones or burden exploration, and fast access to original evidence. Loosely related lower-ranked candidates alone do not establish a search failure.
@@ -175,24 +177,3 @@ The natural-search page owns explicit first preparation/retry, truthful coverage
 - Compare body sizes 256/512/768, dimensions 512/1024 and candidate cutoffs including 0.7 without tuning the score scale to that number. Report the selected default and regressions. No claim of general Korean readiness from one small synthetic set.
 - Measure current Mac only: full eligible index, incremental reuse, interrupted resume, changes/deletions, peak rebuild disk, model memory, and foreground search during background work. Any unavailable model trial is an evidence gap with its reason; it is not a win for another model.
 - Unit/integration checks use isolated synthetic DBs and deterministic encoders where appropriate; these establish contracts, not model accuracy. Real-model runs establish only their observed corpus and query scope. Final report must distinguish them.
-
-### Current Baseline And Follow-Up
-
-The current baseline is available for local use within the recorded evaluation
-scope. Remaining ambiguous meanings, broad-topic gaps and individual rank
-regressions are follow-up candidates when repeated use shows missing useful
-sources, irrelevant meanings dominating the top results or disruptive latency.
-An ongoing tuning phase is not required to close the current implementation.
-This baseline does not introduce automatic query collection, personal training
-or a threshold settings screen.
-
-## Historical Provenance
-
-[Development and approval history](../../plans/prd/prd-0020-local-natural-language-search.md#historical-implementation-and-evaluation-summary)
-records the increment chronology and dependency rationale. The
-[initial comparison](../../plans/evaluation/eval-0121-functional-natural-search-local-comparison.md)
-retains model/profile selection and resource evidence; the
-[general-work evaluation](../../plans/evaluation/eval-0123-functional-general-work-search.md)
-retains the current ranking observations and mixed quality results. Historical
-measurements apply to their recorded environments. The current hybrid policy is
-`semantic-dual-view-v3`, as defined above.

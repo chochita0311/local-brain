@@ -180,3 +180,11 @@
 - `2026-07-18`: human owner approved Attempt 4 after request-level analysis reproduced the entire remaining variance from long-context calls. FEAT-0020 returned to `approved` for a tiered immutable snapshot, calculator v2, automatic Codex repair, and same-boundary ccusage cost comparison.
 - `2026-07-18`: Attempt 4 passed Contract and Functional evaluation with 82 tests, immutable request-tier coverage, private source-wide repair, repeat synchronization, SQLite integrity, dashboard rendering, and exact fixed-boundary token and cost parity against the installed offline ccusage report. FEAT-0020 is restored to `passed`.
 - `2026-07-18`: RUN-20260718-29 clarified consumer eligibility without changing storage: Claude `<synthetic>` pseudo-messages remain persisted, while real-model maintenance and subsession usage stays eligible and downstream dashboards exclude only the pseudo-model records.
+
+Current pricing and record-lifecycle rules are defined in
+[Usage And Cost Records](../../policies/project/data-model/usage-and-cost-records.md).
+The following entries retain the existing correction decisions.
+
+- `2026-09-25`: the approved official-price correction replaces cited cost and snapshot on existing Usage Records while retaining Usage identity, token counts, and frozen Project attribution.
+- `2026-09-26`: the Spark decision reprices previously unpriced records with a labeled ccusage proxy while retaining Usage identity, token counts, and frozen Project attribution.
+- Date not recorded: the approved Fast long-context decision reprices eligible partial records with a separate labeled proxy while retaining Usage identity, token counts, and frozen Project attribution.

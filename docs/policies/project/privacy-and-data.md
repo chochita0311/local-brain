@@ -136,11 +136,18 @@ Reruns cannot overwrite it. Task scratch is removed on completion/failure/cancel
 retained results need owner-managed expiry cleanup because no scheduler is added.
 No full database copy or permanent archive is created. Synthetic tests alone
 cannot establish private extraction quality or approve production transition.
-The [experiment Feature](../../plans/feature/feat-0095-bounded-work-reconstruction-experiment.md)
-owns the exact trial caps and limited review budget.
+The current [experimental contract](architecture.md#isolated-work-reconstruction-experiment)
+owns exact caps; the [Developer Guide](developer-guide.md#earlier-model-free-comparator)
+owns invocation and file shapes. Human review is limited to one batch of at most
+five consequential ambiguous cases. This public record does not establish whether that
+allowance is already spent: its remaining availability is unknown. Unknown or
+spent review budget cannot be treated as available, and reproduction, replay or
+documentation cleanup creates no new allowance or reset. If unresolved
+expectations or unassessed corrections prevent a verdict, return insufficient
+evidence rather than requesting another review batch.
 
-The separately approved [full-Session simulation](../../plans/feature/feat-0097-replayable-session-simulation.md)
-removes those sampling limits only for its explicit CLI. It accounts for all
+The current [full-Session simulation](architecture.md#full-history-simulation-producer)
+uses exhaustive eligible history rather than that bounded sample, only for its explicit CLI. It accounts for all
 stored Sessions and reads all nonempty user/assistant message content of
 primary/full work Sessions through a read-only SQLite connection. Maintenance,
 subsession, metadata-only and non-message content remain excluded. No new source
@@ -177,7 +184,7 @@ explicitly. The
 [installation contract](installation-and-storage.md#optional-local-models) owns
 feature prerequisites, downloads, shared public cache paths, and offline reuse.
 
-The separately approved full-history affinity viewer consumes this same finite
+The full-history affinity viewer consumes this same finite
 owner without creating another private store. A shared lock guards passive reads;
 owner, expiry, source binding, bounded report shape and whole-source freshness are
 checked before display. Exact quoted spans are independently verified against
@@ -188,8 +195,8 @@ model work, ingests or changes organization. Missing/stale/expired/invalid resul
 are explicit, not replaced by the previous sample. No private screenshot, title,
 quote or inventory enters tracked/browser-test evidence; fixtures are synthetic.
 
-The separately approved [work-context model trial](../../plans/feature/feat-0098-local-work-context-inference.md)
-may install the pinned public Qwen3-4B and separately approved Qwen3-8B assets
+The explicit [work-context model installation](installation-and-storage.md#optional-local-models)
+may install the allowlisted pinned public Qwen3-4B and Qwen3-8B assets
 into the user-wide Hugging Face Hub cache, with distinct explicitly selected
 owned installation-metadata directories outside Git.
 Unknown models, unpinned revisions and mismatched existing ownership are rejected;
@@ -215,8 +222,8 @@ diagnostics are temporary: remove only the verified task-owned scratch after the
 installer process exits. Durable model assets must not depend on that directory.
 
 Inference is a separate operation with offline/telemetry controls, an outbound
-Python socket guard, local-files-only safetensors and no remote code. The initial
-evaluation accepts only repository-owned synthetic cases, not a database path.
+Python socket guard, local-files-only safetensors and no remote code. The
+work-context evaluation accepts only repository-owned synthetic cases, not a database path.
 Quoted outputs and model identity stay in an owner/lock-protected private report
 and per-case checkpoint with 30-day inactivity expiry; unknown files prevent
 cleanup or adoption. Fixed CLI diagnostics disclose no prompts/output. Every
@@ -234,7 +241,7 @@ semantic entailment, completion or user confirmation. The synthetic quality
 gate precedes any separately implemented private-corpus consumer. No training,
 external inference, automatic source access or legacy/organization write occurs.
 
-The separately approved evidence-first strategy uses semantic labels to assess
+The explicit evidence-first strategy uses semantic labels to assess
 literal source facts and membership before projecting units/relations. Only
 selected original spans become citations; relationships automatically abstain
 when the model judges support missing or conflicting. This is not a guarantee
@@ -269,7 +276,7 @@ pipeline. Completed incorrect/refused observations are preserved; changed config
 corruption, exhausted budgets or unknown in-flight duration cannot silently reset
 the comparison. No private-input/DB/holdout path or product mutation is added.
 
-The separately approved source-claim adapter trial uses one frozen installed-8B
+The explicit source-claim adapter trial uses one frozen installed-8B
 candidate on synthetic records only. Native identity, source revision, speaker
 and coordinates come from the host; model interpretations and scoped fulfillment
 judgments retain distinct inferred provenance. It shares the evaluation-store
@@ -345,7 +352,7 @@ Removing a source from LocalBrain must be distinguished from deleting the origin
 
 Settings provides private local backups and restart-only restore under the [Local Recovery contract](desktop-app-and-settings.md#local-recovery). Restore accepts a backup from this installation on the same computer with a matching current database schema; a different-schema backup must be restored with its original app version. Replacement is explicit: schedule the restore, quit the app and any separate server, then restart. A pre-restore recovery copy supports rollback on failure. Backups include the database and app-owned settings/model-registration metadata, but exclude original Sessions and Documents, public model weights, caches, logs and external credentials. A backup ZIP contains private data and must be kept separate from the program distribution ZIP.
 
-General export, encryption and broader corruption/schema-recovery controls remain open work in the [Project Backlog](../../plans/project/backlog.md). Explicit cache cleanup is limited to owned inactive derived data and must not follow symlinks into external content. Automatic [migration-copy retirement](installation-and-storage.md#bounded-recovery-and-cleanup) is a separate bounded storage operation; neither it nor same-installation restore closes the wider recovery work.
+The bounded recovery operations do not provide general export, encryption or broader corruption/schema recovery. Explicit cache cleanup is limited to owned inactive derived data and must not follow symlinks into external content. Automatic [migration-copy retirement](installation-and-storage.md#bounded-recovery-and-cleanup) is a separate bounded storage operation; neither it nor same-installation restore supplies those wider recovery controls.
 
 ## Source Persistence Modes
 

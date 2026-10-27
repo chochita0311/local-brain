@@ -63,11 +63,21 @@ apply to that isolated candidate, not to the full mixed working tree.
   geometry, explicit pointer/keyboard focus, displayed-path pin sorting and
   bounded hidden labels. Source instructions move to the relevant README usage
   section; the documentation map now links both desktop owners.
-- [Shared evaluation experience](../../policies/design/design-document-governance.md#shared-evaluation-experience--2026-10-26)
-  records the separately completed ai-assets publication `dc15bf9`: eight reusable
-  themes, two evaluation policies, the screen-alignment procedure and three
-  generalized records. Its package/schema/link/privacy checks and two reviews
-  establish that source update, not a local harness refresh or future behavior gain.
+
+### Shared Evaluation Experience — 2026-10-26
+
+The owner authorized generalizing this session's reusable UI/UX findings into
+ai-assets. [Commit dc15bf9](https://github.com/chochita0311/ai-assets/commit/dc15bf9ad9aae2eaa6c819117a28e807cfbdb755)
+updates its Design/Interaction Evaluation policies and standalone screen-alignment
+procedure, with three generalized evidence records. The eight concerns are
+requested-control preservation; frame/painted/hit-area geometry; sequential input
+and focus; reorder feedback and commit; autosave confirmation and races; displayed
+sort semantics; actual-host/native-action evidence; and hidden-content overflow.
+Two documentation reviews corrected export-link portability and record subject
+discovery; package, schema, links, privacy and public-fitness checks passed. This is shared
+source publication, not a refresh of LocalBrain's installed harness or proof of
+improved future agent behavior. Private original receipts remain at their owners;
+public examples retain recorded-execution and unrun-scenario limits.
 
 ### Closeout Review And Verification
 

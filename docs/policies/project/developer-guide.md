@@ -171,17 +171,7 @@ The flag applies to that command only. If later `uv` commands also need network 
 ## Python Runtime Compatibility
 
 Use the uv-managed Python 3.11 environment shown above for installation and
-verification. Earlier standalone installation checks and full-suite runs passed
-on Python 3.11; the source checkout also passed on Apple Command Line Tools
-Python 3.9.6. These are separate execution records.
-
-The search-session closeout subsequently checked the migrated application
-environment on Python 3.11.15/OpenSSL 3.5.7: all 53 installed packages were
-compatible and all 1,115 tests passed. The migration's import and offline Qwen
-query smoke are recorded separately from that full-suite run in
-[RUN-160](../../plans/run/run-20261013-160-general-work-search.md#session-closeout--2026-10-13).
-The FEAT-0121–0123 embedding quality/latency results retain their measured
-Python 3.9.6 runtime; this verification does not replace their benchmarks.
+verification.
 Package metadata accepts Python 3.9 or later; it does not establish that every
 system-provided runtime has been verified. See [LibreSSL environment repair](installation-and-storage.md#repair-an-existing-libressl-based-environment)
 when the interpreter, rather than server logging, needs replacement.
@@ -230,7 +220,7 @@ New findings use the existing work-session handoff to explain the proposed appli
 
 The [existing-proposal contract](product.md#existing-proposal-follow-through) distinguishes mention, application, outcome and deferral from supplied evidence. A useful next step can carry an earlier proposal forward without inventing a new method. These are generation rules; the product does not persist an adoption state or infer it from a report's existence.
 
-The analysis launcher resolves the Codex executable before starting it and grants its sandboxed startup helpers read access to that exact binary. The profile home is used for client authentication and is not added to the command filesystem allowlist. Artifact writes and command network access remain blocked. See [RUN-135](../../plans/run/run-20261001-135-personal-insight-cli-startup.md) for the macOS startup correction. Restart a server that was already running when runner code changed before submitting a new analysis.
+The analysis launcher resolves the Codex executable before starting it and grants its sandboxed startup helpers read access to that exact binary. The profile home is used for client authentication and is not added to the command filesystem allowlist. Artifact writes and command network access remain blocked. Restart a server that was already running when runner code changed before submitting a new analysis.
 
 Run detail displays the same stored estimated cost used by Usage & Cost, with its calculation state and frozen price basis in the existing settings disclosure. Missing usage or pricing stays explicitly unavailable, and any CLI-reported amount remains separately labeled. Estimates are API-equivalent trend costs, not subscription bills. Startup seeds exact GPT-6.1 Sol Standard/Fast snapshots effective 2026-09-29 and fills eligible previously unpriced records using retained evidence; already-priced records are preserved.
 
@@ -416,10 +406,9 @@ they are evidence, not live commands or dependencies on those locations.
 The product uses only the existing `local-models` extra and verified
 Qwen3-Embedding-0.6B checkpoint for natural search. Qwen3-Reranker-0.6B is a
 separate candidate scorer; Qwen3-4B/8B generation trials do not run in this path.
-The [search contract](natural-language-search.md) and
-[measured comparison](../../plans/evaluation/eval-0121-functional-natural-search-local-comparison.md)
-separate default selection, synthetic model observations and private full-index
-measurements. No private corpus is required to reproduce the public comparison.
+The [search contract](natural-language-search.md) owns the current default;
+public synthetic comparisons and private full-index measurements have distinct
+evidence scope. No private corpus is required to reproduce the public comparison.
 Use fresh private output directories for each command. Run GPU measurements
 sequentially without another model job; timings include completed MPS work.
 
@@ -440,8 +429,8 @@ command compares batch sizes and float16 explicitly; it does not alter app setti
 Current `hybrid` uses the original query and a conservative topic/action
 view, orders by their mean cosine and retains exact-identifier lexical admission.
 These commands use the current implementation. `dense` remains the original-query
-baseline. The dedicated precision comparator reconstructs historical RRF and
-the earlier cosine ordering on identical fragment scores, using dense mode plus
+baseline. The dedicated precision comparator reconstructs the RRF and
+single-view cosine orderings on identical fragment scores, using dense mode plus
 unchanged hybrid admission for single identifiers:
 
 ```bash
@@ -450,7 +439,7 @@ uv run --no-sync python scripts/benchmark-search-precision.py --device mps --out
 
 This compares the fixed0/0.03/0.05/0.08 lexical-bonus grid on authored development
 and prior selection cases, then the frozen zero-bonus choice against the historical
-baseline on prior observed and new held-out topics. It caches query vectors only
+baseline on the fixed observed and holdout topic cohorts. It caches query vectors only
 for quality comparison and makes no query-latency claim. Synthetic indexes live
 in task-owned temporary directories and are removed automatically. The fresh
 private output retains fixture hashes, runtime and complete per-query judgments;
@@ -470,12 +459,10 @@ future tuning. `equal` is the admitted default: original/focused cosine mean,
 with admission from either view. The script checks comparator/engine agreement
 and reports per-query/category metrics, including topic coverage for broad queries.
 It reuses vectors only for quality comparison; measure latency with fresh encoding.
-The [general-work evaluation](../../plans/evaluation/eval-0123-functional-general-work-search.md)
-records rejected instruction alternatives, measured limits and private evidence scope.
 
 Laya and Qwen Reranker are optional development-only dependencies. Create a separate
 Python 3.11 environment outside the repository; do not replace the application's
-runtime. The measured versions were `laya==0.4.4`, `torch==2.8.0`,
+runtime. The frozen reproduction configuration uses `laya==0.4.4`, `torch==2.8.0`,
 `transformers==4.57.6`, `huggingface-hub==0.36.2`, `numpy==1.26.4` and
 `truststore==0.10.4`. The following setup downloads only pinned public assets into
 the shared Hub cache and writes a local hash manifest; `--offline` reuses existing
@@ -503,8 +490,8 @@ judge through local pipes, not an external service. Full-path trials use K20,
 retrieval cutoff0 and judge threshold0.5; their scores have a different contract
 from the product's cosine cutoff0.45.
 
-A checkpoint/runtime producing non-finite scores fails that attempt. The measured
-Laya trial disables its MPS autocast explicitly; the Qwen Reranker uses float32
+A checkpoint/runtime producing non-finite scores fails that attempt. Use
+`--laya-fp32` to disable Laya's MPS autocast explicitly; the Qwen Reranker uses float32
 and eager attention. Reports record these conditions, input budgets and truncation
 refusal. Laya's loader adaptation copies only metadata into its private evaluation
 owner and links immutable public weights; shared downloaded files stay unchanged.
@@ -526,18 +513,16 @@ needed. Shared public checkpoints have a separate lifecycle.
 
 The model roles are separate:
 
-| Model used in the recorded work | Purpose | Current map integration |
+| Model | Current purpose | Consumer/admission boundary |
 | --- | --- | --- |
-| Qwen3-Embedding-0.6B | Encode source chunks for similarity-based grouping | Prepared embeddings feed the map; browsing runs no model |
-| Qwen3-4B | Quoted work-context and relationship inference baseline | Synthetic trial failed admission; not connected to the map |
-| Qwen3-8B | Separately installed inference comparison and later trials | Synthetic trials did not establish admission; not connected to the map |
+| Qwen3-Embedding-0.6B | Encode source chunks for similarity-based grouping | Prepared embeddings feed the observation-only map; browsing runs no model |
+| Qwen3-4B | Explicit quoted work-context and relationship inference baseline | Frozen candidate remains rejected for admission; no map, private-source or product consumer |
+| Qwen3-8B | Explicit quoted work-context, protocol and source-claim diagnostics | No admitted work extractor or reconstruction producer; no generative map, private-source or product consumer |
 
 These are pretrained models, not locally trained weights or LoRA adapters.
 The installed 4B/8B assets are reusable independently of the embedding cache and
-expiring evaluation reports. The [recorded 4B trial](../../plans/run/run-20260923-104-local-work-context-inference.md)
-and [8B comparison](../../plans/run/run-20260923-106-work-context-model-size-comparison.md)
-own installation and quality evidence; the commands below are explicit tools,
-not an automatic pipeline for newly imported Sessions.
+expiring evaluation reports. The commands below are explicit tools, not an
+automatic pipeline for newly imported Sessions.
 
 Install LocalBrain's optional runtime and embedding model, then explicitly
 prepare the full-history result:
@@ -595,8 +580,8 @@ map or an obsolete selection; browsing does not repair or rerun them.
 
 ### Local Work-Context Model Trial
 
-The separate generative trial uses pinned `Qwen/Qwen3-4B` and the separately
-approved `Qwen/Qwen3-8B` comparison to extract quoted work units
+The separate generative experiment uses the allowlisted pinned `Qwen/Qwen3-4B`
+and `Qwen/Qwen3-8B` models to extract quoted work units
 and assess explicit continuation. It does not train the model or replace the
 embedding cache. Installation is an explicit public download (about 8.1 GB for
 4B or an additional 16.4 GB / 15.3 GiB for 8B; about 24.5 GB for both);
@@ -663,11 +648,11 @@ These two source-choice variants are experimental alternatives, not admitted aut
 All original messages remain in each decision's context. The case budget is 144
 choices/180 seconds, checked between and after calls rather than hard cancellation
 of an in-flight model call. Strategy prompts/projection/bounds govern cache identity.
-MPS uses the installed library's eager attention after a fused-attention numerical
-failure in the trial; no dependency update or changed weights are required.
+MPS uses the installed library's eager attention; this requires no dependency
+update or changed weights.
 Use distinct owned output folders for candidate/split comparisons; changing
 configuration in one folder replaces that folder's previous evaluation state
-for the historical strategies above (the evidence strategy below refuses it).
+for single/staged/classified/selected (the evidence strategy below refuses it).
 After selecting a frozen development-passing configuration, `--split holdout`
 runs the untouched cases. `--split all` runs both splits, but each split must
 pass independently; do not tune on holdout failures. The command opens no private
@@ -678,8 +663,9 @@ validated results. Evaluation state expires after 30 inactive days. Installed
 public model assets are separately owned and retained for reuse, not deleted
 with an expired evaluation. A completed evaluation is not a passing quality
 gate; a development-only pass is not a holdout pass. Whole-history inference and
-UI integration remain downstream of this admission test. See
-[the context-inference contract](../../plans/spec/spec-0098-local-work-context-inference.md).
+UI integration remain unadmitted. The current
+[context-inference contract](architecture.md#quoted-work-context-model-contract)
+owns packet/output shapes, generation bounds and model identity.
 
 `--strategy evidence` is a separate, opt-in 8B/MPS-eager/non-thinking/greedy
 candidate. It assesses source-backed goals/actions/results/pending work before
@@ -700,8 +686,8 @@ uv run --no-sync python scripts/evaluate-work-context-model.py \
   --strategy evidence --split development
 ```
 
-This runs the original four development cases and twelve new compositional
-controls, with independent gates. It does not rerun the 288-cell diagnostic or
+This runs the fixed four-case development cohort and twelve-case compositional
+cohort, with independent gates. It does not rerun the 288-cell diagnostic or
 read private Sessions. Case attempts are bounded to 32 spans, 96 choices and 120
 soft seconds (30 per generation). Same-config replay retains completed failures
 as well as successes; changed configurations and corrupt cached observations
@@ -715,12 +701,12 @@ candidate run `--split holdout` once, in a separate output folder, with
 The command revalidates the report's identity, observations and both split scores;
 an aggregate PASS is insufficient. `--split all` is refused for this strategy.
 Neither this candidate nor its gate starts private backfill or changes the UI.
-The completed [evidence-first trial](../../plans/run/run-20260923-109-evidence-first-work-context.md)
-fails both development gates; this is an experimental, rejected candidate, not
-an admitted workflow reconstruction engine.
+The frozen evidence-first candidate remains rejected and ineligible for holdout
+or workflow reconstruction. Reproduction and replay do not renew its consumed
+attempts, reset its budget or authorize another model run.
 
 The separate protocol diagnostic investigates answer-format, option-order and
-answer-code sensitivity on twelve new synthetic cases. It does not consume the
+answer-code sensitivity on twelve fixed synthetic cases. It does not consume the
 admission holdout or open private Sessions:
 
 ```bash
@@ -735,7 +721,7 @@ cumulative budget and 30-second soft generation limits. It compares numeric
 choices, semantic-label choices and short text; meaning, format and literal
 grounding are scored separately. The twelve cases, not the correlated conditions,
 are the evidence units. Completion never means model admission. Results retain
-the evaluation owner/lock/30-day expiry rules above. Unlike the historical
+the evaluation owner/lock/30-day expiry rules above. Unlike the
 single/staged/classified/selected admission strategies,
 diagnostic replay reuses completed wrong/invalid/refused observations too, and a
 changed configuration refuses an unexpired folder instead of replacing evidence.
@@ -743,7 +729,7 @@ Clean interruption can resume missing observations within cumulative bounds;
 an unclean in-flight crash refuses automatic restart because elapsed time is
 unknown. No default strategy, model weights or embedding vectors are changed.
 
-A separate matched formulation comparison tests sixteen fresh focused contexts
+A separate matched formulation comparison tests sixteen fixed focused contexts
 with independent property questions versus direct selection of the complete role
 set. Both use the same source and facet definitions, with canonical/reversed
 option orders. Compound action/result statements can keep both roles. Six separate
@@ -769,7 +755,7 @@ are separate findings, never an automatic extraction admission or UI update.
 
 ### Source-Claim Extraction And State Trial
 
-The separate [source-claim trial](../../plans/feature/feat-0100-source-claim-extraction-and-binding-trial.md)
+The separate [source-claim adapter](source-claims-and-work-state.md#model-aware-v2-and-synthetic-adapter)
 extracts historical claims, proposes scoped work bindings and lifecycle effects,
 then computes reported state with a pure deterministic projector. Model-inferred
 fulfillment is distinct from a source explicitly reporting completion. A completed
@@ -790,8 +776,12 @@ non-thinking candidate, not training or a new model installation. Twenty-eight
 synthetic development histories allow at most 84 generation calls; the original
 ten holdout cases allow 20 additional calls only after all development gates and
 a report-bound primary semantic review. `--holdout` cannot bypass that gate.
-Each call is bounded to 8,192 combined/2,048 generated tokens and 60 soft seconds;
-the cumulative active-run launch budget is 120 minutes. Input is never truncated.
+Each call is bounded to 8,192 combined/2,048 generated tokens and 60 soft seconds.
+The whole candidate allows at most 104 generation calls, including the gated
+holdout allowance, and a 120-minute cumulative active-run launch gate, including model load,
+verification and preflight. Reservations and elapsed time survive clean resume;
+these ceilings are not a fresh allowance for a closed or exhausted candidate.
+Input is never truncated.
 
 Reference-conditioned binding receives correct claims/targets for diagnosis;
 end-to-end generation must discover them from raw source. Neither technical tests
@@ -799,12 +789,10 @@ nor conditional results establish extraction quality. Completed failures replay
 without generation. The owned report uses the existing 30-day inactivity rule;
 changed config, corrupt/unclean state and expired trial budgets refuse reuse.
 No private input argument, all-Session job, server/UI update or organization write
-is added. [RUN-112](../../plans/run/run-20260923-112-source-claim-extraction-and-binding-trial.md)
-owns the actual measured result, not the presence of this command.
-Its frozen candidate completed but failed admission: all 28 extraction responses
-were rejected before binding, and only 3/28 reference-conditioned cases fully
-passed. Zero-generation replay passes; holdout, private processing and UI updates
-remain withheld. This command is an evaluation tool, not an admitted work extractor.
+is added. The frozen candidate remains rejected for admission; holdout, private
+processing and UI updates remain withheld. A replay or documentation cleanup
+does not reopen the candidate, renew consumed calls or reset its budget. This
+command is an evaluation tool, not an admitted work extractor.
 
 ### Earlier Model-Free Comparator
 
@@ -824,6 +812,75 @@ whole existing time range, not every record, and reports omissions explicitly.
 Scored quality still requires separate source-bound expectations. Results need
 a new private output directory outside the repository and an owner/expiry;
 default output contains status codes only. No private database is opened by
-default, and predictions never become the answer key. See
-[the input and command contract](../../plans/spec/spec-0095-bounded-work-reconstruction-experiment.md#local-invocation-and-file-shapes).
+default, and predictions never become the answer key. The current
+[Architecture contract](architecture.md#isolated-work-reconstruction-experiment)
+owns the wire shapes, caps, source permissions and assessment boundaries; the
+invocation and file shapes below describe this command.
 Synthetic correctness is not evidence that real work is reconstructed usefully.
+
+#### Model-Free Invocation And Files
+
+Choose exactly one input mode. All paths below are explicit local paths; use a
+new absolute output directory with an existing canonical nonsymlink parent
+outside the repository. Set `RECONSTRUCTION_EXPIRES_AT` to an explicit future
+aware ISO timestamp before a supplied-fixture or preparation invocation.
+
+```bash
+uv run --no-sync python scripts/experiment-work-reconstruction.py \
+  --fixture /absolute/private/fixture.json \
+  --expectations /absolute/private/expectations.json \
+  --output-dir /absolute/private/new-fixture-result \
+  --owner reconstruction-review --expires-at "$RECONSTRUCTION_EXPIRES_AT"
+
+uv run --no-sync python scripts/experiment-work-reconstruction.py \
+  --database /absolute/private/localbrain.db \
+  --manifest /absolute/private/selection.json \
+  --expectations /absolute/private/expectations.json \
+  --output-dir /absolute/private/new-scored-result
+
+uv run --no-sync python scripts/experiment-work-reconstruction.py \
+  --database /absolute/private/localbrain.db \
+  --prepare-through '2026-09-15T00:00:00+00:00' --unassessed \
+  --output-dir /absolute/private/new-unassessed-result \
+  --owner reconstruction-review --expires-at "$RECONSTRUCTION_EXPIRES_AT"
+```
+
+The preparation cutoff is an explicit scope choice, not a default or permission
+to open another database. Preparation requires database mode, `--unassessed`,
+and no manifest or expectations. Other database runs require a manifest;
+supplied-fixture and scored database runs require an independent expectations
+file. The selected manifest supplies database-mode owner/expiry. Fixture and
+preparation modes require explicit owner/expiry arguments. Expiry must be later
+than the current time, and preparation also requires expiry after its cutoff.
+No invocation creates missing database/schema/source state.
+
+| File | Current shape and validation |
+| --- | --- |
+| Supplied fixture | Exactly `{"version":1,"snapshots":[...]}`; 1–12 distinct named snapshots obey the [current snapshot contract](architecture.md#reconstruction-input-and-bounds) |
+| Private selection | Exactly `version`, `source_ids`, `start`, `end`, `snapshots`, `owner`, `expires_at`; version 1, ordered snapshot cutoffs, one bounded hash-verified selection per record and the source/permission predicates in Architecture |
+| Expectations | Exactly `{"version":1,"snapshots":{"snapshot-name":...}}`; names exactly match all supplied snapshots. Each version-1 answer key binds `snapshot_digest` and independently supplies `groups`, `negative`, `unresolved`; group/member/label bounds and contradictory-span refusal are in [assessment](architecture.md#reconstruction-output-and-assessment) |
+| Result | One new `comparison.json`, encoded at most 10 MiB, wrapped as `owner`, `expires_at`, `report`; directory mode 0700/file mode 0600. Existing output is never replaced; a failed write removes only paths created by that invocation |
+
+JSON inputs must be existing nonsymlink files no larger than 10 MiB; duplicate
+keys, non-finite constants, malformed data and hard-bound overflow refuse.
+Answer keys are validated against every frozen snapshot before either arm runs.
+The command compares text and metadata with/without organization, checks
+unchanged replay, and records scores, source/expectation digests, resource
+measurements and chronological stability. Results include `technical`,
+`input_kind`, `private_quality`, `viability`, `snapshots`, `history`, `sample`,
+`required_review`, `admission_resources` and `assessment`; preparation adds its
+frozen `input_manifest` and omission/sample metadata. `assessment: unassessed`
+retains unknown expectations and cannot pass quality; fixture execution cannot
+establish private quality. `viability` remains `unverified` even after technical
+success. The [finite human-review allowance](privacy-and-data.md#local-persistence)
+is separate and is never renewed by these commands.
+
+Each admission, extraction, comparator or scoring worker has a 120-second wall
+limit and 512-MiB peak-RSS bound, with monitor availability checked fail-closed;
+cancellation/failure terminates and reaps only its task-owned worker. The command
+opens no native file, source parser, connector or model. It adds no background
+retention scheduler or full database copy. Owner-managed expiry cleanup remains
+required for retained results. Standard output is only `EXPERIMENT_RECORDED`
+(exit 0), `EXPERIMENT_FAILED` (exit 2), or `EXPERIMENT_CANCELLED` (exit 130).
+Only explicit `--share-summary` replaces the success code with the non-identifying
+`technical`/`private_quality`/`viability` summary; private payloads never print.

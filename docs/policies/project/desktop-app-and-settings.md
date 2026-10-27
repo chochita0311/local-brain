@@ -133,9 +133,9 @@ behavior are recorded separately in Feature and Run evidence.
 - There is no project-display dropdown, display-root list or root-add action.
   Sessions, Chart, Dashboard, Context and read-only settings path labels use the
   common home formatter. Path editing/selection retains the actual registered
-  value; source registration remains independent of display. Workspace naming
-  no longer assumes `~/Projects`; a folder with that path displays `~/Projects`
-  rather than `.`. No historical Usage reassignment is performed. Dashboard Project
+  value; source registration remains independent of display. A workspace at
+  `~/Projects` displays `~/Projects` rather than `.`. No historical Usage
+  reassignment is performed. Dashboard Project
   composition includes work Sessions and work subsessions; it excludes all analysis
   and Maintenance records from rows, total and shares. Overall usage/history and
   Source/Model keep their usage. Preserve By Project / Project labels, Git/folder
@@ -346,8 +346,8 @@ their existing explicit authority. Picking does not persist a path independently
   iteration checks cancellation and the Notes reader subprocess is stopped on exit.
 - Health files retain the latest separate outcomes; source/file/root health stays
   in the existing DB tables. Failed collection preserves imported records and the
-  latest successful collection time. No new data root or DB schema. Independent
-  AI-index scheduling/control is deferred; enabled search still observes normalized DB
+  latest successful collection time. No new data root or DB schema. AI-index
+  scheduling has no independent controls; enabled search still observes normalized DB
   changes and does not download a model implicitly.
 - The common shell has no sync-status strip or updated-records link. Sessions
   retains its manual sync button and running state. Background completion preserves
@@ -460,11 +460,3 @@ their existing explicit authority. Picking does not persist a path independently
 - Collection-root changes use the existing same-source reconnect check. A Home
   edit with an unchanged explicit Session folder changes metadata only. Removing
   registration retains the ID/history; it does not delete transcripts or usage.
-
-## Change Provenance
-
-[PRD-0021](../../plans/prd/prd-0021-macos-standalone-test-app-and-local-settings.md)
-records the approved product scope and sequencing. The current settings,
-source-lifecycle, synchronization, search, runtime and recovery rules are defined
-in this contract. Feature and Run records retain implementation and release
-evidence without replacing these definitions.

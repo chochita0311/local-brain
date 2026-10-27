@@ -820,8 +820,8 @@ disclosure above the diagram owns all/partial/none visibility, shows paths for
 equal names and reserves an inner scrolling region inside its stable menu frame. No
 decorative star field or inferred Session relationship is introduced.
 
-The Project disclosure owns the left toolbar position formerly used by date
-navigation. Toolbar date range and directional buttons are omitted; axis dates,
+The Project disclosure owns the left toolbar position. Toolbar date range and
+directional buttons are omitted; axis dates,
 dragging and keyboard navigation retain time/vertical exploration. Project choices
 persist per source/workspace in the private LocalBrain DB and are shared by browsers
 using that DB, separately from tab camera state. Browser site-data clearing does not
@@ -1124,7 +1124,7 @@ AI may not:
 - replace LocalBrain's navigation or Workstream hierarchy with a generic dashboard pattern
 - hide provenance, errors, or unavailable evidence to make a screen look cleaner
 
-Any durable change to visual DNA, primitive families, semantic roles, shell geometry, state mapping, component families, accessibility rules, or screen families requires a constitution update and governance version entry.
+Any durable change to visual DNA, primitive families, semantic roles, shell geometry, state mapping, component families, accessibility rules, or screen families requires a constitution update and [governance version entry](../../plans/design/design-system-change-history.md#design-system-version-history).
 
 ## 15. Durable Screen Families
 

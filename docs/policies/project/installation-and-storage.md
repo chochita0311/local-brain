@@ -181,8 +181,8 @@ Claude/Codex-backed actions have their own CLI/authentication requirements and
 explicit external-service boundary; installing local models does not satisfy
 those requirements.
 
-The natural-search comparison also downloaded Laya multilingual and
-Qwen3-Reranker-0.6B as separate optional development assets. Their pinned snapshots
+Laya multilingual and Qwen3-Reranker-0.6B are separate optional development assets
+for natural-search comparisons. Their pinned snapshots
 use the same resolved public Hub cache as the Qwen embedding and 4B/8B assets,
 with separate model directories and weights. They are not part of the app's
 `local-models` extra or its default search path. The comparison's Python packages

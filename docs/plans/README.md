@@ -389,15 +389,17 @@ complete Feature, Spec, Run, Evaluation, and Fix lineage.
 
 - `prd/`: product boundaries, decisions, and approval status
 - `feature/`: approved loop-sized outcomes and acceptance contracts
-- `spec/`: implementation-facing contracts
+- `spec/`: change-scoped implementation contracts and verification plans; settled
+  behavior belongs to its current policy owner
 - `run/`: execution state, attempts, evidence coverage, and routing
 - `evaluation/`: contract, design, functional, and UX results
 - `fix/`: bounded corrections from evaluator findings
 - `heuristic/`: non-blocking UX suggestion backlog
 - `refactoring/`: scoped refactor tracks and their validation or merge-check logs
-- `project/`: roadmap and backlog ownership
+- `project/`: roadmap, backlog, and [harness import history](project/harness-import-history.md)
 - `design/`: tracked design reconciliation, sequencing, validation gates, and
-  handoff plans; durable visual law remains under `docs/policies/design/`
+  handoff plans and [design-system change history](design/design-system-change-history.md);
+  durable visual law remains under `docs/policies/design/`
 - `research/`: source-backed method reviews and proposed experiments linked to
   an owning PRD; research alone does not approve execution or change acceptance
 - [Artifact Catalog](artifact-catalog.md): complete generated navigation for its

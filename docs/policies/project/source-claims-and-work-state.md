@@ -4,7 +4,7 @@
 
 `work_state.py` owns the pure experimental in-memory source/state contracts.
 The unchanged `localbrain.source-claim-state.v1` uses `synthetic-supplied.v1`
-interpretations; the separately approved v2 records actual model-producer lineage
+interpretations; the model-aware v2 records actual model-producer lineage
 and scoped inferred lifecycle effects. Both projection functions remain pure,
 with no filesystem, database, clock or model call. The standalone synthetic trial
 below is the only v2 adapter consumer, not an application route, persistent ledger,
@@ -150,15 +150,14 @@ ambiguous-binding and cycle errors. They contain no source wording or identifier
 The pure consumer cannot reject every semantically false but well-formed binding;
 that remains the future producer's separately measured responsibility.
 
-## Verification Owner
+## Verification Contract
 
-[FEAT-0099](../../plans/feature/feat-0099-source-claims-and-work-state-projection.md)
-and [RUN-111](../../plans/run/run-20260923-111-source-claims-and-work-state-projection.md)
-own the supplied-claim implementation/evaluation evidence. The fixture suite
-declares expected states independently of the reducer. The separately approved
-model adapter is described below; private all-history use, production storage/
-identity and map integration remain separate work. Passing the pure contract
-does not change FEAT-0098's failed admission results.
+The fixture suite declares expected states independently of the reducer. Passing
+the pure contract establishes supplied-claim behavior, not semantic model quality
+or source-extractor admission. The model adapter below remains synthetic-only:
+private all-history use, production storage/identity and map integration are not
+admitted. Passing this pure contract does not admit the rejected work-context
+model configurations.
 
 ## Model-Aware V2 And Synthetic Adapter
 
@@ -223,8 +222,9 @@ reset the same Run's budget. Replay revalidates stored raw outcomes without mode
 generation. Conditional holdout requires the same revalidated development report
 and a report-bound primary review receipt. There is no automatic private consumer.
 
-[FEAT-0100](../../plans/feature/feat-0100-source-claim-extraction-and-binding-trial.md),
-[SPEC-0100](../../plans/spec/spec-0100-source-claim-extraction-and-binding-trial.md)
-and [RUN-112](../../plans/run/run-20260923-112-source-claim-extraction-and-binding-trial.md)
-own the numerical trial limits and measured quality outcome. That outcome must
-not be inferred from this implementation policy.
+The [Developer Guide](developer-guide.md#source-claim-extraction-and-state-trial)
+owns current invocation and numerical trial limits, including cumulative budgets,
+replay and holdout refusal conditions. The frozen source-claim model candidate
+remains rejected and unadmitted; its holdout, private-source and UI use remain
+withheld. This policy establishes no successful semantic quality result and grants
+no fresh trial or budget reset.

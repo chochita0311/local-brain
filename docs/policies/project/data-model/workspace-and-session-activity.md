@@ -241,7 +241,7 @@ Message position, wording, the next user input and file end do not establish com
 
 #### Personal Insight Evidence Manifest
 
-The personal insight evidence manifest is a private derived value, not a new database subject or retained observation ledger. Its v1 producer selects only nonblank user/assistant message Events from `work`, `primary`, `full` Claude/Codex Sessions at or before a supplied request time. Optional local dates filter Event occurrence time; undated Events cannot satisfy a bounded date. It selects at most 100 Sessions, 300 excerpts, 600 characters per excerpt, and 120,000 excerpt characters overall, reporting eligible totals, source coverage, selection method, and omissions. Each Event reference carries its current Session/Event IDs and SHA-256 digest of the complete normalized text. Additive v1 metadata records each Session's eligible message count, each excerpt's zero-based position within that frozen scoped list, and the truncated-excerpt count. These positions support precise missing-message requests without changing selection or treating raw event sequence as a message index. Older frozen manifests may omit them. A later read reports a missing row as unavailable and a changed source, role, order, time, eligibility, or digest as stale. The value neither retains disappeared Session content nor claims current verification from a historical skill count. A later Run may freeze the value in its own private artifact owner; the producer itself persists nothing.
+The personal insight evidence manifest is a private derived value, not a new database subject or retained observation ledger. [Personal Insight Evidence](../architecture.md#personal-insight-evidence) owns current selection, eligibility, message positions, compatibility and reference review. The value neither retains disappeared Session content nor claims current verification from a historical skill count. A Run may freeze the value in its own private artifact owner; the producer itself persists nothing.
 
 ### `skill_observations`
 
@@ -410,7 +410,7 @@ Constraints: exact target-kind/FK/normalized-URL parity; exact evidence-kind/rea
   the Episode identity, while a changed local Session row ID may change only its
   navigation destination. There is no persisted inferred graph to restore or
   purge.
-- The initial Focus read model adds no physical relationship. It admits a
+- The current Focus read model adds no physical relationship. It admits a
   persisted Session only when `session_class=work`, `session_role=primary`,
   `index_policy=full`, and existing Event/Usage evidence keeps it meaningful.
   Candidate discovery reads `workspace_id`, current `workspaces.git_root`,

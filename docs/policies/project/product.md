@@ -9,9 +9,10 @@ app. Company accounts, networks, certificates and the developer's personal paths
 are not prerequisites. Its public release must work under normal macOS security
 settings without asking users to install certificates or make security exceptions;
 standard first-open and requested data-access confirmations remain. Settings and
-private runtime data stay local. The [public distribution goal](../../plans/prd/prd-0021-macos-standalone-test-app-and-local-settings.md#public-distribution-goal--2026-10-20)
-distinguishes this requirement from the current ad-hoc test artifact and its
-remaining signing, notarization and first-launch evidence.
+private runtime data stay local. The current macOS test artifact is ad-hoc signed
+and not notarized; its first-launch procedure does not establish public-release
+readiness. The [test distribution guide](standalone-test-app-guide.md) owns that
+artifact's launch requirements and recipient-verification limits.
 
 The product has two equal goals:
 
@@ -235,8 +236,7 @@ The same Resource may relate to multiple Threads. Relationship-specific evidence
   one proposed pair of canonical artifacts supported by at least two distinct
   eligible primary work Sessions. The pure contract validates supplied facts
   and pairs; it has no database-discovery or candidate-review consumer. The
-  [candidate follow-up chain](../../plans/feature/feat-0090-workstream-candidate-discovery-contract.md)
-  was superseded, not admitted as the replacement experience.
+  contract is not admitted as a replacement Workstream experience.
 - Every member independently references both artifacts. A Session may support
   several candidates through different evidence, and shared Sessions/artifacts
   do not transitively merge their boundaries. Existing organization is not a
@@ -265,7 +265,7 @@ with a minimal deterministic Korean/English goal extractor. It groups exact
 normalized subject/change and compatible completion criteria, keeps activity
 phases subordinate, attributes source wording, and leaves unsupported meaning
 unassigned. It requires no routine create/name/assign/accept/promote action.
-This is a measured prototype, not a general semantic understanding capability.
+This is an experimental prototype, not a general semantic understanding capability.
 
 Comparison scores use separate source-bound expectations, not generated labels
 as truth. Processing coverage, synthetic correctness, local quality, and product
@@ -277,10 +277,11 @@ Population/sample counts and incomplete text stay distinct from quality.
 
 The comparison command changes no Workstream/Thread, Suggestion, assertion,
 or source. The user-managed product rules above remain runtime truth until an
-approved transition replaces them. The [approved experiment](../../plans/feature/feat-0095-bounded-work-reconstruction-experiment.md)
-owns trial bounds and acceptance; [PRD-0017](../../plans/prd/prd-0017-source-backed-workflow-map-and-workstream-lenses.md)
-owns the replacement direction and finite legacy-retention/retirement plan.
-This experiment performs neither transition nor cleanup.
+approved transition replaces them. [Architecture](architecture.md#isolated-work-reconstruction-experiment)
+owns current input, processing and output bounds; the [Developer Guide](developer-guide.md#earlier-model-free-comparator)
+owns invocation, and [Privacy](privacy-and-data.md#local-persistence) owns private
+input and review limits. This experiment performs neither product transition nor
+legacy cleanup.
 
 ### Auto Work Inspection
 
@@ -319,8 +320,8 @@ now under the existing experiment caps, excluding manual organization from the
 grouping arm. It uses no model, remote call, source rescan, or organization write.
 One private result is retained for seven days and atomically replaced on a
 successful refresh; failure keeps the previous valid result. Expired or changed
-evidence is not displayed as current. This owner-approved inspection increment
-may precede quality assessment; production replacement still cannot.
+evidence is not displayed as current. Unassessed inspection may precede quality
+assessment; production replacement still cannot.
 
 ### Workflow Assertion And Correction
 

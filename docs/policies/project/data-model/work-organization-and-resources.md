@@ -208,7 +208,7 @@ Constraints: resource type and generic exact-URL reuse are application-enforced.
 - The workflow Focus read model creates no Workstream, Thread, link, Resource,
   or graph row. It may show all current reviewed memberships and their related
   Resources as evidence, but only Session links whose `linked_by` is exactly
-  `user` can participate in the initial directional candidate matrix.
+  `user` can participate in the current directional candidate matrix.
 - A shared user Thread is one strong exact relation signal. A shared user
   Workstream needs the approved second direct-reference or Git-root signal;
   Workstream membership alone never establishes workflow direction. Accepted

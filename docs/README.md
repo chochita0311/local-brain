@@ -1,6 +1,6 @@
 # Documentation Map
 
-This directory separates durable project contracts from active planning artifacts.
+This directory separates current project contracts from project plans and approval, change, execution, and evaluation records.
 
 ## Start Here
 
@@ -36,7 +36,7 @@ and development progress remain in the layers below.
 Durable rules and current contracts live under `docs/policies/`.
 
 - [Product Model](policies/project/product.md): product purpose, scope, terminology, source roles, and user-facing organization rules
-- [Project Architecture](policies/project/architecture.md): stack, runtime boundaries, source adapters, storage model, and current implementation baseline
+- [Project Architecture](policies/project/architecture.md): stack, runtime boundaries, source adapters, storage model, and current capability ownership
 - [macOS Installation And Local Storage](policies/project/installation-and-storage.md): installed wheel/archive setup, optional models, configurable private storage, updates, migration and cleanup
 - [Local Natural Language Search](policies/project/natural-language-search.md): eligible sources, molecularization, model roles, query interpretation, ranking, refresh and evidence navigation
 - [Source Claims And Work State](policies/project/source-claims-and-work-state.md): pure supplied-claim state projection and inferred provenance; not an admitted source extractor or map producer
@@ -76,7 +76,7 @@ Durable rules and current contracts live under `docs/policies/`.
 
 ## Plans
 
-Sequencing and unresolved work live under `docs/plans/`.
+Project plans, sequencing, unresolved work, approvals, change history, and execution/evaluation records live under `docs/plans/`.
 
 - [Plans Index](plans/README.md): open planning boundaries, active execution, recently completed chains, and artifact locations
 - [Project Roadmap](plans/project/roadmap.md): phase direction, current priorities, validation strategy, and risk controls
@@ -85,14 +85,16 @@ Sequencing and unresolved work live under `docs/plans/`.
 - `docs/plans/prd/`, `feature/`, and `spec/`: planning and implementation boundaries across their lifecycle
 - `docs/plans/run/`, `evaluation/`, `fix/`, and `heuristic/`: execution and review artifacts
 - `docs/plans/refactoring/`: scoped refactor tracks and their validation or merge-check logs
+- [Design System Change History](plans/design/design-system-change-history.md): dated design changes; current visual rules remain in the Design Constitution
+- [Harness Import History](plans/project/harness-import-history.md): repository import and local-detachment events; current refresh and compatibility rules remain in Agent Workflow
 
 ## Ownership Rules
 
 - `README.md` owns the public product overview, installation entry and short first-use path; detailed screen usage belongs to the app guides above.
 - `src/localbrain/content/docs/` owns the distributed app's user-guide bodies. Update the relevant guide with a public behavior change, following [In-App Documentation](policies/project/app-documentation.md).
 - `AGENTS.md` routes contributors and agents without duplicating deeper contracts.
-- `docs/policies/` owns facts that should remain true across implementation cycles.
-- `docs/plans/` owns facts expected to change as work is completed or reprioritized.
+- `docs/policies/` owns current definitions, behavior, constraints, and operational contracts. Project approval, delivery, and evaluation chronology does not belong in policy bodies or appendices.
+- `docs/plans/` owns project plans, priorities, unresolved work, approvals, changes, and execution/evaluation records, including completed historical facts. Records reference canonical current contracts rather than owning their definitions.
 - `docs/agents/` owns reusable role, flow, operation, and execution-profile contracts.
 - Machine-specific workflow inventories and handoff context stay outside Git and must not become dependencies of tracked documentation.
 

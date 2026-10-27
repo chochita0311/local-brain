@@ -61,7 +61,6 @@ This is an explicit LocalBrain syntax allowlist. Obsidian and third-party plugin
 - Standard Markdown image syntax does not emit an `<img>` element.
 - The renderer emits a non-fetching deferred marker with escaped alternative text.
 - Local files, remote URLs, and attachments are not resolved or loaded through the baseline renderer.
-- Safe image and attachment rendering remains the tracked follow-up under `docs/plans/project/backlog.md#markdown-image-and-attachment-rendering`.
 
 ## Local Reference Contract
 
