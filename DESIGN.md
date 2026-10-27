@@ -8,27 +8,7 @@ Durable tokens, component contracts, layout rules, state mappings, and implement
 
 ## Source Set And Interpretation
 
-The first-use setup adapts the owner's [Tesla homepage](https://www.tesla.com/)
-reference (2026-10-23) for quiet centered hierarchy, stable navigation, bottom page
-dots and a coherent crossfade. LocalBrain keeps its compact settings-dialog
-geometry, neutral surfaces, warm actions, SF-oriented type and shared motion
-tokens. The four actual steps determine the dot count; source registration and
-explicit model-install authority determine navigation. No promotional imagery,
-auto-advance or foreign theme is imported.
-
-Session profile settings draw on the owner's [iPhone Duo reference](https://www.apple.com/iphone-duo/)
-(2026-10-23): concise headings, deliberate whitespace, grouped surfaces and detail
-revealed when requested. A compact overview leads to an editor within the same
-pane. The later Home-first correction makes agent home primary and discloses only
-a custom Session-folder override. Collection
-paths, errors and explicit registration authority remain visible at their relevant
-decision points. LocalBrain keeps its control geometry and restrained palette;
-Apple product imagery, promotional scale and pill-shaped controls do not transfer.
-
-The owner-supplied desktop About-dialog reference (2026-10-24) contributes only
-its icon/name/version hierarchy and whitespace. LocalBrain uses its existing LB
-mark and settings family; reference branding, license text and screenshots are
-not product assets. The About pane keeps only identity and the actual version.
+### Shared Visual Foundation
 
 The starting point is a screen-plus-context source set:
 
@@ -38,65 +18,89 @@ The starting point is a screen-plus-context source set:
 
 The upstream design system is a strong visual guide, not a complete LocalBrain specification. Commerce-specific concepts, unsupported states, and source-specific component assumptions do not transfer automatically. LocalBrain adds the feedback, accessibility, provenance, console, long-path, and dense-workflow rules needed by the product.
 
-The Sessions Chart also references the **Chochita Archive / Andromeda collection**
-(owner-selected, 2026-10-06) for spatial point/card exploration, selection focus
-and camera interaction. LocalBrain retains its own shell, typography, palette
-and source cues. Recorded time supplies horizontal structure; no star background,
-decorative links or inferred work grouping is imported. This is an interaction
-reference within the existing creative direction. The owner's subsequent
-**Obsidian Graph view** reference contributes the feeling of tension when pulling
-a point. The Chart adapts it into transient bounded motion around fixed homes,
-with recorded time anchors and spring return. The owner's later review replaces
-the irregular field with **recorded-folder Project bands and Git-like branch
-guides**. Stored branch names and first Session observations own that structure;
-exact `HEAD` is retained as original metadata rather than a named branch.
-Folders with only HEAD/missing values use one line without an empty baseline;
-mixed named-branch folders keep those values on one unassigned track.
-It imports no actual Git ancestry or work inference. Tension is now small and
-local to one track. No note relationships, persistent free layout or Obsidian
-styling are imported.
+### First-Use Setup
 
-The next owner refinement favors compact tracks and a whole-diagram overview
-with native checkbox Project visibility. Footer annotations are removed. The
-camera offers light resistance near recorded date ends; overview keeps Project
-and branch names scaled with their rows, suppresses crowded Session titles and
-returns to reading scale on selection. These are exploration
-controls over retained observations, not new relationships or work classification.
+The first-use setup adapts the owner's [Tesla homepage](https://www.tesla.com/)
+reference (2026-10-23) for quiet centered hierarchy, stable navigation, bottom page
+dots and a coherent crossfade. LocalBrain keeps its compact settings-dialog
+geometry, neutral surfaces, warm actions, SF-oriented type and shared motion
+tokens. The four actual steps determine the dot count; source registration and
+explicit model-install authority determine navigation. No promotional imagery,
+auto-advance or foreign theme is imported.
 
-The subsequent toolbar refinement places Project filtering in the date navigation
-position, removes directional/date controls and retains drag/keys/zoom/fit/focus.
-Project choices persist locally after browser close. Existing pinned Sessions use
-a static halo in the native pin color and the established pin shape, without
-recoloring source cues or adding pulse. Two-segment List/Chart omits a divider;
-the source header adopts Dashboard separators and `All`.
+### Profile Settings And About
 
-The owner's storage/space refinement puts confirmed Project choices in LocalBrain's
-private DB, shared across browsers while camera state remains local to the tab.
-The same native canvas gains balanced end insets around centered source targets,
-visible-project endpoint anchoring and more resisted travel before spring return.
-These changes retain compact branch geometry and the existing static pin language.
-Only a genuine preference failure introduces contextual recovery copy.
+Session profile settings draw on the owner's [iPhone Duo reference](https://www.apple.com/iphone-duo/)
+(2026-10-23): concise headings, deliberate whitespace, grouped surfaces and detail
+revealed when requested. A compact overview leads to an editor within the same
+pane. Agent home is primary; only a custom Session-folder override is placed in a
+disclosure. Collection paths, errors and explicit registration authority remain
+visible at their relevant decision points. LocalBrain keeps its control geometry
+and restrained palette; Apple product imagery, promotional scale and pill-shaped
+controls do not transfer.
 
-Independent time zoom lets the owner compress history without shrinking Project
-and branch spacing. The modifier gesture keeps the pointer's time and vertical
-orientation stable; the existing whole-chart controls retain overview behavior.
+The owner's [Notion reference](https://www.notion.com/ko), selected for
+profile settings on 2026-10-25, contributes light, independently movable rows.
+LocalBrain keeps its own shell, tokens and supported actions. Color-only tag
+controls evoke familiar label palettes; source toggles stay textual while record
+cues retain provider letters and colors.
 
-Temporary descriptions let the owner inspect points before choosing one. A
-stronger native information surface and border make hover apparent while source
-and pin cues keep their meanings. Clicking holds a description; repeating the
-click or choosing empty canvas releases it. A separate temporary card keeps an
-already held description in place, including on narrow screens. This extends the
-existing point/card exploration without introducing a new visual language.
-The owner's next refinement joins the node and description through a continuous
-hover passage so moving into the card feels stable. Card reading remains temporary
-and local; leaving its pointer/focus ownership closes it after a short grace.
+The owner-supplied desktop About-dialog reference (2026-10-24) contributes only
+its icon/name/version hierarchy and whitespace. LocalBrain uses its existing LB
+mark and settings family; reference branding, license text and screenshots are
+not product assets. The About pane keeps only identity and the actual version.
+
+### Sessions Chart Exploration
+
+The **Chochita Archive / Andromeda collection** (owner-selected, 2026-10-06)
+contributes spatial point/card exploration, selection focus and camera interaction.
+The owner's **Obsidian Graph view** reference contributes the feeling of tension
+when pulling a point. Both are interaction references within LocalBrain's existing
+creative direction: the shell, typography, palette and source cues remain native.
+No star background, decorative links, note relationships, persistent free layout,
+Obsidian styling or inferred work grouping is imported.
+
+Recorded time supplies horizontal structure. Recorded-folder Project bands and
+Git-like branch guides replace an irregular field: stored branch names and first
+Session observations own the structure, while exact `HEAD` remains original
+metadata rather than a named branch. Folders with only HEAD/missing values use one
+line without an empty baseline; mixed named-branch folders keep those values on
+one unassigned track. No actual Git ancestry or work inference is imported.
+Tension is small, transient, bounded and local to one track around fixed homes and
+recorded time anchors, with spring return.
+
+Compact tracks and a whole-diagram overview use native checkbox Project
+visibility. Footer annotations are omitted. The camera offers light resistance
+near recorded date ends; overview keeps Project and branch names scaled with
+their rows, suppresses crowded Session titles and returns to reading scale on
+selection. These controls explore retained observations; they create no new
+relationships or work classification.
+
+Project filtering occupies the toolbar's date-navigation position. Directional
+and date controls are omitted while drag, keys, zoom, fit and focus remain.
+Confirmed Project choices persist across browser close in LocalBrain's private DB
+and are shared across browsers; camera state remains local to the tab. The canvas
+uses balanced end insets around centered source targets, visible-project endpoint
+anchoring and more resisted travel before spring return, retaining compact branch
+geometry. Only a genuine preference failure introduces contextual recovery copy.
+Existing pinned Sessions use a static halo in the native pin color and the
+established pin shape, without recoloring source cues or adding pulse. Two-segment
+List/Chart omits a divider; the source header uses Dashboard separators and `All`.
+
+Independent time zoom compresses history without shrinking Project and branch
+spacing. The modifier gesture keeps the pointer's time and vertical orientation
+stable; whole-chart controls retain overview behavior.
+
+Temporary descriptions support inspecting a point before selection. A stronger
+native information surface and border make hover apparent while source and pin
+cues keep their meanings. Clicking holds a description; repeating the click or
+choosing empty canvas releases it. A separate temporary card leaves an already
+held description in place, including on narrow screens. The node and description
+share a continuous hover passage so moving into the card is stable. Reading stays
+temporary and local; leaving its pointer/focus ownership closes it after a short
+grace. These point/card interactions introduce no new visual language.
 
 ## Creative North Star
-
-The 2026-10-25 profile-settings refinement uses the owner's [Notion reference](https://www.notion.com/ko)
-as direction for light, independently movable rows. LocalBrain keeps its own shell,
-tokens and supported actions. Color-only tag controls evoke familiar label palettes;
-source toggles stay textual while record cues retain provider letters and colors.
 
 **The Trusted Tool**
 

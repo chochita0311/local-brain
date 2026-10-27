@@ -15,7 +15,7 @@
 
 ## Implementation Goal And Acceptance Mapping
 
-Fix the storage, preparation and refresh contract in [Natural Language Search](../../policies/project/natural-language-search.md). Its FEAT-0117 section maps each feature guarantee to explicit actors, inputs, boundaries, failure states and downstream responsibilities. Other sections remain separately owned foundations.
+Fix the storage, preparation and refresh contract in [Natural Language Search](../../policies/project/natural-language-search.md#storage-preparation-and-recovery). Its **Storage, Preparation And Recovery** section maps each feature guarantee to explicit actors, inputs, boundaries, failure states and downstream responsibilities. Other sections remain separately owned foundations.
 
 ## Contract Surfaces
 

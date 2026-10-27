@@ -10,7 +10,7 @@
 - `src/localbrain/markdown.py` owns the shared renderer implementation.
 - Authoritative Document and Activity Event text remains owned by its source record and is never replaced by rendered HTML.
 - Rendered HTML is derived runtime presentation. It is not persisted, indexed, or treated as source evidence.
-- PRD-0006 and its Features may extend the allowlist, but consumers must not create page-local Markdown parsers or trust rules.
+- Reviewed changes to this shared renderer contract may extend the allowlist, but consumers must not create page-local Markdown parsers or trust rules.
 
 ## Baseline Syntax
 
@@ -53,7 +53,7 @@ This is an explicit LocalBrain syntax allowlist. Obsidian and third-party plugin
 - Pygments runs locally for an explicit allowlist covering shell, Python, JavaScript, TypeScript, JSON, YAML, SQL, HTML, CSS, Markdown, and diff families.
 - Lexer guessing is disabled.
 - Missing, text-like, unknown, or failed language handling uses escaped generic code.
-- Generated highlighting uses classes rather than inline style values; visible consumer Features own the Design Constitution-compatible presentation.
+- Generated highlighting uses classes rather than inline style values; visible consumers own the Design Constitution-compatible presentation.
 - Markdown reading uses its own calm dark-surface and syntax-text roles. It does not reuse the near-black Run console surface or status and brand colors as syntax semantics.
 
 ## Image Deferral
@@ -94,7 +94,7 @@ This is an explicit LocalBrain syntax allowlist. Obsidian and third-party plugin
 - Shared presentation bounds generated MathML and CommonMark indented code blocks inside the owning reading container. Wide technical content scrolls locally and never widens the outer page.
 - Consumers may provide page-owned empty or failure copy from the returned state, but they must not reparse the output or mark source text as trusted.
 - Consumer CSS may style shared semantic classes under the Design Constitution but must not change syntax, trust, source, or fallback meaning.
-- Unsupported syntax stays safe and understandable until an approved Feature extends this allowlist.
+- Unsupported syntax stays safe and understandable until an approved extension adds it to this allowlist.
 
 ## Verification Contract
 

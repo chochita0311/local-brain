@@ -56,9 +56,9 @@ Spec, Run, and Evaluation document owns its own detailed status and history.
   browser use and the packaged app, retaining the existing manual sync action.
   The shared backend owns scheduling while running; local settings persist
   across restarts, and closing browser tabs does not stop a running server.
-  The implemented
-  lifecycle, settings and non-disruptive refresh are owned by its
-  [periodic sync boundary](prd/prd-0021-macos-standalone-test-app-and-local-settings.md#periodic-session-synchronization);
+  The [current synchronization contract](../policies/project/desktop-app-and-settings.md#synchronization-presentation)
+  owns lifecycle, settings and non-disruptive refresh. The PRD records the
+  [approved periodic-sync scope](prd/prd-0021-macos-standalone-test-app-and-local-settings.md#periodic-session-synchronization);
   C13 adds two estimated commits, for 13 candidates and 21 commits overall.
   The owner subsequently authorized implementation and related tests plus browser/app
   execution. FEAT-0128–0140 and RUN-166–178 track the delivered code, local build

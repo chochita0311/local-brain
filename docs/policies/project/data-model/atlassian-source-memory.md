@@ -6,6 +6,8 @@ This subject owns the Atlassian-specific extension of a stable user-linkable Ext
 
 [Value Dictionary](value-dictionaries/atlassian-source-memory.md) owns this subject's bounded physical/logical/presentation mappings.
 
+External reads and validated target results follow the [external synchronization contract](../../operations/claude-task-runner.md#external-synchronization).
+
 ## Focused ERD
 
 ```mermaid
@@ -66,7 +68,7 @@ erDiagram
 - Site is the local domain/tenant boundary and is resolved from normalized domain independently of access. Source Instance is an optional access and policy boundary. `atlassian_site_bindings` connects either side without making Provider, service, configuration reference, enabled state, or capability part of Site identity.
 - Before remote confirmation, URL reuse is scoped by Site and normalized URL. After confirmation, Site, service, and remote ID are authoritative while every previously observed alternate URL remains an alias.
 - `external_resources` owns user-visible title, summary, source role, and Workstream/Thread relations. `atlassian_item_remote_state` owns bounded remote metadata and check evidence. `atlassian_item_content` owns the remote body and its deterministic local projection. `atlassian_item_local_state` and the classification tables own user-authored local memory. None can overwrite another owner.
-- `atlassian_item_evidence` owns derived sightings from eligible primary work Session text, bounded approved-tool result fields, and enabled Local Context Documents. An authoritative Document sighting keeps its exact bounded source URL in `observed_url`, including query provenance, while evidence-Sync `normalized_url` and Item URL matching use the recognized canonical safe locator. A Session sighting stores the retained safe projection as both values because its original spelling is unavailable and never claims otherwise. Explicit manual Add remains a separate owner: it uses descriptor admission but stores the original normalized input URL under FEAT-0079 alias non-merge semantics. Sightings also retain source location identifiers and optional bounded title/remote-ID observations; they never own the Session/Document text or confirm remote identity.
+- `atlassian_item_evidence` owns derived sightings from eligible primary work Session text, bounded approved-tool result fields, and enabled Local Context Documents. An authoritative Document sighting keeps its exact bounded source URL in `observed_url`, including query provenance, while evidence-Sync `normalized_url` and Item URL matching use the recognized canonical safe locator. A Session sighting stores the retained safe projection as both values because its original spelling is unavailable and never claims otherwise. Explicit manual Add remains a separate owner: it uses descriptor admission but stores the original normalized input URL under the [canonical and alias URL ownership rule](#atlassian_item_urls), without merging aliases into canonical grouping. Sightings also retain source location identifiers and optional bounded title/remote-ID observations; they never own the Session/Document text or confirm remote identity.
 - Static Atlassian locator classification is a versioned derived contract, not
   a catalog entity or persistence producer. It separates `item`, `structure`,
   `site`, `unsupported`, and `unsafe`. A structure descriptor owns a bounded
@@ -76,13 +78,12 @@ erDiagram
   canonical allowlisted identity projection such as RapidBoard `rapidView` and
   its optional `projectKey` hint. A Confluence locator preserves the recognized
   deployment-context prefix and either a valid Space/Page path or only
-  canonical `pageId` on `pages/viewpage.action`. Through the passed foundation,
-  evidence Sync admitted only exact Issue/Page `item`; that passed foundation
-  created no durable structure-reference row. Explicit Add retains its already
-  passed Project/Space producer authority. The implemented successor stores
+  canonical `pageId` on `pages/viewpage.action`. Explicit Add may register its
+  admitted Project/Space families. Evidence Sync registers exact Issue/Page
+  `item` results through the Item owner and stores `structure` results as
   independent stable structure-reference identity, privacy-safe canonical and
   alias locators, and source evidence in the three structure-reference tables
-  cataloged below. It never reuses `external_resources`, Item, persisted Space,
+  cataloged below; `site` remains report-only. The structure-reference path never reuses `external_resources`, Item, persisted Space,
   access, remote-state, local-memory, classification, or organization tables as
   authority, and it never changes `space_id`.
 - `atlassian_evidence_scans` owns extractor freshness independently from generic
@@ -272,7 +273,7 @@ Constraints: canonical/alias vocabulary; non-empty URL values; `UNIQUE(site_id, 
 
 - Purpose and authority: bounded remote metadata and explicit check/version/failure evidence, separate from body content and local Resource fields.
 - Lifecycle: external last-known state. Successful reads can replace it, but failures retain the prior metadata/version and only append current availability evidence.
-- Producers: `atlassian.py` application of host-validated FEAT-0045 target results, coordinated atomically for explicit refresh by `atlassian_refresh.py`.
+- Producers: `atlassian.py` application of host-validated external-sync target results, coordinated atomically for explicit refresh by `atlassian_refresh.py`.
 - Consumers: freshness derivation, refresh preview, Item detail, change gating, and diagnostics.
 - Relations and deletion: primary key is an FK to `atlassian_items.external_resource_id` with `ON DELETE CASCADE`, enforcing zero-or-one state row per Item.
 - Recovery: explicit approved external read when still accessible; otherwise database backup is the only source for unavailable last-known facts.
@@ -425,7 +426,7 @@ Constraints: exactly one source FK; `UNIQUE(session_id, source_path)` and unique
   Site and Item. Shared locator `structure` and `site` results are not Item-
   evidence producers and cannot create a row in this table.
 - Lifecycle: fully derived per owning source. A successful changed scan upserts current sightings and removes obsolete sightings from that source, but never deletes the stable Item, remote state/content, or local organization. Explicit local evidence Sync is a narrow Session exception: it consumes the bounded retained Session-reference URL projection, merge-inserts only missing sightings, and never deletes Session evidence or changes Session scan state. The authoritative Session scanner remains the sole cleanup owner. A complete persisted Document Sync still owns bounded replacement; an unavailable or failed pass retains prior evidence.
-- Producers: `atlassian_evidence.py` after URL recognition and FEAT-0046 stable stub reuse, plus the explicit persisted-only orchestration in `atlassian_evidence_sync.py`.
+- Producers: `atlassian_evidence.py` after URL recognition and stable Item-stub reuse under the identity contract above, plus the explicit persisted-only orchestration in `atlassian_evidence_sync.py`.
 - Consumers: Item detail, evidence navigation, and the local Session `Related Context` projection when `session_id` points to the viewed primary Session; no refresh or remote-identity path may treat a sighting as successful remote confirmation.
 - Relations and deletion: required cascading Item FK plus exactly one cascading Session or Document FK. Session evidence requires a stable event/location identifier; Document evidence uses line and URL occurrence without an excerpt.
 - Recovery: rescan the owning local source. If the source is gone, the evidence is intentionally unavailable; Item identity and user state remain in their own tables.

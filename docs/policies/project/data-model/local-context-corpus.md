@@ -41,8 +41,8 @@ erDiagram
 ### `context_roots`
 
 - Purpose and authority: user-managed registry of folders, individual files, and Apple Notes sources, including readability, enablement, scan status, and error state.
-- Lifecycle: user-curated and non-rebuildable as a registry. A default Context directory may be discovered compatibly, but user additions/removals and source types require backup.
-- Producers: `contexts.py` adds, restores, disables, and validates roots; `ingest/scanner.py` updates scan outcomes; `db.py` compatibly seeds/migrates older folder roots.
+- Lifecycle: user-curated and non-rebuildable as a registry. A default Context directory may be discovered compatibly only for previously indexed Documents; fresh installations require explicit registration. User additions/removals and source types require backup.
+- Producers: `contexts.py` adds, restores, disables, and validates roots; `ingest/scanner.py` updates scan outcomes; `db.py` compatibly seeds/migrates folder roots for previously indexed Documents.
 - Consumers: Context source listing/detail in `contexts.py` and `queries.py`, scanner source enumeration, Workstream pickers/suggestions, and document visibility filters.
 - Relations and deletion: optional physical parent of `context_documents` with `ON DELETE SET NULL`; ordinary removal disables the root and removes indexed rows for that source boundary rather than deleting the registry row or original local content.
 - Recovery: restore the LocalBrain database or re-register every root manually, then scan. Original files/Notes remain external authorities.

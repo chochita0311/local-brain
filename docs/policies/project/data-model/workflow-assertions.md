@@ -9,6 +9,8 @@ Workstream/Thread organization, or the effective graph produced at read time.
 [Value Dictionary](value-dictionaries/workflow-assertions.md) owns this subject's
 bounded physical/logical/presentation mappings.
 
+[Session Episode identity](workspace-and-session-activity.md#derived-workflow-episode-and-relations) defines the stable endpoint keys; [Workflow Focus](../architecture.md#workflow-focus-read-model) owns deterministic candidate production before the user assertion overlay.
+
 ## Focused ERD
 
 ```mermaid
@@ -55,10 +57,10 @@ or changes assertion meaning.
   table.
 - Consumers: `workflow_assertions.py` resolves active chains, returns bounded
   history, computes optimistic projection revisions, and overlays effective
-  relation/lifecycle state after FEAT-0086 candidate production.
+  relation/lifecycle state after deterministic Workflow Focus candidate production.
   `workflow_correction_view.py` presents active state and exact contextual
-  transitions; the Session Workflow Focus correction POST is the first product
-  mutation consumer. Focus GET remains a read consumer.
+  transitions; the Session Workflow Focus correction POST is a product mutation
+  consumer. Focus GET remains a read consumer.
 - Relations and deletion: nullable `source_session_id` and
   `target_session_id` reference current `sessions.id` with `ON DELETE SET NULL`.
   `supersedes_assertion_id` is a nullable unique self-FK with `ON DELETE
@@ -83,7 +85,7 @@ or changes assertion meaning.
 | `boundary_kind` | `TEXT NOT NULL`; exactly `relation` or `lifecycle`. |
 | `assertion_kind` | `TEXT NOT NULL`; exactly `same-flow`, `split-here`, `merge-into`, `close`, or `reopen`. Undo retains the kind it reverses. |
 | `is_undo` | checked `INTEGER NOT NULL DEFAULT 0`; `1` marks an explicit superseding reversal and `0` an ordinary assertion. |
-| `source_episode_key` | `TEXT NOT NULL`; exact current FEAT-0085 `session:` plus 64-character digest identity. For lifecycle this is the selected Episode. |
+| `source_episode_key` | `TEXT NOT NULL`; exact current Session Episode `session:` plus 64-character digest identity. For lifecycle this is the selected Episode. |
 | `target_episode_key` | nullable `TEXT`; required exact Episode key for relation boundaries and absent for lifecycle boundaries. |
 | `source_session_id` | nullable FK to `sessions.id`, `ON DELETE SET NULL`; current navigation/lookup aid, never durable identity. |
 | `target_session_id` | nullable FK to `sessions.id`, `ON DELETE SET NULL`; relation-target lookup aid and always absent for lifecycle rows. |

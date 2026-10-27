@@ -215,7 +215,7 @@ erDiagram
   scanner-managed reconciliation.
 - `skill_observations.source_id` references `sources.id` without deletion cascade; a source with retained evidence cannot be deleted. Its native Session identity optionally resolves to a current `sessions` row; Session deletion or registration removal retains historical observations.
 - `workflow_assertions.source_episode_key` and optional `target_episode_key`
-  application-address FEAT-0085 source-scoped Session Episode identities.
+  application-address source-scoped [Session Episode identities](data-model/workspace-and-session-activity.md#derived-workflow-episode-and-relations).
   Nullable Session FKs accelerate current resolution but never replace those
   stable keys or authorize cascading deletion.
 - `search_index` contains derived `session`, `document`, indexed `atlassian_item`, and active `atlassian_structure_reference` rows. Its entity IDs are text projections and are explicitly deleted or rebuilt with their source objects; current Session/Document consumers filter unsupported types.

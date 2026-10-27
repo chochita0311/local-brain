@@ -343,7 +343,9 @@ synthetic records only.
 
 Removing a source from LocalBrain must be distinguished from deleting the original local file or note. The application must not delete an original source as a side effect of unregistering or purging its index.
 
-General user backup, user-facing restore/export, encryption, and broader schema-recovery controls remain open work tracked in the [Project Backlog](../../plans/project/backlog.md). Bounded migration-copy retirement is implemented under the [installation/storage contract](installation-and-storage.md#bounded-recovery-and-cleanup); it does not close that wider requirement.
+Settings provides private local backups and restart-only restore under the [Local Recovery contract](desktop-app-and-settings.md#local-recovery). Restore accepts a backup from this installation on the same computer with a matching current database schema; a different-schema backup must be restored with its original app version. Replacement is explicit: schedule the restore, quit the app and any separate server, then restart. A pre-restore recovery copy supports rollback on failure. Backups include the database and app-owned settings/model-registration metadata, but exclude original Sessions and Documents, public model weights, caches, logs and external credentials. A backup ZIP contains private data and must be kept separate from the program distribution ZIP.
+
+General export, encryption and broader corruption/schema-recovery controls remain open work in the [Project Backlog](../../plans/project/backlog.md). Explicit cache cleanup is limited to owned inactive derived data and must not follow symlinks into external content. Automatic [migration-copy retirement](installation-and-storage.md#bounded-recovery-and-cleanup) is a separate bounded storage operation; neither it nor same-installation restore closes the wider recovery work.
 
 ## Source Persistence Modes
 

@@ -15,7 +15,7 @@
 
 ## Implementation Goal And Acceptance Mapping
 
-Fix the comparison and evidence contract in [Natural Language Search](../../policies/project/natural-language-search.md). Its FEAT-0118 section maps each feature guarantee to explicit actors, inputs, boundaries, failure states and downstream responsibilities. Other sections remain separately owned foundations.
+Fix the comparison and evidence contract in [Natural Language Search](../../policies/project/natural-language-search.md#evaluation-criteria-and-evidence-limits). Its **Evaluation Criteria And Evidence Limits** section maps each feature guarantee to explicit actors, inputs, boundaries, failure states and downstream responsibilities. Other sections remain separately owned foundations.
 
 ## Contract Surfaces
 

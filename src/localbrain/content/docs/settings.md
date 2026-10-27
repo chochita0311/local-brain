@@ -19,6 +19,8 @@ Choose **Sessions Dashboard**, **Sessions**, or **Local Context** as your startu
 
 Time zone offers **UTC** and **Asia/Seoul**. A different valid value saved previously remains until you replace it. On the next navigation or reload, the choice changes Session, conversation, and chart time displays and the dashboard's date ranges and daily, weekly, or monthly grouping. A record near midnight may move to a different displayed date. Original timestamps, the system clock, and saved synchronization intervals stay unchanged.
 
+For example, an activity at **00:30 on the 19th in Asia/Seoul** is **15:30 on the 18th in UTC**, so the dashboard groups it under the corresponding local date.
+
 Saved preferences are retained between launches. Defaults apply to settings that have not been configured.
 
 ## Session sources

@@ -1,11 +1,11 @@
 # Desktop App And Common Local Settings
 
-## Ownership
+## Purpose And Scope
 
-[PRD-0021](../../plans/prd/prd-0021-macos-standalone-test-app-and-local-settings.md)
-owns scope and sequencing. This document owns its settings, source lifecycle,
-search availability and desktop runtime contracts. Implementation status and
-unverified behavior belong in the Feature and Run records.
+This contract defines the local settings shared by the web and desktop editions,
+source identity and lifecycle, collection schedules, search availability, desktop
+runtime boundaries and same-Mac recovery. Implementation status and unverified
+behavior are recorded separately in Feature and Run evidence.
 
 ## Common Settings Contract
 
@@ -175,7 +175,7 @@ unverified behavior belong in the Feature and Run records.
   owns background synchronization. Artifact-specific launch and distribution checks
   remain in the [test distribution guide](standalone-test-app-guide.md). Do not add
   invented build, copyright or license claims from a reference screen.
-- The owner resets the initial app version to `0.0.1`. The Python constant owns
+- The initial application release version is `0.0.1`. The Python constant owns
   About and FastAPI version rendering; Python distribution/lock, desktop package/
   lock, Cargo package/lock and Tauri configuration declare the same release.
   Delivered native Info.plist and BUILD-INFO version must match. Dependency
@@ -259,6 +259,14 @@ unverified behavior belong in the Feature and Run records.
 
 ## Local Context Settings Presentation
 
+### Supported Material And Permissions
+
+Folder sources collect supported Markdown documents. Individual text and Markdown
+files can be registered separately. PDF bodies require text supplied by macOS
+Spotlight; no OCR or separate PDF engine is included. Missing read permission or
+an unsupported file produces a source/readability state while other sources
+remain usable. Apple Notes is optional and requires macOS Automation permission.
+
 ### Local File And Folder Selection
 
 Browse opens a macOS chooser for Session Home, a custom Session folder and Local
@@ -329,15 +337,17 @@ their existing explicit authority. Picking does not persist a path independently
   replay of missed intervals. Empty registries do not start collection.
 - Collect only enabled registered sources through existing adapters. Context
   reuses folder/file/Apple Notes scope and macOS permission boundaries. Originals
-  stay read-only. Folder/file scans reuse unchanged entries; Notes retains its
-  existing snapshot reader. One local writer lock excludes
+  stay read-only. Neither schedule changes originals, refreshes Git or external
+  services, or starts an agent task. Folder/file scans reuse unchanged entries;
+  Notes retains its existing snapshot reader. One local writer lock excludes
   concurrent collection/settings/recovery writers across domains and backends.
   A busy writer retains one pending manual request until its own domain completion
   satisfies it. Context cancellation rolls back its transaction; directory/note
   iteration checks cancellation and the Notes reader subprocess is stopped on exit.
 - Health files retain the latest separate outcomes; source/file/root health stays
-  in the existing DB tables. No new data root or DB schema. Independent AI-index
-  scheduling/control is deferred; enabled search still observes normalized DB
+  in the existing DB tables. Failed collection preserves imported records and the
+  latest successful collection time. No new data root or DB schema. Independent
+  AI-index scheduling/control is deferred; enabled search still observes normalized DB
   changes and does not download a model implicitly.
 - The common shell has no sync-status strip or updated-records link. Sessions
   retains its manual sync button and running state. Background completion preserves
@@ -450,3 +460,11 @@ their existing explicit authority. Picking does not persist a path independently
 - Collection-root changes use the existing same-source reconnect check. A Home
   edit with an unchanged explicit Session folder changes metadata only. Removing
   registration retains the ID/history; it does not delete transcripts or usage.
+
+## Change Provenance
+
+[PRD-0021](../../plans/prd/prd-0021-macos-standalone-test-app-and-local-settings.md)
+records the approved product scope and sequencing. The current settings,
+source-lifecycle, synchronization, search, runtime and recovery rules are defined
+in this contract. Feature and Run records retain implementation and release
+evidence without replacing these definitions.

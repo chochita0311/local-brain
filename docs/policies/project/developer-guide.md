@@ -224,11 +224,11 @@ substantial tokens. The report appears below the Run list when complete. Use
 analysis creates a new Run and preserves earlier reports. The selected profile
 and model are retained with each Run; the default model is `gpt-6-astra`.
 
-The Insights analyzer currently uses Codex CLI. `LOCALBRAIN_INSIGHT_CODEX_HOME` takes priority over `CODEX_HOME`; without either setting, an existing `~/.codex-company` home is preferred to `~/.codex`. A new Run freezes that home, selected model, exact prompt, core v8, all eleven playbook versions/digests, and the report-v3 response schema. Request-and-feedback uses v4; other playbooks use v1. Historical core v4/v5/v6/v7 retain report v3, and core v2/v3 retain report v2 and saved reports. Changing environment settings or the package guide affects future Runs only. The guide sources are `src/localbrain/personal_insight_guides/`; private evidence, prompts, responses, validated results, diagnostics, and reports are kept under `<LOCALBRAIN_DATA_DIR>/personal-insight-runs/<id>/`, outside Git. An explicit Run start sends selected Session excerpts to the configured model service; opening the screen or a past report does not.
+The Insights analyzer uses Codex CLI. `LOCALBRAIN_INSIGHT_CODEX_HOME` takes priority over `CODEX_HOME`; without either setting, an existing `~/.codex-company` home is preferred to `~/.codex`. A new Run freezes that home, selected model, exact prompt and the [guide/result bundle](architecture.md#guide-bundle-and-result-contract), including independent core/playbook versions and digests and the response schema. That canonical contract owns current versions and historical report compatibility. Changing environment settings or the package guide affects future Runs only. The guide sources are `src/localbrain/personal_insight_guides/`; private evidence, prompts, responses, validated results, diagnostics, and reports are kept under `<LOCALBRAIN_DATA_DIR>/personal-insight-runs/<id>/`, outside Git. An explicit Run start sends selected Session excerpts to the configured model service; opening the screen or a past report does not.
 
-New findings use the existing work-session handoff to explain the proposed application mechanism, target, concrete content, actors, activation, setup and repeated work. The [application contract](../../plans/spec/spec-0108-personal-improvement-guide-and-finding-contract.md#concrete-application-handoff) distinguishes temporary trials, conditional adoption and unresolved placement facts. This guide requirement is evaluated semantically; the JSON validator only enforces its existing structural rules.
+New findings use the existing work-session handoff to explain the proposed application mechanism, target, concrete content, actors, activation, setup and repeated work. The [application contract](product.md#concrete-application-handoff) distinguishes temporary trials, conditional adoption and unresolved placement facts. This guide requirement is evaluated semantically; the JSON validator only enforces its existing structural rules.
 
-The [existing-proposal contract](../../plans/spec/spec-0108-personal-improvement-guide-and-finding-contract.md#existing-proposal-follow-through) distinguishes mention, application, outcome and deferral from supplied evidence. A useful next step can carry an earlier proposal forward without inventing a new method. These are generation rules; the product does not persist an adoption state or infer it from a report's existence.
+The [existing-proposal contract](product.md#existing-proposal-follow-through) distinguishes mention, application, outcome and deferral from supplied evidence. A useful next step can carry an earlier proposal forward without inventing a new method. These are generation rules; the product does not persist an adoption state or infer it from a report's existence.
 
 The analysis launcher resolves the Codex executable before starting it and grants its sandboxed startup helpers read access to that exact binary. The profile home is used for client authentication and is not added to the command filesystem allowlist. Artifact writes and command network access remain blocked. See [RUN-135](../../plans/run/run-20261001-135-personal-insight-cli-startup.md) for the macOS startup correction. Restart a server that was already running when runner code changed before submitting a new analysis.
 
@@ -236,7 +236,7 @@ Run detail displays the same stored estimated cost used by Usage & Cost, with it
 
 Owner-requested guide evaluations can retain frozen inputs, raw outputs, and review reports under `<LOCALBRAIN_DEVELOPMENT_DIR>/personal-insight-evaluations/<id>/`, with owner-only access. This private archive is separate from product Run records: subagent simulations do not create Insights history rows. Tracked evaluation documents contain only sanitized conclusions.
 
-Discovery uses deterministic [source/month sampling](../../plans/spec/spec-0107-personal-insight-evidence-manifest.md#selection), not a random project picker. Within each source/month group it prefers recently active Sessions; project balance and prior recommendation history are not selection inputs. The [guide contract](../../plans/spec/spec-0108-personal-improvement-guide-and-finding-contract.md) supplies all eleven bounded playbooks. The model identifies the owner's goal and observed friction before choosing a type; incidental words in quoted source material no longer exclude types before analysis. A reported candidate is not a global priority ranking, and repeating discovery does not promise a different project or a new recommendation. Insights shows frozen selected/eligible counts, sources, time coverage, and truncation; each new report explains the candidate and finding type with source anchors.
+Discovery uses deterministic [source/month sampling](architecture.md#evidence-selection-and-excerpts), not a random project picker. Within each source/month group it prefers recently active Sessions; project balance and prior recommendation history are not selection inputs. The [current guide bundle](architecture.md#guide-bundle-and-result-contract) supplies all eleven bounded playbooks under the [Product decision rules](product.md#personal-improvement-finding-decisions). The model identifies the owner's goal and observed friction before choosing a type; incidental words in quoted source material do not exclude types before analysis. A reported candidate is not a global priority ranking, and repeating discovery does not promise a different project or a new recommendation. Insights shows frozen selected/eligible counts, sources, time coverage, and truncation; each new report explains the candidate and finding type with source anchors.
 
 For conversation requests, report v3 identifies up to five missing messages by a supplied anchor and frozen eligible-message position. Local validation rejects requests for already supplied complete messages; a clipped message can be requested in full. The product renders the request from those validated positions, not free-form resend instructions. Unknown current goals/outcomes use separate bounded questions and are checked semantically by the guide; positional validation alone cannot detect every redundant factual question. Invalid results fail without automatic paid retry, retaining emitted usage and diagnostics.
 
@@ -290,8 +290,8 @@ Local Context roots.
 ### Schema Documentation Changes
 
 - `src/localbrain/schema.sql` owns fresh-database DDL, and `src/localbrain/db.py` owns compatible startup migrations and runtime-only indexes until an approved migration system replaces that split.
-- The first approved [Data Model Visibility And Schema Cleanup](../../plans/prd/prd-0003-data-model-visibility-and-schema-cleanup.md) documentation Feature establishes the complete human-readable baseline.
-- After that baseline, keep planning and execution artifacts delta-scoped: name only the affected schema objects, contract behavior, migrations, tests, and owner documents.
+- The [Data Model](data-model.md) and its subject-area catalogs are the complete current human-readable baseline.
+- Keep later planning and execution artifacts delta-scoped: name only the affected schema objects, contract behavior, migrations, tests, and owner documents.
 - Update the affected subject-area catalog in place so durable data-model documentation continues to describe the complete current state. Do not copy unrelated tables or domains into each later change artifact.
 - Update the global ERD only for object additions or removals, subject-owner changes, or cross-domain relationship changes. Update a focused ERD only when its visible keys, constraints, relations, cascades, or ownership change.
 - Update Project Architecture only when runtime ownership, persistence boundaries, or cross-domain behavior changes. A local table or column delta does not require restating the complete persistence model there.
@@ -389,7 +389,7 @@ Do not claim full verification when a required local source, macOS permission, C
 - Update the owning [app guide](app-documentation.md) for user-visible screen usage, settings and recovery procedures. Keep development-web usage and build commands in this guide.
 - Update [Product Model](product.md) for durable product and organization rules.
 - Update [Project Architecture](architecture.md) for runtime ownership, source adapters, data model, or ingestion behavior.
-- After the PRD-0003 baseline exists, update only the affected data-model subject documents for ordinary schema deltas; update their entry map when subject files or cross-domain ownership changes.
+- Update only the affected [data-model subject documents](data-model.md) for ordinary schema deltas; update their entry map when subject files or cross-domain ownership changes.
 - Update [Maintenance Task Runner](../operations/claude-task-runner.md) for in-app maintenance execution or review semantics.
 - Update [Project Roadmap](../../plans/project/roadmap.md) for sequencing and [Project Backlog](../../plans/project/backlog.md) for unresolved work.
 
@@ -437,11 +437,11 @@ on separate authored topic families, then measures unchanged/incremental refresh
 and foreground searches during actual model preparation. The optional throughput
 command compares batch sizes and float16 explicitly; it does not alter app settings.
 
-After FEAT-0123, `hybrid` uses the original query and a conservative topic/action
+Current `hybrid` uses the original query and a conservative topic/action
 view, orders by their mean cosine and retains exact-identifier lexical admission.
 These commands use the current implementation. `dense` remains the original-query
 baseline. The dedicated precision comparator reconstructs historical RRF and
-FEAT-0122 cosine ordering on identical fragment scores, using dense mode plus
+the earlier cosine ordering on identical fragment scores, using dense mode plus
 unchanged hybrid admission for single identifiers:
 
 ```bash
@@ -582,7 +582,16 @@ change prevents publication. `--status` reports a fixed state code;
 contains coverage, source locators, communities and replay comparison, not a
 semantic-quality verdict or a finished workflow map. Results expire after 30
 inactive days; `--purge` removes the owned derived state, never source data.
-See [the simulation contract](../../plans/spec/spec-0097-replayable-session-simulation.md).
+The [current simulation producer contract](architecture.md#full-history-simulation-producer)
+owns report, source-binding, parameter and lifecycle definitions. `--chunk-chars`
+changes the exhaustive window size, `--batch-size` controls committed embedding
+batches and `--device` selects `auto`, `cpu`, `mps` or `cuda`. The script's
+`--help` lists these controls; `--inventory-only`, `--status` and `--purge` are
+mutually exclusive. Inventory/status/purge need no encoder invocation. CLI grouping
+uses seed zero; its accepted numeric bounds and defaults are in that contract.
+Use [reader states](architecture.md#affinity-reader-contract-and-states) to
+distinguish missing, busy, stale, expired or invalid preparation from a current
+map or an obsolete selection; browsing does not repair or rerun them.
 
 ### Local Work-Context Model Trial
 

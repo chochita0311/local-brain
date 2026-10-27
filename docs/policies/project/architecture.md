@@ -174,8 +174,8 @@ Approved external sources through MCP Gateway
   `session_simulation_graph.py`: explicitly invoked full-Session experiment;
   source-read-only inventory, separately owned replayable cache, verified local
   embeddings and experimental two-resolution affinity communities. The
-  [simulation Spec](../../plans/spec/spec-0097-replayable-session-simulation.md)
-  owns the command/report contract. No automatic preparation, source migration,
+  [simulation producer contract](#full-history-simulation-producer)
+  owns current report/lifecycle definitions; the [Developer Guide](developer-guide.md#full-history-simulation-and-model-trials) owns command operation. No automatic preparation, source migration,
   production identity or causal-lineage inference is introduced.
   Source messages are exhaustively chunked (1,800 characters by default), encoded,
   and linked by thresholded cosine nearest-neighbor similarity. Weighted Louvain
@@ -201,7 +201,7 @@ Approved external sources through MCP Gateway
   undirected affinity across text-page boundaries. Exact quotes
   are independently resolved from current original records. Stale/expired/
   invalid output never presents old evidence as current and triggers no work.
-  [SPEC-0101](../../plans/spec/spec-0101-full-history-affinity-inspection-contract.md)
+  [affinity reader contract](#affinity-reader-contract-and-states)
   owns bounds and states. Group labels are representative Session titles, not
   generated category names or confirmed work identities.
 
@@ -342,6 +342,12 @@ Checkpoint records are versioned, user-confirmed resume states. Confirmation cap
 
 ## Ingestion Contract
 
+This family owns source capture, normalization, reconciliation and explicit
+collection. Workflow projections, user corrections and analytical consumers
+have separate contracts below.
+
+Original Claude and Codex JSONL remains the authoritative Session source. LocalBrain stores normalized searchable text, selected metadata, source paths, source line numbers, and deterministic IDs so the index can be rebuilt. New provider-native event and Usage identities are scoped by the numeric Source ID when profiles share an adapter. Re-ingestion matches retained native unique keys to preserve existing event and Usage PKs; the one-time upgrade may read old string keys solely to migrate dependent references.
+
 ### Core Invariants
 
 - Preserve raw source identity and timestamps.
@@ -369,8 +375,9 @@ Checkpoint records are versioned, user-confirmed resume states. Confirmation cap
   only canonical `pageId` on `pages/viewpage.action`. The Session adapter
   groups recognized URL rows by the semantic domain/service/Item-or-reference
   descriptor rather than whole locator spelling, retains the safe locator for
-  later reparse, and keeps structure/site as generic URL targets. The passed
-  foundation created no Atlassian structure-reference or Site row.
+  later reparse, and keeps structure/site as generic URL targets. Pure
+  classification and Session projection create no Atlassian structure-reference
+  or Site row; explicit Sync owns the separate admission below.
 - Explicit Atlassian local evidence Sync may consume that retained Session URL
   projection without reopening its source. It merge-inserts only missing
   Atlassian sightings, never advances or cleans Session-owned Atlassian scan
@@ -408,6 +415,108 @@ Checkpoint records are versioned, user-confirmed resume states. Confirmation cap
   references use its workspace/name index and preserve the existing exact-one
   ambiguity rule. The cache is request-local and never changes Context content.
 
+### Session Eligibility
+
+Provider parsing is followed by one shared meaningful-Session eligibility gate. A
+parsed file must contain at least one normalized Activity Event, direct Usage
+Record, or admitted skill observation; title, name, identity, timestamp, cwd, branch, or other metadata
+alone describes an empty native stub. A successful readable-source scan stores no
+normalized Session or source-file evidence for a new stub and reconciles an
+existing empty projection after reparsing current sibling files. The source JSONL
+is never deleted. Because an ignored stub retains no freshness row, later syncs
+inspect it again and import it once Event, Usage, or admitted skill observation evidence appears.
+
+### Usage Normalization And Repair
+
+Token usage is a separate derived-record lane from searchable Activity Events. Both adapters preserve one stable source-record identity, the raw model name, non-cached input, output, cache-write, cache-read, reasoning, source-total, and normalized-total semantics when those values are available. Claude input is already non-cached and its cache creation and cache read values remain additive. When Claude reports a zero cache-creation aggregate that contradicts a positive internally consistent ephemeral breakdown, the adapter uses the breakdown and records that bounded fallback. Each Codex `token_count` event contributes its direct `last_token_usage` when available; `total_token_usage` is Session-cumulative and is subtracted from the preceding observation only as a fallback. Spawned or forked subsession replay prefixes seed that cumulative baseline but do not produce copied records. The dashboard ignores zero request deltas even when the source total repeats earlier nonzero history; source input has cached input subtracted, and reasoning output remains an informational subset of output rather than an additional total.
+
+Every directly observed Usage Record is eligible regardless of Session class or role. Maintenance Sessions and subsessions therefore remain excluded from ordinary Search and workflow statistics while still contributing their own direct usage. Current Claude and Codex observations carry a `direct` aggregation scope. LocalBrain does not persist a second parent rollup, so parent and child direct records are each counted once; the reserved `includes_children` scope requires a downstream rollup to exclude covered child records if a future source explicitly provides such an aggregate. A repeated source record updates one deterministic Usage Record, and malformed later evidence cannot erase a previously valid record. Session source files record the usage normalizer contract that processed them, and each Usage Record records its independent normalizer version. Unchanged file metadata is current only when this contract version also matches.
+
+When a normalizer contract changes, ordinary Session synchronization performs a versioned Usage-only repair rather than requiring a user-facing aggregate reset. If any current file for a source has an older Usage contract version, synchronization reparses every current file for that source and reconciles their complete native Usage Record union inside one source-level savepoint: matching identities update, new identities insert, and obsolete source identities delete. It does not replace the Session, Activity Event, search, Atlassian evidence, or generalized-reference lanes merely because the Usage contract changed. This boundary preserves all observations when one Session identity spans several files. A repair identity inherits the closest prior price snapshot and frozen Project attribution unless an approved corrective producer explicitly assigns a new immutable snapshot to repair an invalid token or service-tier contract. Ordinary new records under an unchanged contract receive the snapshot and current Project evidence available when first observed. Immutable snapshot/model price lookups are cached for one source repair and each Session's Usage upserts are issued as one batch without changing identity, ordering, values, or savepoint rollback. Any parse or persistence failure rolls back the complete source replacement and does not advance its source-file contract versions. Source freshness retains the size and modification time observed before parsing, so bytes appended to an active JSONL during the read remain detectable on the next synchronization. The next unchanged synchronization skips all now-current files, making the repair idempotent. Native stale-Session and Usage reconciliation preserve independent insight accounting parents and their Usage Records.
+
+Estimated USD cost is a local API-equivalent trend estimate, not billed spend or subscription credit use. Each Usage Record retains an immutable price-snapshot identifier, calculator version, calculation time, and explicit `priced`, `unpriced`, `partial`, or `failed` state. A growing source record normally keeps its cited snapshot. The approved 2026-09-25 correction reparses native usage and reprices existing records from newly seeded official snapshots; prior snapshot rows remain immutable, and Usage IDs, token counts, and frozen Project attribution are preserved. Later publisher price changes require new dated snapshots and an explicit historical correction when appropriate.
+
+The legacy ccusage 20.0.14/20.0.17 catalogs remain as historical evidence. Current pricing comes from frozen model-specific OpenAI and Anthropic entries with published effective dates, except for the explicitly chosen Spark and historical Fast long-context proxies. The Codex adapter reads `thread_settings_applied` in file order: `priority`/`fast` uses Fast, `default` uses Standard, and unmarked/unsupported settings fall back to that source home's current config with provenance recorded in `capability_json`. GPT-5.6 Terra/Luna change on July 30, Sol on August 21, GPT-6 Astra starts on September 3, and GPT-6 Sol/Luna start on September 22. The pre-July-30 GPT-5.6 Priority 2x multiplier is labeled as a historical inference because an archived publisher tier table was unavailable. For other models, an exact model/tier/context combination with no published price remains partial; a Standard rate is not silently substituted for Fast. Exact GPT-5.3-Codex-Spark has no independently published API rate; the approved exception borrows ccusage 20.0.17's GPT-5.3-Codex Standard or Fast estimate in a separate labeled snapshot. Startup reprices previously unpriced Spark records and eligible partial Fast long-context records with explicit proxy snapshots, retaining Usage identity, tokens, and attribution. The dashboard excludes persisted Codex zero-request rows whose source total repeats earlier history, preserving their local source and database evidence.
+
+`usage_model_prices` stores optional threshold and above-threshold component rates. Calculator v3 evaluates each Usage Record independently from non-cached input plus cache read, keeps the exact threshold on the base tier, and uses long-context rates only above it; compaction can return a later record in the same Session to the base tier. GPT-5.6 Fast long context before its August 5 API availability and GPT-5.5 Fast long context have no published applicable tier rate. The approved ccusage-style proxy uses the contemporaneous short-context Fast rate, doubles input and cached input for requests above 272K input tokens, and multiplies output by 1.5; a separate snapshot label and source identify this as a trend estimate, never an official historical Fast long-context rate. New records select that proxy only for the matching model, date, tier, and request size. Claude's observed 1-hour cache writes use their separate publisher rate; Codex logs do not expose cache writes as a separate component, so that component is absent from the estimate. No catalog creates a runtime ccusage, network, or page-render dependency. Future unknown model names remain unpriced until a cited entry is added.
+
+Each new Usage Record also freezes its first-observation Project attribution. A currently discovered Git root produces a `git:<canonical-root>` key; otherwise a resolved workspace produces a `path:<canonical-path>` key; missing evidence stays `unassigned`. Workspace ID, name, canonical path, Git root, basis, and attribution time are snapshots rather than live Project joins. Conflict updates preserve them, so a later Git initialization, path move, or workspace enrichment can affect only new records. Current `workspaces.git_root` follows current filesystem evidence and may change without rewriting historical usage. Legacy or previously unassigned records are not reconciled automatically.
+
+### Session Synchronization
+
+The Sessions inventory owns a Session-only incremental synchronization action. It scans every validated source in the ordered private Session-source registry—the user’s enabled Codex/Claude profiles—regardless of the selected inventory filter, and does not scan Local Context sources. Each accepted file carries independent Session-projection, Usage-normalizer, and generalized-reference versions. A version mismatch reparses the source files needed by that concern but writes only the owned derived lane; a natural file change, missing Session mapping, forced scan, or eligibility repair still refreshes every affected lane. Each source has an independent transaction, source-file set, stale-deletion boundary, and persistent latest attempt/success/status/error health. Unavailable or invalid sources skip stale reconciliation and retain their normalized data; an unexpected failure rolls back only that source. The JSON request API queues or joins the common collector; its status API exposes the bounded per-source report plus complete, partial, or failed aggregate outcome. An additive NDJSON endpoint emits bounded source ID/label, repair kinds, and throttled file counts to the same Sessions result region; it emits no paths or content, and callback/display failure cannot change synchronization. The development-web Sources inventory owns the wider scan that appends every enabled Local Context root without weakening those Session-source commit boundaries. Both web actions retain the source-file freshness check. An otherwise-current source is reparsed only when its versioned Atlassian evidence scan or enabled configured-Site fingerprint is missing or changed; once all owned contracts are current, the source is skipped.
+
+The shared backend schedules Session and Local Context collection independently,
+defaulting to 10 and 30 minutes after each domain's completion. The Sync settings
+use 10/20/30/60-minute or Off choices and preserve existing saved intervals.
+Manual requests and multiple backends share one writer lock and coalesce pending
+work. Each domain's latest health lives outside the primary DB; per-source/file
+state stays in the registry. Background collection does not reload the reading
+surface or add a status banner. The existing Sessions manual action remains.
+See [the common runtime contract](desktop-app-and-settings.md); shared scheduling
+checks do not establish simultaneous native/web startup acceptance.
+
+### Adapter-specific Rules
+
+- Import Claude primary and direct `subagents/*.jsonl` files with distinct Session
+  roles and a source-backed parent relation. Deeper descendants of the native
+  `subagents` tree, including `workflows/**/journal.jsonl`, are internal artifacts
+  rather than Session candidates. A successful scan excludes them from the valid
+  source-file set and reconciles any prior false normalized Session without
+  deleting the native artifact. Use the direct child filename stem as child
+  identity; its record-level `sessionId` may denote the owning parent.
+- Use the first Codex `session_meta` record as the file identity because a rollout file may contain older embedded metadata.
+- Read Codex parent and Git context from that same primary metadata record; later embedded metadata never replaces the file identity.
+- Treat first-record `source.subagent.other=guardian` as provider-internal approval activity. Retain its normalized Session identity, parent relation, and direct Usage Records under maintenance plus metadata-only policy while excluding its prompts and decisions from Activity Events and ordinary Session/Subsession presentation.
+- Index human and assistant message text plus tool names; do not index opaque tool arguments or result payloads. Approved Atlassian read results may be inspected ephemerally only through bounded URL, remote-ID, and title field/container allowlists, and only the resulting locator evidence is persisted.
+- Preserve historical `cwd_raw` independently from an optional resolved current Project relation.
+- Handle a Session file that is still growing or partially written without discarding previously valid records.
+
+### Session Policies
+
+Claude and Codex histories are parsed into normalized Sessions and Activity Events. An in-app Task Runner Run persists the selected runner's normal native Session; the internal Run header classifies that source-backed primary as maintenance and links it uniquely to the Run ledger. Its child Sessions inherit maintenance and metadata-only policy through the resolved parent relation without taking the Run FK. Maintenance Sessions stay excluded from events, search, workflow statistics, and the Sessions Dashboard primary-work Session denominator, while their direct Usage Records remain eligible for token and estimated-cost totals:
+
+```text
+[LOCALBRAIN_RUN: lb-<12 hex characters>]
+[MODE: maintenance]
+```
+
+Provider-internal Codex guardian histories use the same maintenance and metadata-only exclusion boundary without a Run link. Their source metadata, parent relation, and direct Usage Records remain available for provenance and usage totals, while repeated approval-review prompts and decisions never appear as user questions, conversation events, or ordinary Subsessions.
+
+Claude and Codex subsessions are normalized as source-backed Session rows with a retained source parent identity and a nullable resolved parent self-reference. Unresolved, unsafe, and deeper child relations remain stored but do not fall back to top-level presentation. Only primary work Sessions contribute to global Search, Session-derived statistics, Workstream organization candidates, Workstream maintenance retrieval, or Atlassian URL evidence. Maintenance and subsession output can never rediscover its own external-sync targets.
+
+Session branch metadata is stored per Session from authoritative JSONL. Workspaces retain the currently discovered canonical `git_root` of the containing repository and do not store a branch value; historical Project attribution belongs to Usage Record snapshots instead.
+
+[Session Conversation And Identity Reading](#session-conversation-and-identity-reading)
+owns detail/copy presentation. [Skill Observation Capture](#skill-observation-capture)
+owns source signals; the analytical sections own ranking and analysis Runs.
+
+### Skill Observation Capture
+
+Session Insights retains native invocation/context, completed instruction reads, named references and identifiable skill script executions. `ingest/skill_loads.py` correlates calls/results and request provenance. `ingest/skill_usage.py` matches source-established skill identifiers and unambiguous plugin aliases in normalized visible user/assistant messages without interpreting use wording or language. Generated catalogs/instructions and tool-output text are not conversation references. Script evidence uses completed native Codex CommandExecution records or non-error Claude Bash results, checking a literal executable or supported interpreter script argument within a known skill root's `scripts/` directory. Dynamic commands and heredoc bodies are excluded from this bounded command grammar; logged commands are never executed. Names/locators come from the same Session's native loads or completed reads, not current installed inventory.
+
+Scanner persists source-scoped evidence during changed-file ingestion, and Session parser upgrades backfill available files without recomputing Usage prices. The [skill observation ledger](data-model/workspace-and-session-activity.md#skill_observations) owns native/fallback identity, request provenance, signal vocabulary, row-preserving migration, corrections, maintenance exclusion and retained history. Historical declarations remain references; the parser generates no new declarations. Source message text is not copied into this ledger.
+
+### Local Context Sources
+
+The `context_roots` registry owns folders, individual files, and Apple Notes sources shown in Local Contexts.
+
+- Folder registration scans supported content recursively.
+- Overlapping parent and child folder roots are rejected to keep document ownership unambiguous.
+- Hidden and generated directories such as `.git`, `node_modules`, `dist`, and `build` are excluded.
+- Removing a source disables browsing and search and clears its derived Atlassian URL sightings without deleting original local files or stable Atlassian Items.
+- Re-adding a previously removed path restores and refreshes that source.
+- Individual text files are registered independently from folder roots.
+- PDF text is currently indexed only when macOS Spotlight exposes readable content.
+- Unsupported files remain registered with an `unreadable` state and do not create preview documents.
+- Apple Notes indexing records account, folder, title, plaintext, and modification time after macOS grants Automation access.
+
+## Workflow Projection And Correction
+
+The pure descriptor contract precedes the database read projection. User
+assertions overlay that projection through a separate mutation boundary;
+the route renders the resulting payload.
+
 ### Workflow Projection Contract
 
 - `workflow_projection.py` owns the versioned, pure descriptor boundary for
@@ -430,132 +539,9 @@ Checkpoint records are versioned, user-confirmed resume states. Confirmation cap
   edges that would form a directed cycle. Workspace, Git, lexical, and temporal
   signals are supporting evidence only.
 - Descriptor serialization is bounded and excludes source messages, document
-  bodies, opaque payloads, raw local paths, and source-native Session IDs. Later
-  database-backed producers must assemble this shape from already-normalized
+  bodies, opaque payloads, raw local paths, and source-native Session IDs.
+  Database-backed producers must assemble this shape from already-normalized
   facts without weakening the contract or persisting an inferred graph.
-
-### Workstream Candidate Contract
-
-- `workstream_candidates.py` owns `localbrain.workstream-candidate.v1`.
-  Producers supply canonical artifact/Session/reference facts and proposed
-  pairs. The module validates their evidence; it neither enumerates a corpus
-  nor resolves a URL, path, Site, or alias through I/O.
-- Artifact keys hash kind, source scope, and canonical identity with length
-  delimiters. Producers map Context Documents to stable source plus relative
-  path, Jira/Wiki Items to normalized Site plus canonical issue key/Page ID,
-  and other existing Resources to their canonical path/URL namespace. Known
-  Resource aliases use the resolved Document/Item owner. SQLite IDs and raw
-  Session-reference target keys containing row IDs are not stable identities.
-- Session keys reuse `workflow_episode_key`; the factory validates primary
-  work/full-index and supplied meaningful Event/Usage evidence. Reference keys
-  hash the Episode, artifact, and source-native occurrence identity. Each member
-  independently supports both anchors through mentions or successful reads.
-- Identical facts/pairs collapse; conflicting facts with one stable identity
-  are excluded with fixed diagnostics. Weak, missing, disabled, container, or
-  insufficient evidence cannot be repaired through title, workspace, existing
-  organization, a mixed Session, or transitive graph membership.
-- Candidate identity hashes contract version and sorted anchors. Membership
-  revision observes all admitted supporting references, including those beyond
-  the response sample. A separate result revision includes presentation,
-  coverage, source state, and diagnostics. Source change may invalidate an
-  inferred candidate but never transfers future user assertions to another key.
-- Hard input/output bounds raise `CandidateLimitError` instead of returning an
-  order-dependent prefix. Evidence and overlap samples retain complete totals
-  for the supplied scope. Coverage defaults to partial and cannot claim global
-  discovery. Exact shapes, bounds, and producer duties are specified in
-  [SPEC-0090](../../plans/spec/spec-0090-workstream-candidate-discovery-contract.md).
-- Import, normalization, and serialization perform no application I/O and own
-  no table, cache, route, scheduled work, model, or current product consumer.
-
-### Isolated Work Reconstruction Experiment
-
-- The `work_reconstruction*` modules own only the versioned experimental
-  `localbrain.work-reconstruction.v1` shape. Their only app consumer is the
-  explicitly approved Auto Work inspection adapter below. They have no schema,
-  migration, schedule, production identity, or assertion-ledger ownership.
-- Extraction consumes supplied bounded text. Evidence keys and offsets retain
-  source attribution; normalized goal identity is separate from wording, labels,
-  revisions, and experimental exact-scope corrections. Unknown goals and
-  lifecycle remain unknown. Shared references cannot force a semantic merge.
-- The comparator receives metadata and admitted record spans, never body text.
-  It enumerates all qualifying bounded pairs through the unchanged candidate
-  normalizer. Local canonical keys use Context source/relative-path and
-  Atlassian Site/remote identity, not raw row-based target keys.
-- Private input requires an explicit existing database and frozen source/time/
-  record manifest. A read-only URI, query-only transaction, and SQLite authorizer
-  prohibit mutation, attachment, and extension loading. Eligibility is checked
-  before bounded body selections and hash verification. No application database
-  helper, source parser, connector, model, or external operation is used.
-- Once the owner selects current LocalBrain data, the operator may resolve its
-  configured database without asking for a manual path. Explicit preparation
-  samples the approved existing-history scope before prediction, keeps
-  per-snapshot omissions in the manifest, and revalidates hashes/permissions
-  through the same adapter. `--unassessed` leaves every quality answer unknown;
-  it is execution evidence only, never generated truth or a viability gate pass.
-- Each analysis/admission worker is a spawn-free supervised process on macOS or
-  Linux. Its own peak RSS covers that single-process worker tree; an in-worker
-  watcher and parent completion check enforce the memory bound, and the parent
-  enforces wall time and reaps cancelled/failed workers. Unavailable monitoring
-  fails closed; the command does not inspect unrelated processes.
-- Results and independent expectations stay local. New owner-only output outside
-  the repository is bounded, never overwrites an existing result, and records
-  its owner and expiry. The tool adds no retention scheduler or whole-DB copy.
-  Quality and stability measurements do not automatically approve viability.
-- Exact shapes and verification gates belong to
-  [SPEC-0095](../../plans/spec/spec-0095-bounded-work-reconstruction-experiment.md).
-
-### Auto Work Inspection Read Model
-
-`GET /auto-work` defaults to the passed `session_affinity.py` consumer. The
-server renders complete native text navigation and exact evidence; optional
-`affinity-map.js` draws a viewport-bounded temporal SVG and owns zoom/pan plus cancellable
-same-route navigation. History retains only viewport/Trace coordinates and edge
-visibility preferences and text-list disclosure, not evidence. Reader `v2`
-separates 24-row `nodes` from full matching-scope `map_nodes` and edges. Map
-scope includes snapshot/hierarchy/search, never a text/evidence page or selection.
-Native scroll extents move a sticky SVG viewport; horizontal movement traverses
-time and vertical movement reaches every strand. List paging keeps geometry and
-camera. Initial inspection is 200%; whole-time fit is 100%. Adjacency indexing
-avoids per-knot whole-edge scans and repeated all-node sorting.
-Selection never changes the layout input. The read model derives a common UTC
-domain before search/paging, at most 64 day-multiple activity periods per strand,
-exact occurrence counts and existing-edge witness dates. Optional `period`
-selection filters original evidence without changing snapshot identity or storage.
-At the selected hierarchy level, each knot aggregates one group's occurrences
-within one time period, not a single embedding point or a distinct Session.
-Knot radius grows logarithmically with occurrence count and is capped; it is not
-a cohesion, confidence or importance score. A group observed in only one period
-can therefore remain a lone point even after both grouping stages. Neither the
-generative work-context trials nor the source-claim/state projector feeds this
-reader. The earlier rule-based sample is a separate consumer, not a third merge.
-Unknown times stay outside the dated plane. The renderer locks x to time and
-uses deterministic affinity ordering/vertical attraction, curved strands and
-explicit empty-period gaps; dates and labels remain readable under zoom. A
-selected-neighborhood lens and short reduced-motion-aware camera transitions
-provide observation rather than editing or perpetual physics.
-Browsing cannot invoke the producer. See
-[SPEC-0104](../../plans/spec/spec-0104-temporal-affinity-flow.md).
-
-The separate `auto_work.py` preview adapter consumes the experimentally verified
-preparation/extraction shape, not the Focus projection. `GET /auto-work?mode=sample` reads
-one owner-checked, 10-MiB-bounded, seven-day runtime file, revalidates current
-source eligibility and frozen hashes through the read-only input adapter, and
-binds displayed wording to admitted spans. Server-side pages expose every group
-and unassigned statement with constructed local source destinations. Unknown
-assessment remains unknown. It owns no DB table, production flow ID or correction.
-
-`POST /auto-work/refresh` requires same-origin loopback access and an empty body.
-It redirects back to the labeled sample mode, never refreshes the full-history map.
-The server invokes the explicit preview command in a separate subprocess with
-fixed configured input paths, quiet output and a 300-second outer timeout;
-preparation and extraction retain their own 120-second/512-MiB limits. An
-advisory lock makes refresh single-flight. Atomic, owner-only replacement retains
-the prior valid result on failure; staging is removed on every write outcome.
-Expired valid owned output is removed on a subsequent visit under that lock.
-There is no startup/GET analysis, background job, source sync, model, migration,
-or organization write. The sidebar link is capability-gated during mixed-version
-template/server updates; a server restart activates the new route. Exact viewer
-contract: [SPEC-0096](../../plans/spec/spec-0096-auto-work-inspection.md).
 
 ### Workflow Focus Read Model
 
@@ -600,7 +586,7 @@ contract: [SPEC-0096](../../plans/spec/spec-0096-auto-work-inspection.md).
   revision, validates endpoints, forward time, incoming-boundary consistency,
   cycles, tip closure, and active supersession, then appends inside one bounded
   savepoint without committing its caller's outer transaction.
-- Focus first constructs the unchanged FEAT-0086 source and deterministic
+- Focus first constructs the unchanged source and deterministic
   candidate projection. Active user assertions then replace only the effective
   selected relation pair or Episode lifecycle. The read model retains
   `base_relations`, base lifecycle, resolution summaries, diagnostics, and a
@@ -616,7 +602,7 @@ contract: [SPEC-0096](../../plans/spec/spec-0096-auto-work-inspection.md).
 
 ### Session Workflow Focus Route
 
-- `workflow_map.py` is the pure presentation adapter for one passed
+- `workflow_map.py` is the pure presentation adapter for one validated
   `WorkflowFocusProjection`; `workflow_correction_view.py` adds registry-backed
   active-assertion summaries, stable boundary identities, exact consequence
   previews, and only currently valid actions without querying a second
@@ -624,7 +610,7 @@ contract: [SPEC-0096](../../plans/spec/spec-0096-auto-work-inspection.md).
   `workflow_focus_projection` once, closes that read scope, and then renders
   only the returned payload. It has no detail-query fallback, source/body
   access, connector, background task, model call, or write.
-- `workflow_session_is_eligible` shares the FEAT-0086 primary-work/full-index/
+- `workflow_session_is_eligible` shares the primary-work/full-index/
   meaningful-activity predicate with Session detail. Its failure is isolated so
   the existing Session route omits only the additive Workflow link and still
   renders conversation, pin, Subsessions, and Related Materials.
@@ -640,7 +626,7 @@ contract: [SPEC-0096](../../plans/spec/spec-0096-auto-work-inspection.md).
   boundary for `POST /sessions/{id}/workflow/corrections`: at most 16 KiB and
   eight fields, exact action-specific shapes, one optimistic projection
   revision, bounded note, strict percent decoding, and same-origin Fetch
-  Metadata. The route reconstructs Focus and performs exactly one FEAT-0088
+  Metadata. The route reconstructs Focus and performs exactly one assertion
   apply or undo inside one transaction. Success commits once; parse,
   validation, conflict, and unexpected failure roll back completely and expose
   only fixed local messages. Enhanced requests receive bounded JSON with
@@ -665,34 +651,7 @@ contract: [SPEC-0096](../../plans/spec/spec-0096-auto-work-inspection.md).
   graphical viewport yields to the server lineage. Renderer failure does the
   same while leaving controls disabled and Trace navigable.
 
-Original Claude and Codex JSONL remains the authoritative Session source. LocalBrain stores normalized searchable text, selected metadata, source paths, source line numbers, and deterministic IDs so the index can be rebuilt. New provider-native event and Usage identities are scoped by the numeric Source ID when profiles share an adapter. Re-ingestion matches retained native unique keys to preserve existing event and Usage PKs; the one-time upgrade may read old string keys solely to migrate dependent references.
-
-### Session Eligibility
-
-Provider parsing is followed by one shared meaningful-Session eligibility gate. A
-parsed file must contain at least one normalized Activity Event, direct Usage
-Record, or admitted skill observation; title, name, identity, timestamp, cwd, branch, or other metadata
-alone describes an empty native stub. A successful readable-source scan stores no
-normalized Session or source-file evidence for a new stub and reconciles an
-existing empty projection after reparsing current sibling files. The source JSONL
-is never deleted. Because an ignored stub retains no freshness row, later syncs
-inspect it again and import it once Event, Usage, or admitted skill observation evidence appears.
-
-### Usage Normalization And Repair
-
-Token usage is a separate derived-record lane from searchable Activity Events. Both adapters preserve one stable source-record identity, the raw model name, non-cached input, output, cache-write, cache-read, reasoning, source-total, and normalized-total semantics when those values are available. Claude input is already non-cached and its cache creation and cache read values remain additive. When Claude reports a zero cache-creation aggregate that contradicts a positive internally consistent ephemeral breakdown, the adapter uses the breakdown and records that bounded fallback. Each Codex `token_count` event contributes its direct `last_token_usage` when available; `total_token_usage` is Session-cumulative and is subtracted from the preceding observation only as a fallback. Spawned or forked subsession replay prefixes seed that cumulative baseline but do not produce copied records. The dashboard ignores zero request deltas even when the source total repeats earlier nonzero history; source input has cached input subtracted, and reasoning output remains an informational subset of output rather than an additional total.
-
-Every directly observed Usage Record is eligible regardless of Session class or role. Maintenance Sessions and subsessions therefore remain excluded from ordinary Search and workflow statistics while still contributing their own direct usage. Current Claude and Codex observations carry a `direct` aggregation scope. LocalBrain does not persist a second parent rollup, so parent and child direct records are each counted once; the reserved `includes_children` scope requires a downstream rollup to exclude covered child records if a future source explicitly provides such an aggregate. A repeated source record updates one deterministic Usage Record, and malformed later evidence cannot erase a previously valid record. Session source files record the usage normalizer contract that processed them, and each Usage Record records its independent normalizer version. Unchanged file metadata is current only when this contract version also matches.
-
-When a normalizer contract changes, ordinary Session synchronization performs a versioned Usage-only repair rather than requiring a user-facing aggregate reset. If any current file for a source has an older Usage contract version, synchronization reparses every current file for that source and reconciles their complete native Usage Record union inside one source-level savepoint: matching identities update, new identities insert, and obsolete source identities delete. It does not replace the Session, Activity Event, search, Atlassian evidence, or generalized-reference lanes merely because the Usage contract changed. This boundary preserves all observations when one Session identity spans several files. A repair identity inherits the closest prior price snapshot and frozen Project attribution unless an approved corrective producer explicitly assigns a new immutable snapshot to repair an invalid token or service-tier contract. Ordinary new records under an unchanged contract receive the snapshot and current Project evidence available when first observed. Immutable snapshot/model price lookups are cached for one source repair and each Session's Usage upserts are issued as one batch without changing identity, ordering, values, or savepoint rollback. Any parse or persistence failure rolls back the complete source replacement and does not advance its source-file contract versions. Source freshness retains the size and modification time observed before parsing, so bytes appended to an active JSONL during the read remain detectable on the next synchronization. The next unchanged synchronization skips all now-current files, making the repair idempotent. Native stale-Session and Usage reconciliation preserve independent insight accounting parents and their Usage Records.
-
-Estimated USD cost is a local API-equivalent trend estimate, not billed spend or subscription credit use. Each Usage Record retains an immutable price-snapshot identifier, calculator version, calculation time, and explicit `priced`, `unpriced`, `partial`, or `failed` state. A growing source record normally keeps its cited snapshot. The approved 2026-09-25 correction reparses native usage and reprices existing records from newly seeded official snapshots; prior snapshot rows remain immutable, and Usage IDs, token counts, and frozen Project attribution are preserved. Later publisher price changes require new dated snapshots and an explicit historical correction when appropriate.
-
-The legacy ccusage 20.0.14/20.0.17 catalogs remain as historical evidence. Current pricing comes from frozen model-specific OpenAI and Anthropic entries with published effective dates, except for the explicitly chosen Spark and historical Fast long-context proxies. The Codex adapter reads `thread_settings_applied` in file order: `priority`/`fast` uses Fast, `default` uses Standard, and unmarked/unsupported settings fall back to that source home's current config with provenance recorded in `capability_json`. GPT-5.6 Terra/Luna change on July 30, Sol on August 21, GPT-6 Astra starts on September 3, and GPT-6 Sol/Luna start on September 22. The pre-July-30 GPT-5.6 Priority 2x multiplier is labeled as a historical inference because an archived publisher tier table was unavailable. For other models, an exact model/tier/context combination with no published price remains partial; a Standard rate is not silently substituted for Fast. Exact GPT-5.3-Codex-Spark has no independently published API rate; the approved exception borrows ccusage 20.0.17's GPT-5.3-Codex Standard or Fast estimate in a separate labeled snapshot. Startup reprices previously unpriced Spark records and eligible partial Fast long-context records with explicit proxy snapshots, retaining Usage identity, tokens, and attribution. The dashboard excludes persisted Codex zero-request rows whose source total repeats earlier history, preserving their local source and database evidence.
-
-`usage_model_prices` stores optional threshold and above-threshold component rates. Calculator v3 evaluates each Usage Record independently from non-cached input plus cache read, keeps the exact threshold on the base tier, and uses long-context rates only above it; compaction can return a later record in the same Session to the base tier. GPT-5.6 Fast long context before its August 5 API availability and GPT-5.5 Fast long context have no published applicable tier rate. The approved ccusage-style proxy uses the contemporaneous short-context Fast rate, doubles input and cached input for requests above 272K input tokens, and multiplies output by 1.5; a separate snapshot label and source identify this as a trend estimate, never an official historical Fast long-context rate. New records select that proxy only for the matching model, date, tier, and request size. Claude's observed 1-hour cache writes use their separate publisher rate; Codex logs do not expose cache writes as a separate component, so that component is absent from the estimate. No catalog creates a runtime ccusage, network, or page-render dependency. Future unknown model names remain unpriced until a cited entry is added.
-
-Each new Usage Record also freezes its first-observation Project attribution. A currently discovered Git root produces a `git:<canonical-root>` key; otherwise a resolved workspace produces a `path:<canonical-path>` key; missing evidence stays `unassigned`. Workspace ID, name, canonical path, Git root, basis, and attribution time are snapshots rather than live Project joins. Conflict updates preserve them, so a later Git initialization, path move, or workspace enrichment can affect only new records. Current `workspaces.git_root` follows current filesystem evidence and may change without rewriting historical usage. Legacy or previously unassigned records are not reconciled automatically.
+## Analytical And Session Read Models
 
 ### Analytical Read Models
 
@@ -706,7 +665,7 @@ For every default or custom range, history buckets start and end at the first an
 
 Cost is the default `metric` when the query parameter is absent or invalid. The visible metric control orders Cost before Tokens. History retains Decimal values for bar height, aggregation, and accessible detail while its bar-top display rounds to whole dollars or compact whole token units; positive costs below one dollar display `<$1`.
 
-The same read model normalizes `breakdown=source|model|project`. It groups by numeric source ID with configured display name and profile color, normalized model while retaining raw identities, or the immutable Usage Record Project key; current workspace joins may enable a browse link but never change a historical group. Personal and company Codex therefore remain separate source rows. Compatible shares use the selected supported token total or priced-cost total, and the `All` compatible total equals its source-row sum. The first eight ranked groups remain visible and additional groups use native disclosure. While expanded, the same summary control follows the additional rows, placing `Show less` at the bottom of the composition table; collapsing returns `Show N more` below the initial eight rows. Pointer and keyboard disclosure behavior remains native and works without JavaScript. Repeated hidden column headings stay anchored to their own cells so the expanded table's horizontal overflow remains inside its local scroller. Aggregate freshness consumes the persistent latest FEAT-0068 source attempt, success, status, and bounded error plus source-file stale/error evidence. Completed/empty is current; unavailable, configuration error, or scan failure requires attention; legacy rows without a source-level result retain file-status fallback. Previously calculated records remain visible and the last source success remains distinct from the failed attempt.
+The same read model normalizes `breakdown=source|model|project`. It groups by numeric source ID with configured display name and profile color, normalized model while retaining raw identities, or the immutable Usage Record Project key; current workspace joins may enable a browse link but never change a historical group. Personal and company Codex therefore remain separate source rows. Compatible shares use the selected supported token total or priced-cost total, and the `All` compatible total equals its source-row sum. The first eight ranked groups remain visible and additional groups use native disclosure. While expanded, the same summary control follows the additional rows, placing `Show less` at the bottom of the composition table; collapsing returns `Show N more` below the initial eight rows. Pointer and keyboard disclosure behavior remains native and works without JavaScript. Repeated hidden column headings stay anchored to their own cells so the expanded table's horizontal overflow remains inside its local scroller. Aggregate freshness consumes the persistent latest source-health attempt, success, status, and bounded error plus source-file stale/error evidence. Completed/empty is current; unavailable, configuration error, or scan failure requires attention; legacy rows without a source-level result retain file-status fallback. Previously calculated records remain visible and the last source success remains distinct from the failed attempt.
 
 The read model retains model-group Session evidence metadata for compatibility, but the composition table does not render an evidence column. A single-Session destination is exact only when a model group contains one distinct primary work Session in the selected usage rows. The Sessions inventory has source and current-workspace filters, not a model-usage filter, so the read model does not generate an inventory URL for model groups with multiple or no primary work Sessions.
 
@@ -714,17 +673,9 @@ Current-month projection remains a non-persisted compatibility calculation in th
 
 ### Synchronization And Session Inventory Read Models
 
-The Sessions inventory owns a Session-only incremental synchronization action. It scans every validated source in the ordered private Session-source registry—the user’s enabled Codex/Claude profiles—regardless of the selected inventory filter, and does not scan Local Context sources. Each accepted file carries independent Session-projection, Usage-normalizer, and generalized-reference versions. A version mismatch reparses the source files needed by that concern but writes only the owned derived lane; a natural file change, missing Session mapping, forced scan, or eligibility repair still refreshes every affected lane. Each source has an independent transaction, source-file set, stale-deletion boundary, and persistent latest attempt/success/status/error health. Unavailable or invalid sources skip stale reconciliation and retain their normalized data; an unexpected failure rolls back only that source. The JSON request API queues or joins the common collector; its status API exposes the bounded per-source report plus complete, partial, or failed aggregate outcome. An additive NDJSON endpoint emits bounded source ID/label, repair kinds, and throttled file counts to the same Sessions result region; it emits no paths or content, and callback/display failure cannot change synchronization. The development-web Sources inventory owns the wider scan that appends every enabled Local Context root without weakening those Session-source commit boundaries. Both web actions retain the source-file freshness check. An otherwise-current source is reparsed only when its versioned Atlassian evidence scan or enabled configured-Site fingerprint is missing or changed; once all owned contracts are current, the source is skipped.
-
-The shared backend schedules Session and Local Context collection independently,
-defaulting to 10 and 30 minutes after each domain's completion. The Sync settings
-use 10/20/30/60-minute or Off choices and preserve existing saved intervals.
-Manual requests and multiple backends share one writer lock and coalesce pending
-work. Each domain's latest health lives outside the primary DB; per-source/file
-state stays in the registry. Background collection does not reload the reading
-surface or add a status banner. The existing Sessions manual action remains.
-See [the common runtime contract](desktop-app-and-settings.md); shared scheduling
-checks do not establish simultaneous native/web startup acceptance.
+[Session Synchronization](#session-synchronization) owns collection, repair,
+source transactions and scheduling. This section owns the inventory and
+Chart read projections that consume those normalized records.
 
 Sessions browsing derives its ordered peer source controls from the same registry
 and uses the numeric source ID, never provider kind, as GET and query identity.
@@ -844,34 +795,7 @@ no saved overshoot or idle loop. Point-pull limits are unchanged.
 Ordinary detail's Chart backlink adds return state only;
 Workflow links and projection/correction contracts are unchanged.
 
-### Adapter-specific Rules
-
-- Import Claude primary and direct `subagents/*.jsonl` files with distinct Session
-  roles and a source-backed parent relation. Deeper descendants of the native
-  `subagents` tree, including `workflows/**/journal.jsonl`, are internal artifacts
-  rather than Session candidates. A successful scan excludes them from the valid
-  source-file set and reconciles any prior false normalized Session without
-  deleting the native artifact. Use the direct child filename stem as child
-  identity; its record-level `sessionId` may denote the owning parent.
-- Use the first Codex `session_meta` record as the file identity because a rollout file may contain older embedded metadata.
-- Read Codex parent and Git context from that same primary metadata record; later embedded metadata never replaces the file identity.
-- Treat first-record `source.subagent.other=guardian` as provider-internal approval activity. Retain its normalized Session identity, parent relation, and direct Usage Records under maintenance plus metadata-only policy while excluding its prompts and decisions from Activity Events and ordinary Session/Subsession presentation.
-- Index human and assistant message text plus tool names; do not index opaque tool arguments or result payloads. Approved Atlassian read results may be inspected ephemerally only through bounded URL, remote-ID, and title field/container allowlists, and only the resulting locator evidence is persisted.
-- Preserve historical `cwd_raw` independently from an optional resolved current Project relation.
-- Handle a Session file that is still growing or partially written without discarding previously valid records.
-
-### Session Policies
-
-Claude and Codex histories are parsed into normalized Sessions and Activity Events. An in-app Task Runner Run persists the selected runner's normal native Session; the internal Run header classifies that source-backed primary as maintenance and links it uniquely to the Run ledger. Its child Sessions inherit maintenance and metadata-only policy through the resolved parent relation without taking the Run FK. Maintenance Sessions stay excluded from events, search, workflow statistics, and the Sessions Dashboard primary-work Session denominator, while their direct Usage Records remain eligible for token and estimated-cost totals:
-
-```text
-[LOCALBRAIN_RUN: lb-<12 hex characters>]
-[MODE: maintenance]
-```
-
-Provider-internal Codex guardian histories use the same maintenance and metadata-only exclusion boundary without a Run link. Their source metadata, parent relation, and direct Usage Records remain available for provenance and usage totals, while repeated approval-review prompts and decisions never appear as user questions, conversation events, or ordinary Subsessions.
-
-Claude and Codex subsessions are normalized as source-backed Session rows with a retained source parent identity and a nullable resolved parent self-reference. Unresolved, unsafe, and deeper child relations remain stored but do not fall back to top-level presentation. Only primary work Sessions contribute to global Search, Session-derived statistics, Workstream organization candidates, Workstream maintenance retrieval, or Atlassian URL evidence. Maintenance and subsession output can never rediscover its own external-sync targets.
+### Session Conversation And Identity Reading
 
 Session detail exposes the retained source-native `sessions.external_id` as **Session ID** in the first metadata cell. A read-only abbreviation starts at eight characters and extends on collisions with different stored IDs across sources; identical native IDs retain the same abbreviation. The complete value is preserved in accessible metadata and copied by an explicit browser action, with a success check and `Copied!` state for two seconds after the clipboard write succeeds, or a selectable full-value fallback and anchored recovery message on failure. One custom tooltip supplies both hover/focus help and result feedback, centered on the owning button rather than the pointer; native button titles and footer copy toasts are not used. It stays outside the clipped metadata frame, remains within the horizontal viewport and flips above when bottom space is insufficient. Pointer exit, blur, Escape, scroll and resize dismiss the tooltip without cancelling the copied-state deadline. Reentry before that deadline retains confirmation; expiration restores the glyph and label and returns an open tooltip to its copy explanation. Repeated success restarts the deadline without an idle-glyph flash, and stale asynchronous results cannot overwrite the latest attempt. Copy results alone have live announcements. Control geometry and surrounding metadata remain stable. This does not change Session identity, ingestion, navigation URLs, or start a resume command. Activity-time width follows its content, branch metadata receives remaining wide-layout space, and the strip reflows within the available reading column.
 
@@ -886,29 +810,647 @@ Parent details list same-source direct children as Subsessions; child details re
 `/sessions/{id}/subsessions/{file}` is the canonical lazy compatibility route.
 Existing Claude `/subagents/` links redirect to that route, which still reads the source-native `subagents/` directory and uses the same message-only Markdown presentation.
 
-Session Insights retains native invocation/context, completed instruction reads, named references and identifiable skill script executions. `ingest/skill_loads.py` correlates calls/results and request provenance. `ingest/skill_usage.py` matches source-established skill identifiers and unambiguous plugin aliases in normalized visible user/assistant messages without interpreting use wording or language. Generated catalogs/instructions and tool-output text are not conversation references. Script evidence uses completed native Codex CommandExecution records or non-error Claude Bash results, checking a literal executable or supported interpreter script argument within a known skill root's `scripts/` directory. Dynamic commands and heredoc bodies are excluded from this bounded command grammar; logged commands are never executed. Names/locators come from the same Session's native loads or completed reads, not current installed inventory.
-
-Scanner persists source-scoped evidence during changed-file ingestion, and Session parser upgrades backfill available files without recomputing Usage prices. The [skill observation ledger](data-model/workspace-and-session-activity.md#skill_observations) owns native/fallback identity, request provenance, signal vocabulary, row-preserving migration, corrections, maintenance exclusion and retained history. Historical declarations remain references; the parser generates no new declarations. Source message text is not copied into this ledger.
+### Session Insights
 
 The Insights database projection groups all observed evidence once per source, native Session and normalized skill, independently of requests and event count. Its compatible fields carry Session counts and latest admitted reference times under the ledger contract. GET does not reread transcripts or join current Sessions for row details, and Usage & Cost remains independent. This measures use/reference reach rather than successful application.
 
-The same Insights route separately browses `personal_insight_runs`. A submitted question or discovery request freezes at most 100 eligible primary-work Sessions, 300 excerpts, and 120,000 excerpt characters into a private evidence manifest. The current versioned core supplies all eleven detailed playbooks and selects a finding type from the owner's goal and observed friction, rather than excluding types through lexical cues. The exact prompt, core/playbook versions and digests, and report-v3 JSON schema are frozen for that Run; historical core v2/v3 keeps the v2 result shape. Additive eligible-message positions and counts allow the validator to reject conversation requests for fully supplied messages. Reports explain candidate/type selection and show frozen source, count, time, and truncation coverage. Conversation requests are rendered from validated missing-message targets; no automatic expansion or paid retry occurs. Codex CLI uses the Run's frozen local `CODEX_HOME` profile, no native Session persistence, and no model tools, so the analysis conversation does not enter ordinary Session evidence or feed later analysis. The home is chosen from `LOCALBRAIN_INSIGHT_CODEX_HOME`, `CODEX_HOME`, an existing `~/.codex-company`, or `~/.codex`, in that order. A validated result has at most three findings, an explicit no-finding outcome, or a bounded request for more evidence. Findings must cite IDs from the frozen manifest; recurrence requires independent Sessions. The Run stores CLI-observed usage before report validation and retains the private validated value, Markdown report, and source excerpts outside Git. `personal_insight_usage.py` projects one latest usage summary per Run into canonical Usage Records using a metadata-only Maintenance Session with external identity `localbrain-insight:<Run ID>`. This accounting parent contains no messages, events, workspace, or search entry and remains excluded from work-Session counts and future analysis. Source attribution matches the frozen Codex home to the registered sessions root; Project attribution is unassigned because execution occurs in the private Run artifact directory, not an originating work repository. The dashboard excludes this Maintenance accounting from Project composition while retaining it in overall usage, history and Source/Model. Frozen attribution stays unchanged. New Runs explicitly select Standard service tier. Historical unmarked Runs use a labeled default-tier assumption. Input includes cache reads, so normalization subtracts cached input before pricing it separately; reasoning stays within output. Aggregate inputs above a request-price threshold remain partial because request-level context is unavailable. Failure, cancellation, and interruption preserve any emitted usage; startup can recover retained summaries or terminal stream evidence without a provider call. Stable identities and frozen snapshots prevent replay double counting. It never starts implementation work. Opening Insights, downloading a report, or syncing a source starts no model Run. The Usage & Cost opening query remains independent of this path.
+### Personal Insight Evidence
 
-Session branch metadata is stored per Session from authoritative JSONL. Workspaces retain the currently discovered canonical `git_root` of the containing repository and do not store a branch value; historical Project attribution belongs to Usage Record snapshots instead.
+`personal_insight_evidence.py` owns the read-only current evidence producer and
+reference reviewer. `build_insight_evidence_manifest(connection, *, mode,
+requested_at, question=None, source_ids=None, date_from=None, date_to=None,
+timezone="Asia/Seoul")` returns `personal-insight-evidence-v2`.
+`resolve_insight_evidence_reference(connection, reference)` checks a frozen
+reference against current normalized records. Neither function opens native
+files, collects a source, creates a Run, invokes a model or external service,
+or persists an evidence archive.
 
-### Local Context Sources
+#### Evidence Eligibility And Scope
 
-The `context_roots` registry owns folders, individual files, and Apple Notes sources shown in Local Contexts.
+- `mode` is `ask` or `discover`. `ask` requires a trimmed nonempty question of
+  at most 2,000 Unicode code points; `discover` requires `question=None`.
+  `requested_at` must be a timezone-aware `datetime` and is retained as UTC.
+- `source_ids=None` selects the supplied database's Source rows with
+  `provider_kind IN ('claude', 'codex')`. An explicit collection must be nonempty
+  and contain only positive integers: `type(id) is int and id > 0`, so booleans
+  are invalid. Duplicates collapse, IDs sort, and an unknown or other-provider
+  ID fails. This producer uses retained normalized Source rows; it does not
+  add the collection/search registry's TOML-enabled-source filter.
+- Dates are optional strict valid `YYYY-MM-DD` values in an IANA time zone.
+  `date_from > date_to` fails. Inclusive local dates become an inclusive UTC
+  start and an exclusive UTC start of the day after `date_to`.
+- A Session must have `session_class='work'`, `session_role='primary'`,
+  `index_policy='full'`, an admitted Source ID, and at least one in-scope Event
+  with `event_type='message'`, `role IN ('user', 'assistant')`, and
+  `text IS NOT NULL AND length(trim(text)) > 0`.
+  Event occurrence time owns the date scope, not the Session's last activity.
+  Known times after `requested_at` are excluded. Undated/unparseable times are
+  eligible only with no date bound; bounded dates exclude and count them.
+  Eligibility uses SQLite `julianday(occurred_at)` for these time predicates.
+- Mode, question, time zone, dates and Source selection are validated before
+  message evidence is selected. A valid empty scope returns
+  an empty manifest with `no_eligible_messages`. A SQLite read savepoint keeps
+  registry, counts, selection and excerpts in one database state. With the same
+  state and supplied inputs, selection has no ambient clock or random choice.
 
-- Folder registration scans supported content recursively.
-- Overlapping parent and child folder roots are rejected to keep document ownership unambiguous.
-- Hidden and generated directories such as `.git`, `node_modules`, `dist`, and `build` are excluded.
-- Removing a source disables browsing and search and clears its derived Atlassian URL sightings without deleting original local files or stable Atlassian Items.
-- Re-adding a previously removed path restores and refreshes that source.
-- Individual text files are registered independently from folder roots.
-- PDF text is currently indexed only when macOS Spotlight exposes readable content.
-- Unsupported files remain registered with an `unreadable` state and do not create preview documents.
-- Apple Notes indexing records account, folder, title, plaintext, and modification time after macOS grants Automation access.
+#### Evidence Selection And Excerpts
+
+Count every eligible Session and message before sampling. `discover` round-robins
+Source/local-month buckets, using each Session's latest eligible message time
+to choose its month. Known months sort newest first, then Source ID descending;
+unknown-time buckets follow. Within a bucket, latest eligible activity comes
+first, with ascending Session ID for ties. Stop after 100 Session picks.
+
+`ask` takes at most the first 16 distinct casefolded Unicode word terms from the
+question, builds a parameterized token-OR query over `search_index.body`, and
+takes up to 70 eligible Sessions in `bm25(search_index)`, then stored `entity_id`
+order. Fill the remaining
+slots to 100 using the same Source/month spread without repeats. No usable term
+or indexed match still permits spread evidence; it never proves that no useful
+improvement exists. A Session-level indexed hit is only a candidate, not proof
+that a selected message contains a question term. Project balance and prior
+recommendation history are not selection inputs.
+
+Within an ask-mode selected Session, prefer matching messages by distinct term
+overlap, then user role, then source sequence and Event ID. Take at most three.
+If no message matches, or in discovery mode, choose unique first, middle and
+last eligible positions in source order. Final output follows Session selection
+rank and then Event sequence/ID.
+
+| Limit or address | Current contract |
+| --- | --- |
+| Selected population | At most 100 Sessions and 300 excerpts |
+| Excerpt size | At most 600 Unicode code points per excerpt and 120,000 total |
+| Lexical window | Start up to 120 original code points before the earliest matched term, then obey both character bounds |
+| Spread window | Start at original character zero |
+| Frozen message position | Zero-based index among all eligible messages in that Session and frozen scope, before sampling; not raw Event sequence |
+| Source address | Full-text UTF-8 SHA-256, full text length, exact character start/end, Event ID, role, sequence and occurrence time |
+
+#### Evidence Manifest And Reference Review
+
+The manifest contains `version`, caller-supplied UTC `generated_at`, normalized
+`scope`, `selection`, `coverage`, and ordered `sessions`:
+
+| Object | Fields |
+| --- | --- |
+| `scope` | `mode`, `question`, numeric `source_ids`, `date_from`, `date_to`, `timezone`, `event_from_utc`, `event_to_exclusive_utc`, `requested_at` |
+| `selection` | `method`, `indexed_session_count`, `lexical_excerpt_count`, `lexical_match_state` |
+| Session | `source_id`, `provider_kind`, `session_id`, `session_url`, full eligible `message_count`, ordered `events` |
+| Event | `source_id`, `provider_kind`, `session_id`, `event_id`, `sequence`, frozen `message_index`, `role`, `occurred_at`, `text_revision`, `text_length`, `excerpt`, `excerpt_start`, `excerpt_end`, `selection_basis`, `session_url` |
+| `coverage` | `eligible_sessions`, `eligible_messages`, `selected_sessions`, `selected_excerpts`, `excerpt_characters`, `truncated_excerpts`, `eligible_undated_messages`, `undated_messages_excluded`, `selected_undated_messages`, `selected_first_at`, `selected_last_at`, `sources`, `omission_reasons` |
+| Each `coverage.sources` entry | Numeric Source-ID key; `provider_kind`, `eligible_sessions`, `eligible_messages`, `selected_sessions`, `selected_excerpts`, `selected_undated_messages`, `selected_first_at`, `selected_last_at` |
+
+Selection method is `source_month_spread_v1` or
+`fts70_plus_source_month_spread_v1`; lexical state is `matched`, `none` or
+`not_applicable`. Event basis is `lexical` or `spread`. Native source paths and
+native Session IDs are not returned. Coverage keeps selected time bounds and
+clipping separate from the full eligible population.
+Omissions distinguish `no_eligible_messages`, `session_sample_limit`,
+`message_sample_limit`, `character_limit`, `no_indexed_lexical_match`,
+`no_selected_message_lexical_match`, and
+`undated_messages_excluded_by_date_scope`. Selected coverage is never described
+as exhaustive when eligible material or source text was omitted.
+
+Reference review requires provider, positive non-boolean local Session ID,
+Event ID, sequence, role, occurrence time and full-text revision. A missing
+Session returns `unavailable` with no destination; a missing Event returns
+`unavailable` with its surviving Session destination. A present row is `current`
+only if work/primary/full classification, optional Source ID, provider, message
+Event type, admitted user/assistant role, role equality, sequence, occurrence
+time and full-text digest all agree. Otherwise it is `stale`. For legacy
+references that omit `source_id`, the remaining frozen identities/checks still
+apply; no string Source alias is inferred. Review returns only `status` and
+`session_url`; it does not reapply the frozen date selection or a registry
+enablement filter. Review never rewrites the frozen manifest or substitutes a
+current excerpt for its retained evidence.
+
+### Personal Improvement Analysis Runs
+
+The Insights route separately browses `personal_insight_runs`. A submitted question or discovery request freezes at most 100 eligible primary-work Sessions, 300 excerpts, and 120,000 excerpt characters into a private evidence manifest. The current versioned core supplies all eleven detailed playbooks and selects a finding type from the owner's goal and observed friction, rather than excluding types through lexical cues. The exact prompt, core/playbook versions and digests, and report-v3 JSON schema are frozen for that Run; historical core v2/v3 keeps the v2 result shape. Additive eligible-message positions and counts allow the validator to reject conversation requests for fully supplied messages. Reports explain candidate/type selection and show frozen source, count, time, and truncation coverage. Conversation requests are rendered from validated missing-message targets; no automatic expansion or paid retry occurs. Codex CLI uses the Run's frozen local `CODEX_HOME` profile, no native Session persistence, and no model tools, so the analysis conversation does not enter ordinary Session evidence or feed later analysis. The home is chosen from `LOCALBRAIN_INSIGHT_CODEX_HOME`, `CODEX_HOME`, an existing `~/.codex-company`, or `~/.codex`, in that order. A validated result has at most three findings, an explicit no-finding outcome, or a bounded request for more evidence. Findings must cite IDs from the frozen manifest; recurrence requires independent Sessions. The Run stores CLI-observed usage before report validation and retains the private validated value, Markdown report, and source excerpts outside Git. `personal_insight_usage.py` projects one latest usage summary per Run into canonical Usage Records using a metadata-only Maintenance Session with external identity `localbrain-insight:<Run ID>`. This accounting parent contains no messages, events, workspace, or search entry and remains excluded from work-Session counts and future analysis. Source attribution matches the frozen Codex home to the registered sessions root; Project attribution is unassigned because execution occurs in the private Run artifact directory, not an originating work repository. The dashboard excludes this Maintenance accounting from Project composition while retaining it in overall usage, history and Source/Model. Frozen attribution stays unchanged. New Runs explicitly select Standard service tier. Historical unmarked Runs use a labeled default-tier assumption. Input includes cache reads, so normalization subtracts cached input before pricing it separately; reasoning stays within output. Aggregate inputs above a request-price threshold remain partial because request-level context is unavailable. Failure, cancellation, and interruption preserve any emitted usage; startup can recover retained summaries or terminal stream evidence without a provider call. Stable identities and frozen snapshots prevent replay double counting. It never starts implementation work. Opening Insights, downloading a report, or syncing a source starts no model Run. The Usage & Cost opening query remains independent of this path.
+
+#### Guide Bundle And Result Contract
+
+`personal_insight_guidance.py` selects the bounded package catalogue and validates
+the report value. New Runs freeze core `personal-improvement-core-v8`, report
+`personal-improvement-report-v3`, all eleven playbooks, exact trusted text, a
+`route_reason='owner_goal_and_observed_friction'`, and separate SHA-256 digests
+for the core and each playbook.
+`request_feedback` uses v4; every other current playbook uses v1. The catalogue is
+`task_framing`, `request_feedback`, `context_recovery`, `repeatable_procedure`,
+`learning_explanation`, `verification_rework`, `information_access`,
+`decision_memory`, `task_fit_effort`, `personal_value`, and
+`assistant_configuration`. Quoted vocabulary does not remove a type before the
+model considers the owner's goal and observed friction.
+
+Bundle fields are `core_version`, `report_version`, `core_sha256`, exact `core`,
+`playbooks` and `route_reason`. Each playbook freezes its own `id`, `version`,
+`sha256` and exact `content`; a core fingerprint never replaces a playbook's.
+
+Core v2/v3 retain report v2, and historical core v4/v5/v6/v7 retain report v3.
+Guide/report mismatches fail. Historical resources and reports are preserved;
+`personal_insight_guide.md` remains the historical v1 resource. A changed package
+guide, profile or environment affects future Runs only. Per-Run versions and
+content digests are compatibility/provenance facts, not proof that a generated
+recommendation is correct or effective. [Product Model](product.md#insights)
+owns current decision, application and previous-proposal duties.
+
+The strict current report contains `result_version`, `title`, `summary`,
+`outcome`, `findings`, `no_finding_reason`, `additional_evidence`, `limits`,
+`selection_reason` and `selection_evidence_ids`. Outcomes are `findings`,
+`no_actionable_finding` or `needs_evidence`; only `findings` has a nonempty
+finding list, with at most three entries. A no-finding or needs-evidence result
+requires a nonempty reason. Candidate selection explains relevance and competing
+interpretation without claiming exhaustive ranking or guaranteed novelty.
+
+Each finding has `title`, selected `type_id`, `owner_goal`,
+`pattern_scope` (`single_observation` or `recurring_pattern`), `observation`,
+`evidence_ids`, `counterevidence_ids`, `counterexample_status`,
+`counterexample_check`, benign `alternative`,
+`coverage_limit`, `action`, `benefit_hypothesis`, `effort_or_tradeoff`, `follow_up`,
+`handoff`, `outcome_state` and `type_reason`. Supporting IDs are required and must
+name unique selected Event IDs. A recurring pattern requires two distinct
+Sessions. Supporting and counterevidence IDs cannot overlap; `observed`
+counterexample status requires counterevidence, while `not_observed` and
+`not_available` require none. `outcome_state` is always `not_confirmed`.
+Handoff has exactly `goal`, `proposed_change`, `scope`, `constraints`,
+`first_steps` and `success_check`. After validation, a 16-hex `finding_id` hashes
+the finding and its one-based position. The returned result also adds `guide`
+with `core_version`, `core_sha256` and playbook `id`/`version`/`sha256` metadata.
+These local identities do not confirm an owner outcome.
+
+| Validated text/reference limit | Bound |
+| --- | --- |
+| Report title, summary, limits; no-finding reason | 8,000 code points per field; required fields are nonblank |
+| Selection reason / selected evidence | 2,000 code points / at most five unique Event IDs; findings and evidence requests require selection evidence |
+| Finding title / other ordinary finding text / type reason | 160 / 4,000 / 1,000 code points |
+| Supporting and counterevidence | At most 12 unique admitted IDs each |
+| Each handoff field | Nonblank, at most 1,000 code points |
+| Additional-evidence question and anchors | At most 1,000 code points and five unique admitted Event IDs |
+
+Additional-evidence kinds are `none`, `conversation_neighbors`,
+`independent_session`, `owner_goal` and `outcome`. The exact request fields are
+`kind`, `question`, `evidence_ids` and `message_requests`. Only `needs_evidence`
+may request evidence, with a nonempty bounded question; other outcomes carry
+`{"kind":"none","question":"","evidence_ids":[],"message_requests":[]}`.
+Current conversation requests have one to five
+`{anchor_evidence_id, message_index}` targets, anchored in the request's admitted
+IDs. Uniqueness is `(session_id, message_index)` after resolving each anchor's
+Session: distinct anchors in the same Session cannot request the same position.
+Both index and frozen `message_count` must have `type(value) is int`
+(booleans are invalid), with
+`0 <= message_index < message_count`; the anchor also needs a valid frozen
+position. A supplied complete message cannot be requested again; a clipped one
+may be requested in full. Other request kinds carry no message targets.
+
+The product renders conversation requests from those validated targets and
+nearby source anchors. Positions count frozen eligible messages, not provider
+sequence; absent position metadata cannot support an indexed request. Model
+prose identifies content/date/anchor relationships rather than publishing numeric
+message positions or assuming an omitted message's speaker. Unknown goals or
+outcomes use their own bounded factual question, not a bypass for supplied-message
+refusal. The trusted guide requires Korean JSON text without Markdown links or
+raw HTML and treats limits as ceilings, not targets to fill. Invalid values fail
+without automatic paid retry, retaining emitted
+usage and diagnostics. Structural/ID/position checks do not prove semantic
+specificity, eliminate every redundant question, establish applicability or
+confirm benefit; the trusted guide and behavior evaluation own those checks.
+
+## Explicit Experimental Tools And Contracts
+
+Pure candidate normalization and isolated reconstruction retain their own
+evidence/admission limits. The full-history simulation produces private
+similarity reports for the admitted observation-only reader, without
+admitting product work identity or organization changes.
+
+### Workstream Candidate Contract
+
+- `workstream_candidates.py` owns `localbrain.workstream-candidate.v1`.
+  Producers supply canonical artifact/Session/reference facts and proposed
+  pairs. The module validates their evidence; it neither enumerates a corpus
+  nor resolves a URL, path, Site, or alias through I/O.
+- Artifact keys hash kind, source scope, and canonical identity with length
+  delimiters. Producers map Context Documents to stable source plus relative
+  path, Jira/Wiki Items to normalized Site plus canonical issue key/Page ID,
+  and other existing Resources to their canonical path/URL namespace. Known
+  Resource aliases use the resolved Document/Item owner. SQLite IDs and raw
+  Session-reference target keys containing row IDs are not stable identities.
+- Session keys reuse `workflow_episode_key`; the factory validates primary
+  work/full-index and supplied meaningful Event/Usage evidence. Reference keys
+  hash the Episode, artifact, and source-native occurrence identity. Each member
+  independently supports both anchors through mentions or successful reads.
+- Identical facts/pairs collapse; conflicting facts with one stable identity
+  are excluded with fixed diagnostics. Weak, missing, disabled, container, or
+  insufficient evidence cannot be repaired through title, workspace, existing
+  organization, a mixed Session, or transitive graph membership.
+- Candidate identity hashes contract version and sorted anchors. Membership
+  revision observes all admitted supporting references, including those beyond
+  the response sample. A separate result revision includes presentation,
+  coverage, source state, and diagnostics. Source change may invalidate an
+  inferred candidate but never transfers future user assertions to another key.
+- Hard input/output bounds raise `CandidateLimitError` instead of returning an
+  order-dependent prefix. Evidence and overlap samples retain complete totals
+  for the supplied scope. Coverage defaults to partial and cannot claim global
+  discovery. The current shapes, bounds and producer duties below complete
+  this pure contract.
+- Import, normalization, and serialization perform no application I/O and own
+  no table, cache, route, scheduled work, model, or current product consumer.
+
+#### Candidate Inputs And Producer Duties
+
+The current factories accept normalized mappings and produce frozen descriptors;
+`normalize_workstream_candidates(artifacts, sessions, references, pairs, *,
+coverage=None)` validates the supplied scope. Factories reject malformed values
+with fixed `ValueError` text. Batch normalization counts invalid, excluded and
+conflicting individual facts/pairs with sorted fixed diagnostic codes rather
+than choosing values by input order. Invalid top-level iterables, coverage or
+hard overflow fail; strings, bytes and mappings are not fact iterables.
+
+| Factory input | Mapping fields |
+| --- | --- |
+| `candidate_artifact_from_record` | Required `kind`, `source_scope`, `source_identity`; optional `title`, `identity_state`, `enabled`, `is_container`, `availability`, `freshness` |
+| `candidate_session_from_record` | Required `id`, `source_id`, `external_id`, `session_class`, `session_role`, `index_policy`; meaningful-evidence inputs `event_count`, `has_activity_events`, `has_usage_records`; optional `title` |
+| `candidate_reference_from_record` | Required `episode_key`, `artifact_key`, `reference_identity`, `evidence_kind`; optional `read_outcome`, `observed_at` |
+| Proposed pair | A tuple/list of exactly two valid distinct Artifact keys |
+
+- Artifact kinds are `context-document`, `wiki-item`, `jira-item`,
+  `local-resource` and `external-resource`. Producers resolve aliases first:
+  Context uses stable source plus relative path, Jira/Wiki uses normalized Site
+  plus canonical Issue/Page identity, and other Resources use their canonical
+  path/URL namespace. Known Document/Item aliases use that resolved owner's
+  identity. The normalizer performs no fuzzy match, URL/Site inference or I/O.
+- Identity strings are nonempty trimmed UTF-8 text, at most 4,096 code points;
+  after trimming, reject characters where `ord(char) < 32 or ord(char) == 127`.
+  Source scopes are at most 300. Attributed titles
+  collapse whitespace and retain at most 500 code points; absent/invalid titles
+  remain absent. Raw identities never serialize. Opaque Artifact, Episode and
+  Reference keys use their validated namespace and 64-hex digest.
+- Artifact identity is `resolved`, `unresolved` or `ambiguous`; enablement and
+  container flags are actual booleans. Only resolved, enabled, non-container
+  facts qualify. Availability (`available`, `unavailable`, `missing`, `unknown`)
+  and freshness (`current`, `stale`, `unknown`) stay separate; retained stale or
+  missing facts do not acquire false freshness.
+- Artifact factory defaults are identity `unresolved`, `enabled=False`,
+  `is_container=False`, and availability/freshness `unknown`. A Session's
+  `event_count` defaults to zero and both meaningful-evidence flags to false.
+  These conservative defaults do not admit an otherwise unknown fact.
+- A Session fact requires work/primary/full, a positive non-boolean local ID,
+  a positive integer numeric `source_id`, source-native identity and meaningful
+  supplied evidence: `event_count > 0 OR has_activity_events OR has_usage_records`.
+  `event_count` is a nonnegative non-boolean integer and both flags are strict
+  booleans. Unknown eligibility never defaults true. Episode identity uses the
+  [pure workflow identity contract](#workflow-projection-contract), not local ID.
+- Reference kinds are `user_mention`, `assistant_mention`, `resource_read` and
+  `tool_result`. A mention qualifies only with `read_outcome is None`; a read
+  qualifies only with `read_outcome == 'success'`. Failed/missing read outcomes,
+  absent endpoints and excluded anchors cannot support membership. The producer
+  supplies source-native occurrence identity and observed time; local reference
+  row IDs and import time are not source occurrence identity.
+- Proposed pairs contain two distinct resolved Artifact keys; reversed/duplicate
+  pairs collapse. Each admitted member independently supports both anchors,
+  with at least two distinct stable Episode keys. Shared Sessions/anchors do
+  not merge seeds transitively. Organization, workspace, Git, wording and recency
+  cannot repair missing direct evidence.
+
+#### Candidate Result, Bounds And Coverage
+
+| Descriptor | Returned contract |
+| --- | --- |
+| Artifact | `artifact_key`, `kind`, hashed `source_scope_key`, optional `display_title`, `identity_state`, `enabled`, `is_container`, `availability`, `freshness` |
+| Session | Stable `episode_key`, current local `session_id`, numeric `source_id`, optional `display_title`, `destination` |
+| Reference | `reference_key`, `episode_key`, `artifact_key`, `evidence_kind`, `read_outcome`, UTC-or-unknown `observed_at`, `authority='observed'` |
+| Anchor support | `artifact_key`, sampled `references`, full `reference_count`, `observed_start_at`, `last_observed_at`, `unknown_time_count` |
+| Membership | `session`, both anchor `supports`, `authority='deterministic-candidate'` |
+| Overlap | Other `candidate_key`, `shared_artifact_count`, `shared_session_count` |
+| Candidate identity/presentation | `candidate_key`, `anchors`, `label`, `label_authority`, `label_artifact_key`, `members`, `membership_revision` |
+| Candidate evidence | `observed_start_at`, `last_observed_at`, `latest_observations`, `latest_observation_count`, `unknown_time_count`, sampled `overlaps`, full `overlap_count` |
+| Candidate status | `authority='deterministic-candidate'`, `outcome=None`, `next_action=None`, `activity_state='unknown'`, `lifecycle_state='unknown'`, `closure_reason=None`, `contract_version` |
+| Whole result | `candidates`, sorted `diagnostics` (`code`, `count`), `coverage` (`complete`, `unexamined_session_count`), separate `revision`, `scope='supplied-facts'`, `contract_version` |
+
+Seed identity hashes the version and sorted anchor keys. Membership revision
+observes every admitted supporting reference, including evidence beyond samples;
+it excludes title, local navigation ID and source freshness. Result revision
+also observes presentation, source state, coverage and diagnostics. Added members
+or changed labels do not rename a seed or retarget future assertions.
+
+Label precedence is Context Document, Wiki, Jira, local Resource, external
+Resource, then Artifact key. The first available attributed title wins with
+`source-metadata` authority; otherwise `Unnamed work candidate` uses `fallback`.
+No goal or confirmed Workstream name is inferred. Only admitted source-observed
+reference times determine bounds/latest observations; missing or invalid time
+stays unknown. Session end/start, import and wall-clock time do not prove progress.
+Outcome/next action and closure reason remain absent; activity/lifecycle stay
+`unknown`. Overlap reports shared anchors/Sessions without redefining membership.
+
+| Hard input/output bound | Maximum |
+| --- | ---: |
+| Artifact facts / Session facts | 2,000 each |
+| Reference facts | 20,000 |
+| Proposed pairs | 200 |
+| Memberships across the whole result | 2,000 |
+
+The normalizer reads at most each input bound plus one and raises fixed
+`CandidateLimitError` on overflow, returning no order-dependent partial prefix.
+Each member samples at most five references per anchor, by known observed time
+descending then opaque key, while retaining full counts, bounds and unknown-time
+counts. Latest-reference ties sample at most five with their full total; overlaps
+sample at most 20 with full counts. All admitted references still affect revisions
+and time bounds. Coverage defaults to partial with unknown unexamined count;
+`complete=True` requires an explicit zero unexamined Session count. An empty
+partial result never means that the corpus has no candidate.
+
+`coverage` must be a `CandidateCoverage` value, with an actual boolean `complete`
+and an unknown or nonnegative non-boolean integer `unexamined_session_count`.
+Fixed diagnostics distinguish `invalid-artifact`, `invalid-session`,
+`invalid-reference`, `conflicting-artifact`, `conflicting-session`,
+`conflicting-reference`, `ineligible-session`,
+`disabled-artifact`, `unresolved-artifact`, `ambiguous-artifact`,
+`container-artifact`, `missing-session`, `missing-artifact`, `excluded-reference`,
+`weak-reference`, `invalid-pair`, `missing-pair-anchor`, `excluded-pair` and
+`insufficient-sessions`; codes and counts never copy rejected input text.
+
+This remains a pure supplied-fact contract, with no admitted discovery/review/
+promotion consumer, table, route, cache, schedule, model or organization mutation.
+Historical candidate-review proposals do not become current execution authority.
+
+### Isolated Work Reconstruction Experiment
+
+- The `work_reconstruction*` modules own only the versioned experimental
+  `localbrain.work-reconstruction.v1` shape. Their only app consumer is the
+  explicitly approved Auto Work inspection adapter below. They have no schema,
+  migration, schedule, production identity, or assertion-ledger ownership.
+- Extraction consumes supplied bounded text. Evidence keys and offsets retain
+  source attribution; normalized goal identity is separate from wording, labels,
+  revisions, and experimental exact-scope corrections. Unknown goals and
+  lifecycle remain unknown. Shared references cannot force a semantic merge.
+- The comparator receives metadata and admitted record spans, never body text.
+  It enumerates all qualifying bounded pairs through the unchanged candidate
+  normalizer. Local canonical keys use Context source/relative-path and
+  Atlassian Site/remote identity, not raw row-based target keys.
+- Private input requires an explicit existing database and frozen source/time/
+  record manifest. A read-only URI, query-only transaction, and SQLite authorizer
+  prohibit mutation, attachment, and extension loading. Eligibility is checked
+  before bounded body selections and hash verification. No application database
+  helper, source parser, connector, model, or external operation is used.
+- Once the owner selects current LocalBrain data, the operator may resolve its
+  configured database without asking for a manual path. Explicit preparation
+  samples the approved existing-history scope before prediction, keeps
+  per-snapshot omissions in the manifest, and revalidates hashes/permissions
+  through the same adapter. `--unassessed` leaves every quality answer unknown;
+  it is execution evidence only, never generated truth or a viability gate pass.
+- Each analysis/admission worker is a spawn-free supervised process on macOS or
+  Linux. Its own peak RSS covers that single-process worker tree; an in-worker
+  watcher and parent completion check enforce the memory bound, and the parent
+  enforces wall time and reaps cancelled/failed workers. Unavailable monitoring
+  fails closed; the command does not inspect unrelated processes.
+- Results and independent expectations stay local. New owner-only output outside
+  the repository is bounded, never overwrites an existing result, and records
+  its owner and expiry. The tool adds no retention scheduler or whole-DB copy.
+  Quality and stability measurements do not automatically approve viability.
+- The frozen [experiment protocol](../../plans/spec/spec-0095-bounded-work-reconstruction-experiment.md)
+  retains trial-specific shapes and verification/admission gates. It is
+  experimental evidence, not authority for current product identity or quality.
+
+### Full-History Simulation Producer
+
+`session_simulation.py`, its verified local encoder and ordered grouping engine
+produce the private input for observation-only affinity inspection. Preparation
+is explicit; browsing cannot invoke it. It accounts for all stored Sessions and
+processes all nonempty user/assistant messages of admitted primary/full work
+Sessions. Maintenance, Subsessions, metadata-only and missing-source Sessions,
+non-message Events, empty messages and unknown dates retain separate counts;
+an unknown date does not remove otherwise eligible text. This is experimental
+similarity grouping, not admitted work identity or causal lineage.
+
+Character windows are exhaustive and non-overlapping: default 1,800 code points,
+accepted integer range 128–16,000. Source text is reread only for verified spans;
+stored inventory holds identity, hashes, role, offsets and observed time, not a
+full-body copy. Stable source/native Session identity and Event/span coordinates
+address occurrences; repeated embedding inputs may share a vector while every
+source occurrence survives. Complete source inventory is revalidated before
+publication, so concurrent change refuses a new current report.
+
+| Producer parameter | Current default / accepted values |
+| --- | --- |
+| Embedding batch size | 16; 1–256 |
+| `neighbors` | 8; integer 1–64 |
+| `similarity` | 0.65; `0 < value <= 1` |
+| `area_resolution` / `work_resolution` | 0.6 / 1.2; each `0 < value <= 10` |
+| `seed` | Integer 0 by default |
+
+An encoding execution verifies model files before private input is read;
+inventory-only/status/purge do not invoke an encoder. Local-files-only,
+offline/telemetry controls and the existing outbound Python socket guard precede
+inference; they are not an OS network sandbox. No model download, training,
+external inference or source modification follows from simulation. New vectors
+are finite, correctly dimensioned and normalized. Cache reads check dimension
+times four bytes, finite values and a nonzero norm. Missing/corrupt vectors are
+recomputed in committed bounded batches; unchanged compatible vectors are reused.
+Changing grouping parameters can reuse vectors; source/model/chunk/runtime
+identity controls compatibility. A fixed seed alone is insufficient: the current
+`cosine-knn-louvain-v2-ordered` engine canonicalizes node/neighbor order in both
+coarse and within-parent passes, preserves disconnected components/singletons,
+and emits undirected similarity rather than causal edges.
+
+#### Simulation Store And Report
+
+The existing `localbrain.session-simulation.v1` owner binds its private directory
+to the database's resolved path, device and inode. The database must be an
+existing absolute regular non-symlink file. Output must be an absolute resolved
+private runtime directory outside the repository/package and distinct from the
+database directory, with an existing parent. Private ownership/permissions,
+recognized files and no symlink/hardlink substitution are checked before use;
+unknown/unowned output refuses adoption or cleanup. A nonblocking exclusive
+`writer.lock` serializes producer/purge work. Atomic owner-only JSON publication
+never treats an unfinished write as a valid result.
+
+| Owned file or report field | Contract |
+| --- | --- |
+| `owner.json`, `writer.lock` | Marker fields `owner`, `database`, `expires_at` bind the source and 30-day inactivity expiry; the separate lock serializes work; both survive purge |
+| `state.sqlite3` and its rollback journal | Rebuildable current inventory, unique content-addressed vectors and compatibility metadata; no second authoritative application DB |
+| `progress.json` | Fixed prepared/inventory/embedding/grouping/complete or failed/interrupted state and aggregate progress; normal CLI stdout stays fixed codes unless counts are explicitly requested |
+| Report identity | `owner`, UTC `created_at`, source `manifest`, `model` contract, `namespace`, `parameters`, `configuration` digest |
+| Report authority | `processing_complete=true`, `quality='unassessed'`, `lineage_status='not_inferred'`; completion is not semantic quality |
+| Source `manifest` | `extraction='all-message-character-windows-with-session-context.v1'`, `chunk_chars`, complete `coverage`, `digest`, `sampled=false` |
+| `sessions` / `chunks` | Session `key`, local `id`, at-most-300-character `title`, `status`; each original-address chunk's `key`, `session_key`, `event_id`, `start`, `end`, `content_hash`, `input_hash`, `role`, `at` |
+| `grouping` | `engine`, `authority='inferred-affinity-only'`, `areas` (ID/members and complete within-parent `work_groups`), `node_count`, `edge_count`, `singleton_areas`, finite undirected `edges` (`left`, `right`, `similarity`) |
+| `inspection` | `areas`, `single_session_areas`, `cross_session_areas`, `sessions_in_multiple_areas`; each area's `area_id`, `session_keys`, `representative_title`, `label_basis='source-session-title-not-area-name'`, `representative_chunk`, known `observed_dates`, `lifecycle='unknown'` |
+| `cache` / `comparison` | `reused`, `encoded`, `total`; `previous_available`, `same_input`, `same_configuration`, `same_grouping` |
+| Published files | Atomic `report.json` and at most one `previous-report.json`; no full raw message-body backup |
+
+Namespace hashes model contract, extraction version and chunk size; configuration
+also hashes grouping parameters and engine identity. Content changes replace
+current inventory atomically and remove unused vectors. Only after successful
+report publication are old model namespaces pruned. Interrupted work retains
+checkpoints, and a failed run does not publish an incomplete current report.
+After 30 inactive days, the next explicit execution/startup/owned storage cleanup
+enforces expiry; status rejects expired state. Explicit purge removes only known
+derived files under lock, preserving sources, shared public weights and marker/
+lock. Recognized abandoned atomic-write scratch is removed only inside this
+validated owner. There is no new scheduler, private corpus or automatic model run.
+
+Manifest coverage names `total_sessions`, `eligible_sessions`,
+`excluded-maintenance_sessions`, `excluded-subsession_sessions`,
+`excluded-metadata-only_sessions`, `excluded-missing-source_sessions`,
+`excluded_nonmessage_events`, `message_events`, `empty_events`,
+`unknown_date_events`, `admitted_characters`, `chunks`, `sessions_with_text` and
+`sessions_without_text`. Session status uses the same eligible/excluded vocabulary.
+The grouping parameter mapping contains exactly `neighbors`, `similarity`,
+`area_resolution`, `work_resolution` and `seed`. The engine records `method` and
+`numpy`, `sklearn`, `networkx` versions for replay compatibility. After publication,
+the private checkpoint DB is vacuumed; no full-text copy is retained there.
+
+The [Developer Guide](developer-guide.md#full-history-simulation-and-model-trials)
+owns invocation and replay operation. Frozen experiment/evaluation records retain
+their original processing/replay evidence; neither an exhaustive run nor a valid
+report admits production work semantics, organization changes or a new extractor.
+
+## Observation-Only Work Inspection
+
+### Auto Work Inspection Read Model
+
+`GET /auto-work` defaults to the current `session_affinity.py` consumer. The
+server renders complete native text navigation and exact evidence; optional
+`affinity-map.js` draws a viewport-bounded temporal SVG and owns zoom/pan plus cancellable
+same-route navigation. History retains only viewport/Trace coordinates and edge
+visibility preferences and text-list disclosure, not evidence. Reader `v2`
+separates 24-row `nodes` from full matching-scope `map_nodes` and edges. Map
+scope includes snapshot/hierarchy/search, never a text/evidence page or selection.
+Native scroll extents move a sticky SVG viewport; horizontal movement traverses
+time and vertical movement reaches every strand. List paging keeps geometry and
+camera. Initial inspection is 200%; whole-time fit is 100%. Adjacency indexing
+avoids per-knot whole-edge scans and repeated all-node sorting.
+Selection never changes the layout input. The read model derives a common absolute-time
+domain before search/paging, comparing timezone-aware observations as instants.
+Serialized occurrence times retain admitted offsets; the renderer uses epoch
+milliseconds and a UTC-labeled axis. Period boundaries start at midnight in
+the earliest observation's retained offset.
+The read model supplies at most 64 day-multiple activity periods per strand,
+exact occurrence counts and existing-edge witness dates. Optional `period`
+selection filters original evidence without changing snapshot identity or storage.
+At the selected hierarchy level, each knot aggregates one group's occurrences
+within one time period, not a single embedding point or a distinct Session.
+Knot radius grows logarithmically with occurrence count and is capped; it is not
+a cohesion, confidence or importance score. A group observed in only one period
+can therefore remain a lone point even after both grouping stages. Neither the
+generative work-context trials nor the source-claim/state projector feeds this
+reader. The earlier rule-based sample is a separate consumer, not a third merge.
+Unknown times stay outside the dated plane. The renderer locks x to time and
+uses deterministic affinity ordering/vertical attraction, curved strands and
+explicit empty-period gaps; dates and labels remain readable under zoom. A
+selected-neighborhood lens and short reduced-motion-aware camera transitions
+provide observation rather than editing or perpetual physics.
+Browsing cannot invoke the producer. The reader validation, payload bounds
+and states are defined below.
+
+#### Affinity Reader Contract And States
+
+The current reader emits `localbrain.session-affinity.v2` from the existing
+simulation store. A nonblocking shared writer lock protects passive reads. The
+directory must be resolved, user-owned and private; the lock, owner marker and
+report must be safe owned regular files. `owner.json` is bounded to 64 KiB and
+`report.json` to 128 MiB. Validate the simulation owner, exact database path/
+device/inode binding and unexpired marker before consuming the report.
+
+The report must be processing-complete, unassessed and lineage-not-inferred, with
+the current extraction and ordered grouping engine, an unsampled manifest,
+valid parameters, matching namespace/configuration digests over the recorded
+model contract, complete source coverage,
+valid occurrence identities and exact coarse/within-parent membership partitions.
+Finite unique undirected edges and coverage/count identities are checked; a
+well-formed JSON object alone is insufficient.
+
+- Session keys are unique 64-hex digests; local IDs are positive actual integers,
+  titles are strings of at most 300 characters, and statuses use the producer's
+  eligible/excluded vocabulary.
+- Each chunk belongs to an eligible Session, has integer
+  `0 <= start < end` with `end - start <= chunk_chars`, a string Event ID of at
+  most 1,000 characters, user/assistant role, valid content/input hashes, a
+  matching occurrence key and an at-most-80-character timezone-aware time or
+  unknown. Chunk keys are unique.
+- Every distinct embedding input belongs to exactly one coarse group and one
+  subgroup within that parent. Groups have nonempty unique members and matching
+  kind/member-derived IDs. Unique undirected edge endpoints are ordered, weights
+  are finite with `0 <= similarity <= 1`, and stored totals/counts agree.
+
+One derived index may live only in process memory, keyed by report signature and
+source DB/WAL signatures. A changed key triggers exhaustive current source
+inventory, not a sample; signatures must remain stable through validation.
+Current manifest mismatch withholds old map/evidence and reports old/current
+coverage plus added/changed/removed occurrences. Exact displayed passages are
+independently resolved from current SQLite and checked for source/role/time,
+span length and content/embedding-input hashes. No persistent reader cache or
+new owner is created. An evidence row starts `available=False`; only a passing
+current source check adds literal `wording`, Session `href` and `focus_href`.
+Missing/changed evidence stays unavailable without a replacement quote or anchor.
+
+The public payload groups these fields:
+
+| Family | Fields |
+| --- | --- |
+| Identity and coverage | `version`, `state`, `snapshot`, `created_at`, `coverage`, `counts`, `model`, `parameters`, `configuration` |
+| Scope and selection | `level`, `map_scope`, `scope_title`, `crumbs`, `q`, `base`, `selection`, `timeline`, `period` |
+| Matching map and text | Whole matching `map_nodes`, `edges`; paged `nodes`, `total`, `matched`, `page`, `pages`, `previous`, `next` |
+| Exact source evidence | `evidence`, `evidence_total`, `evidence_page`, `evidence_pages`, `evidence_previous`, `evidence_next` |
+| Local recovery/navigation | `clear_url`, `overview_url`, `inventory_url` |
+
+URL inputs are `snapshot`, `group`, `subgroup`, `pick`, `inventory=all`, `q`,
+`page`, `evidence_page` and `period`. `q` is trimmed to at most 120 characters and
+matched case-insensitively against group/constituent Session titles across the
+complete selected level. Page input must be digit text of at most six characters;
+otherwise it defaults to one. Valid numbers clamp to available pages. Snapshot
+identity hashes the source-manifest digest and grouping
+configuration; group and membership identities stay snapshot-scoped. Text lists
+have 24 rows; evidence has eight occurrence rows. Title search covers the whole
+selected level. Inventory includes stored excluded/no-text Sessions. Selection
+is separate from expansion; observed role, offsets and time accompany literal
+text. Undirected edge maxima are similarity, not confidence or causation.
+
+Refusal states carry `version`, `state`, `title` and `explanation`.
+`selection-stale` also supplies a valid `overview_url`; `stale` carries the old
+`coverage`, `current_coverage`, `created_at` and `delta` counts for `added`,
+`changed` and `removed` occurrences.
+
+| Reader state | Predicate and consequence |
+| --- | --- |
+| `missing` | No owned result directory or no published report; no preparation starts |
+| `busy` | Shared lock unavailable or source DB/WAL changes during validation; wait/retry without trusting a mixed snapshot |
+| `current` | Complete validated source-bound report matches current inventory; a zero-match title query is still a current search result |
+| `stale` | Current complete source manifest differs; hide old map/evidence and expose coverage/deltas without rerunning |
+| `expired` | Owner expiry is at or before the read time; do not renew it on GET |
+| `invalid` | Ownership/shape/size/version/configuration/coverage/partition or value validation fails; never overwrite or repair it on browse |
+| `unavailable` | Database is absent/unsafe or local filesystem/SQLite access fails; source evidence is unavailable |
+| `empty` | A valid current report contains no coarse groups; not a synonym for no title-search matches |
+| `selection-stale` | Snapshot, hierarchy, selected membership or period is obsolete/invalid; return to valid overview rather than remapping selection |
+
+Missing/stale/expired/invalid results never fall back silently to the prior sample.
+GET neither creates/renews/deletes store artifacts nor computes vectors/groups,
+collects sources, calls a model/external service or changes organization. Current
+v2 keeps every matching strand and connection on one map regardless of text or
+evidence page; the former graph paging is not a current contract.
+
+### Previous Sample Inspection
+
+The separate `auto_work.py` preview adapter consumes the experimentally verified
+preparation/extraction shape, not the Focus projection. `GET /auto-work?mode=sample` reads
+one owner-checked, 10-MiB-bounded, seven-day runtime file, revalidates current
+source eligibility and frozen hashes through the read-only input adapter, and
+binds displayed wording to admitted spans. Server-side pages expose every group
+and unassigned statement with constructed local source destinations. Unknown
+assessment remains unknown. It owns no DB table, production flow ID or correction.
+
+`POST /auto-work/refresh` requires same-origin loopback access and an empty body.
+It redirects back to the labeled sample mode, never refreshes the full-history map.
+The server invokes the explicit preview command in a separate subprocess with
+fixed configured input paths, quiet output and a 300-second outer timeout;
+preparation and extraction retain their own 120-second/512-MiB limits. An
+advisory lock makes refresh single-flight. Atomic, owner-only replacement retains
+the prior valid result on failure; staging is removed on every write outcome.
+Expired valid owned output is removed on a subsequent visit under that lock.
+There is no startup/GET analysis, background job, source sync, model, migration,
+or organization write. The sidebar link is capability-gated during mixed-version
+template/server updates; a server restart activates the new route. The frozen
+[preview protocol](../../plans/spec/spec-0096-auto-work-inspection.md) retains
+its original experiment/admission evidence.
 
 ## Current Implementation Baseline
 
@@ -957,10 +1499,10 @@ Open implementation work is tracked in the [Project Backlog](../../plans/project
   and REST endpoints, applies path/query Item identity before structure identity
   and then Site-family root, and exposes no raw query or JQL. A parser result
   grants no access or persistence authority by itself. Explicit evidence Sync
-  admits `item` into the passed Site/Item path and `structure` into separate
+  admits `item` into the Site/Item path and `structure` into separate
   reference, privacy-safe URL, and source-evidence owners keyed by
   Site/service/kind/identity; `site` remains report-only. Registration consumes
-  its separately approved Add families and may still persist its passed
+  its separately approved Add families and may persist its approved
   Project/Space subset. The structure-reference path cannot reuse
   `external_resources`, Item/Space/access/remote-state tables as authority.
 - Atlassian page load, service switching, local URL preview and registration,

@@ -1,8 +1,10 @@
 # In-App Documentation
 
-## Ownership And Scope
+## Purpose And Scope
 
-[PRD-0024](../../plans/prd/prd-0024-deployed-app-docs.md) owns the product increment. This policy owns the delivered documentation contract.
+In-app Docs are six bundled English guides for people using the distributed
+LocalBrain app. This policy defines their content ownership, page boundaries,
+reader behavior and delivery contract.
 
 - English user guidance for the distributed app lives in `src/localbrain/content/docs/`. These Markdown bodies are the canonical content; do not copy the repository's policy or planning tree into the app.
 - The root [README](../../../README.md) owns the public product overview, installation entry and short first-use path. It directs users to in-app Docs rather than accumulating screen contracts, development progress or build internals. The [Documentation Map](../../README.md) routes maintainers to internal owners; the [test distribution guide](standalone-test-app-guide.md) owns artifact-specific first-launch requirements and release verification limits.
@@ -18,9 +20,9 @@
 - `/help` is Getting Started. The remaining routes are `/help/settings`, `/help/sessions-dashboard`, `/help/sessions`, `/help/local-contexts` and `/help/search`. The retired `/help/troubleshooting` route returns 404 and has no packaged body.
 - The existing FastAPI `/docs` API-reference route is unchanged. Product Docs are a separate destination.
 - A Docs link appears immediately above Settings in the shared sidebar footer. Both remain reachable in the compact layout. Docs use the existing app shell, reading tokens, local assets and current-page semantics.
-- The reader has no per-guide Settings action or release-version badge. Shared app Settings remains available. The Settings guide omits About, app-versus-data-format version explanations and fixed path-label rules at the owner's request. Sessions explains home-directory path labels beside its conversation metadata, preserving the distinction between display, saved locations and historical Project attribution.
+- The reader has no per-guide Settings action or release-version badge. Shared app Settings remains available. The Settings guide omits About, app-versus-data-format version explanations and fixed path-label rules as part of its content boundary. Sessions explains home-directory path labels beside its conversation metadata, preserving the distinction between display, saved locations and historical Project attribution.
 - First-use setup does not automatically cover a Docs page. Its Welcome step links to Getting Started; following that link does not complete onboarding or register a source. The existing explicit setup request and normal app startup retain their behavior.
-- Body text is marked as English. Guidance uses existing UI names and quotes Korean control labels where that helps users find the current control; this increment does not translate the rest of the app.
+- Body text is marked as English. Guidance uses existing UI names and quotes Korean control labels where that helps users find the current control; Docs do not translate the rest of the app.
 - Unknown guide names return 404. A registered guide whose packaged content cannot be read returns a bounded unavailable state, without a source path or private fallback.
 
 ## Rendering And Link Authority
@@ -43,3 +45,10 @@
 - Check route/authentication boundaries, fixed source lookup, shared link rendering and preserved source-authored Markdown behavior.
 - Check all page bodies and links against current settings, search, source and recovery contracts, including exact defaults, optionality, preservation and stop conditions.
 - Verify desktop and compact rendering, keyboard access, history, Settings entry and offline reading using a synthetic local runtime. Check package-data inclusion separately from a full native rebuild.
+
+## Change Provenance
+
+[PRD-0024](../../plans/prd/prd-0024-deployed-app-docs.md) records the approved
+product increment and its subsequent content corrections. The current content
+and delivery rules are defined above; native release and recipient acceptance
+remain separate from source and package verification.

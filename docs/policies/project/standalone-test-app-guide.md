@@ -1,169 +1,152 @@
-# LocalBrain macOS 테스트 배포 가이드
+# LocalBrain macOS Test Distribution Guide
 
-이 문서는 테스트 배포물의 최초 실행 조건, 지원 환경과 확인 한계, 수동 교체 및
-수신자 검증을 담당합니다. 일반 사용법은 앱의 **Docs → Getting Started**에서
-시작하고, 설정·동기화·백업·복원은 **Docs → Settings**에서 확인합니다.
+This guide covers the test artifact's first launch, supported environment and
+evidence limits, manual replacement, and recipient validation. Ordinary usage
+starts in **Docs → Getting Started** inside the app; **Docs → Settings** owns
+source registration, synchronization, backup, restore and cache procedures.
 
-## 받아서 실행하기
+## Requirements And Verified Scope
 
-Apple Silicon Mac용입니다. `LocalBrain-apple-silicon.zip`을 내려받아 압축을 풀고
-폴더 안의 `LocalBrain.app`을 실행합니다. Applications로 옮기는 것은 선택입니다.
-Python·uv·Homebrew·개발 소스·개발자 계정은 사용자의 Mac에 필요하지 않습니다.
+- Use an **Apple Silicon Mac**. The build targets **arm64** and declares **macOS 14**
+  as its minimum. The declared minimum does not establish execution on every OS
+  version. Check the artifact's `BUILD-INFO.md` for its actual build OS, app/ZIP
+  sizes and verification results.
+- Recipients need no Python, uv, Homebrew, source checkout or developer account.
+- Keyword search needs no model. Optional AI search explicitly downloads public
+  **Qwen3-Embedding-0.6B** weights, approximately **1.21 GB**, and prepares the local
+  index. Indexes and temporary work need additional space according to the source
+  material; model initialization and search need additional memory. This artifact
+  does not guarantee every Apple Silicon memory configuration or large-data
+  performance.
+- The packaged app provides Sessions list, Chart, pins, detail and subsessions;
+  Sessions Dashboard; Local Contexts; search; settings; first-use setup; and bundled
+  Docs. It excludes the top-level Dashboard/learning, Workstreams, Auto Work,
+  Atlassian, Insights, Session workflow and Schema. Development web keeps its
+  other routes; user settings cannot enable those features in the test app.
 
-현재 앱은 내부 테스트를 위한 ad-hoc 서명본이며 Apple 공증을 받지 않았습니다.
-공유한 출처와 체크섬을 확인한 파일에 한해, 최초 실행이 차단되면 시스템 설정 →
-개인정보 보호 및 보안에서 해당 앱의 **확인 없이 열기 / Open Anyway**를 사용합니다.
-조직의 Mac 관리 정책으로 허용되지 않으면 담당자에게 앱 허용을 문의합니다.
-시스템 전체 보안 설정을 끄는 절차는 사용하지 않습니다.
-[Apple의 앱 실행 안내](https://support.apple.com/en-au/102445).
+This artifact is an **internal, ad-hoc signed test build without Apple
+notarization**. Its first-launch procedure and local checks do not establish the
+normal-security public-release acceptance of a later signed/notarized build.
 
-초기 테스트 파일에서 인증 JSON 오류나 깨진 한글이 보였다면 `2026-10-19` 시작 오류
-수정을 포함한 현재 앱으로 교체합니다. 이 문제를 고치기 위해 사용자 데이터나
-모델을 삭제할 필요는 없습니다.
+## Receive And Open
 
-## 처음 사용할 때
+1. Download `LocalBrain-apple-silicon.zip` from the shared source and unzip it.
+2. Open `LocalBrain.app` inside the extracted folder. Moving it to Applications is
+   optional.
+3. If macOS blocks first launch, use the app-specific **Open Anyway**
+   (`확인 없이 열기`) action in **System Settings → Privacy & Security**, only for
+   the file whose shared origin and checksum you have verified. If organizational
+   Mac management does not permit it, ask the administrator to allow that app.
+   Do not disable system-wide security settings. See
+   [Apple's app-opening guidance](https://support.apple.com/en-au/102445).
 
-메인 화면 위에 시작 설정 창이 열립니다. **환영 → 세션 → 문서 → 검색** 순서로
-진행하며 **이전·다음·건너뛰기**를 사용할 수 있습니다. 입력한 경로는 **다음**을
-누르면 저장하고, 오류가 있으면 입력값을 유지한 채 해당 단계에서 알려줍니다.
-**건너뛰기**는 입력 중인 경로를 등록하지 않습니다.
-하단의 네 점이 현재 단계를 표시하며, 이전·다음 버튼은 같은 위치에 유지됩니다.
-Mac에서 동작 줄이기를 사용하면 단계 전환 애니메이션을 생략합니다.
+## First-Use Checks And Recovery
 
-1. **세션 소스 → 프로필 추가**에서 **Tool**, **Profile name**, **Home**을 지정합니다. 필수 항목은 붉은 **필수**로 표시합니다.
-   Codex는 홈 아래 `sessions`, Claude Code는 `projects`에서 기록을 가져옵니다.
-   기록을 다른 곳에 보관했다면 **Custom session folder → Session folder**에서 폴더를 선택합니다.
-   **찾아보기**는 앱과 macOS 로컬 브라우저에서 파일·폴더 선택창을 엽니다.
-   선택한 경로는 입력란에만 반영되며, 취소하면 기존 입력값을 유지합니다.
-   기존 별도 경로는 유지되며 **기본 폴더 사용**을 눌러 홈 기준으로 바꿀 수 있습니다.
-   기존 프로필의 실제 기록 위치를 바꿀 때는 같은 프로필인지 확인해야 합니다.
-   이 Mac에서 찾은 프로필을 선택하면 입력란만 채워집니다. 직접 추가해야 수집 대상이 됩니다.
-   각 프로필 행의 **편집**에서 이름·경로를 바꾸고, **등록 해제**는 확인 창을 거쳐 실행합니다.
-   취소하거나 Escape를 누르면 해제하지 않습니다. 가져온 기록과 원본은 보존합니다.
-   추가·편집 중 **세션 소스**를 다시 누르면 입력을 취소하고 목록으로 돌아갑니다.
-2. **Local Context**에 필요한 문서 폴더·파일을 등록합니다. Apple Notes는 선택이며
-   macOS 자동화 권한 요청을 허용한 경우에만 해당 자료를 읽을 수 있습니다.
-3. 모델 없이 키워드 검색을 사용할 수 있습니다. AI 검색은 설정 → 검색 모델에서
-   공개 Qwen3-Embedding-0.6B 가중치를 명시적으로 다운로드한 뒤 준비합니다.
-4. 마지막 단계의 **시작하기** 또는 상단 **나중에 설정**으로 안내를 마칩니다.
-   하단 톱니바퀴 또는 **⌘,**로 설정을 다시 열 수 있습니다. 완료하지 않고 앱을
-   종료하면 다음 실행에 시작 안내가 다시 나오며, 이미 등록한 소스는 유지됩니다.
+The setup window opens above the main screen. It follows **Welcome → Sessions →
+Documents → Search**, with Back, Next and Skip. **Next** saves pending source input;
+validation or save errors keep the input and current step. **Back** preserves a
+draft; **Skip** leaves it unregistered. Finish setup with the final **Start** or
+**Skip** action, or choose **Set up later**. Quitting before completion opens
+setup again next time and keeps sources already saved.
 
-프로필 추가·편집 중 다른 설정 탭으로 이동하면 미저장 입력은 닫히고, 다시
-들어올 때 프로필 목록을 표시합니다. 최초 설정 마법사의 이전 버튼은 입력을 보존합니다.
+For a first-use check:
 
-설정은 최대 720×560px의 작은 창으로 열립니다. 제목과 닫기 버튼은 고정되고,
-항목이 많은 탭은 본문을 스크롤해 확인할 수 있습니다.
+- Add a Codex or Claude Code profile through **Session Sources → Add profile**
+  (`세션 소스 → 프로필 추가`). Codex reads `sessions` under its agent Home; Claude
+  Code reads `projects`. Use **Custom session folder → Session folder** when
+  transcripts live elsewhere. Choosing a folder or a detected profile only fills
+  the editor; Add, Save or setup Next registers it. Reconnecting an existing
+  profile at a different record location requires same-profile confirmation.
+- Register any document folders or files you need under **Local Context**. Apple
+  Notes is optional and needs macOS Automation permission. Folder collection is
+  limited to supported Markdown; individual text/Markdown files are supported,
+  and PDF bodies require Spotlight text. There is no OCR or separate PDF engine.
+  A missing permission or unsupported file does not block other sources.
+- Use the Sessions **Sync** (`동기화`) action to collect immediately. Open a
+  conversation or document and try a remembered phrase in keyword search. Model
+  download/preparation is optional and explicit; it is not required to finish
+  setup or read Docs.
+- Reopen settings with the gear or **⌘,**. Detailed editor, scheduling and source
+  removal behavior belongs to the in-app Settings guide. Unregistering a Session profile requires
+  confirmation and preserves imported records and original material.
 
-폴더 등록은 기존 Markdown 폴더 수집 범위를 사용합니다. 개별 텍스트·Markdown
-파일을 등록할 수 있고, PDF 본문은 macOS Spotlight가 제공하는 텍스트가 있을 때만
-가져옵니다. OCR이나 별도 PDF 엔진은 포함하지 않습니다. 읽기 권한이 없거나
-지원되지 않는 파일은 상태를 표시하며 다른 소스는 계속 사용할 수 있습니다.
+Settings **About** (`앱 정보`) shows the LocalBrain name and running application
+version; the initial test release is **v0.0.1**. App version is separate from the
+settings/data-format versions. Confirm the received artifact against
+`BUILD-INFO.md` rather than treating a data-format number as the app release.
 
-모델 다운로드는 HTTPS 인증서 검증을 유지하며 이 Mac에서 신뢰한 인증서 저장소를
-사용합니다. 회사 네트워크에서 연결이 거부되면 Mac의 인증서·네트워크 구성을
-확인하고 재시도합니다. 앱이 회사 인증서를 복사하거나 보안 검증을 끄지 않습니다.
+### Older Startup Failure
 
-## 앱 정보
+If an early test artifact showed an authentication JSON error or garbled Korean,
+replace it with an artifact containing the **2026-10-19 startup repair**. That
+repair does not require deleting user data or model files.
 
-설정의 **앱 정보**에서 LocalBrain 이름과 버전(**v0.0.1**)을 확인합니다.
-앱 버전 표시는 설정·데이터 파일의 형식 버전과 별개입니다.
+### Model Download Connection
 
-## 시작 화면과 시간대
+Model download keeps HTTPS certificate verification enabled and uses the trust
+store trusted by this Mac. If a managed network rejects the connection, check the
+Mac's certificate/network configuration and retry. LocalBrain neither copies a
+company certificate nor disables security verification.
 
-- **설정 → 일반**의 시작 화면 드롭다운에서 세 가지 중 하나를 선택합니다. 저장한 선택은
-  다음 앱 실행부터 적용됩니다.
-- 시간대 드롭다운에서 **UTC** 또는 **Asia/Seoul**(한국 표준시)을 고릅니다.
-  시작 화면과 시간대는 폭 240px, 높이 32px의 작은 드롭다운을 사용합니다.
-  시작 화면은 메뉴와 같은 Sessions Dashboard → Sessions → Local Context 순서이며,
-  기본 선택은 Sessions입니다. 좁은 창에서는 터치하기 쉽도록 높이를 늘립니다.
-  목록은 선택 칸 바로 아래에 같은 너비로 열리고, 선택하면 닫힙니다.
-- 일반 옵션은 선택하면 바로 로컬 파일에 저장됩니다. 별도 저장 버튼은 없습니다.
-  시간대를 바꾼 뒤 화면을 다시 열면 세션·대화·차트의 시간 표시와 대시보드의
-  날짜 범위·날짜별 집계 기준이 바뀝니다. 예를 들어 서울 기준 19일 00:30인 활동은
-  UTC 기준으로 18일 15:30이므로 해당 날짜의 통계로 집계됩니다.
-- 원본 시각·기록, Mac 시간 설정과 저장한 동기화 간격은 바뀌지 않습니다.
+## Quit, Update And Local Data
 
-일반 설정은 이 Mac의 설정 파일에 저장되며 앱과 브라우저가 같은 값을 사용합니다.
-파일에 없는 항목만 기본값으로 동작합니다.
+Closing the red window button hides the app; its Dock icon reopens the existing
+window. Use **⌘Q** to quit completely and stop its backend, downloads and
+synchronization. The app does not start automatically at login. In development
+browser use, closing a tab leaves collection running while the server is alive;
+**Ctrl+C** stops the server and its schedules.
 
-## 경로 표시
+Fully quit LocalBrain before replacing the `.app`, then reopen it. Deleting or
+replacing the application does not automatically remove data or settings. This
+version does not provide live storage-location changes, transfer to another Mac
+or automatic updates. Existing Session-source configuration, imported records,
+pins and historical Usage attribution are preserved.
 
-현재 사용자 홈은 항상 `~`로 줄여 표시합니다. 예를 들어 `~/Projects/app`,
-`~/Project1`, `~/Project2`처럼 폴더를 어디에 두든 같은 규칙을 사용합니다.
-홈 자체는 `~`, 외장 볼륨이나 홈 밖의 경로는 전체 경로로 표시합니다.
-별도의 경로 표시 선택이나 프로젝트 기준 위치 등록은 필요하지 않습니다.
-실제 경로·프로젝트 귀속은 유지하며, 세션·문서를 읽을 소스 위치는 직접 등록합니다.
+Default data/settings are in `~/Library/Application Support/LocalBrain`;
+rebuildable private caches are in `~/Library/Caches/LocalBrain`. Public model
+weights use the local shared Hugging Face cache. LocalBrain does not transmit
+user documents or search queries externally. **Settings → Storage** shows the actual locations
+and sizes. Keep private backups separate from the program-sharing ZIP.
 
-Sessions Dashboard의 By Project / Project는 일반 작업 세션과 하위 세션만 집계합니다.
-Git 루트 또는 실행 폴더(`~` 포함)로 묶고, 귀속 정보가 없는 일반 작업은 `프로젝트 미지정`으로 표시합니다.
-분석·Maintenance 사용량은 Project의 합계·비율에서 제외하고 전체 사용량·추이·Source/Model에는 포함합니다.
-저장된 프로젝트 귀속과 사용량 기록은 그대로 보존합니다.
+### Same-Installation, Same-Mac Recovery
 
-## 동기화와 종료
+A backup includes a database snapshot, general settings, source settings, search
+settings and LocalBrain's model-registration metadata. It excludes original
+Session/document files, public model weights, caches, logs and external
+authentication information. A backup ZIP contains private application data and
+belongs in a private local location, separate from installation files.
 
-- **설정 → 동기화**는 검색 모델 아래, 저장공간 위에 있습니다. 세션과 Local Context의
-  드롭다운에서 **10·20·30·60분·끄기**를 각각 선택합니다. 폭은 글자와 화살표에 맞추며 선택은
-  바로 저장됩니다. **끄기**는 해당 주기 수집을 끄고 기존 간격과 가져온 자료는
-  보존합니다. 분을 고르면 그 주기로 켭니다. 일반에는 시작 화면·시간대만 있고
-  저장공간은 별도 탭입니다.
-- 기본값은 세션 **완료 후 10분**, Local Context **완료 후 30분**이며 기존 세션 설정은
-  유지합니다. 등록한 세션 소스와 연결한 문서 폴더·파일·Apple Notes만 읽습니다.
-  원본 변경, Git 갱신, 외부 서비스나 에이전트 실행은 예약하지 않습니다.
-- AI 검색이 켜져 있으면 가져온 자료의 변경에 따라 검색 인덱스를 갱신합니다.
-  인덱스 갱신의 독립 제어는 추후 작업이며 모델을 자동 다운로드하지 않습니다.
-- 기존 Sessions의 빨간 **동기화** 버튼으로 바로 요청할 수도 있습니다.
-- 브라우저와 앱은 같은 설정과 수집기를 사용합니다. 같은 저장소의 수동·자동 요청은
-  동시에 수집하지 않습니다. 실패하면 기존 기록과 최근 성공 시각을 유지합니다.
-- 설정의 동기화 탭에는 두 수집기의 사용 여부와 주기만 표시합니다. 상태·시각 카드와 별도
-  `지금 동기화` 버튼은 두지 않습니다. 최근 상태는 로컬에 계속 보존하며,
-  세션·문서 소스별 접근 오류는 각 소스 상태에서 확인할 수 있습니다.
-  공통 화면에도 자동 동기화 상태 표시줄이나 갱신 링크를 띄우지 않습니다.
-- 새 기록을 가져와도 읽던 화면을 강제로 새로고침하지 않습니다. 화면을 다시 열거나
-  새로고침하면 최신 기록이 표시됩니다.
-- 앱의 빨간 닫기 버튼은 창만 숨깁니다. Dock 아이콘으로 기존 창을 다시 엽니다.
-  완전히 종료하려면 **⌘Q**를 사용합니다. 백엔드와 다운로드·동기화도 정리합니다.
-- 개발용 브라우저에서는 탭을 닫아도 서버가 켜져 있으면 수집이 계속됩니다.
-  서버를 `Ctrl+C`로 종료하면 예약도 중지됩니다. 로그인 자동 실행은 하지 않습니다.
+Restore only a backup made by the **same LocalBrain installation on the same
+computer**, with a database schema matching the installed app. Restore a
+different-schema backup using the application version that created it. In
+**Settings → Storage**, select the backup and explicitly confirm replacement of
+saved data/settings, then schedule the restore. Quit every running LocalBrain
+app **and any separate web server**, and restart. Replacement takes effect at
+startup. A pre-restore copy remains in the data directory's `recovery` folder;
+failure rolls back to that copy. Restore does not recover excluded originals or
+download model weights. Follow **Docs → Settings → Storage** for the full
+procedure and owned cache cleanup.
 
-## 로컬 데이터와 교체
+## Recipient Validation
 
-기본 데이터·설정은 `~/Library/Application Support/LocalBrain`, 재생성할 수 있는
-개인 캐시는 `~/Library/Caches/LocalBrain`에 있습니다. 공개 모델은 Hugging Face의
-로컬 공유 캐시에 두며 사용자 문서나 검색어를 전송하지 않습니다.
-설정 → 저장공간에서 실제 적용 경로와 용량을 확인할 수 있습니다.
+Keep developer-Mac checks separate from a recipient actually downloading and
+executing the **same ZIP** from the selected internal Drive delivery channel.
+Record:
 
-새 버전은 앱을 완전히 종료하고 `.app`만 교체합니다. 앱 삭제·교체로 데이터와
-설정이 자동 삭제되지 않습니다. 실행 중 저장 위치 변경, 다른 Mac으로의 데이터 이전,
-자동 업데이트는 이번 버전에 포함하지 않습니다. 기존 세션 설정 파일과 가져온 기록,
-핀, Usage 귀속은 보존합니다.
+- Mac model/OS and the ZIP checksum;
+- extraction and first launch;
+- source registration and search;
+- window close versus complete quit;
+- manual app replacement and retained data/settings afterward.
 
-백업은 DB·일반 설정·소스 설정·검색 설정과 앱의 모델 등록 메타데이터를 포함합니다.
-원본 세션·문서, 공개 모델 가중치, 캐시, 로그, 외부 인증 정보는 포함하지 않습니다.
-백업 ZIP에는 개인 자료가 있으므로 프로그램 공유용 ZIP과 구분해 개인 로컬 위치에
-보관합니다. 현재 LocalBrain 설치에서 만들고 DB 스키마가 현재 앱과 같은 백업을 같은 Mac에 복원할 수 있습니다. 다른 스키마의 백업은 원래 앱 버전에서 복원합니다.
-복원 예약 후 앱과 별도의 웹 서버를 모두 종료하고 다시 실행합니다. 복원 전 사본은
-데이터 폴더의 `recovery`에 보존하며 실패 시 그 사본으로 복구합니다.
+There is no need to transfer original content or a private database for this
+receipt. A local build or source/package test does not establish a teammate's
+execution or compatibility across all supported OS/memory configurations.
 
-## 제공 범위와 확인 한계
+## Maintainer Build Reference
 
-앱에는 Sessions 목록·차트·핀·상세·하위 세션, Sessions Dashboard, Local Context,
-검색, 설정과 시작 안내가 있습니다. 개발 중인 최상위 Dashboard/학습, Workstreams,
-자동 작업, Atlassian, Insights, 세션 작업 흐름, Schema는 앱에서 제공하지 않습니다.
-개발용 웹의 다른 기능은 유지합니다.
-
-빌드 대상은 arm64, 선언된 최소 macOS는 14입니다. 실제 확인한 OS·앱/ZIP 크기·검증
-결과는 배포물의 `BUILD-INFO.md`를 확인합니다. 선언된 최소 OS는 모든 버전의 실행
-검증을 의미하지 않습니다. AI 모델 가중치는 약 1.21GB이며 검색 인덱스와 작업 중
-임시 공간은 자료 규모에 따라 추가됩니다. 모델 초기화와 검색에는 추가 메모리가
-필요합니다. Apple Silicon의 모든 메모리 구성이나 대규모 자료 성능을 보증하지 않습니다.
-
-개발자 Mac에서 통과한 결과와 팀원이 Drive에서 받은 동일 ZIP을 실제 실행한 결과는
-구분합니다. 팀원 확인 시 Mac/OS, ZIP 체크섬, 압축 해제·최초 실행·소스 등록·검색,
-창 닫기/종료·앱 교체 후 데이터 유지 결과를 남깁니다. 원문이나 개인 DB를 전달할
-필요는 없습니다.
-
-## 개발자가 다시 빌드하기
-
-필수 도구, 빌드 명령과 산출물은 [GitHub 개발자 가이드](https://github.com/chochita0311/local-brain/blob/master/docs/policies/project/developer-guide.md#build-the-macos-app)에 있습니다.
-빌드 후 최초 실행·앱 교체·다른 Mac 검증은 이 문서의 조건에 따라 별도로 확인합니다.
+Required tools, build commands and outputs belong to the
+[GitHub Developer Guide](https://github.com/chochita0311/local-brain/blob/master/docs/policies/project/developer-guide.md#build-the-macos-app).
+After building, check first launch, manual replacement and another Mac separately
+under this guide's conditions. Program upload and teammate notification remain
+separate delivery actions.

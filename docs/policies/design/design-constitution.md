@@ -420,7 +420,15 @@ Semantic status families are fixed:
 | warning | `--surface-warning` | `--text-warning` | `--border-warning` |
 | danger | `--surface-danger` | `--text-danger` | `--border-danger` |
 
-Semantic provenance families are separate from status:
+Provenance separates provider identity from profile color. Session profile
+identity is the existing numeric source ID; several configured Sources may share
+one provider adapter. Provider letters are `CL` for Claude and `CX` for Codex.
+The saved palette choice controls record-cue color through
+`--surface-profile-{color}` and `--text-profile-{color}`, independently of provider
+or a personal/company name. These rules apply across Session inventory, Pinned
+cards, detail headings, Subsession/child projections, Charts and Sessions Dashboard.
+
+Provider-only provenance roles apply to consumers without `data-profile-color`:
 
 | Source | Surface | Text and icon | Border | Fallback |
 |---|---|---|---|---|
@@ -428,19 +436,24 @@ Semantic provenance families are separate from status:
 | Codex | `--surface-source-codex` | `--text-source-codex` | `--border-source-codex` | `CX` plus accessible configured label |
 | Other or unknown | `--surface-muted` | `--text-secondary` | `--border-subtle` | readable source-kind label |
 
-Provenance color identifies origin only. It never communicates health, success, failure, selection, confidence, or action priority. When source identity and a product state appear together, each keeps its own label and structural role.
+Profile-aware Session record cues carry `data-profile-color`. A saved palette
+choice takes precedence; the default palette is Claude orange, Codex green, and
+unknown or missing profile gray. Their background and text use the profile roles
+above, and their border uses the same profile ink. These record-cue rules do not
+replace the provider-only roles for consumers without that attribute.
 
-Several configured Sources may share one provider adapter without sharing one
-compact provenance treatment. Every Session source icon across inventory,
-Pinned cards, detail headings, and Subsession projections uses `CL` for Claude,
-`CX` with Codex provenance tokens for personal Codex, or `CC` with the blue
-Codex Company provenance tokens. Configured source names remain in accessible
-text, so color or initials never carry account identity alone. Ordinary cards,
-Pinned cards, detail headings, and detail Subsession rows omit that name visually;
-source controls and composition continue to expose configured
-readable labels where comparison requires them. Detail Subsession rows preserve
-the inventory-family scan order of question count, event count, then activity
-date after the title and source-native identifier.
+Provenance color identifies origin only. It never communicates health, success,
+failure, selection, confidence, or action priority. When source identity and a
+product state appear together, each keeps its own label and structural role.
+
+Configured source names remain in accessible text, so color or initials never
+carry account identity alone. Ordinary cards, Pinned cards, detail headings and
+detail Subsession rows omit that name visually; source controls and composition
+continue to expose configured readable labels where comparison requires them.
+Detail Subsession rows preserve the inventory-family scan order of question
+count, event count, then activity date after the title and source-native identifier.
+The [profile cue controls](#user-managed-session-profile-cues) define palette
+geometry, interaction and source-filter presentation.
 
 ## 7. Layout Rules
 
@@ -665,9 +678,8 @@ Running and working indicators may animate with motion tokens. Under `prefers-re
 
 ### User-managed Session profile cues
 
-Profile identity is the existing numeric source ID. Provider controls CX/CL on
-record cues; user-selected palette color controls those cues across Sessions, pins,
-child/detail views, charts and Sessions Dashboard. Settings use a compact diagonal
+Session record cues follow the [provider/profile semantics](#6-semantic-tokens)
+above. Settings use a compact diagonal
 tag trigger and a vertical menu of horizontal tags with the point and hole on the
 left. Match the menu frame to the trigger background's left and right edges, and
 match the horizontal/diagonal painted glyph widths and both edges. Choices retain
@@ -949,9 +961,11 @@ preserve List/detail access and reduced motion retains controls and selection.
 - The Search family uses one shared-header query with the existing global
   placeholder and no visible mode labels. A visually hidden label preserves
   accessibility. Enter and the adjacent Search action submit the same query to
-  natural-language search. The input and action remain reachable at narrow
-  widths. Existing Atlassian header scope is preserved.
-- Natural-search results represent original Sessions or Local Context documents,
+  the shared `/natural-search` route. Keyword search is the default; AI search
+  is an explicit mode under the [search contract](../project/natural-language-search.md#product-surface).
+  The header adds no mode controls. The input and action remain reachable at
+  narrow widths. Existing Atlassian header scope is preserved.
+- AI-search results represent original Sessions or Local Context documents,
   with source cues and up to three linked evidence excerpts. Preparation, coverage
   and recovery stay next to the search form. Status updates preserve query,
   focus and results. Evidence readers show original-text provenance and a query

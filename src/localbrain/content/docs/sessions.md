@@ -11,7 +11,7 @@ The conversation view shows messages. Original event counts also include tool ac
 
 The Session ID display is shortened for reading; use its copy control when you need the full native identifier.
 
-Path labels use `~` for the home directory and `~/…` for folders within it; paths elsewhere are shown in full. Saved locations and historical Project attribution remain unchanged.
+Path labels use `~` for the home directory and `~/…` for folders within it; paths elsewhere are shown in full. Saved locations and historical Project attribution remain unchanged. For example, `~/Projects/app`, `~/Project1`, and `~/Project2` all follow the same home-directory rule.
 
 ## Keep a Session handy
 

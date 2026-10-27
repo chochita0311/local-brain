@@ -22,7 +22,7 @@ Requires an Apple Silicon Mac with macOS 14 or later.
 1. Unzip `LocalBrain-apple-silicon.zip`.
 2. Open `LocalBrain.app`. You can move it to Applications if you prefer.
 
-See the [installation and first-launch guide](docs/policies/project/standalone-test-app-guide.md#받아서-실행하기)
+See the [installation and first-launch guide](docs/policies/project/standalone-test-app-guide.md#receive-and-open)
 for macOS security prompts and installation requirements.
 
 ## Get started

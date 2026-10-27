@@ -399,3 +399,23 @@ Qwen만으로 목표를 충족하면 Laya를 기본 경로에 넣을 이유가 �
 - `2026-10-12`: 사용자가 data/cache/공개 모델 자산의 저장 위치 분리안을 채택했다. 새 검색 색인을 `<cache>/natural-search/`에 두는 방향을 제안에서 확정 범위로 옮기고 캐시 손실 후 재생성·검색 준비 상태와 기존 주요 DB 보존을 명시했다. 후속 Feature 계획을 위한 PRD 검토 준비 상태를 정리했으며, 저장 분리안 채택을 전체 PRD·Feature·모델 실행·평가 승인으로 확대하지 않았다.
 - `2026-10-12`: 사용자는 분해 단위·저장량·로컬 저장 위치와 Laya의 속도상 이점을 추가 검토하도록 요청하고 정본 source 중심의 maintenance/subsession/분석 Run 제외를 재확인했다. 본문 512토큰 중심의 비교 가설, 기존 data/cache 소유권에 맞춘 새 색인 위치, 전체 디스크·메모리 비용, Qwen 단독과 Laya 결합의 속도·품질 비교를 보강했다. 읽기 전용 집계·산술 추정은 수행했으며 개인 inventory와 세부 수치는 공개 문서에 복사하지 않았다. 모델 실행·검색 평가·구현 승인 상태는 변하지 않았다.
 - `2026-10-12`: 한국어 자연어 검색 연구를 새 PRD draft로 정리했다. 문서 분자화는 내부 검색 구조이며 별도 문서 분류 UI가 아니다. 사용자는 전체 세션·Local Context 검색, 현재 Apple Silicon 한 대에서의 검증, 기존 검색 왼쪽의 나란한 입력, 내부 threshold와 `0.7` 적정성 확인을 명시했다. 명확한 질의 조건은 필터로 적용하고 모호하면 후보를 유지하며, 최초 활성화 후 Sync 변경분을 로컬에서 자동 갱신하는 방향도 선택했다. 후속 질문에 따라 검색 색인과 임베딩의 차이, 분자별 입력·벡터·질의 처리, 변경 의존성에 따른 재사용을 구체화했다. 설정 UI·Windows 설치형·기존 검색 제거는 이번 실행 범위가 아니다. 구조·공개/개인 자원·반복 비교·남은 결정을 기록했으며 PRD 승인을 받거나 구현·평가를 시작한 상태가 아니다.
+
+## Historical Implementation And Evaluation Summary
+
+This summary preserves the search increment's implementation chronology and
+measured evidence. The preceding approval and planning records retain their
+recorded status. Current source eligibility, keyword/AI modes, ranking and
+operational rules are defined in the
+[search contract](../../policies/project/natural-language-search.md); historical
+ranking baselines below do not select the current default.
+
+| Record | Historical scope and evidence |
+| --- | --- |
+| Planning and approval | [PRD-0020](prd-0020-local-natural-language-search.md) records the search increment; sequential implementation and local tests were approved on 2026-10-12. The approved [standalone settings increment](prd-0021-macos-standalone-test-app-and-local-settings.md) added the common explicit keyword/AI entry. The [baseline decision](prd-0020-local-natural-language-search.md#decisions-and-remaining-review) records the local-use and optional-tuning boundary. |
+| Contract foundations | FEAT-0115–0118 were reviewed before their downstream implementations. |
+| Runtime and UI | [FEAT-0119](../feature/feat-0119-local-natural-search-engine.md) implemented the engine. [FEAT-0120](../feature/feat-0120-parallel-natural-search.md) used the `fullstack-product` profile and `screen-alignment` extend mode. |
+| Initial comparison | [FEAT-0121](../feature/feat-0121-natural-search-local-comparison.md) and its [local comparison](../evaluation/eval-0121-functional-natural-search-local-comparison.md) record the initial RRF baseline, model/profile selection and resource evidence. |
+| Ranking precision | [FEAT-0122](../feature/feat-0122-natural-search-ranking-precision.md) established original-query cosine ordering without changing the model, cutoff or index. Its evaluation is historical evidence. |
+| General work search | [FEAT-0123](../feature/feat-0123-general-work-search.md) added the conservative second query view and page-bounded excerpts. Its multi-domain comparison superseded the original-query-only default without changing the document index. The [general-work evaluation](../evaluation/eval-0123-functional-general-work-search.md) records the current ranking observations and mixed quality results. |
+| Environment verification | Historical runtime measurements remain attached to their original environments. The [RUN-160 closeout](../run/run-20261013-160-general-work-search.md#session-closeout--2026-10-13) records subsequent environment and documentation verification. |
+| Dependency rationale | Dependency depth beyond two was intentional: independent source/query/storage/evaluation contracts → working engine → UI and measured comparisons. Each prerequisite was stable and checked before its consumer executed. |

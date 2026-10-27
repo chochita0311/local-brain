@@ -15,7 +15,7 @@
 
 ## Implementation Goal And Acceptance Mapping
 
-Fix the molecules contract in [Natural Language Search](../../policies/project/natural-language-search.md). Its FEAT-0115 section maps each feature guarantee to explicit actors, inputs, boundaries, failure states and downstream responsibilities. Other sections remain separately owned foundations.
+Fix the molecules contract in [Natural Language Search](../../policies/project/natural-language-search.md#searchable-material-and-indexed-fragments). Its **Searchable Material And Indexed Fragments** section maps each feature guarantee to explicit actors, inputs, boundaries, failure states and downstream responsibilities. Other sections remain separately owned foundations.
 
 ## Contract Surfaces
 

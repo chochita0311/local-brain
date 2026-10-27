@@ -6,6 +6,8 @@ This subject owns durable local Run history. Maintenance and personal-insight Ru
 
 [Value Dictionary](value-dictionaries/maintenance-execution.md) owns this subject's bounded physical/logical/presentation mappings.
 
+The [external synchronization contract](../../operations/claude-task-runner.md#external-synchronization) defines read authorization and atomic result application.
+
 ## Focused ERD
 
 ```mermaid
@@ -94,8 +96,8 @@ Constraints: fresh and upgraded databases include the optional Workstream foreig
 
 - Purpose and authority: source-neutral, bounded query projection for Runs whose common parent has `task_type = external_source_sync`. It supports aggregate Source Instance, source/service, scope, target-count, manifest-version, and policy-version lookup without parsing a detailed private manifest.
 - Lifecycle: operational history owned one-to-one by a common maintenance Run. The row is not an authoring surface; preparation derives it from the same validated manifest that creates its parent.
-- Producers: `external_sync.prepare_external_sync_run` validates the complete manifest and every FEAT-0044 logical read, writes private artifacts, and inserts the parent plus extension under one savepoint. No ordinary maintenance producer creates this row.
-- Consumers: external-sync execution validates this projection against the retained manifest before every Run; refresh/history consumers may query its bounded fields. FEAT-0046 consumes the validated result, not this query projection, for source Item application.
+- Producers: `external_sync.prepare_external_sync_run` validates the complete manifest and every logical read under the external synchronization authorization contract, writes private artifacts, and inserts the parent plus extension under one savepoint. No ordinary maintenance producer creates this row.
+- Consumers: external-sync execution validates this projection against the retained manifest before every Run; refresh/history consumers may query its bounded fields. Atlassian refresh applies the validated result, not this query projection, to source Item state and content.
 - Relations and deletion: `maintenance_run_id` is both primary key and physical FK to `maintenance_runs.id` with `ON DELETE CASCADE`, enforcing zero-or-one extension per Run. `source_instance_id` is a nullable FK to `external_source_instances.id` with `ON DELETE SET NULL`; removing a registration retains historical source kind, service, scope, count, and policy evidence.
 - Recovery: restore with the parent ledger and private Run manifest. The row alone cannot recreate selected locators, field allowlists, freshness hints, provider evidence, or results. A missing or mismatched row fails closed before external execution.
 - DDL ownership: fresh definition and two query indexes in `schema.sql`; idempotent schema application plus `db.py` index convergence create the same table and indexes on compatible databases without rewriting existing Run rows.
@@ -109,7 +111,7 @@ Constraints: fresh and upgraded databases include the optional Workstream foreig
 | `requested_scope_kind` | `TEXT NOT NULL` constrained to `item`, `space`, `thread`, `workstream`, or `all_known`. |
 | `selected_target_count` | non-negative `INTEGER`; number of selected manifest targets, derived at preparation. |
 | `manifest_schema_version` | `TEXT NOT NULL`; exact version used to validate detailed private input. |
-| `read_policy_version` | `TEXT NOT NULL`; FEAT-0044 policy identity used to authorize every request. |
+| `read_policy_version` | `TEXT NOT NULL`; versioned external-read policy identity used to authorize every request. |
 | `created_at` | `TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; projection creation time. |
 
 Constraints: the database enforces one-to-one parent ownership, both physical relations, non-negative selected count, and the scope vocabulary. The producer additionally enforces that only `external_source_sync` parents receive this row and that every projected value equals the validated manifest. Explicit indexes: `idx_external_sync_runs_source_instance`, `idx_external_sync_runs_scope`.

@@ -15,7 +15,7 @@
 
 ## Implementation Goal And Acceptance Mapping
 
-Fix the query and results contract in [Natural Language Search](../../policies/project/natural-language-search.md). Its FEAT-0116 section maps each feature guarantee to explicit actors, inputs, boundaries, failure states and downstream responsibilities. Other sections remain separately owned foundations.
+Fix the query and results contract in [Natural Language Search](../../policies/project/natural-language-search.md#query-and-results). Its **Query And Results** section maps each feature guarantee to explicit actors, inputs, boundaries, failure states and downstream responsibilities. Other sections remain separately owned foundations.
 
 ## Contract Surfaces
 

@@ -43,10 +43,10 @@ are implemented and actual teammate execution remains pending. The later public-
 The owner also selected periodic Session synchronization every 10 minutes in
 both local browser use and the packaged app, with the existing manual action.
 The common backend owns scheduling while running, independently of browser
-tabs, and local settings persist across restarts. The PRD's
-[sync boundary](../prd/prd-0021-macos-standalone-test-app-and-local-settings.md#periodic-session-synchronization)
-owns the implemented lifecycle, settings and view-preservation details; it is local
-Session collection and does not restore the excluded Auto Work product.
+tabs, and local settings persist across restarts. The [current synchronization contract](../../policies/project/desktop-app-and-settings.md#synchronization-presentation)
+owns the implemented lifecycle, settings and view-preservation details. The PRD
+retains the [approved sync scope](../prd/prd-0021-macos-standalone-test-app-and-local-settings.md#periodic-session-synchronization);
+this is local Session collection and does not restore the excluded Auto Work product.
 
 The separately approved [Observed Session Chart](../prd/prd-0019-observed-session-chart.md)
 increment is tracked by [FEAT-0114](../feature/feat-0114-observed-session-chart.md).

@@ -34,10 +34,10 @@ The owner subsequently selected periodic local Session synchronization with a
 existing manual action retained. The shared backend owns scheduling while
 running; local settings persist across restarts. Closing a browser tab leaves
 sync running if the server remains active; stopping the backend stops sync.
-The PRD's [sync boundary](../prd/prd-0021-macos-standalone-test-app-and-local-settings.md#periodic-session-synchronization)
+The [current synchronization contract](../../policies/project/desktop-app-and-settings.md#synchronization-presentation)
 owns completion-based scheduling, shared execution ownership and refresh
-that preserves the current view; C13 brings the estimate to 13 candidates and
-21 commits. This does not restore the excluded Auto Work product.
+that preserves the current view. The PRD retains the [approved sync scope](../prd/prd-0021-macos-standalone-test-app-and-local-settings.md#periodic-session-synchronization);
+C13 brings the estimate to 13 candidates and 21 commits. This does not restore the excluded Auto Work product.
 The owner authorized the full bounded implementation and related tests/browser/app
 checks. The Tauri bundle, common settings and keyword/AI entry are implemented
 under FEAT-0128–0140. The stopped workflow-map track remains unchanged. Local app
