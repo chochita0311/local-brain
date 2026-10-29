@@ -7,7 +7,7 @@
 - Result: `PASS WITH SUGGESTIONS`
 - Evidence Coverage: `complete` for the bounded source/parser and existing-browser checks below
 - Run: [RUN-227](../run/run-20261029-227-codex-empty-page-control.md)
-- Attempts: `1` initial source evaluation; `2` actual web application; `3` compatibility audit; `4` closeout reviews and verification passed
+- Attempts: `1` initial source evaluation; `2` actual web application; `3` compatibility audit; `4` closeout reviews and verification passed; `5` older app stopped and web restoration verified
 - Feature: [FEAT-0015](../feature/feat-0015-session-subsession-source-contract.md)
 - Spec: [SPEC-0015 R2](../spec/spec-0015-r2-codex-empty-page-control.md)
 - Execution Profile: `fullstack-product`
@@ -193,3 +193,24 @@ and test scratch is removed after its processes and publication checks finish.
 Native build/replacement, WKWebView behavior and future producer forms remain
 unverified. The final execution receipt supplies the concrete commit and verified
 push result rather than implying distribution from source/test success.
+
+## Attempt 5: Mixed-Runtime Recurrence — Recovery PASS
+
+The reported recurrence is a persisted v11 projection while source code and
+editable imports remain v12. A running native build sharing the database embeds
+the old v11 parser. An isolated synthetic v12 → v11 → v12 scan sequence reproduces
+the title/count reversal and repair while preserving source bytes, Session ID
+and Usage. Archive inspection establishes the old build's capability; the exact
+historical overwrite process is not independently logged.
+
+The owner authorizes quitting that native app. Both app and backend exit while
+the web remains available. The selected actual detail is repaired and responds
+200 with the authored title, first user input and one question; its source and
+Usage/pin/link snapshots remain equal. The first full Sync fails while the web
+process is replaced; the retry completes across all registered sources with
+zero failed files. Final actual HTML/DB title and first input agree, the count
+is one, and tracked Codex files no longer retain a v11 projection. No production
+code changes or new claim of native-build delivery is involved, so the existing
+1,426-test source evidence is retained rather than represented as a new rerun.
+Keep the old build closed until it is updated; a compatibility gate preventing
+older runtimes from rewriting newer projections has not been added.

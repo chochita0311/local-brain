@@ -41,6 +41,17 @@ Open `http://127.0.0.1:8000`.
 
 For source reload during development, use
 `uv run --no-sync uvicorn localbrain.main:app --host 127.0.0.1 --reload --no-access-log`.
+
+Source reload does not update the frozen backend inside a previously built
+`LocalBrain.app`. App and web backends using the same data directory share the
+normalized database and synchronization health. Their writer lock serializes
+collection but does not reject an older parser contract: an older build can
+reparse unchanged sources and replace a newer projection. After a parser update,
+stop incompatible older backends or rebuild and restart the app before allowing
+both to collect into that store. Then run ordinary Session Sync with the updated
+backend. A corrected source checkout or one successful web Sync alone does not
+update the packaged app or prevent a later old-version reparse.
+
 Install optional local-model dependencies with
 `uv sync --python 3.11 --extra local-models --frozen`;
 `uv run --no-sync localbrain models install embedding` verifies public model

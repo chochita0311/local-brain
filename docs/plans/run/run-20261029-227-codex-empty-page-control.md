@@ -7,7 +7,7 @@
 - Feature: [FEAT-0015](../feature/feat-0015-session-subsession-source-contract.md)
 - Parent PRD: [PRD-0002](../prd/prd-0002-session-browsing-and-subsession-organization.md)
 - Active Spec: [SPEC-0015 R2](../spec/spec-0015-r2-codex-empty-page-control.md)
-- Attempt: `1` source-only complete; `2` live application complete; `3` compatibility audit complete; `4` closeout reviews and verification passed
+- Attempt: `1` source-only complete; `2` live application complete; `3` compatibility audit complete; `4` closeout reviews and verification passed; `5` older app stopped and web restoration verified
 - Execution Profile: `fullstack-product`
 - Surface Lanes: data normalization → existing Session presentation verification → docs
 - Required Evaluators: contract, functional, design, interaction
@@ -197,3 +197,41 @@ recognition and the separate CRLF variants remain deferred in the Sessions backl
   literal-title containment stay in the Sessions backlog; non-null page states
   need native evidence. The separate navigation report and installed-native-app
   delivery were not resolved by this correction.
+
+## Attempt 5: Recurrent Projection With An Older App
+
+- Status: runtime recovery `passed`; the older build must stay closed until it
+  is rebuilt/restarted with compatible parser code.
+- The owner reports the same visible control again after closeout. Read-only
+  inspection confirms the selected projection has returned to v11, with the
+  control title and two questions. Current source/editable imports remain v12;
+  direct web requests expose the stored old projection.
+- A running packaged native backend and development web backend open the same
+  database. Read-only extraction of the packaged parser's embedded code confirms
+  v11; the frozen app predates the source correction and lacks the new recognizer.
+  The exact process responsible for the historical overwrite was not logged.
+- An isolated synthetic round trip reproduces the mechanism: v12 produces the
+  authored title/one question, a sequential v11 writer restores the control/two
+  questions, and v12 repairs it again. Native bytes, Session identity and Usage
+  stay unchanged. This does not require concurrent writes; the existing local
+  writer lock is not a parser-version compatibility gate.
+- The earlier web/source/test evidence was valid for its observed runtime, but
+  closeout did not verify continued correctness with an older packaged app also
+  collecting into that store. Native delivery was excluded, so source/web
+  completion did not establish consistent parser versions for every writer
+  sharing the store.
+- The owner explicitly approves quitting the older native app while retaining
+  the web service. Normal app quit and backend exit are confirmed; no native
+  rebuild/replacement or broader parser change is performed.
+- The selected Session is repaired through ordinary web Sync: v12, authored
+  title/first input, one question and HTTP 200. Native source and existing
+  Usage/pin/link snapshots match before/after. One full Sync attempt fails while
+  the web process is replaced; the retry on the current web backend completes
+  across all registered sources with zero failed files. Selected HTML/DB title,
+  first authored input and count agree, and tracked Codex files no longer retain
+  a v11 projection. No developer-triggered web restart was needed.
+- Current mixed-version operating guidance belongs to the
+  [Developer Guide](../../policies/project/developer-guide.md#setup-and-run).
+  Keep the old build closed, or rebuild/restart it before resuming collection
+  alongside the updated web backend. Earlier standalone-literal/CRLF/non-null/
+  narrow-title limits remain separate.
