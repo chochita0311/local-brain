@@ -35,6 +35,10 @@ def runtime_missing():
     return [name for name in RUNTIME_MODULES if importlib.util.find_spec(name) is None]
 
 
+def generation_runtime_missing():
+    return [name for name in ('torch', 'transformers', 'huggingface_hub') if importlib.util.find_spec(name) is None]
+
+
 @contextmanager
 def embedding_installation(root):
     root = Path(root)
@@ -143,3 +147,17 @@ def model_status():
             "models": [{"key": key, "model_id": spec["id"], "purpose": spec["purpose"],
                         "state": "PRESENT_UNVERIFIED" if (model_root(key) / "model.json").is_file() else "NOT_INSTALLED"}
                        for key, spec in MODELS.items()]}
+
+
+def generation_models(config):
+    """Cheap local discovery; full integrity checks belong to the model worker."""
+    from .work_context_model import model_spec
+    result = []
+    for key in ('4b', '8b'):
+        spec = model_spec(MODELS[key]['id'])
+        snapshot = hub_repository(spec['id']) / 'snapshots' / spec['revision']
+        cached = all((snapshot / name).is_file() for name in spec['assets'])
+        registered = (model_root(key, config.data_dir) / 'model.json').is_file()
+        result.append(dict(key=key, name=spec['id'].split('/')[-1], registered=registered,
+                           cached=cached, available=registered or cached))
+    return result

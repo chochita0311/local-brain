@@ -10,6 +10,9 @@ Priority meaning:
 
 ## Current Focus
 
+- [ ] Obtain recipient/native-host interaction and two-account Google Drive evidence. Existing source/frozen tests do not certify actual My Drive/Shared Drive permissions or every recipient Mac.
+- [ ] Expand Context Search quality evidence beyond the bounded synthetic fixtures: missing/conflicting sources, broader contact/role questions, multi-folder coverage and device memory/latency. Saved conversation history, extra retrieval indexes and quantization remain separately scoped.
+
 - [ ] **Independent AI search indexing control (P2, deferred by owner 2026-10-24):**
   separate automatic index refresh from AI search availability; preserve complete
   index generations and reject deleted/changed evidence while paused. Define
@@ -18,12 +21,38 @@ Priority meaning:
   existing activated search refresh remains unchanged. Do not expose a nonfunctional
   settings control or download a model as part of this TODO.
 
-The current implementation is the approved standalone test app and common local
-settings under [PRD-0021](../prd/prd-0021-macos-standalone-test-app-and-local-settings.md).
+The standalone foundation [PRD-0021](../prd/prd-0021-macos-standalone-test-app-and-local-settings.md) now has separately approved [Drive synchronization](../prd/prd-0025-google-drive-connection-and-incremental-sync.md) and [Context Search](../prd/prd-0026-context-search-grounded-local-answers.md) increments. Run226 owns the current native/publication closeout.
 Local implementation and available browser/bundled-runtime verification are
 complete. Native direct interactions and the teammate download/run receipt remain
 open; [the integration report](../evaluation/eval-0139-functional-standalone-test-app.md)
-owns exact results, including the historical mixed-workspace inventory failures.
+owns its historical results and then-observed learning inventory failures; Run226 reconciles the current owner/checker baseline. The code/command learning development below
+continues separately and is excluded from the app edition.
+
+The prior implementation focus was the owner's approved code/command learning revision:
+[PRD-0023](../prd/prd-0023-code-and-command-learning.md) and the
+[screen/design plan](../design/code-and-command-learning-design-plan.md).
+
+The evidence/selection contract is documented under FEAT-0126. The manually
+reviewed reader, one-scene daily policy and concept depth are implemented under
+[FEAT-0127 / RUN-165](../run/run-20261017-165-code-command-reader.md), with two
+private scenes and six questions. Initial rendered screens provide partial evidence.
+
+The approved [learning pilot](../prd/prd-0022-work-grounded-learning-dashboard.md)
+is the reusable predecessor under [FEAT-0125](../feature/feat-0125-reviewed-learning-home.md).
+Its functional/benefit gaps remain and carry into the current increment:
+
+- [ ] Runtime/interaction coverage for import revisions, state transitions,
+  date boundaries, depth/help rules, local mutations, draft recovery and
+  narrow/keyboard/no-script reader behavior. [RUN-165](../run/run-20261017-165-code-command-reader.md)
+  retains the unverified acceptance gap from the 2026-10-17 execution; its
+  explicit user testing/verification-request condition remains in effect.
+- [ ] About two weeks of owner use: delayed independent explanation, changed-case
+  judgment, mistaken confidence and daily burden; not completion-count success.
+- [ ] Bounded source candidate discovery and duplicate reduction over approved
+  local context, with work provenance and no inferred mastery.
+- [ ] Version-aware official-source retrieval/rechecking with retained snapshots.
+- [ ] Public/synthetic local-generator admission before any private teaching flow;
+  current embedding retrieval does not establish generation or grading quality.
 
 The approved standalone Mac test app and local settings boundary is
 [PRD-0021](../prd/prd-0021-macos-standalone-test-app-and-local-settings.md).
@@ -39,7 +68,8 @@ Existing authorized communication and local storage remain; additional network
 controls and app encryption are excluded. The test-stage delivery decision uses a `.app`
 inside a ZIP for quick testing, with ad-hoc signing and app-specific first-launch
 guidance. Developer ID, notarization and DMG production are deferred; contracts
-are implemented and actual teammate execution remains pending. The later public-app goal requires normal macOS security without company prerequisites; paid signing/notarization and recipient acceptance remain release follow-up.
+are implemented and actual teammate execution remains pending. The later public-app goal requires normal macOS security without company prerequisites; paid signing/notarization and recipient acceptance remain release follow-up. These choices do not change the separate
+learning development's approval or evaluation state.
 The owner also selected periodic Session synchronization every 10 minutes in
 both local browser use and the packaged app, with the existing manual action.
 The common backend owns scheduling while running, independently of browser

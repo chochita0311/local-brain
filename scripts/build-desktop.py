@@ -16,7 +16,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 MARKER = '.localbrain-build-output'
 sys.path.insert(0, str(ROOT / 'desktop'))
-from build_support import check_bundle_paths
+from build_support import check_bundle_paths, rust_build_environment
 
 
 def run(command, **kwargs):
@@ -90,6 +90,7 @@ def main():
         shutil.copyfile(ROOT / 'src/localbrain/static/styles.css', generated_style)
         try:
             build_env = {key: value for key, value in os.environ.items() if key not in {'APPLE_ID', 'APPLE_PASSWORD', 'APPLE_TEAM_ID', 'APPLE_API_KEY', 'APPLE_API_ISSUER', 'APPLE_API_KEY_PATH'}}
+            build_env = rust_build_environment(build_env, (Path.home(), ROOT, work))
             run([str(cli), 'build', '--target', 'aarch64-apple-darwin', '--bundles', 'app'], cwd=ROOT / 'desktop', env=build_env)
             built = ROOT / 'desktop/src-tauri/target/aarch64-apple-darwin/release/bundle/macos/LocalBrain.app'
             run(['codesign', '--verify', '--deep', '--strict', str(built)])

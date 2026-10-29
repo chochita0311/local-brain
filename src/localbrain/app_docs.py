@@ -33,11 +33,11 @@ GUIDES = (
     Guide("sessions-dashboard", "Sessions Dashboard", "Read usage, estimated costs, and activity over time."),
     Guide("sessions", "Sessions", "Browse conversations, manage pins, and explore recorded activity."),
     Guide("local-contexts", "Local Contexts", "Browse registered document sources and read their contents."),
-    Guide("search", "Search", "Use keyword search or search by meaning with an AI model."),
+    Guide("search", "Search", "Find keywords, search by meaning, or ask your documents with a local model."),
 )
 GUIDES_BY_SLUG = {guide.slug: guide for guide in GUIDES}
 APP_DOC_ROUTES = frozenset(guide.href for guide in GUIDES) | {
-    "/settings", "/sessions-dashboard", "/sessions", "/projects", "/context", "/natural-search",
+    "/settings", "/sessions-dashboard", "/sessions", "/projects", "/context", "/context-search", "/natural-search",
 }
 
 

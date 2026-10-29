@@ -210,3 +210,16 @@
 @media (max-width: 700px) {
   .settings-context-row { grid-template-columns: var(--settings-control-height) minmax(0, 1fr); }
 }
+
+/* Google Drive extends the existing Settings controls and spacing tokens. */
+[data-settings-panel="google-drive"] [hidden] { display: none !important; }
+[data-settings-panel="google-drive"] [data-drive-message]:empty, [data-settings-panel="google-drive"] [data-drive-provider]:empty { display: none; }
+[data-settings-panel="google-drive"] .drive-option { display: flex; align-items: flex-start; gap: var(--space-control-gap); margin-block: var(--space-control-gap); min-width: 0; font-size: var(--type-body-small-size); }
+[data-settings-panel="google-drive"] .drive-option input { flex: none; margin-top: var(--space-compact); }
+[data-settings-panel="google-drive"] .drive-path { display: block; overflow-wrap: anywhere; color: var(--text-secondary); }
+[data-settings-panel="google-drive"] p, [data-settings-panel="google-drive"] li, [data-settings-panel="google-drive"] label { overflow-wrap: anywhere; }
+[data-settings-panel="google-drive"] .drive-schedule { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-card); margin-block: var(--space-control-gap); }
+[data-settings-panel="google-drive"] .drive-interval { display: flex; align-items: center; gap: var(--space-control-gap); font-size: var(--type-body-small-size); }
+[data-settings-panel="google-drive"] .drive-publisher { border-top: var(--border-width-control) solid var(--border-default); padding-block: var(--space-card); }
+[data-settings-panel="google-drive"] .settings-source-heading { flex-wrap: wrap; margin-top: var(--space-card); }
+[data-settings-panel="google-drive"] select { max-width: 100%; min-height: var(--settings-control-height); }

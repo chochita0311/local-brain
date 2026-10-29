@@ -42,7 +42,7 @@
 - JavaScript syntax checks passed for the Schema interaction and browser QA modules.
 - The complete automated suite passed: 108 tests.
 - Browser QA passed at `1440`, `920`, `700`, and `320`, including contextual area/table focus, exact or nearest reachable sticky offset, back/forward, rapid selection, no-script, Mermaid failure, warm-cache, and invalid-query states.
-- Browser evidence: `/tmp/localbrain-schema-scroll-browser-qa`.
+- Browser evidence: task-owned temporary storage outside Git.
 - Repository privacy check passed across 365 candidate files.
 
 ## Remaining Issues

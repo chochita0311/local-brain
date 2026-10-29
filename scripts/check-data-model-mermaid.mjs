@@ -11,9 +11,11 @@ const DOCUMENTS = [
   "docs/policies/project/data-model/workspace-and-session-activity.md",
   "docs/policies/project/data-model/usage-and-cost-records.md",
   "docs/policies/project/data-model/local-context-corpus.md",
+  "docs/policies/project/data-model/atlassian-source-memory.md",
   "docs/policies/project/data-model/work-organization-and-resources.md",
   "docs/policies/project/data-model/review-and-resume-continuity.md",
   "docs/policies/project/data-model/maintenance-execution.md",
+  "docs/policies/project/data-model/personal-learning.md",
   "docs/policies/project/data-model/workflow-assertions.md",
   "docs/policies/project/data-model/derived-retrieval-index.md",
 ];
@@ -35,7 +37,7 @@ for (const relativePath of DOCUMENTS) {
   diagramCount += 1;
 }
 
-if (diagramCount !== 10) {
-  throw new Error(`Expected 10 Mermaid diagrams, found ${diagramCount}`);
+if (diagramCount !== 12) {
+  throw new Error(`Expected 12 Mermaid diagrams, found ${diagramCount}`);
 }
-console.log("Parsed 10 data-model Mermaid diagrams with the local bundle.");
+console.log("Parsed 12 data-model Mermaid diagrams with the local bundle.");

@@ -11,7 +11,7 @@ source registration, synchronization, backup, restore and cache procedures.
   as its minimum. The declared minimum does not establish execution on every OS
   version. Check the artifact's `BUILD-INFO.md` for its actual build OS, app/ZIP
   sizes and verification results.
-- Recipients need no Python, uv, Homebrew, source checkout or developer account.
+- Recipients need no Python, uv, Homebrew, source checkout or developer account to launch the app. Optional Google Drive synchronization requires Google Cloud CLI on that Mac and the user's Google login; **Docs → Settings → Google Drive** owns installation, permissions and connection checks.
 - Keyword search needs no model. Optional AI search explicitly downloads public
   **Qwen3-Embedding-0.6B** weights, approximately **1.21 GB**, and prepares the local
   index. Indexes and temporary work need additional space according to the source
@@ -19,10 +19,11 @@ source registration, synchronization, backup, restore and cache procedures.
   does not guarantee every Apple Silicon memory configuration or large-data
   performance.
 - The packaged app provides Sessions list, Chart, pins, detail and subsessions;
-  Sessions Dashboard; Local Contexts; search; settings; first-use setup; and bundled
+  Sessions Dashboard; Local Contexts; search; Context Search; settings including Google Drive; first-use setup; and bundled
   Docs. It excludes the top-level Dashboard/learning, Workstreams, Auto Work,
   Atlassian, Insights, Session workflow and Schema. Development web keeps its
   other routes; user settings cannot enable those features in the test app.
+- Context Search uses separately installed Qwen3-4B or8B public assets, reusing a complete shared Hub cache. It reads enabled Local Context and already received Drive copies without an embedding prerequisite. Dialogue is transient and clears on screen/tab leave. Model and runtime memory requirements are separate from weight size; see **Docs → Search → Ask with Context Search**.
 
 This artifact is an **internal, ad-hoc signed test build without Apple
 notarization**. Its first-launch procedure and local checks do not establish the
@@ -104,8 +105,11 @@ pins and historical Usage attribution are preserved.
 
 Default data/settings are in `~/Library/Application Support/LocalBrain`;
 rebuildable private caches are in `~/Library/Caches/LocalBrain`. Public model
-weights use the local shared Hugging Face cache. LocalBrain does not transmit
-user documents or search queries externally. **Settings → Storage** shows the actual locations
+weights use the local shared Hugging Face cache. Search queries and local model
+inference stay on the Mac. Explicitly selected Google Drive publishing uploads
+the chosen original files to the configured root; receiving downloads selected
+publisher folders. Other external writes retain their separate approval boundary.
+**Settings → Storage** shows the actual locations
 and sizes. Keep private backups separate from the program-sharing ZIP.
 
 ### Same-Installation, Same-Mac Recovery
@@ -113,7 +117,9 @@ and sizes. Keep private backups separate from the program-sharing ZIP.
 A backup includes a database snapshot, general settings, source settings, search
 settings and LocalBrain's model-registration metadata. It excludes original
 Session/document files, public model weights, caches, logs and external
-authentication information. A backup ZIP contains private application data and
+authentication information. Drive connections/checkpoints, received copies and
+gcloud credentials are also excluded; they have separate storage/backup owners.
+A backup ZIP contains private application data and
 belongs in a private local location, separate from installation files.
 
 Restore only a backup made by the **same LocalBrain installation on the same

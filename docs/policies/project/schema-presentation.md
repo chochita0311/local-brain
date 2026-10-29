@@ -8,7 +8,7 @@ This contract defines the deterministic, package-owned data consumed by LocalBra
 
 - `src/localbrain/schema.sql` owns fresh executable structure.
 - `src/localbrain/db.py` owns compatible structure and runtime-only indexes. Generation invokes its real structural path against SQLite `:memory:` with data migrations disabled.
-- `docs/policies/project/data-model.md` and its ten subject documents own order, subject ownership, lifecycle/recovery semantics, column explanations, application relations, and Mermaid definitions.
+- `docs/policies/project/data-model.md` and its eleven subject documents own order, subject ownership, lifecycle/recovery semantics, column explanations, application relations, and Mermaid definitions.
 - `scripts/schema_presentation_builder.py` owns transformation and validation only.
 - `src/localbrain/schema-presentation.json` is committed derived output and is packaged with LocalBrain.
 - `src/localbrain/schema_presentation.py` is the only application loader. Consumers must not parse repository Markdown or introspect a runtime database as fallback.
@@ -21,7 +21,7 @@ The top-level `schema` is exactly `localbrain.schema-presentation.v1` and `deriv
 | --- | --- |
 | `baseline` | Baseline ID, current object/relation/index/subject counts, and repository-relative source roles plus SHA-256 digests. No generation timestamp is stored. |
 | `global.mermaid` | Exact reviewed global Mermaid definition from Data Model. |
-| `subjects` | Ten ordered entries with stable kebab-case `id`, display `label`, repository-relative semantic `document`, ordered `table_ids`, and exact focused `mermaid`. |
+| `subjects` | Eleven ordered entries with stable kebab-case `id`, display `label`, repository-relative semantic `document`, ordered `table_ids`, and exact focused `mermaid`. |
 | `tables` | Ordered table/FTS catalogs grouped by subject order. Each table occurs exactly once. |
 | `relationships.physical` | SQLite-FK facts derived from `PRAGMA foreign_key_list`, including source/target columns and update/delete actions. |
 | `relationships.application` | Dotted global-ERD relations parsed from semantic truth, including source/target tables, cardinalities, label, and application enforcement. |
@@ -37,7 +37,7 @@ Each table contains:
 | `foreign_keys` | Table-local physical target, columns, and update/delete behavior. |
 | `semantics` | Purpose/authority, lifecycle contract and class, rebuildability code, producers, consumers, deletion effect, recovery path, DDL/migration ownership, and documented constraints. |
 
-The current baseline has ten subjects, 45 ordinary tables plus one FTS5 object, 523 effective columns, 51 explicit indexes, 58 physical relations, and 28 application relations. Count changes are accepted only with the implementation and semantic owners updated together.
+The current baseline has eleven subjects, 48 ordinary tables plus one FTS5 object, 543 effective columns, 52 explicit indexes, 59 physical relations, and 29 application relations. Count changes are accepted only with the implementation and semantic owners updated together.
 
 ## Determinism And Failure
 

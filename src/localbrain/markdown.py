@@ -53,6 +53,8 @@ _LANGUAGE_ALIASES = {
     "console": "console",
     "python": "python",
     "py": "python",
+    "java": "java",
+    "go": "go",
     "javascript": "javascript",
     "js": "javascript",
     "typescript": "typescript",
@@ -74,6 +76,8 @@ _LANGUAGE_LABELS = {
     "bash": "Shell",
     "console": "Console",
     "python": "Python",
+    "java": "Java",
+    "go": "Go",
     "javascript": "JavaScript",
     "typescript": "TypeScript",
     "json": "JSON",
@@ -121,7 +125,7 @@ _SINGLE_LINE_MATH_RULE = math_inline_dollar(
 )
 _MAX_EMBED_DEPTH = 3
 _APP_DOC_ROUTE_PATTERN = re.compile(
-    r"/(?:help(?:/[a-z-]+)?|sessions-dashboard|sessions|projects|context|natural-search|settings)"
+    r"/(?:help(?:/[a-z-]+)?|sessions-dashboard|sessions|projects|context|context-search|natural-search|settings)"
 )
 _MATHML_NAMESPACE = "http://www.w3.org/1998/Math/MathML"
 _MATHML_ELEMENTS = {
@@ -234,8 +238,19 @@ def _language_class(value: str) -> str:
 
 
 def _highlight_with_pygments(code: str, language: str) -> str:
-    lexer = get_lexer_by_name(language)
+    lexer = get_lexer_by_name(language, stripnl=False, ensurenl=False)
     return highlight(code, lexer, _PYGMENTS_FORMATTER)
+
+
+def highlight_code(code: str, language: str = "") -> Markup:
+    """Present literal code using the shared allowlist, or complete escaped text."""
+    canonical_language = _LANGUAGE_ALIASES.get(_normalize_language(language))
+    if canonical_language and canonical_language != "text":
+        try:
+            return Markup(_highlight_with_pygments(code, canonical_language))
+        except Exception:
+            pass  # Unknown or failed lexers retain the complete readable source.
+    return escape(code)
 
 
 def _render_fence(renderer, tokens, idx, options, env) -> str:
@@ -249,14 +264,7 @@ def _render_fence(renderer, tokens, idx, options, env) -> str:
         else "Code"
     )
 
-    highlighted = None
-    if canonical_language and canonical_language != "text":
-        try:
-            highlighted = _highlight_with_pygments(token.content, canonical_language)
-        except Exception:
-            highlighted = None
-
-    code_html = highlighted if highlighted is not None else str(escape(token.content))
+    code_html = highlight_code(token.content, requested_language)
     class_attribute = (
         ' class="language-{}"'.format(escape(language_class))
         if language_class

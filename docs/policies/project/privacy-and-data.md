@@ -38,6 +38,14 @@ Keep completed private bindings, identifying locators, experience indexes, recor
 
 ## Local Persistence
 
+Context Search follows its [source and transient-dialogue contract](context-search.md): explicit questions may read enabled Local Context and already received Drive copies through bounded read-only tools. Public originals remain in the shared Hub; app metadata and compiler/kernel caches have separate private owners. No answer table, transcript file or browser persistence is created. Conversation clears on screen/tab leave, and isolated inference network blocking never changes web/Drive networking. This scoped bridge does not admit all application data into ordinary indexing.
+
+Reviewed learning lessons, source snapshots, answer/confidence/self-assessment
+history and visibility choices are durable private DB content. Importing a local
+packet does not send it elsewhere or train a model. Learning routes make no
+external calls; an official-source link opens only by explicit user navigation
+with referrer suppression. Private lesson packets and captures stay outside Git.
+
 The default runtime directory is:
 
 ```text
@@ -369,11 +377,11 @@ No connector may silently promote content from `reference` or `cache` into durab
 ## External Access
 
 - Company systems must be accessed only through approved connector or MCP Gateway capabilities.
-- External integration begins read-only.
+- Gateway/Atlassian external integration begins read-only. Approved Google Drive synchronization has the separate selected read/write contract below.
 - Local Source Instance records may store a stable local key, provider/service identity, display name, and a shape-validated Gateway alias or canonical Atlassian Cloud ID, but never arbitrary opaque values, site URLs, credentials, access tokens, sampled content, or raw connector payloads.
 - Capability observations retain only versioned logical-operation names, a schema fingerprint, availability, timestamps, invalidation, and bounded error evidence. They are refreshed explicitly rather than on startup, page load, search, or ordinary preview.
 - A version-controlled allowlist must map logical reads to exact provider targets and validate bounded arguments before dispatch. Runtime rows, model output, prompts, or caller-supplied tool names cannot grant external writes.
-- External synchronization requires a host-side executor that receives only a pre-authorized dispatch. Provider arguments and returned content stay in private Run artifacts; query projections and call-accounting rows contain no arguments or provider content. Claude or Codex receives only the validated local evidence and cannot access broad external tools in that Run.
+- Gateway-managed external synchronization requires a host-side executor that receives only a pre-authorized dispatch. Provider arguments and returned content stay in private Run artifacts; query projections and call-accounting rows contain no arguments or provider content. Claude or Codex receives only the validated local evidence and cannot access broad external tools in that Run.
 - Applied Atlassian facts are private runtime data: manually registered or
   strict-Sync-created Site domains and Item identities, exact URLs, read-only
   URL container descriptors, remote identifiers, bounded metadata, source
@@ -415,14 +423,14 @@ No connector may silently promote content from `reference` or `cache` into durab
 - Validated remote results may update only their approved remote-state and content owners. They must not overwrite local attention, notes, Topics, Tags, Workstream/Thread relations, or other user-owned organization state.
 - Reference coverage rejects remote metadata and body persistence; metadata coverage rejects bodies. Explicitly downgrading indexed coverage removes the stored body and rebuilds the remaining eligible identity/local FTS roles, while ordinary failure or unavailability never performs that destructive downgrade.
 - Due timestamps are local advisory state and perform no external or model call. Failed, unavailable, and not-found checks retain last-known content and local organization until an explicit destructive local action.
-- Any future external write requires a visible preview, attribution, and explicit user confirmation.
+- External writes require a visible preview, attribution, and explicit user confirmation unless a separately approved integration defines persistent selection as authorization. Google Drive synchronization uses the owner-approved [Drive contract](google-drive-sync.md): saved destination and targets plus manual run or automatic enablement authorize subsequent sync within that scope, without repeated sharing or per-file approval. Other integration write boundaries remain unchanged.
 - Local content must not be sent to an unapproved AI, embedding service, website, repository, or person.
 - Generated summaries must preserve provenance and must not present inference as confirmed fact.
 - Connector failures, stale content, and inaccessible sources must remain visible rather than being represented as current data.
 
 ## Credentials
 
-Credentials should remain managed by the operating system, Claude CLI, or an approved gateway. LocalBrain must not copy credentials into its SQLite database, Run evidence, logs, tracked configuration, or documentation.
+Credentials should remain managed by the operating system, Claude CLI, Google Cloud CLI, or an approved gateway. LocalBrain must not copy credentials into its SQLite database, Run evidence, logs, tracked configuration, or documentation.
 
 ## Source Consent And Permissions
 

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}{{ lesson.title }} · LocalBrain{% endblock %}
+{% block page_location %}Dashboard / 학습 글{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{{ url_for('static', path='/learning.css') }}?v={{ asset_version }}">{% endblock %}
+{% block content %}
+<div class="learning-home learning-note-page">
+  <nav class="learning-back learning-actions" aria-label="학습 탐색"><a href="/">← Dashboard</a><a href="/learning">학습 목록</a></nav>
+  {% if lesson.id != latest_id %}<p class="learning-notice">이전 판본의 글입니다. <a href="/learning/{{ latest_id }}/note">현재 글 읽기</a></p>{% endif %}
+  {% include "learning-article.html" %}
+</div>
+{% endblock %}

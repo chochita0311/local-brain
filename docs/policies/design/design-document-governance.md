@@ -43,12 +43,12 @@ If sources conflict:
 
 The initial baseline is recoverable from the design outputs:
 
-- Qoo10 Design System (AI) is the named upstream visual and token source.
+- Initial upstream design system (AI) is the stable public alias for the initial upstream visual and token source.
 - LocalBrain policies, code, templates, and existing screens provide product and implementation compatibility evidence.
 - [DESIGN.md](../../../DESIGN.md) records the creative interpretation and imported/adapted boundary.
 - [Design Constitution](./design-constitution.md) records the self-contained reconciled system.
 
-Private external file keys and URLs are not documentation dependencies. A source must remain identifiable by name, date, scope, and contribution without requiring external access to interpret the constitution.
+Private external file keys and URLs are not documentation dependencies. A source must remain identifiable by its public name, or by a stable public alias when the source is private, together with date, scope, and contribution, without requiring external access to interpret the constitution.
 
 ## Document Ownership
 

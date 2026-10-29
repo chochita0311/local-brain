@@ -82,7 +82,18 @@ class AppDocsTests(unittest.TestCase):
                     if href.startswith("#"):
                         self.assertIn(href[1:], parsed.ids)
                     else:
-                        self.assertIn(href, app_docs.APP_DOC_ROUTES | {"/"})
+                        base, separator, fragment = href.partition("#")
+                        if base.startswith("https://"):
+                            self.assertIn(base, {
+                                "https://docs.cloud.google.com/sdk/docs/install-sdk",
+                                "https://docs.cloud.google.com/sdk/docs/authenticate",
+                            })
+                            continue
+                        self.assertIn(base, app_docs.APP_DOC_ROUTES | {"/"})
+                        if separator:
+                            target = Anchors()
+                            target.feed(self.page(base.removeprefix("/help/")).body.decode())
+                            self.assertIn(fragment, target.ids)
                 self.assertNotIn(str(app_docs.CONTENT_ROOT), html)
 
     def test_docs_remains_readable_before_setup_without_completing_it(self):

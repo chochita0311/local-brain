@@ -14,12 +14,12 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Default: `active`
 - Fallbacks: `null`: reject; `unknown`: label → 상태 알 수 없음; `invalid`: reject; `future`: label → 새 상태
 - Producers: `src/localbrain/workstreams.py`
-- Consumers: `src/localbrain/workstreams.py`, `src/localbrain/templates/dashboard.html`, `src/localbrain/templates/workstreams.html`, `src/localbrain/templates/workstream.html`
+- Consumers: `src/localbrain/workstreams.py`, `src/localbrain/templates/workstreams.html`, `src/localbrain/templates/workstream.html`
 - Consequence: Affects active sorting and review visibility but does not delete links.
 - Presentation mode: `logical-label`
 - Labels: `active` → 진행 중; `paused` → 잠시 멈춤; `done` → 완료; `archived` → 보관됨
 - Help: Workstream의 현재 진행 상태입니다.
-- Visible consumer inventory: `src/localbrain/templates/dashboard.html` (registry-backed); `src/localbrain/templates/workstreams.html` (registry-backed); `src/localbrain/templates/workstream.html` (registry-backed)
+- Visible consumer inventory: `src/localbrain/templates/workstreams.html` (registry-backed); `src/localbrain/templates/workstream.html` (registry-backed)
 
 ## `thread.status`
 
@@ -30,12 +30,12 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Default: `active`
 - Fallbacks: `null`: reject; `unknown`: label → 상태 알 수 없음; `invalid`: reject; `future`: label → 새 상태
 - Producers: `src/localbrain/workstreams.py`
-- Consumers: `src/localbrain/workstreams.py`, `src/localbrain/templates/dashboard.html`
+- Consumers: `src/localbrain/workstreams.py`
 - Consequence: Controls priority and blocked-work visibility without removing evidence.
 - Presentation mode: `logical-label`
 - Labels: `active` → 진행 중; `blocked` → 막힘; `paused` → 잠시 멈춤; `done` → 완료
 - Help: Thread의 현재 진행 상태입니다.
-- Visible consumer inventory: `src/localbrain/templates/dashboard.html` (registry-backed); `src/localbrain/templates/workstream.html` (registry-backed)
+- Visible consumer inventory: `src/localbrain/templates/workstream.html` (registry-backed)
 
 ## `organization-link.entity-type`
 

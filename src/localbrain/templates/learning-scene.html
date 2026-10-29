@@ -1,0 +1,23 @@
+{% set scene = lesson.scene %}
+<aside class="learning-scene" aria-labelledby="scene-title">
+  <h2 id="scene-title">함께 읽을 {{ value_label("learning.scene-kind", scene.kind) }}</h2>
+  <p class="learning-meta">{{ scene.title }} · {{ scene.language }}</p>
+  <p class="learning-meta">{{ value_label("learning.scene-origin", scene.origin) }}{% if scene.kind == 'command' %} · {{ value_label("learning.execution", scene.execution) }}{% endif %}</p>
+  <p class="learning-prose">{{ scene.context }}</p>
+  <p class="learning-conditions">{{ scene.conditions }}</p>
+  <p class="learning-meta">강조된 발췌 줄 {{ question.focus_lines|join(', ') }}을 함께 봅니다.{% if scene.kind == 'diff' %} + 추가 · − 삭제{% endif %}</p>
+  <pre class="learning-code" tabindex="0" aria-label="보존한 코드·명령, 발췌 줄 번호 포함"><code>{% for line in scene_lines %}<span id="code-line-{{ loop.index }}" class="learning-code-line{% if loop.index in question.focus_lines %} is-focused{% endif %}"><span class="learning-line-number" aria-hidden="true">{{ loop.index }}</span>{{ line }}</span>{% if not loop.last %}{{ '\n' }}{% endif %}{% endfor %}</code></pre>
+  {% if scene.kind == 'diff' %}
+  <details class="learning-details" data-learning-help><summary>변경 전 파일</summary><pre class="learning-code" tabindex="0"><code>{{ scene.before }}</code></pre></details>
+  <details class="learning-details" data-learning-help><summary>변경 후 파일</summary><pre class="learning-code" tabindex="0"><code>{{ scene.after }}</code></pre></details>
+  {% elif scene.output %}
+  <details class="learning-details" data-learning-help><summary>함께 보존한 결과 기록</summary><pre class="learning-code" tabindex="0"><code>{{ scene.output }}</code></pre></details>
+  {% endif %}
+  <details class="learning-details"><summary>원본과 보존 시점</summary>
+    <p class="learning-meta">{% if scene.occurred_on %}작업 {{ scene.occurred_on }} · {% endif %}보존 <time datetime="{{ scene.captured_at }}" data-local-time>{{ scene.captured_at }}</time></p>
+    <p><a href="#source-{{ scene.source_id }}">업무 원문과 근거 보기</a></p>
+    {% if scene.kind == 'diff' %}<p class="learning-locator">{{ scene.repo }} / {{ scene.path }}</p><p class="learning-meta">{{ value_label("learning.git-state", scene.git_state) }}</p><p class="learning-fingerprint">변경 전 {{ scene.before_ref }}<br>변경 후 {{ scene.after_ref }}</p>{% endif %}
+    <p class="learning-fingerprint">보존한 발췌 SHA-256 · {{ scene.code_sha256 }}</p>
+  </details>
+</aside>
+

@@ -131,5 +131,16 @@ def install_settings_routes(app, templates):
             raise HTTPException(404)
         return request.app.state.model_setup.status()
 
+    @app.post('/api/settings/model/{key}/{action}')
+    def generation_model_action(key: str, action: str, request: Request):
+        if key not in {'4b', '8b'} or action not in {'install', 'cancel'}:
+            raise HTTPException(404)
+        service = request.app.state.model_setup
+        if action == 'install':
+            service.start(key)
+        elif service.status()['active_key'] == key:
+            service.cancel()
+        return service.status()
+
     from .storage_recovery import install_storage_routes
     install_storage_routes(app)

@@ -6,6 +6,7 @@ import marshal
 from pathlib import Path
 import pprint
 import re
+import shlex
 import sys
 import sysconfig
 import types
@@ -13,6 +14,22 @@ import zipfile
 
 
 RUNTIME_PREFIX = "@LOCALBRAIN_RUNTIME_PREFIX@"
+
+
+def rust_build_environment(environment, private_roots):
+    """Keep user compiler flags while removing builder paths from native code."""
+    result = dict(environment)
+    encoded = result.get('CARGO_ENCODED_RUSTFLAGS')
+    flags = encoded.split('\x1f') if encoded else shlex.split(result.get('RUSTFLAGS', ''))
+    for index, root in enumerate(private_roots):
+        path = Path(root)
+        if not path.is_absolute() or path == Path('/'):
+            raise ValueError('Rust remapping requires absolute non-root build paths')
+        flags.append(f'--remap-path-prefix={path}=/localbrain-build/{index}')
+    # Cargo's encoded form preserves paths/flags containing spaces exactly.
+    result['CARGO_ENCODED_RUSTFLAGS'] = '\x1f'.join(flags)
+    result.pop('RUSTFLAGS', None)
+    return result
 
 
 def sysconfig_module_source(variables, install_prefixes, private_roots):

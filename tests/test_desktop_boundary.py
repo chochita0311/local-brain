@@ -53,6 +53,19 @@ class DesktopBoundaryTests(unittest.TestCase):
     def authenticated(self, **headers):
         return {"Cookie": "localbrain-desktop=" + self.token, **headers}
 
+    def test_drive_settings_write_requires_native_auth_and_same_origin(self):
+        path = "/api/settings/google-drive/synthetic/jobs/upload/run"
+        self.assertEqual(self.request(path, method="POST").status_code, 401)
+        self.assertEqual(self.request(path, method="POST", headers=self.authenticated()).status_code, 200)
+        self.assertEqual(self.request(path, method="POST", headers=self.authenticated(Origin="https://outside.example")).status_code, 403)
+
+    def test_context_search_routes_keep_native_token_and_origin_boundaries(self):
+        for path in ('/context-search', '/api/context-search/status', '/api/context-search/answer', '/api/context-search/unload'):
+            method = 'POST' if path.endswith(('/answer', '/unload')) else 'GET'
+            self.assertEqual(self.request(path, method=method).status_code, 401)
+            self.assertEqual(self.request(path, method=method, headers=self.authenticated()).status_code, 200)
+        self.assertEqual(self.request('/api/context-search/answer', method='POST', headers=self.authenticated(Origin='https://example.invalid')).status_code, 403)
+
     def test_handshake_cookie_allows_native_top_level_redirect(self):
         response = self.start()
         self.assertEqual(response.status_code, 303)

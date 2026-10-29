@@ -1,0 +1,55 @@
+{% set section_heading = 'h3' if note_return == 'home' else 'h2' %}
+<article class="learning-article" aria-labelledby="article-title-{{ lesson.id }}">
+  <div class="learning-article-layout">
+    <div class="learning-article-main">
+      <header class="learning-article-header">
+        <p class="learning-article-kicker" id="today-title">{% if note_return == 'home' %}오늘의 배움{% else %}업무에서 배운 것{% endif %}<span>{{ lesson.topic }}</span></p>
+        {% if note_return == 'home' %}<h2 class="learning-article-title" id="article-title-{{ lesson.id }}">{{ lesson.title }}</h2>{% else %}<h1 class="learning-article-title" id="article-title-{{ lesson.id }}">{{ lesson.title }}</h1>{% endif %}
+        <p class="learning-article-deck">{{ lesson.why }}</p>
+        {% if lesson.scene %}<p class="learning-article-meta">{{ value_label("learning.scene-origin", lesson.scene.origin) }}{% if lesson.scene.occurred_on %} · <time datetime="{{ lesson.scene.occurred_on }}">{{ lesson.scene.occurred_on }}</time>의 작업{% endif %}</p>{% endif %}
+      </header>
+
+      {% if lesson.article %}<div class="markdown-body learning-article-prose learning-article-intro">{{ lesson.article_intro }}</div>{% endif %}
+      {% if lesson.scene %}
+      <figure class="markdown-code-block learning-article-code">
+        <figcaption class="markdown-code-label"><span>{{ lesson.scene.language }}{% if lesson.scene.kind == 'diff' %} · diff{% endif %}</span><a href="/learning/{{ lesson.id }}?from_note=1#scene-title">원본 맥락 보기 ↗</a></figcaption>
+        <pre tabindex="0" aria-label="작업에서 보존한 코드·명령"><span class="learning-code-numbers" aria-hidden="true">{{ lesson.code_numbers }}</span><code>{{ lesson.code_preview_html }}</code></pre>
+      </figure>
+      <p class="learning-article-code-caption">{{ lesson.scene.title }}{% if lesson.preview_partial %} · {{ lesson.preview_start }}–{{ lesson.preview_end }}줄 발췌{% endif %}{% if lesson.scene.kind == 'diff' %} · + 추가 / − 삭제{% endif %}</p>
+      {% endif %}
+
+      {% if lesson.article %}
+      {% for section in lesson.article_sections %}
+      <section class="learning-article-section" id="article-{{ lesson.id }}-{{ section.id }}" aria-labelledby="article-heading-{{ lesson.id }}-{{ section.id }}">
+        <header><span class="learning-section-number" aria-hidden="true">{{ '%02d'|format(loop.index) }}</span><{{ section_heading }} id="article-heading-{{ lesson.id }}-{{ section.id }}">{{ section.title }}</{{ section_heading }}></header>
+        <div class="markdown-body learning-article-prose">{{ section.html }}</div>
+        <p class="learning-article-citations">참고{% for source in section.references %} <a href="#article-ref-{{ lesson.id }}-{{ source.id }}" aria-label="참고 문서 {{ source.number }}: {{ source.title }}">[{{ source.number }}]</a>{% endfor %}</p>
+      </section>
+      {% endfor %}
+      <section class="learning-article-takeaway" id="article-takeaway"><{{ section_heading }}>작업에 남길 기준</{{ section_heading }}><div class="markdown-body learning-article-prose">{{ lesson.article_takeaway }}</div></section>
+      {% else %}
+      <div class="learning-article-section"><p class="learning-prose">{{ lesson.explanation }}</p></div>
+      {% endif %}
+
+      <details class="learning-article-practice">
+        <summary>읽은 내용을 내 말로 설명해 보기 <span>선택</span></summary>
+        <p class="learning-prose">{{ lesson.question.prompt }}</p>
+        <a href="/learning/{{ lesson.id }}?question={{ lesson.question.id }}&amp;from_note=1#question-title">내 생각 남기기 →</a>
+      </details>
+      <footer class="learning-article-finish learning-actions" id="article-finish">
+        {% if lesson.pending %}<a class="secondary-button button-link" href="/learning/{{ lesson.id }}?attempt={{ lesson.pending }}#feedback">남긴 답변 이어보기</a>
+        {% elif lesson.done_today %}<span class="learning-muted" role="status">오늘 읽거나 답한 기록이 있어요.</span>
+        {% else %}<form method="post" action="/learning/{{ lesson.id }}/attempts"><input type="hidden" name="question_id" value="{{ lesson.question.id }}"><input type="hidden" name="submission_key" value="{{ lesson.read_key }}"><input type="hidden" name="from_note" value="1"><input type="hidden" name="return_to" value="{{ note_return }}"><button class="secondary-button" name="action" value="read">읽은 내용 기록</button></form>{% endif %}
+        <a href="/learning">다른 글 둘러보기 →</a>
+      </footer>
+    </div>
+
+    <aside class="learning-article-rail" aria-label="글의 목차와 참고 문서">
+      {% if lesson.article %}<nav class="learning-article-toc" aria-label="이 글의 목차"><{{ section_heading }}>이 글에서</{{ section_heading }}><ol>{% for section in lesson.article_sections %}<li><a href="#article-{{ lesson.id }}-{{ section.id }}">{{ section.title }}</a></li>{% endfor %}<li><a href="#article-takeaway">작업에 남길 기준</a></li></ol></nav>{% endif %}
+      <section class="learning-article-references" aria-labelledby="article-references-title"><{{ section_heading }} id="article-references-title">References</{{ section_heading }}>
+        <ol>{% for source in lesson.article_references %}<li id="article-ref-{{ lesson.id }}-{{ source.id }}"><a href="{{ source.url }}" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">{{ source.title }} ↗</a><span>{{ '버전 미확인' if source.version == 'unknown' else source.version }}<br>확인 {{ source.checked_on }}</span></li>{% endfor %}</ol>
+      </section>
+      <div class="learning-article-provenance"><p>{{ value_label("learning.reviewer", lesson.get('reviewed_by', 'unspecified')) }}</p><p>{{ value_label("learning.version-status", lesson.version_status) }}</p><details><summary>자료의 적용 범위</summary><p>{{ lesson.applicability }}</p></details><a href="/learning/{{ lesson.id }}?from_note=1#sources-title">작업 원문과 보존한 근거 →</a></div>
+    </aside>
+  </div>
+</article>

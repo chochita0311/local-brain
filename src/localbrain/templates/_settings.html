@@ -7,6 +7,7 @@
       <button type="button" data-settings-tab="context">Local Context</button>
       <button type="button" data-settings-tab="search">검색 모델</button>
       <button type="button" data-settings-tab="sync">동기화</button>
+      <button type="button" data-settings-tab="google-drive">Google Drive</button>
       <button type="button" data-settings-tab="storage">저장공간</button>
       <button type="button" data-settings-tab="about">앱 정보</button>
     </nav>
@@ -14,6 +15,7 @@
       <p class="settings-message" data-settings-message role="status" aria-live="polite"></p>
       <button class="secondary-button" type="button" data-onboarding-retry hidden>다시 불러오기</button>
       <div class="settings-panels">
+      {% include '_google_drive_settings.html' %}
       <section data-settings-panel="welcome" class="onboarding-welcome" hidden>
         <span class="brand-mark" aria-hidden="true">LB</span>
         <h3 tabindex="-1">LocalBrain에 오신 것을 환영합니다</h3>
@@ -47,7 +49,7 @@
                 <div id="settings-timezone-seoul" role="option" data-value="Asia/Seoul" aria-selected="false">Asia/Seoul</div>
               </div>
             </div>
-            <small id="settings-timezone-help">세션·대화·차트의 시각 표시와 대시보드의 날짜별 집계 기준에 적용됩니다.</small>
+            <small id="settings-timezone-help">세션·대화·차트의 시각 표시와 대시보드의 날짜별 집계 기준, Google Drive의 정시 실행 기준에 적용됩니다.</small>
           </div>
         </form>
       </section>
@@ -110,7 +112,7 @@
         </div>
       </section>
       <section data-settings-panel="search" hidden>
-        <h3>검색 모델</h3><p>키워드 검색은 바로 사용할 수 있습니다.<br>AI 검색을 사용하려면 로컬 모델을 다운로드하세요.</p>
+        <h3>검색 모델</h3><p>키워드 검색은 바로 사용할 수 있습니다.<br>의미 검색과 Context Search에 사용할 로컬 모델을 관리합니다.</p>
         <div class="settings-model">
           <div class="settings-model-title"><strong>Qwen3-Embedding-0.6B</strong><span>약 1.21GB</span></div>
           <p data-model-status role="status"></p>
@@ -118,7 +120,17 @@
           <p class="settings-caption">다운로드에는 인터넷 연결이 필요합니다. 검색 내용과 문서는 외부로 전송하지 않습니다.</p>
         </div>
         <div class="settings-section"><h4>AI 검색</h4><p data-search-state></p><button class="secondary-button" type="button" data-model-action="disable">AI 검색 끄기</button></div>
-        <details class="settings-disclosure"><summary>모델 보관과 다운로드</summary><p>중단해도 완료된 다운로드 조각은 남아 재개할 수 있습니다. 모델은 로컬 공개 모델 캐시에 저장되며 개인 데이터 백업에 포함되지 않습니다.</p></details>
+        <div class="settings-section"><h4>Context Search 답변 모델</h4><p>폴더에서 필요한 자료를 찾아 답합니다. 임베딩 모델 없이 사용할 수 있습니다.</p>
+          {% for key, name, size in [('4b', 'Qwen3-4B', '약 8GB'), ('8b', 'Qwen3-8B', '약 16GB')] %}
+          <div class="settings-model" data-generation-model="{{ key }}">
+            <div class="settings-model-title"><strong>{{ name }}</strong><span>{{ size }}</span></div>
+            <p data-generation-status role="status">모델 확인 중</p>
+            <div class="settings-actions"><button class="secondary-button" type="button" data-generation-action="install">모델 다운로드</button><button class="secondary-button" type="button" data-generation-action="cancel" hidden>진행 중단</button></div>
+          </div>
+          {% endfor %}
+          <p class="settings-caption">8B는 더 많은 메모리가 필요합니다. Context Search 화면에서 모델을 선택하세요.</p>
+        </div>
+        <details class="settings-disclosure"><summary>모델 보관과 다운로드</summary><p>공개 모델 원본은 공용 Hugging Face 캐시(기본 ~/.cache/huggingface/hub)에 둡니다. 이미 받은 원본은 다시 받지 않고 연결합니다. 앱 등록 정보는 LocalBrain 데이터 폴더에, 실행 캐시는 LocalBrain 캐시 폴더에 따로 둡니다. 중단한 다운로드는 재개할 수 있으며, 앱 캐시를 정리해도 공용 원본은 보존합니다. 모델 다운로드에만 인터넷이 필요하며 질문과 문서는 외부 AI로 전송하지 않습니다.</p></details>
       </section>
       <section data-settings-panel="sync" hidden>
         <h3>동기화</h3>

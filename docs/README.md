@@ -24,7 +24,7 @@ owns their content and delivery rules.
 | [Sessions](../src/localbrain/content/docs/sessions.md) | Conversations, projects, pins and Chart |
 | [Sessions Dashboard](../src/localbrain/content/docs/sessions-dashboard.md) | Usage, cost estimates and coverage |
 | [Local Contexts](../src/localbrain/content/docs/local-contexts.md) | Document sources, reading and format limits |
-| [Search](../src/localbrain/content/docs/search.md) | Keyword search, optional AI setup and readiness |
+| [Search](../src/localbrain/content/docs/search.md) | Keyword/meaning search, Context Search answers, models and readiness |
 
 The [macOS test distribution guide](policies/project/standalone-test-app-guide.md)
 owns artifact-specific first-launch requirements and distribution verification
@@ -39,10 +39,12 @@ Durable rules and current contracts live under `docs/policies/`.
 - [Project Architecture](policies/project/architecture.md): stack, runtime boundaries, source adapters, storage model, and current capability ownership
 - [macOS Installation And Local Storage](policies/project/installation-and-storage.md): installed wheel/archive setup, optional models, configurable private storage, updates, migration and cleanup
 - [Local Natural Language Search](policies/project/natural-language-search.md): eligible sources, molecularization, model roles, query interpretation, ranking, refresh and evidence navigation
+- [Context Search](policies/project/context-search.md): read-only folder questions, selectable4B/8B, shared-model/private-cache separation, evidence and transient dialogue
 - [Source Claims And Work State](policies/project/source-claims-and-work-state.md): pure supplied-claim state projection and inferred provenance; not an admitted source extractor or map producer
 - [Data Model](policies/project/data-model.md): complete effective SQLite map, global and subject ERDs, table/column catalogs, relationships, lifecycle, recovery, and delta maintenance ownership
 - [Value Dictionaries](policies/project/data-model/value-dictionaries.md): generated subject map from physical and derived bounded values to complete presentation modes, labels, fallbacks, and consumer ownership
 - [Schema Presentation](policies/project/schema-presentation.md): deterministic package manifest, source ownership, loader/failure behavior, and downstream Schema consumer contract
+- [Google Drive Synchronization](policies/project/google-drive-sync.md): selected directional sync, private state, Google CLI authentication and distribution/live-validation boundaries.
 - [Privacy And Data Handling](policies/project/privacy-and-data.md): repository boundary, local persistence, external access, and disclosure constraints
 - [Developer Guide](policies/project/developer-guide.md): source setup, development-web workflows, distribution builds, configuration, model experiments, private evaluation archives and verification
 - [Markdown Rendering Contract](policies/project/markdown-rendering.md): shared syntax, trust, local-reference, highlighting, consumer, and fallback rules
@@ -52,6 +54,13 @@ Durable rules and current contracts live under `docs/policies/`.
 - [Operator Briefing And Review Receipts](policies/harness/operator-briefing-and-review-receipts.md): orientation, work-start, direction-change, review, block, and handoff continuity
 - [Harness Improvement](policies/harness/harness-improvement.md): configured private stage experience, reusable improvement records, comparisons, and reviewed common export
 - [Interaction Evaluation](policies/experience/interaction-evaluation.md): reusable interaction continuity and UX checks
+
+- [Work-Grounded Learning](policies/project/work-grounded-learning.md): reviewed
+  packets, provenance, personal attempts, scheduling and learning home;
+  [Code And Command Learning](policies/project/code-command-learning.md) owns
+  exact scenes, question depth and daily selection;
+  [Personal Learning data](policies/project/data-model/personal-learning.md) owns
+  the durable tables. The Plans Index links its PRD and Feature chain.
 
 - [Desktop App And Common Local Settings](policies/project/desktop-app-and-settings.md): settings, source identity/lifecycle, synchronization and recovery contracts
 - [In-App Documentation](policies/project/app-documentation.md): bundled English user-guide ownership, /help routes, reader and shared Markdown link authority, packaging and privacy

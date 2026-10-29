@@ -1,15 +1,15 @@
 {
   "baseline": {
-    "explicit_index_count": 51,
+    "explicit_index_count": 52,
     "fts5_table_count": 1,
-    "id": "localbrain-data-model-2026-10-26",
-    "ordinary_table_count": 45,
-    "physical_foreign_key_count": 58,
+    "id": "localbrain-data-model-2026-10-17",
+    "ordinary_table_count": 48,
+    "physical_foreign_key_count": 59,
     "sources": [
       {
         "path": "src/localbrain/schema.sql",
         "role": "fresh-schema-truth",
-        "sha256": "f5e39ce91d3162a1ca8828df1d50598b27efe198e1d97e8f24c00a79398ba356"
+        "sha256": "2fb71de15efb3cba222e3890b6dd55eb726e97b4a8738de5bf2eea1e83d392c6"
       },
       {
         "path": "src/localbrain/db.py",
@@ -19,7 +19,7 @@
       {
         "path": "docs/policies/project/data-model.md",
         "role": "semantic-truth",
-        "sha256": "33e13f1d5c7e019e1c08e893d61004177b93a4df4d71784b897a6804fa513192"
+        "sha256": "4c004a23d2446b1da0d676b679c164f5664e7014b6a6537234bdabe88f45830e"
       },
       {
         "path": "docs/policies/project/data-model/source-registry-and-scans.md",
@@ -67,16 +67,21 @@
         "sha256": "dc1a0765b4e5c548f5bc84633a3ba56986d829d1a2aae659050571ea816e3f0e"
       },
       {
+        "path": "docs/policies/project/data-model/personal-learning.md",
+        "role": "semantic-truth",
+        "sha256": "2fb99d41051aaf0a280eb0dad2097ddd386ed574bca984ad8a393a1bf7754710"
+      },
+      {
         "path": "docs/policies/project/data-model/derived-retrieval-index.md",
         "role": "semantic-truth",
         "sha256": "391cb43a8e5781f0c01deee2d2076f4a8d22fdfc7479dd6644dc70f610827029"
       }
     ],
-    "subject_count": 10
+    "subject_count": 11
   },
   "derived": true,
   "global": {
-    "mermaid": "erDiagram\n    SOURCES { integer id PK }\n    SOURCE_FILES { integer id PK }\n    EXTERNAL_SOURCE_INSTANCES { integer id PK }\n    EXTERNAL_SOURCE_CAPABILITIES { integer source_instance_id PK }\n    WORKSPACES { integer id PK }\n    SESSIONS { integer id PK }\n    ACTIVITY_EVENTS { string id PK }\n    SKILL_OBSERVATIONS { string id PK }\n    SESSION_PINS { integer session_id PK }\n    SESSION_CHART_PREFERENCES { string source_scope PK string workspace_scope PK }\n    SESSION_REFERENCE_SCANS { integer session_id PK }\n    SESSION_REFERENCE_EVIDENCE { integer id PK }\n    USAGE_PRICE_SNAPSHOTS { string id PK }\n    USAGE_MODEL_PRICES { string snapshot_model PK }\n    USAGE_RECORDS { string id PK }\n    CONTEXT_ROOTS { integer id PK }\n    CONTEXT_DOCUMENTS { integer id PK }\n    WORKSTREAMS { integer id PK }\n    THREADS { integer id PK }\n    WORKSTREAM_LINKS { integer id PK }\n    THREAD_LINKS { integer id PK }\n    LOCAL_RESOURCES { integer id PK }\n    EXTERNAL_RESOURCES { integer id PK }\n    ATLASSIAN_SITES { integer id PK }\n    ATLASSIAN_SITE_BINDINGS { integer id PK }\n    ATLASSIAN_SPACES { integer id PK }\n    ATLASSIAN_ITEMS { integer external_resource_id PK }\n    ATLASSIAN_ITEM_URLS { integer id PK }\n    ATLASSIAN_ITEM_REMOTE_STATE { integer external_resource_id PK }\n    ATLASSIAN_ITEM_CONTENT { integer external_resource_id PK }\n    ATLASSIAN_ITEM_LOCAL_STATE { integer external_resource_id PK }\n    ATLASSIAN_CLASSIFICATIONS { integer id PK }\n    ATLASSIAN_ITEM_CLASSIFICATIONS { integer external_resource_id PK integer classification_id PK }\n    ATLASSIAN_EVIDENCE_SCANS { integer id PK }\n    ATLASSIAN_ITEM_EVIDENCE { integer id PK }\n    ATLASSIAN_STRUCTURE_REFERENCES { integer id PK }\n    ATLASSIAN_STRUCTURE_REFERENCE_URLS { integer id PK }\n    ATLASSIAN_STRUCTURE_REFERENCE_EVIDENCE { integer id PK }\n    SUGGESTIONS { integer id PK }\n    CHECKPOINTS { integer id PK }\n    CHECKPOINT_RESOURCE_REFS { integer id PK }\n    MAINTENANCE_RUNS { string id PK }\n    EXTERNAL_SYNC_RUNS { string maintenance_run_id PK }\n    PERSONAL_INSIGHT_RUNS { string id PK }\n    WORKFLOW_ASSERTIONS { integer id PK string boundary_key UK integer boundary_version UK string source_episode_key string target_episode_key integer supersedes_assertion_id FK }\n    SEARCH_INDEX { string entity_key \"derived\" }\n\n    SOURCES ||--o{ SOURCE_FILES : \"physical CASCADE\"\n    SOURCES ||--o{ SESSIONS : \"physical CASCADE\"\n    SOURCES ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    SOURCES ||--o{ CONTEXT_DOCUMENTS : \"physical CASCADE\"\n    SESSIONS o|--o{ SOURCE_FILES : \"physical SET_NULL mapping\"\n    EXTERNAL_SOURCE_INSTANCES ||--o| EXTERNAL_SOURCE_CAPABILITIES : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_SITES : \"physical SET_NULL compatibility\"\n    EXTERNAL_SOURCE_INSTANCES ||--o{ ATLASSIAN_SITE_BINDINGS : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_SPACES : \"physical SET_NULL access\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_ITEMS : \"physical SET_NULL access\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ EXTERNAL_SYNC_RUNS : \"physical SET_NULL\"\n    WORKSPACES o|--o{ SESSIONS : \"physical SET_NULL\"\n    WORKSPACES o|--o{ CONTEXT_DOCUMENTS : \"physical SET_NULL\"\n    MAINTENANCE_RUNS o|--o| SESSIONS : \"physical SET_NULL unique\"\n    SESSIONS o|--o{ SESSIONS : \"physical parent SET_NULL\"\n    SESSIONS ||--o{ ACTIVITY_EVENTS : \"physical CASCADE\"\n    SESSIONS ||--o| SESSION_PINS : \"physical CASCADE\"\n    SESSIONS ||--o| SESSION_REFERENCE_SCANS : \"physical CASCADE\"\n    SESSIONS ||--o{ SESSION_REFERENCE_EVIDENCE : \"physical CASCADE\"\n    SESSIONS ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    USAGE_PRICE_SNAPSHOTS ||--o{ USAGE_MODEL_PRICES : \"physical RESTRICT\"\n    USAGE_PRICE_SNAPSHOTS ||--o{ USAGE_RECORDS : \"physical RESTRICT\"\n    CONTEXT_ROOTS o|--o{ CONTEXT_DOCUMENTS : \"physical SET_NULL\"\n    WORKSTREAMS ||--o{ THREADS : \"physical CASCADE\"\n    WORKSTREAMS ||--o{ WORKSTREAM_LINKS : \"physical CASCADE\"\n    WORKSTREAMS ||--o{ CHECKPOINTS : \"physical CASCADE\"\n    WORKSTREAMS o|--o{ MAINTENANCE_RUNS : \"physical SET_NULL\"\n    MAINTENANCE_RUNS ||--o| EXTERNAL_SYNC_RUNS : \"physical CASCADE\"\n    EXTERNAL_RESOURCES ||--o| ATLASSIAN_ITEMS : \"physical CASCADE 1:1\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_SITE_BINDINGS : \"physical CASCADE\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_SPACES : \"physical RESTRICT\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_ITEMS : \"physical RESTRICT\"\n    ATLASSIAN_SPACES o|--o{ ATLASSIAN_ITEMS : \"physical SET_NULL\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_URLS : \"physical composite CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_REMOTE_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_CONTENT : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_LOCAL_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_CLASSIFICATIONS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    SESSIONS ||--o{ ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE composite unique\"\n    CONTEXT_DOCUMENTS ||--o| ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE unique\"\n    SESSIONS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    CONTEXT_DOCUMENTS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_STRUCTURE_REFERENCES : \"physical RESTRICT\"\n    ATLASSIAN_STRUCTURE_REFERENCES ||--o{ ATLASSIAN_STRUCTURE_REFERENCE_URLS : \"physical composite CASCADE\"\n    ATLASSIAN_STRUCTURE_REFERENCES ||--o{ ATLASSIAN_STRUCTURE_REFERENCE_EVIDENCE : \"physical CASCADE\"\n    SESSIONS ||--o{ ATLASSIAN_STRUCTURE_REFERENCE_EVIDENCE : \"physical CASCADE\"\n    CONTEXT_DOCUMENTS ||--o{ ATLASSIAN_STRUCTURE_REFERENCE_EVIDENCE : \"physical CASCADE\"\n    CONTEXT_DOCUMENTS ||--o{ SESSION_REFERENCE_EVIDENCE : \"physical CASCADE target\"\n    ATLASSIAN_ITEMS ||--o{ SESSION_REFERENCE_EVIDENCE : \"physical CASCADE target\"\n    SESSIONS o|--o{ WORKFLOW_ASSERTIONS : \"physical source lookup SET_NULL\"\n    SESSIONS o|--o{ WORKFLOW_ASSERTIONS : \"physical target lookup SET_NULL\"\n    WORKFLOW_ASSERTIONS o|--o| WORKFLOW_ASSERTIONS : \"physical supersedes RESTRICT\"\n    THREADS ||--o{ THREAD_LINKS : \"physical CASCADE\"\n    THREADS o|--o{ CHECKPOINT_RESOURCE_REFS : \"physical SET_NULL\"\n    CHECKPOINTS ||--o{ CHECKPOINT_RESOURCE_REFS : \"physical CASCADE\"\n\n    SOURCE_FILES ||..o| SESSIONS : \"app source_path\"\n    SOURCES ||--o{ SKILL_OBSERVATIONS : \"physical NO_ACTION retained evidence\"\n    SESSIONS o|..o{ SKILL_OBSERVATIONS : \"app current native Session\"\n    PERSONAL_INSIGHT_RUNS o|..o| SESSIONS : \"app usage accounting\"\n    SOURCE_FILES ||..o| CONTEXT_DOCUMENTS : \"app path\"\n    WORKSPACES o|..o{ USAGE_RECORDS : \"app frozen snapshot\"\n    WORKSTREAM_LINKS }o..o| SESSIONS : \"app session target\"\n    WORKSTREAM_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document target\"\n    WORKSTREAM_LINKS }o..o| WORKSPACES : \"app project target\"\n    WORKSTREAM_LINKS }o..o| EXTERNAL_RESOURCES : \"app external target\"\n    WORKSTREAM_LINKS }o..o| LOCAL_RESOURCES : \"app local target\"\n    THREAD_LINKS }o..o| SESSIONS : \"app session target\"\n    THREAD_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document target\"\n    THREAD_LINKS }o..o| WORKSPACES : \"app project target\"\n    THREAD_LINKS }o..o| EXTERNAL_RESOURCES : \"app external target\"\n    THREAD_LINKS }o..o| LOCAL_RESOURCES : \"app local target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| SESSIONS : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| CONTEXT_DOCUMENTS : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| WORKSPACES : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| EXTERNAL_RESOURCES : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| LOCAL_RESOURCES : \"app snapshot target\"\n    SUGGESTIONS }o..o| WORKSTREAMS : \"app target\"\n    SUGGESTIONS }o..o| THREADS : \"app target\"\n    SUGGESTIONS }o..o| MAINTENANCE_RUNS : \"app origin\"\n    WORKFLOW_ASSERTIONS }o..o{ SESSIONS : \"app stable Episode identity\"\n    SEARCH_INDEX }o..o| SESSIONS : \"app projection\"\n    SEARCH_INDEX }o..o| CONTEXT_DOCUMENTS : \"app projection\"\n    SEARCH_INDEX }o..o| ATLASSIAN_ITEMS : \"app indexed projection\"\n    SEARCH_INDEX o|..o| ATLASSIAN_STRUCTURE_REFERENCES : \"app indexed projection\"\n"
+    "mermaid": "erDiagram\n    SOURCES { integer id PK }\n    SOURCE_FILES { integer id PK }\n    EXTERNAL_SOURCE_INSTANCES { integer id PK }\n    EXTERNAL_SOURCE_CAPABILITIES { integer source_instance_id PK }\n    WORKSPACES { integer id PK }\n    SESSIONS { integer id PK }\n    ACTIVITY_EVENTS { string id PK }\n    SKILL_OBSERVATIONS { string id PK }\n    SESSION_PINS { integer session_id PK }\n    SESSION_CHART_PREFERENCES { string source_scope PK string workspace_scope PK }\n    SESSION_REFERENCE_SCANS { integer session_id PK }\n    SESSION_REFERENCE_EVIDENCE { integer id PK }\n    USAGE_PRICE_SNAPSHOTS { string id PK }\n    USAGE_MODEL_PRICES { string snapshot_model PK }\n    USAGE_RECORDS { string id PK }\n    CONTEXT_ROOTS { integer id PK }\n    CONTEXT_DOCUMENTS { integer id PK }\n    WORKSTREAMS { integer id PK }\n    THREADS { integer id PK }\n    WORKSTREAM_LINKS { integer id PK }\n    THREAD_LINKS { integer id PK }\n    LOCAL_RESOURCES { integer id PK }\n    EXTERNAL_RESOURCES { integer id PK }\n    ATLASSIAN_SITES { integer id PK }\n    ATLASSIAN_SITE_BINDINGS { integer id PK }\n    ATLASSIAN_SPACES { integer id PK }\n    ATLASSIAN_ITEMS { integer external_resource_id PK }\n    ATLASSIAN_ITEM_URLS { integer id PK }\n    ATLASSIAN_ITEM_REMOTE_STATE { integer external_resource_id PK }\n    ATLASSIAN_ITEM_CONTENT { integer external_resource_id PK }\n    ATLASSIAN_ITEM_LOCAL_STATE { integer external_resource_id PK }\n    ATLASSIAN_CLASSIFICATIONS { integer id PK }\n    ATLASSIAN_ITEM_CLASSIFICATIONS { integer external_resource_id PK integer classification_id PK }\n    ATLASSIAN_EVIDENCE_SCANS { integer id PK }\n    ATLASSIAN_ITEM_EVIDENCE { integer id PK }\n    ATLASSIAN_STRUCTURE_REFERENCES { integer id PK }\n    ATLASSIAN_STRUCTURE_REFERENCE_URLS { integer id PK }\n    ATLASSIAN_STRUCTURE_REFERENCE_EVIDENCE { integer id PK }\n    SUGGESTIONS { integer id PK }\n    CHECKPOINTS { integer id PK }\n    CHECKPOINT_RESOURCE_REFS { integer id PK }\n    MAINTENANCE_RUNS { string id PK }\n    EXTERNAL_SYNC_RUNS { string maintenance_run_id PK }\n    PERSONAL_INSIGHT_RUNS { string id PK }\n    WORKFLOW_ASSERTIONS { integer id PK string boundary_key UK integer boundary_version UK string source_episode_key string target_episode_key integer supersedes_assertion_id FK }\n    LEARNING_LESSONS { integer id PK string lesson_key UK string revision UK }\n    LEARNING_ATTEMPTS { integer id PK integer lesson_id FK string submission_key UK }\n    LEARNING_VISIBILITY { string lesson_key PK }\n    SEARCH_INDEX { string entity_key \"derived\" }\n\n    SOURCES ||--o{ SOURCE_FILES : \"physical CASCADE\"\n    SOURCES ||--o{ SESSIONS : \"physical CASCADE\"\n    SOURCES ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    SOURCES ||--o{ CONTEXT_DOCUMENTS : \"physical CASCADE\"\n    SESSIONS o|--o{ SOURCE_FILES : \"physical SET_NULL mapping\"\n    EXTERNAL_SOURCE_INSTANCES ||--o| EXTERNAL_SOURCE_CAPABILITIES : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_SITES : \"physical SET_NULL compatibility\"\n    EXTERNAL_SOURCE_INSTANCES ||--o{ ATLASSIAN_SITE_BINDINGS : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_SPACES : \"physical SET_NULL access\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ ATLASSIAN_ITEMS : \"physical SET_NULL access\"\n    EXTERNAL_SOURCE_INSTANCES o|--o{ EXTERNAL_SYNC_RUNS : \"physical SET_NULL\"\n    WORKSPACES o|--o{ SESSIONS : \"physical SET_NULL\"\n    WORKSPACES o|--o{ CONTEXT_DOCUMENTS : \"physical SET_NULL\"\n    MAINTENANCE_RUNS o|--o| SESSIONS : \"physical SET_NULL unique\"\n    SESSIONS o|--o{ SESSIONS : \"physical parent SET_NULL\"\n    SESSIONS ||--o{ ACTIVITY_EVENTS : \"physical CASCADE\"\n    SESSIONS ||--o| SESSION_PINS : \"physical CASCADE\"\n    SESSIONS ||--o| SESSION_REFERENCE_SCANS : \"physical CASCADE\"\n    SESSIONS ||--o{ SESSION_REFERENCE_EVIDENCE : \"physical CASCADE\"\n    SESSIONS ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    USAGE_PRICE_SNAPSHOTS ||--o{ USAGE_MODEL_PRICES : \"physical RESTRICT\"\n    USAGE_PRICE_SNAPSHOTS ||--o{ USAGE_RECORDS : \"physical RESTRICT\"\n    CONTEXT_ROOTS o|--o{ CONTEXT_DOCUMENTS : \"physical SET_NULL\"\n    WORKSTREAMS ||--o{ THREADS : \"physical CASCADE\"\n    WORKSTREAMS ||--o{ WORKSTREAM_LINKS : \"physical CASCADE\"\n    WORKSTREAMS ||--o{ CHECKPOINTS : \"physical CASCADE\"\n    WORKSTREAMS o|--o{ MAINTENANCE_RUNS : \"physical SET_NULL\"\n    MAINTENANCE_RUNS ||--o| EXTERNAL_SYNC_RUNS : \"physical CASCADE\"\n    EXTERNAL_RESOURCES ||--o| ATLASSIAN_ITEMS : \"physical CASCADE 1:1\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_SITE_BINDINGS : \"physical CASCADE\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_SPACES : \"physical RESTRICT\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_ITEMS : \"physical RESTRICT\"\n    ATLASSIAN_SPACES o|--o{ ATLASSIAN_ITEMS : \"physical SET_NULL\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_URLS : \"physical composite CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_REMOTE_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_CONTENT : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o| ATLASSIAN_ITEM_LOCAL_STATE : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_CLASSIFICATIONS ||--o{ ATLASSIAN_ITEM_CLASSIFICATIONS : \"physical CASCADE\"\n    ATLASSIAN_ITEMS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    SESSIONS ||--o{ ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE composite unique\"\n    CONTEXT_DOCUMENTS ||--o| ATLASSIAN_EVIDENCE_SCANS : \"physical CASCADE unique\"\n    SESSIONS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    CONTEXT_DOCUMENTS ||--o{ ATLASSIAN_ITEM_EVIDENCE : \"physical CASCADE\"\n    ATLASSIAN_SITES ||--o{ ATLASSIAN_STRUCTURE_REFERENCES : \"physical RESTRICT\"\n    ATLASSIAN_STRUCTURE_REFERENCES ||--o{ ATLASSIAN_STRUCTURE_REFERENCE_URLS : \"physical composite CASCADE\"\n    ATLASSIAN_STRUCTURE_REFERENCES ||--o{ ATLASSIAN_STRUCTURE_REFERENCE_EVIDENCE : \"physical CASCADE\"\n    SESSIONS ||--o{ ATLASSIAN_STRUCTURE_REFERENCE_EVIDENCE : \"physical CASCADE\"\n    CONTEXT_DOCUMENTS ||--o{ ATLASSIAN_STRUCTURE_REFERENCE_EVIDENCE : \"physical CASCADE\"\n    CONTEXT_DOCUMENTS ||--o{ SESSION_REFERENCE_EVIDENCE : \"physical CASCADE target\"\n    ATLASSIAN_ITEMS ||--o{ SESSION_REFERENCE_EVIDENCE : \"physical CASCADE target\"\n    SESSIONS o|--o{ WORKFLOW_ASSERTIONS : \"physical source lookup SET_NULL\"\n    SESSIONS o|--o{ WORKFLOW_ASSERTIONS : \"physical target lookup SET_NULL\"\n    WORKFLOW_ASSERTIONS o|--o| WORKFLOW_ASSERTIONS : \"physical supersedes RESTRICT\"\n    THREADS ||--o{ THREAD_LINKS : \"physical CASCADE\"\n    THREADS o|--o{ CHECKPOINT_RESOURCE_REFS : \"physical SET_NULL\"\n    CHECKPOINTS ||--o{ CHECKPOINT_RESOURCE_REFS : \"physical CASCADE\"\n\n    LEARNING_LESSONS ||--o{ LEARNING_ATTEMPTS : \"physical RESTRICT\"\n    LEARNING_VISIBILITY o|..|{ LEARNING_LESSONS : \"app stable lesson key\"\n\n    SOURCE_FILES ||..o| SESSIONS : \"app source_path\"\n    SOURCES ||--o{ SKILL_OBSERVATIONS : \"physical NO_ACTION retained evidence\"\n    SESSIONS o|..o{ SKILL_OBSERVATIONS : \"app current native Session\"\n    PERSONAL_INSIGHT_RUNS o|..o| SESSIONS : \"app usage accounting\"\n    SOURCE_FILES ||..o| CONTEXT_DOCUMENTS : \"app path\"\n    WORKSPACES o|..o{ USAGE_RECORDS : \"app frozen snapshot\"\n    WORKSTREAM_LINKS }o..o| SESSIONS : \"app session target\"\n    WORKSTREAM_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document target\"\n    WORKSTREAM_LINKS }o..o| WORKSPACES : \"app project target\"\n    WORKSTREAM_LINKS }o..o| EXTERNAL_RESOURCES : \"app external target\"\n    WORKSTREAM_LINKS }o..o| LOCAL_RESOURCES : \"app local target\"\n    THREAD_LINKS }o..o| SESSIONS : \"app session target\"\n    THREAD_LINKS }o..o| CONTEXT_DOCUMENTS : \"app document target\"\n    THREAD_LINKS }o..o| WORKSPACES : \"app project target\"\n    THREAD_LINKS }o..o| EXTERNAL_RESOURCES : \"app external target\"\n    THREAD_LINKS }o..o| LOCAL_RESOURCES : \"app local target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| SESSIONS : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| CONTEXT_DOCUMENTS : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| WORKSPACES : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| EXTERNAL_RESOURCES : \"app snapshot target\"\n    CHECKPOINT_RESOURCE_REFS }o..o| LOCAL_RESOURCES : \"app snapshot target\"\n    SUGGESTIONS }o..o| WORKSTREAMS : \"app target\"\n    SUGGESTIONS }o..o| THREADS : \"app target\"\n    SUGGESTIONS }o..o| MAINTENANCE_RUNS : \"app origin\"\n    WORKFLOW_ASSERTIONS }o..o{ SESSIONS : \"app stable Episode identity\"\n    SEARCH_INDEX }o..o| SESSIONS : \"app projection\"\n    SEARCH_INDEX }o..o| CONTEXT_DOCUMENTS : \"app projection\"\n    SEARCH_INDEX }o..o| ATLASSIAN_ITEMS : \"app indexed projection\"\n    SEARCH_INDEX o|..o| ATLASSIAN_STRUCTURE_REFERENCES : \"app indexed projection\"\n"
   },
   "relationships": {
     "application": [
@@ -119,6 +124,14 @@
         "source_table": "checkpoint_resource_refs",
         "target_cardinality": "o|",
         "target_table": "workspaces"
+      },
+      {
+        "enforcement": "application",
+        "label": "app stable lesson key",
+        "source_cardinality": "o|",
+        "source_table": "learning_visibility",
+        "target_cardinality": "|{",
+        "target_table": "learning_lessons"
       },
       {
         "enforcement": "application",
@@ -767,6 +780,19 @@
       },
       {
         "enforcement": "sqlite-foreign-key",
+        "on_delete": "RESTRICT",
+        "on_update": "NO ACTION",
+        "source_columns": [
+          "lesson_id"
+        ],
+        "source_table": "learning_attempts",
+        "target_columns": [
+          "id"
+        ],
+        "target_table": "learning_lessons"
+      },
+      {
+        "enforcement": "sqlite-foreign-key",
         "on_delete": "SET NULL",
         "on_update": "NO ACTION",
         "source_columns": [
@@ -1183,6 +1209,17 @@
       "mermaid": "erDiagram\n    SESSIONS { integer id PK }\n    WORKFLOW_ASSERTIONS {\n        integer id PK\n        string boundary_key UK\n        integer boundary_version UK\n        string boundary_kind\n        string assertion_kind\n        boolean is_undo\n        string source_episode_key\n        string target_episode_key\n        integer source_session_id FK\n        integer target_session_id FK\n        integer supersedes_assertion_id FK\n    }\n\n    SESSIONS o|--o{ WORKFLOW_ASSERTIONS : \"physical source lookup SET_NULL\"\n    SESSIONS o|--o{ WORKFLOW_ASSERTIONS : \"physical target lookup SET_NULL\"\n    WORKFLOW_ASSERTIONS o|--o| WORKFLOW_ASSERTIONS : \"physical supersedes RESTRICT\"\n",
       "table_ids": [
         "workflow_assertions"
+      ]
+    },
+    {
+      "document": "docs/policies/project/data-model/personal-learning.md",
+      "id": "personal-learning",
+      "label": "Personal learning",
+      "mermaid": "erDiagram\n    LEARNING_LESSONS { integer id PK string lesson_key UK string revision UK }\n    LEARNING_ATTEMPTS { integer id PK integer lesson_id FK string submission_key UK }\n    LEARNING_VISIBILITY { string lesson_key PK }\n    LEARNING_LESSONS ||--o{ LEARNING_ATTEMPTS : \"physical RESTRICT\"\n    LEARNING_VISIBILITY o|..|{ LEARNING_LESSONS : \"app stable lesson key\"\n",
+      "table_ids": [
+        "learning_lessons",
+        "learning_attempts",
+        "learning_visibility"
       ]
     },
     {
@@ -8616,6 +8653,307 @@
         "schema_ownership": "complete fresh definition plus `idx_workflow_assertions_source_created` and `idx_workflow_assertions_target_created` in `schema.sql`; normal idempotent schema application creates the absent table and indexes on a compatible older database without rewriting existing rows. No backup-backed repair or runtime- only index is required."
       },
       "subject_id": "workflow-assertions"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "INTEGER PRIMARY KEY; immutable local revision identity.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "lesson_key",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "TEXT NOT NULL; curator-owned ASCII key, 1–80 characters.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "revision",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "TEXT NOT NULL; 64-character SHA-256 of normalized canonical packet JSON.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "title",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "TEXT NOT NULL; validated bounded title copied from the packet for listing.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "packet_json",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "TEXT NOT NULL; complete immutable lesson, source snapshots and questions; application validates version 1 or 2. Version 2 embeds literal command or full before/after file snapshots, computed hashes, concept/depth/rubric, manual authorship and relevance metadata. No extra SQL table or migration is required for this extension.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "created_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "TEXT NOT NULL; application-written UTC ISO timestamp of first import.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [
+          "length(revision) = 64"
+        ],
+        "documented": "UNIQUE(lesson_key, revision), 64-character revision CHECK. Application",
+        "primary_key": [
+          "id"
+        ],
+        "unique": [
+          [
+            "lesson_key",
+            "revision"
+          ]
+        ]
+      },
+      "foreign_keys": [],
+      "id": "learning_lessons",
+      "indexes": [],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/personal-learning.md",
+      "semantics": {
+        "class": "User-curated and non-rebuildable",
+        "class_contract": "User intent or registration is authoritative and requires database backup for full recovery.",
+        "consumers": "learning home, library, article, source/question reader, attempts and scheduling.",
+        "deletion_effect": "attempts reference the exact revision with RESTRICT; visibility joins the stable key by application. No source deletion cascades into snapshots. Ordinary UI/CLI exposes no lesson deletion or update.",
+        "documented_constraints": "UNIQUE(lesson_key, revision), 64-character revision CHECK. Application",
+        "lifecycle_contract": "user-curated and non-rebuildable. Revisions append; newest inserted ID per key is current. Reimporting an existing revision never rolls back current.",
+        "producers": "`learning_cli.py` through validated `learning.import_packet`.",
+        "purpose_and_authority": "immutable, explicitly reviewed local learning material. The packet holds work rationale, official/source snapshots, version uncertainty, question/answer pairs, optional reviewed article and source references. Review acknowledgment is curator authority, not an automated truth judgment.",
+        "rebuildability": "non-rebuildable",
+        "recovery_path": "restore the private DB backup. An original reviewed packet can restore content but cannot reconstruct IDs, attempt history or visibility choices.",
+        "schema_ownership": "`schema.sql`; ordinary additive startup creates an absent table."
+      },
+      "subject_id": "personal-learning"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "id",
+          "not_null": false,
+          "primary_key_position": 1,
+          "semantic_contract": "INTEGER PRIMARY KEY; local attempt identity.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "lesson_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "Non-null FK to learning_lessons.id, ON DELETE RESTRICT.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "question_id",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "TEXT NOT NULL; stable question key inside the referenced revision.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "submission_key",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "TEXT NOT NULL UNIQUE; bounded idempotency token; replay must match original payload.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "answer",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "TEXT NOT NULL, at most 8,000 characters; empty exactly for reading.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "confidence",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "Nullable TEXT; low/medium/high for answers, NULL for reading.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "0",
+          "name": "hint_used",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "Checked INTEGER 0/1, DEFAULT 0; submitted help report, including an opened hint/additional-code disclosure when JavaScript is available. Practice entered from the home explanation carries `from_note=1` and forces 1 on answer submission, including without JavaScript; always 0 for reading.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "outcome",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "TEXT NOT NULL; pending/read/again/partial/recalled; no objective correctness claim.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "submitted_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "TEXT NOT NULL; immutable UTC ISO submission timestamp.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "assessed_at",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "Nullable UTC ISO completion time; NULL exactly while pending.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [
+          "length(answer) <= 8000",
+          "confidence IN ('low', 'medium', 'high')",
+          "hint_used IN (0, 1)",
+          "outcome IN ('pending', 'read', 'again', 'partial', 'recalled')",
+          "(outcome = 'read' AND answer = '' AND confidence IS NULL AND hint_used = 0) OR (outcome != 'read' AND length(trim(answer)) > 0 AND confidence IS NOT NULL)",
+          "(outcome = 'pending' AND assessed_at IS NULL) OR (outcome != 'pending' AND assessed_at IS NOT NULL)"
+        ],
+        "documented": "UNIQUE submission_key; bounded answer; checked confidence, hint and",
+        "primary_key": [
+          "id"
+        ],
+        "unique": [
+          [
+            "submission_key"
+          ]
+        ]
+      },
+      "foreign_keys": [
+        {
+          "on_delete": "RESTRICT",
+          "on_update": "NO ACTION",
+          "source_columns": [
+            "lesson_id"
+          ],
+          "target_columns": [
+            "id"
+          ],
+          "target_table": "learning_lessons"
+        }
+      ],
+      "id": "learning_attempts",
+      "indexes": [
+        {
+          "columns": [
+            {
+              "descending": false,
+              "name": "lesson_id"
+            },
+            {
+              "descending": false,
+              "name": "submitted_at"
+            }
+          ],
+          "name": "idx_learning_attempts_lesson_time",
+          "partial": false,
+          "unique": false
+        }
+      ],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/personal-learning.md",
+      "semantics": {
+        "class": "User-curated and non-rebuildable",
+        "class_contract": "User intent or registration is authoritative and requires database backup for full recovery.",
+        "consumers": "reader/history and deterministic daily selection/review scheduling.",
+        "deletion_effect": "non-null lesson FK uses ON DELETE RESTRICT, retaining question and source revision. `question_id` application-resolves inside that revision's packet. No relationship to source cleanup or model training.",
+        "documented_constraints": "UNIQUE submission_key; bounded answer; checked confidence, hint and",
+        "lifecycle_contract": "user-curated and non-rebuildable. Answers are immutable; only pending outcome transitions once to again/partial/recalled with assessed time. Reading is born completed. Same-token identical replay is idempotent.",
+        "producers": "local same-origin learning POST handlers through `learning.py`.",
+        "purpose_and_authority": "durable personal response and confidence, followed by exactly one self-assessment, or an explicit explanation-first reading record.",
+        "rebuildability": "non-rebuildable",
+        "recovery_path": "restore DB backup; source reingestion cannot recreate personal answers.",
+        "schema_ownership": "`schema.sql` and `idx_learning_attempts_lesson_time`; additive startup."
+      },
+      "subject_id": "personal-learning"
+    },
+    {
+      "columns": [
+        {
+          "default_sql": null,
+          "name": "lesson_key",
+          "not_null": true,
+          "primary_key_position": 1,
+          "semantic_contract": "TEXT PRIMARY KEY NOT NULL; stable key validated against an existing revision.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": "0",
+          "name": "hidden",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "Checked INTEGER 0/1 NOT NULL DEFAULT 0; explicit hide/restore choice.",
+          "type": "INTEGER"
+        },
+        {
+          "default_sql": null,
+          "name": "snoozed_until",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "Nullable configured-local ISO date; tomorrow on snooze, NULL on hide/restore.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "updated_at",
+          "not_null": true,
+          "primary_key_position": 0,
+          "semantic_contract": "TEXT NOT NULL; UTC ISO timestamp of latest explicit choice.",
+          "type": "TEXT"
+        }
+      ],
+      "constraints": {
+        "checks": [
+          "hidden IN (0, 1)"
+        ],
+        "documented": "primary key and hidden boolean CHECK. Application admits only snooze,",
+        "primary_key": [
+          "lesson_key"
+        ],
+        "unique": []
+      },
+      "foreign_keys": [],
+      "id": "learning_visibility",
+      "indexes": [],
+      "kind": "ordinary",
+      "semantic_document": "docs/policies/project/data-model/personal-learning.md",
+      "semantics": {
+        "class": "User-curated and non-rebuildable",
+        "class_contract": "User intent or registration is authoritative and requires database backup for full recovery.",
+        "consumers": "daily selection and library controls; no effect on saved answers.",
+        "deletion_effect": "application joins lesson_key across revisions. There is no FK to a non-unique revision key, cascade or source ownership dependency.",
+        "documented_constraints": "primary key and hidden boolean CHECK. Application admits only snooze,",
+        "lifecycle_contract": "user-curated and non-rebuildable. Upsert on explicit action; revisions inherit existing visibility. Restore clears hidden and snoozed state.",
+        "producers": "local same-origin visibility POST through `learning.set_visibility`.",
+        "purpose_and_authority": "reversible personal hiding/snoozing of a stable lesson.",
+        "rebuildability": "non-rebuildable",
+        "recovery_path": "restore DB backup or explicitly repeat visibility choices.",
+        "schema_ownership": "`schema.sql`; additive startup, no explicit secondary index."
+      },
+      "subject_id": "personal-learning"
     },
     {
       "columns": [

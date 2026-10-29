@@ -42,7 +42,7 @@
   - 920: `905/905`, six-object area rail/table layout and focused SVG visible.
   - 700: `685/685`, three-object area, selected `usage_facts`, full long detail contained.
   - 320: `320/320`, all nine model links, selected table, SVG, and sequential detail contained.
-- Rendered captures were written only under `/tmp/localbrain-feat28-browser-qa-final-evidence`; none entered the repository.
+- Rendered captures were written only to task-owned temporary storage outside Git; none entered the repository.
 - Design Constitution now owns eight stable destinations and lists Schema in the Explorer family; governance records version v6.
 
 ## Evidence Gaps

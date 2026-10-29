@@ -14,16 +14,39 @@ and not notarized; its first-launch procedure does not establish public-release
 readiness. The [test distribution guide](standalone-test-app-guide.md) owns that
 artifact's launch requirements and recipient-verification limits.
 
-The product has two equal goals:
+The current learning-home direction prioritizes understanding gained from the
+user's own work. The product goals are:
 
-1. **Continuity:** answer where work stopped, what is currently known, and what should happen next.
-2. **Insights:** show which tools, projects, technologies, and work patterns occupy the user's attention.
+1. **Learning:** connect work observations to reliable explanations, independent
+   recall and later application, gradually reducing gaps in technical understanding.
+2. **Continuity:** answer where work stopped, what is currently known, and what should happen next.
+3. **Insights:** show which tools, projects, technologies, and work patterns occupy the user's attention.
 
-LocalBrain is not only a chat history viewer, note-taking app, activity dashboard, or mirror of company systems. Its primary responsibility is to preserve relationships between work artifacts and maintain a reliable restart point.
+Preserved work evidence supports learning and a reliable restart point. Personal
+answers, reviewed source evidence and confirmed work organization retain their
+separate meanings and ownership.
 
 ## Product Principles
 
-### Workstream First
+### Learning Home
+
+Dashboard shows the daily code/command scene in **오늘의 배움** as a work-based
+technical article. Preserved code, connected explanatory sections, application
+criteria and official references precede an optional question. Opening the article creates no learning record; an explicit
+reading action stores `read`, and note-origin answers are assisted practice.
+The library owns selection guidance and the reader exposes complete source evidence. It proposes at most one
+reviewed scene total per local day, prioritizing earlier pending work, due reviews,
+then new material under the [scene policy](code-command-learning.md). The library and reader connect personal
+work evidence to official material, answer/confidence, explanation-first reading
+and self-assessment. Code remains beside the question and feedback on desktop and
+precedes them on compact screens. Concept depth and optional practice use explicit
+self-reports; authoring is currently manual. Workstreams retain their dedicated organization routes.
+The [learning policy](work-grounded-learning.md) owns source snapshots, immutable
+revisions, review intervals, visibility and the no-generator pilot boundary.
+Reading, AI-authored changes and self-assessment do not establish correctness or
+mastery; delayed independent explanation and transfer remain benefit evidence.
+
+### Workstream-Centered Organization
 
 The primary organization unit is a **Workstream**, not a session, directory, repository, ticket, or daily note. A Workstream represents one user-defined area of work and may span any number of local and external sources.
 
@@ -34,6 +57,10 @@ Workstreams are created and named by the user. LocalBrain may suggest relationsh
 ### Automatic Capture, Explicit Organization
 
 Raw activity should require little manual effort. Workstream assignments, resource links, and checkpoint drafts may be suggested automatically, but they remain pending until accepted. Rejected Suggestions remain reviewable and can be restored.
+
+### Transient Context Questions
+
+[Context Search](context-search.md) answers explicit questions over enabled Local Contexts and already received Drive copies using local4B/8B models and read-only tools. It is separate from Session/semantic search and needs no embedding preparation. Evidence stays inspectable; folder publishers do not automatically become document authors or contacts. Same-screen follow-ups are transient and clear on leaving, with no saved answer schema or automatic organizational change. Public model originals and app-private execution state have separate owners.
 
 ### Preserve Provenance And Uncertainty
 
@@ -371,7 +398,7 @@ Bounded database-backed state families use the executable value registry as thei
 ### Application Navigation And Session Inventory
 
 The standalone test edition exposes Sessions, Sessions Dashboard, Local Context,
-search, first-run setup and categorized settings. Its menu, HTTP and runtime
+search, Context Search, first-run setup, categorized settings and bundled Docs. Its menu, HTTP and runtime
 boundaries exclude Dashboard/learning, Workstreams, Auto Work, Atlassian, Insights,
 Session workflow and Schema. The broader navigation below describes development
 web. Both editions use the [common local settings contract](desktop-app-and-settings.md),
@@ -725,13 +752,24 @@ artifacts retain `Item` where it is the stable engineering identity.
 
 ### Dashboard
 
-The primary Dashboard should summarize current work rather than duplicate session statistics. It prioritizes active or interrupted Workstreams and should surface:
-
-- current goal and Thread state
-- recent activity and source changes
-- unresolved next action or blocker
-- checkpoint freshness
-- evidence requiring review or organization
+The primary Dashboard shows one **오늘의 배움** article. Its title, introduction,
+preserved code, numbered explanatory sections and takeaway form a continuous
+reading surface. A contents/References rail sits alongside on desktop; compact
+screens place references below the article. A labeled, numbered code excerpt uses
+the native dark reading surface, mono type and safe local syntax highlighting.
+Section references connect explanations to their sources. A collapsed optional
+question follows the takeaway. Reading width is bounded; the original page
+heading remains. The library opens `/learning/{id}/note` for reviewed articles,
+and the source/question reader links back to the same article. Lessons without
+an article retain their complete explanation and existing library/reader entry.
+Selection-reason, recent-work and evidence widgets are absent from Dashboard.
+Source titles, checked dates, declared versions, review responsibility and
+applicability accompany the article; complete evidence remains in the library/reader.
+With no selected lesson the empty state links to the library.
+The finite daily selection follows [Learning Home](#learning-home). Additional
+widgets require a separate product decision. Widget movement, resizing and
+user-saved layouts are not available. Workstream goals, Thread state,
+blockers and checkpoints remain available on their existing dedicated surfaces.
 
 Session activity and usage statistics belong to the separate Sessions Dashboard.
 
@@ -920,11 +958,15 @@ Included in the local MVP:
 Deferred until explicitly planned:
 
 - broad external-source ingestion and write-back
-- cloud sync and multi-user collaboration
+- other cloud sync and multi-user collaboration; approved selected Google Drive transfer follows [its own contract](google-drive-sync.md)
 - mobile support
 - automatic semantic linking across every source
 - mandatory external AI or embedding APIs
 - native macOS packaging before workflow validation
+
+### Selected Google Drive Transfer
+
+[Google Drive synchronization](google-drive-sync.md) is managed in a separate Settings tab. User-selected local filesystem contexts publish into the configured root, and selected publisher folders receive into private external-source storage. The source is authoritative in each direction; stop preserves copies, while confirmed active-source deletion follows Drive Trash/outgoing and direct local removal/incoming rules. This transfer adds no model, search membership, organization-sharing controls or shared database replication.
 
 ## Success Criteria
 

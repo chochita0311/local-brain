@@ -1,7 +1,7 @@
 <!-- Generated from src/localbrain/value-registry.json by scripts/build-data-model-value-dictionaries.py. Do not edit. -->
 # Data Model Value Dictionaries
 
-This index projects the executable bounded-value authority into ten subject-owned dictionaries. The existing subject catalogs continue to own tables, columns, relationships, lifecycle, deletion, and recovery.
+This index projects the executable bounded-value authority into eleven subject-owned dictionaries. The existing subject catalogs continue to own tables, columns, relationships, lifecycle, deletion, and recovery.
 
 ## Presentation Modes
 
@@ -24,6 +24,7 @@ A family never mixes modes. Runtime code loads `src/localbrain/value-registry.js
 | Review and resume continuity | 4 | 1 | [Open](value-dictionaries/review-and-resume-continuity.md) |
 | Maintenance execution | 11 | 1 | [Open](value-dictionaries/maintenance-execution.md) |
 | Workflow assertions | 6 | 1 | [Open](value-dictionaries/workflow-assertions.md) |
+| Personal learning | 14 | 1 | [Open](value-dictionaries/personal-learning.md) |
 | Derived retrieval index | 1 | 1 | [Open](value-dictionaries/derived-retrieval-index.md) |
 
 ## Verification

@@ -146,6 +146,7 @@ from .personal_insight_runs import (
     start_insight_run,
 )
 from .markdown import render_markdown
+from .learning_web import install_routes as install_learning_routes, render_home
 from .subagents import list_subagents, load_subagent
 from .usage_queries import usage_dashboard_data
 from .value_registry import display_value_label, visible_value_help
@@ -156,7 +157,6 @@ from .workstreams import (
     create_local_resource,
     create_thread,
     create_workstream,
-    dashboard_overview,
     entity_memberships,
     generate_suggestions,
     get_workstream,
@@ -314,9 +314,22 @@ async def lifespan(app: FastAPI):
         app.state.context_sync.start()
         from .model_setup import ModelSetupService
         app.state.model_setup = ModelSetupService(settings, app.state.natural_search)
+        from .google_drive.service import DriveService
+        from .google_drive.policy import DriveError
+        try:
+            app.state.google_drive = DriveService(settings)
+            app.state.google_drive.start()
+        except (DriveError, OSError, sqlite3.DatabaseError):
+            # Drive state failure must not take unrelated local sources offline.
+            app.state.google_drive = None
+        from .context_search.service import ContextSearchService
+        app.state.context_search = ContextSearchService(settings, app.state.google_drive.store if app.state.google_drive else None)
         try:
             yield
         finally:
+            await run_in_threadpool(app.state.context_search.stop)
+            if app.state.google_drive is not None:
+                await run_in_threadpool(app.state.google_drive.stop)
             await run_in_threadpool(app.state.model_setup.stop)
             await run_in_threadpool(app.state.context_sync.stop)
             await run_in_threadpool(app.state.session_sync.stop)
@@ -360,6 +373,11 @@ templates.env.filters["project_path"] = lambda path: home_relative_path(path) or
 from .settings_web import install_settings_routes
 from .app_docs import install_routes as install_app_docs_routes
 install_settings_routes(app, templates)
+from .google_drive_web import install_routes as install_google_drive_routes
+install_google_drive_routes(app)
+from .context_search.web import install_routes as install_context_search_routes
+install_context_search_routes(app, templates)
+install_learning_routes(app, templates)
 install_app_docs_routes(app, templates)
 
 
@@ -424,16 +442,7 @@ def dashboard(request: Request):
     if DESKTOP:
         values = effective_preferences()
         return RedirectResponse("/" + values["startup_screen"] if values["onboarding_completed"] else "/onboarding", status_code=303)
-    with connect() as connection:
-        overview = dashboard_overview(connection)
-    return templates.TemplateResponse(
-        "dashboard.html",
-        {
-            "request": request,
-            "active_page": "dashboard",
-            **overview,
-        },
-    )
+    return render_home(request, templates)
 
 
 @app.get("/sessions-dashboard", response_class=HTMLResponse)

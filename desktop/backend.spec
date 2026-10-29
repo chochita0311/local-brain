@@ -11,7 +11,9 @@ portable_hooks = write_sysconfig_hook(workpath)
 metadata = []
 for distribution in ('torch', 'transformers', 'huggingface-hub', 'sentence-transformers', 'tokenizers', 'safetensors', 'numpy', 'scikit-learn', 'tqdm', 'regex', 'requests', 'packaging', 'filelock', 'pyyaml', 'truststore'):
     metadata += copy_metadata(distribution)
-datas = collect_data_files('localbrain') + collect_data_files('latex2mathml') + metadata
+datas = collect_data_files('localbrain', excludes=['**/google-oauth-client.json']) + collect_data_files('latex2mathml') + metadata
+# Google CLI stays installed on each user PC; no Client or credentials are bundled.
+
 hidden = ['uvicorn.logging', 'uvicorn.loops.auto', 'uvicorn.protocols.http.auto',
           'uvicorn.protocols.websockets.auto', 'uvicorn.lifespan.on', 'tokenizers',
           'transformers.models.qwen3.modeling_qwen3', 'transformers.models.qwen3.configuration_qwen3',

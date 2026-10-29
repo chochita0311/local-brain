@@ -555,7 +555,17 @@
     $('[data-model-action="install"]').disabled = model.running || model.runtime_missing.length > 0;
     $('[data-model-action="install"]').textContent = model.installed ? '다시 다운로드' : model.phase === 'canceled' || model.phase === 'failed' ? '다운로드 재개' : '모델 다운로드';
     $('[data-model-action="prepare"]').disabled = !model.installed || model.running || model.phase === 'preparing';
-    $('[data-model-action="cancel"]').hidden = !model.running && model.phase !== 'preparing';
+    $('[data-model-action="cancel"]').hidden = !(model.running && model.active_key === 'embedding') && model.phase !== 'preparing';
+    for (const item of model.generation_models || []) {
+      const missing = model.generation_runtime_missing || model.runtime_missing;
+      const card = $(`[data-generation-model="${item.key}"]`);
+      const phases = {downloading: '모델 다운로드 중', verifying: '공용 캐시 파일 검증 중', installed: '앱 연결 완료', canceled: '중단됨 · 다시 시도할 수 있습니다', failed: '설치 실패 · 연결과 저장공간을 확인한 후 재시도해 주세요'};
+      card.querySelector('[data-generation-status]').textContent = missing.length ? '모델 실행 환경이 필요합니다.' : phases[item.phase] || (item.registered ? '앱에 연결됨 · 사용할 때 파일을 검증합니다' : item.cached ? '공용 캐시에서 발견됨 · 다운로드 없이 연결할 수 있습니다' : '설치 전');
+      const install = card.querySelector('[data-generation-action="install"]');
+      install.disabled = model.running || missing.length > 0;
+      install.textContent = item.registered ? '설치 확인' : item.cached ? '공용 캐시 연결' : ['canceled', 'failed'].includes(item.phase) ? '다운로드 재개' : '모델 다운로드';
+      card.querySelector('[data-generation-action="cancel"]').hidden = !item.running;
+    }
   }
   async function load() {
     const version = ++loadVersion;
@@ -588,6 +598,7 @@
     $$('[data-settings-tab]').forEach(button => {if (button.dataset.settingsTab === name) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current');});
     $('.settings-body').scrollTop = 0;
     if (name === 'storage') execute(loadStorage);
+    document.dispatchEvent(new CustomEvent('localbrain:settings-tab', {detail: name}));
   }
   function renderOnboardingControls() {
     renderSourceControls(); renderContextControls();
@@ -929,6 +940,12 @@
     } else $('[data-context-remove-confirm]', contextRemovalDialog).focus();
   });
   $$('[data-model-action]').forEach(button => button.addEventListener('click', () => execute(async () => {renderModel(await post('/api/settings/model/' + button.dataset.modelAction, {})); message('요청을 적용했습니다. 진행 상태를 확인해 주세요.');}, button)));
+  $$('[data-generation-action]').forEach(button => button.addEventListener('click', () => execute(async () => {
+    const key = button.closest('[data-generation-model]').dataset.generationModel;
+    renderModel(await post('/api/settings/model/' + key + '/' + button.dataset.generationAction, {}));
+    document.dispatchEvent(new CustomEvent('localbrain:models-changed'));
+    message('요청을 적용했습니다. 모델 진행 상태를 확인해 주세요.');
+  }, button)));
   const bytes = value => `${(value / 1024 ** 3).toFixed(2)} GB`;
   async function loadStorage() {
     const data = await api('/api/settings/storage'); const root = $('[data-storage-summary]'); root.replaceChildren();

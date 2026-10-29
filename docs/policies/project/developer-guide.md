@@ -56,12 +56,34 @@ Ordinary app usage belongs to the [bundled user guides](app-documentation.md).
 
 | Workflow | Entry and owning contract |
 | --- | --- |
-| Work organization | Workstreams and Threads; [Product Model](product.md#workstream-first) owns user-created organization, linked resources, checkpoints and reversible Suggestions. [Maintenance Task Runner](../operations/claude-task-runner.md) owns Claude-backed organization, checkpoint and priority tasks. |
+| Reviewed learning | Dashboard and `/learning`; [Work-Grounded Learning](work-grounded-learning.md) owns reviewed imports, attempts and intervals, and [Code And Command Learning](code-command-learning.md) owns exact scenes and question depth. |
+| Work organization | Workstreams and Threads; [Product Model](product.md#workstream-centered-organization) owns user-created organization, linked resources, checkpoints and reversible Suggestions. [Maintenance Task Runner](../operations/claude-task-runner.md) owns Claude-backed organization, checkpoint and priority tasks. |
 | Atlassian references | Atlassian; [Explorer contract](product.md#atlassian-explorer-add-connections-sync-and-refresh) distinguishes local Browse, Add and evidence Sync from Connections and remote Refresh. |
 | Personal improvement | Sessions Dashboard → Insights; [Personal Improvement Analysis](#personal-improvement-analysis) covers configuration and explicit analysis Runs. |
 | Affinity inspection | `/auto-work`; [Auto Work Inspection](product.md#auto-work-inspection) owns the observation-only map and separate earlier sample. |
 | Session workflow | Session detail → `작업 흐름`; [Episode and direction](product.md#workflow-episode-and-direction) and [correction](product.md#workflow-assertion-and-correction) contracts own deterministic lineage and reversible user assertions. |
 | Schema reference | System → Schema; [Schema Presentation](schema-presentation.md) owns read-only access to the packaged data model, subject ERDs and table contracts. |
+
+### Reviewed Learning
+
+Open **Dashboard → 학습 목록** for reviewed lessons. Answer first or choose
+**설명부터 읽을래요**, then compare the explanation and record your own assessment.
+On an article, **읽은 내용을 내 말로 설명해 보기** is optional assisted practice;
+**읽은 내용 기록** explicitly records reading and returns to its originating
+home or article. **내일 보기**, **숨기기** and **다시 표시** change visibility while
+preserving history, without counting as a wrong answer.
+
+Prepare a reviewed JSON packet and import it explicitly:
+
+```bash
+localbrain learning import /path/to/lessons.json --reviewed
+```
+
+Prefix the command with `uv run --no-sync` in a source checkout. The
+[learning contract and synthetic packet](work-grounded-learning.md) and
+[version-2 scene contract](code-command-learning.md) own content, review and
+version conditions; import validates structure rather than factual truth.
+Source collection and embedding search do not generate or update lessons.
 
 ### Search Sessions And Local Context
 
@@ -139,6 +161,10 @@ or provide a native macOS executable.
 Build on an Apple Silicon Mac with Xcode Command Line Tools, Rust stable and
 Node. Recipients do not need these build tools.
 
+Cargo must be available in the build shell's PATH. After a rustup installation,
+open its configured shell or run `source "$HOME/.cargo/env"` before building;
+the build does not rewrite shell profiles. See the [official Rust setup](https://rust-lang.github.io/rustup/installation/).
+
 ```bash
 uv sync --python 3.11 --extra local-models --extra desktop-build --frozen
 npm ci --prefix desktop
@@ -151,6 +177,9 @@ libraries without copying private runtime folders or shared public model weights
 The [desktop runtime contract](desktop-app-and-settings.md#runtime-and-product-boundary)
 owns bundled Python path resolution and rejection of private build paths,
 including compressed Python code. Data and settings stay under each user's home.
+Rust compilation also remaps builder-home, checkout and temporary paths while
+preserving configured compiler flags. The resulting app is scanned before ZIP
+creation; a detected private path fails the build rather than producing a new archive.
 The [test distribution guide](standalone-test-app-guide.md) owns first launch,
 supported-environment evidence, manual replacement and recipient validation.
 Uploading the program ZIP to internal Drive and notifying teammates are separate
@@ -328,7 +357,7 @@ uv run python scripts/build-schema-presentation.py check
 ### Data Model Value Dictionaries
 
 - `src/localbrain/value-registry.json` is the executable authority for bounded physical values, logical axes, complete presentation modes, fallbacks, labels, and visible-consumer inventory.
-- [Value Dictionaries](data-model/value-dictionaries.md) and its ten subject companions are generated projections. Runtime templates and handlers use `localbrain.value_registry`; they do not parse Markdown.
+- [Value Dictionaries](data-model/value-dictionaries.md) and its eleven subject companions are generated projections. Runtime templates and handlers use `localbrain.value_registry`; they do not parse Markdown.
 - A family uses exactly one complete mode: `direct`, `logical-label`, or `internal-only`. If any allowed value needs interpretation, map the complete family. Missing values never fall back to raw tokens.
 - After changing a covered schema constraint, application constant, derived family, boolean-like field, mapping, or visible consumer, rebuild and check:
 
@@ -511,13 +540,13 @@ needed. Shared public checkpoints have a separate lifecycle.
 
 ### Full-History Simulation And Model Trials
 
-The model roles are separate:
+The following table describes simulation and work-reconstruction experiments. [Context Search](context-search.md) separately admits local4B/8B read-only questions; that approval does not admit a rejected work extractor or reconstruction producer. The experimental model roles remain separate:
 
 | Model | Current purpose | Consumer/admission boundary |
 | --- | --- | --- |
 | Qwen3-Embedding-0.6B | Encode source chunks for similarity-based grouping | Prepared embeddings feed the observation-only map; browsing runs no model |
-| Qwen3-4B | Explicit quoted work-context and relationship inference baseline | Frozen candidate remains rejected for admission; no map, private-source or product consumer |
-| Qwen3-8B | Explicit quoted work-context, protocol and source-claim diagnostics | No admitted work extractor or reconstruction producer; no generative map, private-source or product consumer |
+| Qwen3-4B | Explicit quoted work-context and relationship inference baseline | Frozen work-extraction candidate remains rejected; no map or private-history reconstruction consumer |
+| Qwen3-8B | Explicit quoted work-context, protocol and source-claim diagnostics | No admitted work extractor/reconstruction producer or generative map |
 
 These are pretrained models, not locally trained weights or LoRA adapters.
 The installed 4B/8B assets are reusable independently of the embedding cache and
@@ -884,3 +913,9 @@ required for retained results. Standard output is only `EXPERIMENT_RECORDED`
 (exit 0), `EXPERIMENT_FAILED` (exit 2), or `EXPERIMENT_CANCELLED` (exit 130).
 Only explicit `--share-summary` replaces the success code with the non-identifying
 `technical`/`private_quality`/`viability` summary; private payloads never print.
+
+## Google Drive Development
+
+Use [Google CLI authentication and distribution](google-drive-sync.md#google-cli-authentication-and-distribution) for the approved gcloud/full-Drive authentication flow, pinned accounts, SDK credential ownership and live validation boundaries. Run `uv run python -m unittest discover -s tests -p 'test_google_drive*.py' -v` for synthetic sync/transport/scheduler and SDK subprocess tests. These tests use synthetic executable helpers, do not launch real Google login and do not upload developer Contexts or use a real Google account.
+
+Transport tests also own an ephemeral loopback-only HTTP/1.1 server for connection reuse, the eight-connection ceiling, streamed-response cleanup, status/retry and lifecycle checks. It never uses real Google credentials or files and is closed after the test class. Install the base dependencies from the current lock: urllib3 is directly declared for Drive pooling, with a compatible version resolved across the supported Python range. A full suite still does not establish live Google body-transfer timing or native/recipient behavior.

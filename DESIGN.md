@@ -12,7 +12,7 @@ Durable tokens, component contracts, layout rules, state mappings, and implement
 
 The starting point is a screen-plus-context source set:
 
-- **Qoo10 Design System (AI)** supplies upstream palette, typography, spacing, shape, and component cues. It was reviewed through authenticated Figma access during the initial design pass on 2026-07-15. External file identifiers are intentionally not retained here.
+- **Initial upstream design system (AI)** supplies upstream palette, typography, spacing, shape, and component cues. It was reviewed through authenticated Figma access during the initial design pass on 2026-07-15. External file identifiers are intentionally not retained here.
 - **LocalBrain's product policies, routes, templates, and current screens** supply product hierarchy, navigation, data density, state vocabulary, privacy needs, and responsive constraints.
 - **This brief** records the creative interpretation. The constitution records the reconciled rules that survive beyond either source.
 
@@ -49,6 +49,32 @@ The owner-supplied desktop About-dialog reference (2026-10-24) contributes only
 its icon/name/version hierarchy and whitespace. LocalBrain uses its existing LB
 mark and settings family; reference branding, license text and screenshots are
 not product assets. The About pane keeps only identity and the actual version.
+
+### Learning And Technical Reading
+
+The learning home draws on the owner's GeekNews reference for short, finite
+editorial entry points into personal work knowledge. The owner's
+[Qatchup reference](https://styles.refero.design/style/1b010453-80df-406a-8b1a-72630c4a5165)
+supplies independent content panels and breathing room for the widget composition.
+The home uses today's learning widget in one column; selection guidance and
+evidence remain in the library/reader. LocalBrain's shell, colors, typography,
+restrained radii and buttons govern its appearance. The reference supplies no
+widget-editing or content-generation behavior.
+
+The owner's [Chochita Archive technical note](https://chochita0311.github.io/archive/note?id=43)
+(2026-10-17) supplies the reading rhythm of an introduction, code, connected
+explanatory sections and References. The owner rejected the initial short-answer
+composition as shallow. The interpretation is one substantive
+technical article reconstructed from work: explain the mechanism, preserve its
+conditions, and end with criteria the reader can apply. A clear title/deck and
+numbered sections establish the reading hierarchy; a quiet contents/reference
+rail supports desktop reading and references follow the article on compact
+screens. A collapsed optional question follows the takeaway. Code uses the
+existing dark reading surface, language caption, line numbers, mono type and
+syntax palette. Native shell, colors and controls remain authoritative.
+Lesson reading uses the native detail family, keeping question, personal
+response, explanation and evidence distinguishable without scores or streaks.
+This extends the existing typography, neutral surfaces and restrained accent.
 
 ### Sessions Chart Exploration
 

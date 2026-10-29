@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}학습 목록 · LocalBrain{% endblock %}
+{% block page_location %}Dashboard / 학습 목록{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{{ url_for('static', path='/learning.css') }}?v={{ asset_version }}">{% endblock %}
+{% block content %}
+<div class="learning-home">
+  <a class="learning-back" href="/">← Dashboard</a>
+  <header class="page-heading"><div><p class="eyebrow">MY LEARNING</p><h1>업무에서 이어지는 배움</h1><p class="heading-copy">관심 있는 주제를 골라 읽거나, 내 말로 답해보세요.</p></div></header>
+  {% if error %}<p class="learning-error" role="alert">{{ error }}</p>{% endif %}
+  {% if notice %}<p class="learning-notice" role="status">{{ notice }}</p>{% endif %}
+  <div class="learning-list">
+  {% for lesson in lessons %}
+    <article class="learning-row learning-library-row">
+      <div>
+        <p class="learning-meta">{{ lesson.topic }} · {{ lesson.questions|length }}개의 질문 · {{ value_label("learning.hidden", lesson.hidden) }}{% if lesson.snoozed %} · {{ lesson.snoozed_until }}까지 미룸{% endif %}</p>
+        <h2><a href="/learning/{{ lesson.id }}{% if lesson.article %}/note{% endif %}">{{ lesson.title }}</a></h2>
+        <p class="learning-why">{{ lesson.why }}</p>
+        {% if lesson.scene %}<p class="learning-meta">{{ value_label("learning.scene-kind", lesson.scene.kind) }} · {{ value_label("learning.scene-origin", lesson.scene.origin) }} · 다음 질문: {{ value_label("learning.depth", lesson.question.depth) }}</p><p class="learning-muted">{{ lesson.selection.reason }}</p>{% endif %}
+        <p class="learning-meta">{{ value_label("learning.reviewer", lesson.get('reviewed_by', 'unspecified')) }} · {{ value_label("learning.version-status", lesson.version_status) }}</p>
+        <details class="learning-details"><summary>연결된 근거 {{ lesson.sources|length }}개</summary><ul class="learning-library-sources">
+          {% for source in lesson.sources %}<li><a href="/learning/{{ lesson.id }}#source-{{ source.id }}">{{ source.title }}</a><span>{{ value_label("learning.source-kind", source.kind) }} · 확인 {{ source.checked_on }} · 버전 {{ source.version }}</span></li>{% endfor %}
+        </ul></details>
+        <p class="learning-meta">{% if lesson.pending %}<a href="/learning/{{ lesson.id }}?attempt={{ lesson.pending }}">자기 평가 이어하기</a> · {% endif %}{% if lesson.schedule.due %}다음 복습 {{ lesson.schedule.due }} · 자기 평가에 따른 일정{% else %}아직 학습 기록이 없습니다{% endif %}</p>
+      </div>
+      <form class="learning-actions" method="post" action="/learning/{{ lesson.id }}/visibility">
+        {% if lesson.hidden or lesson.snoozed %}<button class="secondary-button" name="action" value="restore">다시 표시</button>{% else %}<button class="secondary-button" name="action" value="snooze">내일 보기</button><button class="secondary-button" name="action" value="hide">숨기기</button>{% endif %}
+      </form>
+    </article>
+  {% else %}
+    <section class="learning-empty"><h2>아직 준비된 수업이 없습니다</h2><p>업무 기록 한 가지와 그 동작을 설명하는 공식 자료를 연결해 첫 수업을 준비합니다. 질문과 출처를 확인한 수업 파일을 가져올 수 있습니다.</p>
+    </section>
+  {% endfor %}
+  </div>
+  <details class="learning-preparation" id="learning-selection"><summary>질문은 어떻게 고르고, 얼마나 깊게 묻나요?</summary><div>
+    <p>하루 한 장면을 제안합니다. 이전 답변 이어보기 → 복습할 수업 → 새 수업 순입니다. 복습은 도움이 필요했던 기록과 오래된 날짜를 먼저 보고, 새 수업은 요청한 주제 → 반복 작업 → 최근 작업 → 일반 주제 순으로 고릅니다. 작업 근거와 선정 이유는 현재 작성자가 확인해 기록합니다.</p>
+    <p>코드·명령 수업은 개념별로 역할·흐름 이해 → 결과 예측 → 조건 변경 적용으로 깊어집니다. 해당 단계에서 도움 없이 설명할 수 있었다는 자기 평가가 서로 다른 이전 응답일에 두 번 이어지면 다음 단계의 질문을 제안합니다. 읽기·도움 사용·다시 보기·일부 설명 기록은 이 횟수를 다시 시작합니다. 같은 날 설명 공개 뒤의 추가 연습은 독립 답변으로 포함하지 않습니다. 숙련도 판정이나 자동 채점은 아닙니다.</p>
+    <p>처음 보는 내용은 설명부터 읽을 수 있고, 다른 질문은 선택해서 더 풀 수 있습니다. 현재 복습 간격은 자기 평가에 따라 1·3·7·21일을 쓰는 초기 규칙입니다. 질문 수와 간격이 학습 효과를 입증한 최적값은 아닙니다. 기존 텍스트 수업은 저장된 질문 순환을 유지합니다.</p>
+  </div></details>
+  <details class="learning-preparation" id="learning-preparation"><summary>수업과 출처는 어떻게 준비되나요?</summary><div>
+    <p>현재는 업무 기록과 공식 자료를 함께 확인해 작성한 수업 파일을 직접 가져옵니다. 각 수업의 선정 이유와 검토 주체를 표시하며, 업무에서 사용했다는 사실만으로 이해가 부족하다고 판단하지 않습니다.</p>
+    <p>자료의 원문 위치, 확인 날짜, 적용 버전과 발췌·요약을 수업에 보존합니다. 자료가 바뀌어도 자동 갱신되지 않습니다. 새로 검토한 수업을 가져오면 새 판본으로 보관하고, 이전 답변과 당시의 근거도 남깁니다.</p>
+    <p>수업과 출처의 추가·수정은 현재 수업 파일 가져오기로 제공합니다. 이 화면에서는 수업을 읽고, 미루거나 숨긴 뒤 복원할 수 있습니다. 자동 출제와 원문 변경 감지는 아직 연결되어 있지 않습니다.</p>
+    <p>검토한 로컬 JSON 수업 파일을 아래 명령으로 가져옵니다. 파일 형식과 합성 예시는 프로젝트의 Work-Grounded Learning 문서에 있습니다.</p>
+    <pre>localbrain learning import /path/to/lessons.json --reviewed</pre>
+  </div></details>
+</div>
+{% endblock %}

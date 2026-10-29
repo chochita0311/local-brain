@@ -6,7 +6,7 @@ Edit the owning artifact, then run `uv run python scripts/build-plan-artifact-ca
 
 Status and relation values are preserved from each owner artifact. `—` means the field is not declared or does not apply; historical Spec `passed` and Run `complete` values are legacy aliases preserved under [Execution Artifact Status](../policies/harness/execution-loop-governance.md#execution-artifact-status).
 
-## PRDs (22)
+## PRDs (26)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -31,9 +31,13 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [PRD-0019: Observed Session Chart](prd/prd-0019-observed-session-chart.md) | `approved` | — |
 | [PRD-0020: Local Natural Language Search](prd/prd-0020-local-natural-language-search.md) | `approved` | — |
 | [PRD-0021: macOS Standalone Test App And Local Settings](prd/prd-0021-macos-standalone-test-app-and-local-settings.md) | `blocked` | — |
+| [PRD-0022: Work-Grounded Learning Dashboard](prd/prd-0022-work-grounded-learning-dashboard.md) | `approved` | — |
+| [PRD-0023: Code And Command Learning](prd/prd-0023-code-and-command-learning.md) | `approved` | — |
 | [PRD-0024: Deployed App Docs](prd/prd-0024-deployed-app-docs.md) | `in-loop` | — |
+| [PRD-0025: Google Drive Connection And Incremental Sync](prd/prd-0025-google-drive-connection-and-incremental-sync.md) | `approved` | — |
+| [PRD-0026: Context Search And Grounded Local Answers](prd/prd-0026-context-search-grounded-local-answers.md) | `approved` | — |
 
-## Features (140)
+## Features (153)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -160,6 +164,10 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [FEAT-0121: Natural Search Local Comparison](feature/feat-0121-natural-search-local-comparison.md) | `passed` | PRD-0020 |
 | [FEAT-0122: Natural Search Ranking Precision](feature/feat-0122-natural-search-ranking-precision.md) | `passed` | PRD-0020 |
 | [FEAT-0123: General Work Search](feature/feat-0123-general-work-search.md) | `passed` | PRD-0020 |
+| [FEAT-0124: Learning Evidence Contract](feature/feat-0124-learning-evidence-contract.md) | `passed` | PRD-0022 |
+| [FEAT-0125: Reviewed Learning Home](feature/feat-0125-reviewed-learning-home.md) | `superseded` | PRD-0022 |
+| [FEAT-0126: Code Learning Contract](feature/feat-0126-code-learning-contract.md) | `passed` | PRD-0023 |
+| [FEAT-0127: Code Command Reader](feature/feat-0127-code-command-reader.md) | `in-loop` | PRD-0023 |
 | [FEAT-0128: 공통 로컬 설정 계약](feature/feat-0128-local-settings-contract.md) | `passed` | PRD-0021 — C01 |
 | [FEAT-0129: 사용자 세션 소스와 수집 소유 계약](feature/feat-0129-session-source-lifecycle-contract.md) | `passed` | PRD-0021 — C02 |
 | [FEAT-0130: 모델 선택 검색 계약](feature/feat-0130-search-availability-contract.md) | `passed` | PRD-0021 — C03 |
@@ -177,8 +185,17 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [FEAT-0142: In-App Docs Reader](feature/feat-0142-app-docs-reader.md) | `passed` | PRD-0024 |
 | [FEAT-0143: English App Guides](feature/feat-0143-english-app-guides.md) | `passed` | PRD-0024 |
 | [FEAT-0144: Canonical Product Docs](feature/feat-0144-canonical-product-docs.md) | `passed` | PRD-0024 |
+| [FEAT-0145: Drive Sync Contract](feature/feat-0145-drive-sync-contract.md) | `passed` | PRD-0025 |
+| [FEAT-0146: Drive OAuth Adapter](feature/feat-0146-drive-oauth-adapter.md) | `in-loop` | PRD-0025 |
+| [FEAT-0147: Drive Settings Connection](feature/feat-0147-drive-settings-connection.md) | `in-loop` | PRD-0025 |
+| [FEAT-0148: Drive Local Publishing](feature/feat-0148-drive-local-publishing.md) | `in-loop` | PRD-0025 |
+| [FEAT-0149: Drive Folder Receiving](feature/feat-0149-drive-folder-receiving.md) | `in-loop` | PRD-0025 |
+| [FEAT-0150: Drive Operation Guides](feature/feat-0150-drive-operation-guides.md) | `in-loop` | PRD-0025 |
+| [FEAT-0151: Context Search Source And Storage Contract](feature/feat-0151-context-search-contract.md) | `passed` | PRD026 |
+| [FEAT-0152: Selectable Generation Model Setup](feature/feat-0152-context-search-model-setup.md) | `passed` | PRD026 |
+| [FEAT-0153: Transient Context Search Conversation](feature/feat-0153-context-search-conversation.md) | `passed` | PRD026 |
 
-## Specs (148)
+## Specs (161)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -314,6 +331,10 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [SPEC-0121: Natural Search Local Comparison](spec/spec-0121-natural-search-local-comparison.md) | `approved` | FEAT-0121 |
 | [SPEC-0122: Natural Search Ranking Precision](spec/spec-0122-natural-search-ranking-precision.md) | `approved` | FEAT-0122 |
 | [SPEC-0123: General Work Search](spec/spec-0123-general-work-search.md) | `approved` | FEAT-0123 |
+| [SPEC-0124: Learning Evidence Contract](spec/spec-0124-learning-evidence-contract.md) | `approved` | FEAT-0124 |
+| [SPEC-0125: Reviewed Learning Home](spec/spec-0125-reviewed-learning-home.md) | `approved` | FEAT-0125 |
+| [SPEC-0126: Code Learning Contract](spec/spec-0126-code-learning-contract.md) | `approved` | FEAT-0126 |
+| [SPEC-0127: Code Command Reader](spec/spec-0127-code-command-reader.md) | `approved` | FEAT-0127 |
 | [SPEC-0128: 공통 로컬 설정 계약](spec/spec-0128-local-settings-contract.md) | `approved` | FEAT-0128 |
 | [SPEC-0129: 사용자 세션 소스와 수집 소유 계약](spec/spec-0129-session-source-lifecycle-contract.md) | `approved` | FEAT-0129 |
 | [SPEC-0130: 모델 선택 검색 계약](spec/spec-0130-search-availability-contract.md) | `approved` | FEAT-0130 |
@@ -330,8 +351,17 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [SPEC-0141: App Docs Delivery Contract](spec/spec-0141-app-docs-delivery-contract.md) | `approved` | FEAT-0141 |
 | [SPEC-0142: In-App Docs Reader](spec/spec-0142-app-docs-reader.md) | `approved` | FEAT-0142 |
 | [SPEC-0144: Canonical Product Docs](spec/spec-0144-canonical-product-docs.md) | `approved` | FEAT-0144 |
+| [SPEC-0145: Drive Sync Contract](spec/spec-0145-drive-sync-contract.md) | `approved` | feat-0145 |
+| [SPEC-0146: Drive OAuth Adapter](spec/spec-0146-drive-oauth-adapter.md) | `approved` | feat-0146 |
+| [SPEC-0147: Drive Settings Connection](spec/spec-0147-drive-settings-connection.md) | `approved` | feat-0147 |
+| [SPEC-0148: Drive Local Publishing](spec/spec-0148-drive-local-publishing.md) | `approved` | feat-0148 |
+| [SPEC-0149: Drive Folder Receiving](spec/spec-0149-drive-folder-receiving.md) | `approved` | feat-0149 |
+| [SPEC-0150: Drive Operation Guides](spec/spec-0150-drive-operation-guides.md) | `approved` | feat-0150 |
+| [SPEC-0151: Context Search Source And Storage Contract](spec/spec-0151-context-search-contract.md) | `approved` | FEAT-0151 |
+| [SPEC-0152: Selectable Generation Model Setup](spec/spec-0152-context-search-model-setup.md) | `approved` | FEAT-0152 |
+| [SPEC-0153: Transient Context Search Conversation](spec/spec-0153-context-search-conversation.md) | `approved` | FEAT-0153 |
 
-## Runs (204)
+## Runs (226)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -496,6 +526,10 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [RUN-159: Natural Search Ranking Precision](run/run-20261012-159-natural-search-ranking-precision.md) | `passed` | FEAT-0122 |
 | [RUN-160: General Work Search](run/run-20261013-160-general-work-search.md) | `passed` | FEAT-0123 |
 | [RUN-161: Session Parsing And Search Closeout](run/run-20261016-161-session-parsing-and-search-closeout.md) | `passed` | PRD-0002, PRD-0004, PRD-0020 |
+| [RUN-162: Learning Evidence Contract](run/run-20261016-162-learning-evidence-contract.md) | `passed` | FEAT-0124 |
+| [RUN-163: Reviewed Learning Home](run/run-20261017-163-reviewed-learning-home.md) | `returned-to-planning` | FEAT-0125 |
+| [RUN-20261017-164: Code Learning Contract](run/run-20261017-164-code-learning-contract.md) | `passed` | FEAT-0126 |
+| [RUN-20261017-165: Code Command Reader](run/run-20261017-165-code-command-reader.md) | `active` | FEAT-0127 |
 | [run-20261018-166-local-settings-contract](run/run-20261018-166-local-settings-contract.md) | `passed` | FEAT-0128 |
 | [run-20261018-167-session-source-lifecycle-contract](run/run-20261018-167-session-source-lifecycle-contract.md) | `passed` | FEAT-0129 |
 | [run-20261018-168-search-availability-contract](run/run-20261018-168-search-availability-contract.md) | `passed` | FEAT-0130 |
@@ -539,8 +573,26 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [Run 206: English App Guides](run/run-20261026-206-english-app-guides.md) | `passed` | FEAT-0143 |
 | [Run 207: In-App Docs Reader](run/run-20261026-207-app-docs-reader.md) | `passed` | FEAT-0142 |
 | [Run 208: Canonical Product Docs](run/run-20261027-208-canonical-product-docs.md) | `passed` | FEAT-0144 |
+| [run-20261028-209: Drive Sync Contract](run/run-20261028-209-drive-sync-contract.md) | `passed` | feat-0145 |
+| [run-20261028-210: Drive OAuth Adapter](run/run-20261028-210-drive-oauth-adapter.md) | `blocked` | feat-0146 |
+| [run-20261028-211: Drive Settings Connection](run/run-20261028-211-drive-settings-connection.md) | `blocked` | feat-0147 |
+| [run-20261028-212: Drive Local Publishing](run/run-20261028-212-drive-local-publishing.md) | `blocked` | feat-0148 |
+| [run-20261028-213: Drive Folder Receiving](run/run-20261028-213-drive-folder-receiving.md) | `blocked` | feat-0149 |
+| [run-20261028-214: Drive Operation Guides](run/run-20261028-214-drive-operation-guides.md) | `passed` | feat-0150 |
+| [Run215: gcloud Drive Oauth Adapter](run/run-20261028-215-drive-oauth-adapter.md) | `passed` | FEAT-0146 |
+| [Run216: gcloud Drive Settings Connection](run/run-20261028-216-drive-settings-connection.md) | `passed` | FEAT-0147 |
+| [Run217: gcloud Drive Operation Guides](run/run-20261028-217-drive-operation-guides.md) | `passed` | FEAT-0150 |
+| [Run218: Drive Settings Connection Repair](run/run-20261028-218-drive-settings-connection.md) | `passed` | FEAT-0147 |
+| [Run219: Drive Upload Throughput And Progress](run/run-20261028-219-drive-local-publishing.md) | `passed` | FEAT-0148 |
+| [Run220: Drive Metadata Round-Trip Repair](run/run-20261028-220-drive-local-publishing.md) | `passed` | FEAT-0148 |
+| [Run221: Recover Missing Published Copies And Reduce Repeat Work](run/run-20261028-221-drive-local-publishing.md) | `passed` | FEAT-0148 |
+| [Run222: Reuse Drive Transport Connections](run/run-20261028-222-drive-local-publishing.md) | `passed` | FEAT-0148 |
+| [run-20261029-223-context-search-contract: Context Search Source And Storage Contract](run/run-20261029-223-context-search-contract.md) | `passed` | FEAT-0151 |
+| [run-20261029-224-context-search-model-setup: Selectable Generation Model Setup](run/run-20261029-224-context-search-model-setup.md) | `passed` | FEAT-0152 |
+| [run-20261029-225-context-search-conversation: Transient Context Search Conversation](run/run-20261029-225-context-search-conversation.md) | `passed` | FEAT-0153 |
+| [Run226: Public Candidate Review And Native Integration](run/run-20261029-226-publication-and-native-integration.md) | `passed` | FEAT-0153, with approved Drive integration and existing Learning/schema pending changes. |
 
-## Evaluations And Schema Audits (444)
+## Evaluations And Schema Audits (468)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -976,6 +1028,12 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [자연어 검색 순위 개선 검증](evaluation/eval-0122-functional-natural-search-ranking-precision.md) | `complete` | FEAT-0122 |
 | [Contract Evaluation: General Work Search](evaluation/eval-0123-contract-general-work-search.md) | `complete` | FEAT-0123 |
 | [업무 전반의 자연어 검색 개선 검증](evaluation/eval-0123-functional-general-work-search.md) | `complete` | FEAT-0123 |
+| [EVAL-0124: Learning Evidence Contract](evaluation/eval-0124-learning-evidence-contract.md) | `complete` | FEAT-0124 |
+| [EVAL-0125: Reviewed Learning Contract](evaluation/eval-0125-contract-reviewed-learning-home.md) | `complete` | FEAT-0125 |
+| [EVAL-0125: Learning Home Design And Interaction Review](evaluation/eval-0125-design-reviewed-learning-home.md) | `complete` | FEAT-0125 |
+| [EVAL-0126: Code Learning Contract](evaluation/eval-0126-code-learning-contract.md) | `complete` | FEAT-0126 |
+| [EVAL-0127: Code Command Reader Contract](evaluation/eval-0127-contract-code-command-reader.md) | `complete` | FEAT-0127 |
+| [EVAL-0127: Code Command Reader Design And Interaction](evaluation/eval-0127-design-code-command-reader.md) | `complete` | FEAT-0127 |
 | [EVAL-0128: 공통 로컬 설정 계약 contract](evaluation/eval-0128-contract-local-settings-contract.md) | `complete` | FEAT-0128 |
 | [EVAL-0129: 사용자 세션 소스와 수집 소유 계약 contract](evaluation/eval-0129-contract-session-source-lifecycle-contract.md) | `complete` | FEAT-0129 |
 | [EVAL-0130: 모델 선택 검색 계약 contract](evaluation/eval-0130-contract-search-availability-contract.md) | `complete` | FEAT-0130 |
@@ -988,6 +1046,24 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [EVAL-0142: Docs Functional Evaluation](evaluation/eval-0142-functional-app-docs-reader.md) | `complete` | FEAT-0142 |
 | [EVAL-0143: English App Guides](evaluation/eval-0143-english-app-guides.md) | `complete` | FEAT-0143 |
 | [EVAL-0144: Canonical Product Docs](evaluation/eval-0144-canonical-product-docs.md) | `complete` | FEAT-0144 |
+| [EVAL-0145: Drive Sync Contract](evaluation/eval-0145-drive-sync-contract.md) | `complete` | feat-0145 |
+| [EVAL-0146: Drive OAuth Adapter](evaluation/eval-0146-drive-oauth-adapter.md) | `complete` | feat-0146 |
+| [EVAL-0146: gcloud Drive Oauth Adapter](evaluation/eval-0146-gcloud-drive-oauth-adapter.md) | `complete` | FEAT-0146 |
+| [EVAL-0147: Drive Settings Connection](evaluation/eval-0147-drive-settings-connection.md) | `complete` | feat-0147 |
+| [EVAL-0147: Drive Settings Connection Repair](evaluation/eval-0147-drive-settings-repair.md) | `complete` | FEAT-0147 |
+| [EVAL-0147: gcloud Drive Settings Connection](evaluation/eval-0147-gcloud-drive-settings-connection.md) | `complete` | FEAT-0147 |
+| [EVAL-0148: Bounded Connection Reuse](evaluation/eval-0148-drive-connection-reuse.md) | `complete` | FEAT-0148 |
+| [EVAL-0148: Drive Local Publishing](evaluation/eval-0148-drive-local-publishing.md) | `complete` | feat-0148 |
+| [EVAL-0148: Batched Metadata And Bounded Publisher I/O](evaluation/eval-0148-drive-metadata.md) | `complete` | FEAT-0148 |
+| [EVAL-0148: Missing Published Copies And Repeat Work](evaluation/eval-0148-drive-recovery.md) | `complete` | FEAT-0148 |
+| [EVAL-0148: Upload Throughput And Progress Repair](evaluation/eval-0148-drive-throughput.md) | `complete` | FEAT-0148 |
+| [EVAL-0149: Drive Folder Receiving](evaluation/eval-0149-drive-folder-receiving.md) | `complete` | feat-0149 |
+| [EVAL-0150: Drive Operation Guides](evaluation/eval-0150-drive-operation-guides.md) | `complete` | feat-0150 |
+| [EVAL-0150: gcloud Drive Operation Guides](evaluation/eval-0150-gcloud-drive-operation-guides.md) | `complete` | FEAT-0150 |
+| [EVAL-0151: Context Search Contract](evaluation/eval-0151-context-search-contract.md) | — | FEAT-0151 |
+| [EVAL-0152: Generation Model Setup](evaluation/eval-0152-context-search-model-setup.md) | — | FEAT-0152 |
+| [EVAL-0153: Transient Context Search](evaluation/eval-0153-context-search-conversation.md) | `complete` | FEAT-0153 |
+| [EVAL-0153: Native Integration And Public Candidate Closeout](evaluation/eval-0153-native-publication-closeout.md) | — | Context Search, with Drive and the pending Learning/schema integration. |
 
 ## Fix Logs (25)
 

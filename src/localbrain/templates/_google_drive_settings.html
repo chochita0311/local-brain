@@ -1,0 +1,43 @@
+<section data-settings-panel="google-drive" hidden>
+  <h3>Google Drive</h3>
+  <p>내 Local Context를 올리고, 선택한 다른 폴더를 이 Mac에 동기화합니다.</p>
+  <p><a href="/help/settings#heading-google-drive">연결·동기화 안내</a></p>
+  <p role="status" aria-live="polite" data-drive-message></p>
+  <div data-drive-connections></div>
+  <details data-drive-add-details>
+    <summary>저장소 추가</summary>
+    <form data-drive-add class="settings-form">
+      <label>공유 루트 폴더 URL<input name="root_url" type="url" placeholder="https://drive.google.com/drive/folders/…" required autocomplete="off"></label>
+      <label>내 대상 폴더명<input name="target" required autocomplete="off" placeholder="my-published-context"></label>
+      <button class="primary-button" type="submit">저장하고 연결 확인</button>
+    </form>
+  </details>
+  <div data-drive-content hidden>
+    <div class="settings-source-heading"><h4>저장소 연결</h4><button type="button" class="primary-button" data-drive-connect>연결 확인</button></div>
+    <p data-drive-target></p>
+    <p data-drive-account></p>
+    <p data-drive-provider></p>
+    <details data-drive-auth-options>
+      <summary>계정·로그인 옵션</summary>
+      <p>각 PC의 gcloud 로그인을 사용합니다. Google의 동의 범위는 접근 가능한 Drive 파일 전체의 읽기·쓰기이며, LocalBrain은 설정한 루트와 선택 대상에서만 동기화합니다.</p>
+      <div class="settings-form">
+        <label>Google 계정<input type="text" data-drive-account-input autocomplete="off" placeholder="생략하면 연결된 계정 또는 gcloud 현재 계정 사용"></label>
+        <button type="button" class="secondary-button" data-drive-login>Google 로그인</button>
+        <small>아직 Drive 권한으로 로그인하지 않았다면 Google 로그인을 선택하세요. 터미널에서는 <code>gcloud auth login --enable-gdrive-access --force</code>를 실행할 수 있습니다.</small>
+      </div>
+    </details>
+    <details><summary>연결 진단</summary><div data-drive-health></div></details>
+    <div data-drive-sync-settings hidden>
+    <div class="settings-source-heading"><h4>내 자료 올리기</h4><button type="button" class="secondary-button" data-drive-upload-run>지금 업로드</button></div>
+    <div data-drive-sources></div>
+    <div data-drive-upload-options hidden>
+      <div data-drive-upload-schedule></div>
+      <div data-drive-upload-status></div>
+    </div>
+    <div class="settings-source-heading"><h4>자료 받기</h4><button type="button" class="secondary-button" data-drive-browse>루트 폴더 조회</button></div>
+    <p>조회한 폴더를 체크하면 폴더 전체를 받습니다. 자동 실행은 폴더마다 따로 켤 수 있습니다.</p>
+    <div data-drive-publishers></div>
+    <small>파일당 100MB까지 동기화합니다. 체크 해제·자동 중단 시 기존 사본은 남습니다. 자동 실행은 앱 시간대의 정시에 맞추며, 앱이 꺼져 놓친 시각은 다음 정시까지 기다립니다.</small>
+    </div>
+  </div>
+</section>

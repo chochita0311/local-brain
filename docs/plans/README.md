@@ -16,6 +16,72 @@ Spec, Run, and Evaluation document owns its own detailed status and history.
 
 ## Open Planning Boundaries
 
+- [PRD-0026: Context Search And Grounded Local Answers](prd/prd-0026-context-search-grounded-local-answers.md)
+  is `approved` for the bounded first delivery: a simple question/answer entry
+  below Sessions Dashboard, jointly reading enabled Local Contexts and received
+  Drive copies through read-only list/search/read tools, without an embedding
+  prerequisite. Shared Hub originals remain separate from app metadata/private
+  execution caches.4B/8B selection and Settings installation are owned by
+  [FEAT-0152](feature/feat-0152-context-search-model-setup.md); transient follow-up
+  conversation, evidence, cancellation and clear-on-leave are owned by
+  [FEAT-0153](feature/feat-0153-context-search-conversation.md), after the passed
+  [source/storage contract](feature/feat-0151-context-search-contract.md).
+  No answer schema, browser persistence, external AI or saved-history design is
+  included. Broader model quality/native recipient evidence remain separate from
+  bounded implementation evaluation; Drive transfer and existing semantic search
+  retain their own contracts.
+  [Run226](run/run-20261029-226-publication-and-native-integration.md) adds the native build, frozen-runtime and current public-candidate closeout; existing installed app/server and live-provider/recipient/quality gates remain separate.
+- [PRD-0025: Google Drive Connection And Incremental Sync](prd/prd-0025-google-drive-connection-and-incremental-sync.md)
+  is `approved`; Features 0145–0150 implement the separate Google Drive tab in Settings. Each installer uses the
+  per-PC Google Cloud CLI with their own Google account, chooses a full Drive folder
+  URL and an upload-folder name, then selects Local Context files/folders to publish
+  and other publisher folders to receive. IDs and optional link keys are parsed
+  internally; there is no separate ID-only input mode or private default URL.
+  A selected folder includes its files, subfolders and structure, subject to LocalBrain
+  app policy: a confirmed shared upload/download per-file cap of 100 MB
+  (100,000,000 bytes), distinct from Google Drive service limits. Oversize files
+  are skipped with reasons while eligible files continue; size rejection preserves
+  prior copies and never means source deletion. No aggregate quota is added now.
+  Actual transferred bytes remain bounded when remote size is missing or changes.
+  Own local files
+  are authoritative for upload and selected remote folders for receiving. Both use
+  incremental additions, updates, renames, moves and deletions after the first copy.
+  Uploaded deletions use Google Trash; confirmed remote deletion/trash removes the
+  corresponding managed local copy. No app recovery archive, trash emptying or
+  retention scheduler is added. Stop/deselect preserves existing copies.
+  Recipients control downloaded files, copies, offline use and personal backups.
+  Automatic execution starts OFF; the user selects targets and enables it.
+  Defaults are 6 hours for upload and 24 hours for each independently adjustable
+  received folder. The seven choices are 15/30 minutes and 1/3/6/12/24 hours.
+  Drive uses wall-clock boundaries in the configured timezone, with long periods
+  anchored at midnight. Two days is excluded. Manual runs and completion do not
+  shift the grid; missed slots wait for the next boundary without immediate catch-up.
+  Existing local Session/Context completion clocks remain unchanged.
+  Disconnect preserves choices, intervals, enabled state, files and last-success
+  state. Reconnect resumes the existing configuration and schedule. It does not
+  erase copies, reset settings, revoke Google consent or wipe tokens merely because
+  the connection failed. Backend exit stops sync; closing a window/browser alone
+  leaves a living backend eligible to run. No daemon/autostart is added.
+  The normal flow is OAuth when needed, real root lookup, then manual or enabled
+  automatic sync. Actual auth/access/operation errors show relevant corrective
+  actions. No synthetic write probe, full-tree permission preflight, app user/org
+  allowlist, public-link block, group-member audit or extra/repeated sharing consent
+  flow is added. Saved destinations and selections plus run/enable direct ongoing
+  sync; Google OAuth requirements and actual Drive permissions still apply.
+  Last connection observation, last sync success and next schedule stay distinct;
+  unknown invitation/role causes are not guessed and recurring errors do not spawn
+  repeated popups. Guides cover this normal flow and Google CLI setup.
+  Duplicate publisher names, model/search integration and Local Contexts screen
+  changes are excluded. Remaining OP-02/05/06/07/08/09/11 are engineering follow-ups:
+  transfer limits, integrity/resume/retry/concurrency, actual API permissions,
+  Google CLI authentication and SDK distribution/real-account validation. Normal settings-based
+  ongoing sync is the selected contract; implementation must align its policy owner.
+  Private examples stay out of development/closeout docs. Features0145–0150 now contain
+  the implemented contract, OAuth/API adapter, Settings, publishing, receiving and
+  guides, with linked Runs/Evaluations. Synthetic/browser/packaged-backend checks
+  pass for their declared scope. The owner-approved gcloud/full-Drive revision removes the Client/project setup
+  prerequisite; Runs215–217 own that revision. [Run218](run/run-20261028-218-drive-settings-connection.md) repairs save/check setup and system-trust HTTPS without altering sync scope. [Run219](run/run-20261028-219-drive-local-publishing.md) reduces small-upload request overhead and adds transient upload progress with71focused tests. [Run220](run/run-20261028-220-drive-local-publishing.md) batches known selected metadata and bounds independent item I/O at4, with87focused tests and a separate live read-only metadata sample. [Run221](run/run-20261028-221-drive-local-publishing.md) repairs missing published copies and skips unchanged staging/checkpoint writes, with 101 focused tests and a bounded user-requested worker audit. [Run222](run/run-20261028-222-drive-local-publishing.md) adds owned connection reuse and an eight-item cap, with 121 focused tests on current/minimum urllib3 versions and separate read-only metadata timings. Full two-account
+  My Drive/Shared Drive operations remain unverified; final acceptance is open.
 - [PRD-0024: Deployed App Docs](prd/prd-0024-deployed-app-docs.md)
   has delivered English in-app Docs immediately above settings, fixed /help routes,
   first-use access and offline package content. The owner's latest correction
@@ -28,7 +94,29 @@ Spec, Run, and Evaluation document owns its own detailed status and history.
   Earlier [Run 207](run/run-20261026-207-app-docs-reader.md)
   owns the initial reader/offline/relocated-wheel evidence and five unrelated
   schema/value inventory failures reproduced without Docs. The PRD remains `in-loop`
-  for human review; a rebuilt native app/ZIP and recipient execution are unverified.
+  for human review. [Run226](run/run-20261029-226-publication-and-native-integration.md)
+  now owns the rebuilt native app/ZIP and bounded frozen-runtime checks;
+  Docs human acceptance and recipient execution remain open.
+- [PRD-0023: Code And Command Learning](prd/prd-0023-code-and-command-learning.md)
+  is approved for the source contract and manually reviewed code/command reader.
+  [FEAT-0126](feature/feat-0126-code-learning-contract.md) completed the document
+  contract; [FEAT-0127](feature/feat-0127-code-command-reader.md) implements exact
+  scenes, one daily recommendation and concept depth under the active
+  [RUN-165](run/run-20261017-165-code-command-reader.md). Two private work scenes
+  with six reviewed questions are imported. Initial desktop/narrow presentation
+  is observed; functional transitions remain untested and block formal pass.
+  The [design plan](design/code-and-command-learning-design-plan.md) retains the
+  synthetic storyboard and later automation boundaries. Automatic discovery,
+  official-source updates and Qwen generation are not running.
+- [PRD-0022: Work-Grounded Learning Dashboard](prd/prd-0022-work-grounded-learning-dashboard.md)
+  is approved for the reviewed-content pilot and continued implementation.
+  [FEAT-0124](feature/feat-0124-learning-evidence-contract.md) fixes the evidence,
+  revision and learning-state contract; [FEAT-0125](feature/feat-0125-reviewed-learning-home.md)
+  delivered the original local intake, attempts, reviews and learning home under
+  [RUN-163](run/run-20261017-163-reviewed-learning-home.md), now returned to planning
+  for PRD-0023. Its preserved records/contracts are reused; its functional evidence
+  gap is not closed by the successor. Automatic source
+  retrieval/generation and learning benefit remain separate, unproven boundaries.
 - [PRD-0021: macOS Standalone Test App And Local Settings](prd/prd-0021-macos-standalone-test-app-and-local-settings.md)
   has completed local implementation and is `blocked` for final native/recipient
   acceptance of the standalone Mac test app centered on Session browsing/detail,

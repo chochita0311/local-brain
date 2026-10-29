@@ -71,6 +71,7 @@ SUBJECTS = {
     "maintenance-execution.md": (
         "maintenance_runs", "external_sync_runs", "personal_insight_runs",
     ),
+    "personal-learning.md": ("learning_lessons", "learning_attempts", "learning_visibility"),
     "workflow-assertions.md": ("workflow_assertions",),
     "derived-retrieval-index.md": ("search_index",),
 }
@@ -169,8 +170,8 @@ def main() -> int:
         )
     if not search_exists:
         errors.append("search_index is missing or is not an FTS5 table")
-    if len(ordinary_tables) != 45:
-        errors.append(f"expected 45 ordinary tables, found {len(ordinary_tables)}")
+    if len(ordinary_tables) != 48:
+        errors.append(f"expected 48 ordinary tables, found {len(ordinary_tables)}")
 
     physical_fk_count = sum(
         len(
@@ -183,8 +184,8 @@ def main() -> int:
         )
         for table in ordinary_tables
     )
-    if physical_fk_count != 58:
-        errors.append(f"expected 58 physical foreign keys, found {physical_fk_count}")
+    if physical_fk_count != 59:
+        errors.append(f"expected 59 physical foreign keys, found {physical_fk_count}")
 
     fresh_indexes = {
         row[0]: row[1]
@@ -201,10 +202,10 @@ def main() -> int:
         )
     }
     effective_indexes = {**fresh_indexes, **runtime_indexes}
-    if len(fresh_indexes) != 43:
-        errors.append(f"expected 43 fresh explicit indexes, found {len(fresh_indexes)}")
-    if len(effective_indexes) != 51:
-        errors.append(f"expected 51 effective explicit indexes, found {len(effective_indexes)}")
+    if len(fresh_indexes) != 44:
+        errors.append(f"expected 44 fresh explicit indexes, found {len(fresh_indexes)}")
+    if len(effective_indexes) != 52:
+        errors.append(f"expected 52 effective explicit indexes, found {len(effective_indexes)}")
 
     documented_objects: list[str] = []
     documents: list[tuple[Path, str]] = [(ENTRY, entry)]
@@ -264,9 +265,9 @@ def main() -> int:
     if f"`db.py` SHA-256: `{db_digest}`" not in entry:
         errors.append("db.py baseline digest is stale")
 
-    if "Ordinary tables: `45`" not in entry or "Physical foreign keys: `58`" not in entry:
+    if "Ordinary tables: `48`" not in entry or "Physical foreign keys: `59`" not in entry:
         errors.append("global baseline counts are stale")
-    if "Effective explicitly named indexes: `51`" not in entry:
+    if "Effective explicitly named indexes: `52`" not in entry:
         errors.append("global effective-index count is stale")
 
     semantic_documents = {
@@ -335,8 +336,8 @@ def main() -> int:
             print(f"ERROR: {error}", file=sys.stderr)
         return 1
     print(
-        "Data-model docs match 45 ordinary tables, 1 FTS5 object, "
-        "58 physical foreign keys, 51 explicit indexes, and 10 subject owners."
+        "Data-model docs match 48 ordinary tables, 1 FTS5 object, "
+        "59 physical foreign keys, 52 explicit indexes, and 11 subject owners."
     )
     return 0
 

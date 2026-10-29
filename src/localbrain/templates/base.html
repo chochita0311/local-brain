@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="{{ url_for('static', path='/settings.css') }}?v={{ asset_version }}">
     <script src="{{ url_for('static', path='/profiles.js') }}?v={{ asset_version }}" defer></script>
     <script src="{{ url_for('static', path='/settings.js') }}?v={{ asset_version }}" defer></script>
+    <script src="{{ url_for('static', path='/google-drive.js') }}?v={{ asset_version }}" defer></script>
     {% block styles %}{% endblock %}
     <script src="{{ url_for('static', path='/app.js') }}?v={{ asset_version | default('dev') }}" defer></script>
   </head>
@@ -33,6 +34,9 @@
             {% endif %}
             <a class="lnb-item {% if active_page == 'sessions-dashboard' %}active{% endif %}" href="/sessions-dashboard" {% if active_page == 'sessions-dashboard' %}aria-current="page"{% endif %}>
               <span class="nav-symbol" aria-hidden="true">02</span><span>Sessions Dashboard</span>
+            </a>
+            <a class="lnb-item {% if active_page == 'context-search' %}active{% endif %}" href="/context-search" {% if active_page == 'context-search' %}aria-current="page"{% endif %}>
+              <span class="nav-symbol" aria-hidden="true">CS</span><span>Context Search</span>
             </a>
           </div>
           <div class="nav-group">

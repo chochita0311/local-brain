@@ -103,7 +103,7 @@ The implementation audit covers the current route, template, CSS, and browser-in
 - Backend, database, retrieval, ingestion, Task Runner, or API behavior changes unless a later approved child Feature proves that a narrowly scoped contract correction is required.
 - Changes to the Workstream, Thread, checkpoint, Resource, Suggestion, Session, Local Context, or Run information models.
 - Replacing the existing navigation destinations or Workstream-first hierarchy with a different information architecture.
-- Treating the upstream Figma source as a direct screen specification or importing commerce, loyalty, marketing, or unsupported Qoo10 patterns.
+- Treating the upstream Figma source as a direct screen specification or importing commerce, loyalty, marketing, or unsupported source-specific patterns.
 - Creating or modifying Figma files, production deployment, native macOS packaging, external asset delivery, or a separate design workflow.
 - Broad copywriting, localization, or content-strategy revision beyond labels and feedback needed to make current behavior clear and accessible.
 - Redesigning the Design Constitution by implication. Durable design-law changes require an explicit constitution update and governance version entry.

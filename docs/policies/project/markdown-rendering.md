@@ -50,10 +50,11 @@ This is an explicit LocalBrain syntax allowlist. Obsidian and third-party plugin
 
 ## Code Highlighting
 
-- Pygments runs locally for an explicit allowlist covering shell, Python, JavaScript, TypeScript, JSON, YAML, SQL, HTML, CSS, Markdown, and diff families.
+- Pygments runs locally for an explicit allowlist covering shell, Python, Java, Go, JavaScript, TypeScript, JSON, YAML, SQL, HTML, CSS, Markdown, and diff families.
 - Lexer guessing is disabled.
 - Missing, text-like, unknown, or failed language handling uses escaped generic code.
 - Generated highlighting uses classes rather than inline style values; visible consumers own the Design Constitution-compatible presentation.
+- Literal-code consumers may call `highlight_code` directly; it shares the same explicit lexer allowlist and complete escaped fallback as Markdown fences. It returns derived trusted markup without parsing code as Markdown or changing the source record. Lexer preprocessing retains leading/trailing source newlines.
 - Markdown reading uses its own calm dark-surface and syntax-text roles. It does not reuse the near-black Run console surface or status and brand colors as syntax semantics.
 
 ## Image Deferral
@@ -88,6 +89,8 @@ This is an explicit LocalBrain syntax allowlist. Obsidian and third-party plugin
 ## Consumer Contract
 
 - Consumers pass authoritative text to `render_markdown` and render only its trusted result.
+- Reviewed learning articles are a consumer of this shared renderer. Each article's intro, section bodies and takeaway remain authoritative private packet text; their HTML is ephemeral and uses no local-reference context.
+- Context Search renders transient generated answer text through this same renderer, without local-reference authority. Active HTML remains escaped and images deferred; evidence excerpts use plain text. It creates no answer record or page-local Markdown parser.
 - Visible readers use the shared `.markdown-body` semantic class for prose, headings, code, tables, callouts, footnotes, math, references, embeds, and deferred states; page containers own only composition and scrolling.
 - The renderer owns a non-semantic table scroll wrapper so tables retain native table layout, fill the available reading width, and overflow locally when their minimum column geometry exceeds it.
 - Shared presentation bounds generated MathML and CommonMark indented code blocks inside the owning reading container. Wide technical content scrolls locally and never widens the outer page.

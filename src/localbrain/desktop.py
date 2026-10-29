@@ -8,6 +8,9 @@ import threading
 
 
 def main():
+    if '--context-search-worker' in sys.argv:
+        from .context_search.worker import main as worker_main
+        return worker_main()
     if "--install-search-model" in sys.argv:
         from .model_setup import download_worker
         return download_worker()

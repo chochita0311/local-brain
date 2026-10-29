@@ -365,7 +365,7 @@ def render_entry(registry: Mapping[str, Any]) -> str:
         _generated_notice(),
         "# Data Model Value Dictionaries",
         "",
-        "This index projects the executable bounded-value authority into ten "
+        "This index projects the executable bounded-value authority into eleven "
         "subject-owned dictionaries. The existing subject catalogs continue to "
         "own tables, columns, relationships, lifecycle, deletion, and recovery.",
         "",

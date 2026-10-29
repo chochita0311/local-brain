@@ -1,8 +1,42 @@
 # Project Roadmap
 
-Current review boundary: local implementation of the approved
-[standalone test app](#macos-standalone-test-app--2026-10-18) and common settings is
-complete; direct native interactions and the teammate Mac receipt remain open.
+Current review boundary: [Run226](../run/run-20261029-226-publication-and-native-integration.md)
+validates the approved Google Drive and Context Search increments in the native
+app and reviews the current public source/docs candidate before commit/push.
+The source contracts and bounded synthetic model/browser witnesses are delivered;
+recipient/native-host interaction, live two-account Google permissions, broad
+model quality and public signed/notarized release remain separate gates. Learning
+retains its existing product/benefit limits and remains outside the packaged UI.
+
+## Code And Command Learning — 2026-10-17
+
+The owner refined the learning objective toward actual code diffs and operational
+commands: explain their behavior and principles, then apply them under changed
+conditions. [PRD-0023](../prd/prd-0023-code-and-command-learning.md) and its
+[design track](../design/code-and-command-learning-design-plan.md) were reviewed;
+the owner approved the source contract and first manually reviewed reader.
+[FEAT-0126](../feature/feat-0126-code-learning-contract.md) completed the document
+contract. [FEAT-0127 / RUN-165](../run/run-20261017-165-code-command-reader.md)
+delivers literal scenes beside questions, one daily selection with a reason,
+three reasoning depths and two privately imported scenes with six questions.
+Desktop and initial 320px presentation have been observed; required functional
+transitions remain untested, so product acceptance stays open. PRD-0022's pilot
+remains implementation history and a reusable base with its evidence gap retained.
+Automatic discovery, official-document monitoring and model execution are later
+bounded work. Existing app packaging and stopped work tracks retain their boundaries.
+
+## Work-Grounded Learning Pilot — 2026-10-17
+
+The owner requested a PRD and continuation for a learning-first home that helps
+repay gaps in technical understanding through personal work evidence.
+[PRD-0022](../prd/prd-0022-work-grounded-learning-dashboard.md) approves reviewed
+local lessons, source/version disclosure, answer/confidence and self-assessment,
+finite daily selection and a small work-return area. FEAT-0124 supplies the
+foundation; [FEAT-0125](../feature/feat-0125-reviewed-learning-home.md) delivered
+the first product increment and is superseded by the approved code/command reader.
+Official-source automation and local generation
+need separate admission; delayed recall/application benefit needs actual use.
+Existing installation planning and the stopped workflow-map keep their boundaries.
 
 ## macOS Standalone Test App — 2026-10-18
 
@@ -49,7 +83,7 @@ records the final relocated ZIP execution, public model download/resume and AI
 search, recovery/cache checks, and the four pre-existing failures among 1,178 tests.
 The [startup repair](../fix/fix-0131-desktop-startup-cookie.md) replaces the original
 authentication-failing ZIP and adds actual WKWebView landing/API evidence.
-No upload, teammate message or Git commit was performed in that 2026-10-19 execution. The current closeout authorizes source commit/push only; the later public-app goal remains subject to its separate signing/notarization and recipient acceptance.
+No upload, teammate message or Git commit was performed in that 2026-10-19 execution. That earlier closeout authorized source commit/push only; the later public-app goal remains subject to its separate signing/notarization and recipient acceptance.
 
 ## Local Natural Language Search — 2026-10-13
 
@@ -574,7 +608,7 @@ Exit criteria:
 
 - a Workstream can move between Claude and Codex with source links intact
 - end-of-session state can be recorded in under a minute
-- every external write is previewed, attributable, and explicitly approved
+- every external write is previewed, attributable, and explicitly approved. The separately approved [selected Drive synchronization](../../policies/project/google-drive-sync.md) uses saved destinations/targets plus manual run or automatic enablement as continuing authorization; actual Google authentication/permissions still apply, and other integrations retain the general gate.
 
 ## Phase 7: macOS Packaging
 
@@ -604,7 +638,7 @@ Deferred beyond that boundary:
 - broad MCP integration
 - automatic semantic linking across every source
 - external write-back
-- cloud sync and collaboration
+- other cloud sync and collaboration; selected Drive synchronization follows its separately approved contract
 - mobile support
 - complex graph editing
 - mandatory external AI or embedding APIs

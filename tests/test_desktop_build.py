@@ -57,6 +57,19 @@ class PortableSysconfigTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 build.sysconfig_module_source(self.variables, (prefix,), (self.builder,))
 
+    def test_rust_flags_preserve_values_with_spaces_and_scope_private_paths(self):
+        original={'RUSTFLAGS':'-C opt-level=2 --cfg \'feature="demo feature"\'', 'OTHER':'kept'}
+        result=build.rust_build_environment(original,('/synthetic/build user','/synthetic/build user/repo','/synthetic/temp'))
+        flags=result['CARGO_ENCODED_RUSTFLAGS'].split('\x1f')
+        self.assertEqual(flags[:4],['-C','opt-level=2','--cfg','feature="demo feature"'])
+        self.assertEqual(flags[4],'--remap-path-prefix=/synthetic/build user=/localbrain-build/0')
+        self.assertEqual(result['OTHER'],'kept');self.assertNotIn('RUSTFLAGS',result)
+        self.assertIn('RUSTFLAGS',original)
+        encoded=build.rust_build_environment({'CARGO_ENCODED_RUSTFLAGS':'--cfg\x1fdemo="some value"','RUSTFLAGS':'ignored'},('/synthetic/user',))
+        self.assertEqual(encoded['CARGO_ENCODED_RUSTFLAGS'].split('\x1f')[:2],['--cfg','demo="some value"'])
+        for path in ('/','relative'):
+            with self.assertRaises(ValueError):build.rust_build_environment({},(path,))
+
     def test_code_inspection_includes_nested_constants_and_filenames(self):
         private = (self.builder,)
         code = compile("def nested():\n    return " + repr(self.prefix), "module.py", "exec")

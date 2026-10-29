@@ -86,8 +86,8 @@ def parse_subjects(entry: str) -> List[dict]:
                 "table_ids": tables,
             }
         )
-    if len(subjects) != 10:
-        raise PresentationBuildError(f"Expected 10 subjects, found {len(subjects)}")
+    if len(subjects) != 11:
+        raise PresentationBuildError(f"Expected 11 subjects, found {len(subjects)}")
     return subjects
 
 

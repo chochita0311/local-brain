@@ -8,6 +8,9 @@ import sys
 
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
+    if argv and argv[0] == "learning":
+        from .learning_cli import main as learning_main
+        return learning_main(argv[1:])
     if argv and argv[0] == "search":
         from .natural_search.cli import main as search_main
         return search_main(argv[1:])
@@ -23,6 +26,7 @@ def main(argv=None):
     subparsers.add_parser("doctor", help="Report installation and optional local-model readiness")
     subparsers.add_parser("simulate", help="Explicitly prepare or inspect the full-history map")
     subparsers.add_parser("search", help="Prepare or query the local natural-language index")
+    subparsers.add_parser("learning", help="Import reviewed local learning lessons")
     models_parser = subparsers.add_parser("models", help="Manage pinned public local-model assets")
     model_commands = models_parser.add_subparsers(dest="model_action", required=True)
     model_commands.add_parser("status", help="Report presence without downloading or running models")

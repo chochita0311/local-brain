@@ -6,13 +6,13 @@ This is the durable human entry point for LocalBrain's effective SQLite model. I
 
 ## Baseline Identity
 
-- Baseline: `localbrain-data-model-2026-10-26`
-- Ordinary tables: `45`
+- Baseline: `localbrain-data-model-2026-10-17`
+- Ordinary tables: `48`
 - FTS5 virtual tables: `1` (`search_index`)
-- Physical foreign keys: `58`
-- Effective explicitly named indexes: `51`
-- Focused subject areas: `10`
-- `schema.sql` SHA-256: `f5e39ce91d3162a1ca8828df1d50598b27efe198e1d97e8f24c00a79398ba356`
+- Physical foreign keys: `59`
+- Effective explicitly named indexes: `52`
+- Focused subject areas: `11`
+- `schema.sql` SHA-256: `2fb71de15efb3cba222e3890b6dd55eb726e97b4a8738de5bf2eea1e83d392c6`
 - `db.py` SHA-256: `72d05b3e2ba1ab7efce4f267873093021ccf6a26e9157131317f8e8cb9821f79`
 
 SQLite primary-key and uniqueness autoindexes and FTS5 shadow tables are implementation internals and are not counted as primary objects or explicitly named indexes. Validation applies `schema.sql` only to an in-memory database; no user database or runtime row is read.
@@ -36,6 +36,7 @@ Every primary object has exactly one owner. Cross-subject consumers link back to
 | Review and resume continuity | `suggestions`, `checkpoints`, `checkpoint_resource_refs` | [Review And Resume Continuity](data-model/review-and-resume-continuity.md) |
 | Run execution | `maintenance_runs`, `external_sync_runs`, `personal_insight_runs` | [Run Execution](data-model/maintenance-execution.md) |
 | Workflow assertions | `workflow_assertions` | [Workflow Assertions](data-model/workflow-assertions.md) |
+| Personal learning | `learning_lessons`, `learning_attempts`, `learning_visibility` | [Personal Learning](data-model/personal-learning.md) |
 | Derived retrieval index | `search_index` | [Derived Retrieval Index](data-model/derived-retrieval-index.md) |
 
 ## Level-Zero ERD
@@ -89,6 +90,9 @@ erDiagram
     EXTERNAL_SYNC_RUNS { string maintenance_run_id PK }
     PERSONAL_INSIGHT_RUNS { string id PK }
     WORKFLOW_ASSERTIONS { integer id PK string boundary_key UK integer boundary_version UK string source_episode_key string target_episode_key integer supersedes_assertion_id FK }
+    LEARNING_LESSONS { integer id PK string lesson_key UK string revision UK }
+    LEARNING_ATTEMPTS { integer id PK integer lesson_id FK string submission_key UK }
+    LEARNING_VISIBILITY { string lesson_key PK }
     SEARCH_INDEX { string entity_key "derived" }
 
     SOURCES ||--o{ SOURCE_FILES : "physical CASCADE"
@@ -148,6 +152,9 @@ erDiagram
     THREADS ||--o{ THREAD_LINKS : "physical CASCADE"
     THREADS o|--o{ CHECKPOINT_RESOURCE_REFS : "physical SET_NULL"
     CHECKPOINTS ||--o{ CHECKPOINT_RESOURCE_REFS : "physical CASCADE"
+
+    LEARNING_LESSONS ||--o{ LEARNING_ATTEMPTS : "physical RESTRICT"
+    LEARNING_VISIBILITY o|..|{ LEARNING_LESSONS : "app stable lesson key"
 
     SOURCE_FILES ||..o| SESSIONS : "app source_path"
     SOURCES ||--o{ SKILL_OBSERVATIONS : "physical NO_ACTION retained evidence"
@@ -227,7 +234,7 @@ erDiagram
 | Source-derived and rebuildable | `source-rebuildable` | Normalized from still-available local sources; rescans can recreate content, though stable relational IDs must be preserved during ordinary refreshes. | `sources`, `source_files`, `sessions`, `activity_events`, `context_documents` |
 | Mixed source identity and curated references | `conditional-stable-id` | Source-derived identity participates in user-curated links or immutable historical evidence, so delete-and-recreate is not equivalent to an in-place refresh. | `workspaces`, `usage_records`, `atlassian_structure_references`, `atlassian_structure_reference_urls` |
 | Code-seeded reference | `code-rebuildable` | Versioned reference data is reproduced from application code and protected once Usage Records cite it. | `usage_price_snapshots`, `usage_model_prices` |
-| User-curated and non-rebuildable | `non-rebuildable` | User intent or registration is authoritative and requires database backup for full recovery. | `context_roots`, `workstreams`, `threads`, `workstream_links`, `thread_links`, `local_resources`, `external_resources`, `external_source_instances`, `atlassian_sites`, `atlassian_site_bindings`, `atlassian_items`, `atlassian_item_local_state`, `atlassian_classifications`, `atlassian_item_classifications`, `session_pins`, `session_chart_preferences`, `workflow_assertions` |
+| User-curated and non-rebuildable | `non-rebuildable` | User intent or registration is authoritative and requires database backup for full recovery. | `context_roots`, `workstreams`, `threads`, `workstream_links`, `thread_links`, `local_resources`, `external_resources`, `external_source_instances`, `atlassian_sites`, `atlassian_site_bindings`, `atlassian_items`, `atlassian_item_local_state`, `atlassian_classifications`, `atlassian_item_classifications`, `session_pins`, `session_chart_preferences`, `workflow_assertions`, `learning_lessons`, `learning_attempts`, `learning_visibility` |
 | External last-known memory | `external-last-known` | Approved external reads may refresh the row, but inaccessible prior facts, aliases, and bodies are retained and are recoverable completely only from database backup. | `atlassian_spaces`, `atlassian_item_urls`, `atlassian_item_remote_state`, `atlassian_item_content` |
 | Rebuildable operational observation | `operational-rebuildable` | Explicit inspection can recreate the latest bounded operational state; absence must fail closed rather than imply availability. | `external_source_capabilities` |
 | Retained source observation | `retained-source-observation` | Still-available source files can reproduce these rows, but an event from a vanished Session survives only in the LocalBrain database or its backup. | `skill_observations` |
@@ -240,13 +247,13 @@ The owning subject document records the precise deletion effect and recovery bou
 
 ## Fresh Schema And Compatible Ownership
 
-- `schema.sql` creates all 45 ordinary tables, `search_index`, all physical constraints, and 43 explicit indexes for a new database. Its idempotent application also creates the retained skill-observation ledger, Session pin, scoped Chart visibility preference, Session reference scan/evidence, append-only Workflow assertion ledger, external-source capability, external-sync, independent personal-insight Run, Atlassian source-memory and optional Site-binding, local-classification, bounded Item evidence, and stable structure-reference identity/URL/evidence tables on older databases without rewriting existing objects.
-- `db.py` idempotently adds columns introduced after older installations, including Source latest-success/status/error health, Session-file owner and independent Session/Usage/reference contract mapping, Atlassian Space canonical URL, coverage, and nullable Item/Space access ownership, backup-rebuilds the Source registry to add provider identity while preserving stable Source IDs and descendants, removes the legacy unused `sources.enabled` field and obsolete `workspaces.git_branch`, removes the legacy Activity Event metadata column only after an all-null preflight, backfills non-null continuity and attribution values, migrates Context root associations, and performs the approved backup-backed Usage attribution, Maintenance Run Workstream FK, Maintenance Session, External Resource URL-scope, and Atlassian optional-access repairs without changing retained rows or polymorphic relations. The Atlassian repair makes the legacy Site parent nullable, creates explicit bindings, and backfills current Item/Space access.
+- `schema.sql` creates all 48 ordinary tables, `search_index`, all physical constraints, and 44 explicit indexes for a new database. Its idempotent application also creates the reviewed learning revisions, attempts and visibility, retained skill-observation ledger, Session pin, scoped Chart visibility preference, Session reference scan/evidence, append-only Workflow assertion ledger, external-source capability, external-sync, independent personal-insight Run, Atlassian source-memory and optional Site-binding, local-classification, bounded Item evidence, and stable structure-reference identity/URL/evidence tables on older databases without rewriting existing objects.
+- `db.py` idempotently adds columns introduced after older installations, including Source latest-success/status/error health, Session-file owner and independent Session/Usage/reference contract mapping, Atlassian Space canonical URL, coverage, and nullable Item/Space access ownership, backup-rebuilds the Source registry to use only its numeric PK while converting structured references and preserving Source/record IDs and descendants, removes redundant `sources.kind` and the legacy unused `sources.enabled` field and obsolete `workspaces.git_branch`, removes the legacy Activity Event metadata column only after an all-null preflight, backfills non-null continuity and attribution values, migrates Context root associations only for previously indexed documents (fresh installations require explicit registration), and performs the approved backup-backed Usage attribution, Maintenance Run Workstream FK, Maintenance Session, External Resource URL-scope, and Atlassian optional-access repairs without changing retained rows or polymorphic relations. The Atlassian repair makes the legacy Site parent nullable, creates explicit bindings, and backfills current Item/Space access.
 - The approved profile upgrade removes `sources.kind` and the retained skill ledger’s string source key in favor of `sources.id`. It preserves Source/Session/Event/Usage IDs and frozen attribution, remaps structured Chart/Workflow/analysis references, and adds the non-cascading skill Source FK. Source color/order and Context display order are independent user presentation attributes. The database-compatible path and known-version TOML upgrade preserve unrelated values and stop on ambiguous identity; the [source owner](data-model/source-registry-and-scans.md) records the detailed lifecycle.
 - Startup detects the legacy `usage_facts` table before fresh DDL, refuses an ambiguous database where it coexists with `usage_records`, and otherwise renames it in place while replacing only the three explicit legacy index names. Rows, identifiers, columns, constraints, and foreign-key validity remain unchanged.
 - Schema presentation generation invokes the same compatible structural and index path with data migrations disabled, so its in-memory database cannot inspect Context paths or mutate rows; normal application startup retains data migrations by default.
 - `db.py` converges the fresh index declarations safely and contributes eight effective runtime-only names: `idx_sessions_class`, `idx_sessions_role`, `idx_sessions_parent`, `idx_maintenance_runs_workstream`, `idx_maintenance_runs_status`, `idx_suggestions_origin_run`, `idx_documents_context_root`, and `idx_source_files_session`.
-- The union is 51 effective explicit index names. A duplicate declaration is not a second index.
+- The union is 52 effective explicit index names. A duplicate declaration is not a second index.
 - `usage.ensure_default_price_snapshot` seeds immutable pricing rows after schema and compatible migrations complete. It is a data producer, not DDL ownership.
 
 The fresh schema plus compatible path has no unexplained object, column, named-index, physical relation, Session classification/Run-link, or Usage attribution vocabulary drift. Older databases can still retain approved timestamp-column metadata differences that SQLite `ADD COLUMN` does not reconstruct; several backfilled fields remain nullable or lack the fresh default after their values are populated. The owning subjects record these current differences.
@@ -280,3 +287,7 @@ uv run python -m unittest discover -s tests -v
 ```
 
 The checks are schema-only and synthetic. They never connect to the configured LocalBrain database.
+
+## Google Drive Private State
+
+Drive synchronization uses a separate schema1 SQLite under the app data root; it does not add source documents to the main database. `state(key,value)` owns connection/job selections and cached observations; `items(namespace,key,value)` owns per-file logical identity, relative path, remote ID, checksum/version and incomplete upload state. Google Cloud CLI owns OAuth credentials; the app stores only a pinned account identity and keeps short-lived access tokens in memory. See [Drive ownership and lifecycle](google-drive-sync.md). Received files are filesystem copies without automatic Context or search membership.

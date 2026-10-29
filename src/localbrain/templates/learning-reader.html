@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}{{ lesson.title if lesson else '수업을 찾을 수 없습니다' }} · LocalBrain{% endblock %}
+{% block page_location %}Dashboard / 학습{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{{ url_for('static', path='/learning.css') }}?v={{ asset_version }}">{% endblock %}
+{% block content %}
+<article class="learning-reader{% if lesson and lesson.scene %} learning-reader-with-scene{% endif %}" data-learning-draft="{% if lesson %}{{ lesson.id }}:{{ question.id }}{% endif %}" data-learning-saved="{{ '1' if attempt else '0' }}" data-learning-error="{{ '1' if error else '0' }}">
+  <nav class="learning-actions learning-back" aria-label="학습 탐색"><a href="/">← Dashboard</a>{% if lesson and lesson.article %}<a href="/learning/{{ lesson.id }}/note">글로 돌아가기</a>{% endif %}<a href="/learning">학습 목록</a></nav>
+  {% if missing %}
+    <div class="learning-empty"><h1>수업을 열 수 없습니다</h1><p>{{ missing }}</p><a href="/learning">학습 목록으로 돌아가기</a></div>
+  {% else %}
+  <header class="page-heading"><div><p class="eyebrow">{{ lesson.topic }}</p><h1>{{ lesson.title }}</h1><p class="heading-copy">{{ lesson.why }}</p></div></header>
+  <p class="learning-meta">{{ value_label("learning.reviewer", lesson.get('reviewed_by', 'unspecified')) }}</p>
+  {% if lesson.id != latest_id %}<p class="learning-notice">이전 판본입니다. 답변 당시의 근거를 보여 줍니다. <a href="/learning/{{ latest_id }}">현재 수업 열기</a></p>{% endif %}
+  {% if error %}<p class="learning-error" role="alert">{{ error }}</p>{% endif %}
+  {% if lesson.scene %}
+  <p class="learning-source-status">{{ value_label("learning.version-status", lesson.version_status) }} · {{ lesson.applicability }}</p>
+  <div class="learning-reading-grid">
+    {% include "learning-scene.html" %}
+    <div class="learning-reasoning">
+  {% endif %}
+  <section class="learning-question" aria-labelledby="question-title">
+    <p class="learning-meta">{% if question.depth %}{{ value_label("learning.depth", question.depth) }}{% else %}{{ value_label("learning.question-kind", question.kind) }}{% endif %}</p>
+    <h2 id="question-title">{{ question.prompt }}</h2>
+    {% if question.rationale %}<p class="learning-muted">{{ question.rationale }}</p>{% endif %}
+    {% if not attempt %}
+    <form class="learning-answer-form" method="post" action="/learning/{{ lesson.id }}/attempts">
+      <input type="hidden" name="question_id" value="{{ question.id }}">
+      <input type="hidden" name="submission_key" value="{{ submission_key }}">
+      <input type="hidden" name="action" value="answer">
+      {% if note_practice %}<input type="hidden" name="from_note" value="1"><input type="hidden" name="hint_used" value="1" data-learning-hint-value="1">{% endif %}
+      <label for="learning-answer">내 생각 <span class="learning-muted">필수 · 짧게 적어도 괜찮아요</span></label>
+      <textarea id="learning-answer" name="answer" rows="3" maxlength="8000" required aria-describedby="answer-help">{{ values.get('answer', '') }}</textarea>
+      <p class="learning-muted" id="learning-draft-notice" role="status"></p>
+      <p id="answer-help" class="learning-muted">{% if note_practice %}노트에서 읽은 내용을 내 말로 정리해 보세요. 해설을 참고한 연습으로 기록합니다.{% else %}먼저 생각을 남긴 뒤 설명과 비교합니다. 자동 채점은 하지 않습니다.{% endif %}</p>
+      <details class="learning-inline-hint" data-learning-help {% if hint_used and not note_practice %}open{% endif %}><summary>힌트가 필요해요</summary><p class="learning-prose">{{ question.hint }}</p></details>
+      <label class="learning-help-choice learning-muted"><input type="checkbox" name="hint_used" value="1" data-learning-help-choice {% if hint_used %}checked{% endif %} {% if note_practice %}disabled{% endif %}>{% if note_practice %}노트의 해설을 참고했어요{% else %}힌트나 추가 자료를 참고했어요{% endif %}</label>
+      <fieldset><legend>지금 답변에 얼마나 확신하나요? · 필수</legend><div class="learning-confidence">{% for value, label in confidence_labels.items() %}<label><input type="radio" name="confidence" value="{{ value }}" required {% if values.get('confidence') == value %}checked{% endif %}>{{ label }}</label>{% endfor %}</div></fieldset>
+      <div class="learning-actions"><button class="primary-button" type="submit">{% if note_practice %}답변 저장하고 비교하기{% else %}답변 저장하고 설명 보기{% endif %}</button></div>
+    </form>
+    <div class="learning-actions learning-alternatives">
+      <form method="post" action="/learning/{{ lesson.id }}/attempts">
+        <input type="hidden" name="question_id" value="{{ question.id }}">
+        <input type="hidden" name="submission_key" value="{{ read_key }}">
+        {% if note_practice %}<input type="hidden" name="from_note" value="1">{% endif %}
+        {% if values.get('return_to') in ('home', 'note') %}<input type="hidden" name="return_to" value="{{ values.get('return_to') }}">{% endif %}
+        <button class="secondary-button" name="action" value="read">{% if values.get('return_to') in ('home', 'note') %}읽은 내용 기록 다시 시도{% elif note_practice %}자세한 설명 읽기{% else %}설명부터 읽을래요{% endif %}</button>
+      </form>
+    </div>
+    {% else %}
+      {% if attempt.outcome != 'read' %}<h3>내가 남긴 답변</h3><p class="learning-prose learning-saved-answer">{{ attempt.answer }}</p><p class="learning-meta">{{ confidence_labels[attempt.confidence] }} · {{ value_label("learning.hint-used", attempt.hint_used) }}</p>{% else %}<p class="learning-muted">설명부터 읽기를 선택했습니다. 회상 성공으로 기록하지 않습니다.</p>{% endif %}
+    {% endif %}
+  </section>
+
+  {% if attempt %}
+  <section id="feedback" class="learning-section" aria-labelledby="feedback-title" tabindex="-1">
+    <h2 id="feedback-title">설명과 비교하기</h2>
+    <p class="learning-prose">{{ question.answer }}</p>
+    {% if question.rubric %}<h3>내 설명에서 확인할 부분</h3><ul class="learning-rubric">{% for point in question.rubric %}<li>{{ point }}</li>{% endfor %}</ul>{% endif %}
+    {% if feedback_assisted %}<p class="learning-muted">오늘 같은 개념의 설명이 공개된 뒤 남긴 추가 연습입니다. 독립 회상으로 난이도를 올리는 근거에 포함하지 않습니다.</p>{% endif %}
+    <details class="learning-details"><summary>개념을 조금 더 읽기</summary><p class="learning-prose">{{ lesson.explanation }}</p></details>
+    <p class="learning-meta">이 질문의 근거: {% for source in lesson.sources if source.id in question.source_ids %}<a href="#source-{{ source.id }}">{{ source.title }}</a>{% if not loop.last %} · {% endif %}{% endfor %}</p>
+    {% if attempt.outcome == 'pending' %}
+    <form class="learning-assess" method="post" action="/learning/{{ lesson.id }}/assess">
+      <input type="hidden" name="attempt_id" value="{{ attempt.id }}">
+      <fieldset><legend>설명과 비교하면, 내 답변은 어떤가요?</legend><p class="learning-muted">직접 고르는 자기 평가입니다. 다음 복습 시점을 정하는 데 씁니다.</p><div class="learning-actions"><button class="secondary-button" name="outcome" value="again">다시 보기</button><button class="secondary-button" name="outcome" value="partial">일부 설명 가능</button><button class="secondary-button" name="outcome" value="recalled">스스로 설명 가능</button></div></fieldset>
+    </form>
+    {% else %}<div class="learning-notice" role="status"><strong>{{ outcome_labels[attempt.outcome] }}</strong>{% if attempt.outcome != 'read' %} · 자기 평가{% endif %}<p>{% if schedule.due %}현재 판본의 다음 복습: {{ schedule.due }}{% endif %}</p><a href="/">오늘의 학습으로</a></div>{% endif %}
+  </section>
+  {% if lesson.scene and practice_questions %}
+  <details class="learning-details"><summary>선택적으로 다른 질문 풀기</summary><p class="learning-muted">오늘 더 해야 할 분량은 아닙니다. 다른 질문은 별도의 답변으로 남습니다.</p><ul class="learning-practice">{% for next_question in practice_questions %}<li><a href="/learning/{{ lesson.id }}?question={{ next_question.id }}#question-title">{{ value_label("learning.depth", next_question.depth) }} · {{ next_question.prompt }}</a></li>{% endfor %}</ul></details>
+  {% endif %}
+  {% endif %}
+  {% if lesson.scene %}</div></div>{% endif %}
+
+  <section class="learning-section" aria-labelledby="sources-title">
+    <h2 id="sources-title">이 수업의 근거</h2>
+    <p class="learning-prose">{{ lesson.applicability }}</p>
+    <p class="learning-source-status">{{ value_label("learning.version-status", lesson.version_status) }}. 자료는 표시된 날짜에 확인했으며 자동 갱신되지 않습니다.{% if source_review_due %} 확인한 지 90일이 지난 자료가 있어 다시 확인할 때입니다.{% endif %}</p>
+    {% for source in lesson.sources %}
+    <details id="source-{{ source.id }}" class="learning-source"><summary><span>{{ value_label("learning.source-kind", source.kind) }}</span> {{ source.title }}</summary>
+      <div><p class="learning-meta">확인 {{ source.checked_on }} · 버전 {{ source.version }}</p><p class="learning-locator">{{ source.locator }}</p>{% if source.url and source.available %}<p><a href="{{ source.url }}" {% if source.kind == 'official' %}target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer"{% endif %}>원문 열기{% if source.kind == 'official' %} ↗{% endif %}</a></p>{% elif not source.available %}<p class="learning-muted">원문이 현재 로컬 목록에 없습니다. 수업에 보존한 근거는 남아 있습니다.</p>{% endif %}
+      {% if attempt %}<p class="learning-prose">{{ source.snapshot }}</p><p class="learning-fingerprint">보존한 근거의 SHA-256 · {{ source.snapshot_sha256 }}</p>{% else %}<p class="learning-muted">보존한 근거 내용은 답변을 제출하거나 설명부터 읽기를 선택하면 함께 볼 수 있습니다.</p>{% endif %}</div>
+    </details>
+    {% endfor %}
+  </section>
+
+  {% if history %}<details class="learning-details"><summary>이 판본의 최근 학습 기록</summary><ul class="learning-history">{% for item in history %}<li><a href="/learning/{{ lesson.id }}?attempt={{ item.id }}#feedback"><time datetime="{{ item.submitted_at }}" data-local-time>{{ item.submitted_at }}</time> · {{ outcome_labels[item.outcome] }}</a></li>{% endfor %}</ul><p class="learning-muted">최근 10개 기록을 표시합니다. 답변은 그때의 질문·근거와 함께 보존됩니다.</p></details>{% endif %}
+  {% if other_revisions %}<details class="learning-details"><summary>다른 판본 보기</summary><ul>{% for revision in other_revisions %}<li><a href="/learning/{{ revision.id }}">{{ revision.created_at[:10] }}에 준비한 수업 · 판본 {{ revision.id }}</a></li>{% endfor %}</ul></details>{% endif %}
+  <footer class="learning-section"><form class="learning-actions" method="post" action="/learning/{{ lesson.id }}/visibility"><button class="secondary-button" name="action" value="snooze">내일 보기</button><button class="secondary-button" name="action" value="hide">목록에서 숨기기</button><a href="/">오늘은 여기까지</a></form><p class="learning-muted">미루기와 숨기기는 오답이 아니며, 학습 목록에서 되돌릴 수 있습니다.</p></footer>
+  {% endif %}
+</article>
+{% endblock %}
+
+{% block scripts %}<script src="{{ url_for('static', path='/learning.js') }}?v={{ asset_version }}" defer></script>{% endblock %}

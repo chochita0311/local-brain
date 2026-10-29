@@ -149,7 +149,7 @@ class UiContractTests(unittest.TestCase):
         self.assertIn('data-value="off" aria-selected="false">끄기</div>', sync)
         self.assertNotIn('sync_enabled', general)
         self.assertEqual(re.findall(r'data-settings-tab="([^"]+)"', template),
-                         ['general', 'sessions', 'context', 'search', 'sync', 'storage', 'about'])
+                         ['general', 'sessions', 'context', 'search', 'sync', 'google-drive', 'storage', 'about'])
         self.assertNotIn('자동 동기화', template)
         self.assertNotIn('자동 동기화', script)
         for removed in ('data-settings-sync-status', 'data-settings-sync-times', 'data-settings-sync>', '지금 동기화', '일반 설정 저장'):

@@ -1,4 +1,16 @@
-Search finds original conversations and registered documents. Use keyword search for matching terms or an optional AI model to search by meaning.
+Search finds original conversations and registered documents. Use keyword search for matching terms or an optional AI model to search by meaning. **Context Search** is a separate question/answer screen for your Local Contexts and received Drive copies.
+
+## Ask with Context Search
+
+1. Open **Settings → Search Model** and connect or install **Qwen3-4B** or **Qwen3-8B** in the answer-model section. Complete public files already in the shared Hugging Face cache are reused.4B needs about8GB of model files;8B about16GB and more runtime memory. Initial verification/loading can take longer than later questions.
+2. Open [Context Search](/context-search) below Sessions Dashboard and select an available answer model. It searches enabled/readable Local Contexts and already received Google Drive folders together; it does not search Sessions. The source disclosure shows included folders and received-copy status. Connect Local Context or receive a Drive folder first if the list is empty.
+3. Ask about a topic, document or responsibility. The local model requests folder listing, literal text search and file reads; LocalBrain executes those read-only tools. No embedding installation, index preparation or model training is required.
+4. Read the answer and expand **Checked evidence** (`확인한 근거`) for source names, relative files, line numbers and actual excerpts. Folder publisher, document author and mentioned/contact person can differ. A received copy reflects the last successful sync, not necessarily the current remote state. Missing matches and partial coverage do not prove that information does not exist.
+5. Continue with a follow-up on the same screen or select another model for the next answer. **Stop generation** cancels current work; **New question** clears the conversation. Errors leave the question available to edit/retry.
+
+Conversation and evidence exist only on the current screen: leaving it, opening Settings, switching away from the browser tab, refreshing or going Back/Forward clears them and cancels pending generation. There is no saved chat history. Public model originals remain shared; app registration and execution caches are separate. Questions/documents are not sent to an external AI.
+
+Direct tools read UTF text files and current collected bodies for eligible non-filesystem sources. Binary/unreadable files are reported as unavailable; received binary files are not automatically converted. A search stops between files after5000attempts,32MiB of processed text or6seconds; directory enumeration has a separate bound. A file read uses at most2MiB, and each turn permits at most12tool calls in8rounds. Results and model input are also bounded. Refine the folder/file/topic when a limit or insufficient evidence is reported. Model answers can be mistaken; inspect the excerpts for consequential decisions.
 
 ## Start with keywords
 

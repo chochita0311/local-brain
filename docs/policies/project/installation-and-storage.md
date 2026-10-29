@@ -120,9 +120,9 @@ uv run --no-sync localbrain serve
 ```
 
 Keep the extras required by that installation; omit `--extra local-models` for a
-base-only checkout. With the model runtime installed, also check
+base-only checkout. With the base dependencies installed, also check
 `uv run --no-sync python -c 'import urllib3'` for the original warning; urllib3
-is not a base-app prerequisite. If the managed interpreter and locked distributions are
+is a base dependency for Drive transport. If the managed interpreter and locked distributions are
 already cached, skip the Python download and add
 `--no-python-downloads --offline` to `uv sync`. For a separately installed app,
 repeat its selected wheel/archive installation with `--python 3.11` and the same
@@ -171,12 +171,19 @@ model. Local inference does not train or update shared pretrained weights.
 | Session ingestion, reading, keyword search, deterministic views | None | None |
 | Natural-language Session / Local Context search | Qwen3-Embedding-0.6B | Same shared asset as affinity |
 | Prepared full-history affinity map | Qwen3-Embedding-0.6B | About 1.21 GB |
+| Context Search read-only folder questions | Qwen3-4B or Qwen3-8B | About8.06GB or16.40GB; reuse existing shared assets |
 | Explicit experimental context trials | Qwen3-4B or Qwen3-8B | About 8.06 GB or 16.40 GB |
 
 Qwen3-Embedding-0.6B is the document/query encoder used by natural search.
-The 4B/8B candidates are separate generation models and remain experiments;
-installing them does not admit a new
-automatic workflow producer or enable an LLM on ordinary app startup.
+The4B/8B generation models also power explicitly submitted Context Search questions;
+installing them does not enable an LLM on ordinary app startup or an automatic workflow producer.
+Settings → Search Model offers installation/verification for both. Public originals
+remain in the resolved shared Hub cache, including `~/.cache/huggingface/hub` by
+default. App-owned registration manifests stay under data/models; Context Search
+kernel caches belong under cache/context-search. No prompt/answer file or private
+weight fine-tuning is created. Complete public caches can be registered locally
+without downloading; status checks are presence checks, while use verifies integrity.
+See [Context Search](context-search.md) for scope and ephemeral conversation contracts.
 Claude/Codex-backed actions have their own CLI/authentication requirements and
 explicit external-service boundary; installing local models does not satisfy
 those requirements.
@@ -255,6 +262,12 @@ chunking changes can require recomputation. Cache location alone does not change
 model identity.
 
 ## Storage Ownership And Configuration
+
+Reviewed learning lessons, immutable source snapshots, personal attempts and
+visibility choices live in the primary private SQLite database. They require DB
+backup for full recovery and are not part of rebuildable search-cache cleanup.
+`localbrain learning import PATH --reviewed` reads a bounded local packet and
+does not fetch sources or require a model; see [Learning](work-grounded-learning.md).
 
 | Storage | Default | Ownership |
 | --- | --- | --- |
@@ -467,3 +480,7 @@ their procedures belong to the [Settings guide](../../../src/localbrain/content/
 Native packaging and its verification limits belong to the
 [test distribution guide](standalone-test-app-guide.md). General export remains
 separate future work.
+
+## Google Drive Storage
+
+[Google Drive synchronization](google-drive-sync.md) stores private configuration, selections, cached results and per-file checkpoints in `<data>/google-drive/sync.sqlite3` (schema1). Google Cloud CLI owns credentials and refresh; access tokens are memory-only in LocalBrain. Received copies are `<data>/external-sources/google-drive/<connection-id>/<publisher-id>/`; directories0700/files0600. `<data>/google-drive/staging/` holds bounded immutable upload snapshots, removed after use and recovered on backend restart. Download staging uses private sibling files and atomic replacement. Built-in backup/restore does not include these connection/copy/checkpoint trees or gcloud credentials; restoring ordinary app settings does not restore or revoke Google access. Users may back up received files separately. Do not classify these copies or the sync database as rebuildable cache, publish them or implicitly index them.

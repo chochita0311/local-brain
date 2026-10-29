@@ -53,7 +53,7 @@
 - Data Model parity passed at 20 ordinary tables, one FTS5 object, 19 physical foreign keys, 20 explicit indexes, and eight owners.
 - Nine Mermaid definitions parsed through the pinned local bundle; Schema presentation regeneration/check passed.
 - Full test suite passed 108 of 108 tests. The existing Starlette TemplateResponse deprecation warning remains unrelated and non-blocking.
-- Post-correction browser regression passed at `1440`, `920`, `700`, and exact `320`: all nine subject entries, long Usage table detail, Mermaid rendering, global contained scroll, URL/history/focus, rapid selection, warm cache, blocked adapter, no-script fallback, invalid-state non-reflection, and document-width containment remained valid. Evidence is local-only under `/tmp/localbrain-feat29-browser-qa-final-evidence`.
+- Post-correction browser regression passed at `1440`, `920`, `700`, and exact `320`: all nine subject entries, long Usage table detail, Mermaid rendering, global contained scroll, URL/history/focus, rapid selection, warm cache, blocked adapter, no-script fallback, invalid-state non-reflection, and document-width containment remained valid. Browser evidence was kept only in task-owned temporary storage outside Git.
 - Final wheel SHA-256 is `31813e4c81e6aeb2d60d842592e8c714b21c04e08780547a5db6c820ae8a6ca3`; its packaged presentation manifest SHA-256 is `0f85df5c7124c17361e435408f8fb8fa156573d0926bceb77aafa5583d19d902` and required Schema assets remain present.
 - Repository privacy scan passed 364 candidate files; `git diff --check` passed.
 

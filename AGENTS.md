@@ -18,13 +18,15 @@ In scope:
 
 - local Claude and Codex session ingestion
 - user-managed Local Context sources
+- work-grounded learning with reviewed source evidence and private review history
 - Workstream, Thread, checkpoint, and resource organization
 - local retrieval, reviewable Suggestions, and workflow insights
 - approved read-only external source integration
+- explicitly selected Google Drive sync under [its approved contract](docs/policies/project/google-drive-sync.md)
 
 Out of scope unless explicitly planned:
 
-- cloud sync or multi-user collaboration
+- other cloud sync or multi-user collaboration
 - silent external writes or unreviewed relationship changes
 - mandatory external AI or embedding services
 - native macOS packaging before the local web workflow is validated

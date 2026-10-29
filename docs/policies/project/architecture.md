@@ -12,18 +12,19 @@ Product terminology and organization rules are defined in [Product Model](produc
 - Backend: Python and FastAPI
 - Database: SQLite
 - Search: existing SQLite FTS5 plus optional local Qwen semantic ordering and lexical exact-identifier admission
+- Context Search: isolated Qwen4B/8B native tool loop over admitted Local Context and received copies; request/page-memory dialogue, no embedding prerequisite or chat schema
 - Frontend: server-rendered Jinja2 with small JSON API interactions
 - External integration boundary: approved MCP Gateway and source-specific adapters
 - Desktop packaging: Tauri 2 and a PyInstaller Python 3.11 bundle, Apple Silicon
 
 The standalone test edition admits Sessions, Sessions Dashboard, Local Context,
-search, settings, onboarding and bundled English Docs. Its immutable runtime boundary excludes the
+search, Context Search, settings, onboarding and bundled English Docs. Its immutable runtime boundary excludes the
 unfinished development surfaces; [Desktop App And Settings](desktop-app-and-settings.md)
 owns lifecycle, local authentication and source/settings contracts.
 
 The [installation/storage contract](installation-and-storage.md) owns independent
 macOS source/tool/wheel setup and optional local-model requirements. Packaged
-`serve`, `doctor`, `models`, `simulate`, `search`, and `storage` commands use the same
+`serve`, `doctor`, `models`, `simulate`, `search`, `learning`, and `storage` commands use the same
 configured runtime paths. Public model assets are shared within the local user
 account; LocalBrain owns its model metadata and optional Python dependencies.
 Runtime state is rejected inside repositories, uses owner-only permissions, and
@@ -65,6 +66,10 @@ Approved external sources through MCP Gateway
 - `keyword_search.py`, `model_setup.py`, `storage_recovery.py`: model-free eligible
   FTS retrieval, explicit cancellable public-model installation, private backup,
   restart-only restore and bounded owned-cache cleanup.
+- `learning.py`, `learning_cli.py`, `learning_web.py`: reviewed local packet
+  intake, immutable lessons/source snapshots, personal attempts, deterministic
+  daily selection and native home/library/reader forms. Durable state is in the
+  main DB; this flow does not invoke search, generation or external retrieval.
 - `natural_search/`: eligible read-only source snapshot, original-span molecularization,
   private SQLite/FTS/vector generations, persistent offline Qwen encoder, explicit
   condition interpretation, parent-ranked retrieval and Sync refresh worker.
@@ -315,13 +320,13 @@ The [Project Roadmap](../../plans/project/roadmap.md) and [Project Backlog](../.
 
 ## Persistence Model
 
-The complete effective-schema map, physical and application relationships, lifecycle/recovery classifications, and ten subject catalogs are owned by [Data Model](data-model.md). This section keeps only the architectural grouping and cross-layer behavior.
+The complete effective-schema map, physical and application relationships, lifecycle/recovery classifications, and eleven subject catalogs are owned by [Data Model](data-model.md). This section keeps only the architectural grouping and cross-layer behavior.
 
 The packaged consumer form is owned by [Schema Presentation](schema-presentation.md). Its generator applies fresh DDL and the compatible structural/index path only to SQLite `:memory:`, combines those facts with Data Model semantics, and emits derived JSON. Application consumers load that package data; they do not inspect a user database or repository Markdown.
 
 Bounded database values use `src/localbrain/value-registry.json` as their executable physical/logical/presentation authority. The generated [Value Dictionaries](data-model/value-dictionaries.md) remain the human-readable subject projection; runtime code loads the registry and never parses Markdown.
 
-`System > Schema` serves the read-only `/schema` Explorer from that package data. Optional `area` and `table` query values select one of the ten owner areas and one owned table; invalid state normalizes to the nearest valid overview. Server-rendered links and catalogs remain complete without JavaScript, while the route-scoped module preserves shell continuity, history, focus, strict locally packaged Mermaid rendering, and bounded presentation-only diagram zoom. The route has no SQLite connection, row preview, external asset, SQL, edit, or cleanup action.
+`System > Schema` serves the read-only `/schema` Explorer from that package data. Optional `area` and `table` query values select one of the eleven owner areas and one owned table; invalid state normalizes to the nearest valid overview. Server-rendered links and catalogs remain complete without JavaScript, while the route-scoped module preserves shell continuity, history, focus, strict locally packaged Mermaid rendering, and bounded presentation-only diagram zoom. The route has no SQLite connection, row preview, external asset, SQL, edit, or cleanup action.
 
 The current schema groups data into these responsibilities:
 
@@ -329,6 +334,7 @@ The current schema groups data into these responsibilities:
 | --- | --- |
 | Source inventory | `sources`, `source_files`, `external_source_instances`, `external_source_capabilities`, `context_roots`, `workspaces` |
 | Indexed activity | `sessions`, `activity_events`, `session_reference_scans`, `session_reference_evidence`, `usage_records`, immutable usage price snapshots, `context_documents`, FTS5 search tables |
+| Reviewed learning | immutable lesson/source revisions in `learning_lessons`, personal attempts in `learning_attempts`, and stable-key visibility in `learning_visibility`; [Personal Learning](data-model/personal-learning.md) owns their table contracts |
 | Workflow correction | append-only `workflow_assertions` keyed by stable Episode boundaries |
 | User organization | `workstreams`, `threads`, `checkpoints` |
 | Linkable resources | `local_resources`, `external_resources`, Workstream and Thread links |
@@ -1676,13 +1682,13 @@ contract, permission and admission limits.
 | Current capability | Owning contract |
 | --- | --- |
 | Additive SQLite startup migrations over the local index | [Persistence Model](#persistence-model) |
-| User-created Workstreams and nested Threads | [Product organization](product.md#workstream-first) |
-| Versioned checkpoints with linked-resource snapshots | [Product organization](product.md#workstream-first) |
-| Thread-first links to Sessions, Local Contexts, projects, local paths and external references | [Product organization](product.md#workstream-first) |
-| Workstream-level links for resources shared by multiple Threads | [Product organization](product.md#workstream-first) |
+| User-created Workstreams and nested Threads | [Product organization](product.md#workstream-centered-organization) |
+| Versioned checkpoints with linked-resource snapshots | [Product organization](product.md#workstream-centered-organization) |
+| Thread-first links to Sessions, Local Contexts, projects, local paths and external references | [Product organization](product.md#workstream-centered-organization) |
+| Workstream-level links for resources shared by multiple Threads | [Product organization](product.md#workstream-centered-organization) |
 | Manual Jira, Wiki, Slack, Git, document and generic URL references | [Product domain](product.md#domain-boundaries) |
 | Reversible keyword-based Session and Document link Suggestions | [Product Suggestions](product.md#automatic-capture-explicit-organization) |
-| Workstream-first Dashboard and separate Sessions Dashboard | [Dashboard](product.md#dashboard) |
+| Reviewed work-based learning article home, library and reader from explicit reviewed imports, with separate Workstream routes and Sessions Dashboard | [Learning Home](product.md#learning-home) |
 | Maintenance Session exclusion and source-neutral Claude/Codex subsession normalization | [Session Eligibility](#session-eligibility) and [Session Policies](#session-policies) |
 | Source-neutral Claude/Codex Usage Records with immutable local trend-cost snapshots | [Usage Normalization And Repair](#usage-normalization-and-repair) |
 | Reproducible Sessions Dashboard usage summary, GET scope and Daily/Weekly/Monthly token/cost history | [Analytical Read Models](#analytical-read-models) |
@@ -1769,3 +1775,7 @@ Implementation priorities and unresolved work belong in the [Project Backlog](..
 - Historical source paths must remain visible when their current Project relation is missing or changes.
 - The SQLite schema and runtime data must remain portable to a later desktop wrapper.
 - Desktop packaging must not obscure data location, permissions, backup, or shutdown behavior.
+
+## Google Drive Synchronization Boundary
+
+The approved [Drive sync contract](google-drive-sync.md) adds explicit selected external writes. `google_drive/` owns the gcloud authentication adapter, separate private SQLite state, directional engines and backend-lifetime scheduler; `google_drive_web.py` exposes Settings-only local routes. The existing Session/Context collectors and clocks are unchanged. Fixed wall-clock jobs use one serialized worker, per-item verified checkpoints and cancellation between operations. The Drive synchronization path does not route OAuth or received material through a model, gateway executor, search index or automatic source registration. Separately approved [Context Search](context-search.md) may read already received copies within its explicit source boundary. Opening Settings reads cached state; explicit root browse and selected manual/automatic jobs perform real API operations. Native loopback authentication and the existing local same-origin boundary still apply.

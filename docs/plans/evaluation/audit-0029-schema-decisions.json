@@ -3,13 +3,13 @@
   "review_status": "complete",
   "manifest": {
     "path": "src/localbrain/schema-presentation.json",
-    "sha256": "548048d561cdb6a8b38026dd161a1e4be4d8518feee46645ec9cb58434c566e8",
+    "sha256": "a5e75a382c972cfcb625a2be8562ed02cb305204d44de0ddfa83cd1eb1ef5a01",
     "expected": {
-      "tables": 46,
-      "columns": 523,
-      "indexes": 51,
-      "physical_relations": 58,
-      "application_relations": 28
+      "tables": 49,
+      "columns": 543,
+      "indexes": 52,
+      "physical_relations": 59,
+      "application_relations": 29
     }
   },
   "decision_defaults": {
@@ -35,6 +35,9 @@
     }
   },
   "table_decisions": {
+    "learning_lessons": {"decision": "keep", "risk": "high", "rationale": "Retain immutable explicitly reviewed lesson revisions and embedded evidence snapshots. Exact revision identity and RESTRICT-linked personal attempts cannot be rebuilt by source ingestion; recover the private database backup. No original-source deletion cascades or ordinary lesson update/delete route is admitted."},
+    "learning_attempts": {"decision": "keep", "risk": "high", "rationale": "Retain immutable personal responses/confidence and one-way explicit self-assessment or completed reading records tied to an exact lesson revision. Idempotent submissions, RESTRICT ownership and the lesson/time index preserve history and scheduling; source reingestion cannot recover these records."},
+    "learning_visibility": {"decision": "keep", "risk": "medium", "rationale": "Retain explicit reversible hide/snooze choices keyed by stable lesson identity across revisions. Application linkage intentionally has no foreign key to the non-unique revision key and does not change saved attempts, due outcomes or mastery; recover from database backup or repeat explicit choices."},
     "skill_observations": {"decision": "keep", "risk": "high", "rationale": "Required retained source-backed skill evidence with source-scoped event replay guards and explicit correction state; ordinary Session or file removal must not erase historical observations, and missing native files require database-backup recovery."},
     "personal_insight_runs": {"decision": "keep", "risk": "high", "rationale": "Required independent analysis execution and report history with frozen settings, coverage, evidence and artifact references; database-plus-artifact recovery preserves past results without replaying a paid model call. Optional metadata-only usage accounting remains separate from ordinary work Sessions."},
     "sources": {"decision": "keep", "risk": "low", "rationale": "Required stable parent registry for every imported source domain; scan producers and cross-domain consumers depend on its numeric primary key. Provider, display name, color, path and order are separate attributes; no legacy string alias remains in the current schema."},
@@ -224,6 +227,9 @@
     }
   },
   "test_evidence": {
+    "learning_lessons": ["tests/test_learning_contract.py"],
+    "learning_attempts": ["tests/test_learning_contract.py"],
+    "learning_visibility": ["tests/test_learning_contract.py"],
     "skill_observations": ["tests/test_skill_observations.py", "tests/test_automatic_skill_loads.py"],
     "personal_insight_runs": ["tests/test_personal_insight_run_guidance.py", "tests/test_personal_insight_usage.py", "tests/test_personal_insight_ui.py"],
     "sources": ["tests/test_ingest_policy.py", "tests/test_session_contract.py", "tests/test_usage_dashboard.py", "tests/test_source_profiles.py", "tests/test_session_source_settings.py"],

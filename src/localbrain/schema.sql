@@ -1347,3 +1347,39 @@ CREATE INDEX IF NOT EXISTS idx_atlassian_structure_reference_evidence_document
     ON atlassian_structure_reference_evidence(
         document_id, source_line, url_ordinal
     );
+-- Reviewed lessons and personal learning history are private, durable user data.
+CREATE TABLE IF NOT EXISTS learning_lessons (
+    id INTEGER PRIMARY KEY,
+    lesson_key TEXT NOT NULL,
+    revision TEXT NOT NULL CHECK(length(revision) = 64),
+    title TEXT NOT NULL,
+    packet_json TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    UNIQUE(lesson_key, revision)
+);
+
+CREATE TABLE IF NOT EXISTS learning_attempts (
+    id INTEGER PRIMARY KEY,
+    lesson_id INTEGER NOT NULL REFERENCES learning_lessons(id) ON DELETE RESTRICT,
+    question_id TEXT NOT NULL,
+    submission_key TEXT NOT NULL UNIQUE,
+    answer TEXT NOT NULL CHECK(length(answer) <= 8000),
+    confidence TEXT CHECK(confidence IN ('low', 'medium', 'high')),
+    hint_used INTEGER NOT NULL DEFAULT 0 CHECK(hint_used IN (0, 1)),
+    outcome TEXT NOT NULL CHECK(outcome IN ('pending', 'read', 'again', 'partial', 'recalled')),
+    submitted_at TEXT NOT NULL,
+    assessed_at TEXT,
+    CHECK((outcome = 'read' AND answer = '' AND confidence IS NULL AND hint_used = 0)
+       OR (outcome != 'read' AND length(trim(answer)) > 0 AND confidence IS NOT NULL)),
+    CHECK((outcome = 'pending' AND assessed_at IS NULL)
+       OR (outcome != 'pending' AND assessed_at IS NOT NULL))
+);
+CREATE INDEX IF NOT EXISTS idx_learning_attempts_lesson_time
+    ON learning_attempts(lesson_id, submitted_at);
+
+CREATE TABLE IF NOT EXISTS learning_visibility (
+    lesson_key TEXT PRIMARY KEY NOT NULL,
+    hidden INTEGER NOT NULL DEFAULT 0 CHECK(hidden IN (0, 1)),
+    snoozed_until TEXT,
+    updated_at TEXT NOT NULL
+);

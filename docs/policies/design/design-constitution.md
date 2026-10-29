@@ -12,7 +12,7 @@ Keep reusable law here. Do not add implementation sequencing, migration notes, p
 
 - **Product type:** local-first developer work-context hub and personal continuity workspace.
 - **Primary user:** one developer, PM, or analyst organizing their own sessions, projects, documents, sources, Workstreams, and maintenance activity.
-- **Primary jobs:** resume interrupted work, reconstruct a Session-backed work flow, organize evidence into Workstreams and Threads, inspect source activity, search local context, review Suggestions, and monitor maintenance Runs.
+- **Primary jobs:** learn from personal work evidence, resume interrupted work, reconstruct a Session-backed work flow, organize evidence into Workstreams and Threads, inspect source activity, search local context, review Suggestions, and monitor maintenance Runs.
 - **Interaction character:** workflow-heavy and read-heavy. The interface must support fast scanning and sustained detail reading without separating evidence from state.
 - **Device priority:** desktop-first local browser UI. Narrow viewports preserve access and comprehension but do not redefine the product as mobile-first.
 - **Technical constraints:** FastAPI, server-rendered Jinja2, small JSON interactions, SQLite and FTS5, locally served assets, no external CDN, and no interface that implies unsupported backend behavior.
@@ -24,23 +24,25 @@ The design baseline reconciles three source roles:
 
 | Source role | Contribution | Boundary |
 |---|---|---|
-| Qoo10 Design System (AI) | neutral scale, warm brand direction, typography scale, spacing rhythm, radius and component cues | visual input only; commerce concepts and unsupported states do not transfer |
+| Initial upstream design system (AI) | neutral scale, warm brand direction, typography scale, spacing rhythm, radius and component cues | visual input only; commerce concepts and unsupported states do not transfer |
 | LocalBrain product policies and code | entities, navigation, status values, privacy, provenance, routes, validation, and runtime behavior | implementation and product compatibility truth |
 | Existing LocalBrain templates and CSS | proven shell shape, density pressure, content patterns, and responsive evidence | starting artifact; near-equivalent ad hoc values are normalized into this constitution |
 
-The initial upstream review occurred through authenticated Figma access on 2026-07-15. External file keys and private URLs are not durable dependencies. The imported source remains identifiable by name, while the rules below are self-contained.
+The initial upstream review occurred through authenticated Figma access on 2026-07-15. External file keys and private URLs are not durable dependencies. The imported source remains identifiable by its stable public alias, review date, scope and contribution, while the rules below are self-contained.
 
 Classification of the resulting system:
 
 - **Imported direction:** cool neutral workspace, warm red brand accent, SF Pro-oriented typography, compact spacing, restrained radii, and low elevation.
 - **Adapted rules:** accessible foreground and feedback colors, separate danger semantics, dark navigation, semantic spacing and elevation roles, reduced motion, and responsive transformations.
-- **LocalBrain-specific rules:** Workstream-first hierarchy, source provenance, long-path handling, reviewable Suggestions, Local Context health, Run execution states, split-pane exploration, and technical console treatment.
+- **LocalBrain-specific rules:** learning-first home and Workstream-centered organization, source provenance, long-path handling, reviewable Suggestions, Local Context health, Run execution states, split-pane exploration, and technical console treatment.
 
 ## 3. Compatibility Constraints
 
 ### Product And Data
 
-- Core visible entities are Workstream, Thread, Checkpoint, Session, Activity Event, Source, Local Context source, Document, Project, Resource, Suggestion, and maintenance Run.
+- Core visible entities are Lesson, Learning Attempt, Workstream, Thread, Checkpoint, Session, Activity Event, Source, Local Context source, Document, Project, Resource, Suggestion, and maintenance Run.
+- Learning keeps the work example, official evidence, source/version uncertainty and personal response distinct. Reading and self-assessment never imply verified correctness or mastery. Daily suggestions have an end; existing work organization remains accessible through its own navigation.
+- Code/command learning keeps the literal source beside its question and feedback, with compact screens stacking source before reasoning. Actual material and synthetic examples, reported execution and observed results, manual relevance and scheduling reasons remain separately labeled. Question depth names the reasoning task, never a mastery score.
 - Workstreams and Threads are user-defined organization. Imported or inferred data must not look user-confirmed until accepted.
 - Source identity, timestamps, status, and evidence remain visible wherever they materially affect trust or recovery.
 - Missing, unreadable, stale, conflicting, or unavailable information must be labeled rather than silently omitted or presented as current.
@@ -84,7 +86,7 @@ Classification of the resulting system:
   - Normalize repeated spacing and geometry instead of preserving incidental screen values.
 - **Anti-principles:**
   - No commerce, loyalty, marketing, or promotional patterns.
-  - No generic widget wall without a Workstream or source-inspection purpose.
+  - No generic widget wall without a learning, Workstream or source-inspection purpose.
   - No decorative gradients on structural surfaces.
   - No state communicated by color alone.
   - No mixed radius or shadow language inside one component family.
@@ -245,8 +247,6 @@ Components consume semantic roles only. Color, type, spacing, radius, elevation,
   --surface-warning: var(--color-amber-100);
   --surface-danger: var(--color-red-100);
   --surface-brand-soft: var(--color-brand-100);
-  --surface-source-claude: var(--color-claude-100);
-  --surface-source-codex: var(--color-codex-100);
   --surface-profile-green: var(--color-codex-100);
   --text-profile-green: var(--color-codex-700);
   --surface-profile-blue: var(--color-blue-100);
@@ -259,6 +259,8 @@ Components consume semantic roles only. Color, type, spacing, radius, elevation,
   --text-profile-red: var(--color-red-700);
   --surface-profile-gray: var(--color-neutral-400);
   --text-profile-gray: var(--color-neutral-900);
+  --surface-source-claude: var(--color-claude-100);
+  --surface-source-codex: var(--color-codex-100);
 
   /* Text */
   --text-primary: var(--color-neutral-1000);
@@ -467,9 +469,9 @@ geometry, interaction and source-filter presentation.
 
 ### Navigation Model
 
-The persistent navigation has three groups and nine stable destinations:
+The persistent navigation has three groups and ten stable destinations:
 
-- **Overview:** Dashboard, Sessions Dashboard
+- **Overview:** Dashboard, Sessions Dashboard, Context Search
 - **Workspace:** 자동 작업, Workstreams, Sessions, Atlassian, Local Contexts
 - **System:** Sources, Schema
 
@@ -621,10 +623,10 @@ Running and working indicators may animate with motion tokens. Under `prefers-re
 - Labels remain visible when fields contain values. Placeholder text does not replace a label.
 - Form groups align labels, controls, helper text, and errors. Two-column forms become one column at the narrow breakpoint.
 - Monospace is limited to paths, identifiers, code, and machine-oriented values.
+- General-settings dropdowns share the same compact width, below-trigger menu, disclosure cue and selected checkmark. `--settings-select-width` caps the control at six touch-control height units (240px at the default scale); the control and matching menu shrink to the available pane width. Helper text keeps the wider form reading measure. The source-tool and Context-kind selectors share this below-trigger menu. Settings fields and action buttons use the desktop 32px control role, 40px at the narrow breakpoint, and centered action labels. The dedicated Sync pane groups Session and Local Context schedules, each with a single dropdown for 10/20/30/60 minutes, then Off. Sync sizes the same control family to the label, disclosure and selected marker (about 79px at the default scale), expanding for longer saved values; its menu matches that width. Off preserves the saved interval; choosing minutes enables that schedule. Omit the range/runtime help sentence.
 
 ### Cards And Panels
 
-- General-settings dropdowns share the same compact width, below-trigger menu, disclosure cue and selected checkmark. `--settings-select-width` caps the control at six touch-control height units (240px at the default scale); the control and matching menu shrink to the available pane width. Helper text keeps the wider form reading measure. The source-tool and Context-kind selectors share this below-trigger menu. Settings fields and action buttons use the desktop 32px control role, 40px at the narrow breakpoint, and centered action labels. The dedicated Sync pane groups Session and Local Context schedules, each with a single dropdown for 10/20/30/60 minutes, then Off. Sync sizes the same control family to the label, disclosure and selected marker (about 79px at the default scale), expanding for longer saved values; its menu matches that width. Off preserves the saved interval; choosing minutes enables that schedule. Omit the range/runtime help sentence.
 - Cards use `--surface-default`, `--border-subtle`, `--radius-card`, `--space-card`, and `--elevation-card`.
 - Panels use `--surface-default`, `--radius-panel`, and `--space-panel`; they may omit elevation when the border or surrounding surface already establishes containment.
 - Hover may move from resting to raised elevation without layout shift.
@@ -633,9 +635,6 @@ Running and working indicators may animate with motion tokens. Under `prefers-re
 ### Lists, Tables, And Grids
 
 - Lists use row spacing roles and `--divider-row`; the final row does not duplicate the next surface boundary.
-- Dense tables use stable column zones, a subtle header surface, and row labels that remain available when secondary columns hide.
-- At the narrow breakpoint, a table either keeps the minimum meaningful columns or converts each row into a labeled card. Horizontal scrolling is reserved for data whose column comparison is essential.
-- Variable titles and summaries truncate only inside an explicit bounded zone. Full values remain available through the destination, disclosure, or accessible label.
 - Session profile and Local Context settings use separate, compact rows without an enclosing rounded
   frame or shared dividers. Each row uses the white/default surface, subtle border
   and resting card elevation. Keep the whole row untinted in hover, focus and drag;
@@ -667,6 +666,9 @@ Running and working indicators may animate with motion tokens. Under `prefers-re
   Notes action appears in the editor only when Notes is not registered. Context
   unregister uses the same named in-app confirmation family from settings and the
   explorer, preserving Cancel-first focus, busy/error behavior and focus return.
+- Dense tables use stable column zones, a subtle header surface, and row labels that remain available when secondary columns hide.
+- At the narrow breakpoint, a table either keeps the minimum meaningful columns or converts each row into a labeled card. Horizontal scrolling is reserved for data whose column comparison is essential.
+- Variable titles and summaries truncate only inside an explicit bounded zone. Full values remain available through the destination, disclosure, or accessible label.
 - Repeated cards align footer metadata independently of variable body length.
 
 ### Navigation, Tabs, Chips, And Status Badges
@@ -723,9 +725,6 @@ and preserves the active numeric filter.
 - Drawers use `--radius-sheet` on exposed corners and `--drawer-max-width`.
 - Overlays trap focus, expose an accessible name, close through an explicit action, and restore focus to the trigger.
 - Destructive confirmation states state the affected object and consequence.
-
-### Empty, Loading, Error, And Working States
-
 - Settings use a compact centered dialog: `--settings-width` and `--settings-height`
   cap it at 18 by 14 touch-control height units (720 by 560px at the default scale),
   shrinking within the viewport. The desktop category rail uses four such units
@@ -748,6 +747,9 @@ and preserves the active numeric filter.
   initialization. Optional skip and Set up later remain visible; failed writes
   retain the current step. At the shared narrow breakpoint, forms become one
   column and the footer can wrap without horizontal overflow.
+
+### Empty, Loading, Error, And Working States
+
 - Empty states explain what is absent and provide one relevant recovery path.
 - Loading and working states remain inside the owning panel, list, or console; the persistent shell stays stable.
 - Errors preserve the user's entered data and show a retry or correction path when recovery is possible.
@@ -758,6 +760,7 @@ and preserves the active numeric filter.
 - Paths, identifiers, source excerpts, and Run output use mono type roles.
 - The Run console uses `--surface-code`, `--text-inverse`, reading line height, and an independently scrollable output region inside the page.
 - Markdown reading code uses the separate `--surface-code-reading`, `--surface-code-reading-header`, and `--text-code-*` roles. Its calmer syntax palette supports sustained reading and does not repurpose brand, status, provenance, or Run-console semantics.
+- Learning-article code reuses those reading roles, with a language caption, line numbers, literal excerpt range and local horizontal overflow. Diff +/− markers carry change meaning independently of syntax color. Articles use the existing reading-width bound, `--type-prose-size` for sustained prose and native section typography. Numbered sections and connected paragraphs form the main reading flow; a quiet contents/reference rail sits alongside on desktop and references follow the article at the shared compact breakpoint. Heading levels follow the containing page.
 - Console status, cancellation, errors, and completion remain outside or above the output stream so they do not disappear in long logs.
 - Raw local paths wrap or truncate safely and never force the page wider than its container.
 
@@ -1130,9 +1133,9 @@ Any durable change to visual DNA, primitive families, semantic roles, shell geom
 
 | Family | Current surfaces | Durable constraints |
 |---|---|---|
-| Overview and dashboard | Dashboard, Sessions Dashboard | summary must lead to underlying Workstreams, Sessions, Sources, or evidence; metrics are not decorative |
+| Overview and dashboard | Dashboard, Sessions Dashboard | Dashboard shows one daily work-based article: context, preserved code, numbered explanatory sections, takeaway, then a collapsed optional question. A desktop contents/reference rail supports reading; compact screens place references below. Explicit reading and assisted-practice actions retain their separate meanings; selection guidance and complete evidence belong to library/reader; metrics are not decorative |
 | Browse and inventory | 자동 작업, Workstreams, Sessions, Projects, Sources, Search | supports filtering, long labels, empty results, source identity, and stable row/card metadata; Auto Work keeps inferred groups separate from user-defined Workstreams and uses source-backed adjacent or sequential detail |
-| Detail and read | Session, Subsession, Document, local Resource | prioritizes readable body width, source metadata, deep links, and long technical content |
+| Detail and read | Lesson, Session, Subsession, Document, local Resource | prioritizes readable body width, source metadata, deep links and long technical content; lesson response precedes feedback, with explicit explanation-first access and self-assessment; code/command lessons keep essential conditions and numbered source visible beside reasoning, stack at the shared compact breakpoint, contain long lines locally, and use document flow for tall content; unsaved draft and saved response states stay distinct |
 | Workstream workspace | Workstream detail | preserves Workstream → Thread → evidence hierarchy and separates confirmed organization from Suggestions |
 | Explorer | Auto Work full-history affinity, Atlassian, Local Contexts, Schema, Session Workflow Focus | preserves source, subject, or Episode selection; hierarchy/tree/table/time orientation; progressive preview or Trace; unreadable, missing, honestly unassigned, unconnected, partial, and diagram-unavailable states; affinity remains undirected observation rather than persisted work identity, Workflow Focus keeps artifacts subordinate to Episodes on fixed lanes, and Atlassian keeps top service scopes outside its domain-first hierarchy |
 | Run and console | maintenance Run | represents the complete Run lifecycle, cancellation, output, artifacts, and terminal result |

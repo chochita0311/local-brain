@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Context Search · LocalBrain{% endblock %}
+{% block page_location %}Context Search{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{{ url_for('static', path='/context-search.css') }}?v={{ asset_version }}">{% endblock %}
+{% block content %}
+<section class="context-chat" data-context-chat aria-label="Context Search">
+  <header class="context-chat-toolbar">
+    <label class="context-chat-model">답변 모델<span class="context-chat-model-control"><select data-chat-model aria-label="답변 모델"><option value="4b">Qwen3-4B</option><option value="8b">Qwen3-8B</option></select><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></span></label>
+    <button class="secondary-button" type="button" data-chat-clear disabled>새 질문</button>
+  </header>
+  <details class="context-chat-sources"><summary data-chat-sources>검색할 자료 확인 중</summary><ul data-chat-source-list></ul></details>
+  <div class="context-chat-intro" data-chat-intro>
+    <p class="eyebrow">LOCAL KNOWLEDGE</p>
+    <h1>어떤 자료가 궁금하세요?</h1>
+    <p>내 Local Context와 받아둔 폴더에서<br>필요한 내용을 찾아보세요.</p>
+    <div class="context-chat-examples" aria-label="질문 예시"><button type="button" data-chat-example>Airflow 운영은 누가 담당하나요?</button><button type="button" data-chat-example>이 배치의 장애 대응 절차를 찾아줘</button></div>
+  </div>
+  <div class="context-chat-transcript" data-chat-transcript role="log" aria-label="질문과 답변" aria-relevant="additions"></div>
+  <div class="context-chat-compose">
+    <p class="context-chat-status" data-chat-status role="status">자료와 모델을 확인하고 있습니다.</p>
+    <button class="secondary-button" type="button" data-chat-setup data-settings-open="search" hidden>검색 모델 설정</button>
+    <button class="secondary-button" type="button" data-chat-context-setup data-settings-open="context" hidden>Local Context 연결</button>
+    <form data-chat-form autocomplete="off">
+      <label class="sr-only" for="context-chat-question">질문</label>
+      <textarea id="context-chat-question" data-chat-question autocomplete="off" rows="3" maxlength="4000" placeholder="문서나 업무에 대해 질문하세요" required disabled></textarea>
+      <div class="context-chat-compose-actions"><span>Enter로 전송 · Shift+Enter로 줄바꿈</span><button class="primary-button" type="submit" data-chat-send disabled>질문하기</button><button class="secondary-button" type="button" data-chat-stop hidden>생성 중단</button></div>
+    </form>
+    <p class="context-chat-caption">대화는 저장하지 않습니다. 이 화면을 떠나면 지워집니다.</p>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', path='/context-search.js') }}?v={{ asset_version }}" defer></script>{% endblock %}

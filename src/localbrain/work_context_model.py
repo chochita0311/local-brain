@@ -297,21 +297,26 @@ class LocalGenerator:
                                      for code in codes}}
 
     def generate(self, system, content):
+        return self.generate_messages([{"role": "system", "content": system},
+                                       {"role": "user", "content": content}])
+
+    def generate_messages(self, messages, *, tools=None):
+        """Use the pinned native template, including structured tool exchanges."""
         import resource
         import torch
         started = time.monotonic()
         self.last_output, self.last_metrics = "", {}
         self._load()
-        messages = [{"role": "system", "content": system}, {"role": "user", "content": content}]
         prompt = self.tokenizer.apply_chat_template(messages, tokenize=False,
-                    add_generation_prompt=True, enable_thinking=self.contract["thinking"])
+                    add_generation_prompt=True, enable_thinking=self.contract["thinking"], **({'tools': tools} if tools else {}))
         inputs = self.tokenizer(prompt, return_tensors="pt", truncation=False)
         length = inputs["input_ids"].shape[1]
         require(length + self.contract["max_output"] <= self.contract["max_tokens"], "CONTEXT_TOO_LARGE")
         inputs = inputs.to(self.contract["device"])
         options = {"do_sample": False}
         if self.contract["decoding"] == "sampled":
-            torch.manual_seed(int(digest([system, content])[:8], 16))
+            seed = [m['content'] for m in messages] if len(messages) == 2 and not tools else messages
+            torch.manual_seed(int(digest(seed)[:8], 16))
             options = {"do_sample": True, **{key: self.contract["sampling"][key]
                                             for key in ("temperature", "top_p", "top_k")}}
         with torch.inference_mode():
