@@ -549,6 +549,91 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(len(parsed.events), 1)
         self.assertEqual(parsed.title, prompt)
 
+    def test_codex_empty_page_control_is_not_a_question_in_either_native_format(self):
+        control = '<external_codex_apps_open_page>{"page_id":null}</external_codex_apps_open_page>'
+        prompt = "실제 첫 질문 https://visible.example.test/prompt"
+        for source in ("legacy", "response", "both"):
+            with self.subTest(source=source):
+                records = [{"type": "turn_context", "payload": {"turn_id": "one"}}]
+                for text in (control, prompt, control):
+                    if source in ("legacy", "both"):
+                        records.append({"type": "event_msg", "payload": {
+                            "type": "user_message", "message": text,
+                        }})
+                    if source in ("response", "both"):
+                        records.append(self._codex_response_message("user", text))
+                records.append(self._codex_response_message("assistant", "확인했습니다"))
+                parsed = parse_codex_session(self._write_jsonl(records))
+                self.assertEqual(parsed.title, prompt)
+                self.assertEqual([(e.role, e.text) for e in parsed.events], [
+                    ("user", prompt), ("assistant", "확인했습니다"),
+                ])
+                self.assertEqual([e.observed_url for e in parsed.url_evidence],
+                                 ["https://visible.example.test/prompt"])
+
+    def test_codex_empty_page_control_preserves_adjacent_authored_blocks(self):
+        opening = "<external_codex_apps_open_page>"
+        closing = "</external_codex_apps_open_page>"
+        control = opening + '\r\n { "page_id" : null } \r\n' + closing
+        parsed = parse_codex_session(self._write_jsonl([{
+            "type": "response_item", "payload": {
+                "type": "message", "role": "user", "content": [
+                    {"type": "input_text", "text": text}
+                    for text in (control, "실제 질문", control, "추가 조건")
+                ],
+            },
+        }]))
+        self.assertEqual(parsed.title, "실제 질문 추가 조건")
+        self.assertEqual([e.text for e in parsed.events], ["실제 질문\n\n추가 조건"])
+        empty = parse_codex_session(self._write_jsonl([
+            self._codex_response_message("user", control),
+        ]))
+        self.assertEqual(empty.events, [])
+        self.assertEqual(empty.url_evidence, [])
+        self.assertEqual(empty.reference_candidates, [])
+
+    def test_codex_empty_page_control_preserves_unknown_and_literal_forms(self):
+        opening = "<external_codex_apps_open_page>"
+        closing = "</external_codex_apps_open_page>"
+        control = opening + '{"page_id":null}' + closing
+        for payload in (
+            "not JSON", "null", "[]", "{}", '{"page_id":"example-page"}',
+            '{"page_id":false}', '{"page_id":[]}',
+            '{"page_id":null,"extra":"https://visible.example.test/extra"}',
+            '{"page_id":"example-page","page_id":null}',
+            '{"page_id":null,"page_id":null}',
+        ):
+            literal = opening + payload + closing
+            with self.subTest(payload=payload):
+                parsed = parse_codex_session(self._write_jsonl([
+                    self._codex_response_message("user", literal),
+                ]))
+                self.assertEqual([e.text for e in parsed.events], [literal])
+        for literal in (
+            "이 코드를 확인해 주세요: " + control,
+            "```xml\n" + control + "\n```",
+            "> " + control,
+            control + "\n실제 요청",
+            control + control,
+            opening + '{"page_id":null}',
+        ):
+            with self.subTest(literal=literal):
+                parsed = parse_codex_session(self._write_jsonl([
+                    self._codex_response_message("user", literal),
+                ]))
+                self.assertEqual([e.text for e in parsed.events], [literal])
+        parsed = parse_codex_session(self._write_jsonl([
+            self._codex_response_message("assistant", control),
+            self._codex_response_message("user", (
+                "<send_user_message_question_reply>"
+                + json.dumps([{"answer": control}])
+                + "</send_user_message_question_reply>"
+            )),
+        ]))
+        self.assertEqual([(e.role, e.text) for e in parsed.events], [
+            ("assistant", control), ("user", control),
+        ])
+
     def test_codex_context_filter_is_specific_and_applies_to_both_native_formats(self):
         contexts = [
             "<recommended_plugins>\n"

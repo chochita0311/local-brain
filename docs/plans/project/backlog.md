@@ -318,6 +318,22 @@ single linked checkbox in the detailed backlog below.
 
 ## P1 - Sessions And Retrieval
 
+- [ ] Review provenance and literal-input safeguards for existing body-text
+  heuristics before broadening recognition. An authored standalone generated
+  wrapper can be filtered; a valid maintenance header at the start of any user
+  message can classify the entire Session as metadata-only, even with explanatory
+  text or no registered Run. [RUN-227](../run/run-20261029-227-codex-empty-page-control.md#existing-text-heuristic-boundary)
+  records the observed boundaries and why old/new equality does not validate
+  shared heuristics. No broader parser rewrite was performed. Separately verify
+  CRLF variants of existing skill/recovery/abort wrappers, which can remain
+  visible although their LF forms are filtered. Non-null page payloads require
+  native evidence before any recognition expansion.
+- [ ] **P3 follow-up: long literal XML titles at narrow widths.** A retained
+  code-example title can overflow the Session detail at 320 CSS pixels. The
+  unchanged renderer also overflows with the prior control-derived title;
+  [RUN-227's bounded browser evaluation](../evaluation/eval-0015-r2-codex-empty-page-control.md)
+  records the comparison and its limits. Improve title containment without
+  discarding authored XML or expanding the completed empty-page parser correction.
 - [x] Approve and implement [PRD-0020: Local Natural Language Search](../prd/prd-0020-local-natural-language-search.md)
   with whole eligible Session/Local Context coverage, private derived storage
   and automatic refresh. Initial contracts/engine/parallel UI passed; the

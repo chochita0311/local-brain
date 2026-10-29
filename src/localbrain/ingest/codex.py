@@ -37,7 +37,7 @@ CODEX_USAGE_IDENTITY_VERSION = (
 )
 CODEX_USAGE_CONTRACT_VERSION = "codex-last-token-usage-v8-official-dated-service-tier"
 CODEX_SESSION_CONTRACT_VERSION = (
-    "codex-session-v11-question-replies-and-context-blocks"
+    "codex-session-v12-empty-page-controls"
 )
 CODEX_GUARDIAN_TITLE = "Codex guardian"
 
@@ -84,6 +84,15 @@ def _codex_message_phase(payload: Dict[str, Any], role: str) -> Optional[str]:
     return None
 
 
+def _unique_json_object(pairs):
+    result = {}
+    for key, item in pairs:
+        if key in result:
+            raise ValueError("Duplicate JSON field")
+        result[key] = item
+    return result
+
+
 def _codex_question_reply_text(text: str) -> str:
     opening = "<send_user_message_question_reply>"
     closing = "</send_user_message_question_reply>"
@@ -91,18 +100,10 @@ def _codex_question_reply_text(text: str) -> str:
     if not (value.startswith(opening) and value.endswith(closing)):
         return value
 
-    def unique_object(pairs):
-        result = {}
-        for key, item in pairs:
-            if key in result:
-                raise ValueError("Duplicate question-reply field")
-            result[key] = item
-        return result
-
     try:
         replies = json.loads(
             value[len(opening) : -len(closing)],
-            object_pairs_hook=unique_object,
+            object_pairs_hook=_unique_json_object,
         )
     except (ValueError, RecursionError):
         return value
@@ -133,6 +134,19 @@ def _codex_question_reply_text(text: str) -> str:
 
 def _codex_generated_user_context(text: str) -> bool:
     value = text.strip()
+    opening = "<external_codex_apps_open_page>"
+    closing = "</external_codex_apps_open_page>"
+    if value.startswith(opening) and value.endswith(closing):
+        try:
+            page = json.loads(
+                value[len(opening) : -len(closing)],
+                object_pairs_hook=_unique_json_object,
+            )
+        except (ValueError, RecursionError):
+            return False
+        # Only the observed empty-page control is known to be generated context.
+        # Keep other page states and malformed or quoted examples literal.
+        return isinstance(page, dict) and page == {"page_id": None}
     header = value.split("\n", 1)[0].rstrip()
     if (
         value.startswith(

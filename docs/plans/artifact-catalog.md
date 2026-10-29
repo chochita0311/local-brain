@@ -195,7 +195,7 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [FEAT-0152: Selectable Generation Model Setup](feature/feat-0152-context-search-model-setup.md) | `passed` | PRD026 |
 | [FEAT-0153: Transient Context Search Conversation](feature/feat-0153-context-search-conversation.md) | `passed` | PRD026 |
 
-## Specs (161)
+## Specs (162)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -213,6 +213,7 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [SPEC-0012: Run Console](spec/spec-0012-run-console.md) | `approved` | feat-0012-run-console |
 | [SPEC-0013: Workstream Maintenance](spec/spec-0013-workstream-maintenance.md) | `approved` | feat-0013-workstream-maintenance |
 | [SPEC-0014: Local Context Explorer](spec/spec-0014-local-context-explorer.md) | `approved` | feat-0014-local-context-explorer |
+| [SPEC-0015 R2: Codex Empty Page Control](spec/spec-0015-r2-codex-empty-page-control.md) | `approved` | FEAT-0015 |
 | [SPEC-0015: Session And Subsession Source Contract](spec/spec-0015-session-subsession-source-contract.md) | `approved` | feat-0015-session-subsession-source-contract |
 | [SPEC-0016: Sessions And Projects Navigation](spec/spec-0016-sessions-projects-navigation.md) | `approved` | feat-0016-sessions-projects-navigation |
 | [SPEC-0017: Paginated Session Inventory](spec/spec-0017-paginated-session-inventory.md) | `approved` | feat-0017-paginated-session-inventory |
@@ -361,7 +362,7 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [SPEC-0152: Selectable Generation Model Setup](spec/spec-0152-context-search-model-setup.md) | `approved` | FEAT-0152 |
 | [SPEC-0153: Transient Context Search Conversation](spec/spec-0153-context-search-conversation.md) | `approved` | FEAT-0153 |
 
-## Runs (226)
+## Runs (227)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -591,8 +592,9 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [run-20261029-224-context-search-model-setup: Selectable Generation Model Setup](run/run-20261029-224-context-search-model-setup.md) | `passed` | FEAT-0152 |
 | [run-20261029-225-context-search-conversation: Transient Context Search Conversation](run/run-20261029-225-context-search-conversation.md) | `passed` | FEAT-0153 |
 | [Run226: Public Candidate Review And Native Integration](run/run-20261029-226-publication-and-native-integration.md) | `passed` | FEAT-0153, with approved Drive integration and existing Learning/schema pending changes. |
+| [RUN-227: Codex Empty Page Control](run/run-20261029-227-codex-empty-page-control.md) | `passed` | FEAT-0015 |
 
-## Evaluations And Schema Audits (468)
+## Evaluations And Schema Audits (469)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -646,6 +648,7 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [EVAL-0014: Local Context Explorer UX Heuristic](evaluation/eval-0014-ux-context-explorer.md) | `complete` | feat-0014-local-context-explorer |
 | [EVAL-0015: Session And Subsession Source Contract](evaluation/eval-0015-contract-session-subsession-source.md) | `complete` | feat-0015-session-subsession-source-contract |
 | [EVAL-0015: Session And Subsession Source Functional](evaluation/eval-0015-functional-session-subsession-source.md) | `complete` | feat-0015-session-subsession-source-contract |
+| [EVAL-0015 R2: Codex Empty Page Control](evaluation/eval-0015-r2-codex-empty-page-control.md) | `complete` | FEAT-0015 |
 | [EVAL-0016: Sessions And Projects Navigation Contract](evaluation/eval-0016-contract-sessions-projects-navigation.md) | `complete` | feat-0016-sessions-projects-navigation |
 | [EVAL-0016: Sessions And Projects Navigation Design](evaluation/eval-0016-design-sessions-projects-navigation.md) | `complete` | feat-0016-sessions-projects-navigation |
 | [EVAL-0016: Sessions And Projects Navigation Functional](evaluation/eval-0016-functional-sessions-projects-navigation.md) | `complete` | feat-0016-sessions-projects-navigation |
@@ -1065,12 +1068,13 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [EVAL-0153: Transient Context Search](evaluation/eval-0153-context-search-conversation.md) | `complete` | FEAT-0153 |
 | [EVAL-0153: Native Integration And Public Candidate Closeout](evaluation/eval-0153-native-publication-closeout.md) | — | Context Search, with Drive and the pending Learning/schema integration. |
 
-## Fix Logs (25)
+## Fix Logs (26)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
 | [FIX-0006: Context Reading Follow-Up](fix/fix-0006-context-reading-follow-up.md) | `complete` | prd-0006-markdown-reading-and-context-continuity |
 | [FIX-0014: Context Explorer Continuity](fix/fix-0014-context-explorer-continuity.md) | `complete` | feat-0014-local-context-explorer |
+| [FIX-0015: Codex Empty Page Control](fix/fix-0015-codex-empty-page-control.md) | `complete` | FEAT-0015 |
 | [FIX-0017: Fifteen-Item Responsive Pagination](fix/fix-0017-fifteen-item-responsive-pagination.md) | `complete` | feat-0017-paginated-session-inventory |
 | [FIX-0017: Live Runtime Pagination Context](fix/fix-0017-live-runtime-pagination-context.md) | `complete` | feat-0017-paginated-session-inventory |
 | [FIX-0017: Numbered Pagination And Disclosure Polish](fix/fix-0017-numbered-pagination-and-disclosure-polish.md) | `complete` | feat-0017-paginated-session-inventory |

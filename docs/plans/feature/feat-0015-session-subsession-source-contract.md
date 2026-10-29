@@ -10,7 +10,7 @@
 - Required Evaluators: `contract`, `functional`
 - Parent PRD: [prd-0002-session-browsing-and-subsession-organization](../prd/prd-0002-session-browsing-and-subsession-organization.md)
 - Created: `2026-07-17`
-- Updated: `2026-07-17`
+- Updated: `2026-10-29`
 
 ## Goal
 
@@ -183,11 +183,13 @@
 
 ## Harness Trace
 
-- Active spec doc: [spec-0015-session-subsession-source-contract](../spec/spec-0015-session-subsession-source-contract.md)
-- Active run: [run-20260717-15-session-subsession-source-contract](../run/run-20260717-15-session-subsession-source-contract.md)
-- Execution profile: `foundation-contract`
-- Latest evaluator report: [eval-0015-functional-session-subsession-source](../evaluation/eval-0015-functional-session-subsession-source.md)
-- Latest fix note: not created
+- Original foundation spec: [spec-0015-session-subsession-source-contract](../spec/spec-0015-session-subsession-source-contract.md)
+- Original foundation run: [run-20260717-15-session-subsession-source-contract](../run/run-20260717-15-session-subsession-source-contract.md)
+- Original execution profile: `foundation-contract`
+- Original evaluator report: [eval-0015-functional-session-subsession-source](../evaluation/eval-0015-functional-session-subsession-source.md); no fix note was created for that run.
+- Latest bounded correction: [SPEC-0015 R2](../spec/spec-0015-r2-codex-empty-page-control.md) → [RUN-227](../run/run-20261029-227-codex-empty-page-control.md), profile `fullstack-product`.
+- Latest evaluation: [EVAL-0015 R2](../evaluation/eval-0015-r2-codex-empty-page-control.md).
+- Latest fix: [FIX-0015](../fix/fix-0015-codex-empty-page-control.md).
 
 ## Continuity Notes
 
@@ -197,3 +199,4 @@
 - `2026-07-17`: human review excluded all subsessions from global Search and Session-derived statistics, resolving the final consumer-policy ambiguity for this Feature.
 - `2026-07-17`: human owner requested sequential execution of Features 0015 through 0018; this Feature entered `in-loop` as the first run.
 - `2026-07-17`: Contract and Functional evaluation passed; downstream Session navigation, inventory, and detail Features may now execute against the normalized hierarchy contract.
+- `2026-10-29`: owner-requested generated-context correction uses [SPEC-0015 R2](../spec/spec-0015-r2-codex-empty-page-control.md) and [RUN-227](../run/run-20261029-227-codex-empty-page-control.md) to exclude the observed empty-page control while preserving authored input and stable source identity under the current Session normalization contract.

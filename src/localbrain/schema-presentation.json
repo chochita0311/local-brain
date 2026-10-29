@@ -29,7 +29,7 @@
       {
         "path": "docs/policies/project/data-model/workspace-and-session-activity.md",
         "role": "semantic-truth",
-        "sha256": "3f079cc501174dfef64bdc016a5854b007d8aa3ffa25406b841656df5701e431"
+        "sha256": "9aca7b2a5f98b748d4eb115761ef4be56b0cf88b790f2dabc631a448b6b8246e"
       },
       {
         "path": "docs/policies/project/data-model/usage-and-cost-records.md",
@@ -59,7 +59,7 @@
       {
         "path": "docs/policies/project/data-model/maintenance-execution.md",
         "role": "semantic-truth",
-        "sha256": "861d729f30e0cf900378c1a254828cfca62cabe33984b6d940e045c688614ac3"
+        "sha256": "91213f2ec05ef26e9eb879a91a4d5de98d3954daebfefef7339d34e4973384eb"
       },
       {
         "path": "docs/policies/project/data-model/workflow-assertions.md",

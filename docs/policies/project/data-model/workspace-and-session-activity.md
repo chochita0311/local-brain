@@ -187,7 +187,7 @@ The [conversation normalization contract](#conversation-normalization-and-empty-
 
 #### Conversation Normalization And Empty Sources
 
-Codex messages retain every user-authored input in source order, including the initial prompt and asynchronous question replies sharing one turn.
+Codex normalization retains user inputs in source order, including the initial prompt and asynchronous question replies sharing one turn, subject to the recognized generated-context shapes below.
 A complete, validated `<send_user_message_question_reply>` array becomes readable question quotations followed by the authored answers, in batch order; `questionItemId` stays in the source JSONL.
 Missing optional questions permit an answer-only reply.
 Malformed or ambiguous JSON, empty answers, unsupported shapes, unknown fields, duplicate keys, embedded/fenced examples and assistant quotations remain literal rather than losing content.
@@ -195,6 +195,31 @@ Malformed or ambiguous JSON, empty answers, unsupported shapes, unknown fields, 
 Source-expanded AGENTS instructions (with or without a repository path), environment instructions, `<skill>` bodies, known recommended-plugin catalogs and recovery/abort controls stay excluded from titles, conversation, search and reference evidence while literal `$skill` requests remain visible.
 Each native text block is classified separately: removing a generated block cannot discard neighboring authored input, and retaining authored input cannot expose generated siblings.
 General XML, image references and meaningful source notifications are not stripped merely for containing tags.
+
+A standalone `<external_codex_apps_open_page>` envelope is recognized as generated
+empty-page context only when its complete JSON object is exactly
+`{"page_id": null}` with no duplicate keys. It is excluded from normalized
+conversation, title selection, question/event counts, search and message-derived
+reference evidence in both Codex native message formats. JSON whitespace is
+immaterial; adjacent authored content blocks remain in order. Non-null page IDs,
+missing or extra fields, duplicate keys, malformed JSON, embedded/fenced/quoted
+examples and assistant messages remain literal. Native JSONL and Usage Records
+are preserved; a Session contract upgrade reparses unchanged registered sources
+on the next Sync without repricing Usage. A control-only source follows the
+existing meaningful-Session and parsed-empty ownership rules.
+
+Record types, roles and provider metadata establish the structural parsing route;
+the generated-context filters and question-reply decoder also inspect message
+text. These are content-based recognition rules, not proof of who authored a
+block. An intentionally authored standalone block exactly matching a recognized
+generated shape, including the null-page envelope, can therefore be filtered.
+Explanatory framing or fencing preserves the tested examples. The shared
+[maintenance-header classifier](maintenance-execution.md#maintenance_runs) also
+uses text, but changes Session classification and indexing rather than merely
+removing a generated block. Counterpart reconciliation compares normalized text
+with the provider's role/turn rules; URL, path and established skill-identifier
+extraction derive evidence without themselves hiding conversation. A skill
+reference alone does not establish execution.
 
 Legacy `event_msg` user duplicates match normalized readable text within the same turn, with text fallback when either side lacks a turn ID; distinct known turns may repeat the same text.
 JSON layout differences do not duplicate the same question reply, and different questions sharing an answer remain distinct.

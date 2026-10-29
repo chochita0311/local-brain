@@ -1507,6 +1507,189 @@ root = "{company}"
                     self.assertEqual(self._table_rows(connection, "activity_events"), events_after)
             self.assertEqual([path.read_bytes() for path in paths], source_bytes)
 
+    def test_page_control_filter_uses_provider_kind_with_arbitrary_renamed_profiles(self):
+        control = '<external_codex_apps_open_page>{"page_id":null}</external_codex_apps_open_page>'
+        profiles = (
+            (11, "Research desktop", "codex", "home-a"),
+            (23, "Claude", "codex", "home-b"),
+            (49, "Daily notes", "codex", "home-c"),
+            (73, "Codex", "claude", "transcripts-d"),
+        )
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            settings = self._settings(root)
+
+            def write_configuration(renamed=False):
+                sections = ["schema_version = 2"]
+                for source_id, label, provider, directory in profiles:
+                    source_root = root / directory
+                    source_root.mkdir(exist_ok=True)
+                    sections.append(
+                        "\n[[session_sources]]\n"
+                        + "source_id = {}\n".format(source_id)
+                        + "display_label = {}\n".format(json.dumps("Renamed {}".format(source_id) if renamed else label))
+                        + "provider_kind = {}\n".format(json.dumps(provider))
+                        + "root = {}\n".format(json.dumps(str(source_root)))
+                    )
+                settings.session_sources_path.write_text("\n".join(sections) + "\n")
+
+            write_configuration()
+            for source_id, label, provider, directory in profiles:
+                path = root / directory / "session.jsonl"
+                if provider == "codex":
+                    self._write_codex_session(path, "shared-native", "Actual question")
+                    records = [json.loads(line) for line in path.read_text().splitlines()]
+                    records.insert(1, {"type": "response_item", "payload": {
+                        "type": "message", "role": "user",
+                        "content": [{"type": "input_text", "text": control}],
+                    }})
+                    path.write_text("\n".join(json.dumps(row) for row in records) + "\n")
+                else:
+                    self._write_claude_session(path, "claude-control", "Claude question")
+
+            with patch.object(db, "settings", settings), patch.object(scanner, "settings", settings):
+                report = scanner.scan_session_sources()
+                self.assertEqual(report["outcome"], "complete")
+                self.assertEqual(report["summary"]["imported"], 4)
+                self.assertEqual([row["source_id"] for row in report["sources"]], [11, 23, 49, 73])
+                with db.connect() as connection:
+                    sessions = self._table_rows(connection, "sessions")
+                    events = self._table_rows(connection, "activity_events")
+                    usage = self._table_rows(connection, "usage_records")
+                    self.assertEqual([tuple(row) for row in connection.execute(
+                        "SELECT source_id,external_id,title,user_message_count FROM sessions ORDER BY source_id"
+                    )], [
+                        (11, "shared-native", "Actual question", 1),
+                        (23, "shared-native", "Actual question", 1),
+                        (49, "shared-native", "Actual question", 1),
+                        (73, "claude-control", "Claude question", 1),
+                    ])
+                    self.assertEqual(connection.execute(
+                        "SELECT COUNT(DISTINCT id) FROM sessions WHERE external_id='shared-native'"
+                    ).fetchone()[0], 3)
+                write_configuration(renamed=True)
+                repeated = scanner.scan_session_sources()
+                self.assertEqual(repeated["outcome"], "complete")
+                self.assertEqual(repeated["summary"]["imported"], 0)
+                with db.connect() as connection:
+                    self.assertEqual(self._table_rows(connection, "sessions"), sessions)
+                    self.assertEqual(self._table_rows(connection, "activity_events"), events)
+                    self.assertEqual(self._table_rows(connection, "usage_records"), usage)
+                    self.assertEqual([tuple(row) for row in connection.execute(
+                        "SELECT id,name,provider_kind FROM sources ORDER BY id"
+                    )], [(source_id, "Renamed {}".format(source_id), provider)
+                        for source_id, label, provider, directory in profiles])
+
+    def test_empty_page_upgrade_repairs_both_codex_sources_without_repricing(self):
+        control = '<external_codex_apps_open_page>{"page_id":null}</external_codex_apps_open_page>'
+
+        def previous_parser(path):
+            with patch("localbrain.ingest.codex._codex_generated_user_context", return_value=False):
+                return scanner.parse_codex_session(path)
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            settings = self._settings(root)
+            paths = []
+            for key in ("codex", "codex-company"):
+                path = root / key / "question.jsonl"
+                self._write_codex_session(path, "page-question", "실제 첫 질문")
+                records = [json.loads(line) for line in path.read_text().splitlines()]
+                records.insert(1, {"type": "response_item", "payload": {
+                    "type": "message", "role": "user",
+                    "content": [{"type": "input_text", "text": control}],
+                }})
+                records.append({"type": "response_item", "payload": {
+                    "type": "message", "role": "assistant", "phase": "final_answer",
+                    "content": [{"type": "output_text", "text": "확인했습니다"}],
+                }})
+                path.write_text("\n".join(json.dumps(row) for row in records) + "\n")
+                paths.append(path)
+                empty = root / key / "empty.jsonl"
+                empty.write_text("\n".join(json.dumps(row) for row in (
+                    {"type": "session_meta", "payload": {"id": "empty-page"}},
+                    records[1],
+                )) + "\n")
+                paths.append(empty)
+            self._write_claude_session(root / "claude" / "control.jsonl", "control", "Claude 대조 질문")
+            snapshots = [(path.read_bytes(), path.stat()) for path in paths]
+            with patch.object(db, "settings", settings), patch.object(scanner, "settings", settings):
+                with patch.dict(scanner.SESSION_SCAN_ADAPTERS, {"codex": (
+                    previous_parser, "codex-session-v11-question-replies-and-context-blocks",
+                    scanner.CODEX_USAGE_CONTRACT_VERSION,
+                )}):
+                    scanner.scan_session_sources()
+                with db.connect() as connection:
+                    sessions = [dict(row) for row in connection.execute(
+                        "SELECT * FROM sessions WHERE external_id='page-question' ORDER BY source_id"
+                    )]
+                    self.assertEqual(len(sessions), 2)
+                    workstream_id = connection.execute(
+                        "INSERT INTO workstreams(name) VALUES ('Synthetic collection')"
+                    ).lastrowid
+                    for session in sessions:
+                        self.assertEqual(session["title"], control)
+                        self.assertEqual(session["user_message_count"], 2)
+                        connection.execute(
+                            "INSERT INTO session_pins VALUES (?, '2026-10-29T00:00:00Z')",
+                            (session["id"],),
+                        )
+                        connection.execute(
+                            "INSERT INTO workstream_links(workstream_id,entity_type,entity_id) VALUES (?, 'session', ?)",
+                            (workstream_id, str(session["id"])),
+                        )
+                    connection.commit()
+                    usage_before = self._table_rows(connection, "usage_records")
+                    pins_before = self._table_rows(connection, "session_pins")
+                    links_before = self._table_rows(connection, "workstream_links")
+                    claude_before = tuple(connection.execute(
+                        "SELECT * FROM sessions WHERE external_id='control'"
+                    ).fetchone())
+                with patch.object(scanner, "_store_parsed_usage", wraps=scanner._store_parsed_usage) as usage:
+                    report = scanner.scan_session_sources()
+                self.assertEqual(report["outcome"], "complete")
+                self.assertEqual(report["summary"]["imported"], 2)
+                self.assertEqual(usage.call_count, 0)
+                with db.connect() as connection:
+                    self.assertEqual(self._table_rows(connection, "usage_records"), usage_before)
+                    self.assertEqual(self._table_rows(connection, "session_pins"), pins_before)
+                    self.assertEqual(self._table_rows(connection, "workstream_links"), links_before)
+                    self.assertEqual(tuple(connection.execute(
+                        "SELECT * FROM sessions WHERE external_id='control'"
+                    ).fetchone()), claude_before)
+                    self.assertEqual(connection.execute(
+                        "SELECT COUNT(*) FROM sessions WHERE external_id='empty-page'"
+                    ).fetchone()[0], 0)
+                    for before in sessions:
+                        session = connection.execute(
+                            "SELECT * FROM sessions WHERE id=?", (before["id"],)
+                        ).fetchone()
+                        self.assertEqual(session["external_id"], before["external_id"])
+                        self.assertEqual(session["source_id"], before["source_id"])
+                        self.assertEqual(session["title"], "실제 첫 질문")
+                        self.assertEqual(session["user_message_count"], 1)
+                        self.assertEqual(session["event_count"], 2)
+                        self.assertEqual([tuple(row) for row in connection.execute(
+                            "SELECT role,text FROM activity_events WHERE session_id=? ORDER BY sequence",
+                            (session["id"],),
+                        )], [("user", "실제 첫 질문"), ("assistant", "확인했습니다")])
+                        indexed = connection.execute(
+                            "SELECT body FROM search_index WHERE entity_type='session' AND entity_id=?",
+                            (str(session["id"]),),
+                        ).fetchone()[0]
+                        self.assertIn("실제 첫 질문", indexed)
+                        self.assertNotIn("external_codex_apps_open_page", indexed)
+                    self.assertEqual({row[0] for row in connection.execute(
+                        "SELECT f.session_contract_version FROM source_files f "
+                        "JOIN sources p ON p.id=f.source_id WHERE p.provider_kind='codex'"
+                    )}, {scanner.CODEX_SESSION_CONTRACT_VERSION})
+                    events_after = self._table_rows(connection, "activity_events")
+                self.assertEqual(scanner.scan_session_sources()["summary"]["imported"], 0)
+                with db.connect() as connection:
+                    self.assertEqual(self._table_rows(connection, "activity_events"), events_after)
+                    self.assertEqual(self._table_rows(connection, "usage_records"), usage_before)
+            self.assertEqual([(path.read_bytes(), path.stat()) for path in paths], snapshots)
+
     def test_context_only_upgrade_clears_stale_events_and_preserves_shared_real_owner(self):
         from localbrain.ingest.common import ParsedEvent
 
