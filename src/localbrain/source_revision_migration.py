@@ -1,7 +1,6 @@
 """Convert known Session-result tokens without rewriting derived Session data."""
 
 import sqlite3
-import re
 from pathlib import Path
 
 from .runtime_storage import private_database
@@ -27,6 +26,91 @@ LEGACY_REVISIONS = {
         "claude-session-v7-message-phases": 7,
     },
 }
+
+
+def _ddl_tokens(sql):
+    """Separate SQLite comments/quoted values from active DDL words and symbols.
+
+    This recognizes the bounded table contract below, not arbitrary equivalent
+    SQL expressions. Comments are whitespace; literals keep case and escapes.
+    """
+    tokens = []
+    index = 0
+    while index < len(sql):
+        char = sql[index]
+        if char in " \t\n\r\f\ufeff":
+            index += 1
+        elif sql.startswith("--", index):
+            end = sql.find("\n", index + 2)
+            index = len(sql) if end < 0 else end + 1
+        elif sql.startswith("/*", index):
+            end = sql.find("*/", index + 2)
+            index = len(sql) if end < 0 else end + 2
+        elif char in "'\"`[":
+            end_quote = "]" if char == "[" else char
+            value = []
+            index += 1
+            while index < len(sql):
+                if sql[index] == end_quote:
+                    index += 1
+                    if end_quote != "]" and index < len(sql) and sql[index] == end_quote:
+                        value.append(end_quote)
+                        index += 1
+                        continue
+                    break
+                value.append(sql[index])
+                index += 1
+            else:
+                raise RuntimeError("Unrecognized source-file DDL; Session migration stopped")
+            text = "".join(value)
+            tokens.append(("string", text) if char == "'" else ("identifier", text.lower()))
+        elif char.isalpha() or char == "_" or ord(char) >= 128:
+            start = index
+            index += 1
+            while index < len(sql) and (
+                sql[index].isalnum() or sql[index] in "_$" or ord(sql[index]) >= 128
+            ):
+                index += 1
+            tokens.append(("word", sql[start:index].lower()))
+        else:
+            tokens.append(("symbol", char))
+            index += 1
+    return tokens
+
+
+_REVISION_CHECK_TOKENS = _ddl_tokens(REVISION_CHECK)
+
+
+def _revision_checks(tokens):
+    """Return whether each real top-level CHECK is the known revision rule."""
+    checks = []
+    depth = index = 0
+    while index < len(tokens):
+        token = tokens[index]
+        if (depth == 1 and token == ("word", "check")
+                and tokens[index + 1:index + 2] == [("symbol", "(")]):
+            start = index
+            index += 2
+            check_depth = 1
+            while index < len(tokens) and check_depth:
+                if tokens[index] == ("symbol", "("):
+                    check_depth += 1
+                elif tokens[index] == ("symbol", ")"):
+                    check_depth -= 1
+                index += 1
+            check = [
+                ("word", value) if kind == "identifier" and value in
+                {"session_contract_version", "typeof"} else (kind, value)
+                for kind, value in tokens[start:index]
+            ]
+            checks.append(check_depth == 0 and check == _REVISION_CHECK_TOKENS)
+            continue
+        if token == ("symbol", "("):
+            depth += 1
+        elif token == ("symbol", ")"):
+            depth -= 1
+        index += 1
+    return checks
 
 
 def _table_info(connection):
@@ -76,15 +160,14 @@ def _validate_source_file_shape(connection, target):
     sql = connection.execute(
         "SELECT sql FROM sqlite_master WHERE type='table' AND name='source_files'"
     ).fetchone()["sql"]
-    normalized = "".join(sql.lower().split()).replace(
-        "".join(REVISION_CHECK.lower().split()), ""
-    )
+    tokens = _ddl_tokens(sql)
+    unsupported_words = {"without", "deferrable", "collate", "autoincrement", "strict"}
     if (foreign_keys("source_files") != foreign_keys(target)
             or implicit_uniques("source_files") != implicit_uniques(target)
-            or "check(" in normalized
-            or any(token in normalized for token in
-                   ("withoutrowid", "deferrable", "collate", "onconflict", "autoincrement"))
-            or normalized.endswith("strict")):
+            or not all(_revision_checks(tokens))
+            or any(kind == "word" and value in unsupported_words for kind, value in tokens)
+            or any(tokens[index:index + 2] == [("word", "on"), ("word", "conflict")]
+                   for index in range(len(tokens)))):
         raise RuntimeError("Unexpected source-file constraints; Session migration stopped")
 
 
@@ -96,8 +179,7 @@ def session_revision_contract_current(connection):
     row = connection.execute(
         "SELECT sql FROM sqlite_master WHERE type='table' AND name='source_files'"
     ).fetchone()
-    normalized = "".join(row["sql"].lower().split()) if row else ""
-    return "".join(REVISION_CHECK.lower().split()) in normalized
+    return bool(row and any(_revision_checks(_ddl_tokens(row["sql"]))))
 
 
 def _converted_rows(connection):

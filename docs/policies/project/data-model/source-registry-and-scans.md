@@ -165,6 +165,12 @@ Explicit indexes: none.
   The rebuild savepoint restores the original table and rows on failure, including
   an interruption after DROP. This shape refusal is separate from token preflight;
   it does not promise that unrelated startup migrations made no earlier changes.
+  SQL recognition separates comments, string literals and quoted identifiers;
+  only an actual top-level CHECK matching the known revision predicate proves
+  the numeric contract current. Comments and standalone SQLite BOM whitespace
+  cannot hide unsupported modifiers; keyword text inside quotes cannot create
+  constraints. Literal case is preserved. Other CHECK expressions, even if they
+  might be equivalent, are refused during rebuild rather than assumed safe.
   Null Session revisions trigger actual Session/skill reprocessing, even when
   the independent Usage contract is current; that repair does not reprice Usage.
 - Forward-only Session refresh: the provider revision is a positive integer in

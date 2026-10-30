@@ -51,7 +51,141 @@ def insert_file(connection, revision, source=1, number=1):
     )
 
 
+def ddl_connection(schema, revision="codex-session-v12-empty-page-controls"):
+    connection = sqlite3.connect(":memory:")
+    connection.row_factory = sqlite3.Row
+    connection.executescript(schema)
+    connection.execute(
+        "INSERT INTO sources(id,provider_kind,name,root_path) "
+        "VALUES (1,'codex','Synthetic','/synthetic')"
+    )
+    connection.execute(
+        "INSERT INTO source_files(source_id,path,size_bytes,mtime_ns,"
+        "last_scanned_at,session_contract_version) VALUES (1,'/synthetic/file',0,0,'fixed',?)",
+        (revision,),
+    )
+    return connection
+
+
 class SessionRevisionMigrationTests(unittest.TestCase):
+    def test_commented_unsupported_checks_are_refused_without_losing_the_rule(self):
+        legacy = SCHEMA.replace("session_contract_version INTEGER " + REVISION_CHECK,
+                                "session_contract_version TEXT")
+        for comment in ("/* synthetic rule */", "-- synthetic rule\n", "\ufeff"):
+            schema = legacy.replace("UNIQUE(source_id, path)",
+                                    "UNIQUE(source_id, path), CHECK " + comment +
+                                    " (status <> 'archived')", 1)
+            with self.subTest(comment=comment), ddl_connection(schema) as connection:
+                with self.assertRaises(sqlite3.IntegrityError):
+                    connection.execute("UPDATE source_files SET status='archived'")
+                before = list(connection.iterdump())
+                with self.assertRaisesRegex(RuntimeError, "Unexpected source-file constraints"):
+                    migrate_session_revisions(connection)
+                self.assertEqual(list(connection.iterdump()), before)
+                with self.assertRaises(sqlite3.IntegrityError):
+                    connection.execute("UPDATE source_files SET status='archived'")
+
+    def test_commented_conflict_policy_is_refused_and_duplicates_remain_ignored(self):
+        legacy = SCHEMA.replace("session_contract_version INTEGER " + REVISION_CHECK,
+                                "session_contract_version TEXT")
+        duplicate = (
+            "INSERT INTO source_files(source_id,path,size_bytes,mtime_ns,last_scanned_at) "
+            "VALUES (1,'/synthetic/file',0,0,'fixed')"
+        )
+        for comment in ("/* synthetic policy */", "-- synthetic policy\n", "\ufeff"):
+            schema = legacy.replace("UNIQUE(source_id, path)",
+                                    "UNIQUE(source_id, path) ON " + comment + " CONFLICT IGNORE", 1)
+            with self.subTest(comment=comment), ddl_connection(schema) as connection:
+                connection.execute(duplicate)
+                before = list(connection.iterdump())
+                with self.assertRaisesRegex(RuntimeError, "Unexpected source-file constraints"):
+                    migrate_session_revisions(connection)
+                connection.execute(duplicate)
+                self.assertEqual(connection.execute("SELECT COUNT(*) FROM source_files").fetchone()[0], 1)
+                self.assertEqual(list(connection.iterdump()), before)
+
+    def test_strict_with_trailing_comment_is_refused_without_losing_storage_checks(self):
+        legacy = SCHEMA.replace("session_contract_version INTEGER " + REVISION_CHECK,
+                                "session_contract_version TEXT")
+        for suffix in ("STRICT /* synthetic mode */", "STRICT -- synthetic mode\n", "\ufeffSTRICT"):
+            schema = legacy.replace("UNIQUE(source_id, path)\n);",
+                                    "UNIQUE(source_id, path)\n) " + suffix + ";", 1)
+            with self.subTest(suffix=suffix), ddl_connection(schema) as connection:
+                with self.assertRaises(sqlite3.IntegrityError):
+                    connection.execute("UPDATE source_files SET size_bytes='not-an-integer'")
+                before = list(connection.iterdump())
+                with self.assertRaisesRegex(RuntimeError, "Unexpected source-file constraints"):
+                    migrate_session_revisions(connection)
+                self.assertEqual(list(connection.iterdump()), before)
+                with self.assertRaises(sqlite3.IntegrityError):
+                    connection.execute("UPDATE source_files SET size_bytes='not-an-integer'")
+
+    def test_revision_check_only_in_comment_is_not_current_and_gets_real_constraint(self):
+        for fake_check in ("/* " + REVISION_CHECK + " */", "-- " + REVISION_CHECK + "\n"):
+            schema = SCHEMA.replace("session_contract_version INTEGER " + REVISION_CHECK,
+                                    "session_contract_version INTEGER " + fake_check)
+            with self.subTest(comment=fake_check), ddl_connection(schema) as connection:
+                self.assertFalse(session_revision_contract_current(connection))
+                migrate_session_revisions(connection)
+                self.assertTrue(session_revision_contract_current(connection))
+                self.assertEqual(tuple(connection.execute(
+                    "SELECT session_contract_version,typeof(session_contract_version) FROM source_files"
+                ).fetchone()), (12, "integer"))
+                for invalid in ("arbitrary-text", 0, -1):
+                    with self.assertRaises(sqlite3.IntegrityError):
+                        connection.execute("UPDATE source_files SET session_contract_version=?", (invalid,))
+
+    def test_quoted_check_text_cannot_establish_revision_contract(self):
+        base = SCHEMA.replace("session_contract_version INTEGER " + REVISION_CHECK,
+                              "session_contract_version INTEGER")
+        quoted_identifier = base.replace(
+            "UNIQUE(source_id, path)",
+            'CONSTRAINT "' + REVISION_CHECK + '" UNIQUE(source_id, path)', 1,
+        )
+        quoted_string = base.replace("error TEXT,", "error TEXT DEFAULT '" +
+                                     REVISION_CHECK.replace("'", "''") + "',", 1)
+        for schema in (quoted_identifier, quoted_string):
+            with self.subTest(schema=schema[:40]), ddl_connection(schema) as connection:
+                self.assertFalse(session_revision_contract_current(connection))
+        with ddl_connection(quoted_identifier) as connection:
+            migrate_session_revisions(connection)
+            self.assertTrue(session_revision_contract_current(connection))
+            with self.assertRaises(sqlite3.IntegrityError):
+                connection.execute("UPDATE source_files SET session_contract_version='arbitrary-text'")
+
+    def test_real_check_accepts_comments_identifier_quotes_and_preserves_literal_case(self):
+        check = (
+            'cHeCk /* CHECK(fake) STRICT */ \ufeff("session_contract_version" IS NULL OR '
+            '(typeof([session_contract_version]) = \'integer\' -- ON CONFLICT IGNORE\n'
+            'AND `session_contract_version` > 0))'
+        )
+        with ddl_connection(SCHEMA.replace(REVISION_CHECK, check), revision=12) as connection:
+            self.assertTrue(session_revision_contract_current(connection))
+            before = list(connection.iterdump())
+            migrate_session_revisions(connection)
+            self.assertEqual(list(connection.iterdump()), before)
+            with self.assertRaises(sqlite3.IntegrityError):
+                connection.execute("UPDATE source_files SET session_contract_version='not-integer'")
+        wrong_case = REVISION_CHECK.replace("'integer'", "'INTEGER'")
+        with ddl_connection(SCHEMA.replace(REVISION_CHECK, wrong_case), revision=None) as connection:
+            self.assertFalse(session_revision_contract_current(connection))
+            before = list(connection.iterdump())
+            with self.assertRaisesRegex(RuntimeError, "Unexpected source-file constraints"):
+                migrate_session_revisions(connection)
+            self.assertEqual(list(connection.iterdump()), before)
+
+    def test_modifier_names_inside_quoted_identifiers_are_not_active_keywords(self):
+        legacy = SCHEMA.replace("session_contract_version INTEGER " + REVISION_CHECK,
+                                "session_contract_version TEXT")
+        for name in ('"STRICT"', '`ON CONFLICT`', '[WITHOUT ROWID]', '"COLLATE ""quoted"""', 'name\ufeffSTRICT'):
+            schema = legacy.replace("UNIQUE(source_id, path)",
+                                    "CONSTRAINT " + name + " UNIQUE(source_id, path)", 1)
+            with self.subTest(name=name), ddl_connection(schema) as connection:
+                migrate_session_revisions(connection)
+                self.assertTrue(session_revision_contract_current(connection))
+                with self.assertRaises(sqlite3.IntegrityError):
+                    connection.execute("UPDATE source_files SET session_contract_version='not-integer'")
+
     def test_known_tokens_preserve_every_other_field_indexes_and_foreign_keys(self):
         with legacy_connection() as connection:
             expected_revisions = []

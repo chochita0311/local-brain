@@ -11,8 +11,9 @@ retroactive enforcement framework for unmodified legacy executables is required.
 
 ## Refactor Type
 
-- Status: `complete`; owner-approved implementation and verification completed on
-  `2026-10-30`. The implementation log and merge check own evidence and limits.
+- Status: `complete`; the post-completion parity audit found P2-1, and the owner-
+  approved correction on `2026-10-30` now passes source, regression, parity,
+  package and live initialization checks. See the [current correction assessment](logs/2026-10-30_refactor-0002_final-merge-check.md#p2-1-correction).
 - Primary type: `Semantic` for revision storage and write admission.
 - Supporting types: `Structural` for module/package boundaries; `Interface` for
   affected imports, schema consumers and package wiring.
@@ -394,6 +395,14 @@ Exit gate:
 
 ## Risks / Open Questions
 
+- **Resolved P2-1:** the initial whitespace/substrings-based DDL inspection could
+  lose commented CHECK/conflict/STRICT semantics or accept a fake CHECK in a
+  comment. The correction separates active tokens, comments, literals and quoted
+  identifiers, including SQLite BOM boundaries, and recognizes only the actual
+  known CHECK. Unsupported semantics refuse without replacing original rows.
+  Sixteen migration tests, independent lexical probes and the packaged backend
+  verify the correction. The earlier failure remains in the merge-check history.
+
 - The owner resolved the former legacy-enforcement gate by approving a rebuilt
   app. New checks do not change an old executable; unupdated external copies are
   unsupported on the migrated store. This track verifies replacement delivery,
@@ -430,7 +439,8 @@ An approved implementation has a small, understandable ingestion dependency
 structure, numeric Session revisions with reviewed legacy conversion, independent
 Usage freshness, and a demonstrated policy preventing ordinary backward writes by updated runtimes.
 The combined structural batch has its fixed comparison baseline and proof. The
-required implementation, review and verification gates passed; the final merge
-check records the intentional deltas and remaining acceptance limits.
+independent audit preserved that source conclusion and found P2-1; its approved
+correction, regression/parity proof and source/package/live checks are complete.
+Existing input-heuristic and recipient/native-browser limits remain explicit.
 
 Execution record: [implementation log](logs/2026-10-30_refactor-0002_implementation.md).

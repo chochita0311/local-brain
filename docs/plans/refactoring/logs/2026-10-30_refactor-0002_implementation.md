@@ -12,6 +12,16 @@
   tag `refactor-0002-semantic-baseline` were pushed; remote refs matched on
   `2026-10-30`. Subsequent documentation receipts do not change that code identity.
 
+## Subsequent Review Status
+
+The independent post-completion parity review found P2-1 in SQL-comment-aware
+migration validation. This log retains the original implementation/publication
+history; its earlier no-required-fix conclusion is superseded by the
+[current merge assessment](2026-10-30_refactor-0002_final-merge-check.md#correction-decision).
+The initial review changed no application code and preserved structural parity.
+The owner then approved the [P2-1 correction](2026-10-30_refactor-0002_final-merge-check.md#p2-1-correction),
+whose regression, source parity and runtime/package checks now pass.
+
 ## Summary
 
 The owner approved completing the refactor and rebuilding the app. Current
@@ -194,9 +204,11 @@ change when their owner moved.
 
 ## Next Action
 
-No required implementation, verification or publication item remains in this
-track. Existing parsing/recipient limits above remain separate follow-ups.
-All task-owned comparison worktrees, baseline copies, synthetic databases,
+The initial closeout and subsequent P2-1 finding remain historical above. The
+linked correction assessment records the completed fix and fresh verification;
+publication of that correction is tracked separately from the earlier code
+identity. Existing parsing/recipient limits remain separate.
+At the original closeout, all task-owned comparison worktrees, baseline copies, synthetic databases,
 installed test wheels, browser tooling/profiles, screenshot and raw logs were
 removed after their evidence was consolidated and no open files remained.
 Runtime backups and the rebuilt distribution retain their existing storage/build

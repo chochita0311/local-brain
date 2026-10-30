@@ -460,10 +460,12 @@ is followed by [RUN-137](run/run-20261002-137-insight-closeout-corrections.md), 
 ## Completed Refactoring
 
 - [REFACTOR-0002: Ingestion Layers And Session Revisions](refactoring/refactor-0002-ingestion-layers-and-session-revisions.md)
-  completed numeric Session freshness, newer-result refusal and provider/evidence/
-  synchronization boundaries. All 1,437 tests, owner/generated checks, independent
-  documentation reviews, live web migration, rebuilt native backend and Chrome
-  checks passed. Older app copies are handled by rebuild/replacement.
+  delivered numeric Session freshness, newer-result refusal and provider/evidence/
+  synchronization boundaries. The independent parity audit found P2-1 in DDL
+  recognition; its SQL token, quote/comment/BOM correction now passes 1,444 tests,
+  exact differential replay, installed-wheel/native checks and live initialization
+  preservation. Older app copies require rebuild/replacement; recipient and
+  native-browser acceptance retain their separate scopes.
 
 ## Recently Completed Chains
 
