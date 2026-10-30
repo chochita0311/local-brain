@@ -3,7 +3,7 @@
   "source": {
     "repository": "ai-assets",
     "package_root": ".",
-    "revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755"
+    "revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb"
   },
   "selection": {
     "repository_surfaces": [
@@ -22,7 +22,7 @@
       "source": "agents/flows/workflow.md",
       "target": "docs/agents/flows/workflow.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "de56abd5562ee9379ad271b5fad36e7dd9ad2b4342197bda10a9c69109eb0660",
       "rendered_sha256": "d859d1b1562d9e7334de4557dfa7709d7adcb2f1b77a23e61fdddc6e708097ec"
@@ -31,7 +31,7 @@
       "source": "agents/operations/harness-improvement.md",
       "target": "docs/agents/operations/harness-improvement.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "3a5af75778f0472493087a41351ddf80a4fecef02c6d5df0f2e9c5e21a306d71",
       "rendered_sha256": "1a4cc0732b7644d5930b2e1445a7fb505bcba269d9230027f975b5eca1ac286f"
@@ -40,7 +40,7 @@
       "source": "agents/operations/runner.md",
       "target": "docs/agents/operations/runner.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "c7d087b5b7ae2196f32a4902629b6073b96131abb5cade8435c3422a1201a12a",
       "rendered_sha256": "4e08d2b60e1e6681a419a28da52dc41e9871c1aab668ff2996504500a297655f"
@@ -58,7 +58,7 @@
       "source": "agents/profiles/backend-product.md",
       "target": "docs/agents/profiles/backend-product.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "3b0368f776e9cbeb0881fed3bb6847488ed06502fafc1baec7815dda50ee3089",
       "rendered_sha256": "607f0ad0198537349940dd6f9bad64d7a5bff78502267610b000e2ffcefd7e9d"
@@ -67,7 +67,7 @@
       "source": "agents/profiles/docs-content.md",
       "target": "docs/agents/profiles/docs-content.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "ec7f047fc756ebc604dfbbd206b46e686a06d16a1061a9b0393c166dc49d2349",
       "rendered_sha256": "d1f407325484342a52086f17c6b521ed7573a779c57de248d8bb0faa7c1c8adb"
@@ -76,7 +76,7 @@
       "source": "agents/profiles/foundation-contract.md",
       "target": "docs/agents/profiles/foundation-contract.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "c2ca93643b2490c980d9dbf69f9acd32277c6e56f312e6d7d60f45c58a58cb1a",
       "rendered_sha256": "c2ca93643b2490c980d9dbf69f9acd32277c6e56f312e6d7d60f45c58a58cb1a"
@@ -85,7 +85,7 @@
       "source": "agents/profiles/frontend-product.md",
       "target": "docs/agents/profiles/frontend-product.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "264713d612a0b7e4c75080eef779ca5bfae5fad7a7aed974f85dc8c7c34b33d4",
       "rendered_sha256": "264713d612a0b7e4c75080eef779ca5bfae5fad7a7aed974f85dc8c7c34b33d4"
@@ -94,7 +94,7 @@
       "source": "agents/profiles/fullstack-product.md",
       "target": "docs/agents/profiles/fullstack-product.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "73e0c50a7cc3636ad8affe6d191268fba88deac88d0fc2f6143e5e5d9ff8199d",
       "rendered_sha256": "73e0c50a7cc3636ad8affe6d191268fba88deac88d0fc2f6143e5e5d9ff8199d"
@@ -103,7 +103,7 @@
       "source": "agents/profiles/infra-devtool.md",
       "target": "docs/agents/profiles/infra-devtool.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "136702b57aab429a009d9c8d53e2da79e467c61046a085467a3fb27570ade101",
       "rendered_sha256": "fd9f8917c77ffc4fa452053e0a4754e7c3e88170cacf376f912ef27475ea9ba0"
@@ -112,7 +112,7 @@
       "source": "agents/roles/builder.md",
       "target": "docs/agents/roles/builder.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "c2dd8c2ed73ad6ebd6585f19ea9076b447193cd6c5af981c5ba1212494133b0f",
       "rendered_sha256": "6ea3cca377050df3206f4f8521067deb90aad4360c5a1633362af81b83dccc39"
@@ -121,7 +121,7 @@
       "source": "agents/roles/contract-evaluator.md",
       "target": "docs/agents/roles/contract-evaluator.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "b5ef0daba0976919a3a399153ea6698661f75a5a57627f77f9c72333b5132f54",
       "rendered_sha256": "dc6b009f72c56c8b7803647088823ad5d9d3b6a002aa8a2f4347fae3b399b5aa"
@@ -139,7 +139,7 @@
       "source": "agents/roles/feature-planner.md",
       "target": "docs/agents/roles/feature-planner.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "c6b51a6cff1f23546594d863de403df538dc321281b9c12a29046a0b2cf1e7f3",
       "rendered_sha256": "aa8c6dfc0b8a77d1e9a16082972c5b4fabb9ca7a0a8ed204897b2ebbfaaffd1e"
@@ -148,7 +148,7 @@
       "source": "agents/roles/fix-agent.md",
       "target": "docs/agents/roles/fix-agent.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "23dd41a6f0adee8e41028fbcf98744fd0dff1f0afebb10a4ade3b3381b66f08b",
       "rendered_sha256": "31ad00070ca991af1bc0547ec5805e27e7e442b6d58c0a225060388629aac081"
@@ -157,7 +157,7 @@
       "source": "agents/roles/functional-evaluator.md",
       "target": "docs/agents/roles/functional-evaluator.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "75917cf4eeca11d727e02f46e63573423d0b092c3e9e40deea9132e4c5f3f7df",
       "rendered_sha256": "31e6b27417e1ecde33ad84e3886c90de8b8ba360c36896950016580c6d68341e"
@@ -166,7 +166,7 @@
       "source": "agents/roles/orchestrator.md",
       "target": "docs/agents/roles/orchestrator.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "4e01c7b2b34370cd1263ab2f6a4dcf02ed05860298060a1b2f50bc67126fe2e0",
       "rendered_sha256": "8552f52649cbb8549e5cee26db88b9bcf4b5be095004f4992e4767933e8273d9"
@@ -175,7 +175,7 @@
       "source": "agents/roles/prd-normalizer.md",
       "target": "docs/agents/roles/prd-normalizer.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "bbb3685b4b61cf3c4ebe9ba9f11d21e48a82af7789c56989087712907d3f5a80",
       "rendered_sha256": "2cc93868483b9d5d532b5837035c526e1dd3dca807edcfbcd2238e008926fde5"
@@ -184,7 +184,7 @@
       "source": "agents/roles/spec-agent.md",
       "target": "docs/agents/roles/spec-agent.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "bbf62349300a96da7523def9212dd56ebeb9c6d092e9ac9a3328d4db3e6194da",
       "rendered_sha256": "bbf62349300a96da7523def9212dd56ebeb9c6d092e9ac9a3328d4db3e6194da"
@@ -193,7 +193,7 @@
       "source": "agents/roles/ux-heuristic-evaluator.md",
       "target": "docs/agents/roles/ux-heuristic-evaluator.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "12187d7ead4145e61de6da17e439749dd5e495305d485111f2ff32314905194c",
       "rendered_sha256": "b81dfb63d5bd0dac023cfdf64f83bc8443b220cd19731665f332a4ed81733592"
@@ -202,7 +202,7 @@
       "source": "agents/schemas/improvement-record.schema.json",
       "target": "docs/agents/schemas/improvement-record.schema.json",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "d640593e0bcb3b1c153d754575f95ad4c40c72f39c4f42f011c7e027a1eb94bf",
       "rendered_sha256": "d640593e0bcb3b1c153d754575f95ad4c40c72f39c4f42f011c7e027a1eb94bf"
@@ -211,7 +211,7 @@
       "source": "agents/templates/harness-experiment.md",
       "target": "docs/agents/templates/harness-experiment.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "9b87b5dacb3582d1fd5f7f18c483a2bc24ac130e13a69939ced3708af68d93df",
       "rendered_sha256": "4f0ac63e604f61bbf98fbe9383abc155ae47967d29286c9bbf3e25509bd96319"
@@ -220,7 +220,7 @@
       "source": "agents/templates/harness-improvement-record.md",
       "target": "docs/agents/templates/harness-improvement-record.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "e6f697dc51829a9cfa6906c2071d00fd583049d37dc2d40deb92424b9fbb7afa",
       "rendered_sha256": "29458b159999325d9bd8787127780f0487fef8824fb5722315452c37cee7e566"
@@ -229,7 +229,7 @@
       "source": "agents/templates/harness-local-store.md",
       "target": "docs/agents/templates/harness-local-store.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "e70b625dde7b9781e1ac9ddc61c41844da37761cf62a59e3d70be0c889262ad9",
       "rendered_sha256": "11d937959f60c46f4f24ac50ddcb8c7805ed97b216a6d560c69c9d31d1a35a61"
@@ -238,7 +238,7 @@
       "source": "agents/templates/harness-stage-record.md",
       "target": "docs/agents/templates/harness-stage-record.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "8422e559371155e090bae7b4bcc3af9e97e4d480ba5becdbdc7e52f95627086a",
       "rendered_sha256": "687eb2d98b2218817a8ddafa2ac4c5761a6546b63bece5a85cb71bd83235f745"
@@ -247,7 +247,7 @@
       "source": "agents/templates/operator-briefing.md",
       "target": "docs/agents/templates/operator-briefing.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "51f8752e0c106cd2cdc3f4d73e7dfd23f29f036035b2d6df6697b937caa248f5",
       "rendered_sha256": "51f8752e0c106cd2cdc3f4d73e7dfd23f29f036035b2d6df6697b937caa248f5"
@@ -265,7 +265,7 @@
       "source": "agents/templates/feature.md",
       "target": "docs/plans/feature/template-feature.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "0bace722f683611d8a4b2a93b4f032b49179b3c0358dcf8c2a8f10efdc9ae911",
       "rendered_sha256": "0bace722f683611d8a4b2a93b4f032b49179b3c0358dcf8c2a8f10efdc9ae911"
@@ -283,7 +283,7 @@
       "source": "agents/templates/heuristic-backlog.md",
       "target": "docs/plans/heuristic/template-heuristic-backlog.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "d96f21eb6538d42b3cb9ebe6b08239f7b970888275ecee27ac1e7e53f42eaa6c",
       "rendered_sha256": "d96f21eb6538d42b3cb9ebe6b08239f7b970888275ecee27ac1e7e53f42eaa6c"
@@ -292,7 +292,7 @@
       "source": "agents/templates/prd.md",
       "target": "docs/plans/prd/template-prd.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "b89f73de8961384bec5646655b85f7ca6b8544598de9d7dde8b452862dfb976f",
       "rendered_sha256": "b89f73de8961384bec5646655b85f7ca6b8544598de9d7dde8b452862dfb976f"
@@ -301,7 +301,7 @@
       "source": "agents/templates/run.md",
       "target": "docs/plans/run/template-run.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "148dba7cb5193677b866e6bf1987cb9c86edf9525d442358acee50ae7cdb54bb",
       "rendered_sha256": "1e8b63fcc90166705af1a01d014b7e3bda631116c7b1eaf6afca7239f1eb2b24"
@@ -337,7 +337,7 @@
       "source": "agents/policies/harness/competence-first-delegation.md",
       "target": "docs/policies/harness/competence-first-delegation.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "eb03c24448962627e40333882ba7f900bcfb306c30fa4e512227da026b18921a",
       "rendered_sha256": "eb03c24448962627e40333882ba7f900bcfb306c30fa4e512227da026b18921a"
@@ -355,7 +355,7 @@
       "source": "agents/policies/harness/execution-profiles.md",
       "target": "docs/policies/harness/execution-profiles.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "7639784f7257c2070091a7c707bed06e435fd9aa3936df3a73f6846cd3a06f67",
       "rendered_sha256": "747091d0122f7cfb2216a3c34db7f282f65e3aa7d1709ec2980cdb75fe532b54"
@@ -364,7 +364,7 @@
       "source": "agents/policies/harness/harness-improvement.md",
       "target": "docs/policies/harness/harness-improvement.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "615c015ff7e3c3f07c899d2631dc84832427c799ea19681c618be1e4a510a65c",
       "rendered_sha256": "615c015ff7e3c3f07c899d2631dc84832427c799ea19681c618be1e4a510a65c"
@@ -373,7 +373,7 @@
       "source": "agents/policies/harness/improvement-record-contract.md",
       "target": "docs/policies/harness/improvement-record-contract.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "db98376d8187126edd8b3908714ab64e27645095b445e82a67fc066d77e9411c",
       "rendered_sha256": "482923834d99ff9db772ea32c68c69c73b4ffe1911ee503840ac61f5ebcd1f92"
@@ -382,7 +382,7 @@
       "source": "agents/policies/harness/operator-briefing-and-review-receipts.md",
       "target": "docs/policies/harness/operator-briefing-and-review-receipts.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "23a91d61e1647f47ab15a341e1fe4251447c5b8ec145bf14d50c3ff934d01204",
       "rendered_sha256": "b708545cd7dd5b48c6c3f154fdf872cae1aa7fffc88aaa7d924f359b300c09e8"
@@ -391,7 +391,7 @@
       "source": "agents/policies/harness/prd-feature-management.md",
       "target": "docs/policies/harness/prd-feature-management.md",
       "ownership": "managed",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
+      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
       "baseline_mapping_version": 8,
       "source_sha256": "57c451069fdccd5e972b65ac98b74f112008a1f530d691db645810c1eea30533",
       "rendered_sha256": "6538434272e956c13ffe4e14eef8ba9e61393067835b588e2952057abc6fdc0b"
