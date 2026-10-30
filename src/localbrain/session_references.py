@@ -15,8 +15,8 @@ from .atlassian_locators import (
     atlassian_locator_identity,
     describe_atlassian_url,
 )
-from .ingest.common import (
-    ParsedReferenceCandidate,
+from localbrain.ingest.contracts import ParsedReferenceCandidate
+from localbrain.ingest.evidence.reference_candidates import (
     REFERENCE_EXTRACTOR_VERSION,
     trim_url_token,
 )

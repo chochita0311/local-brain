@@ -272,7 +272,7 @@ class SessionReferenceSchemaTests(unittest.TestCase):
             "",
             1,
         ).replace(
-            "    session_contract_version TEXT,\n",
+            "    session_contract_version INTEGER CHECK(session_contract_version IS NULL OR (typeof(session_contract_version) = 'integer' AND session_contract_version > 0)),\n",
             "",
             1,
         )

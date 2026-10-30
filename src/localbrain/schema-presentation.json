@@ -9,27 +9,27 @@
       {
         "path": "src/localbrain/schema.sql",
         "role": "fresh-schema-truth",
-        "sha256": "2fb71de15efb3cba222e3890b6dd55eb726e97b4a8738de5bf2eea1e83d392c6"
+        "sha256": "fa2cd0c27c35eef0a370b6a3aea3dd5c239a95dbb240a38b45dc31fa518b41a4"
       },
       {
         "path": "src/localbrain/db.py",
         "role": "compatible-structure-truth",
-        "sha256": "72d05b3e2ba1ab7efce4f267873093021ccf6a26e9157131317f8e8cb9821f79"
+        "sha256": "79918a8ebdb882cb4020d484bdee3187edb325d1fa497623ddb49818ad67ad33"
       },
       {
         "path": "docs/policies/project/data-model.md",
         "role": "semantic-truth",
-        "sha256": "4c004a23d2446b1da0d676b679c164f5664e7014b6a6537234bdabe88f45830e"
+        "sha256": "8b9858018ec1b771e2305b2877a624af2c031047f2e766555f05924d94b360fb"
       },
       {
         "path": "docs/policies/project/data-model/source-registry-and-scans.md",
         "role": "semantic-truth",
-        "sha256": "e8a1399c213cb4bfbaff34a355db5bff3ed3ef6abc0b52b6927446493f4d09c8"
+        "sha256": "9d55e5a7009dc4c62ef7487b8fa88f07084a099077e5fcf849e497102a988463"
       },
       {
         "path": "docs/policies/project/data-model/workspace-and-session-activity.md",
         "role": "semantic-truth",
-        "sha256": "9aca7b2a5f98b748d4eb115761ef4be56b0cf88b790f2dabc631a448b6b8246e"
+        "sha256": "e726a6100644c1122e94a5fb5389e0d88c1a6e5175881f725a198ace5e789405"
       },
       {
         "path": "docs/policies/project/data-model/usage-and-cost-records.md",
@@ -39,7 +39,7 @@
       {
         "path": "docs/policies/project/data-model/local-context-corpus.md",
         "role": "semantic-truth",
-        "sha256": "dd624e382d7f055abad65e501edf092e681bd62b4f8181b9cc082e4a9019dae1"
+        "sha256": "602195bf4c517fdc365a90b65c2cb1aef9543ff00851d695ba04705357f0d631"
       },
       {
         "path": "docs/policies/project/data-model/work-organization-and-resources.md",
@@ -74,7 +74,7 @@
       {
         "path": "docs/policies/project/data-model/derived-retrieval-index.md",
         "role": "semantic-truth",
-        "sha256": "391cb43a8e5781f0c01deee2d2076f4a8d22fdfc7479dd6644dc70f610827029"
+        "sha256": "b2852308916ff858b38d82ccf30396e62f7713488efba614a7736a93ad0b9cbc"
       }
     ],
     "subject_count": 11
@@ -1098,7 +1098,7 @@
       "document": "docs/policies/project/data-model/source-registry-and-scans.md",
       "id": "source-registry-and-scans",
       "label": "Source registry and scans",
-      "mermaid": "erDiagram\n    SOURCES {\n        integer id PK\n        string provider_kind\n        string root_path\n        string last_scan_status\n    }\n    SOURCE_FILES {\n        integer id PK\n        integer source_id FK\n        integer session_id FK\n        string path\n        string status\n        string session_contract_version\n        string usage_contract_version\n        string reference_contract_version\n    }\n    EXTERNAL_SOURCE_INSTANCES {\n        integer id PK\n        string instance_key UK\n        string provider_kind\n        string service\n        integer enabled\n    }\n    EXTERNAL_SOURCE_CAPABILITIES {\n        integer source_instance_id PK, FK\n        string policy_version\n        string availability\n        string schema_fingerprint\n        string checked_at\n    }\n    SESSIONS { integer id PK string source_path }\n    USAGE_RECORDS { string id PK integer source_id FK }\n    CONTEXT_DOCUMENTS { integer id PK string path }\n\n    SOURCES ||--o{ SOURCE_FILES : \"physical CASCADE\"\n    SOURCES ||--o{ SESSIONS : \"physical CASCADE\"\n    SOURCES ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    SOURCES ||--o{ CONTEXT_DOCUMENTS : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES ||--o| EXTERNAL_SOURCE_CAPABILITIES : \"physical CASCADE\"\n    SESSIONS o|--o{ SOURCE_FILES : \"physical SET_NULL mapping\"\n    SOURCE_FILES ||..o| SESSIONS : \"app source_path\"\n    SOURCE_FILES ||..o| CONTEXT_DOCUMENTS : \"app path\"\n",
+      "mermaid": "erDiagram\n    SOURCES {\n        integer id PK\n        string provider_kind\n        string root_path\n        string last_scan_status\n    }\n    SOURCE_FILES {\n        integer id PK\n        integer source_id FK\n        integer session_id FK\n        string path\n        string status\n        integer session_contract_version\n        string usage_contract_version\n        string reference_contract_version\n    }\n    EXTERNAL_SOURCE_INSTANCES {\n        integer id PK\n        string instance_key UK\n        string provider_kind\n        string service\n        integer enabled\n    }\n    EXTERNAL_SOURCE_CAPABILITIES {\n        integer source_instance_id PK, FK\n        string policy_version\n        string availability\n        string schema_fingerprint\n        string checked_at\n    }\n    SESSIONS { integer id PK string source_path }\n    USAGE_RECORDS { string id PK integer source_id FK }\n    CONTEXT_DOCUMENTS { integer id PK string path }\n\n    SOURCES ||--o{ SOURCE_FILES : \"physical CASCADE\"\n    SOURCES ||--o{ SESSIONS : \"physical CASCADE\"\n    SOURCES ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    SOURCES ||--o{ CONTEXT_DOCUMENTS : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES ||--o| EXTERNAL_SOURCE_CAPABILITIES : \"physical CASCADE\"\n    SESSIONS o|--o{ SOURCE_FILES : \"physical SET_NULL mapping\"\n    SOURCE_FILES ||..o| SESSIONS : \"app source_path\"\n    SOURCE_FILES ||..o| CONTEXT_DOCUMENTS : \"app path\"\n",
       "table_ids": [
         "sources",
         "source_files",
@@ -1350,7 +1350,7 @@
         "deletion_effect": "physical parent of `source_files`, `sessions`, `usage_records`, and `context_documents`, all `ON DELETE CASCADE`, and retained `skill_observations` with `NO ACTION`. The latter prevents deleting a source with historical skill evidence. Deleting another source would remove normalized descendants and can invalidate application-enforced links or search rows, so no cleanup is implied.",
         "documented_constraints": "`id` is the sole primary key; fresh DDL bounds `last_scan_status`",
         "lifecycle_contract": "source-derived registry. It is reproducible from configuration and registered roots, but its IDs are physical parents, so ordinary scans update rows in place.",
-        "producers": "`ingest/scanner.py`; `db.py` reads provider kinds when migration changes must stale Session inputs.",
+        "producers": "`ingest/sync/storage.py` through the `ingest/scanner.py` coordinator; `db.py` reads provider kinds when migration changes must stale Session inputs.",
         "purpose_and_authority": "one registry row per local source. Session profiles use the existing numeric `id` in version-2 `session-sources.toml`, public settings APIs and new filter links. `provider_kind` selects parsing and normalization; `name`, `profile_color` and `profile_position` project the configured label, palette color and TOML array order. Local Context remains separately registered. `id` is the only profile identity. The old `kind` column is removed; no alias table or replacement string identifier is created.",
         "rebuildability": "source-rebuildable",
         "recovery_path": "recreate registry rows through approved scans, then rescan source files. Preserve the database for user-curated links and review state that may refer to descendant IDs.",
@@ -1437,8 +1437,8 @@
           "name": "session_contract_version",
           "not_null": false,
           "primary_key_position": 0,
-          "semantic_contract": "nullable `TEXT`; parser/classification contract used to decide whether the Session, Activity Events, and Session search projection remain current.",
-          "type": "TEXT"
+          "semantic_contract": "nullable positive `INTEGER`; provider-specific parser/classification revision used to decide whether the Session, Activity Events, and Session search projection remain current. Null means no known Session revision; Context files remain null.",
+          "type": "INTEGER"
         },
         {
           "default_sql": null,
@@ -1458,8 +1458,10 @@
         }
       ],
       "constraints": {
-        "checks": [],
-        "documented": "`UNIQUE(source_id, path)` plus optional physical Session ownership.",
+        "checks": [
+          "session_contract_version IS NULL OR (typeof(session_contract_version) = 'integer' AND session_contract_version > 0)"
+        ],
+        "documented": "`UNIQUE(source_id, path)` plus optional physical Session ownership; `session_contract_version` is null or has SQLite storage type `integer` and is greater than zero.",
         "primary_key": [
           "id"
         ],
@@ -1517,15 +1519,15 @@
       "semantics": {
         "class": "Source-derived and rebuildable",
         "class_contract": "Normalized from still-available local sources; rescans can recreate content, though stable relational IDs must be preserved during ordinary refreshes.",
-        "consumers": "`ingest/scanner.py` generic skip/retry logic, Usage version repair, Session projection repair, multi-file Session-reference aggregation and partial/error sibling repair; `session_references.py` uses the mapped current file set for aggregate fingerprints; `queries.py`, `usage_queries.py`, and `contexts.py` consume the existing source-status and root lifecycle state. Legacy Atlassian evidence adds an independent extractor/Site fingerprint check before an otherwise-current file is skipped.",
+        "consumers": "`ingest/sync/sessions.py` and `ingest/sync/contexts.py` skip/retry logic, Usage version repair, Session projection repair, multi-file Session-reference aggregation and partial/error sibling repair; `session_references.py` uses the mapped current file set for aggregate fingerprints; `queries.py`, `usage_queries.py`, and `contexts.py` consume the existing source-status and root lifecycle state. Legacy Atlassian evidence adds an independent extractor/Site fingerprint check before an otherwise-current file is skipped.",
         "deletion_effect": "`source_id` physically cascades from `sources`; optional `session_id` points to `sessions.id` with `ON DELETE SET NULL`, so deleting a Session cannot delete scan evidence before the owning source reconciliation decides its path lifecycle. The legacy correlation from `path` to `sessions.source_path` and the Context correlation to `context_documents.path` remain application-managed. Removing a file row alone does not cascade a Session or Document. Scanner reconciliation explicitly removes disappeared normalized rows and their search/reference projections only after a successful scan of the same accepted, present root. Configuration and root-availability failures do not authorize stale reconciliation.",
-        "documented_constraints": "`UNIQUE(source_id, path)` plus optional physical Session ownership.",
+        "documented_constraints": "`UNIQUE(source_id, path)` plus optional physical Session ownership; `session_contract_version` is null or has SQLite storage type `integer` and is greater than zero.",
         "lifecycle_contract": "source-derived and rebuildable. Healthy unchanged rows are freshness inputs; failed rows retain the latest error rather than masquerading as absent. A successful scan removes prior evidence for paths that are no longer accepted provider candidates, using the same normalized-only reconciliation boundary as a disappeared native file while leaving the original file untouched. An accepted Session path whose parsed content has no Activity Event, Usage Record, or admitted skill observation is also omitted: any prior file row is removed, the native stub remains, and its lack of a freshness row makes later meaningful growth discoverable.",
-        "producers": "`ingest/scanner.py` inserts and updates scan results, writes the resolved Session mapping and all three contract versions, and replaces mappings on successful reparse; `contexts.py` removes Context-owned rows when a root is disabled; `db.py` compatibly adds the optional Session mapping and three contract fields.",
+        "producers": "`ingest/sync/storage.py` inserts and updates scan results for Session and Context services, writes the resolved Session mapping and all three contract versions, and replaces mappings on successful reparse; `contexts.py` removes Context-owned rows when a root is disabled; `db.py` compatibly adds the optional Session mapping and three contract fields.",
         "purpose_and_authority": "per-source scan evidence for an accepted local input path, including its file fingerprint, latest attempt state, error, optional normalized Session owner, Session-projection contract version, Usage-normalizer contract version, and generalized Session-reference contract version. Provider-internal files outside the adapter's Session candidate contract never own rows here.",
         "rebuildability": "source-rebuildable",
         "recovery_path": "rescan the owning source. Errors and exact prior attempt times are operational history and are not reproduced exactly.",
-        "schema_ownership": "fresh table definition in `schema.sql`; `db.py` compatibly adds `session_id`, `session_contract_version`, `usage_contract_version`, and `reference_contract_version`, and creates `idx_source_files_session` after those columns exist. On the first startup with the separated contract, a null Session version may be backfilled only when the current Usage version proves that the same parser generation already produced the Session. Other unknown or mismatched versions force repair rather than being assumed current."
+        "schema_ownership": "fresh table definition in `schema.sql`; `db.py` compatibly adds `session_id`, `session_contract_version`, `usage_contract_version`, and `reference_contract_version`, and creates `idx_source_files_session` after those columns exist. `source_revision_migration.py` rebuilds this table with a positive-integer-or-null Session revision constraint. Startup validates exact known provider-specific legacy tokens, makes a verified private recovery copy, and converts only their revision numbers while preserving rows, IDs, mappings, fingerprints, other contracts, indexes and foreign keys. Unknown tokens stop startup before schema writes; they are never cast to zero or stamped current. Rebuild accepts only the supported column, outgoing-FK and implicit-uniqueness shapes, with no incoming file FKs. Unknown triggers, check/collation/conflict/ timing/storage modifiers or a pre-existing rebuild target also stop replacement. The rebuild savepoint restores the original table and rows on failure, including an interruption after DROP. This shape refusal is separate from token preflight; it does not promise that unrelated startup migrations made no earlier changes. Null Session revisions trigger actual Session/skill reprocessing, even when the independent Usage contract is current; that repair does not reprice Usage."
       },
       "subject_id": "source-registry-and-scans"
     },
@@ -1857,7 +1859,7 @@
         "deletion_effect": "physical optional parent of `sessions` and `context_documents`, both `SET NULL`. It is an application target for `project` polymorphic links and `usage_records.workspace_id_snapshot`; those are not cascaded by SQLite.",
         "documented_constraints": "uniqueness of `canonical_path`. Explicit indexes: none.",
         "lifecycle_contract": "mixed source identity and curated references. Discovery can rebuild path metadata, but Workstream/Thread links and Usage Record snapshot browsing use its stable ID, so delete-and-recreate is not equivalent to update-in-place.",
-        "producers": "`ingest/scanner.py` upserts path, display name, Git root, existence, and activity; `db.py` removes the obsolete `git_branch` column during compatible migration.",
+        "producers": "`ingest/sync/storage.py` upserts path, display name, Git root, existence, and activity; `db.py` removes the obsolete `git_branch` column during compatible migration.",
         "purpose_and_authority": "current canonical project/workspace identity discovered from Session working directories; the containing Git repository root is current discovery, not historical branch state.",
         "rebuildability": "conditional-stable-id",
         "recovery_path": "rescan Sessions to rediscover paths. Preserve or restore the database to retain stable link targets and historical current-row resolution.",
@@ -2186,7 +2188,7 @@
         "deletion_effect": "physical `source_id` cascades; optional `workspace_id`, `parent_session_id`, and unique `maintenance_run_id` set null. After a successful scan of a present source root, stale-file reconciliation deletes a normalized Session when neither its owning native JSONL nor another tracked path remains valid; a valid tracked sibling instead becomes its owner. Parsed-empty reconciliation is a separate branch: for full-index Sessions, stale conversation/search can be cleared and the Session considered for retirement only when its current owner path belongs to the parsed-empty set AND every tracked sibling path also belongs to that set. A meaningful shared owner, including a source containing only admitted skill observations, prevents that parsed-empty cleanup; retained historical Usage keeps the Session meaningful even after its stale conversation is cleared. Deleting that Session cascades `activity_events`, `usage_records`, derived `session_reference_scans` and `session_reference_evidence`, and the optional user-owned `session_pins` row; scanner also removes its search and source-file projection while preserving a present native stub. A wholly missing source root does not trigger the same stale-file reconciliation. `skill_observations` has no cascading FK and keeps admitted historical uses. Polymorphic links and checkpoint refs are application edges and can retain an unresolved historical ID.",
         "documented_constraints": "`UNIQUE(source_id, external_id)`, unique nullable `maintenance_run_id`, checks for the two-value class, role, and index-policy vocabularies, and a linked-Session shape check requiring `maintenance`, `primary`, and `metadata_only`. Explicit indexes: `idx_sessions_last_event`, `idx_sessions_workspace`, `idx_sessions_class`, `idx_sessions_role`, `idx_sessions_parent`.",
         "lifecycle_contract": "native Sessions are source-derived from meaningful retained native JSONL accepted by the owning provider's Session-candidate contract. Meaningful means the parsed file contains at least one normalized Activity Event, direct Usage Record, or admitted skill observation; metadata-only stubs retain no Session or source-file projection and are reconsidered on later syncs. Conversation normalization retains authored inputs, filters recognized generated context per text block, and reconciles native counterparts using provider-specific precedence. Assistant response phases require explicit provider provenance; absent or ambiguous signals remain unmarked. Claude primary files and direct `subagents/*.jsonl` children are accepted, while deeper internal `subagents` artifacts such as workflow journals are not Sessions. Codex `source.subagent.other=guardian` files remain normalized so their stable source identity, parent relation, and directly observed Usage Records survive, but the parser classifies them as maintenance plus metadata-only: their approval prompts and decisions produce no Activity Events, question counts, search text, or ordinary Session/Subsession presentation. A successful scan reconciles a previously imported row that is no longer an accepted candidate without deleting the native file. Native tools can remove accepted JSONL files under their own retention policies; Claude Code is a confirmed example because it deletes Session files older than `cleanupPeriodDays` at startup. LocalBrain is therefore a source mirror rather than an immutable Session archive. Stable IDs are preserved while their accepted source files remain so curated links and Usage Records remain valid. The same native external ID may exist under personal Codex and Codex Company because Session identity is unique within `source_id`, not provider kind. A Run-linked primary and its resolved child Sessions keep metadata while maintenance index/event policy is restricted; the private Runner stream is an operational artifact only. Ephemeral personal insight executions are a bounded exception: a retained CLI usage observation creates a metadata-only Maintenance Session accounting parent with identity `localbrain-insight:<Run ID>`. It contains no conversation, events, search entry, workspace, or native source-file registration. The independent Run is its application owner; native-source disappearance does not delete this accounting projection.",
-        "producers": "`ingest/scanner.py` plus Claude/Codex parsers create Sessions and Usage Records; parent reconciliation updates self-references and propagates maintenance policy to Claude or Codex children. `runner.py` synchronizes the selected native source after terminal and recovered Runs. `source_files` versions Session projection freshness independently, allowing classification/parser changes to rebuild Sessions, Activity Events and search. A Session parser-version change rebuilds available projections on the next explicit Sync. Neither operation replaces Usage solely because the Session contract changed. `db.py` owns the classification/Run-link constraint repair. `personal_insight_usage.py` separately creates insight accounting parents and canonical Usage Records from observed ephemeral CLI usage.",
+        "producers": "`ingest/sync/session_store.py` plus Claude/Codex parsers create Sessions and Usage Records; parent reconciliation updates self-references and propagates maintenance policy to Claude or Codex children. `runner.py` synchronizes the selected native source after terminal and recovered Runs. `source_files` versions Session projection freshness independently, allowing classification/parser changes to rebuild Sessions, Activity Events and search. A Session parser-version change rebuilds available projections on the next explicit Sync. Neither operation replaces Usage solely because the Session contract changed. `db.py` owns the classification/Run-link constraint repair. `personal_insight_usage.py` separately creates insight accounting parents and canonical Usage Records from observed ephemeral CLI usage.",
         "purpose_and_authority": "one normalized Claude or Codex Session/subsession per stable local source and native external identity. Source key owns provenance and statistical separation, while the Source registry provider kind owns parser and normalization behavior. An in-app Task Runner Run is represented by the selected runner's persisted native primary Session, linked to the Run ledger rather than duplicated by LocalBrain.",
         "rebuildability": "source-rebuildable",
         "recovery_path": "rescan the authoritative native source file and reconcile parents. Restoring only a Task Runner stream cannot rebuild a Session or Usage Record; restore the selected runner's native Claude or Codex JSONL and the Run ledger together. The insight accounting exception is recoverable from the independent Run ledger plus retained usage summaries or CLI usage events. A full database rebuild cannot restore user-curated links, exact operational history, or confirmed review state without backup.",
@@ -2318,7 +2320,7 @@
         "deletion_effect": "`session_id` cascades from `sessions`; replacement deletes prior rows before inserting the new normalized sequence.",
         "documented_constraints": "`UNIQUE(session_id, sequence, event_type, source_line)` and the nullable two-value `message_phase` check. Explicit indexes: none; SQLite owns the composite uniqueness autoindex used for Session event ordering.",
         "lifecycle_contract": "source-derived and rebuildable. Scanner replaces the Session's event set atomically during re-import. Existing event PKs are retained by matching `(session_id, sequence, event_type, source_line)`. New event IDs include the numeric source PK, so identical native events in different profiles coexist without an alias.",
-        "producers": "`ingest/scanner.py` from normalized parser events; provider-backed phase normalization retains only explicit, unambiguous completion or continuation evidence.",
+        "producers": "`ingest/sync/session_store.py` from normalized parser events; provider-backed phase normalization retains only explicit, unambiguous completion or continuation evidence.",
         "purpose_and_authority": "normalized, ordered Session events used for conversation presentation, activity calculation, retrieval evidence, and tool/message counts without exposing raw event payload files.",
         "rebuildability": "source-rebuildable",
         "recovery_path": "rescan the Session source. Opaque tool arguments/results are not indexed by default; a later concrete metadata requirement must introduce an explicit bounded contract rather than relying on an unused generic JSON slot.",
@@ -2524,7 +2526,7 @@
         "deletion_effect": "`source_id` is a non-null FK to `sources.id` with `NO ACTION`; a source with retained skill evidence cannot be deleted. (`source_id`, `external_session_id`) may resolve to a current `sessions` row. Session deletion and registration removal do not cascade into this ledger. Evidence links appear only after a successful current-row join.",
         "documented_constraints": "`UNIQUE(source_id, external_session_id, native_event_id, skill_group_key)` plus application evidence guards, bounded fields and checked provider/signal/state values. Indexes: `idx_skill_observations_group` and `idx_skill_observations_source_session`. Startup extends the signal CHECK and optional legacy request field transactionally with exact retained-row parity.",
         "lifecycle_contract": "retained historical observation. Parser-version upgrades backfill available files once; subsequent changed/resumed files insert only new events. Native events deduplicate by source, Session and event identity; read/mention/script events also include normalized skill identity. Earlier declaration identities guard equivalent mention replay, including corrections. Request identity remains provenance, with null scope allowed. Missing files or Session rows, and removal of source registration, do not retract evidence. Maintenance Sessions and reconciled children are invalidated, and targeted corrections remain supported. Insights counts each normalized skill at most once per source and native Session across all requests/signals. Constituent events remain in the ledger.",
-        "producers": "Claude/Codex parsers, `ingest/skill_loads.py` and `ingest/skill_usage.py` extract bounded signals; `ingest/scanner.py` and `skill_observations.py` persist them within the source scan transaction and reconcile maintenance exclusion. Native Codex turn IDs, Claude user UUIDs or retained user-message identity establish request scope. A targeted native-event correction can set erroneous evidence to `corrected` without making ordinary disappearance a deletion signal.",
+        "producers": "Claude/Codex parsers, `ingest/evidence/skill_loads.py` and `ingest/evidence/skill_usage.py` extract bounded signals; `ingest/sync/sessions.py` and `skill_observations.py` persist them within the source scan transaction and reconcile maintenance exclusion. Native Codex turn IDs, Claude user UUIDs or retained user-message identity establish request scope. A targeted native-event correction can set erroneous evidence to `corrected` without making ordinary disappearance a deletion signal.",
         "purpose_and_authority": "durable native calls/contexts, successful instruction reads, named conversation references and identifiable skill script executions. Names are established by source evidence within the Session; availability catalogs alone do not count. References are matched by identifiers without interpreting use wording or language. All observed evidence contributes to use/reference Session reach, not proof of application, success or benefit. Previously recorded declarations are retained as historical references; no new phrase-based declarations are extracted.",
         "rebuildability": "retained-source-observation",
         "recovery_path": "restore the database to retain observations whose native Session files have disappeared. Still-available files can be rescanned, but cannot reproduce lost historical events.",
@@ -3852,7 +3854,7 @@
         "deletion_effect": "optional physical parent of `context_documents` with `ON DELETE SET NULL`; ordinary removal disables the root and removes indexed rows for that source boundary rather than deleting the registry row or original local content.",
         "documented_constraints": "uniqueness of `path`. Explicit indexes: none.",
         "lifecycle_contract": "user-curated and non-rebuildable as a registry. A default Context directory may be discovered compatibly only for previously indexed Documents; fresh installations require explicit registration. User additions/removals and source types require backup.",
-        "producers": "`contexts.py` adds, restores, disables, and validates roots; `ingest/scanner.py` updates scan outcomes; `db.py` compatibly seeds/migrates folder roots for previously indexed Documents.",
+        "producers": "`contexts.py` adds, restores, disables, and validates roots; `ingest/sync/contexts.py` updates scan outcomes; `db.py` compatibly seeds/migrates folder roots for previously indexed Documents.",
         "purpose_and_authority": "user-managed registry of folders, individual files, and Apple Notes sources, including readability, enablement, scan status, and error state.",
         "rebuildability": "non-rebuildable",
         "recovery_path": "restore the LocalBrain database or re-register every root manually, then scan. Original files/Notes remain external authorities.",
@@ -4078,7 +4080,7 @@
         "deletion_effect": "source deletion cascades. Context root and workspace deletion set their keys null, retaining the document until scanner/root lifecycle removes it. Scanner and `contexts.py` explicitly remove matching FTS rows; disabling a Context root also clears its derived Atlassian evidence without deleting any Item. It is an application target for Workstream, Thread, and checkpoint references.",
         "documented_constraints": "uniqueness of `path`. Explicit indexes: `idx_documents_mtime`, `idx_documents_context_root`, `idx_documents_source`, and `idx_documents_workspace`; the workspace index orders `mtime_ns DESC` after `workspace_id`.",
         "lifecycle_contract": "source-derived and rebuildable while the external source remains available. The stored body is local indexed content and is never copied into tracked schema evidence.",
-        "producers": "`ingest/scanner.py` upserts documents and removes disappeared rows; `db.py` migrates older root associations and relative paths.",
+        "producers": "`ingest/sync/contexts.py` upserts documents and removes disappeared rows; `db.py` migrates older root associations and relative paths.",
         "purpose_and_authority": "normalized text and metadata indexed from a registered local file/folder/Notes source, with source path, content fingerprint, and optional current workspace association.",
         "rebuildability": "source-rebuildable",
         "recovery_path": "rescan external sources. If the original content is gone, only a database/host backup can recover the indexed body; LocalBrain is not the authority for the original file.",
@@ -9024,7 +9026,7 @@
         "deletion_effect": "no physical FK. `entity_type` plus `entity_id` application-addresses `sessions`, `context_documents`, `atlassian_items.external_resource_id`, or `atlassian_structure_references.id`; each source lifecycle explicitly removes projections. Maintenance Sessions, subsessions, policy-excluded content, ineligible Atlassian role text, and archived structure references do not enter the projection.",
         "documented_constraints": "`fts5(..., tokenize = 'unicode61')`; Session, Document, and active structure-reference projections use one row per entity, while Atlassian Items use deterministic source-kind role rows (`identity`, optional `metadata`, optional `content`, and optional `local`). Row-set uniqueness is maintained by compare-and-replace application logic, not a SQL unique constraint. Explicit named indexes: none.",
         "lifecycle_contract": "fully derived projection. It is safe to clear and rebuild from current eligible source objects.",
-        "producers": "`ingest/scanner.py` replaces Session and document rows during scan; `contexts.py` deletes root-owned document projections on disable; `atlassian.py` compares and rebuilds each Item's eligible role rows from current relational identity, remote state/content, and local memory; `atlassian_structure_references.py` compares active reference identity/domain/family/safe-locator projection and removes it when archived; source cleanup deletes projections before normalized objects.",
+        "producers": "`ingest/sync/storage.py` replaces Session and document rows for the Session and Context services; `contexts.py` deletes root-owned document projections on disable; `atlassian.py` compares and rebuilds each Item's eligible role rows from current relational identity, remote state/content, and local memory; `atlassian_structure_references.py` compares active reference identity/domain/family/safe-locator projection and removes it when archived; source cleanup deletes projections before normalized objects.",
         "purpose_and_authority": "FTS5 search projection for eligible primary work Sessions, enabled Context Documents, role-separated Atlassian Item identity/metadata/content/local text, and active URL-derived Atlassian structure-reference identity/provenance, retaining unindexed target fields beside indexed title/body/path text.",
         "rebuildability": "fully-derived",
         "recovery_path": "rescan enabled Session and Context sources and rebuild Atlassian role rows from stable External Resource identity, bounded eligible remote state/content, local note/classification tables, and active stable structure-reference rows. No backup is required for this table itself, though its authoritative local/last-known inputs must exist.",

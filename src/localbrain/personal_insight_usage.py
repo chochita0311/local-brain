@@ -7,7 +7,8 @@ import logging
 from decimal import Decimal
 from pathlib import Path
 
-from .ingest.common import ParsedUsageRecord, stable_id, token_value
+from localbrain.ingest.contracts import ParsedUsageRecord
+from localbrain.ingest.common import stable_id, token_value
 from .official_pricing import select_snapshot
 from .usage import normalize_model, store_usage_records
 from .usage_queries import _format_cost

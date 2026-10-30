@@ -7,15 +7,23 @@ try:
 except ModuleNotFoundError:  # pragma: no cover - Python 3.9/3.10
     import tomli as tomllib
 
-from .common import (
+from localbrain.ingest.contracts import (
     ApprovedResourceCall,
     ParsedEvent,
     ParsedSkillObservation,
     ParsedSession,
     ParsedUsageRecord,
+)
+from localbrain.ingest.evidence.reference_candidates import (
     approved_resource_call,
     approved_result_reference_candidates,
     approved_tool_result_evidence,
+    tool_result_failed,
+    tool_result_completed,
+    visible_reference_candidates,
+    visible_url_evidence,
+)
+from localbrain.ingest.common import (
     compact_title,
     read_json_lines,
     session_policy,
@@ -23,21 +31,14 @@ from .common import (
     source_native_event_id,
     text_from_content,
     token_value,
-    tool_result_failed,
-    tool_result_completed,
-    visible_reference_candidates,
-    visible_url_evidence,
 )
-from ..official_pricing import select_snapshot
-from .skill_loads import SkillReadCollector
+from localbrain.official_pricing import select_snapshot
+from localbrain.ingest.evidence.skill_loads import SkillReadCollector
+from localbrain.ingest.contracts import CODEX_SESSION_REVISION, CODEX_USAGE_CONTRACT_VERSION
 
 
 CODEX_USAGE_IDENTITY_VERSION = (
     "codex-last-token-usage-v7-fast-context-tier-response-message-fallback-guardian-spark-price"
-)
-CODEX_USAGE_CONTRACT_VERSION = "codex-last-token-usage-v8-official-dated-service-tier"
-CODEX_SESSION_CONTRACT_VERSION = (
-    "codex-session-v12-empty-page-controls"
 )
 CODEX_GUARDIAN_TITLE = "Codex guardian"
 

@@ -8,6 +8,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
 
+from localbrain.ingest.sync import contexts, storage
 from localbrain import db
 from localbrain.config import Settings
 from localbrain.contexts import add_context_root, add_apple_notes_source
@@ -143,12 +144,12 @@ class ContextSyncTests(unittest.TestCase):
         second.write_text("# Second\nSynthetic\n")
         originals = [p.read_bytes() for p in (self.document, second)]
         stop = threading.Event()
-        record = scanner._record_source_file
+        record = storage._record_source_file
         def processed(*args, **kwargs):
             result = record(*args, **kwargs)
             stop.set()
             return result
-        with patch.object(scanner, "_record_source_file", side_effect=processed):
+        with patch.object(storage, "_record_source_file", side_effect=processed):
             with self.assertRaises(InterruptedError):
                 scanner.scan_context_sources(cancelled=stop.is_set)
         with db.connect() as connection:
@@ -188,7 +189,7 @@ class ContextSyncTests(unittest.TestCase):
         context = Mock()
         context.__enter__ = Mock(return_value=process)
         context.__exit__ = Mock(return_value=False)
-        with patch.object(scanner.subprocess, "Popen", return_value=context):
+        with patch.object(contexts.subprocess, "Popen", return_value=context):
             with self.assertRaises(InterruptedError):
                 scanner.scan_context_sources(cancelled=stop.is_set)
         process.kill.assert_called_once()
@@ -199,9 +200,9 @@ class ContextSyncTests(unittest.TestCase):
         context = Mock()
         context.__enter__ = Mock(return_value=process)
         context.__exit__ = Mock(return_value=False)
-        with patch.object(scanner.subprocess, "Popen", return_value=context), patch.object(scanner.time, "monotonic", side_effect=[0, 120]):
+        with patch.object(contexts.subprocess, "Popen", return_value=context), patch.object(contexts.time, "monotonic", side_effect=[0, 120]):
             with self.assertRaisesRegex(TimeoutError, "120 seconds"):
-                scanner._scan_apple_notes(None, 1, None)
+                contexts._scan_apple_notes(None, 1, None)
         process.kill.assert_called_once()
 
 

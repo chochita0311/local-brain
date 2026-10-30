@@ -13,8 +13,9 @@ from starlette.requests import Request
 
 from localbrain.main import app, _session_insights_response
 from localbrain.personal_insight_evidence import build_insight_evidence_manifest
-from localbrain.ingest.codex import CODEX_USAGE_CONTRACT_VERSION, parse_codex_session
-from localbrain.ingest.scanner import _scan_session_source
+from localbrain.ingest.contracts import CODEX_USAGE_CONTRACT_VERSION
+from localbrain.ingest.providers.codex import parse_codex_session
+from localbrain.ingest.sync.sessions import _scan_session_source
 from localbrain.personal_insight_runs import _execute, get_insight_run, reconcile_interrupted_insight_runs
 from localbrain.personal_insight_usage import (
     insight_usage_cost, insight_usage_source, recover_insight_usage, store_insight_usage,

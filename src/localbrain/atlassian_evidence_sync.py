@@ -28,12 +28,12 @@ from .atlassian_structure_references import (
     project_structure_reference_search,
     remove_obsolete_document_structure_evidence,
 )
-from .ingest.common import (
+from localbrain.ingest.evidence.reference_candidates import (
     EVIDENCE_EXTRACTOR_VERSION,
     REFERENCE_EXTRACTOR_VERSION,
-    ParsedUrlEvidence,
     trim_url_token,
 )
+from localbrain.ingest.contracts import ParsedUrlEvidence
 from .workstreams import utc_now
 
 

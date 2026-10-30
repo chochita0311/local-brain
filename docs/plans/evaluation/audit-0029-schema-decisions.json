@@ -3,7 +3,7 @@
   "review_status": "complete",
   "manifest": {
     "path": "src/localbrain/schema-presentation.json",
-    "sha256": "89cddd56693618e718555a9d06a821fd07bfdf8983baab420effa600bf78b04f",
+    "sha256": "9528879c6d53049b70843889dec52f76898c80a3491c439269eddb5cafa01bfa",
     "expected": {
       "tables": 49,
       "columns": 543,

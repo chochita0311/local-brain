@@ -3,9 +3,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from localbrain.ingest.claude import parse_claude_session
-from localbrain.ingest.codex import parse_codex_session
-from localbrain.ingest.common import (
+from localbrain.ingest.providers.claude import parse_claude_session
+from localbrain.ingest.providers.codex import parse_codex_session
+from localbrain.ingest.evidence.reference_candidates import (
     visible_reference_candidates,
     visible_url_evidence,
 )

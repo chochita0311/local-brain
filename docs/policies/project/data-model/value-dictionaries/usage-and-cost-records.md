@@ -13,7 +13,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: token aggregation boundary
 - Default: `direct`
 - Fallbacks: `null`: reject; `unknown`: label → 범위 알 수 없음; `invalid`: reject; `future`: label → 새 집계 범위
-- Producers: `src/localbrain/ingest/claude.py`, `src/localbrain/ingest/codex.py`, `src/localbrain/personal_insight_usage.py`
+- Producers: `src/localbrain/ingest/providers/claude.py`, `src/localbrain/ingest/providers/codex.py`, `src/localbrain/personal_insight_usage.py`
 - Consumers: `src/localbrain/usage_queries.py`
 - Consequence: Prevents child-token double counting.
 - Presentation mode: `logical-label`
@@ -29,7 +29,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: source usage completeness
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: label → 확인 필요; `invalid`: reject; `future`: label → 새 상태
-- Producers: `src/localbrain/ingest/claude.py`, `src/localbrain/ingest/codex.py`, `src/localbrain/personal_insight_usage.py`
+- Producers: `src/localbrain/ingest/providers/claude.py`, `src/localbrain/ingest/providers/codex.py`, `src/localbrain/personal_insight_usage.py`
 - Consumers: `src/localbrain/usage_queries.py`
 - Consequence: Incomplete or malformed facts reduce coverage confidence.
 - Presentation mode: `logical-label`

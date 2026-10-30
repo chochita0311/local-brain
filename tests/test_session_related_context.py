@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 from starlette.requests import Request
 
-from localbrain.ingest.common import ParsedReferenceCandidate
+from localbrain.ingest.contracts import ParsedReferenceCandidate
 from localbrain.main import app, show_session
 from localbrain.session_context import (
     EVIDENCE_LABELS,

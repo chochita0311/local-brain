@@ -231,7 +231,7 @@ class DesktopSettingsTests(unittest.TestCase):
         self.assertNotIn('projects', saved['raw'])
 
     def test_workspace_label_uses_home_without_changing_identity(self):
-        from localbrain.ingest.scanner import _upsert_workspace
+        from localbrain.ingest.sync.storage import _upsert_workspace
         home = self.root / 'home'
         project = home / 'Projects'
         project.mkdir(parents=True)

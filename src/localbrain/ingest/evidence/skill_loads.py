@@ -10,8 +10,9 @@ from typing import Any, Optional
 
 import yaml
 
-from .common import ParsedSkillObservation, source_native_event_id, stable_id
-from .skill_usage import SkillReferenceMatcher
+from localbrain.ingest.contracts import ParsedSkillObservation
+from localbrain.ingest.common import source_native_event_id, stable_id
+from localbrain.ingest.evidence.skill_usage import SkillReferenceMatcher
 
 
 _JS_WORD = re.compile(r"[A-Za-z_$][\w$]*")

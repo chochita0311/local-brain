@@ -23,7 +23,7 @@ from localbrain.atlassian_evidence import (
     reconcile_document_evidence,
 )
 from localbrain.atlassian_browse import browse_inventory
-from localbrain.ingest.common import (
+from localbrain.ingest.evidence.reference_candidates import (
     EVIDENCE_EXTRACTOR_VERSION,
     REFERENCE_EXTRACTOR_VERSION,
 )

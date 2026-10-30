@@ -24,13 +24,14 @@ from localbrain.db import (
     init_db,
 )
 from localbrain.config import Settings
-from localbrain.ingest.common import EVIDENCE_EXTRACTOR_VERSION, ParsedSession
-from localbrain.ingest.scanner import (
-    _remove_context_source_documents,
+from localbrain.ingest.evidence.reference_candidates import EVIDENCE_EXTRACTOR_VERSION
+from localbrain.ingest.contracts import ParsedSession
+from localbrain.ingest.sync.contexts import _remove_context_source_documents
+from localbrain.ingest.sync.session_store import (
     _remove_empty_session_candidates,
     _remove_stale_sessions,
-    scan_context_root,
 )
+from localbrain.ingest.scanner import scan_context_root
 
 
 SCHEMA_PATH = Path(__file__).parents[1] / "src" / "localbrain" / "schema.sql"

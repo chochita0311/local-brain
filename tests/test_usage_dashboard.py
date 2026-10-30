@@ -4,8 +4,8 @@ from datetime import date, datetime, timezone
 from decimal import Decimal
 from pathlib import Path
 
-from localbrain.ingest.common import ParsedSession, ParsedUsageRecord
-from localbrain.ingest.scanner import _store_session
+from localbrain.ingest.contracts import ParsedSession, ParsedUsageRecord
+from localbrain.ingest.sync.session_store import _store_session
 from localbrain.usage_queries import _history_from_buckets, normalize_usage_scope, usage_dashboard_data
 
 

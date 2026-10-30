@@ -20,7 +20,8 @@ from localbrain.atlassian_evidence import (
 )
 from localbrain.contexts import add_context_root, remove_context_root
 from localbrain.ingest.scanner import scan_context_root
-from localbrain.ingest.common import EVIDENCE_EXTRACTOR_VERSION, ParsedUrlEvidence
+from localbrain.ingest.evidence.reference_candidates import EVIDENCE_EXTRACTOR_VERSION
+from localbrain.ingest.contracts import ParsedUrlEvidence
 
 
 SCHEMA_PATH = Path(__file__).parents[1] / "src" / "localbrain" / "schema.sql"

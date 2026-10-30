@@ -6,7 +6,10 @@ from typing import Iterable, Mapping, Optional
 
 from .atlassian_evidence import normalize_atlassian_structural_scope
 from .atlassian_locators import AtlassianLocatorResult
-from .ingest.common import EVIDENCE_EXTRACTOR_VERSION, REFERENCE_EXTRACTOR_VERSION
+from localbrain.ingest.evidence.reference_candidates import (
+    EVIDENCE_EXTRACTOR_VERSION,
+    REFERENCE_EXTRACTOR_VERSION,
+)
 from .workstreams import utc_now
 
 

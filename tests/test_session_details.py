@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from localbrain.ingest.common import ParsedEvent, ParsedSession
+from localbrain.ingest.contracts import ParsedEvent, ParsedSession
 from localbrain.queries import (
     session_conversation_events,
     session_events,

@@ -45,8 +45,9 @@ For source reload during development, use
 Source reload does not update the frozen backend inside a previously built
 `LocalBrain.app`. App and web backends using the same data directory share the
 normalized database and synchronization health. Their writer lock serializes
-collection but does not reject an older parser contract: an older build can
-reparse unchanged sources and replace a newer projection. After a parser update,
+collection. Current runtimes additionally reject a source whose stored numeric
+Session revision is newer; unmodified older builds lack that admission check and
+can still reparse newer results. After a parser update,
 stop incompatible older backends or rebuild and restart the app before allowing
 both to collect into that store. Then run ordinary Session Sync with the updated
 backend. A corrected source checkout or one successful web Sync alone does not
@@ -195,6 +196,19 @@ The [test distribution guide](standalone-test-app-guide.md) owns first launch,
 supported-environment evidence, manual replacement and recipient validation.
 Uploading the program ZIP to internal Drive and notifying teammates are separate
 delivery actions.
+
+After changing ingestion, restart the development server unless it runs with
+reload, and rebuild/replace the native app before testing against the same data
+directory. A source edit does not update an already running process or frozen
+backend. Current Session revisions live in `ingest/contracts.py` as positive
+integers; increase the affected provider's number when stored Session results
+must be repaired. Explain the rule change in its owner document and execution
+record rather than encoding that description into the constant value. Usage and
+reference freshness remain independent. Higher stored Session revisions refuse
+Sync and reconnection until the running application is updated; force does not
+bypass this check. See [the storage contract](data-model/source-registry-and-scans.md#source_files)
+for legacy-token conversion and [Architecture](architecture.md#ingestion-module-ownership)
+for module ownership.
 
 ## Dependency Certificate Troubleshooting
 

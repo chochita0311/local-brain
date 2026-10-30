@@ -726,7 +726,7 @@
         }
       },
       "producers": [
-        "src/localbrain/ingest/codex.py",
+        "src/localbrain/ingest/providers/codex.py",
         "src/localbrain/ingest/scanner.py",
         "src/localbrain/runner.py"
       ],
@@ -776,8 +776,8 @@
         }
       },
       "producers": [
-        "src/localbrain/ingest/claude.py",
-        "src/localbrain/ingest/codex.py"
+        "src/localbrain/ingest/providers/claude.py",
+        "src/localbrain/ingest/providers/codex.py"
       ],
       "consumers": [
         "src/localbrain/queries.py",
@@ -843,7 +843,7 @@
         }
       },
       "producers": [
-        "src/localbrain/ingest/codex.py",
+        "src/localbrain/ingest/providers/codex.py",
         "src/localbrain/ingest/scanner.py",
         "src/localbrain/runner.py"
       ],
@@ -892,8 +892,8 @@
         }
       },
       "producers": [
-        "src/localbrain/ingest/claude.py",
-        "src/localbrain/ingest/codex.py",
+        "src/localbrain/ingest/providers/claude.py",
+        "src/localbrain/ingest/providers/codex.py",
         "src/localbrain/ingest/scanner.py"
       ],
       "consumers": [
@@ -998,8 +998,8 @@
         }
       },
       "producers": [
-        "src/localbrain/ingest/claude.py",
-        "src/localbrain/ingest/codex.py"
+        "src/localbrain/ingest/providers/claude.py",
+        "src/localbrain/ingest/providers/codex.py"
       ],
       "consumers": [
         "src/localbrain/skill_observations.py"
@@ -1300,8 +1300,8 @@
         }
       },
       "producers": [
-        "src/localbrain/ingest/claude.py",
-        "src/localbrain/ingest/codex.py",
+        "src/localbrain/ingest/providers/claude.py",
+        "src/localbrain/ingest/providers/codex.py",
         "src/localbrain/personal_insight_usage.py"
       ],
       "consumers": [
@@ -1355,8 +1355,8 @@
         }
       },
       "producers": [
-        "src/localbrain/ingest/claude.py",
-        "src/localbrain/ingest/codex.py",
+        "src/localbrain/ingest/providers/claude.py",
+        "src/localbrain/ingest/providers/codex.py",
         "src/localbrain/personal_insight_usage.py"
       ],
       "consumers": [

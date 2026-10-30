@@ -5,10 +5,9 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from localbrain.ingest.common import (
-    ParsedReferenceCandidate,
-    REFERENCE_EXTRACTOR_VERSION,
-)
+from localbrain.ingest.sync import sessions
+from localbrain.ingest.contracts import ParsedReferenceCandidate
+from localbrain.ingest.evidence.reference_candidates import REFERENCE_EXTRACTOR_VERSION
 from localbrain import session_references
 from localbrain.ingest import scanner
 from localbrain.session_references import (
@@ -757,7 +756,7 @@ class SessionReferenceTests(unittest.TestCase):
             connection.executescript(SCHEMA_SQL)
             connection.execute("INSERT INTO sources(id,provider_kind,name,root_path) VALUES (1,'codex','Company',?)", (str(source_root),))
             try:
-                first_report = scanner._scan_session_source(
+                first_report = sessions._scan_session_source(
                     connection,
                     1,
                     "Codex Company",
@@ -791,7 +790,7 @@ class SessionReferenceTests(unittest.TestCase):
                 )
 
                 write_session(first_path, first_urls[:-1])
-                second_report = scanner._scan_session_source(
+                second_report = sessions._scan_session_source(
                     connection,
                     1,
                     "Codex Company",
@@ -810,7 +809,7 @@ class SessionReferenceTests(unittest.TestCase):
                 )
 
                 second_path.unlink()
-                delete_sibling_report = scanner._scan_session_source(
+                delete_sibling_report = sessions._scan_session_source(
                     connection,
                     1,
                     "Codex Company",
@@ -832,7 +831,7 @@ class SessionReferenceTests(unittest.TestCase):
                 )
 
                 first_path.unlink()
-                scanner._scan_session_source(
+                sessions._scan_session_source(
                     connection,
                     1,
                     "Codex Company",

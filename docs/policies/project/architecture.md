@@ -354,6 +354,39 @@ have separate contracts below.
 
 Original Claude and Codex JSONL remains the authoritative Session source. LocalBrain stores normalized searchable text, selected metadata, source paths, source line numbers, and deterministic IDs so the index can be rebuilt. New provider-native event and Usage identities are scoped by the numeric Source ID when profiles share an adapter. Re-ingestion matches retained native unique keys to preserve existing event and Usage PKs; the one-time upgrade may read old string keys solely to migrate dependent references.
 
+### Ingestion Module Ownership
+
+- `ingest/contracts.py` owns parsed DTOs and provider revision metadata. It imports
+  neither native adapters nor synchronization services. `common.py` owns shared
+  identity, JSONL, text/title helpers and the existing maintenance classifier.
+- `ingest/providers/` decodes Codex and Claude native formats. Provider-specific
+  replay, source-adjacent configuration and pricing selection remain here.
+- `ingest/evidence/` extracts reference candidates, approved tool-result evidence
+  and skill signals from source data. It does not reconcile persisted evidence.
+- `ingest/sync/sessions.py` orchestrates one admitted Session source;
+  `session_store.py` owns Session/activity/Usage persistence and lifecycle;
+  `contexts.py` owns folder/file/Notes ingestion; `storage.py` owns shared
+  source/file/workspace/search operations and revision admission; `control.py`
+  owns the single cancellation context and callback-safe progress delivery.
+- `ingest/scanner.py` composes adapters, resolves registered sources, reports
+  outcomes and owns the outer transactions. Each registered Session source
+  commits independently. Normal Context collection keeps its existing grouped
+  transaction; direct `scan_context_root(connection, ...)` uses the caller's
+  transaction. Lower services do not import the coordinator or create commits.
+
+Session result revisions are nullable positive integers in
+`source_files.session_contract_version`; Codex and Claude increase independently.
+They identify stored results, while the executable contains one current parser
+per provider. A newer stored revision stops that source before projection/lifecycle writes,
+including forced Sync and same-source reconnection. Null or lower revisions need
+actual Session repair; a Session-only repair leaves current Usage unchanged.
+[Source Registry And Scans](data-model/source-registry-and-scans.md) owns the
+storage constraint, exact legacy conversion and bounded failure contract.
+
+Source edits update a development server only after its process reloads or
+restarts. A packaged native backend contains its own code copy and must be
+rebuilt and replaced. New revision admission does not retrofit old executables.
+
 ### Core Invariants
 
 - Preserve raw source identity and timestamps.
@@ -450,7 +483,12 @@ Each new Usage Record also freezes its first-observation Project attribution. A 
 
 ### Session Synchronization
 
-The Sessions inventory owns a Session-only incremental synchronization action. It scans every validated source in the ordered private Session-source registry—the user’s enabled Codex/Claude profiles—regardless of the selected inventory filter, and does not scan Local Context sources. Each accepted file carries independent Session-projection, Usage-normalizer, and generalized-reference versions. A version mismatch reparses the source files needed by that concern but writes only the owned derived lane; a natural file change, missing Session mapping, forced scan, or eligibility repair still refreshes every affected lane. Each source has an independent transaction, source-file set, stale-deletion boundary, and persistent latest attempt/success/status/error health. Unavailable or invalid sources skip stale reconciliation and retain their normalized data; an unexpected failure rolls back only that source. The JSON request API queues or joins the common collector; its status API exposes the bounded per-source report plus complete, partial, or failed aggregate outcome. An additive NDJSON endpoint emits bounded source ID/label, repair kinds, and throttled file counts to the same Sessions result region; it emits no paths or content, and callback/display failure cannot change synchronization. The development-web Sources inventory owns the wider scan that appends every enabled Local Context root without weakening those Session-source commit boundaries. Both web actions retain the source-file freshness check. An otherwise-current source is reparsed only when its versioned Atlassian evidence scan or enabled configured-Site fingerprint is missing or changed; once all owned contracts are current, the source is skipped.
+Every repair/force path below requires successful
+[Session revision admission](data-model/source-registry-and-scans.md#source_files).
+A higher stored revision is refused before projection or lifecycle writes;
+bounded source failure-health recording still occurs.
+
+The Sessions inventory owns a Session-only incremental synchronization action. It scans every validated source in the ordered private Session-source registry—the user’s enabled Codex/Claude profiles—regardless of the selected inventory filter, and does not scan Local Context sources. Each accepted file carries independent Session-projection, Usage-normalizer, and generalized-reference versions. After successful Session revision admission, a stale contract reparses the source files needed by that concern but writes only the owned derived lane; a natural file change, missing Session mapping, forced scan, or eligibility repair still refreshes every affected lane. Each source has an independent transaction, source-file set, stale-deletion boundary, and persistent latest attempt/success/status/error health. Unavailable or invalid sources skip stale reconciliation and retain their normalized data; an unexpected failure rolls back only that source. The JSON request API queues or joins the common collector; its status API exposes the bounded per-source report plus complete, partial, or failed aggregate outcome. An additive NDJSON endpoint emits bounded source ID/label, repair kinds, and throttled file counts to the same Sessions result region; it emits no paths or content, and callback/display failure cannot change synchronization. The development-web Sources inventory owns the wider scan that appends every enabled Local Context root without weakening those Session-source commit boundaries. Both web actions retain the source-file freshness check. An otherwise-current source is reparsed only when its versioned Atlassian evidence scan or enabled configured-Site fingerprint is missing or changed; once all owned contracts are current, the source is skipped.
 
 The shared backend schedules Session and Local Context collection independently,
 defaulting to 10 and 30 minutes after each domain's completion. The Sync settings
@@ -499,7 +537,7 @@ owns source signals; the analytical sections own ranking and analysis Runs.
 
 ### Skill Observation Capture
 
-Session Insights retains native invocation/context, completed instruction reads, named references and identifiable skill script executions. `ingest/skill_loads.py` correlates calls/results and request provenance. `ingest/skill_usage.py` matches source-established skill identifiers and unambiguous plugin aliases in normalized visible user/assistant messages without interpreting use wording or language. Generated catalogs/instructions and tool-output text are not conversation references. Script evidence uses completed native Codex CommandExecution records or non-error Claude Bash results, checking a literal executable or supported interpreter script argument within a known skill root's `scripts/` directory. Dynamic commands and heredoc bodies are excluded from this bounded command grammar; logged commands are never executed. Names/locators come from the same Session's native loads or completed reads, not current installed inventory.
+Session Insights retains native invocation/context, completed instruction reads, named references and identifiable skill script executions. `ingest/evidence/skill_loads.py` correlates calls/results and request provenance. `ingest/evidence/skill_usage.py` matches source-established skill identifiers and unambiguous plugin aliases in normalized visible user/assistant messages without interpreting use wording or language. Generated catalogs/instructions and tool-output text are not conversation references. Script evidence uses completed native Codex CommandExecution records or non-error Claude Bash results, checking a literal executable or supported interpreter script argument within a known skill root's `scripts/` directory. Dynamic commands and heredoc bodies are excluded from this bounded command grammar; logged commands are never executed. Names/locators come from the same Session's native loads or completed reads, not current installed inventory.
 
 Scanner persists source-scoped evidence during changed-file ingestion, and Session parser upgrades backfill available files without recomputing Usage prices. The [skill observation ledger](data-model/workspace-and-session-activity.md#skill_observations) owns native/fallback identity, request provenance, signal vocabulary, row-preserving migration, corrections, maintenance exclusion and retained history. Historical declarations remain references; the parser generates no new declarations. Source message text is not copied into this ledger.
 

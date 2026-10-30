@@ -3,9 +3,9 @@
 import sqlite3
 from typing import Any, Dict
 
-from .ingest.claude import CLAUDE_SESSION_CONTRACT_VERSION
-from .ingest.codex import CODEX_SESSION_CONTRACT_VERSION
-from .ingest.common import ParsedSession, stable_id
+from .ingest.contracts import CLAUDE_SESSION_REVISION, CODEX_SESSION_REVISION
+from localbrain.ingest.contracts import ParsedSession
+from localbrain.ingest.common import stable_id
 
 
 def normalized_skill_name(value: str) -> str:
@@ -166,8 +166,8 @@ def skill_insights_data(connection: sqlite3.Connection) -> Dict[str, Any]:
         WHERE sources.provider_kind IN ('claude', 'codex')
         """,
         (
-            CLAUDE_SESSION_CONTRACT_VERSION,
-            CODEX_SESSION_CONTRACT_VERSION,
+            CLAUDE_SESSION_REVISION,
+            CODEX_SESSION_REVISION,
         ),
     ).fetchone()
     file_count = int(coverage["file_count"] or 0)

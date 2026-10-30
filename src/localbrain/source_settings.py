@@ -13,6 +13,12 @@ from .local_operations import operation_lock
 from .preferences import PreferencesError, atomic_private_write, tomllib
 from .session_sources import load_session_source_settings, load_and_reconcile_session_sources, session_sources_path, session_sources_text
 from .source_profiles import PALETTE, default_color, valid_source_id
+from .ingest.contracts import (
+    CLAUDE_SESSION_REVISION,
+    CODEX_SESSION_REVISION,
+    SessionRevisionError,
+)
+from .ingest.sync.storage import _check_session_revision
 
 
 def source_configuration(config=settings):
@@ -249,6 +255,13 @@ def _reconnect(connection, before, after):
     if not source:
         return
     source_id = source["id"]
+    revision = {"codex": CODEX_SESSION_REVISION, "claude": CLAUDE_SESSION_REVISION}[
+        before["provider_kind"]
+    ]
+    try:
+        _check_session_revision(connection, source_id, revision)
+    except SessionRevisionError as error:
+        raise PreferencesError(str(error)) from error
     rows = connection.execute("SELECT id,source_path,external_id FROM sessions WHERE source_id=?", (source_id,)).fetchall()
     rewrites = []
     for row in rows:
@@ -258,8 +271,8 @@ def _reconnect(connection, before, after):
             raise PreferencesError("기존 세션 경로가 등록된 폴더와 일치하지 않습니다.") from None
         if not target.is_file():
             raise PreferencesError("기존 세션 파일이 새 위치에 모두 있는지 확인해 주세요. 기존 기록은 유지됩니다.")
-        from .ingest.codex import parse_codex_session
-        from .ingest.claude import parse_claude_session
+        from localbrain.ingest.providers.codex import parse_codex_session
+        from localbrain.ingest.providers.claude import parse_claude_session
         parser = parse_codex_session if before["provider_kind"] == "codex" else parse_claude_session
         try:
             if parser(target).external_id != row["external_id"]:

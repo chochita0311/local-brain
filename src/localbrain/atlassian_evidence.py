@@ -16,11 +16,11 @@ from .atlassian_locators import (
     atlassian_item_container_hint,
     describe_atlassian_url,
 )
-from .ingest.common import (
+from localbrain.ingest.evidence.reference_candidates import (
     EVIDENCE_EXTRACTOR_VERSION,
-    ParsedUrlEvidence,
     visible_url_evidence,
 )
+from localbrain.ingest.contracts import ParsedUrlEvidence
 from .workstreams import utc_now
 
 

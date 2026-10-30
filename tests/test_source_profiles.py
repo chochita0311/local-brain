@@ -184,6 +184,30 @@ class SourceProfileTests(unittest.TestCase):
         self.assertEqual(scanner.scan_codex_sessions()['imported'], 2)
         self.assertEqual(scanner.scan_claude_sessions()['imported'], 0)
 
+    def test_reconnect_cannot_erase_a_newer_session_revision(self):
+        from localbrain.ingest.contracts import CODEX_SESSION_REVISION
+        state = self.register('Personal')
+        source = state['sources'][0]
+        native = Path(source['root_path']) / 'session.jsonl'
+        sync_fixtures.SessionSyncTests()._write_codex_session(native, 'same-id', 'Keep history')
+        scanner.scan_session_sources()
+        with db.transaction() as connection:
+            connection.execute('UPDATE source_files SET session_contract_version=?', (CODEX_SESSION_REVISION + 1,))
+        before = self.evidence()
+        config_before = self.path.read_bytes()
+        new_root = self.root / 'relocated' / 'sessions'
+        new_root.mkdir(parents=True)
+        (new_root / native.name).write_bytes(native.read_bytes())
+        with self.assertRaisesRegex(PreferencesError, 'newer Session parser'):
+            self.mutate(action='reconnect', source_id=source['id'], provider_kind='codex',
+                        display_label='Personal', root=str(new_root), confirm_same_source=True)
+        self.assertEqual(self.evidence(), before)
+        self.assertEqual(self.path.read_bytes(), config_before)
+        self.assertFalse((self.data / 'source-reconnect.json').exists())
+        with db.connect() as connection:
+            self.assertEqual(connection.execute('SELECT session_contract_version FROM source_files').fetchone()[0], CODEX_SESSION_REVISION + 1)
+            self.assertEqual(connection.execute('SELECT root_path FROM sources WHERE id=?', (source['id'],)).fetchone()[0], source['root_path'])
+
     def test_error_after_file_replacement_restores_both_stores(self):
         import localbrain.source_settings as module
         state=self.register('Personal');source_id=state['sources'][0]['id']

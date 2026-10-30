@@ -2,7 +2,7 @@ import sqlite3
 from typing import Optional
 from urllib.parse import urlsplit
 
-from .ingest.common import trim_url_token
+from localbrain.ingest.evidence.reference_candidates import trim_url_token
 from .session_references import session_reference_projection
 
 

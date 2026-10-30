@@ -7,17 +7,14 @@ from unittest.mock import patch
 
 from localbrain.config import Settings
 from localbrain.db import init_db
-from localbrain.ingest.claude import parse_claude_session
-from localbrain.ingest.codex import (
-    CODEX_USAGE_CONTRACT_VERSION,
-    parse_codex_session,
-)
-from localbrain.ingest.common import ParsedSession, ParsedUsageRecord, stable_id
-from localbrain.ingest.scanner import (
-    _file_is_current,
-    _scan_session_source,
-    _store_session,
-)
+from localbrain.ingest.providers.claude import parse_claude_session
+from localbrain.ingest.contracts import CODEX_USAGE_CONTRACT_VERSION
+from localbrain.ingest.providers.codex import parse_codex_session
+from localbrain.ingest.contracts import ParsedSession, ParsedUsageRecord
+from localbrain.ingest.common import stable_id
+from localbrain.ingest.sync.storage import _file_is_current
+from localbrain.ingest.sync.sessions import _scan_session_source
+from localbrain.ingest.sync.session_store import _store_session
 from localbrain.official_pricing import (
     FAST_LONG_CONTEXT_PROXY_SPECS, PRICE_SPECS, SPARK_PROXY_SPECS,
     UNAVAILABLE_SNAPSHOT_ID,

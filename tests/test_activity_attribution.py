@@ -12,8 +12,8 @@ from localbrain.activity import (
     calendar_week_bounds,
 )
 from localbrain.db import _run_compatible_migrations
-from localbrain.ingest.common import ParsedSession, ParsedUsageRecord
-from localbrain.ingest.scanner import _store_session
+from localbrain.ingest.contracts import ParsedSession, ParsedUsageRecord
+from localbrain.ingest.sync.session_store import _store_session
 
 
 SCHEMA_PATH = Path(__file__).parents[1] / "src" / "localbrain" / "schema.sql"

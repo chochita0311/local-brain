@@ -7,8 +7,8 @@ from unittest.mock import patch
 
 from localbrain.config import Settings
 from localbrain.db import init_db
-from localbrain.ingest.codex import parse_codex_session
-from localbrain.ingest.scanner import _store_session
+from localbrain.ingest.providers.codex import parse_codex_session
+from localbrain.ingest.sync.session_store import _store_session
 from localbrain.official_pricing import PRICE_SPECS, UNAVAILABLE_SNAPSHOT_ID, select_snapshot
 from localbrain.usage import price_existing_unpriced_sol_6_1_records, price_existing_unpriced_spark_records
 

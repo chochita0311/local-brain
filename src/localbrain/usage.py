@@ -4,7 +4,8 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Dict, Iterable, Optional, Tuple
 
-from .ingest.common import ParsedUsageRecord, stable_id
+from localbrain.ingest.contracts import ParsedUsageRecord
+from localbrain.ingest.common import stable_id
 from .official_pricing import (
     FAST_LONG_CONTEXT_PROXY_SPECS,
     INSPECTED_ON,

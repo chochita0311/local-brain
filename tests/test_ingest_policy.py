@@ -3,8 +3,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from localbrain.ingest.common import ParsedEvent, ParsedSession
-from localbrain.ingest.scanner import _store_session, _upsert_source
+from localbrain.ingest.contracts import ParsedEvent, ParsedSession
+from localbrain.ingest.sync.session_store import _store_session
+from localbrain.ingest.sync.storage import _upsert_source
 
 
 SCHEMA_PATH = Path(__file__).parents[1] / "src" / "localbrain" / "schema.sql"

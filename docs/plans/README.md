@@ -457,6 +457,14 @@ is followed by [RUN-137](run/run-20261002-137-insight-closeout-corrections.md), 
   Neither full processing nor technical tests establish semantic usefulness or
   authorize production ownership, replacement UI or legacy cleanup.
 
+## Completed Refactoring
+
+- [REFACTOR-0002: Ingestion Layers And Session Revisions](refactoring/refactor-0002-ingestion-layers-and-session-revisions.md)
+  completed numeric Session freshness, newer-result refusal and provider/evidence/
+  synchronization boundaries. All 1,437 tests, owner/generated checks, independent
+  documentation reviews, live web migration, rebuilt native backend and Chrome
+  checks passed. Older app copies are handled by rebuild/replacement.
+
 ## Recently Completed Chains
 
 This section keeps only a compact view of notable recent outcomes. Use each

@@ -29,7 +29,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: session ownership class
 - Default: `work`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/ingest/codex.py`, `src/localbrain/ingest/scanner.py`, `src/localbrain/runner.py`
+- Producers: `src/localbrain/ingest/providers/codex.py`, `src/localbrain/ingest/scanner.py`, `src/localbrain/runner.py`
 - Consumers: `src/localbrain/queries.py`, `src/localbrain/retrieval.py`
 - Consequence: Maintenance Sessions, including recognized provider-internal helpers, are excluded from ordinary user Session surfaces.
 - Presentation mode: `internal-only`
@@ -45,7 +45,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: session hierarchy role
 - Default: `primary`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/ingest/claude.py`, `src/localbrain/ingest/codex.py`
+- Producers: `src/localbrain/ingest/providers/claude.py`, `src/localbrain/ingest/providers/codex.py`
 - Consumers: `src/localbrain/queries.py`, `src/localbrain/templates/sessions.html`, `src/localbrain/templates/session.html`, `src/localbrain/templates/subsession.html`
 - Consequence: Controls top-level inventory placement and Subsession navigation.
 - Presentation mode: `logical-label`
@@ -61,7 +61,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: search indexing policy
 - Default: `full`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/ingest/codex.py`, `src/localbrain/ingest/scanner.py`, `src/localbrain/runner.py`
+- Producers: `src/localbrain/ingest/providers/codex.py`, `src/localbrain/ingest/scanner.py`, `src/localbrain/runner.py`
 - Consumers: `src/localbrain/retrieval.py`
 - Consequence: Metadata-only Sessions never expose conversation content to search.
 - Presentation mode: `internal-only`
@@ -77,7 +77,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: assistant response phase normalized from explicit source signals
 - Default: `NULL`
 - Fallbacks: `null`: internal; `unknown`: internal; `invalid`: reject; `future`: internal
-- Producers: `src/localbrain/ingest/claude.py`, `src/localbrain/ingest/codex.py`, `src/localbrain/ingest/scanner.py`
+- Producers: `src/localbrain/ingest/providers/claude.py`, `src/localbrain/ingest/providers/codex.py`, `src/localbrain/ingest/scanner.py`
 - Consumers: `src/localbrain/queries.py`, `src/localbrain/session_reading.py`, `src/localbrain/templates/_conversation.html`
 - Consequence: Native Codex final_answer phases and Claude end_turn responses select a neutral conversation frame without implying task success. Claude tool_use maps to commentary; split records share signals within the same native API message ID. Missing, conflicting, malformed or error signals keep the ordinary assistant presentation.
 - Presentation mode: `internal-only`
@@ -109,7 +109,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: skill invocation, read, reference or script evidence
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/ingest/claude.py`, `src/localbrain/ingest/codex.py`
+- Producers: `src/localbrain/ingest/providers/claude.py`, `src/localbrain/ingest/providers/codex.py`
 - Consumers: `src/localbrain/skill_observations.py`
 - Consequence: Distinguishes native calls/contexts, completed reads, named conversation references, identifiable skill script executions and retained historical declarations. All observed kinds count at most once per source/native Session/skill. No application-phrase classification or proof of success/benefit.
 - Presentation mode: `internal-only`

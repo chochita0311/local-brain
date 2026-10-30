@@ -1,15 +1,23 @@
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from .common import (
+from localbrain.ingest.contracts import (
     ApprovedResourceCall,
     ParsedEvent,
     ParsedSkillObservation,
     ParsedSession,
     ParsedUsageRecord,
+)
+from localbrain.ingest.evidence.reference_candidates import (
     approved_resource_call,
     approved_result_reference_candidates,
     approved_tool_result_evidence,
+    tool_result_failed,
+    tool_result_completed,
+    visible_reference_candidates,
+    visible_url_evidence,
+)
+from localbrain.ingest.common import (
     compact_title,
     read_json_lines,
     session_policy,
@@ -17,17 +25,12 @@ from .common import (
     source_native_event_id,
     text_from_content,
     token_value,
-    tool_result_failed,
-    tool_result_completed,
-    visible_reference_candidates,
-    visible_url_evidence,
 )
-from ..official_pricing import select_snapshot
-from .skill_loads import SkillReadCollector
+from localbrain.official_pricing import select_snapshot
+from localbrain.ingest.evidence.skill_loads import SkillReadCollector
+from localbrain.ingest.contracts import CLAUDE_SESSION_REVISION, CLAUDE_USAGE_CONTRACT_VERSION
 
 
-CLAUDE_USAGE_CONTRACT_VERSION = "claude-message-usage-v3-official-pricing"
-CLAUDE_SESSION_CONTRACT_VERSION = "claude-session-v7-message-phases"
 
 
 def _message_content(record: Dict[str, Any]) -> Any:

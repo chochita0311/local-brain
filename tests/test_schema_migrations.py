@@ -25,7 +25,7 @@ from localbrain.db import (
     _usage_attribution_backup_path,
     init_db,
 )
-from localbrain.ingest.common import ParsedEvent
+from localbrain.ingest.contracts import ParsedEvent
 
 
 SCHEMA_PATH = Path(__file__).parents[1] / "src" / "localbrain" / "schema.sql"

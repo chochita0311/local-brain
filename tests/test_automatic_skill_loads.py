@@ -6,9 +6,9 @@ from dataclasses import replace
 from pathlib import Path
 
 from localbrain.db import _migrate_skill_observation_contract
-from localbrain.ingest.claude import parse_claude_session
-from localbrain.ingest.codex import parse_codex_session
-from localbrain.ingest.skill_usage import SkillReferenceMatcher
+from localbrain.ingest.providers.claude import parse_claude_session
+from localbrain.ingest.providers.codex import parse_codex_session
+from localbrain.ingest.evidence.skill_usage import SkillReferenceMatcher
 from localbrain.skill_observations import skill_insights_data, store_skill_observations
 
 

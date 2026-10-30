@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import List, Optional
 
-from .ingest.claude import parse_claude_session
-from .ingest.common import ParsedSession
+from localbrain.ingest.providers.claude import parse_claude_session
+from localbrain.ingest.contracts import ParsedSession
 
 
 def subagent_root(source_path: str) -> Path:

@@ -42,7 +42,7 @@ erDiagram
 
 - Purpose and authority: user-managed registry of folders, individual files, and Apple Notes sources, including readability, enablement, scan status, and error state.
 - Lifecycle: user-curated and non-rebuildable as a registry. A default Context directory may be discovered compatibly only for previously indexed Documents; fresh installations require explicit registration. User additions/removals and source types require backup.
-- Producers: `contexts.py` adds, restores, disables, and validates roots; `ingest/scanner.py` updates scan outcomes; `db.py` compatibly seeds/migrates folder roots for previously indexed Documents.
+- Producers: `contexts.py` adds, restores, disables, and validates roots; `ingest/sync/contexts.py` updates scan outcomes; `db.py` compatibly seeds/migrates folder roots for previously indexed Documents.
 - Consumers: Context source listing/detail in `contexts.py` and `queries.py`, scanner source enumeration, Workstream pickers/suggestions, and document visibility filters.
 - Relations and deletion: optional physical parent of `context_documents` with `ON DELETE SET NULL`; ordinary removal disables the root and removes indexed rows for that source boundary rather than deleting the registry row or original local content.
 - Recovery: restore the LocalBrain database or re-register every root manually, then scan. Original files/Notes remain external authorities.
@@ -69,7 +69,7 @@ Constraints: uniqueness of `path`. Explicit indexes: none.
 
 - Purpose and authority: normalized text and metadata indexed from a registered local file/folder/Notes source, with source path, content fingerprint, and optional current workspace association.
 - Lifecycle: source-derived and rebuildable while the external source remains available. The stored body is local indexed content and is never copied into tracked schema evidence.
-- Producers: `ingest/scanner.py` upserts documents and removes disappeared rows; `db.py` migrates older root associations and relative paths.
+- Producers: `ingest/sync/contexts.py` upserts documents and removes disappeared rows; `db.py` migrates older root associations and relative paths.
 - Consumers: Context browse/detail in `queries.py` and `main.py`, retrieval evidence, Runner context manifests, Workstream links/suggestions, source summaries, `search_index` projection, direct Session reference resolution, and the Session `관련 자료` read projection for directly referenced or explicitly Thread/Workstream-linked Documents. Workspace identity may bound exact reference resolution but never makes a Document a visible related-material candidate by itself. The projection reads identity and metadata only and never copies the stored body into Session ownership.
 - Relations and deletion: source deletion cascades. Context root and workspace deletion set their keys null, retaining the document until scanner/root lifecycle removes it. Scanner and `contexts.py` explicitly remove matching FTS rows; disabling a Context root also clears its derived Atlassian evidence without deleting any Item. It is an application target for Workstream, Thread, and checkpoint references.
 - Recovery: rescan external sources. If the original content is gone, only a database/host backup can recover the indexed body; LocalBrain is not the authority for the original file.

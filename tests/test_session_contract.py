@@ -4,8 +4,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from localbrain.db import _run_compatible_migrations
-from localbrain.ingest.common import ParsedEvent, ParsedSession
-from localbrain.ingest.scanner import _reconcile_session_parents, _store_session
+from localbrain.ingest.contracts import ParsedEvent, ParsedSession
+from localbrain.ingest.sync.session_store import _reconcile_session_parents, _store_session
 from localbrain.queries import (
     daily_activity,
     dashboard_stats,

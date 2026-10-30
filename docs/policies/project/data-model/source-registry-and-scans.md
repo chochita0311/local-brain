@@ -24,7 +24,7 @@ erDiagram
         integer session_id FK
         string path
         string status
-        string session_contract_version
+        integer session_contract_version
         string usage_contract_version
         string reference_contract_version
     }
@@ -79,7 +79,7 @@ erDiagram
   files only inside that Source ID. An unavailable root, invalid configuration,
   or unexpected source failure records bounded health separately and retains the
   source's existing descendants.
-- Producers: `ingest/scanner.py`; `db.py` reads provider kinds when migration changes must stale Session inputs.
+- Producers: `ingest/sync/storage.py` through the `ingest/scanner.py` coordinator; `db.py` reads provider kinds when migration changes must stale Session inputs.
 - Consumers: `queries.py`, `activity.py`, `retrieval.py`, `usage_queries.py`, `workstreams.py`, `runner.py`, `main.py`, and CLI scan reporting.
 - Relations and deletion: physical parent of `source_files`, `sessions`, `usage_records`, and `context_documents`, all `ON DELETE CASCADE`, and retained `skill_observations` with `NO ACTION`. The latter prevents deleting a source with historical skill evidence. Deleting another source would remove normalized descendants and can invalidate application-enforced links or search rows, so no cleanup is implied.
 - Recovery: recreate registry rows through approved scans, then rescan source files. Preserve the database for user-curated links and review state that may refer to descendant IDs.
@@ -126,12 +126,12 @@ Explicit indexes: none.
   Session path whose parsed content has no Activity Event, Usage Record, or
   admitted skill observation is also omitted: any prior file row is removed, the native stub remains,
   and its lack of a freshness row makes later meaningful growth discoverable.
-- Producers: `ingest/scanner.py` inserts and updates scan results, writes the
+- Producers: `ingest/sync/storage.py` inserts and updates scan results for Session and Context services, writes the
   resolved Session mapping and all three contract versions, and replaces mappings on
   successful reparse; `contexts.py` removes Context-owned rows when a root is
   disabled; `db.py` compatibly adds the optional Session mapping and three
   contract fields.
-- Consumers: `ingest/scanner.py` generic skip/retry logic, Usage version repair,
+- Consumers: `ingest/sync/sessions.py` and `ingest/sync/contexts.py` skip/retry logic, Usage version repair,
   Session projection repair, multi-file Session-reference aggregation and
   partial/error sibling repair;
   `session_references.py` uses the mapped current file set for aggregate
@@ -153,10 +153,32 @@ Explicit indexes: none.
 - DDL ownership: fresh table definition in `schema.sql`; `db.py` compatibly adds
   `session_id`, `session_contract_version`, `usage_contract_version`, and
   `reference_contract_version`, and creates `idx_source_files_session` after
-  those columns exist. On the first startup with the separated contract,
-  a null Session version may be backfilled only when the current Usage version
-  proves that the same parser generation already produced the Session. Other
-  unknown or mismatched versions force repair rather than being assumed current.
+  those columns exist. `source_revision_migration.py` rebuilds this table with a
+  positive-integer-or-null Session revision constraint. Startup validates exact
+  known provider-specific legacy tokens, makes a verified private recovery copy,
+  and converts only their revision numbers while preserving rows, IDs, mappings,
+  fingerprints, other contracts, indexes and foreign keys. Unknown tokens stop
+  startup before schema writes; they are never cast to zero or stamped current.
+  Rebuild accepts only the supported column, outgoing-FK and implicit-uniqueness
+  shapes, with no incoming file FKs. Unknown triggers, check/collation/conflict/
+  timing/storage modifiers or a pre-existing rebuild target also stop replacement.
+  The rebuild savepoint restores the original table and rows on failure, including
+  an interruption after DROP. This shape refusal is separate from token preflight;
+  it does not promise that unrelated startup migrations made no earlier changes.
+  Null Session revisions trigger actual Session/skill reprocessing, even when
+  the independent Usage contract is current; that repair does not reprice Usage.
+- Forward-only Session refresh: the provider revision is a positive integer in
+  `ingest/contracts.py`; the DB stores the revision that produced each file's
+  results, not executable parser code. Before upserting a source or reconciling
+  stale files, the scanner rejects a source containing a higher revision, even
+  for forced scans, reports `session_revision_unsupported`, and retains its
+  existing results. Bounded source attempt/failure health still updates; file and
+  normalized results stay intact. Other registered sources still run in their own transactions.
+  Equal revisions permit unchanged-file skips; lower or null revisions require
+  repair. Codex and Claude revision numbers are independent. This admission check
+  also applies before same-source reconnection can invalidate revision markers. It
+  applies to runtimes containing it; rebuild and replace older native bundles
+  before using the shared database. It is not a retroactive old-binary write lock.
 
 | Column | Contract |
 | --- | --- |
@@ -169,11 +191,11 @@ Explicit indexes: none.
 | `last_scanned_at` | `TEXT NOT NULL`; latest attempt time for this input. |
 | `status` | `TEXT NOT NULL DEFAULT 'ok'`; freshness state such as healthy, stale, or error. |
 | `error` | nullable `TEXT`; bounded scan or parse error evidence. |
-| `session_contract_version` | nullable `TEXT`; parser/classification contract used to decide whether the Session, Activity Events, and Session search projection remain current. |
+| `session_contract_version` | nullable positive `INTEGER`; provider-specific parser/classification revision used to decide whether the Session, Activity Events, and Session search projection remain current. Null means no known Session revision; Context files remain null. |
 | `usage_contract_version` | nullable `TEXT`; normalizer contract used to decide whether Usage Records remain current. |
 | `reference_contract_version` | nullable `TEXT`; generalized Session-reference extractor/reconciler contract used to decide whether the mapped Session evidence remains current. |
 
-Constraints: `UNIQUE(source_id, path)` plus optional physical Session ownership.
+Constraints: `UNIQUE(source_id, path)` plus optional physical Session ownership; `session_contract_version` is null or has SQLite storage type `integer` and is greater than zero.
 Explicit indexes: `idx_source_files_session` on `(session_id, path)` for aggregate
 fingerprints, sibling repair, and Session deletion/reconciliation lookup; SQLite
 also owns the composite source/path uniqueness autoindex.

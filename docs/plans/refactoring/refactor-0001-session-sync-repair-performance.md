@@ -255,3 +255,12 @@ full-repair performance improvement without exposing private runtime content.
 - Evidence:
   - [wrap-up log](logs/2026-08-24_refactor-0001_session-sync-performance.md)
   - [final merge check](logs/2026-08-24_refactor-0001_final-merge-check.md)
+
+## Handoff to Next Track
+
+On `2026-10-30`, the owner requested a separate review of numeric Session
+revisions, older-runtime write admission and ingestion module boundaries.
+[REFACTOR-0002](refactor-0002-ingestion-layers-and-session-revisions.md) owns that
+separately approved implementation from its new pinned baseline. This track's completed performance
+scope and evidence remain historical; they do not establish parity or approval
+for the new schema, compatibility policy or module moves.
