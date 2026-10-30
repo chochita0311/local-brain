@@ -212,5 +212,8 @@ zero failed files. Final actual HTML/DB title and first input agree, the count
 is one, and tracked Codex files no longer retain a v11 projection. No production
 code changes or new claim of native-build delivery is involved, so the existing
 1,426-test source evidence is retained rather than represented as a new rerun.
-Keep the old build closed until it is updated; a compatibility gate preventing
-older runtimes from rewriting newer projections has not been added.
+At this attempt, the old build had to stay closed until updated; a compatibility
+gate preventing backward replacement had not yet been added. The subsequent
+[REFACTOR-0002 delivery](../refactoring/refactor-0002-ingestion-layers-and-session-revisions.md)
+adds admission in updated runtimes and verifies a rebuilt app. Its execution
+records own that later delivery; unmodified older copies still require replacement.

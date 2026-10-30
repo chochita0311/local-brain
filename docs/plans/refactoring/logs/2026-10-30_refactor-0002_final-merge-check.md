@@ -107,7 +107,12 @@
 
 ## Residual Risks
 
-Existing exact-text ambiguity and earlier deferred parser/UI cases remain. No
+The existing exact-text ambiguity concerns the earlier Codex null-page filter:
+an authored standalone block indistinguishable from its generated envelope is
+also filtered. The [normalization owner](../../../policies/project/data-model/workspace-and-session-activity.md#conversation-normalization-and-empty-sources)
+defines that boundary; it is unchanged by P2-1's DDL recognition correction.
+Broader provenance safeguards and the earlier deferred parser/UI cases remain
+in the [Sessions backlog](../../project/backlog.md#p1---sessions-and-retrieval). No
 universal correctness, measured speedup, recipient/WKWebView acceptance, live
 external-provider success or notarization is implied. Original sources stay
 outside Git; private runtime/screenshot/raw logs remain private. Migration backup
@@ -282,6 +287,28 @@ source parity remains **Preserved**; the correction intentionally restores the
 approved DDL refusal/real-check contract. The earlier independent review's
 Not-yet decision is superseded for this corrected candidate; its failure evidence
 and the previous publication history remain preserved above.
+
+### Final Session Reconciliation
+
+- The product correction was committed as
+  `61a491c188a1788944b0f3f5fcd8914787852a06` and pushed to `origin/master`;
+  a fresh remote readback matched that SHA on `2026-10-30`. Its source/test blobs
+  match the identities in Correction Verification. Subsequent closeout edits
+  change documentation only; application, tests, build configuration and locked
+  dependencies remain identical to that commit.
+- The final closeout reran the full suite: **1,444 tests in 27.960s**, with no
+  failures/errors/skips. Data-model, value-dictionary, schema-presentation,
+  cleanup-audit, catalog, privacy and whitespace checks pass. Earlier code review,
+  exact replay, wheel, rebuilt backend, web and browser evidence retain their
+  recorded source identities, timing and limits; these were not rerun as part of
+  the documentation-only reconciliation.
+- The two independent documentation reviews cover the initial filter and
+  recovery chain, revision/layer refactor, P2 correction and connected owners.
+  They confirm the historical no-gate/no-native-delivery states now point to
+  the subsequent completed refactor, and the known literal-input ambiguity is
+  attributed to the initial filter. No additional ownership or composition fix
+  or broad restructuring was required. Publication identity for this final
+  documentation reconciliation is its resulting Git commit and remote ref.
 
 ## Next Action
 

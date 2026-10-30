@@ -235,3 +235,9 @@ recognition and the separate CRLF variants remain deferred in the Sessions backl
   Keep the old build closed, or rebuild/restart it before resuming collection
   alongside the updated web backend. Earlier standalone-literal/CRLF/non-null/
   narrow-title limits remain separate.
+
+Subsequent numeric revision admission, ingestion-layer separation and app rebuild
+were completed under [REFACTOR-0002](../refactoring/refactor-0002-ingestion-layers-and-session-revisions.md).
+Its [merge check](../refactoring/logs/2026-10-30_refactor-0002_final-merge-check.md)
+owns the later DDL correction and source/package/runtime proof. Earlier exclusions
+and recovery observations above retain their original attempt scope.
