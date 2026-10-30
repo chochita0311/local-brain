@@ -44,16 +44,17 @@ from ..usage import (
     store_usage_records,
 )
 from .claude import (
-    CLAUDE_SESSION_CONTRACT_VERSION,
+    CLAUDE_SESSION_REVISION,
     CLAUDE_USAGE_CONTRACT_VERSION,
     parse_claude_session,
 )
 from .codex import (
-    CODEX_SESSION_CONTRACT_VERSION,
+    CODEX_SESSION_REVISION,
     CODEX_USAGE_CONTRACT_VERSION,
     parse_codex_session,
 )
 from .common import ParsedSession, REFERENCE_EXTRACTOR_VERSION, stable_id
+from .contracts import SessionRevisionError
 
 
 IGNORED_CONTEXT_DIRECTORIES = {
@@ -166,7 +167,7 @@ def _source_file_row_is_current(
     stat,
     usage_contract_version: Optional[str] = None,
     reference_contract_version: Optional[str] = None,
-    session_contract_version: Optional[str] = None,
+    session_contract_version: Optional[int] = None,
 ) -> bool:
     return bool(
         row
@@ -195,7 +196,7 @@ def _file_is_current(
     path: Path,
     usage_contract_version: Optional[str] = None,
     reference_contract_version: Optional[str] = None,
-    session_contract_version: Optional[str] = None,
+    session_contract_version: Optional[int] = None,
 ) -> bool:
     stat = path.stat()
     row = connection.execute(
@@ -226,7 +227,7 @@ def _record_source_file(
     scanned_mtime_ns: Optional[int] = None,
     session_id: Optional[int] = None,
     reference_contract_version: Optional[str] = None,
-    session_contract_version: Optional[str] = None,
+    session_contract_version: Optional[int] = None,
 ) -> None:
     stat = path.stat()
     size_bytes = stat.st_size if scanned_size_bytes is None else scanned_size_bytes
@@ -910,6 +911,26 @@ def _session_paths(root, path_filter):
             yield path
 
 
+def _check_session_revision(connection, source_id, revision):
+    if revision is None:
+        return
+    if type(revision) is not int or revision <= 0:
+        raise SessionRevisionError("A positive numeric Session revision is required.")
+    rows = connection.execute(
+        "SELECT DISTINCT session_contract_version FROM source_files "
+        "WHERE source_id=? AND session_contract_version IS NOT NULL", (source_id,)
+    ).fetchall()
+    for row in rows:
+        stored = row["session_contract_version"]
+        if type(stored) is not int or stored <= 0:
+            raise SessionRevisionError("This source has an unsupported Session revision.")
+        if stored > revision:
+            raise SessionRevisionError(
+                "This source was processed by a newer Session parser ({} > {}). "
+                "Update LocalBrain before synchronizing it.".format(stored, revision)
+            )
+
+
 def _scan_session_source(
     connection: sqlite3.Connection,
     source_id: int,
@@ -920,11 +941,12 @@ def _scan_session_source(
     force: bool = False,
     provider_kind: Optional[str] = None,
     path_filter: Optional[Callable[[Path, Path], bool]] = None,
-    session_contract_version: Optional[str] = None,
+    session_contract_version: Optional[int] = None,
     reference_lookup_cache: Optional[SessionReferenceLookupCache] = None,
     progress: Optional[ScanProgressCallback] = None,
 ) -> Tuple[int, int, int]:
     effective_provider_kind = provider_kind or connection.execute("SELECT provider_kind FROM sources WHERE id=?", (source_id,)).fetchone()["provider_kind"]
+    _check_session_revision(connection, source_id, session_contract_version)
     source_id = _upsert_source(
         connection, source_id, effective_provider_kind, name, root
     )
@@ -942,7 +964,7 @@ def _scan_session_source(
             """
             SELECT 1 FROM source_files
             WHERE source_id = ?
-              AND COALESCE(session_contract_version, '') != ?
+              AND COALESCE(session_contract_version, 0) != ?
             LIMIT 1
             """,
             (source_id, session_contract_version),
@@ -1885,12 +1907,12 @@ def _is_claude_session_candidate(root: Path, path: Path) -> bool:
 SESSION_SCAN_ADAPTERS = {
     "claude": (
         parse_claude_session,
-        CLAUDE_SESSION_CONTRACT_VERSION,
+        CLAUDE_SESSION_REVISION,
         CLAUDE_USAGE_CONTRACT_VERSION,
     ),
     "codex": (
         parse_codex_session,
-        CODEX_SESSION_CONTRACT_VERSION,
+        CODEX_SESSION_REVISION,
         CODEX_USAGE_CONTRACT_VERSION,
     ),
 }
@@ -2154,8 +2176,9 @@ def _scan_registered_session_source(
         )
     except InterruptedError:
         raise
-    except Exception:
-        message = _bounded_scan_failure(registration.provider_kind)
+    except Exception as error:
+        revision_error = isinstance(error, SessionRevisionError)
+        message = str(error) if revision_error else _bounded_scan_failure(registration.provider_kind)
         with transaction() as connection:
             row = _source_row(connection, registration.source_id)
             source_id = int(row["id"]) if row else registration.source_id
@@ -2174,7 +2197,7 @@ def _scan_registered_session_source(
             tracked_files=tracked,
             last_attempt_at=attempted_at,
             last_success_at=last_success,
-            error_code="source_scan_failed",
+            error_code="session_revision_unsupported" if revision_error else "source_scan_failed",
             error_message=message,
         )
 
@@ -2333,7 +2356,7 @@ def _scan_claude_source(
         force,
         provider_kind="claude",
         path_filter=_is_claude_session_candidate,
-        session_contract_version=CLAUDE_SESSION_CONTRACT_VERSION,
+        session_contract_version=CLAUDE_SESSION_REVISION,
     )
 
 

@@ -6,6 +6,10 @@ from typing import Generator
 
 from .config import settings
 from .runtime_storage import private_database, maintain_migration_backups
+from .source_revision_migration import (
+    REVISION_CHECK, migrate_session_revisions, prepare_session_revision_migration,
+    session_revision_contract_current,
+)
 
 
 SCHEMA_PATH = Path(__file__).with_name("schema.sql")
@@ -77,6 +81,7 @@ def connect() -> sqlite3.Connection:
 
 def init_db() -> None:
     with connect() as connection:
+        prepare_session_revision_migration(connection, settings.database_path)
         _validate_preexisting_structure_reference_contract(connection)
         source_provider_identity_needs_repair = bool(
             _table_sql(connection, "sources")
@@ -174,6 +179,7 @@ def migration_contracts_current(connection: sqlite3.Connection) -> bool:
         and _maintenance_session_contract_exists(connection)
         and usage_table == USAGE_RECORDS_TABLE
         and _usage_attribution_check_exists(connection, usage_table)
+        and session_revision_contract_current(connection)
     )
 
 
@@ -1632,7 +1638,7 @@ def _run_compatible_migrations(
         connection, "source_files", "usage_contract_version", "TEXT"
     )
     _ensure_column(
-        connection, "source_files", "session_contract_version", "TEXT"
+        connection, "source_files", "session_contract_version", "INTEGER " + REVISION_CHECK
     )
     _ensure_column(
         connection,
@@ -1643,6 +1649,7 @@ def _run_compatible_migrations(
     _ensure_column(
         connection, "source_files", "reference_contract_version", "TEXT"
     )
+    migrate_session_revisions(connection)
     atlassian_space_url_added = _ensure_column(
         connection,
         "atlassian_spaces",

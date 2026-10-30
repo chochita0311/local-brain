@@ -446,6 +446,8 @@ Following a successful committed initialization, current migration contracts
 and SQLite integrity are checked before retirement: at most the newest eligible
 copy is kept, for seven days. Failed initialization, uncertain ownership, open
 files, symlinks, hard links, or nonempty backup WALs preserve recovery copies.
+The numeric Session-revision migration uses
+`<database>-pre-session-revision-v1.bak` under this same lifecycle.
 This policy covers only enumerated LocalBrain migration suffixes. Arbitrary
 manual backups and unrelated files are never discovered for automatic deletion.
 

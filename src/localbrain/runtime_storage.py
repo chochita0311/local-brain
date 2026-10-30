@@ -12,6 +12,7 @@ class StorageError(RuntimeError):
 
 
 MIGRATION_BACKUP_SUFFIXES = (
+    "-pre-session-revision-v1.bak",
     "-pre-usage-attribution-check-v1.bak",
     "-pre-usage-record-rename-v1.bak",
     "-pre-maintenance-session-contract-v1.bak",

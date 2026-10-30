@@ -9,22 +9,22 @@
       {
         "path": "src/localbrain/schema.sql",
         "role": "fresh-schema-truth",
-        "sha256": "2fb71de15efb3cba222e3890b6dd55eb726e97b4a8738de5bf2eea1e83d392c6"
+        "sha256": "fa2cd0c27c35eef0a370b6a3aea3dd5c239a95dbb240a38b45dc31fa518b41a4"
       },
       {
         "path": "src/localbrain/db.py",
         "role": "compatible-structure-truth",
-        "sha256": "72d05b3e2ba1ab7efce4f267873093021ccf6a26e9157131317f8e8cb9821f79"
+        "sha256": "79918a8ebdb882cb4020d484bdee3187edb325d1fa497623ddb49818ad67ad33"
       },
       {
         "path": "docs/policies/project/data-model.md",
         "role": "semantic-truth",
-        "sha256": "4c004a23d2446b1da0d676b679c164f5664e7014b6a6537234bdabe88f45830e"
+        "sha256": "8b9858018ec1b771e2305b2877a624af2c031047f2e766555f05924d94b360fb"
       },
       {
         "path": "docs/policies/project/data-model/source-registry-and-scans.md",
         "role": "semantic-truth",
-        "sha256": "e8a1399c213cb4bfbaff34a355db5bff3ed3ef6abc0b52b6927446493f4d09c8"
+        "sha256": "a4e660d0c0ab4ea56b702ef4ee7db48ccd812b432578e02cf1b92dd65fa4aee5"
       },
       {
         "path": "docs/policies/project/data-model/workspace-and-session-activity.md",
@@ -1098,7 +1098,7 @@
       "document": "docs/policies/project/data-model/source-registry-and-scans.md",
       "id": "source-registry-and-scans",
       "label": "Source registry and scans",
-      "mermaid": "erDiagram\n    SOURCES {\n        integer id PK\n        string provider_kind\n        string root_path\n        string last_scan_status\n    }\n    SOURCE_FILES {\n        integer id PK\n        integer source_id FK\n        integer session_id FK\n        string path\n        string status\n        string session_contract_version\n        string usage_contract_version\n        string reference_contract_version\n    }\n    EXTERNAL_SOURCE_INSTANCES {\n        integer id PK\n        string instance_key UK\n        string provider_kind\n        string service\n        integer enabled\n    }\n    EXTERNAL_SOURCE_CAPABILITIES {\n        integer source_instance_id PK, FK\n        string policy_version\n        string availability\n        string schema_fingerprint\n        string checked_at\n    }\n    SESSIONS { integer id PK string source_path }\n    USAGE_RECORDS { string id PK integer source_id FK }\n    CONTEXT_DOCUMENTS { integer id PK string path }\n\n    SOURCES ||--o{ SOURCE_FILES : \"physical CASCADE\"\n    SOURCES ||--o{ SESSIONS : \"physical CASCADE\"\n    SOURCES ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    SOURCES ||--o{ CONTEXT_DOCUMENTS : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES ||--o| EXTERNAL_SOURCE_CAPABILITIES : \"physical CASCADE\"\n    SESSIONS o|--o{ SOURCE_FILES : \"physical SET_NULL mapping\"\n    SOURCE_FILES ||..o| SESSIONS : \"app source_path\"\n    SOURCE_FILES ||..o| CONTEXT_DOCUMENTS : \"app path\"\n",
+      "mermaid": "erDiagram\n    SOURCES {\n        integer id PK\n        string provider_kind\n        string root_path\n        string last_scan_status\n    }\n    SOURCE_FILES {\n        integer id PK\n        integer source_id FK\n        integer session_id FK\n        string path\n        string status\n        integer session_contract_version\n        string usage_contract_version\n        string reference_contract_version\n    }\n    EXTERNAL_SOURCE_INSTANCES {\n        integer id PK\n        string instance_key UK\n        string provider_kind\n        string service\n        integer enabled\n    }\n    EXTERNAL_SOURCE_CAPABILITIES {\n        integer source_instance_id PK, FK\n        string policy_version\n        string availability\n        string schema_fingerprint\n        string checked_at\n    }\n    SESSIONS { integer id PK string source_path }\n    USAGE_RECORDS { string id PK integer source_id FK }\n    CONTEXT_DOCUMENTS { integer id PK string path }\n\n    SOURCES ||--o{ SOURCE_FILES : \"physical CASCADE\"\n    SOURCES ||--o{ SESSIONS : \"physical CASCADE\"\n    SOURCES ||--o{ USAGE_RECORDS : \"physical CASCADE\"\n    SOURCES ||--o{ CONTEXT_DOCUMENTS : \"physical CASCADE\"\n    EXTERNAL_SOURCE_INSTANCES ||--o| EXTERNAL_SOURCE_CAPABILITIES : \"physical CASCADE\"\n    SESSIONS o|--o{ SOURCE_FILES : \"physical SET_NULL mapping\"\n    SOURCE_FILES ||..o| SESSIONS : \"app source_path\"\n    SOURCE_FILES ||..o| CONTEXT_DOCUMENTS : \"app path\"\n",
       "table_ids": [
         "sources",
         "source_files",
@@ -1437,8 +1437,8 @@
           "name": "session_contract_version",
           "not_null": false,
           "primary_key_position": 0,
-          "semantic_contract": "nullable `TEXT`; parser/classification contract used to decide whether the Session, Activity Events, and Session search projection remain current.",
-          "type": "TEXT"
+          "semantic_contract": "nullable positive `INTEGER`; provider-specific parser/classification revision used to decide whether the Session, Activity Events, and Session search projection remain current. Null means no known Session revision; Context files remain null.",
+          "type": "INTEGER"
         },
         {
           "default_sql": null,
@@ -1458,8 +1458,10 @@
         }
       ],
       "constraints": {
-        "checks": [],
-        "documented": "`UNIQUE(source_id, path)` plus optional physical Session ownership.",
+        "checks": [
+          "session_contract_version IS NULL OR (typeof(session_contract_version) = 'integer' AND session_contract_version > 0)"
+        ],
+        "documented": "`UNIQUE(source_id, path)` plus optional physical Session ownership; `session_contract_version` is null or has SQLite storage type `integer` and is greater than zero.",
         "primary_key": [
           "id"
         ],
@@ -1519,13 +1521,13 @@
         "class_contract": "Normalized from still-available local sources; rescans can recreate content, though stable relational IDs must be preserved during ordinary refreshes.",
         "consumers": "`ingest/scanner.py` generic skip/retry logic, Usage version repair, Session projection repair, multi-file Session-reference aggregation and partial/error sibling repair; `session_references.py` uses the mapped current file set for aggregate fingerprints; `queries.py`, `usage_queries.py`, and `contexts.py` consume the existing source-status and root lifecycle state. Legacy Atlassian evidence adds an independent extractor/Site fingerprint check before an otherwise-current file is skipped.",
         "deletion_effect": "`source_id` physically cascades from `sources`; optional `session_id` points to `sessions.id` with `ON DELETE SET NULL`, so deleting a Session cannot delete scan evidence before the owning source reconciliation decides its path lifecycle. The legacy correlation from `path` to `sessions.source_path` and the Context correlation to `context_documents.path` remain application-managed. Removing a file row alone does not cascade a Session or Document. Scanner reconciliation explicitly removes disappeared normalized rows and their search/reference projections only after a successful scan of the same accepted, present root. Configuration and root-availability failures do not authorize stale reconciliation.",
-        "documented_constraints": "`UNIQUE(source_id, path)` plus optional physical Session ownership.",
+        "documented_constraints": "`UNIQUE(source_id, path)` plus optional physical Session ownership; `session_contract_version` is null or has SQLite storage type `integer` and is greater than zero.",
         "lifecycle_contract": "source-derived and rebuildable. Healthy unchanged rows are freshness inputs; failed rows retain the latest error rather than masquerading as absent. A successful scan removes prior evidence for paths that are no longer accepted provider candidates, using the same normalized-only reconciliation boundary as a disappeared native file while leaving the original file untouched. An accepted Session path whose parsed content has no Activity Event, Usage Record, or admitted skill observation is also omitted: any prior file row is removed, the native stub remains, and its lack of a freshness row makes later meaningful growth discoverable.",
         "producers": "`ingest/scanner.py` inserts and updates scan results, writes the resolved Session mapping and all three contract versions, and replaces mappings on successful reparse; `contexts.py` removes Context-owned rows when a root is disabled; `db.py` compatibly adds the optional Session mapping and three contract fields.",
         "purpose_and_authority": "per-source scan evidence for an accepted local input path, including its file fingerprint, latest attempt state, error, optional normalized Session owner, Session-projection contract version, Usage-normalizer contract version, and generalized Session-reference contract version. Provider-internal files outside the adapter's Session candidate contract never own rows here.",
         "rebuildability": "source-rebuildable",
         "recovery_path": "rescan the owning source. Errors and exact prior attempt times are operational history and are not reproduced exactly.",
-        "schema_ownership": "fresh table definition in `schema.sql`; `db.py` compatibly adds `session_id`, `session_contract_version`, `usage_contract_version`, and `reference_contract_version`, and creates `idx_source_files_session` after those columns exist. On the first startup with the separated contract, a null Session version may be backfilled only when the current Usage version proves that the same parser generation already produced the Session. Other unknown or mismatched versions force repair rather than being assumed current."
+        "schema_ownership": "fresh table definition in `schema.sql`; `db.py` compatibly adds `session_id`, `session_contract_version`, `usage_contract_version`, and `reference_contract_version`, and creates `idx_source_files_session` after those columns exist. `source_revision_migration.py` rebuilds this table with a positive-integer-or-null Session revision constraint. Startup validates exact known provider-specific legacy tokens, makes a verified private recovery copy, and converts only their revision numbers while preserving rows, IDs, mappings, fingerprints, other contracts, indexes and foreign keys. Unknown tokens stop startup before schema writes; they are never cast to zero or stamped current. Null Session revisions trigger actual Session/skill reprocessing, even when the independent Usage contract is current; that repair does not reprice Usage."
       },
       "subject_id": "source-registry-and-scans"
     },

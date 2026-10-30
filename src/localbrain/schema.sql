@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS source_files (
     last_scanned_at TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'ok',
     error TEXT,
-    session_contract_version TEXT,
+    session_contract_version INTEGER CHECK(session_contract_version IS NULL OR (typeof(session_contract_version) = 'integer' AND session_contract_version > 0)),
     usage_contract_version TEXT,
     reference_contract_version TEXT,
     UNIQUE(source_id, path)

@@ -30,15 +30,13 @@ from .common import (
 )
 from ..official_pricing import select_snapshot
 from .skill_loads import SkillReadCollector
+from .contracts import CODEX_SESSION_REVISION
 
 
 CODEX_USAGE_IDENTITY_VERSION = (
     "codex-last-token-usage-v7-fast-context-tier-response-message-fallback-guardian-spark-price"
 )
 CODEX_USAGE_CONTRACT_VERSION = "codex-last-token-usage-v8-official-dated-service-tier"
-CODEX_SESSION_CONTRACT_VERSION = (
-    "codex-session-v12-empty-page-controls"
-)
 CODEX_GUARDIAN_TITLE = "Codex guardian"
 
 CODEX_AUTO_REVIEW_FALLBACKS = (

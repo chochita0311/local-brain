@@ -1095,7 +1095,7 @@ root = "{company}"
                         connection, "usage_records"
                     )
                     connection.execute(
-                        "UPDATE source_files SET session_contract_version = 'old-session' WHERE source_id = ?",
+                        "UPDATE source_files SET session_contract_version = 1 WHERE source_id = ?",
                         (source_id,),
                     )
                     connection.commit()
@@ -1214,7 +1214,7 @@ root = "{company}"
             file_stats = [path.stat() for path in paths]
             with patch.object(db, "settings", settings), patch.object(scanner, "settings", settings):
                 with patch.dict(scanner.SESSION_SCAN_ADAPTERS, {"codex": (
-                    legacy_parser, "codex-session-v8-skill-reference-sessions",
+                    legacy_parser, 8,
                     scanner.CODEX_USAGE_CONTRACT_VERSION,
                 )}):
                     scanner.scan_session_sources()
@@ -1272,7 +1272,7 @@ root = "{company}"
                     self.assertEqual({row[0] for row in connection.execute(
                         "SELECT session_contract_version FROM source_files JOIN sources ON sources.id = source_files.source_id "
                         "WHERE sources.provider_kind = 'codex'"
-                    )}, {scanner.CODEX_SESSION_CONTRACT_VERSION})
+                    )}, {scanner.CODEX_SESSION_REVISION})
                 repeated = scanner.scan_session_sources()
                 self.assertEqual(repeated["summary"]["imported"], 0)
                 with db.connect() as connection:
@@ -1302,7 +1302,7 @@ root = "{company}"
                 path.write_text("\n".join(json.dumps(record) for record in records) + "\n")
             with patch.object(db, "settings", settings), patch.object(scanner, "settings", settings):
                 with patch.dict(scanner.SESSION_SCAN_ADAPTERS, {"codex": (
-                    previous_parser, "codex-session-v9-user-message-preservation",
+                    previous_parser, 9,
                     scanner.CODEX_USAGE_CONTRACT_VERSION,
                 )}):
                     scanner.scan_session_sources()
@@ -1359,7 +1359,7 @@ root = "{company}"
             source_stat = path.stat()
             with patch.object(db, "settings", settings), patch.object(scanner, "settings", settings):
                 with patch.dict(scanner.SESSION_SCAN_ADAPTERS, {"claude": (
-                    previous_parser, "claude-session-v6-skill-reference-sessions",
+                    previous_parser, 6,
                     scanner.CLAUDE_USAGE_CONTRACT_VERSION,
                 )}):
                     scanner.scan_session_sources()
@@ -1406,7 +1406,7 @@ root = "{company}"
                     self.assertEqual({row[0] for row in connection.execute(
                         "SELECT f.session_contract_version FROM source_files f "
                         "JOIN sources p ON p.id=f.source_id WHERE p.provider_kind='claude'"
-                    )}, {scanner.CLAUDE_SESSION_CONTRACT_VERSION})
+                    )}, {scanner.CLAUDE_SESSION_REVISION})
                     events_after = self._table_rows(connection, "activity_events")
                 self.assertEqual(scanner.scan_session_sources()["summary"]["imported"], 0)
                 with db.connect() as connection:
@@ -1454,7 +1454,7 @@ root = "{company}"
             source_bytes = [path.read_bytes() for path in paths]
             with patch.object(db, "settings", settings), patch.object(scanner, "settings", settings):
                 with patch.dict(scanner.SESSION_SCAN_ADAPTERS, {"codex": (
-                    previous_parser, "codex-session-v10-message-phases",
+                    previous_parser, 10,
                     scanner.CODEX_USAGE_CONTRACT_VERSION,
                 )}):
                     scanner.scan_session_sources()
@@ -1615,7 +1615,7 @@ root = "{company}"
             snapshots = [(path.read_bytes(), path.stat()) for path in paths]
             with patch.object(db, "settings", settings), patch.object(scanner, "settings", settings):
                 with patch.dict(scanner.SESSION_SCAN_ADAPTERS, {"codex": (
-                    previous_parser, "codex-session-v11-question-replies-and-context-blocks",
+                    previous_parser, 11,
                     scanner.CODEX_USAGE_CONTRACT_VERSION,
                 )}):
                     scanner.scan_session_sources()
@@ -1682,7 +1682,7 @@ root = "{company}"
                     self.assertEqual({row[0] for row in connection.execute(
                         "SELECT f.session_contract_version FROM source_files f "
                         "JOIN sources p ON p.id=f.source_id WHERE p.provider_kind='codex'"
-                    )}, {scanner.CODEX_SESSION_CONTRACT_VERSION})
+                    )}, {scanner.CODEX_SESSION_REVISION})
                     events_after = self._table_rows(connection, "activity_events")
                 self.assertEqual(scanner.scan_session_sources()["summary"]["imported"], 0)
                 with db.connect() as connection:
@@ -1735,7 +1735,7 @@ root = "{company}"
             source_bytes = [path.read_bytes() for path in paths]
             with patch.object(db, "settings", settings), patch.object(scanner, "settings", settings):
                 with patch.dict(scanner.SESSION_SCAN_ADAPTERS, {"codex": (
-                    previous_parser, "codex-session-v10-message-phases",
+                    previous_parser, 10,
                     scanner.CODEX_USAGE_CONTRACT_VERSION,
                 )}):
                     scanner.scan_session_sources()
@@ -1890,7 +1890,57 @@ root = "{company}"
         self.assertEqual(plan["repair_kinds"], ["session"])
         self.assertEqual(report["summary"]["imported"], 1)
         self.assertEqual(store_usage.call_count, 0)
-        self.assertEqual(stored_version, scanner.CODEX_SESSION_CONTRACT_VERSION)
+        self.assertEqual(stored_version, scanner.CODEX_SESSION_REVISION)
+
+    def test_newer_session_revision_refuses_even_forced_scan_before_cleanup_and_keeps_peers(self):
+        for force in (False, True):
+            with self.subTest(force=force), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                settings = self._settings(root)
+                protected = root / "codex" / "protected.jsonl"
+                peer = root / "codex-company" / "peer.jsonl"
+                self._write_codex_session(protected, "protected", "Keep conversation")
+                self._write_codex_session(peer, "peer", "Original peer")
+                with patch.object(db, "settings", settings), patch.object(scanner, "settings", settings):
+                    scanner.scan_session_sources()
+                    with db.connect() as connection:
+                        sid = connection.execute("SELECT id FROM sessions WHERE external_id='protected'").fetchone()[0]
+                        source_id = connection.execute("SELECT source_id FROM sessions WHERE id=?", (sid,)).fetchone()[0]
+                        connection.execute("INSERT INTO session_pins VALUES (?, 'fixed')", (sid,))
+                        connection.execute("UPDATE source_files SET session_contract_version=? WHERE source_id=?", (scanner.CODEX_SESSION_REVISION + 1, source_id))
+                        connection.commit()
+                        protected_before = {
+                            table: [tuple(row) for row in connection.execute(query, (sid,))]
+                            for table, query in (
+                                ("sessions", "SELECT * FROM sessions WHERE id=?"),
+                                ("activity_events", "SELECT * FROM activity_events WHERE session_id=? ORDER BY id"),
+                                ("usage_records", "SELECT * FROM usage_records WHERE session_id=? ORDER BY id"),
+                                ("source_files", "SELECT * FROM source_files WHERE session_id=? ORDER BY id"),
+                                ("session_pins", "SELECT * FROM session_pins WHERE session_id=?"),
+                            )
+                        }
+                    # Missing native input would normally trigger stale cleanup.
+                    protected.unlink()
+                    self._write_codex_session(peer, "peer", "Updated peer")
+                    parser = Mock(wraps=scanner.parse_codex_session)
+                    with patch.dict(scanner.SESSION_SCAN_ADAPTERS, {"codex": (
+                        parser, scanner.CODEX_SESSION_REVISION, scanner.CODEX_USAGE_CONTRACT_VERSION,
+                    )}):
+                        report = scanner.scan_session_sources(force=force)
+                    failed = next(source for source in report["sources"] if source["source_id"] == source_id)
+                    self.assertEqual(failed["error_code"], "session_revision_unsupported")
+                    self.assertIn("newer Session parser", failed["error_message"])
+                    self.assertEqual([call.args[0] for call in parser.call_args_list], [peer])
+                    with db.connect() as connection:
+                        for table, before in protected_before.items():
+                            key = "id" if table == "sessions" else "session_id"
+                            order = "" if table == "session_pins" else " ORDER BY id"
+                            self.assertEqual([tuple(row) for row in connection.execute(
+                                "SELECT * FROM {} WHERE {}=?{}".format(table, key, order), (sid,)
+                            )], before, table)
+                        self.assertEqual(connection.execute(
+                            "SELECT text FROM activity_events WHERE session_id=(SELECT id FROM sessions WHERE external_id='peer')"
+                        ).fetchone()[0], "Updated peer")
 
     def test_session_sync_progress_is_bounded_ordered_and_callback_safe(self):
         with tempfile.TemporaryDirectory() as temporary:

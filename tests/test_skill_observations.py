@@ -11,7 +11,7 @@ from localbrain.db import init_db
 from localbrain.ingest import scanner
 from localbrain.ingest.claude import parse_claude_session
 from localbrain.ingest.codex import (
-    CODEX_SESSION_CONTRACT_VERSION,
+    CODEX_SESSION_REVISION,
     CODEX_USAGE_CONTRACT_VERSION,
     parse_codex_session,
 )
@@ -281,8 +281,8 @@ class SkillObservationTests(unittest.TestCase):
         source_id = self.connection.execute(
             "SELECT id FROM sources WHERE provider_kind = 'codex'"
         ).fetchone()["id"]
-        for path, version in (("/synthetic/current", CODEX_SESSION_CONTRACT_VERSION),
-                              ("/synthetic/old", "old-version")):
+        for path, version in (("/synthetic/current", CODEX_SESSION_REVISION),
+                              ("/synthetic/old", 1)):
             self.connection.execute(
                 """INSERT INTO source_files(source_id, path, size_bytes, mtime_ns,
                    last_scanned_at, status, session_contract_version)
@@ -293,14 +293,14 @@ class SkillObservationTests(unittest.TestCase):
             "file_count": 2, "current_file_count": 1, "state": "partial",
         })
         self.connection.execute(
-            "UPDATE source_files SET session_contract_version = 'old-version'"
+            "UPDATE source_files SET session_contract_version = 1"
         )
         self.assertEqual(skill_insights_data(self.connection)["coverage"], {
             "file_count": 2, "current_file_count": 0, "state": "partial",
         })
         self.connection.execute(
             "UPDATE source_files SET session_contract_version = ?",
-            (CODEX_SESSION_CONTRACT_VERSION,),
+            (CODEX_SESSION_REVISION,),
         )
         self.assertEqual(skill_insights_data(self.connection)["coverage"]["state"],
                          "current")
@@ -328,7 +328,7 @@ class SkillObservationTests(unittest.TestCase):
                     self.connection, self.source_id, "Codex", root,
                     parse_codex_session, CODEX_USAGE_CONTRACT_VERSION,
                     provider_kind="codex",
-                    session_contract_version=CODEX_SESSION_CONTRACT_VERSION,
+                    session_contract_version=CODEX_SESSION_REVISION,
                 )
 
             write_records()

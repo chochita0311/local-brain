@@ -24,10 +24,10 @@ from .common import (
 )
 from ..official_pricing import select_snapshot
 from .skill_loads import SkillReadCollector
+from .contracts import CLAUDE_SESSION_REVISION
 
 
 CLAUDE_USAGE_CONTRACT_VERSION = "claude-message-usage-v3-official-pricing"
-CLAUDE_SESSION_CONTRACT_VERSION = "claude-session-v7-message-phases"
 
 
 def _message_content(record: Dict[str, Any]) -> Any:
