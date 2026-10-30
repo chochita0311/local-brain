@@ -23,8 +23,10 @@
 
 ## Validation Run
 
-- Working tree clean: **No**; the final task-owned changes await final review and
-  commit. Unrelated changes must not be staged.
+- Working tree at assessment: **No**, the reviewed task-owned candidate awaited
+  commit. It was committed as `f8fb80d80cb2b0d9323f2679525e59caeb39fff3` and
+  pushed with the comparison tag; both remote SHAs were verified. Unrelated
+  changes were not included.
 - Build/compile: source imports and compilation pass; installed wheel and the
   rebuilt signed Apple Silicon backend pass. Fifteen frozen modules match source.
 - Targeted tests: migration **9**, Session Sync **27**, source profiles **18** pass;
@@ -112,6 +114,7 @@ new higher provider revision across branches.
 
 ## Next Action
 
-Commit/push only this session's reviewed final changes and comparison tag, verify
-the remote refs. Confirmed inactive task-owned temporary state has been removed;
-the implementation log and Git references retain the durable evidence.
+No required follow-up remains in this track: the implementation commit and
+comparison tag were pushed and their remote SHAs verified. Confirmed inactive
+task-owned temporary state has been removed; the implementation log and Git
+references retain durable evidence. The residual acceptance limits above remain.

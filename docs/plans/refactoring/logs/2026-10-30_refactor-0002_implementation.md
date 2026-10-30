@@ -7,8 +7,10 @@
 - Related track: [REFACTOR-0002](../refactor-0002-ingestion-layers-and-session-revisions.md)
 - Scope: numeric Session revisions, forward-only admission, ingestion layers,
   installed package, rebuilt native backend and local web rollout.
-- Status: `complete`; implementation and required verification passed. The final
-  commit and matching remote refs own publication identity.
+- Status: `complete`; implementation and required verification passed.
+  Implementation commit `f8fb80d80cb2b0d9323f2679525e59caeb39fff3` and comparison
+  tag `refactor-0002-semantic-baseline` were pushed; remote refs matched on
+  `2026-10-30`. Subsequent documentation receipts do not change that code identity.
 
 ## Summary
 
@@ -192,8 +194,9 @@ change when their owner moved.
 
 ## Next Action
 
-No implementation or verification item remains in this track. Commit and verify
-publication of the reviewed final candidate and its comparison tag. All task-owned comparison worktrees, baseline copies, synthetic databases,
+No required implementation, verification or publication item remains in this
+track. Existing parsing/recipient limits above remain separate follow-ups.
+All task-owned comparison worktrees, baseline copies, synthetic databases,
 installed test wheels, browser tooling/profiles, screenshot and raw logs were
 removed after their evidence was consolidated and no open files remained.
 Runtime backups and the rebuilt distribution retain their existing storage/build
