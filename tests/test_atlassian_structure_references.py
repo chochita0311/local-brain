@@ -3,14 +3,16 @@ import re
 import sqlite3
 import tempfile
 import unittest
+from localbrain.ingest.extensions import observe_ingestion
+from localbrain.atlassian.ingestion import AtlassianIngestion
 from dataclasses import replace
 from pathlib import Path
 from unittest.mock import patch
 
-from localbrain.atlassian import register_atlassian_site
-from localbrain.atlassian_browse import atlassian_structure_reference_preview
-from localbrain.atlassian_locators import describe_atlassian_url
-from localbrain.atlassian_structure_references import (
+from localbrain.atlassian.catalog import register_atlassian_site
+from localbrain.atlassian.browse import atlassian_structure_reference_preview
+from localbrain.references.atlassian import describe_atlassian_url
+from localbrain.atlassian.structure_references import (
     StructureReferenceIdentityCollision,
     ensure_structure_reference,
     insert_or_reuse_structure_reference_evidence,
@@ -18,12 +20,9 @@ from localbrain.atlassian_structure_references import (
     remove_obsolete_document_structure_evidence,
     structure_reference_preview,
 )
-from localbrain.db import (
-    _validate_preexisting_structure_reference_contract,
-    _validate_structure_reference_contract,
-    init_db,
-)
-from localbrain.config import Settings
+from localbrain.persistence.migrations.atlassian import _validate_preexisting_structure_reference_contract, _validate_structure_reference_contract
+from localbrain.persistence.db import init_db
+from localbrain.foundation.config import Settings
 from localbrain.ingest.evidence.reference_candidates import EVIDENCE_EXTRACTOR_VERSION
 from localbrain.ingest.contracts import ParsedSession
 from localbrain.ingest.sync.contexts import _remove_context_source_documents
@@ -81,6 +80,9 @@ def pre_structure_reference_schema() -> str:
 
 class AtlassianStructureReferenceTests(unittest.TestCase):
     def setUp(self):
+        observers = observe_ingestion((AtlassianIngestion(),))
+        observers.__enter__()
+        self.addCleanup(observers.__exit__, None, None, None)
         self.connection = sqlite3.connect(":memory:")
         self.connection.row_factory = sqlite3.Row
         self.connection.execute("PRAGMA foreign_keys = ON")
@@ -339,7 +341,7 @@ class AtlassianStructureReferenceTests(unittest.TestCase):
                 mcp_call_budget=20,
             )
 
-            with patch("localbrain.db.settings", settings):
+            with patch("localbrain.persistence.db.settings", settings):
                 init_db()
                 init_db()
 

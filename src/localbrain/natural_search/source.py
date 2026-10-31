@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
-from ..config import cache_directory, development_directory
+from localbrain.foundation.config import cache_directory, development_directory
 
 
 def digest(value):
@@ -50,14 +50,14 @@ class Source:
 def _private_derived(path, config):
     candidate = Path(path).expanduser().resolve()
     roots = [config.data_dir, cache_directory(config), development_directory(config)]
-    from ..model_cache import hub_cache_root
+    from localbrain.foundation.paths import hub_cache_root
     roots.append(hub_cache_root())
     return any(candidate == Path(root).resolve() or Path(root).resolve() in candidate.parents for root in roots)
 
 
 def read_sources(config, keys=None):
     """A consistent snapshot. `keys` narrows current-result validation, never indexing."""
-    from ..source_settings import registered_session_roots
+    from localbrain.sources.settings import registered_session_roots
     registered = registered_session_roots(config)
     selected = set(keys) if keys is not None else None
     values = []

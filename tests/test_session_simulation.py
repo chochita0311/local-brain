@@ -10,11 +10,12 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from localbrain.session_simulation import (
-    inventory, owned_store, read_json, sha, simulate,
-)
-from localbrain.session_simulation_model import verified_assets, windows
-from localbrain.work_reconstruction import ExperimentError, digest
+from localbrain.auto_work.simulation import inventory, owned_store, simulate
+from localbrain.foundation.private_json import read_json
+from localbrain.foundation.fingerprints import sha
+from localbrain.models.embedding import verified_assets, windows
+from localbrain.foundation.validation import ExperimentError
+from localbrain.foundation.fingerprints import digest
 
 
 def seed(path, count=3):
@@ -289,7 +290,7 @@ class SimulationTests(unittest.TestCase):
 
     @unittest.skipUnless(all(importlib.util.find_spec(m) for m in ("numpy", "sklearn", "networkx")), "optional semantic runtime")
     def test_actual_graph_determinism_and_two_resolutions(self):
-        from localbrain.session_simulation_graph import group_vectors
+        from localbrain.auto_work.graph import group_vectors
         vectors = {"a": [1., 0., 0.], "b": [0.99, 0.01, 0.], "c": [0., 1., 0.], "d": [0., 0.99, 0.01]}
         params = {"neighbors": 2, "similarity": 0.8, "area_resolution": 0.6, "work_resolution": 1.2, "seed": 0}
         first = group_vectors(vectors, params)
@@ -300,15 +301,7 @@ class SimulationTests(unittest.TestCase):
 
     @unittest.skipUnless(all(importlib.util.find_spec(m) for m in ("numpy", "sklearn", "networkx")), "optional semantic runtime")
     def test_graph_is_identical_across_process_hash_seeds(self):
-        code = """
-import json, random
-from localbrain.session_simulation_graph import group_vectors
-from localbrain.work_reconstruction import digest
-rng = random.Random(17)
-vectors = {'node-'+str(i): [float(i//20 == j) + rng.random()*0.4 for j in range(5)] for i in range(100)}
-params = {'neighbors': 8, 'similarity': 0.6, 'area_resolution': 0.6, 'work_resolution': 1.2, 'seed': 0}
-print(digest(group_vectors(vectors, params)))
-"""
+        code = "import json, random\nfrom localbrain.auto_work.graph import group_vectors\nfrom localbrain.experiments.reconstruction.contract import digest\nrng = random.Random(17)\nvectors = {'node-' + str(i): [float(i // 20 == j) + rng.random() * 0.4 for j in range(5)] for i in range(100)}\nparams = {'neighbors': 8, 'similarity': 0.6, 'area_resolution': 0.6, 'work_resolution': 1.2, 'seed': 0}\nprint(digest(group_vectors(vectors, params)))\n"
         outputs = []
         for seed_value in ("1", "2", "97"):
             result = subprocess.run([sys.executable, "-B", "-c", code],
@@ -321,7 +314,7 @@ print(digest(group_vectors(vectors, params)))
     def test_nonfinite_neighbor_distance_fails_closed(self):
         import numpy as np
         from unittest.mock import patch
-        from localbrain.session_simulation_graph import group_vectors
+        from localbrain.auto_work.graph import group_vectors
         params = {"neighbors": 1, "similarity": 0.65, "area_resolution": 0.6,
                   "work_resolution": 1.2, "seed": 0}
         with patch('sklearn.neighbors.NearestNeighbors.kneighbors',

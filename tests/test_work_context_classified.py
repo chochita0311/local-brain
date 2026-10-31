@@ -8,12 +8,12 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
-from localbrain.work_context import infer, inference_identity
-from localbrain.work_context_choices import ChoiceTrie, validate_codes
-from localbrain.work_context_classified import CONTRACT, source_spans
-from localbrain.work_context_evaluation import evaluate
-from localbrain.work_context_model import LocalGenerator, generation_settings
-from localbrain.work_reconstruction import ExperimentError
+from localbrain.experiments.context.contract import infer, inference_identity
+from localbrain.models.choices import ChoiceTrie, validate_codes
+from localbrain.experiments.context.classified import CONTRACT, source_spans
+from localbrain.experiments.context.evaluation import evaluate
+from localbrain.models.generation import LocalGenerator, generation_settings
+from localbrain.foundation.validation import ExperimentError
 from work_context_cases import message
 
 
@@ -196,7 +196,7 @@ class ClassifiedTests(unittest.TestCase):
 
     def test_case_deadline_prevents_further_calls(self):
         generator = ChoiceGenerator([0])
-        with patch("localbrain.work_context_classified.time.monotonic", side_effect=[0, 181]), \
+        with patch("localbrain.experiments.context.classified.time.monotonic", side_effect=[0, 181]), \
              self.assertRaisesRegex(ExperimentError, "CASE_BUDGET_EXCEEDED"):
             infer(generator, "extract", {"messages": [message("a", "자료")]}, strategy="classified")
         self.assertEqual(generator.calls, [])
@@ -231,9 +231,9 @@ class ClassifiedTests(unittest.TestCase):
         baseline = inference_identity({}, "classified")
         for strategy in ("single", "staged"):
             self.assertNotEqual(baseline, inference_identity({}, strategy))
-        with patch("localbrain.work_context_classified.CONTRACT", {**CONTRACT, "max_spans": 32}):
+        with patch("localbrain.experiments.context.classified.CONTRACT", {**CONTRACT, "max_spans": 32}):
             self.assertNotEqual(baseline, inference_identity({}, "classified"))
-        with patch("localbrain.work_context_classified.PROMPTS", ["changed"]):
+        with patch("localbrain.experiments.context.classified.PROMPTS", ["changed"]):
             self.assertNotEqual(baseline, inference_identity({}, "classified"))
 
     def test_complete_cases_reuse_but_interrupted_case_recomputes(self):

@@ -7,18 +7,18 @@ from types import SimpleNamespace
 
 from localbrain.ingest.sync import contexts, session_store, sessions as session_sync, storage
 from localbrain.ingest.common import stable_id
-from localbrain.config import Settings
-from localbrain import db
-from localbrain.source_settings import migrate_source_settings
+from localbrain.foundation.config import Settings
+from localbrain.persistence import db
+from localbrain.sources.settings import migrate_source_settings
 from localbrain.ingest import scanner
 from localbrain.ingest.evidence.reference_candidates import REFERENCE_EXTRACTOR_VERSION
-from localbrain.main import (
+from localbrain.sources.web import (
     _session_sync_event_stream,
     scan_sources_page,
     sync_session_sources,
     sync_sessions_page,
 )
-from localbrain.queries import session_detail, session_subsessions
+from localbrain.sessions.queries import session_detail, session_subsessions
 
 
 class SessionSyncTests(unittest.TestCase):
@@ -1164,7 +1164,7 @@ root = "{company}"
 
                 self.assertEqual(
                     REFERENCE_EXTRACTOR_VERSION,
-                    "localbrain.session-reference.v3",
+                    "localbrain.session-reference.v4",
                 )
                 with patch.object(
                     session_sync,
@@ -1994,7 +1994,7 @@ root = "{company}"
         service = Mock()
         done = {"running": False, "queued": False, "report": {"outcome": "complete"}}
         service.status.side_effect = [{"running": True, "queued": False, "progress": {"type": "source_progress"}}, done]
-        with patch("localbrain.main.time.sleep"):
+        with patch('localbrain.sources.web.time.sleep'):
             payloads = [json.loads(line) for line in _session_sync_event_stream(service)]
         self.assertEqual(payloads[0]["type"], "source_progress")
         self.assertEqual(payloads[-1]["report"], done["report"])
@@ -2012,7 +2012,7 @@ root = "{company}"
 
     def test_sources_scan_form_fallback_reports_aggregate_outcome(self):
         with patch(
-            "localbrain.main.scan_all",
+            'localbrain.sources.web.scan_all',
             return_value={"outcome": "failed", "summary": {}, "sources": []},
         ) as scan_everything:
             response = scan_sources_page()

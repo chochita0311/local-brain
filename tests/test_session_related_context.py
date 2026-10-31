@@ -7,13 +7,15 @@ from unittest.mock import patch
 from starlette.requests import Request
 
 from localbrain.ingest.contracts import ParsedReferenceCandidate
-from localbrain.main import app, show_session
-from localbrain.session_context import (
+from localbrain.main import app
+from localbrain.sessions.web import show_session
+from localbrain.resources.related_context import (
     EVIDENCE_LABELS,
     RELATED_CONTEXT_LIMIT,
     session_related_context,
 )
-from localbrain.session_references import reconcile_session_references
+from localbrain.sessions.references import reconcile_session_references
+from localbrain.resources.catalog import bind_external_link
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -74,6 +76,8 @@ class SessionRelatedContextTests(unittest.TestCase):
             );
             """
         )
+
+        bind_external_link(self.connection, 40)
 
     def tearDown(self):
         self.connection.close()
@@ -233,15 +237,14 @@ class SessionRelatedContextTests(unittest.TestCase):
             ]
         )
 
-        view = session_related_context(self.connection, 10, 1)
+        view = session_related_context(self.connection, 10)
         direct = self._group(view, "direct")
-        organization = self._group(view, "organization")
         item = direct["items"][0]
 
         self.assertEqual(view["state"], "ready")
         self.assertEqual(item["identity"], "SYN-62")
         self.assertNotEqual(item["identity"], "Shared bootstrap title")
-        self.assertEqual(item["href"], "/atlassian/items/40")
+        self.assertEqual(item["href"], "https://jira.example.test/browse/SYN-62")
         self.assertEqual(
             [evidence["label"] for evidence in item["evidence"]],
             [
@@ -252,8 +255,8 @@ class SessionRelatedContextTests(unittest.TestCase):
             ],
         )
         self.assertNotIn("MCP 조회 실패", [e["label"] for e in item["evidence"]])
-        self.assertEqual(item["organization"][0]["kind"], "workstream")
-        self.assertEqual(organization["items"], [])
+        self.assertNotIn("organization", item)
+        self.assertEqual([group["key"] for group in view["groups"]], ["direct"])
 
     def test_failure_only_read_remains_truthful(self):
         self._reconcile(
@@ -297,18 +300,22 @@ class SessionRelatedContextTests(unittest.TestCase):
             [
                 self._candidate(
                     "https://example.test/reference?other=value#different"
-                )
+                ),
+                self._candidate(
+                    "https://example.test/reference?another=value#second",
+                    line=2,
+                    event="query-variant",
+                ),
             ]
         )
 
         view = session_related_context(self.connection, 10)
         direct = self._group(view, "direct")
-        organization = self._group(view, "organization")
 
         self.assertEqual(direct["items"][0]["href"], "https://example.test/reference")
-        self.assertEqual(len(direct["items"][0]["organization"]), 1)
-        self.assertEqual(organization["items"], [])
-        self.assertEqual(organization["total"], 0)
+        self.assertEqual(len(direct["items"]), 1)
+        self.assertNotIn("organization", direct["items"][0])
+        self.assertEqual(view["item_count"], 1)
 
     def test_generic_url_projection_repairs_legacy_sentence_suffix(self):
         target = (
@@ -320,7 +327,7 @@ class SessionRelatedContextTests(unittest.TestCase):
             """
             UPDATE session_reference_evidence
             SET observed_identity = ?, normalized_url = ?
-            WHERE session_id = 10 AND target_kind = 'url'
+            WHERE session_id = 10 AND normalized_url IS NOT NULL
             """,
             (target.removeprefix("https://") + ")와", target + ")와"),
         )
@@ -388,64 +395,55 @@ class SessionRelatedContextTests(unittest.TestCase):
             ],
         )
 
-    def test_only_explicit_organization_links_are_candidates(self):
-        linked_id = self._document("Explicit Document", number=1)
-        workspace_only_id = self._document("Workspace Only", number=2)
-        other_workspace_id = self._document(
-            "Other Workspace", workspace_id=2, number=3
-        )
-        disabled_id = self._document(
-            "Disabled Document", root_id=2, number=4
-        )
+    @contextmanager
+    def _without_organization_reads(self):
+        attempted = []
+
+        def authorize(action, table, column, database, trigger):
+            if action == sqlite3.SQLITE_READ and table in {
+                "workstreams", "threads", "workstream_links", "thread_links",
+                "local_resources",
+            }:
+                attempted.append(table)
+                return sqlite3.SQLITE_DENY
+            return sqlite3.SQLITE_OK
+
+        self.connection.set_authorizer(authorize)
+        try:
+            yield
+        finally:
+            self.connection.set_authorizer(None)
+        self.assertEqual(attempted, [])
+
+    def test_organization_only_materials_do_not_become_session_references(self):
+        document_id = self._document("Organization-only Document", number=1)
         workstream_id, thread_id = self._work()
-        self._link(
-            "thread_links", "thread_id", thread_id, "document", linked_id
-        )
-        self._link(
-            "workstream_links",
-            "workstream_id",
-            workstream_id,
-            "document",
-            other_workspace_id,
-        )
-        self._link(
-            "workstream_links",
-            "workstream_id",
-            workstream_id,
-            "document",
-            disabled_id,
-        )
-        self._link(
-            "thread_links", "thread_id", thread_id, "external", 999999
-        )
+        resource_id = self._external("Organization-only URL", "https://example.test/indirect")
+        self._link("thread_links", "thread_id", thread_id, "document", document_id)
+        self._link("workstream_links", "workstream_id", workstream_id, "external", resource_id)
+        self._link("thread_links", "thread_id", thread_id, "external", 999999)
+        before = self.connection.total_changes
 
-        view = session_related_context(self.connection, 10, 1)
-        organization = self._group(view, "organization")
-        keys = {item["target_key"] for item in organization["items"]}
+        with self._without_organization_reads():
+            view = session_related_context(self.connection, 10)
 
-        self.assertEqual(view["state"], "partial")
-        self.assertIn("document:{}".format(linked_id), keys)
-        self.assertIn("document:{}".format(other_workspace_id), keys)
-        self.assertNotIn("document:{}".format(workspace_only_id), keys)
-        self.assertNotIn("document:{}".format(disabled_id), keys)
-        self.assertEqual(
-            organization["items"][0]["organization"][0]["kind"], "thread"
-        )
-        self.assertEqual(
-            organization["notices"],
-            ["대상을 찾을 수 없는 연결 2개는 표시하지 않았습니다."],
-        )
+        self.assertEqual(view["state"], "empty")
+        self.assertEqual(view["item_count"], 0)
+        self.assertEqual([group["key"] for group in view["groups"]], ["direct"])
+        self.assertEqual(self.connection.total_changes, before)
+        self.assertEqual(self.connection.execute("SELECT COUNT(*) FROM thread_links").fetchone()[0], 3)
+        self.assertEqual(self.connection.execute("SELECT COUNT(*) FROM workstream_links").fetchone()[0], 1)
 
     def test_same_workspace_without_evidence_or_membership_is_empty(self):
         self._document("Workspace Only", number=1)
         self._document("Recent Other Workspace", workspace_id=2, number=2)
 
-        view = session_related_context(self.connection, 10, 1)
+        view = session_related_context(self.connection, 10)
 
         self.assertEqual(view["state"], "empty")
         self.assertEqual(view["item_count"], 0)
         self.assertEqual(
-            [group["total"] for group in view["groups"]], [0, 0]
+            [group["total"] for group in view["groups"]], [0]
         )
 
     def test_groups_show_up_to_one_hundred_items_by_default(self):
@@ -458,36 +456,13 @@ class SessionRelatedContextTests(unittest.TestCase):
             for number in range(12)
         ]
         self._reconcile(direct_candidates)
-        workstream_id, _ = self._work()
-        for number in range(13):
-            resource_id = self._external(
-                "Organization {:02d}".format(number),
-                "https://organization.example.test/{:02d}".format(number),
-            )
-            self._link(
-                "workstream_links",
-                "workstream_id",
-                workstream_id,
-                "external",
-                resource_id,
-            )
-
         view = session_related_context(self.connection, 10)
         direct = self._group(view, "direct")
-        organization = self._group(view, "organization")
 
         self.assertEqual(RELATED_CONTEXT_LIMIT, 100)
         self.assertEqual(
             (direct["total"], len(direct["initial_items"]), direct["overflow_count"]),
             (12, 12, 0),
-        )
-        self.assertEqual(
-            (
-                organization["total"],
-                len(organization["initial_items"]),
-                organization["overflow_count"],
-            ),
-            (13, 13, 0),
         )
 
     def test_direct_safety_boundary_reports_observed_total(self):
@@ -512,47 +487,23 @@ class SessionRelatedContextTests(unittest.TestCase):
             direct["notices"], ["총 101개 중 100개까지 확인했습니다."]
         )
 
-    def test_unsafe_and_missing_organization_targets_remain_explicit(self):
-        workstream_id, _ = self._work()
-        unsafe_id = self._external(
-            "Unsafe Destination", "javascript:alert(1)"
-        )
-        local_id = self.connection.execute(
-            """
-            INSERT INTO local_resources(path, resource_type, title, exists_now)
-            VALUES ('/synthetic/missing', 'path', 'Missing Local Path', 0)
-            """
-        ).lastrowid
-        self._link(
-            "workstream_links",
-            "workstream_id",
-            workstream_id,
-            "external",
-            unsafe_id,
-        )
-        self._link(
-            "workstream_links",
-            "workstream_id",
-            workstream_id,
-            "local",
-            local_id,
+    def test_unavailable_direct_document_and_unsafe_url_remain_inactive(self):
+        self._document("Direct Document", number=1)
+        self._reconcile([
+            self._candidate("/synthetic/context/document-001.md", reference_kind="markdown"),
+            self._candidate("https://example.test/reference", line=2, event="url"),
+        ])
+        self.connection.execute("UPDATE context_roots SET enabled = 0 WHERE id = 1")
+        self.connection.execute(
+            "UPDATE session_reference_evidence SET normalized_url = 'javascript:alert(1)' WHERE normalized_url IS NOT NULL"
         )
 
-        organization = self._group(
-            session_related_context(self.connection, 10), "organization"
-        )
-        items = {item["target_key"]: item for item in organization["items"]}
+        direct = self._group(session_related_context(self.connection, 10), "direct")
 
-        self.assertIsNone(items["external:{}".format(unsafe_id)]["href"])
-        self.assertEqual(
-            items["external:{}".format(unsafe_id)]["availability_label"],
-            "열 수 없음",
-        )
-        self.assertEqual(
-            items["local:{}".format(local_id)]["availability_label"],
-            "경로 없음",
-        )
-        self.assertTrue(organization["partial"])
+        self.assertEqual(len(direct["items"]), 2)
+        for item in direct["items"]:
+            self.assertIsNone(item["href"])
+            self.assertEqual(item["availability_label"], "열 수 없음")
 
     def test_projection_does_not_open_session_or_document_files(self):
         self._reconcile(
@@ -560,7 +511,7 @@ class SessionRelatedContextTests(unittest.TestCase):
         )
 
         with patch.object(Path, "open", side_effect=AssertionError("file read")):
-            view = session_related_context(self.connection, 10, 1)
+            view = session_related_context(self.connection, 10)
 
         self.assertEqual(view["item_count"], 1)
 
@@ -590,8 +541,8 @@ class SessionRelatedContextTests(unittest.TestCase):
         )
 
     def test_local_query_error_does_not_block_conversation_surface(self):
-        with patch("localbrain.main.connect", self._connection), patch(
-            "localbrain.main.session_related_context",
+        with patch('localbrain.sessions.web.connect', self._connection), patch('localbrain.app.templating.connect', self._connection), patch(
+            'localbrain.sessions.web.session_related_context',
             side_effect=RuntimeError("synthetic projection failure"),
         ):
             response = show_session(self._request(), 10)
@@ -604,6 +555,9 @@ class SessionRelatedContextTests(unittest.TestCase):
 
     def test_detail_route_renders_each_alphabetic_kind_heading_once(self):
         self._document("Synthetic Guide", number=1)
+        organization_document = self._document("Organization-only Document", number=2)
+        _, thread_id = self._work()
+        self._link("thread_links", "thread_id", thread_id, "document", organization_document)
         self._reconcile(
             [
                 self._candidate(
@@ -626,7 +580,7 @@ class SessionRelatedContextTests(unittest.TestCase):
                 ),
             ]
         )
-        with patch("localbrain.main.connect", self._connection):
+        with self._without_organization_reads(), patch('localbrain.sessions.web.connect', self._connection), patch('localbrain.app.templating.connect', self._connection):
             response = show_session(self._request(), 10)
 
         html = response.body.decode("utf-8")
@@ -639,11 +593,11 @@ class SessionRelatedContextTests(unittest.TestCase):
         self.assertNotIn("<span>Jira</span>", html)
         self.assertNotIn("<span>Markdown</span>", html)
         self.assertNotIn("<span>URL</span>", html)
-        self.assertIn(
-            '<h3 id="related-material-group-organization">연결된 작업</h3>',
-            html,
-        )
-        self.assertIn('<span aria-label="총 0개">0</span>', html)
+        self.assertNotIn("연결된 작업", html)
+        self.assertNotIn('class="membership-strip"', html)
+        self.assertNotIn("Organization-only Document", html)
+        self.assertIn('href="/documents/1"', html)
+        self.assertIn('href="https://reference.example.test/path"', html)
 
     def test_persisted_subsession_detail_has_no_related_materials_rail(self):
         self.connection.execute(
@@ -657,7 +611,7 @@ class SessionRelatedContextTests(unittest.TestCase):
             )
             """
         )
-        with patch("localbrain.main.connect", self._connection):
+        with patch('localbrain.sessions.web.connect', self._connection), patch('localbrain.app.templating.connect', self._connection):
             response = show_session(self._request(11), 11)
 
         self.assertNotIn(
@@ -678,7 +632,7 @@ class SessionRelatedContextUiContractTests(unittest.TestCase):
             ROOT / "src/localbrain/static/styles.css"
         ).read_text(encoding="utf-8")
         cls.projection = (
-            ROOT / "src/localbrain/session_context.py"
+            ROOT / "src/localbrain/resources/related_context.py"
         ).read_text(encoding="utf-8")
 
     def test_compact_dom_order_matches_identity_materials_conversation(self):
@@ -731,7 +685,7 @@ class SessionRelatedContextUiContractTests(unittest.TestCase):
             self.related_template,
         )
         self.assertNotIn("if group.items", self.related_template)
-        self.assertIn("group.key == 'organization'", self.related_template)
+        self.assertNotIn("organization", self.related_template)
         self.assertIn(
             ".related-material-disclosure[open] summary { order: 2;",
             self.styles,
@@ -781,7 +735,7 @@ class SessionRelatedContextUiContractTests(unittest.TestCase):
             self.styles,
         )
         self.assertIn(
-            ".related-material-item > strong,\n.related-material-detail,\n.related-material-organization { overflow-wrap: anywhere; }",
+            ".related-material-item > strong,\n.related-material-detail { overflow-wrap: anywhere; }",
             self.styles,
         )
         self.assertIn(

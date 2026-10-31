@@ -396,6 +396,12 @@ files, modification times and content hashes are preserved; they keep their exis
 and retention contract. Historical paths in archived diagnostics describe the
 original execution, not current runtime dependencies.
 
+Feature-cache moves use ownership checks supplied by the included feature.
+If Auto Work is excluded from application composition, its old simulation/preview
+directories stay in place without being decoded or moved. Explicit development
+archive migration recognizes the historical file format independently of the
+experiment implementation.
+
 Moves use filesystem rename, without copying the DB, weights or derived index.
 Unknown, linked or unowned content is preserved. Open files, destination
 collisions, changed files and cross-filesystem moves refuse; existing destinations
@@ -469,6 +475,10 @@ owned by the simulation. The sample preview has a seven-day result lifetime.
 Startup and `storage cleanup` retire expired, inactive, recognized cache result
 files under their writer locks; ownership markers and locks remain. Malformed,
 unknown or busy cache state is preserved. There is no background cleanup daemon.
+Only included features contribute cache cleanup to startup, Settings and CLI.
+Excluding a feature preserves its existing cache files and does not prevent
+common search-cache cleanup. This is an internal composition boundary, not a
+user setting; the default application still includes the existing features.
 Development experiments retain their existing owned
 expiry/cleanup rules. Saved user reports remain available until a separate
 user-authorized removal; backup cleanup does not erase them.

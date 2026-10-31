@@ -4,8 +4,8 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from localbrain.queries import session_chart_activity, session_chart_inventory
-from localbrain.session_chart_preferences import (
+from localbrain.sessions.queries import session_chart_activity, session_chart_inventory
+from localbrain.sessions.chart_preferences import (
     get_project_visibility,
     set_project_visibility,
     validate_hidden_projects,
@@ -119,7 +119,7 @@ class SessionChartObservationTests(unittest.TestCase):
 
     def test_folder_normalization_is_lexical_and_raw_head_is_preserved(self):
         self.session(1, folder="~/Projects/alpha/../beta", branch="HEAD")
-        with mock.patch("localbrain.queries.Path.home", return_value=Path("/demo/home")), mock.patch("localbrain.queries.Path.resolve", side_effect=AssertionError("filesystem resolution is not chart identity")):
+        with mock.patch("localbrain.sessions.queries.Path.home", return_value=Path("/demo/home")), mock.patch("localbrain.sessions.queries.Path.resolve", side_effect=AssertionError("filesystem resolution is not chart identity")):
             item = session_chart_inventory(self.connection)[0]
         self.assertEqual(item["project_key"], "/demo/home/Projects/beta")
         self.assertEqual(item["project_name"], "beta")

@@ -1,11 +1,8 @@
 import unittest
 from unittest.mock import patch
 
-from localbrain.markdown import render_markdown
-from localbrain.markdown_references import (
-    MarkdownDocumentReference,
-    MarkdownReferenceContext,
-)
+from localbrain.rendering.markdown import render_markdown
+from localbrain.local_context.references import MarkdownDocumentReference, MarkdownReferenceContext
 
 
 def document(
@@ -80,7 +77,7 @@ class ObsidianMarkdownTests(unittest.TestCase):
         self.assertNotIn("script", result.html)
 
         with patch(
-            "localbrain.markdown.latex_to_mathml",
+            "localbrain.rendering.markdown.latex_to_mathml",
             side_effect=ValueError("synthetic failure"),
         ):
             fallback = render_markdown("$<tag>$")
@@ -94,7 +91,7 @@ class ObsidianMarkdownTests(unittest.TestCase):
         self.assertIn("&lt;script&gt;", hostile.html)
 
         with patch(
-            "localbrain.markdown.latex_to_mathml",
+            "localbrain.rendering.markdown.latex_to_mathml",
             return_value=(
                 '<math xmlns="http://www.w3.org/1998/Math/MathML" '
                 'display="inline" href="file:///tmp/private"><mi>x</mi></math>'

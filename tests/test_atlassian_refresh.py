@@ -9,29 +9,23 @@ from unittest.mock import patch
 from urllib.parse import urlencode
 
 from starlette.requests import Request
-from localbrain.atlassian import (
+from localbrain.atlassian.catalog import (
     create_or_reuse_atlassian_stub,
     register_atlassian_space,
     set_atlassian_item_axes,
 )
-from localbrain.atlassian_refresh import (
+from localbrain.atlassian.refresh import (
     AtlassianRefreshError,
     apply_atlassian_refresh_result,
     prepare_atlassian_refresh_run,
     refresh_preview,
 )
-from localbrain.external_access import (
-    record_capability_observation,
-    register_source_instance,
-)
-from localbrain.external_sync import RESULT_SCHEMA_VERSION
-from localbrain.external_sync import MODEL_RESULT_SCHEMA_VERSION
-from localbrain.main import (
-    app,
-    atlassian_refresh_page,
-    atlassian_start_refresh,
-)
-from localbrain.runner import _execute_run
+from localbrain.atlassian.access import record_capability_observation, register_source_instance
+from localbrain.atlassian.sync import RESULT_SCHEMA_VERSION
+from localbrain.atlassian.sync import MODEL_RESULT_SCHEMA_VERSION
+from localbrain.main import app
+from localbrain.atlassian.web import atlassian_refresh_page, atlassian_start_refresh
+from localbrain.atlassian.runner import (_execute_run)
 
 
 SCHEMA_PATH = Path(__file__).parents[1] / "src" / "localbrain" / "schema.sql"
@@ -654,18 +648,18 @@ class AtlassianRefreshTests(unittest.TestCase):
             )
 
         with patch(
-            "localbrain.runner.connect", return_value=self.connection
+            "localbrain.maintenance.service.connect", return_value=self.connection
         ), patch(
-            "localbrain.runner.transaction",
+            "localbrain.maintenance.service.transaction",
             side_effect=lambda: self._transaction(),
         ), patch(
-            "localbrain.runner.runner_executable",
+            "localbrain.atlassian.runner.runner_executable",
             return_value="/synthetic/claude",
         ), patch(
-            "localbrain.runner.asyncio.create_subprocess_exec",
+            "localbrain.maintenance.service.asyncio.create_subprocess_exec",
             side_effect=create_process,
         ), patch(
-            "localbrain.runner._sync_native_runner_sessions",
+            "localbrain.maintenance.service._sync_native_runner_sessions",
             return_value=True,
         ):
             asyncio.run(_execute_run(run_id, executor))
@@ -677,13 +671,13 @@ class AtlassianRefreshTests(unittest.TestCase):
             """
             SELECT atlassian_items.remote_id,
                    atlassian_item_remote_state.last_outcome,
-                   atlassian_item_content.normalized_text
+                   external_resource_content.normalized_text
             FROM atlassian_items
             JOIN atlassian_item_remote_state
               ON atlassian_item_remote_state.external_resource_id =
                  atlassian_items.external_resource_id
-            JOIN atlassian_item_content
-              ON atlassian_item_content.external_resource_id =
+            JOIN external_resource_content
+              ON external_resource_content.external_resource_id =
                  atlassian_items.external_resource_id
             WHERE atlassian_items.external_resource_id = ?
             """,
@@ -790,7 +784,7 @@ class AtlassianRefreshTests(unittest.TestCase):
         )
         try:
             with patch(
-                "localbrain.main.connect", return_value=self.connection
+                'localbrain.atlassian.web.connect', return_value=self.connection
             ):
                 preview_response = atlassian_refresh_page(
                     self._request(),

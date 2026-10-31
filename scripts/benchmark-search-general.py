@@ -15,13 +15,13 @@ from natural_search_benchmark import aggregate, metrics, seed as selection_seed
 from natural_search_holdout import seed as prior_seed
 from natural_search_precision import seed as precision_seed
 from natural_search_general import seed as general_seed
-from localbrain.config import settings
+from localbrain.foundation.config import settings
 from localbrain.natural_search.index import prepare
 from localbrain.natural_search.model import SearchEncoder
 from localbrain.natural_search.molecules import Profile
 from localbrain.natural_search.query import focus_query
 from localbrain.natural_search.retrieval import Retriever
-from localbrain.runtime_storage import private_directory
+from localbrain.foundation.files import private_directory
 
 
 def quality(keys, expected, relevance):

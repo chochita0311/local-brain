@@ -16,12 +16,12 @@ sys.path.insert(0, str(ROOT / 'tests'))
 from natural_search_benchmark import aggregate, metrics, seed as selection_seed
 from natural_search_holdout import seed as previous_holdout_seed
 from natural_search_precision import seed as precision_seed
-from localbrain.config import settings
+from localbrain.foundation.config import settings
 from localbrain.natural_search.index import lexical_tokens, prepare
 from localbrain.natural_search.model import SearchEncoder
 from localbrain.natural_search.molecules import Profile
 from localbrain.natural_search.retrieval import RANKING_VERSION, Retriever
-from localbrain.runtime_storage import private_directory
+from localbrain.foundation.files import private_directory
 
 
 def ranking_keys(reader, query, response, memo):

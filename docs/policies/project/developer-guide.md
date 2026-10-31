@@ -333,7 +333,7 @@ Local Context roots.
 
 ### Schema Documentation Changes
 
-- `src/localbrain/schema.sql` owns fresh-database DDL, and `src/localbrain/db.py` owns compatible startup migrations and runtime-only indexes until an approved migration system replaces that split.
+- `src/localbrain/schema.sql` owns fresh-database DDL. `src/localbrain/persistence/bootstrap.py` orders startup and `persistence/migrations/` owns compatible changes and runtime-only indexes; `persistence/db.py` retains the public connection/init/transaction API. This split introduces no migration registry or new execution system.
 - The [Data Model](data-model.md) and its subject-area catalogs are the complete current human-readable baseline.
 - Keep later planning and execution artifacts delta-scoped: name only the affected schema objects, contract behavior, migrations, tests, and owner documents.
 - Update the affected subject-area catalog in place so durable data-model documentation continues to describe the complete current state. Do not copy unrelated tables or domains into each later change artifact.
@@ -382,7 +382,7 @@ uv run python scripts/build-schema-presentation.py check
 ### Data Model Value Dictionaries
 
 - `src/localbrain/value-registry.json` is the executable authority for bounded physical values, logical axes, complete presentation modes, fallbacks, labels, and visible-consumer inventory.
-- [Value Dictionaries](data-model/value-dictionaries.md) and its eleven subject companions are generated projections. Runtime templates and handlers use `localbrain.value_registry`; they do not parse Markdown.
+- [Value Dictionaries](data-model/value-dictionaries.md) and its eleven subject companions are generated projections. Runtime templates and handlers use `localbrain.persistence.value_registry`; they do not parse Markdown.
 - A family uses exactly one complete mode: `direct`, `logical-label`, or `internal-only`. If any allowed value needs interpretation, map the complete family. Missing values never fall back to raw tokens.
 - After changing a covered schema constraint, application constant, derived family, boolean-like field, mapping, or visible consumer, rebuild and check:
 

@@ -5,12 +5,11 @@ from unittest.mock import patch
 
 from starlette.requests import Request
 
-from localbrain.main import app, show_session, show_session_workflow
-from localbrain.workflow_focus import (
-    workflow_focus_projection,
-    workflow_session_is_eligible,
-)
-from localbrain.workflow_map import workflow_map_view
+from localbrain.main import app
+from localbrain.sessions.web import show_session
+from localbrain.workflow.web import show_session_workflow
+from localbrain.workflow.focus import workflow_focus_projection, workflow_session_is_eligible
+from localbrain.workflow.map import workflow_map_view
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -161,10 +160,10 @@ class SessionWorkflowMapTests(unittest.TestCase):
         projection = workflow_focus_projection(self.connection, 11)
         statements.clear()
 
-        with patch("localbrain.main.connect", return_value=self.connection), patch(
-            "localbrain.main.workflow_focus_projection", return_value=projection
+        with patch('localbrain.workflow.web.connect', return_value=self.connection), patch('localbrain.app.templating.connect', return_value=self.connection), patch(
+            'localbrain.workflow.web.workflow_focus_projection', return_value=projection
         ) as producer, patch(
-            "localbrain.main.session_detail",
+            'localbrain.sessions.web.session_detail',
             side_effect=AssertionError("Workflow route must not query a fallback detail"),
         ):
             response = show_session_workflow(
@@ -204,7 +203,7 @@ class SessionWorkflowMapTests(unittest.TestCase):
     def test_unconnected_route_is_success_and_does_not_claim_completion(self):
         self.connection.execute("DELETE FROM thread_links")
         response = None
-        with patch("localbrain.main.connect", return_value=self.connection):
+        with patch('localbrain.workflow.web.connect', return_value=self.connection), patch('localbrain.app.templating.connect', return_value=self.connection):
             response = show_session_workflow(
                 self._request("/sessions/11/workflow"), 11
             )
@@ -223,7 +222,7 @@ class SessionWorkflowMapTests(unittest.TestCase):
             session_role="subsession",
             parent_session_id=10,
         )
-        with patch("localbrain.main.connect", return_value=self.connection):
+        with patch('localbrain.workflow.web.connect', return_value=self.connection), patch('localbrain.app.templating.connect', return_value=self.connection):
             missing = show_session_workflow(
                 self._request("/sessions/999/workflow"), 999
             )
@@ -238,9 +237,9 @@ class SessionWorkflowMapTests(unittest.TestCase):
         )
 
         with patch(
-            "localbrain.main.connect", return_value=self.connection
+            'localbrain.workflow.web.connect', return_value=self.connection
         ), patch(
-            "localbrain.main.workflow_focus_projection",
+            'localbrain.workflow.web.workflow_focus_projection',
             side_effect=RuntimeError("private failure payload"),
         ):
             failed = show_session_workflow(
@@ -253,7 +252,7 @@ class SessionWorkflowMapTests(unittest.TestCase):
         self.assertNotIn("private failure payload", failed_html)
 
     def test_session_detail_action_is_additive_and_failure_is_isolated(self):
-        with patch("localbrain.main.connect", return_value=self.connection):
+        with patch('localbrain.sessions.web.connect', return_value=self.connection), patch('localbrain.app.templating.connect', return_value=self.connection):
             response = show_session(self._request("/sessions/11"), 11)
         html = response.body.decode("utf-8")
         self.assertEqual(response.status_code, 200)
@@ -262,8 +261,8 @@ class SessionWorkflowMapTests(unittest.TestCase):
         self.assertIn("<h2>대화</h2>", html)
         self.assertIn("session-pin", html)
 
-        with patch("localbrain.main.connect", return_value=self.connection), patch(
-            "localbrain.main.workflow_session_is_eligible",
+        with patch('localbrain.sessions.web.connect', return_value=self.connection), patch('localbrain.app.templating.connect', return_value=self.connection), patch.object(
+            app.state, 'session_workflow_available',
             side_effect=RuntimeError("synthetic predicate failure"),
         ):
             isolated = show_session(self._request("/sessions/11"), 11)

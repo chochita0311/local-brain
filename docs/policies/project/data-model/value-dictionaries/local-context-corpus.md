@@ -13,8 +13,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: Local Context source shape
 - Default: `folder`
 - Fallbacks: `null`: reject; `unknown`: label → 알 수 없는 유형; `invalid`: reject; `future`: label → 새 유형
-- Producers: `src/localbrain/contexts.py`
-- Consumers: `src/localbrain/contexts.py`
+- Producers: `src/localbrain/local_context/service.py`
+- Consumers: `src/localbrain/local_context/service.py`
 - Consequence: Selects the local reader and lifecycle behavior.
 - Presentation mode: `logical-label`
 - Labels: `folder` → 폴더; `file` → 파일; `apple_notes` → Apple Notes
@@ -29,8 +29,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: local read permission
 - Default: `1`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/contexts.py`
-- Consumers: `src/localbrain/contexts.py`, `src/localbrain/templates/context.html`
+- Producers: `src/localbrain/local_context/service.py`
+- Consumers: `src/localbrain/local_context/service.py`, `src/localbrain/templates/context.html`
 - Consequence: Unreadable roots are retained but cannot be scanned.
 - Presentation mode: `logical-label`
 - Labels: `0` → 읽을 수 없음; `1` → 읽을 수 있음
@@ -45,8 +45,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: Local Context root state
 - Default: `ready`
 - Fallbacks: `null`: reject; `unknown`: label → 상태 알 수 없음; `invalid`: reject; `future`: label → 새 상태
-- Producers: `src/localbrain/contexts.py`, `src/localbrain/ingest/scanner.py`
-- Consumers: `src/localbrain/contexts.py`, `src/localbrain/templates/context.html`
+- Producers: `src/localbrain/local_context/service.py`, `src/localbrain/ingest/scanner.py`
+- Consumers: `src/localbrain/local_context/service.py`, `src/localbrain/templates/context.html`
 - Consequence: Only ready readable roots participate in ordinary scans.
 - Presentation mode: `logical-label`
 - Labels: `pending` → 확인 중; `ready` → 사용 가능; `unreadable` → 읽기 권한 없음; `error` → 확인 오류; `missing` → 원본 없음
@@ -61,8 +61,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: Local Context scan participation
 - Default: `1`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/contexts.py`
-- Consumers: `src/localbrain/contexts.py`
+- Producers: `src/localbrain/local_context/service.py`
+- Consumers: `src/localbrain/local_context/service.py`
 - Consequence: Disabling removes the root from scans without deleting the original files.
 - Presentation mode: `logical-label`
 - Labels: `0` → 사용 안 함; `1` → 사용

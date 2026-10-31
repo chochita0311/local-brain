@@ -6,7 +6,7 @@ import subprocess
 import sys
 import unittest
 
-from localbrain.workstream_candidates import (
+from localbrain.workflow.candidates import (
     MAX_ARTIFACTS,
     MAX_LATEST_SAMPLES,
     MAX_MEMBERSHIPS,
@@ -24,7 +24,7 @@ from localbrain.workstream_candidates import (
     normalize_workstream_candidates,
     workstream_candidate_key,
 )
-from localbrain.workflow_projection import workflow_episode_key
+from localbrain.workflow.projection import workflow_episode_key
 
 
 class WorkstreamCandidateContractTests(unittest.TestCase):
@@ -425,26 +425,7 @@ class WorkstreamCandidateContractTests(unittest.TestCase):
             candidate_reference_from_record(dict(ref, read_outcome="unsupported"))
 
     def test_module_initialization_and_normalization_do_no_application_io(self):
-        script = """
-import builtins
-import json
-import pathlib
-import socket
-import sqlite3
-import subprocess
-import sys
-from unittest.mock import patch
-from localbrain import activity, workflow_projection
-def forbidden(*args, **kwargs):
-    raise AssertionError('unexpected application I/O')
-with patch.object(builtins, 'open', forbidden), patch.object(pathlib.Path, 'open', forbidden), patch.object(pathlib.Path, 'read_text', forbidden), patch.object(sqlite3, 'connect', forbidden), patch.object(socket, 'socket', forbidden), patch.object(subprocess, 'Popen', forbidden):
-    from localbrain.workstream_candidates import normalize_workstream_candidates
-    result = normalize_workstream_candidates([], [], [], [])
-    assert not result.candidates
-    assert result.as_dict()['scope'] == 'supplied-facts'
-    populated = normalize_workstream_candidates(*json.loads(sys.argv[1]))
-    assert len(populated.as_dict()['candidates']) == 1
-"""
+        script = "import builtins\nimport json\nimport pathlib\nimport socket\nimport sqlite3\nimport subprocess\nimport sys\nfrom unittest.mock import patch\nfrom localbrain.sessions import activity\nfrom localbrain.workflow import projection as workflow_projection\n\ndef forbidden(*args, **kwargs):\n    raise AssertionError('unexpected application I/O')\nwith patch.object(builtins, 'open', forbidden), patch.object(pathlib.Path, 'open', forbidden), patch.object(pathlib.Path, 'read_text', forbidden), patch.object(sqlite3, 'connect', forbidden), patch.object(socket, 'socket', forbidden), patch.object(subprocess, 'Popen', forbidden):\n    from localbrain.workflow.candidates import normalize_workstream_candidates\n    result = normalize_workstream_candidates([], [], [], [])\n    assert not result.candidates\n    assert result.as_dict()['scope'] == 'supplied-facts'\n    populated = normalize_workstream_candidates(*json.loads(sys.argv[1]))\n    assert len(populated.as_dict()['candidates']) == 1\n"
         result = subprocess.run(
             [sys.executable, "-B", "-c", script, json.dumps(self.fixture())],
             capture_output=True, text=True, timeout=20,

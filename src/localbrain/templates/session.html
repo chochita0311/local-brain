@@ -60,13 +60,6 @@
         <section class="scope-notice parent-session-notice"><span>상위 Session · <span data-profile-label="{{ parent.source_id }}">{{ parent.source_name }}</span></span><a href="{{ parent_url | default('/sessions/' ~ parent.id) }}">{{ parent.title }}</a></section>
       {% endif %}
 
-      {% if memberships and not desktop_edition %}
-        <section class="membership-strip">
-          <span>연결된 작업</span>
-          {% for membership in memberships %}<a href="/workstreams/{{ membership.workstream_id }}"><strong>{{ membership.workstream_name }}</strong>{% if membership.thread_title %}<small>{{ membership.thread_title }}</small>{% endif %}</a>{% endfor %}
-        </section>
-      {% endif %}
-
       {% if subsessions %}
         <section class="subsession-section">
           <div class="section-toolbar"><div><h2>Subsessions</h2></div><span class="table-count">{{ subsessions | length }}</span></div>

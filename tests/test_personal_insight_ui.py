@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 from starlette.requests import Request
 
-from localbrain.main import _session_insights_response
+from localbrain.insights.web import _session_insights_response
 
 
 class PersonalInsightUIReferenceTests(unittest.TestCase):
@@ -38,14 +38,14 @@ class PersonalInsightUIReferenceTests(unittest.TestCase):
             def resolve(_connection, event):
                 return {"status": "stale" if event["event_id"] == "1" else "unavailable"}
 
-            with patch("localbrain.main.connect", connection), patch(
-                "localbrain.main.skill_insights_data", return_value={}
-            ), patch("localbrain.main.list_insight_runs", return_value=[]), patch(
-                "localbrain.main.get_insight_run", return_value=run
-            ), patch("localbrain.main.insight_usage_cost", return_value=None), patch("localbrain.main.resolve_insight_evidence_reference", side_effect=resolve) as resolver, patch(
-                "localbrain.main.insight_runner_choices", return_value=[]
-            ), patch("localbrain.main.templates.TemplateResponse", side_effect=lambda _name, context, **kwargs: context), patch(
-                "localbrain.personal_insight_runs.prepare_insight_run"
+            with patch('localbrain.insights.web.connect', connection), patch(
+                'localbrain.insights.web.skill_insights_data', return_value={}
+            ), patch('localbrain.insights.web.list_insight_runs', return_value=[]), patch(
+                'localbrain.insights.web.get_insight_run', return_value=run
+            ), patch('localbrain.insights.web.insight_usage_cost', return_value=None), patch('localbrain.insights.web.resolve_insight_evidence_reference', side_effect=resolve) as resolver, patch(
+                'localbrain.insights.web.insight_runner_choices', return_value=[]
+            ), patch('localbrain.app.templating.templates.TemplateResponse', side_effect=lambda _name, context, **kwargs: context), patch(
+                "localbrain.insights.runs.prepare_insight_run"
             ) as prepare:
                 context = _session_insights_response(Request({"type": "http", "query_string": b""}), selected_id="example")
                 self.assertEqual(context["reference_states"], {"current": 0, "stale": 1, "unavailable": 1})

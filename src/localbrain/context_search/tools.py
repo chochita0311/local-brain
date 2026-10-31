@@ -8,8 +8,8 @@ import time
 from contextlib import contextmanager
 from pathlib import Path
 
-from ..config import cache_directory, development_directory
-from ..model_cache import hub_cache_root
+from localbrain.foundation.config import cache_directory, development_directory
+from localbrain.foundation.paths import hub_cache_root
 
 MAX_READ = 2 * 1024 * 1024
 MAX_FILES = 5000

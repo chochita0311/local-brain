@@ -102,7 +102,7 @@ def main():
     parser.add_argument('--serve',action='store_true')
     parser.add_argument('--laya-fp32',action='store_true',help='Explicitly disable Laya autocast for a separately recorded precision trial')
     args=parser.parse_args()
-    from localbrain.runtime_storage import private_directory
+    from localbrain.foundation.files import private_directory
     output=private_directory(args.output)
     assets=json.loads(args.assets.read_text())
     started=time.perf_counter()

@@ -10,17 +10,17 @@ from urllib.parse import parse_qs, quote_plus, urlsplit
 from fastapi import HTTPException
 from starlette.requests import Request
 
-from localbrain.main import (
+from localbrain.atlassian.web import (
     ATLASSIAN_SYNC_PARTIAL,
     _ATLASSIAN_SYNC_RECEIPTS,
     _ATLASSIAN_SYNC_RECEIPT_LOCK,
     _atlassian_page_context,
     _store_atlassian_sync_receipt,
     _verified_atlassian_sync_report,
-    app,
     atlassian_sync,
-    templates,
 )
+from localbrain.main import app
+from localbrain.app.templating import templates
 
 
 SCHEMA_PATH = Path(__file__).parents[1] / "src" / "localbrain" / "schema.sql"
@@ -132,8 +132,8 @@ class AtlassianSyncRouteTests(unittest.TestCase):
     def test_enhanced_post_returns_wrapped_report_and_busy_uses_409(self):
         complete = _report()
         request = self._request("return_to=%2Fatlassian", enhanced=True)
-        with patch("localbrain.main.connect", return_value=self.connection), patch(
-            "localbrain.main._execute_atlassian_evidence_sync",
+        with patch('localbrain.atlassian.web.connect', return_value=self.connection), patch(
+            'localbrain.atlassian.web._execute_atlassian_evidence_sync',
             return_value=complete,
         ) as execute:
             response = asyncio.run(atlassian_sync(request))
@@ -148,8 +148,8 @@ class AtlassianSyncRouteTests(unittest.TestCase):
 
         busy = _report("busy")
         request = self._request("return_to=%2Fatlassian", enhanced=True)
-        with patch("localbrain.main.connect", return_value=self.connection), patch(
-            "localbrain.main._execute_atlassian_evidence_sync",
+        with patch('localbrain.atlassian.web.connect', return_value=self.connection), patch(
+            'localbrain.atlassian.web._execute_atlassian_evidence_sync',
             return_value=busy,
         ):
             response = asyncio.run(atlassian_sync(request))
@@ -161,8 +161,8 @@ class AtlassianSyncRouteTests(unittest.TestCase):
 
         failed = _report("failed")
         request = self._request("return_to=%2Fatlassian", enhanced=True)
-        with patch("localbrain.main.connect", return_value=self.connection), patch(
-            "localbrain.main._execute_atlassian_evidence_sync",
+        with patch('localbrain.atlassian.web.connect', return_value=self.connection), patch(
+            'localbrain.atlassian.web._execute_atlassian_evidence_sync',
             return_value=failed,
         ):
             response = asyncio.run(atlassian_sync(request))
@@ -178,7 +178,7 @@ class AtlassianSyncRouteTests(unittest.TestCase):
         )
         for body in invalid_bodies:
             with self.subTest(body_length=len(body)), patch(
-                "localbrain.main._execute_atlassian_evidence_sync"
+                'localbrain.atlassian.web._execute_atlassian_evidence_sync'
             ) as execute:
                 response = asyncio.run(
                     atlassian_sync(self._request(body, enhanced=True))
@@ -191,7 +191,7 @@ class AtlassianSyncRouteTests(unittest.TestCase):
                 execute.assert_not_called()
 
         with patch(
-            "localbrain.main._execute_atlassian_evidence_sync"
+            'localbrain.atlassian.web._execute_atlassian_evidence_sync'
         ) as execute, self.assertRaises(HTTPException) as raised:
             asyncio.run(
                 atlassian_sync(
@@ -204,7 +204,7 @@ class AtlassianSyncRouteTests(unittest.TestCase):
         execute.assert_not_called()
 
         with patch(
-            "localbrain.main._execute_atlassian_evidence_sync"
+            'localbrain.atlassian.web._execute_atlassian_evidence_sync'
         ) as execute:
             response = asyncio.run(
                 atlassian_sync(
@@ -224,10 +224,10 @@ class AtlassianSyncRouteTests(unittest.TestCase):
         token = "A" * 32
         return_to = "/atlassian?view=jira&q=alpha"
         body = "return_to={}".format(quote_plus(return_to))
-        with patch("localbrain.main.connect", return_value=self.connection), patch(
-            "localbrain.main._execute_atlassian_evidence_sync",
+        with patch('localbrain.atlassian.web.connect', return_value=self.connection), patch(
+            'localbrain.atlassian.web._execute_atlassian_evidence_sync',
             return_value=report,
-        ), patch("localbrain.main.secrets.token_urlsafe", return_value=token):
+        ), patch('localbrain.atlassian.web.secrets.token_urlsafe', return_value=token):
             response = asyncio.run(atlassian_sync(self._request(body)))
 
         self.assertEqual(response.status_code, 303)
@@ -318,10 +318,10 @@ class AtlassianSyncRouteTests(unittest.TestCase):
         body = "return_to={}".format(
             quote_plus("https://outside.example.test/atlassian")
         )
-        with patch("localbrain.main.connect", return_value=self.connection), patch(
-            "localbrain.main._execute_atlassian_evidence_sync",
+        with patch('localbrain.atlassian.web.connect', return_value=self.connection), patch(
+            'localbrain.atlassian.web._execute_atlassian_evidence_sync',
             return_value=_report(),
-        ), patch("localbrain.main.secrets.token_urlsafe", return_value=token):
+        ), patch('localbrain.atlassian.web.secrets.token_urlsafe', return_value=token):
             response = asyncio.run(atlassian_sync(self._request(body)))
         parsed = urlsplit(response.headers["location"])
         self.assertEqual(parsed.path, "/atlassian")
@@ -333,15 +333,15 @@ class AtlassianSyncRouteTests(unittest.TestCase):
         tokens = ["{:032d}".format(index) for index in range(33)]
         source_report = _report()
         with patch(
-            "localbrain.main.secrets.token_urlsafe", side_effect=tokens
-        ), patch("localbrain.main.time.monotonic", return_value=100.0):
+            'localbrain.atlassian.web.secrets.token_urlsafe', side_effect=tokens
+        ), patch('localbrain.atlassian.web.time.monotonic', return_value=100.0):
             for _index in range(33):
                 last = _store_atlassian_sync_receipt(
                     source_report, "/atlassian"
                 )
         source_report["status"] = "failed"
         self.assertEqual(len(_ATLASSIAN_SYNC_RECEIPTS), 32)
-        with patch("localbrain.main.time.monotonic", return_value=399.0):
+        with patch('localbrain.atlassian.web.time.monotonic', return_value=399.0):
             self.assertIsNone(
                 _verified_atlassian_sync_report(tokens[0], "/atlassian")
             )
@@ -352,7 +352,7 @@ class AtlassianSyncRouteTests(unittest.TestCase):
             self.assertIsNotNone(
                 _verified_atlassian_sync_report(last, "/atlassian")
             )
-        with patch("localbrain.main.time.monotonic", return_value=400.0):
+        with patch('localbrain.atlassian.web.time.monotonic', return_value=400.0):
             self.assertIsNone(
                 _verified_atlassian_sync_report(last, "/atlassian")
             )
@@ -399,8 +399,8 @@ class AtlassianSyncRouteTests(unittest.TestCase):
             release.set()
             return await task
 
-        with patch("localbrain.main.connect", side_effect=connect_for_thread), patch(
-            "localbrain.main.sync_atlassian_local_evidence",
+        with patch('localbrain.atlassian.web.connect', side_effect=connect_for_thread), patch(
+            'localbrain.atlassian.web.sync_atlassian_local_evidence',
             side_effect=slow_action,
         ):
             try:

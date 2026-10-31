@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 from markupsafe import Markup
 
-from localbrain.markdown import render_markdown
+from localbrain.rendering.markdown import render_markdown
 
 
 class MarkdownRenderingTests(unittest.TestCase):
@@ -116,7 +116,7 @@ second line with **strong**, *emphasis*, and `inline`.
 
     def test_highlighter_failure_is_local_to_the_code_fence(self):
         with patch(
-            "localbrain.markdown._highlight_with_pygments",
+            "localbrain.rendering.markdown._highlight_with_pygments",
             side_effect=RuntimeError("synthetic failure"),
         ):
             result = render_markdown("```python\n<a>& value\n```")
@@ -128,7 +128,7 @@ second line with **strong**, *emphasis*, and `inline`.
     def test_renderer_failure_returns_escaped_full_source(self):
         source = '<script>alert("private")</script>'
         with patch(
-            "localbrain.markdown._MARKDOWN.render",
+            "localbrain.rendering.markdown._MARKDOWN.render",
             side_effect=RuntimeError("synthetic failure"),
         ):
             result = render_markdown(source)

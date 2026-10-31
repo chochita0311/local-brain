@@ -6,7 +6,7 @@ from pathlib import Path
 
 from localbrain.ingest.contracts import ParsedSession, ParsedUsageRecord
 from localbrain.ingest.sync.session_store import _store_session
-from localbrain.usage_queries import _history_from_buckets, normalize_usage_scope, usage_dashboard_data
+from localbrain.usage.queries import _history_from_buckets, normalize_usage_scope, usage_dashboard_data
 
 
 SCHEMA_PATH = Path(__file__).parents[1] / "src" / "localbrain" / "schema.sql"

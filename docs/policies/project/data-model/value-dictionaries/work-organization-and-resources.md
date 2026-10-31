@@ -13,8 +13,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: Workstream lifecycle
 - Default: `active`
 - Fallbacks: `null`: reject; `unknown`: label → 상태 알 수 없음; `invalid`: reject; `future`: label → 새 상태
-- Producers: `src/localbrain/workstreams.py`
-- Consumers: `src/localbrain/workstreams.py`, `src/localbrain/templates/workstreams.html`, `src/localbrain/templates/workstream.html`
+- Producers: `src/localbrain/workstreams/service.py`
+- Consumers: `src/localbrain/workstreams/service.py`, `src/localbrain/templates/workstreams.html`, `src/localbrain/templates/workstream.html`
 - Consequence: Affects active sorting and review visibility but does not delete links.
 - Presentation mode: `logical-label`
 - Labels: `active` → 진행 중; `paused` → 잠시 멈춤; `done` → 완료; `archived` → 보관됨
@@ -29,8 +29,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: Thread lifecycle
 - Default: `active`
 - Fallbacks: `null`: reject; `unknown`: label → 상태 알 수 없음; `invalid`: reject; `future`: label → 새 상태
-- Producers: `src/localbrain/workstreams.py`
-- Consumers: `src/localbrain/workstreams.py`
+- Producers: `src/localbrain/workstreams/service.py`
+- Consumers: `src/localbrain/workstreams/service.py`
 - Consequence: Controls priority and blocked-work visibility without removing evidence.
 - Presentation mode: `logical-label`
 - Labels: `active` → 진행 중; `blocked` → 막힘; `paused` → 잠시 멈춤; `done` → 완료
@@ -45,8 +45,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: polymorphic linked resource
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: label → 알 수 없는 자원; `invalid`: reject; `future`: label → 새 자원 유형
-- Producers: `src/localbrain/workstreams.py`
-- Consumers: `src/localbrain/workstreams.py`, `src/localbrain/templates/workstream.html`
+- Producers: `src/localbrain/workstreams/service.py`
+- Consumers: `src/localbrain/workstreams/service.py`, `src/localbrain/templates/workstream.html`
 - Consequence: Selects the target table for application-enforced links.
 - Presentation mode: `logical-label`
 - Labels: `session` → Session; `document` → Local Context 문서; `project` → Project; `external` → 외부 자원; `local` → 로컬 자원
@@ -61,8 +61,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: external resource family
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: label → 기타 외부 자원; `invalid`: reject; `future`: label → 새 외부 자원
-- Producers: `src/localbrain/workstreams.py`, `src/localbrain/atlassian.py`
-- Consumers: `src/localbrain/workstreams.py`, `src/localbrain/templates/workstream.html`
+- Producers: `src/localbrain/resources/store.py`, `src/localbrain/atlassian/catalog.py`
+- Consumers: `src/localbrain/resources/store.py`, `src/localbrain/templates/workstream.html`
 - Consequence: Selects detail routing and resource labeling.
 - Presentation mode: `logical-label`
 - Labels: `jira` → Jira; `wiki` → Wiki; `slack` → Slack; `git` → Git; `document` → 외부 문서; `url` → 웹 링크
@@ -77,8 +77,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: local resource shape
 - Default: `path`
 - Fallbacks: `null`: reject; `unknown`: label → 로컬 경로; `invalid`: reject; `future`: label → 새 로컬 자원
-- Producers: `src/localbrain/workstreams.py`
-- Consumers: `src/localbrain/workstreams.py`, `src/localbrain/templates/local_resource.html`
+- Producers: `src/localbrain/resources/store.py`
+- Consumers: `src/localbrain/resources/store.py`, `src/localbrain/templates/local_resource.html`
 - Consequence: Controls local resource iconography and path behavior.
 - Presentation mode: `logical-label`
 - Labels: `repository` → 로컬 Repository; `directory` → 로컬 폴더; `file` → 로컬 파일; `path` → 로컬 경로
@@ -93,13 +93,61 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: current local target existence
 - Default: `0`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/workstreams.py`
-- Consumers: `src/localbrain/retrieval.py`, `src/localbrain/templates/local_resource.html`
+- Producers: `src/localbrain/resources/store.py`
+- Consumers: `src/localbrain/workstreams/retrieval.py`, `src/localbrain/templates/local_resource.html`
 - Consequence: Missing resources remain as historical references but cannot be opened.
 - Presentation mode: `logical-label`
 - Labels: `0` → 현재 경로 없음; `1` → 현재 경로 있음
 - Help: 마지막 확인 시점의 로컬 경로 존재 여부입니다.
 - Visible consumer inventory: `src/localbrain/templates/local_resource.html` (registry-backed)
+
+## `external-content.source-format`
+
+- Physical field or projection: `external_resource_content.source_format`
+- Allowed values: `jira_adf`, `confluence_adf`, `confluence_html`, `confluence_markdown`, `plain_text`
+- Enforcement: `schema-check`
+- Logical axis: approved source body format
+- Default: `NULL`
+- Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
+- Producers: `src/localbrain/atlassian/catalog.py`
+- Consumers: `src/localbrain/atlassian/catalog.py`
+- Consequence: Selects the safe normalizer before text is indexed.
+- Presentation mode: `internal-only`
+- Labels: none; the family is not visible on ordinary screens.
+- Help: none
+- Visible consumer inventory: none.
+
+## `reference-resource.kind`
+
+- Physical field or projection: `reference_resources.kind`
+- Allowed values: `url`, `path`, `note`
+- Enforcement: `schema-check`
+- Logical axis: Shared resource locator family
+- Default: `NULL`
+- Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
+- Producers: `src/localbrain/resources/catalog.py`
+- Consumers: `src/localbrain/sessions/references.py`
+- Consequence: Separates URL, filesystem path and opaque provider-note identities without owning their content.
+- Presentation mode: `internal-only`
+- Labels: none; the family is not visible on ordinary screens.
+- Help: none
+- Visible consumer inventory: none.
+
+## `reference-resource.product`
+
+- Physical field or projection: `reference_resources.product`
+- Allowed values: `jira`, `confluence`
+- Enforcement: `schema-check`
+- Logical axis: Product inferred from URL grammar
+- Default: `NULL`
+- Fallbacks: `null`: internal; `unknown`: reject; `invalid`: reject; `future`: reject
+- Producers: `src/localbrain/resources/catalog.py`
+- Consumers: `src/localbrain/sessions/references.py`
+- Consequence: Classifies recognized URLs independently of Atlassian registration; NULL means an unclassified URL or local resource.
+- Presentation mode: `internal-only`
+- Labels: none; the family is not visible on ordinary screens.
+- Help: none
+- Visible consumer inventory: none.
 
 ## Explicit Exclusions
 

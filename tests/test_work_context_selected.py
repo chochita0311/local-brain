@@ -3,8 +3,8 @@
 import unittest
 from unittest.mock import patch
 
-from localbrain.work_context import infer, inference_identity
-from localbrain.work_reconstruction import ExperimentError
+from localbrain.experiments.context.contract import infer, inference_identity
+from localbrain.foundation.validation import ExperimentError
 from test_work_context_classified import ChoiceGenerator
 from work_context_cases import message
 
@@ -76,7 +76,7 @@ class SelectedTests(unittest.TestCase):
     def test_source_selection_identity_is_distinct_and_prompt_sensitive(self):
         baseline = inference_identity({}, "selected")
         self.assertNotEqual(baseline, inference_identity({}, "classified"))
-        with patch("localbrain.work_context_selected.PROMPTS", ["changed"]):
+        with patch("localbrain.experiments.context.selected.PROMPTS", ["changed"]):
             self.assertNotEqual(baseline, inference_identity({}, "selected"))
 
 

@@ -14,8 +14,8 @@ from urllib.parse import urlsplit
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from localbrain import edition
-from localbrain.preferences import read_preferences, save_preferences
+from localbrain.app import edition
+from localbrain.foundation.preferences import read_preferences, save_preferences
 
 
 class DesktopBoundaryTests(unittest.TestCase):

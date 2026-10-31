@@ -5,14 +5,15 @@ from unittest import mock
 
 from starlette.requests import Request
 
-from localbrain.main import app, schema_page
-from localbrain.schema_explorer import (
+from localbrain.main import app
+from localbrain.persistence.web import schema_page
+from localbrain.persistence.explorer import (
     INVALID_AREA_MESSAGE,
     INVALID_TABLE_MESSAGE,
     TABLE_REQUIRES_AREA_MESSAGE,
     build_schema_explorer_view,
 )
-from localbrain.schema_presentation import SchemaPresentationLoad
+from localbrain.persistence.schema_presentation import SchemaPresentationLoad
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -29,8 +30,8 @@ class SchemaExplorerViewModelTests(unittest.TestCase):
 
         self.assertTrue(view["available"])
         self.assertEqual(view["mode"], "global")
-        self.assertEqual(view["baseline"]["object_count"], 49)
-        self.assertEqual(view["baseline"]["physical_foreign_key_count"], 59)
+        self.assertEqual(view["baseline"]["object_count"], 53)
+        self.assertEqual(view["baseline"]["physical_foreign_key_count"], 66)
         self.assertEqual(len(view["subjects"]), 11)
         self.assertEqual(
             [subject["id"] for subject in view["subjects"]],
@@ -122,7 +123,7 @@ class SchemaExplorerRouteTests(unittest.TestCase):
 
     def test_route_consumes_package_without_database_access(self):
         with mock.patch(
-            "localbrain.main.connect",
+            "sqlite3.connect",
             side_effect=AssertionError("Schema must not open the runtime database"),
         ):
             response = schema_page(self.request())
@@ -178,7 +179,7 @@ class SchemaExplorerRouteTests(unittest.TestCase):
 
     def test_route_returns_bounded_unavailable_state(self):
         with mock.patch(
-            "localbrain.schema_explorer.load_schema_presentation",
+            "localbrain.persistence.explorer.load_schema_presentation",
             return_value=SchemaPresentationLoad(
                 available=False, error_code="manifest-unavailable"
             ),

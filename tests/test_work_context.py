@@ -9,13 +9,19 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from localbrain.session_simulation import atomic_json, read_json
-from localbrain.work_context import (
-    ground, infer, messages_by_id, strict_json, validate_relation, validate_units,
+from localbrain.foundation.private_json import atomic_json, read_json
+from localbrain.experiments.context.contract import (
+    ground,
+    infer,
+    messages_by_id,
+    strict_json,
+    validate_relation,
+    validate_units,
 )
-from localbrain.work_context_evaluation import evaluate, evaluation_store
-from localbrain.work_context_model import ASSETS, REVISION, file_inventory, installation, verify
-from localbrain.work_reconstruction import ExperimentError, digest
+from localbrain.experiments.context.evaluation import evaluate, evaluation_store
+from localbrain.models.generation import ASSETS, REVISION, file_inventory, installation, verify
+from localbrain.foundation.validation import ExperimentError
+from localbrain.foundation.fingerprints import digest
 from work_context_cases import CASES, assess, message
 
 
@@ -248,9 +254,9 @@ class ModelSafetyTests(unittest.TestCase):
             (snapshot / "config.json").write_text(json.dumps({"model_type": "qwen3"}))
             (snapshot / "model.safetensors.index.json").write_text(json.dumps({
                 "weight_map": {str(i): n for i, n in enumerate(sorted(ASSETS)) if n.endswith(".safetensors")}}))
-            with patch("localbrain.work_context_model.PINNED_HASHES", {}):
+            with patch("localbrain.models.generation.PINNED_HASHES", {}):
                 files = file_inventory(snapshot, self.root)
-                from localbrain.work_context_model import MODEL_ID, OWNER
+                from localbrain.models.generation import MODEL_ID, OWNER
                 manifest = {"owner": OWNER, "model_id": MODEL_ID, "revision": REVISION,
                             "snapshot": str(snapshot.relative_to(self.root)), "files": files,
                             "fingerprint": digest(files)}
@@ -265,18 +271,7 @@ class ModelSafetyTests(unittest.TestCase):
                     file_inventory(snapshot, self.root)
 
     def test_offline_guard_blocks_outbound_socket_in_isolated_process(self):
-        script = """
-import socket
-from localbrain.session_simulation_model import block_network
-from localbrain.work_reconstruction import ExperimentError
-block_network()
-try:
-    socket.socket().connect(('127.0.0.1', 9))
-except ExperimentError as error:
-    assert str(error) == 'NETWORK_DISABLED'
-else:
-    raise AssertionError('network allowed')
-"""
+        script = "import socket\nfrom localbrain.models.embedding import block_network\nfrom localbrain.experiments.reconstruction.contract import ExperimentError\nblock_network()\ntry:\n    socket.socket().connect(('127.0.0.1', 9))\nexcept ExperimentError as error:\n    assert str(error) == 'NETWORK_DISABLED'\nelse:\n    raise AssertionError('network allowed')\n"
         result = subprocess.run([sys.executable, "-B", "-c", script], capture_output=True,
                                 env={**os.environ, "PYTHONPATH": str(Path(__file__).resolve().parents[1] / "src")})
         self.assertEqual(result.returncode, 0, result.stderr.decode())

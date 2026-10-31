@@ -8,9 +8,9 @@ import time
 from contextlib import closing, contextmanager
 from dataclasses import asdict
 
-from ..config import cache_directory
-from ..runtime_storage import private_database, private_directory
-from ..session_simulation import atomic_json, read_json
+from localbrain.foundation.config import cache_directory
+from localbrain.foundation.files import private_database, private_directory
+from localbrain.foundation.private_json import atomic_json, read_json
 from .molecules import Profile, molecularize
 from .source import digest, read_sources
 

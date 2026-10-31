@@ -5,26 +5,14 @@ from dataclasses import fields
 from pathlib import Path
 from unittest.mock import patch
 
-from localbrain.config import Settings
-from localbrain.db import (
-    INDEX_POLICY_CHECK_PATTERN,
-    MAINTENANCE_SESSION_SHAPE_CHECK_PATTERN,
-    SESSION_CLASS_CHECK_PATTERN,
-    USAGE_ATTRIBUTION_CHECK_PATTERN,
-    _maintenance_session_contract_backup_path,
-    _maintenance_session_contract_exists,
-    _maintenance_workstream_fk_backup_path,
-    _maintenance_workstream_fk_exists,
-    _migrate_legacy_usage_table_name,
-    _migrate_schema_indexes,
-    _repair_maintenance_session_contract,
-    _repair_maintenance_workstream_fk,
-    _run_compatible_migrations,
-    _source_provider_identity_backup_path,
-    _source_provider_identity_contract_exists,
-    _usage_attribution_backup_path,
-    init_db,
-)
+from localbrain.foundation.config import Settings
+from localbrain.persistence.migrations.sessions import INDEX_POLICY_CHECK_PATTERN, MAINTENANCE_SESSION_SHAPE_CHECK_PATTERN, SESSION_CLASS_CHECK_PATTERN, _maintenance_session_contract_backup_path, _maintenance_session_contract_exists, _repair_maintenance_session_contract
+from localbrain.persistence.migrations.usage import USAGE_ATTRIBUTION_CHECK_PATTERN, _migrate_legacy_usage_table_name, _usage_attribution_backup_path
+from localbrain.persistence.migrations.maintenance import _maintenance_workstream_fk_backup_path, _maintenance_workstream_fk_exists, _repair_maintenance_workstream_fk
+from localbrain.persistence.migrations.indexes import _migrate_schema_indexes
+from localbrain.persistence.migrations.compatible import _run_compatible_migrations
+from localbrain.persistence.migrations.sources import _source_provider_identity_backup_path, _source_provider_identity_contract_exists
+from localbrain.persistence.db import init_db
 from localbrain.ingest.contracts import ParsedEvent
 
 
@@ -569,7 +557,7 @@ class MaintenanceWorkstreamFKMigrationTests(unittest.TestCase):
                 mcp_call_budget=20,
             )
 
-            with patch("localbrain.db.settings", settings):
+            with patch("localbrain.persistence.db.settings", settings):
                 init_db()
                 backup_path = _maintenance_workstream_fk_backup_path(database_path)
                 self.assertTrue(backup_path.is_file())
@@ -643,7 +631,7 @@ class MaintenanceSessionCompatibleMigrationTests(unittest.TestCase):
                 mcp_call_budget=20,
             )
 
-            with patch("localbrain.db.settings", settings):
+            with patch("localbrain.persistence.db.settings", settings):
                 init_db()
                 backup_path = _maintenance_session_contract_backup_path(database_path)
                 self.assertTrue(backup_path.is_file())
@@ -836,7 +824,7 @@ class UsageRecordTableNameMigrationTests(unittest.TestCase):
                 mcp_call_budget=20,
             )
 
-            with patch("localbrain.db.settings", settings):
+            with patch("localbrain.persistence.db.settings", settings):
                 init_db()
                 init_db()
 
@@ -1125,7 +1113,7 @@ class SourceProviderIdentityMigrationTests(unittest.TestCase):
                 mcp_call_budget=20,
             )
 
-            with patch("localbrain.db.settings", settings):
+            with patch("localbrain.persistence.db.settings", settings):
                 init_db()
                 backup_path = _source_provider_identity_backup_path(database_path)
                 self.assertTrue(backup_path.is_file())
@@ -1541,7 +1529,7 @@ class UsageAttributionCheckMigrationTests(unittest.TestCase):
                 mcp_call_budget=20,
             )
 
-            with patch("localbrain.db.settings", settings):
+            with patch("localbrain.persistence.db.settings", settings):
                 init_db()
                 backup_path = _usage_attribution_backup_path(database_path)
                 self.assertTrue(backup_path.is_file())

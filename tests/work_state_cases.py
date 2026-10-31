@@ -3,7 +3,7 @@
 import copy
 from datetime import datetime, timedelta, timezone
 
-from localbrain.work_state import VERSION, anchor_key, claim_key, text_revision
+from localbrain.experiments.claims.state import VERSION, anchor_key, claim_key, text_revision
 
 
 DEFAULT = object()

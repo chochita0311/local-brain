@@ -5,11 +5,12 @@ import unittest
 from dataclasses import replace
 from pathlib import Path
 
-from localbrain.db import _migrate_skill_observation_contract
+from localbrain.persistence.migrations.sessions import _migrate_skill_observation_contract
 from localbrain.ingest.providers.claude import parse_claude_session
 from localbrain.ingest.providers.codex import parse_codex_session
 from localbrain.ingest.evidence.skill_usage import SkillReferenceMatcher
-from localbrain.skill_observations import skill_insights_data, store_skill_observations
+from localbrain.insights.skills import skill_insights_data
+from localbrain.sessions.skills import store_skill_observations
 
 
 SCHEMA = Path(__file__).parents[1] / "src/localbrain/schema.sql"

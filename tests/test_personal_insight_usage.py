@@ -11,18 +11,22 @@ import unittest
 from unittest.mock import patch
 from starlette.requests import Request
 
-from localbrain.main import app, _session_insights_response
-from localbrain.personal_insight_evidence import build_insight_evidence_manifest
+from localbrain.main import app
+from localbrain.insights.web import _session_insights_response
+from localbrain.insights.evidence import build_insight_evidence_manifest
 from localbrain.ingest.contracts import CODEX_USAGE_CONTRACT_VERSION
 from localbrain.ingest.providers.codex import parse_codex_session
 from localbrain.ingest.sync.sessions import _scan_session_source
-from localbrain.personal_insight_runs import _execute, get_insight_run, reconcile_interrupted_insight_runs
-from localbrain.personal_insight_usage import (
-    insight_usage_cost, insight_usage_source, recover_insight_usage, store_insight_usage,
+from localbrain.insights.runs import _execute, get_insight_run, reconcile_interrupted_insight_runs
+from localbrain.insights.usage import (
+    insight_usage_cost,
+    insight_usage_source,
+    recover_insight_usage,
+    store_insight_usage,
 )
-from localbrain.queries import session_detail, session_inventory_page
-from localbrain.usage import reconcile_usage_record_contract
-from localbrain.usage_queries import usage_dashboard_data
+from localbrain.sessions.queries import session_detail, session_inventory_page
+from localbrain.usage.records import reconcile_usage_record_contract
+from localbrain.usage.queries import usage_dashboard_data
 
 
 SCHEMA = Path(__file__).parents[1] / "src/localbrain/schema.sql"
@@ -231,8 +235,8 @@ class PersonalInsightUsageTests(unittest.TestCase):
                 request = Request({"type": "http", "method": "GET", "query_string": b"", "headers": [],
                                    "path": "/sessions-dashboard/insights", "root_path": "", "scheme": "http",
                                    "server": ("testserver", 80), "app": app, "router": app.router})
-                with patch("localbrain.main.connect", connection), patch("localbrain.main.insight_runner_choices", return_value=[]), patch(
-                    "localbrain.main.prepare_insight_run", side_effect=AssertionError("GET must not execute analysis")
+                with patch('localbrain.insights.web.connect', connection), patch('localbrain.insights.web.insight_runner_choices', return_value=[]), patch(
+                    'localbrain.insights.web.prepare_insight_run', side_effect=AssertionError("GET must not execute analysis")
                 ):
                     response = _session_insights_response(request, selected_id=run["id"])
                 html = response.body.decode()
@@ -301,8 +305,8 @@ class PersonalInsightUsageTests(unittest.TestCase):
         def transaction():
             yield self.connection
 
-        with patch("localbrain.personal_insight_runs.transaction", transaction), patch(
-            "localbrain.personal_insight_runs.asyncio.create_subprocess_exec"
+        with patch("localbrain.insights.runs.transaction", transaction), patch(
+            "localbrain.insights.runs.asyncio.create_subprocess_exec"
         ) as model:
             reconcile_interrupted_insight_runs()
             reconcile_interrupted_insight_runs()
@@ -352,14 +356,14 @@ class PersonalInsightUsageTests(unittest.TestCase):
                     self.assertEqual(kwargs["cwd"], str(Path(run["stream_path"]).parent))
                     return process
 
-                with patch("localbrain.personal_insight_runs.connect", connection_context), patch(
-                    "localbrain.personal_insight_runs.transaction", connection_context
-                ), patch("localbrain.personal_insight_runs.settings", SimpleNamespace(data_dir=self.root)), patch(
-                    "localbrain.personal_insight_runs.runner_executable", return_value="/synthetic/codex"
-                ), patch("localbrain.personal_insight_runs._runner_args", return_value=["/synthetic/codex"]), patch(
-                    "localbrain.personal_insight_runs.asyncio.create_subprocess_exec", start_process
-                ), patch("localbrain.personal_insight_runs._validate_result", side_effect=ValueError("Invalid report")), patch(
-                    "localbrain.personal_insight_runs._shutting_down", False
+                with patch("localbrain.insights.runs.connect", connection_context), patch(
+                    "localbrain.insights.runs.transaction", connection_context
+                ), patch("localbrain.insights.runs.settings", SimpleNamespace(data_dir=self.root)), patch(
+                    "localbrain.insights.runs.runner_executable", return_value="/synthetic/codex"
+                ), patch("localbrain.insights.runs._runner_args", return_value=["/synthetic/codex"]), patch(
+                    "localbrain.insights.runs.asyncio.create_subprocess_exec", start_process
+                ), patch("localbrain.insights.runs._validate_result", side_effect=ValueError("Invalid report")), patch(
+                    "localbrain.insights.runs._shutting_down", False
                 ):
                     task = asyncio.create_task(_execute(run["id"]))
                     if cancelled:

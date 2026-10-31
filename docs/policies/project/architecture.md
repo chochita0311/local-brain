@@ -31,10 +31,13 @@ Runtime state is rejected inside repositories, uses owner-only permissions, and
 has bounded migration-copy retirement after successful committed initialization.
 Ordinary startup creates no permanent log or evaluation archive.
 
-`config.py` separates durable data, private rebuildable cache and development
-archive roots. `storage_layout.py` owns explicit recognized-directory moves,
-destination-conflict refusal and expired-cache retirement under existing writer
-locks. Packaged readers and simulation use the configured cache root. Saved
+`foundation/config.py` separates durable data, private rebuildable cache and development
+archive roots. `app/storage/layout.py` owns explicit recognized-directory moves,
+destination-conflict refusal and historical development-archive recognition.
+It accepts cache ownership checks from included features. `auto_work/storage.py`
+owns simulation/preview cache recognition and expired-result retirement under
+existing writer locks; `foundation/files.py` supplies shared ownership, activity
+and unchanged-tree checks. Packaged readers and simulation use the configured cache root. Saved
 Run reports remain durable data; development archives are never normal startup
 outputs. Shared public weights and the primary DB are outside layout migration.
 
@@ -55,32 +58,188 @@ Approved external sources through MCP Gateway
 
 ## Package Ownership
 
-- `app_docs.py`, package `content/docs/`, `templates/app-docs.html` and `static/app-docs.css`: fixed user-guide registry, canonical English content and in-app reader. [In-App Documentation](app-documentation.md) owns the product routes, shared Markdown link exception, package delivery and content boundary.
-- `preferences.py`, `source_settings.py`, `settings_web.py`: shared local preferences,
+The package root contains the stable `main.py`, `cli.py` and `desktop.py`
+entrypoints plus `__init__.py`. Feature implementations live in packages:
+
+```text
+localbrain/
+├── main.py, cli.py, desktop.py       # public entrypoints
+├── app/                             # application assembly and shared HTTP support
+│   └── storage/                     # backup/restore and layout operations
+├── foundation/                      # configuration, files, clocks, validation
+├── persistence/                     # connection API, bootstrap and schema metadata
+│   └── migrations/                  # schema history grouped by data owner
+├── models/                          # asset installation, embedding and generation
+├── references/                      # pure URL grammar, normalization and identity
+├── ingest/                          # provider parsing, evidence and source synchronization
+├── sources/                         # source registry/settings and sync services
+├── sessions/                        # activity, queries, reading, pins, references, web
+├── local_context/                   # document sources, queries, references, web
+├── usage/                           # records, pricing, aggregation, web
+├── resources/                       # resource identity/store and related-resource reads
+├── rendering/                       # shared Markdown rendering
+├── search/, natural_search/          # keyword/legacy search and optional AI search
+├── context_search/, google_drive/    # existing separate feature packages
+├── workstreams/, maintenance/        # organization/review and maintenance execution
+├── workflow/, auto_work/             # workflow projections/correction and explicit previews
+├── experiments/                     # context, reconstruction and claims experiments
+├── insights/, learning/              # analysis and reviewed learning
+└── atlassian/                       # catalog, evidence, access, sync, browse and web
+```
+
+`app/application.py` builds the application; `app/lifecycle.py` owns startup and
+shutdown wiring. `app/routes.py` explicitly registers the feature handlers in the
+existing route order. Shared templates and request guards belong to
+`app/templating.py` and `app/request_guards.py`. `main.py` contains no feature
+queries, input models or handler bodies.
+
+Within a feature, `web.py`/`cli.py` adapt delivery, `service.py` coordinates its
+operations, and `queries.py`/`store.py` own reads/writes where those boundaries
+exist. Pure projections and contracts keep their own modules. Features do not
+need every layer file or a repository class for each SQL query. Feature logic
+must not import application assembly or web handlers. HTTP adapters can consume
+the shared presentation layer. Foundation and model dependency restrictions
+below apply to function-local imports as well as top-level imports.
+
+The former shared `queries.py` is divided among `sessions/queries.py`,
+`local_context/queries.py`, `sources/queries.py`, `app/dashboard_queries.py`, and
+`search/legacy.py`; pagination lives in `foundation/pagination.py`. Resource
+identity lives in `resources/catalog.py` and metadata CRUD in `resources/store.py`, independently of Workstream
+membership and Suggestion acceptance. Durable skill observations remain in
+`sessions/skills.py`; Insights ranking belongs to `insights/skills.py`.
+
+Session references now point to shared resource identities, with Document and bookmark bindings owned under `resources/`. Session URL classification and related-material reading require no Atlassian registration, table or import. Local Context owns document bodies; optional organization/source features own outgoing mappings. `ingest/extensions.py` supplies a scoped observer contract with an empty default, and `app/reference_integrations.py` installs the Atlassian adapter around app requests, background scans and CLI scans. Observers use the caller transaction and make no remote call.
+
+`references/` recognizes URL syntax locally; a product label does not verify a
+remote server, page existence, access permission or redirect. Jira's issue-link
+shape is documented by [Atlassian's Jira link guidance](https://support.atlassian.com/jira-align/kb/view-in-jira-links-fail-with-cannot-open-project-issue-with-characters-in-the-url-on-jira-align/).
+For Confluence, [Cloud page-ID guidance](https://support.atlassian.com/confluence/kb/find-the-page-storage-format-in-confluence-cloud-as-a-non-admin/)
+identifies the numeric segment in `/wiki/spaces/SPACE/pages/123/Title`;
+[Atlassian's public Cloud issue](https://jira.atlassian.com/browse/CONFCLOUD-82707)
+also shows the title-free `/wiki/spaces/SPACE/pages/123` form in its custom-domain
+example. [Data Center URL guidance](https://support.atlassian.com/confluence/kb/the-differences-between-various-url-formats-for-a-confluence-page/)
+separately documents `pages/viewpage.action?pageId=123` and page-ID paths.
+LocalBrain admits its tested title/no-title and legacy forms without registration,
+but does not merge equal page IDs across domains or infer that a particular old
+link redirects to a Cloud link. The parser and `test_reference_urls.py` /
+`test_shared_resources.py` define the supported subset; these examples are not an
+exhaustive URL grammar for every Atlassian deployment.
+
+```mermaid
+flowchart LR
+    S[Session] --> E[Observed reference evidence]
+    E --> R[Shared resource identity]
+    D[Local Context document] --> DB[Document binding]
+    DB --> R
+    L[Local path bookmark] --> LB[Path binding]
+    LB --> R
+    X[External link metadata / body / note] --> XB[URL binding]
+    XB --> R
+    W[Optional Workstream / Thread] --> M[Feature-owned mapping]
+    M --> R
+    A[Optional Atlassian registration] --> X
+```
+
+The arrows show dependency/reference direction. Deleting a feature mapping or indexed Document does not delete the shared resource or Session observations. Same-path reindexing restores the document binding. Source bodies and user notes reference shared external metadata rather than the optional Atlassian Item. Migration details and recovery behavior belong to [Work Organization And Resources](data-model/work-organization-and-resources.md).
+
+The default application explicitly composes the existing pilot routes, lifecycle
+services, templates and assets. `create_app(feature_packages=...)` is an internal
+composition boundary for verifying an installation without selected packages;
+production entrypoints use the complete default set. It is not a settings or
+environment feature toggle and does not catch missing imports. Omitting a package
+also omits its routes, reference callbacks, navigation and lifecycle contribution.
+`app/features.py` owns the explicit default package set shared by web and CLI
+composition. Common startup, Settings cache cleanup and CLI storage operations
+receive only included features' cache handlers. Excluded features' old caches
+remain untouched, including malformed files; their presence does not load the
+excluded implementation. CLI command registration and ingestion observers follow
+the same inclusion boundary. Explicit legacy development-archive migration uses
+the historical on-disk contract without importing experiment implementations.
+The retained legacy `/search` combines Atlassian results and belongs to that
+assembly contribution; the normal `/natural-search` keyword and AI modes remain
+independent. `app/forms.py` owns bounded form decoding. Atlassian owns its repeated
+item/topic fields and translates form errors into its existing registration error.
+
+`maintenance/service.py` owns task/process tracking, ledger recovery, cancellation
+and terminal state helpers; `maintenance/streams.py` owns shared runner output
+decoding. Workstream preparation, commands and pending Suggestions belong to
+`workstreams/runner.py`; approved external reads and atomic Atlassian result
+application belong to `atlassian/runner.py`. Each feature submits its own execution
+coroutine to Maintenance. Maintenance imports neither feature implementation.
+The app connects Maintenance recovery/shutdown only when a Run-producing feature
+is included, and calls those hooks only in the development web edition, as before.
+Auto Work cache maintenance and Context Search service construction are
+also explicit contributions. Existing schema history, Run-to-Workstream FK and
+Run display-name query remain database contracts; code detachment does not drop
+their tables or delete private artifacts. The [refactoring track](../../plans/refactoring/refactor-0003-session-centered-package-boundaries.md)
+owns the evidence and remaining verification limits.
+
+`persistence/db.py` retains the public connection, initialization and transaction
+entrypoints. `persistence/bootstrap.py` owns the ordered preflight, recovery-copy,
+schema application, data migration and post-commit cleanup sequence.
+`persistence/migrations/` groups Source identity, Session/revision/skill evidence,
+Local Context, Usage, Maintenance, Atlassian and common resource schema history.
+`compatible.py` keeps the existing cross-domain compatibility order explicit;
+`support.py` owns shared schema inspection and the identical legacy backup
+procedure. The shared-resource and Session-revision backup variants retain their
+distinct contracts. `contracts.py` lets backup retirement inspect current schema
+without importing the DB entrypoint or bootstrap. Migrations stay with database
+history even when an optional runtime feature is removed.
+
+`app/storage/recovery.py` owns backup/restore/cache operations and the backend
+storage lease. `app/storage/web.py` owns HTTP registration, uploads, exports and
+responses. Recovery operations do not import FastAPI or the HTTP adapter.
+
+Shared schema/JSON resources, `templates/`, `static/`, `content/docs/` and
+versioned insight guides keep their package-root locations.
+`foundation.paths.package_root()` resolves those assets independently of a
+consumer's module depth; `package_boundary()` retains the distinct runtime-data
+exclusion boundary for source, installed-wheel and frozen layouts. Package
+initializers do not re-export the former flat module surface.
+
+- `foundation/`: shared configuration/preferences, operation locks, UTC clocks,
+  value/text fingerprints, validation errors, private JSON/filesystem operations,
+  path labels/cache roots and local agent executable lookup. It imports no product
+  feature, database, model runtime or FastAPI module. `clock.utc_now` returns an ISO
+  string while `clock.now` returns a datetime; the distinct serialization/hash and
+  error contracts remain separate. `persistence/storage.py` retains storage accounting
+  and migration-copy retirement; generic file safety belongs to `foundation/files.py`.
+- `models/`: pinned public asset catalog, Hub lookup, installation/verification,
+  cancellable setup worker, shared embedding/generation runtimes and finite answer-code
+  decoding. Its LocalBrain dependencies point only to `foundation/` and other model
+  modules. Search and explicit experiments consume these modules independently.
+  Model runtime libraries load only when the existing execution paths require them;
+  package imports do not load model weights or initiate downloads. Source setup uses
+  `python -m localbrain.models.setup`; the frozen `--install-search-model` flag is
+  unchanged. `foundation/paths.py` owns the package-parent storage exclusion and
+  public Hub root calculation, without depending on model execution.
+- `app/docs.py`, package `content/docs/`, `templates/app-docs.html` and `static/app-docs.css`: fixed user-guide registry, canonical English content and in-app reader. [In-App Documentation](app-documentation.md) owns the product routes, shared Markdown link exception, package delivery and content boundary.
+- `foundation/preferences.py`, `sources/settings.py`, `app/settings.py`: shared local preferences,
   optimistic configuration revisions, source registration/reconnection and UI APIs.
-- `source_sync.py`, `session_sync.py`, `context_sync.py`, `local_operations.py`: independent
+- `sources/sync.py`, `sources/session_sync.py`, `sources/context_sync.py`, `foundation/operations.py`: independent
   completion-based Session and Context scheduling, persisted health outside the main DB,
   and process/thread exclusion for mutations.
-- `edition.py`, `desktop.py`, `desktop/src-tauri/`: route/runtime admission, per-launch
+- `app/edition.py`, `desktop.py`, `desktop/src-tauri/`: route/runtime admission, per-launch
   local authentication, native window/process lifecycle and bundled resources.
-- `keyword_search.py`, `model_setup.py`, `storage_recovery.py`: model-free eligible
+- `search/keyword.py`, `models/setup.py`, `app/storage/recovery.py`: model-free eligible
   FTS retrieval, explicit cancellable public-model installation, private backup,
   restart-only restore and bounded owned-cache cleanup.
-- `learning.py`, `learning_cli.py`, `learning_web.py`: reviewed local packet
+- `learning/service.py`, `learning/cli.py`, `learning/web.py`: reviewed local packet
   intake, immutable lessons/source snapshots, personal attempts, deterministic
   daily selection and native home/library/reader forms. Durable state is in the
   main DB; this flow does not invoke search, generation or external retrieval.
 - `natural_search/`: eligible read-only source snapshot, original-span molecularization,
   private SQLite/FTS/vector generations, persistent offline Qwen encoder, explicit
   condition interpretation, parent-ranked retrieval and Sync refresh worker.
-  `main.py` owns loopback routes and app lifecycle; templates and `natural-search.js`
+  `natural_search/web.py` owns loopback handlers; `app/routes.py` registers them
+  and `app/lifecycle.py` owns startup/shutdown. Templates and `natural-search.js`
   own the shared header and evidence navigation. Keyword search is the default;
   AI search is explicit. The legacy `/search` URL redirects to keyword mode in
   the desktop edition and remains compatible in development web. [Natural-Language Search](natural-language-search.md)
   owns the detailed source, score, input-budget, refresh and recovery contracts.
   Laya and Qwen Reranker are development comparisons, not runtime dependencies.
 
-- `work_state.py`: pure source-claim/reported-state projection: unchanged
+- `experiments/claims/state.py`: pure source-claim/reported-state projection: unchanged
   synthetic-supplied v1 plus model-aware v2 provenance/lifecycle effects, governed
   by [Source Claims And Work State](source-claims-and-work-state.md).
   Separates exact anchors, attributed interpretations, scoped target bindings and
@@ -88,18 +247,19 @@ Approved external sources through MCP Gateway
   unresolved support and replay identities. The projector has no source reader,
   model call, persistent ledger, automatic target discovery or product consumer.
   It cannot certify the truth of a supplied interpretation or unblock admission.
-- `work_claims.py`, `work_claim_assessment.py`, `work_claim_trial.py`: separately
+- `experiments/claims/contract.py`, `experiments/claims/assessment.py`, `experiments/claims/trial.py`: separately
   invoked synthetic-only extraction/binding adapter, conditional versus end-to-end
   scoring and bounded failure-preserving evaluation. No private or UI consumer.
   This adapter invokes the installed generative model during explicit trials;
   it is separate from the pure state projector and the affinity-map producer.
 
-- `work_context_model.py`, `work_context.py`, `work_context_staged.py`,
-  `work_context_choices.py`, `work_context_classified.py`, `work_context_selected.py`, and
-  `work_context_evaluation.py`:
-  explicit public-model installation, independently verified offline generation,
+- `experiments/context/contract.py`, `experiments/context/staged.py`,
+  `experiments/context/classified.py`, `experiments/context/selected.py`, and
+  `experiments/context/evaluation.py`:
   exact quoted work-unit/pair-relation contracts and synthetic-only admission
-  evaluation. The current [quoted work-context contract](#quoted-work-context-model-contract)
+  evaluation, using explicit public-model installation and independently verified
+  offline generation from `models/generation.py`, with finite decoding from
+  `models/choices.py`. The current [quoted work-context contract](#quoted-work-context-model-contract)
   owns the model, packet, generation and output boundaries. The evaluation opens no source
   DB and introduces no product consumer, training, organization write or automatic
   inference. Quoted fields retain role and locator; validity is not entailment.
@@ -112,14 +272,14 @@ Approved external sources through MCP Gateway
   The installer admits only the allowlisted pinned 4B/8B catalog. Verification
   resolves the owner and model-specific assets, and inference identity uses that
   verified model; a 4B default must not label an 8B result.
-  `model_cache.py` resolves public pretrained assets in the user-wide Hugging
+  `models/cache.py` resolves public pretrained assets in the user-wide Hugging
   Face Hub cache. Installation metadata remains in the explicit private model
   root: the directory owner marker stays v1, while a
   `localbrain.work-context-model.v2` model manifest has a Hub-relative snapshot.
   Legacy v1 manifests remain readable. Verification confines selected assets to
   their model repository and preserves their pinned hashes and inference identity.
-  `model_catalog.py` pins the supported public identities and feature requirements;
-  `model_installation.py` owns independent LocalBrain embedding setup with a
+  `models/catalog.py` pins the supported public identities and feature requirements;
+  `models/installation.py` owns independent LocalBrain embedding setup with a
   `localbrain.semantic-model/v1` Hub-relative manifest. The embedding adapter
   also accepts compatible older app-local and Hub-relative snapshot manifests.
   Private vectors and outputs remain in LocalBrain's runtime storage.
@@ -135,7 +295,7 @@ Approved external sources through MCP Gateway
   The separate selected strategy chooses whole-conversation anchors before their
   field evidence through the same bounded decoder; it preserves anchors without
   silently filling missing citations or changing the classified comparator.
-  The opt-in `work_context_evidence.py` strategy assesses literal source facets
+  The opt-in `experiments/context/evidence.py` strategy assesses literal source facets
   before grouping independently resumable outcomes. Pairwise anchor/membership
   checks refuse ambiguous bridges; unit audits inspect proposed fields against
   original records. Continuation requires model-selected goal support,
@@ -151,7 +311,7 @@ Approved external sources through MCP Gateway
   primary semantic review remains required. No product consumer is admitted by
   valid syntax, automatic withholding or same-model auditing alone.
 
-- `work_context_diagnostic.py`: opt-in fixed-model synthetic protocol diagnosis,
+- `experiments/context/diagnostic.py`: opt-in fixed-model synthetic protocol diagnosis,
   separate from extraction/admission and any product producer. Its frozen matrix
   independently controls option order and numeric mapping; label/text responses
   keep the same source context and alternative meanings. Semantic, protocol and
@@ -162,7 +322,7 @@ Approved external sources through MCP Gateway
   automatic restart. Diagnostic completeness never grants model admission.
   No database, holdout, new dependency, model or UI is involved.
 
-- `work_role_comparison.py`: a separate matched synthetic formulation diagnostic.
+- `experiments/context/role_comparison.py`: a separate matched synthetic formulation diagnostic.
   It reuses unchanged evidence-first facet definitions and relation inference,
   contrasting independent questions with one complete role-set decision. Compound
   roles, identical focused spans with different later context, and canonical/
@@ -175,8 +335,8 @@ Approved external sources through MCP Gateway
   Prompt/template/token audits are synthetic diagnostics, not private-source
   discovery, model admission, training or a product producer.
 
-- `session_simulation.py`, `session_simulation_model.py`, and
-  `session_simulation_graph.py`: explicitly invoked full-Session experiment;
+- `auto_work/simulation.py` and `auto_work/graph.py`, using shared
+  `models/embedding.py`: explicitly invoked full-Session experiment;
   source-read-only inventory, separately owned replayable cache, verified local
   embeddings and experimental two-resolution affinity communities. The
   [simulation producer contract](#full-history-simulation-producer)
@@ -196,7 +356,7 @@ Approved external sources through MCP Gateway
   validated for finite, valid values. Grouping version changes do not invalidate
   otherwise compatible cached embedding vectors.
 
-- `session_affinity.py`: passive whole-history simulation consumer. It validates
+- `auto_work/affinity.py`: passive whole-history simulation consumer. It validates
   the existing source-bound owner under a shared nonblocking lock and rechecks
   the full admitted source manifest. One process-memory index is invalidated by
   report or source DB/WAL file changes; it creates no second runtime owner,
@@ -210,69 +370,75 @@ Approved external sources through MCP Gateway
   owns bounds and states. Group labels are representative Session titles, not
   generated category names or confirmed work identities.
 
-- `src/localbrain/main.py`: FastAPI routes, request models, and application composition
-- `src/localbrain/db.py` and `schema.sql`: connection lifecycle, fresh schema, compatible startup migrations, and explicitly approved backup-backed structural repair
+- `src/localbrain/main.py`: stable ASGI entrypoint; `app/application.py`, `app/routes.py`, and `app/lifecycle.py` own application assembly, ordered registration and service lifecycle. Input models and handler bodies belong to feature `web.py` modules.
+- `src/localbrain/persistence/db.py`: public connection/init/transaction; `bootstrap.py`: initialization sequence; `migrations/`: compatible schema history and backup-backed repair; `schema.sql`: fresh schema.
 - `src/localbrain/ingest/`: source parsing, normalization, scanning, and deduplication
-- `src/localbrain/session_sources.py`: private TOML bootstrap, validation, bounded
+- `src/localbrain/sources/registry.py`: private TOML bootstrap, validation, bounded
   diagnostics, and non-destructive local Session-source registry reconciliation
-- `src/localbrain/session_references.py`: source-neutral safe URL, exact Markdown,
-  and configured Atlassian reference resolution; file-scoped evidence replacement,
-  Session-level bounds/fingerprints, and database-only detail projection
-- `src/localbrain/contexts.py`: Local Context source registration and browsing behavior
-- `src/localbrain/markdown.py`: shared safe Markdown and approved Obsidian-style parsing, derived render state, local code and MathML rendering, attachment deferral, and reusable consumer output governed by the [Markdown Rendering Contract](markdown-rendering.md)
-- `src/localbrain/markdown_references.py`: one-FOLDERS-root Markdown and wikilink resolution, stable anchor identity, and bounded note-fragment extraction
-- `src/localbrain/queries.py`: read models for dashboards, sessions, sources, search, and detail views
-- `src/localbrain/usage.py`: immutable price snapshots, model normalization, and per-Usage-Record estimated-cost calculation
-- `src/localbrain/usage_queries.py`: Sessions Dashboard scope normalization, summary, MTD, history buckets, freshness, and limitation states
-- `src/localbrain/skill_observations.py`: durable skill evidence, event replay guards, and the Insights use/reference Session ranking
-- `src/localbrain/personal_insight_evidence.py`: read-only, bounded Claude/Codex primary-work message selection for later personal insight Runs; it produces a versioned private evidence value and reviews current references without a new table or model call
-- `src/localbrain/personal_insight_guidance.py` and `personal_insight_guides/`: product-neutral, versioned core and category playbooks, selective routing, and strict finding/no-finding/evidence-request values. `personal_insight_guide.md` is the historical v1 resource
-- `src/localbrain/personal_insight_runs.py`: independent analysis-only Run lifecycle, frozen Session evidence and selected guide provenance, no-tools CLI invocation, validated results, and private Markdown artifact generation
-- `src/localbrain/personal_insight_usage.py`: ephemeral analysis usage normalization, exact Codex source binding, metadata-only accounting projection, and retained-observation recovery
-- `src/localbrain/workstreams.py`: Workstreams, Threads, checkpoints, resources, links, Suggestions, and retrieval mappings
-- `src/localbrain/workstream_candidates.py`: pure candidate identity, supplied
+- `src/localbrain/references/`: pure URL interpretation shared by ingestion,
+  Sessions and optional integrations. `urls.py` owns generic HTTP(S) safety,
+  token trimming and the common parse result; `atlassian.py` owns Jira/Confluence
+  URL grammar and its existing versioned identity; `contracts.py` owns the
+  storage-independent locator description. It imports no feature, DB or ingest code.
+- `src/localbrain/resources/catalog.py`: common URL/path/note identities and existing-document/bookmark/external-ID bindings; no optional feature imports.
+- `src/localbrain/sessions/references.py`: shared-resource resolution, file-scoped observation replacement, Session-level bounds/fingerprints, and database-only detail projection.
+- `src/localbrain/ingest/extensions.py`: scoped optional observers; `atlassian/ingestion.py` owns source-specific evidence maintenance and `app/reference_integrations.py` owns explicit installation and read callbacks.
+- `src/localbrain/persistence/migrations/resources.py`: preserving shared-identity migration and verified recovery copy.
+- `src/localbrain/local_context/service.py`: Local Context source registration and browsing behavior
+- `src/localbrain/rendering/markdown.py`: shared safe Markdown and approved Obsidian-style parsing, derived render state, local code and MathML rendering, attachment deferral, and reusable consumer output governed by the [Markdown Rendering Contract](markdown-rendering.md)
+- `src/localbrain/local_context/references.py`: one-FOLDERS-root Markdown and wikilink resolution, stable anchor identity, and bounded note-fragment extraction
+- `src/localbrain/sessions/queries.py`, `local_context/queries.py`, `sources/queries.py`, `app/dashboard_queries.py`, and `search/legacy.py`: read models owned by their consumers.
+- `src/localbrain/usage/records.py`: immutable price snapshots, model normalization, and per-Usage-Record estimated-cost calculation
+- `src/localbrain/usage/queries.py`: Sessions Dashboard scope normalization, summary, MTD, history buckets, freshness, and limitation states
+- `src/localbrain/sessions/skills.py`: durable skill evidence and event replay guards; `insights/skills.py` owns Insights use/reference Session ranking.
+- `src/localbrain/insights/evidence.py`: read-only, bounded Claude/Codex primary-work message selection for later personal insight Runs; it produces a versioned private evidence value and reviews current references without a new table or model call
+- `src/localbrain/insights/guidance.py` and `personal_insight_guides/`: product-neutral, versioned core and category playbooks, selective routing, and strict finding/no-finding/evidence-request values. `personal_insight_guide.md` is the historical v1 resource
+- `src/localbrain/insights/runs.py`: independent analysis-only Run lifecycle, frozen Session evidence and selected guide provenance, no-tools CLI invocation, validated results, and private Markdown artifact generation
+- `src/localbrain/insights/usage.py`: ephemeral analysis usage normalization, exact Codex source binding, metadata-only accounting projection, and retained-observation recovery
+- `src/localbrain/workstreams/service.py`: Workstreams, Threads, checkpoints, links, Suggestions and retrieval mappings; shared identity/bindings belong to `resources/catalog.py` and metadata CRUD to `resources/store.py`.
+- `src/localbrain/workflow/candidates.py`: pure candidate identity, supplied
   pair/member validation, revisions, evidence/time/coverage descriptors, and
   bounded serialization; no database discovery or organization mutation
-- `src/localbrain/work_reconstruction.py`: isolated experimental text extraction,
+- `src/localbrain/experiments/reconstruction/contract.py`: isolated experimental text extraction,
   semantic grouping, exact synthetic corrections, and metadata-only comparator
-- `src/localbrain/work_reconstruction_scoring.py`: independent expectation
+- `src/localbrain/experiments/reconstruction/scoring.py`: independent expectation
   validation, integer quality measures, and identity/assignment replay measures
-- `src/localbrain/work_reconstruction_input.py`: explicit manifest validation and
+- `src/localbrain/experiments/reconstruction/input.py`: explicit manifest validation and
   bounded read-only access to already-indexed selected records
-- `src/localbrain/work_reconstruction_preparation.py`: explicitly invoked,
+- `src/localbrain/experiments/reconstruction/preparation.py`: explicitly invoked,
   prediction-independent chronological sampling, frozen manifests, omission
   accounting, and unknown-assessment placeholders; no independent answer key
-- `src/localbrain/work_reconstruction_experiment.py` and
+- `src/localbrain/experiments/reconstruction/experiment.py` and
   `scripts/experiment-work-reconstruction.py`: opt-in local comparison command,
   supervised resource bounds, and private owner/expiry-bound result publication
-- `src/localbrain/retrieval.py`: deterministic candidate selection and evidence preparation
-- `src/localbrain/runner.py`: maintenance Run preparation, execution, streaming, and structured result processing
-- `src/localbrain/external_access.py`: stable external Source Instance registration, rebuildable capability observations, version-controlled Atlassian read policy, and fail-closed dispatch construction; it performs no external call
-- `src/localbrain/external_sync.py`: source-neutral external-sync manifest/result validation, atomic query-envelope preparation, approved host-dispatch evidence validation, and source-fact authority separation
-- `src/localbrain/atlassian.py`: stable External Resource-backed Site/Space/Item identity, scoped URL aliases, remote/local ownership, derived freshness, deterministic body normalization, and hash-gated FTS projection; it performs no external call
-- `src/localbrain/atlassian_browse.py`: local Atlassian inventory filters,
+- `src/localbrain/workstreams/retrieval.py`: deterministic candidate selection and evidence preparation
+- `src/localbrain/maintenance/service.py`, `streams.py`: common Run tracking, recovery/cancellation, terminal state helpers and stream decoding; feature execution belongs to `workstreams/runner.py` and `atlassian/runner.py`
+- `src/localbrain/atlassian/access.py`: stable external Source Instance registration, rebuildable capability observations, version-controlled Atlassian read policy, and fail-closed dispatch construction; it performs no external call
+- `src/localbrain/atlassian/sync.py`: source-neutral external-sync manifest/result validation, atomic query-envelope preparation, approved host-dispatch evidence validation, and source-fact authority separation
+- `src/localbrain/atlassian/catalog.py`: stable External Resource-backed Site/Space/Item identity, scoped URL aliases, remote/local ownership, derived freshness, deterministic body normalization, and hash-gated FTS projection; it performs no external call
+- `src/localbrain/atlassian/browse.py`: local Atlassian inventory filters,
   grouped search, canonical-URL-owned Site-first hierarchy descriptors, Item
   detail, user note/Topic/Tag mutation, and existing Workstream/Thread link
   projection; it performs no external or model call
-- `src/localbrain/atlassian_evidence.py`: configured Site-scoped Item URL
+- `src/localbrain/atlassian/evidence.py`: configured Site-scoped Item URL
   recognition plus source-owned bounded scan/evidence reconciliation
-- `src/localbrain/atlassian_evidence_sync.py`: explicit persisted-only Session
+- `src/localbrain/atlassian/evidence_sync.py`: explicit persisted-only Session
   projection and chunked Local Context Document evidence reconciliation,
   strict Jira Issue/Confluence Page admission with normalized-domain local
   Site/Item reuse, source-isolated transactions, commit-published resolver
   overlays, fixed outcome reports, and process-local single-flight; it performs
   no source, filesystem, external, model, or Refresh work
-- `src/localbrain/atlassian_registration.py`: strict Jira/Confluence URL
+- `src/localbrain/atlassian/registration.py`: strict Jira/Confluence URL
   recognition, normalized-domain Site resolution, read-only URL container
   descriptors, local-only Item/Space registration, inventory projection, and
   explicit one-call partial Space-candidate maintenance composition
-- `src/localbrain/atlassian_refresh.py`: local Item/Space/Thread/Workstream/all-known scope resolution, freshness-aware preview, mixed-instance bounded Run preparation, and atomic validated result application
-- `src/localbrain/subagents.py`: lazy Claude Subsession compatibility discovery over the source-native `subagents/` directory
-- `src/localbrain/session_chart_preferences.py`: scoped, bounded user-selected Chart visibility in the private primary DB, independent of observations and browser camera state
-- `src/localbrain/schema_explorer.py`: manifest-only Schema query normalization and read model; it never opens the runtime database
+- `src/localbrain/atlassian/refresh.py`: local Item/Space/Thread/Workstream/all-known scope resolution, freshness-aware preview, mixed-instance bounded Run preparation, and atomic validated result application
+- `src/localbrain/sessions/subagents.py`: lazy Claude Subsession compatibility discovery over the source-native `subagents/` directory
+- `src/localbrain/sessions/chart_preferences.py`: scoped, bounded user-selected Chart visibility in the private primary DB, independent of observations and browser camera state
+- `src/localbrain/persistence/explorer.py`: manifest-only Schema query normalization and read model; it never opens the runtime database
 - `src/localbrain/templates/`: server-rendered UI views
 - `src/localbrain/static/`: browser behavior and visual presentation
-- `src/localbrain/schema_presentation.py` and `schema-presentation.json`: bounded loader and derived package data for read-only Schema consumers
+- `src/localbrain/persistence/schema_presentation.py` and `schema-presentation.json`: bounded loader and derived package data for read-only Schema consumers
 
 Keep source-specific parsing inside adapters and keep persistence or domain behavior out of templates.
 
@@ -337,8 +503,8 @@ The current schema groups data into these responsibilities:
 | Reviewed learning | immutable lesson/source revisions in `learning_lessons`, personal attempts in `learning_attempts`, and stable-key visibility in `learning_visibility`; [Personal Learning](data-model/personal-learning.md) owns their table contracts |
 | Workflow correction | append-only `workflow_assertions` keyed by stable Episode boundaries |
 | User organization | `workstreams`, `threads`, `checkpoints` |
-| Linkable resources | `local_resources`, `external_resources`, Workstream and Thread links |
-| Atlassian source memory | domain-first `atlassian_sites`, optional `atlassian_site_bindings`, access-optional `atlassian_spaces`, strict one-to-one `atlassian_items`, Item URL/remote/local/evidence owners, separate `atlassian_structure_references`, `atlassian_structure_reference_urls`, and `atlassian_structure_reference_evidence`, plus Item role rows and one bounded non-archived reference row in shared FTS |
+| Linkable resources | shared `reference_resources`; Document, local-path and external-link bindings; `local_resources`, `external_resources`, `external_resource_content`, `external_resource_notes`, Workstream and Thread links; [resource ownership](data-model/work-organization-and-resources.md) defines their lifecycles |
+| Atlassian source memory | domain-first `atlassian_sites`, optional `atlassian_site_bindings`, access-optional `atlassian_spaces`, strict one-to-one `atlassian_items`, Item URL/remote-state/classification/evidence owners, separate `atlassian_structure_references`, `atlassian_structure_reference_urls`, and `atlassian_structure_reference_evidence`, plus Item role rows and one bounded non-archived reference row in shared FTS |
 | Review workflow | `suggestions`, checkpoint resource snapshots, Thread resource matches |
 | Run execution | independent `maintenance_runs` / `external_sync_runs` and `personal_insight_runs` histories, with separate artifact roots under the runtime data directory |
 
@@ -365,7 +531,7 @@ Original Claude and Codex JSONL remains the authoritative Session source. LocalB
   and skill signals from source data. It does not reconcile persisted evidence.
 - `ingest/sync/sessions.py` orchestrates one admitted Session source;
   `session_store.py` owns Session/activity/Usage persistence and lifecycle;
-  `contexts.py` owns folder/file/Notes ingestion; `storage.py` owns shared
+  `ingest/sync/contexts.py` owns folder/file/Notes ingestion; `storage.py` owns shared
   source/file/workspace/search operations and revision admission; `control.py`
   owns the single cancellation context and callback-safe progress delivery.
 - `ingest/scanner.py` composes adapters, resolves registered sources, reports
@@ -402,8 +568,8 @@ rebuilt and replaced. New revision admission does not retrofit old executables.
 
 - Treat Atlassian URL evidence as a derived locator: retain the owning source identity, event/line/occurrence, observed URL, and only allowlisted bounded result fields, never a copied excerpt or opaque tool payload.
 - Treat source-neutral Session reference evidence as a separate derived projection from Activity Events, shared Resource metadata, remote content, and organization links. Retain only aggregate scan/version state plus deterministic target identity, event/line/ordinal, bounded observed identity, safe normalized destination, and approved tool-call outcome fields; never copy message excerpts or opaque tool payloads.
-- Route standard Atlassian URL-family recognition through one pure, versioned
-  locator owner before consumer-specific admission. The owner performs no
+- Route standard Atlassian URL-family recognition through the shared
+  `references/atlassian.py` owner before consumer-specific admission. The owner performs no
   SQLite, filesystem, Provider, capability, runner, model, connected-discovery,
   Refresh, or network work and returns only `item`, `structure`, `site`,
   `unsupported`, or `unsafe`. Recognized output drops fragment and arbitrary
@@ -417,6 +583,7 @@ rebuilt and replaced. New revision admission does not retrofit old executables.
   later reparse, and keeps structure/site as generic URL targets. Pure
   classification and Session projection create no Atlassian structure-reference
   or Site row; explicit Sync owns the separate admission below.
+- `references/urls.py::parse_url` recognizes URL forms without registered Sites, bindings or items. Sessions store only a shared `resource_id` plus their own observed evidence and safe locator; an Atlassian registration cannot replace the identity or destination. A bare tool ID resolves only when exactly one known shared URL matches the product/key; all admitted URLs in the bounded candidate set participate before resolving hints. Different domains remain distinct. The optional Atlassian ingestion observer records its own sightings on the caller connection, independently from Session resolution. Savepoint failure retains prior Session evidence and records error/stale state. Additional grammars can be added to `references/`; Slack classification is not implemented.
 - Explicit Atlassian local evidence Sync may consume that retained Session URL
   projection without reopening its source. It merge-inserts only missing
   Atlassian sightings, never advances or cleans Session-owned Atlassian scan
@@ -443,7 +610,7 @@ rebuilt and replaced. New revision admission does not retrofit old executables.
   Project/Space hints drive read-only grouping consensus and never create a Space,
   Item, binding, access, remote state, local edit, classification, or organization
   row. A shared locator `site` result remains report-only and creates no entity.
-- Compose primary Session `관련 자료` only at the bounded SQLite read layer. It consumes existing evidence and explicit organization relations without hidden query expansion, writes, parsing, model work, or external I/O; the [Product Model](product.md#session-detail-and-related-evidence) owns group eligibility, ordering, counts, and disclosure behavior.
+- Compose primary Session `관련 자료` only at the bounded SQLite read layer. It consumes directly observed Session evidence, shared resource identity and Local Context availability without organization-membership reads, hidden query expansion, writes, parsing, model work, or external I/O; the [Product Model](product.md#session-detail-and-related-evidence) owns group eligibility, ordering, counts, and disclosure behavior.
 - Map every successfully parsed Session JSONL to its normalized Session and
   reference contract in `source_files`. Reconcile changed paths independently,
   then finalize one aggregate Session set; when a prior set is partial or errored,
@@ -563,7 +730,7 @@ the route renders the resulting payload.
 
 ### Workflow Projection Contract
 
-- `workflow_projection.py` owns the versioned, pure descriptor boundary for
+- `workflow/projection.py` owns the versioned, pure descriptor boundary for
   workflow Episodes, directional relations, reasons, and omission diagnostics.
   Importing or calling this contract performs no SQLite, filesystem, source,
   connector, network, model, embedding, or maintenance work.
@@ -589,7 +756,7 @@ the route renders the resulting payload.
 
 ### Workflow Focus Read Model
 
-- `workflow_focus.py` is the sole initial database-backed producer of the
+- `workflow/focus.py` is the sole initial database-backed producer of the
   versioned Session Focus payload. It accepts one local Session ID, validates
   primary-work meaningful eligibility, and returns `ready`, `missing`, or
   `ineligible` without adding a route or persistence owner.
@@ -607,7 +774,7 @@ the route renders the resulting payload.
 - The relation producer creates adjacent `continues` candidates and nearest-
   earlier `branches-from` candidates, selects at most one derived incoming edge
   per Episode, emits no heuristic `merged-into`, and delegates forward-time,
-  reason, and acyclic validation to `workflow_projection.py`.
+  reason, and acyclic validation to `workflow/projection.py`.
 - Stable outward traversal owns the 24-Episode, four-branch-root, and four-
   Episodes-per-branch limits. Evidence assembly reuses the stricter Related
   Materials destination boundary, groups source families with a five-item
@@ -620,7 +787,7 @@ the route renders the resulting payload.
 
 ### Workflow Assertion Ledger And Overlay
 
-- `workflow_assertions.py` owns the only workflow-correction mutation and
+- `workflow/assertions.py` owns the only workflow-correction mutation and
   overlay boundary. The `workflow_assertions` table is append-only application
   state keyed by a digest of stable Episode identity; nullable Session foreign
   keys are current lookup aids with `ON DELETE SET NULL`, and one unique
@@ -646,8 +813,8 @@ the route renders the resulting payload.
 
 ### Session Workflow Focus Route
 
-- `workflow_map.py` is the pure presentation adapter for one validated
-  `WorkflowFocusProjection`; `workflow_correction_view.py` adds registry-backed
+- `workflow/map.py` is the pure presentation adapter for one validated
+  `WorkflowFocusProjection`; `workflow/correction_view.py` adds registry-backed
   active-assertion summaries, stable boundary identities, exact consequence
   previews, and only currently valid actions without querying a second
   authority. `GET /sessions/{id}/workflow` opens one SQLite connection, invokes
@@ -666,7 +833,7 @@ the route renders the resulting payload.
   JavaScript runs. Missing, ineligible, and unexpected projection states render
   bounded local destinations with `404`, `422`, and `500` respectively; a
   connected or unconnected ready projection is `200`.
-- `workflow_correction.py` owns the strict `application/x-www-form-urlencoded`
+- `workflow/correction.py` owns the strict `application/x-www-form-urlencoded`
   boundary for `POST /sessions/{id}/workflow/corrections`: at most 16 KiB and
   eight fields, exact action-specific shapes, one optimistic projection
   revision, bounded note, strict percent decoding, and same-origin Fetch
@@ -860,7 +1027,7 @@ The Insights database projection groups all observed evidence once per source, n
 
 ### Personal Insight Evidence
 
-`personal_insight_evidence.py` owns the read-only current evidence producer and
+`insights/evidence.py` owns the read-only current evidence producer and
 reference reviewer. `build_insight_evidence_manifest(connection, *, mode,
 requested_at, question=None, source_ids=None, date_from=None, date_to=None,
 timezone="Asia/Seoul")` returns `personal-insight-evidence-v2`.
@@ -970,11 +1137,11 @@ current excerpt for its retained evidence.
 
 ### Personal Improvement Analysis Runs
 
-The Insights route separately browses `personal_insight_runs`. A submitted question or discovery request freezes at most 100 eligible primary-work Sessions, 300 excerpts, and 120,000 excerpt characters into a private evidence manifest. The current versioned core supplies all eleven detailed playbooks and selects a finding type from the owner's goal and observed friction, rather than excluding types through lexical cues. The exact prompt, core/playbook versions and digests, and report-v3 JSON schema are frozen for that Run; historical core v2/v3 keeps the v2 result shape. Additive eligible-message positions and counts allow the validator to reject conversation requests for fully supplied messages. Reports explain candidate/type selection and show frozen source, count, time, and truncation coverage. Conversation requests are rendered from validated missing-message targets; no automatic expansion or paid retry occurs. Codex CLI uses the Run's frozen local `CODEX_HOME` profile, no native Session persistence, and no model tools, so the analysis conversation does not enter ordinary Session evidence or feed later analysis. The home is chosen from `LOCALBRAIN_INSIGHT_CODEX_HOME`, `CODEX_HOME`, an existing `~/.codex-company`, or `~/.codex`, in that order. A validated result has at most three findings, an explicit no-finding outcome, or a bounded request for more evidence. Findings must cite IDs from the frozen manifest; recurrence requires independent Sessions. The Run stores CLI-observed usage before report validation and retains the private validated value, Markdown report, and source excerpts outside Git. `personal_insight_usage.py` projects one latest usage summary per Run into canonical Usage Records using a metadata-only Maintenance Session with external identity `localbrain-insight:<Run ID>`. This accounting parent contains no messages, events, workspace, or search entry and remains excluded from work-Session counts and future analysis. Source attribution matches the frozen Codex home to the registered sessions root; Project attribution is unassigned because execution occurs in the private Run artifact directory, not an originating work repository. The dashboard excludes this Maintenance accounting from Project composition while retaining it in overall usage, history and Source/Model. Frozen attribution stays unchanged. New Runs explicitly select Standard service tier. Historical unmarked Runs use a labeled default-tier assumption. Input includes cache reads, so normalization subtracts cached input before pricing it separately; reasoning stays within output. Aggregate inputs above a request-price threshold remain partial because request-level context is unavailable. Failure, cancellation, and interruption preserve any emitted usage; startup can recover retained summaries or terminal stream evidence without a provider call. Stable identities and frozen snapshots prevent replay double counting. It never starts implementation work. Opening Insights, downloading a report, or syncing a source starts no model Run. The Usage & Cost opening query remains independent of this path.
+The Insights route separately browses `personal_insight_runs`. A submitted question or discovery request freezes at most 100 eligible primary-work Sessions, 300 excerpts, and 120,000 excerpt characters into a private evidence manifest. The current versioned core supplies all eleven detailed playbooks and selects a finding type from the owner's goal and observed friction, rather than excluding types through lexical cues. The exact prompt, core/playbook versions and digests, and report-v3 JSON schema are frozen for that Run; historical core v2/v3 keeps the v2 result shape. Additive eligible-message positions and counts allow the validator to reject conversation requests for fully supplied messages. Reports explain candidate/type selection and show frozen source, count, time, and truncation coverage. Conversation requests are rendered from validated missing-message targets; no automatic expansion or paid retry occurs. Codex CLI uses the Run's frozen local `CODEX_HOME` profile, no native Session persistence, and no model tools, so the analysis conversation does not enter ordinary Session evidence or feed later analysis. The home is chosen from `LOCALBRAIN_INSIGHT_CODEX_HOME`, `CODEX_HOME`, an existing `~/.codex-company`, or `~/.codex`, in that order. A validated result has at most three findings, an explicit no-finding outcome, or a bounded request for more evidence. Findings must cite IDs from the frozen manifest; recurrence requires independent Sessions. The Run stores CLI-observed usage before report validation and retains the private validated value, Markdown report, and source excerpts outside Git. `insights/usage.py` projects one latest usage summary per Run into canonical Usage Records using a metadata-only Maintenance Session with external identity `localbrain-insight:<Run ID>`. This accounting parent contains no messages, events, workspace, or search entry and remains excluded from work-Session counts and future analysis. Source attribution matches the frozen Codex home to the registered sessions root; Project attribution is unassigned because execution occurs in the private Run artifact directory, not an originating work repository. The dashboard excludes this Maintenance accounting from Project composition while retaining it in overall usage, history and Source/Model. Frozen attribution stays unchanged. New Runs explicitly select Standard service tier. Historical unmarked Runs use a labeled default-tier assumption. Input includes cache reads, so normalization subtracts cached input before pricing it separately; reasoning stays within output. Aggregate inputs above a request-price threshold remain partial because request-level context is unavailable. Failure, cancellation, and interruption preserve any emitted usage; startup can recover retained summaries or terminal stream evidence without a provider call. Stable identities and frozen snapshots prevent replay double counting. It never starts implementation work. Opening Insights, downloading a report, or syncing a source starts no model Run. The Usage & Cost opening query remains independent of this path.
 
 #### Guide Bundle And Result Contract
 
-`personal_insight_guidance.py` selects the bounded package catalogue and validates
+`insights/guidance.py` selects the bounded package catalogue and validates
 the report value. New Runs freeze core `personal-improvement-core-v8`, report
 `personal-improvement-report-v3`, all eleven playbooks, exact trusted text, a
 `route_reason='owner_goal_and_observed_friction'`, and separate SHA-256 digests
@@ -1068,7 +1235,7 @@ admitting product work identity or organization changes.
 
 ### Workstream Candidate Contract
 
-- `workstream_candidates.py` owns `localbrain.workstream-candidate.v1`.
+- `workflow/candidates.py` owns `localbrain.workstream-candidate.v1`.
   Producers supply canonical artifact/Session/reference facts and proposed
   pairs. The module validates their evidence; it neither enumerates a corpus
   nor resolves a URL, path, Site, or alias through I/O.
@@ -1472,7 +1639,7 @@ production transition or product identity.
 
 ### Full-History Simulation Producer
 
-`session_simulation.py`, its verified local encoder and ordered grouping engine
+`auto_work/simulation.py`, its verified local encoder and ordered grouping engine
 produce the private input for observation-only affinity inspection. Preparation
 is explicit; browsing cannot invoke it. It accounts for all stored Sessions and
 processes all nonempty user/assistant messages of admitted primary/full work
@@ -1568,7 +1735,7 @@ report admits production work semantics, organization changes or a new extractor
 
 ### Auto Work Inspection Read Model
 
-`GET /auto-work` defaults to the current `session_affinity.py` consumer. The
+`GET /auto-work` defaults to the current `auto_work/affinity.py` consumer. The
 server renders complete native text navigation and exact evidence; optional
 `affinity-map.js` draws a viewport-bounded temporal SVG and owns zoom/pan plus cancellable
 same-route navigation. History retains only viewport/Trace coordinates and edge
@@ -1690,7 +1857,7 @@ evidence page; the former graph paging is not a current contract.
 
 ### Previous Sample Inspection
 
-The separate `auto_work.py` preview adapter consumes the experimentally verified
+The separate `auto_work/preview.py` preview adapter consumes the experimentally verified
 preparation/extraction shape, not the Focus projection. `GET /auto-work?mode=sample` reads
 one owner-checked, 10-MiB-bounded, seven-day runtime file, revalidates current
 source eligibility and frozen hashes through the read-only input adapter, and
@@ -1816,4 +1983,4 @@ Implementation priorities and unresolved work belong in the [Project Backlog](..
 
 ## Google Drive Synchronization Boundary
 
-The approved [Drive sync contract](google-drive-sync.md) adds explicit selected external writes. `google_drive/` owns the gcloud authentication adapter, separate private SQLite state, directional engines and backend-lifetime scheduler; `google_drive_web.py` exposes Settings-only local routes. The existing Session/Context collectors and clocks are unchanged. Fixed wall-clock jobs use one serialized worker, per-item verified checkpoints and cancellation between operations. The Drive synchronization path does not route OAuth or received material through a model, gateway executor, search index or automatic source registration. Separately approved [Context Search](context-search.md) may read already received copies within its explicit source boundary. Opening Settings reads cached state; explicit root browse and selected manual/automatic jobs perform real API operations. Native loopback authentication and the existing local same-origin boundary still apply.
+The approved [Drive sync contract](google-drive-sync.md) adds explicit selected external writes. `google_drive/` owns the gcloud authentication adapter, separate private SQLite state, directional engines and backend-lifetime scheduler; `google_drive/web.py` exposes Settings-only local routes. The existing Session/Context collectors and clocks are unchanged. Fixed wall-clock jobs use one serialized worker, per-item verified checkpoints and cancellation between operations. The Drive synchronization path does not route OAuth or received material through a model, gateway executor, search index or automatic source registration. Separately approved [Context Search](context-search.md) may read already received copies within its explicit source boundary. Opening Settings reads cached state; explicit root browse and selected manual/automatic jobs perform real API operations. Native loopback authentication and the existing local same-origin boundary still apply.

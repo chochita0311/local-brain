@@ -2,7 +2,7 @@
 
 ## Ownership And Admission Boundary
 
-`work_state.py` owns the pure experimental in-memory source/state contracts.
+`experiments/claims/state.py` owns the pure experimental in-memory source/state contracts.
 The unchanged `localbrain.source-claim-state.v1` uses `synthetic-supplied.v1`
 interpretations; the model-aware v2 records actual model-producer lineage
 and scoped inferred lifecycle effects. Both projection functions remain pure,
@@ -189,7 +189,7 @@ execution obligation, but whether it truly does so is an upstream semantic
 judgment, not proven by this structural check. Missing support rejects the effect;
 unresolved/contradicted judgments remain visible without creating live state.
 
-`work_claims.py` implements the separately invoked two-stage adapter:
+`experiments/claims/contract.py` implements the separately invoked two-stage adapter:
 
 1. Extract atomic source roles and exact quoted spans, with explicit occurrence
    for repeated wording. The host owns offsets, revision, attribution and source
@@ -205,7 +205,7 @@ Strict JSON validation does not guarantee model output grammar or semantic truth
 Invalid or truncated outputs fail without quote repair, retries or self-approval.
 Whole-input bounds remain explicit; an adapter packet is not a corpus-size cap.
 
-`work_claim_assessment.py` and `work_claim_trial.py` own frozen synthetic comparison
+`experiments/claims/assessment.py` and `experiments/claims/trial.py` own frozen synthetic comparison
 and failure-preserving replay. Reference-conditioned binding receives correct
 claims/targets and is labeled conditional evidence; end-to-end generation receives
 neither. Expected claims, grouping, effects and states are independently declared

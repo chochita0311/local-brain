@@ -10,8 +10,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "tests"))
-from localbrain.work_context_evaluation import evaluate, verify_evidence_development
-from localbrain.work_reconstruction import ExperimentError
+from localbrain.experiments.context.evaluation import evaluate, verify_evidence_development
+from localbrain.foundation.validation import ExperimentError
 from work_context_cases import CASES, assess
 
 
@@ -49,11 +49,11 @@ def main(argv=None):
         cases = [case for case in suite if args.split == "all" or case["split"] in selected_splits]
         print("SYNTHETIC_EVALUATION_RUNNING", flush=True)
         with open(os.devnull, "w") as quiet, contextlib.redirect_stdout(quiet), contextlib.redirect_stderr(quiet):
-            from localbrain.work_context_model import LocalGenerator
+            from localbrain.models.generation import LocalGenerator
             generator = LocalGenerator(args.model_root, device=args.device,
                                        decoding=args.decoding, thinking=args.thinking, **settings)
             if args.strategy == "evidence":
-                from localbrain.work_context_evidence import validate_runtime
+                from localbrain.experiments.context.evidence import validate_runtime
                 validate_runtime(generator)
                 if args.split == "holdout":
                     development = [c for c in suite if c["split"] in {"development", "compositional"}]

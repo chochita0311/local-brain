@@ -9,14 +9,14 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 from localbrain.ingest.sync import contexts, storage
-from localbrain import db
-from localbrain.config import Settings
-from localbrain.contexts import add_context_root, add_apple_notes_source
-from localbrain.context_sync import ContextSyncService
+from localbrain.persistence import db
+from localbrain.foundation.config import Settings
+from localbrain.local_context.service import add_context_root, add_apple_notes_source
+from localbrain.sources.context_sync import ContextSyncService
 from localbrain.ingest import scanner
-from localbrain.local_operations import operation_lock
-from localbrain.preferences import PreferencesError, read_preferences, save_preferences
-from localbrain.session_sync import SessionSyncService
+from localbrain.foundation.operations import operation_lock
+from localbrain.foundation.preferences import PreferencesError, read_preferences, save_preferences
+from localbrain.sources.session_sync import SessionSyncService
 
 
 class ContextSyncTests(unittest.TestCase):
@@ -78,19 +78,19 @@ class ContextSyncTests(unittest.TestCase):
         context = ContextSyncService(self.config, contexts)
         session._write({"completed_at": 1000})
         context._write({"completed_at": 1000})
-        with patch("localbrain.source_sync.time.time", return_value=1600):
+        with patch("localbrain.sources.sync.time.time", return_value=1600):
             session._collect(False)
             context._collect(False)
             self.assertEqual(sessions.call_count, 1)
             self.assertEqual(contexts.call_count, 0)
             self.assertEqual(context.status()["next_at"], 2800)
-        with patch("localbrain.source_sync.time.time", return_value=2800):
+        with patch("localbrain.sources.sync.time.time", return_value=2800):
             context._collect(False)
             ContextSyncService(self.config, contexts)._collect(False)
             self.assertEqual(contexts.call_count, 1)
             self.assertEqual(context.status()["next_at"], 4600)
         self.save(context_sync_enabled=False)
-        with patch("localbrain.source_sync.time.time", return_value=10000):
+        with patch("localbrain.sources.sync.time.time", return_value=10000):
             context._collect(False)
             self.assertEqual(contexts.call_count, 1)
             self.assertIsNone(context.status()["next_at"])

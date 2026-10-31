@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from localbrain.workstreams import (
+from localbrain.workstreams.service import (
     add_link,
     create_checkpoint,
     create_thread,

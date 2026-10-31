@@ -4,7 +4,7 @@ from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
 from starlette.requests import Request
 
-from localbrain.value_registry import display_value_label, visible_value_help
+from localbrain.persistence.value_registry import display_value_label, visible_value_help
 
 
 ROOT = Path(__file__).resolve().parents[1]

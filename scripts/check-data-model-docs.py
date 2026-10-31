@@ -7,13 +7,13 @@ import sys
 from pathlib import Path
 
 from data_model_value_registry import check_documents
+from schema_migration_sources import migration_source_digest, migration_source_files
 
 
 ROOT = Path(__file__).resolve().parents[1]
 ENTRY = ROOT / "docs/policies/project/data-model.md"
 SUBJECT_ROOT = ROOT / "docs/policies/project/data-model"
 SCHEMA_PATH = ROOT / "src/localbrain/schema.sql"
-DB_PATH = ROOT / "src/localbrain/db.py"
 
 SUBJECTS = {
     "source-registry-and-scans.md": (
@@ -45,6 +45,12 @@ SUBJECTS = {
         "thread_links",
         "local_resources",
         "external_resources",
+        "reference_resources",
+        "resource_documents",
+        "resource_local_paths",
+        "resource_external_links",
+        "external_resource_content",
+        "external_resource_notes",
     ),
     "atlassian-source-memory.md": (
         "atlassian_sites",
@@ -53,8 +59,6 @@ SUBJECTS = {
         "atlassian_items",
         "atlassian_item_urls",
         "atlassian_item_remote_state",
-        "atlassian_item_content",
-        "atlassian_item_local_state",
         "atlassian_classifications",
         "atlassian_item_classifications",
         "atlassian_evidence_scans",
@@ -135,7 +139,10 @@ def main() -> int:
     errors: list[str] = []
     entry = ENTRY.read_text(encoding="utf-8")
     schema_sql = SCHEMA_PATH.read_text(encoding="utf-8")
-    db_source = DB_PATH.read_text(encoding="utf-8")
+    db_source = "\n".join(
+        (ROOT / source["path"]).read_text(encoding="utf-8")
+        for source in migration_source_files(ROOT)
+    )
 
     connection = sqlite3.connect(":memory:")
     connection.executescript(schema_sql)
@@ -170,8 +177,8 @@ def main() -> int:
         )
     if not search_exists:
         errors.append("search_index is missing or is not an FTS5 table")
-    if len(ordinary_tables) != 48:
-        errors.append(f"expected 48 ordinary tables, found {len(ordinary_tables)}")
+    if len(ordinary_tables) != 52:
+        errors.append(f"expected 52 ordinary tables, found {len(ordinary_tables)}")
 
     physical_fk_count = sum(
         len(
@@ -184,8 +191,8 @@ def main() -> int:
         )
         for table in ordinary_tables
     )
-    if physical_fk_count != 59:
-        errors.append(f"expected 59 physical foreign keys, found {physical_fk_count}")
+    if physical_fk_count != 66:
+        errors.append(f"expected 66 physical foreign keys, found {physical_fk_count}")
 
     fresh_indexes = {
         row[0]: row[1]
@@ -202,10 +209,10 @@ def main() -> int:
         )
     }
     effective_indexes = {**fresh_indexes, **runtime_indexes}
-    if len(fresh_indexes) != 44:
-        errors.append(f"expected 44 fresh explicit indexes, found {len(fresh_indexes)}")
-    if len(effective_indexes) != 52:
-        errors.append(f"expected 52 effective explicit indexes, found {len(effective_indexes)}")
+    if len(fresh_indexes) != 43:
+        errors.append(f"expected 43 fresh explicit indexes, found {len(fresh_indexes)}")
+    if len(effective_indexes) != 51:
+        errors.append(f"expected 51 effective explicit indexes, found {len(effective_indexes)}")
 
     documented_objects: list[str] = []
     documents: list[tuple[Path, str]] = [(ENTRY, entry)]
@@ -259,15 +266,15 @@ def main() -> int:
             errors.append(f"global entry does not name {table}")
 
     schema_digest = sha256(SCHEMA_PATH)
-    db_digest = sha256(DB_PATH)
+    migration_digest = migration_source_digest(ROOT)
     if f"`schema.sql` SHA-256: `{schema_digest}`" not in entry:
         errors.append("schema.sql baseline digest is stale")
-    if f"`db.py` SHA-256: `{db_digest}`" not in entry:
-        errors.append("db.py baseline digest is stale")
+    if f"Migration sources SHA-256: `{migration_digest}`" not in entry:
+        errors.append("migration sources baseline digest is stale")
 
-    if "Ordinary tables: `48`" not in entry or "Physical foreign keys: `59`" not in entry:
+    if "Ordinary tables: `52`" not in entry or "Physical foreign keys: `66`" not in entry:
         errors.append("global baseline counts are stale")
-    if "Effective explicitly named indexes: `52`" not in entry:
+    if "Effective explicitly named indexes: `51`" not in entry:
         errors.append("global effective-index count is stale")
 
     semantic_documents = {
@@ -336,8 +343,8 @@ def main() -> int:
             print(f"ERROR: {error}", file=sys.stderr)
         return 1
     print(
-        "Data-model docs match 48 ordinary tables, 1 FTS5 object, "
-        "59 physical foreign keys, 52 explicit indexes, and 11 subject owners."
+        "Data-model docs match 52 ordinary tables, 1 FTS5 object, "
+        "66 physical foreign keys, 51 explicit indexes, and 11 subject owners."
     )
     return 0
 

@@ -6,10 +6,10 @@ import json
 import time
 from pathlib import Path
 
-from localbrain.config import settings
+from localbrain.foundation.config import settings
 from localbrain.natural_search.model import SearchEncoder
 from localbrain.natural_search.molecules import Profile, bounded_context
-from localbrain.runtime_storage import private_directory
+from localbrain.foundation.files import private_directory
 
 
 def main():

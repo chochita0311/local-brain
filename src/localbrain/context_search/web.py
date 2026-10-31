@@ -8,7 +8,7 @@ from fastapi import HTTPException, Request
 from fastapi.responses import StreamingResponse
 from starlette.concurrency import run_in_threadpool
 
-from ..markdown import render_markdown
+from localbrain.rendering.markdown import render_markdown
 from .engine import ChatError
 
 

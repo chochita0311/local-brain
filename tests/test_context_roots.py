@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 from markupsafe import Markup
 
-from localbrain.contexts import (
+from localbrain.local_context.service import (
     ContextOrderConflict,
     add_apple_notes_source,
     add_context_file,
@@ -21,8 +21,8 @@ from localbrain.contexts import (
     reorder_context_sources,
 )
 from localbrain.ingest.scanner import scan_context_root
-from localbrain.markdown import MarkdownProperty, MarkdownRenderResult
-from localbrain.queries import context_documents, document_detail
+from localbrain.rendering.markdown import MarkdownProperty, MarkdownRenderResult
+from localbrain.local_context.queries import context_documents, document_detail
 
 
 SCHEMA_PATH = Path(__file__).parents[1] / "src" / "localbrain" / "schema.sql"
@@ -88,7 +88,7 @@ class ContextRootTests(unittest.TestCase):
             reorder_context_sources(self.connection, ids, ids[::-1])
 
     def test_compatible_order_column_keeps_legacy_source_order(self):
-        from localbrain.db import _run_compatible_migrations
+        from localbrain.persistence.migrations.compatible import _run_compatible_migrations
         self.connection.execute('ALTER TABLE context_roots DROP COLUMN display_order')
         first = add_apple_notes_source(self.connection)
         folder = Path(self.root_parent.name) / 'notes'
@@ -291,7 +291,7 @@ class ContextRootTests(unittest.TestCase):
         self.assertEqual(empty_preview["rendered_body"], "")
 
         with patch(
-            "localbrain.contexts.render_markdown",
+            "localbrain.local_context.service.render_markdown",
             return_value=MarkdownRenderResult(
                 html=Markup('<pre class="markdown-render-fallback">source</pre>'),
                 state="fallback",

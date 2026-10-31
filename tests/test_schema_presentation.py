@@ -3,6 +3,7 @@ import re
 import sqlite3
 import sys
 import tempfile
+import shutil
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -14,10 +15,8 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 import schema_presentation_builder as builder  # noqa: E402
-from localbrain.schema_presentation import (  # noqa: E402
-    SCHEMA_PRESENTATION_PATH,
-    load_schema_presentation,
-)
+from localbrain.persistence.schema_presentation import SCHEMA_PRESENTATION_PATH, load_schema_presentation
+from schema_migration_sources import migration_source_digest, migration_source_files
 
 
 class SchemaPresentationBuildTests(unittest.TestCase):
@@ -31,14 +30,14 @@ class SchemaPresentationBuildTests(unittest.TestCase):
         self.assertEqual(manifest["schema"], "localbrain.schema-presentation.v1")
         self.assertIs(manifest["derived"], True)
         self.assertEqual(len(manifest["subjects"]), 11)
-        self.assertEqual(len(manifest["tables"]), 49)
+        self.assertEqual(len(manifest["tables"]), 53)
         self.assertEqual(
-            sum(len(table["columns"]) for table in manifest["tables"]), 543
+            sum(len(table["columns"]) for table in manifest["tables"]), 556
         )
         self.assertEqual(
-            sum(len(table["indexes"]) for table in manifest["tables"]), 52
+            sum(len(table["indexes"]) for table in manifest["tables"]), 51
         )
-        self.assertEqual(len(manifest["relationships"]["physical"]), 59)
+        self.assertEqual(len(manifest["relationships"]["physical"]), 66)
         self.assertEqual(len(manifest["relationships"]["application"]), 29)
 
         owned = [
@@ -48,7 +47,7 @@ class SchemaPresentationBuildTests(unittest.TestCase):
         ]
         table_ids = [table["id"] for table in manifest["tables"]]
         self.assertEqual(owned, table_ids)
-        self.assertEqual(len(set(owned)), 49)
+        self.assertEqual(len(set(owned)), 53)
         self.assertTrue({"personal_insight_runs", "skill_observations", "session_chart_preferences"}.issubset(owned))
 
         required_semantics = {
@@ -73,12 +72,26 @@ class SchemaPresentationBuildTests(unittest.TestCase):
     def test_manifest_is_byte_deterministic(self):
         self.assertEqual(builder.manifest_bytes(ROOT), builder.manifest_bytes(ROOT))
 
+    def test_domain_migration_change_is_fingerprinted_without_entrypoint_change(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            shutil.copytree(ROOT / "src/localbrain/persistence", root / "src/localbrain/persistence",
+                            ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+            before = migration_source_digest(root)
+            entrypoint = (root / "src/localbrain/persistence/db.py").read_bytes()
+            migration = root / "src/localbrain/persistence/migrations/resources.py"
+            migration.write_text(migration.read_text() + "\n# Synthetic migration revision\n")
+            self.assertNotEqual(migration_source_digest(root), before)
+            self.assertEqual((root / "src/localbrain/persistence/db.py").read_bytes(), entrypoint)
+            self.assertIn("src/localbrain/persistence/migrations/resources.py",
+                          {row["path"] for row in migration_source_files(root)})
+
     def test_generation_uses_only_in_memory_sqlite_and_skips_data_migrations(self):
         real_connect = sqlite3.connect
         with mock.patch.object(
             builder.sqlite3, "connect", side_effect=real_connect
         ) as connect_mock, mock.patch(
-            "localbrain.db._migrate_context_roots",
+            "localbrain.persistence.migrations.compatible._migrate_context_roots",
             side_effect=AssertionError("data migration must stay disabled"),
         ):
             builder.build_manifest(ROOT)

@@ -13,8 +13,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: search projection owner
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/retrieval.py`, `src/localbrain/atlassian.py`, `src/localbrain/atlassian_structure_references.py`
-- Consumers: `src/localbrain/retrieval.py`, `src/localbrain/atlassian_browse.py`, `src/localbrain/atlassian_structure_references.py`
+- Producers: `src/localbrain/workstreams/retrieval.py`, `src/localbrain/atlassian/catalog.py`, `src/localbrain/atlassian/structure_references.py`
+- Consumers: `src/localbrain/workstreams/retrieval.py`, `src/localbrain/atlassian/browse.py`, `src/localbrain/atlassian/structure_references.py`
 - Consequence: Selects the source table and result route for a derived row.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.

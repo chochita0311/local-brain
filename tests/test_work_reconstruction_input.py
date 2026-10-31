@@ -7,16 +7,22 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from localbrain.resources.catalog import bind_document, bind_external_link
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import patch
 
-from localbrain.work_reconstruction import ExperimentError, digest
-from localbrain.work_reconstruction_input import load_snapshots, read_only_database, validate_manifest
-from localbrain.work_reconstruction_experiment import (
-    decode_bounded, encode_bounded, evaluate_history, publish, supervise,
+from localbrain.foundation.validation import ExperimentError
+from localbrain.foundation.fingerprints import digest
+from localbrain.experiments.reconstruction.input import load_snapshots, read_only_database, validate_manifest
+from localbrain.experiments.reconstruction.experiment import (
+    decode_bounded,
+    encode_bounded,
+    evaluate_history,
+    publish,
+    supervise,
 )
-from localbrain.work_reconstruction_preparation import prepare_current, unassessed_expectations
+from localbrain.experiments.reconstruction.preparation import prepare_current, unassessed_expectations
 from work_reconstruction_cases import bind_expectations, goal, record, snapshot
 
 
@@ -51,7 +57,7 @@ class ReconstructionInputTests(unittest.TestCase):
             connection.execute("""INSERT INTO external_resources(id,resource_type,title,url) VALUES (1,'wiki','Synthetic','https://example.test/wiki/1')""")
             connection.execute("""INSERT INTO atlassian_sites(id,normalized_domain,canonical_base_url) VALUES (1,'example.test','https://example.test')""")
             connection.execute("""INSERT INTO atlassian_items(external_resource_id,site_id,service,item_type,coverage) VALUES (1,1,'confluence','confluence_page','indexed')""")
-            connection.execute("""INSERT INTO atlassian_item_content(external_resource_id,source_format,source_body,source_hash,normalized_document_json,normalized_text,normalizer_version,applied_at)
+            connection.execute("""INSERT INTO external_resource_content(external_resource_id,source_format,source_body,source_hash,normalized_document_json,normalized_text,normalizer_version,applied_at)
                 VALUES (1,'plain_text','synthetic unadmitted source payload',?,'{}','Reduce latency.','synthetic',?)""", ("2" * 64, AT))
         self.manifest = {"version": 1, "source_ids": [1], "start": "2029-12-31T00:00:00Z",
                          "end": "2030-01-02T00:00:00Z", "owner": "synthetic-test",
@@ -88,7 +94,7 @@ class ReconstructionInputTests(unittest.TestCase):
                      ("UPDATE activity_events SET event_type='tool_result'", "UPDATE activity_events SET event_type='message'")]
         for mutation, restore in mutations:
             self.change(mutation)
-            with patch("localbrain.work_reconstruction_input._text") as body:
+            with patch("localbrain.experiments.reconstruction.input._text") as body:
                 with self.assertRaises(ExperimentError):
                     load_snapshots(self.db, self.manifest)
                 body.assert_not_called()
@@ -99,13 +105,13 @@ class ReconstructionInputTests(unittest.TestCase):
         scope["events"] = []
         scope["documents"] = [selection(1, "Improve indexing.")]
         self.change("UPDATE context_roots SET enabled=0")
-        with patch("localbrain.work_reconstruction_input._text") as body:
+        with patch("localbrain.experiments.reconstruction.input._text") as body:
             with self.assertRaises(ExperimentError): load_snapshots(self.db, self.manifest)
             body.assert_not_called()
         scope["documents"] = []
         scope["items"] = [selection(1, "Reduce latency.")]
         self.change("UPDATE atlassian_items SET coverage='reference'")
-        with patch("localbrain.work_reconstruction_input._text") as body:
+        with patch("localbrain.experiments.reconstruction.input._text") as body:
             with self.assertRaises(ExperimentError): load_snapshots(self.db, self.manifest)
             body.assert_not_called()
 
@@ -122,12 +128,12 @@ class ReconstructionInputTests(unittest.TestCase):
         scope = self.manifest["snapshots"][0]
         scope["events"] = []
         scope["items"] = [selection(1, "Reduce latency.")]
-        with patch("localbrain.work_reconstruction_input._text") as body:
+        with patch("localbrain.experiments.reconstruction.input._text") as body:
             with self.assertRaises(ExperimentError): load_snapshots(self.db, self.manifest)
             body.assert_not_called()
 
     def test_reference_identity_comes_from_canonical_metadata_not_row_or_label(self):
-        from localbrain.work_reconstruction_input import _canonical_reference
+        from localbrain.experiments.reconstruction.input import _canonical_reference
         with read_only_database(self.db) as connection:
             document = _canonical_reference(connection, {"target_kind": "context_document", "context_document_id": 1})
         self.assertEqual((document[0], document[2]), ("context-document", "goal.md"))
@@ -142,7 +148,7 @@ class ReconstructionInputTests(unittest.TestCase):
             self.assertIsNone(_canonical_reference(connection, {"target_kind": "url", "normalized_url": "https://synthetic-user:synthetic-password@localhost/"}))
 
     def test_selected_persisted_references_feed_the_unchanged_pair_comparator(self):
-        from localbrain.work_reconstruction import metadata_baseline, metadata_view
+        from localbrain.experiments.reconstruction.contract import metadata_baseline, metadata_view
         self.change("""INSERT INTO sessions(id,source_id,external_id,source_path,title,event_count)
             VALUES (2,1,'synthetic-second','/synthetic/second','Synthetic',1)""")
         self.change("UPDATE atlassian_items SET remote_id='42'")
@@ -152,15 +158,19 @@ class ReconstructionInputTests(unittest.TestCase):
         scope["items"] = [selection(1, "Reduce latency.")]
         self.change("""INSERT INTO session_reference_scans(session_id,source_fingerprint,extractor_version,status,scanned_at,updated_at)
             VALUES (2,?,'synthetic','ok',?,?)""", ("0" * 64, AT, AT))
+        with sqlite3.connect(self.db) as connection:
+            connection.row_factory = sqlite3.Row
+            document_resource = bind_document(connection, 1)
+            item_resource = bind_external_link(connection, 1)
         for sid in (1, 2):
-            for number, kind, document, item, url in ((1, "context_document", 1, None, None),
-                                                       (2, "atlassian_item", None, 1, "https://example.test/wiki/42")):
+            for number, resource_id, url in ((1, document_resource, None),
+                                            (2, item_resource, "https://example.test/wiki/42")):
                 identity = "synthetic-{}-{}".format(sid, number)
                 self.change("""INSERT INTO session_reference_evidence(session_id,source_path,source_line,evidence_ordinal,
-                    target_kind,target_key,context_document_id,external_resource_id,evidence_kind,observed_identity,
+                    resource_id,target_key,evidence_kind,observed_identity,
                     normalized_url,observed_at,extractor_version,evidence_key,first_observed_at,last_observed_at)
-                    VALUES (?,'/synthetic/source',1,?,?,?, ?,?,'user_mention',?,?,?,'synthetic',?,?,?)""",
-                            (sid, number, kind, identity, document, item, identity, url, AT,
+                    VALUES (?,'/synthetic/source',1,?,?,?,'user_mention',?,?,?,'synthetic',?,?,?)""",
+                            (sid, number, resource_id, identity, identity, url, AT,
                              hashlib.sha256(identity.encode()).hexdigest(), AT, AT))
         data = load_snapshots(self.db, self.manifest)[0]
         self.assertTrue(data["coverage"]["complete"])
@@ -187,7 +197,7 @@ class ReconstructionInputTests(unittest.TestCase):
         value = copy.deepcopy(self.manifest); value["snapshots"][0]["organization_links"] = list(range(1,202)); variants.append(value)
         value = copy.deepcopy(self.manifest); value["source_ids"] = [True]; variants.append(value)
         for value in variants:
-            with patch("localbrain.work_reconstruction_input.sqlite3.connect") as connect:
+            with patch("localbrain.experiments.reconstruction.input.sqlite3.connect") as connect:
                 with self.assertRaises(ExperimentError): load_snapshots(self.db, value)
                 connect.assert_not_called()
 
@@ -205,7 +215,7 @@ class ReconstructionInputTests(unittest.TestCase):
         command = [sys.executable, "-B", "-c", "\n".join((
             "import json, sys",
             "from pathlib import Path",
-            "from localbrain.work_reconstruction_experiment import supervise",
+            'from localbrain.experiments.reconstruction.experiment import supervise\n',
             "manifest = json.loads(Path(sys.argv[2]).read_text(encoding='utf-8'))",
             "print(json.dumps(supervise('load', (sys.argv[1], manifest))))",
         )), str(self.db), str(manifest)]
@@ -216,7 +226,7 @@ class ReconstructionInputTests(unittest.TestCase):
         self.assertGreater(resources["peak_bytes"], 0)
 
     def test_extended_selection_keeps_source_record_and_existing_statement_identity(self):
-        from localbrain.work_reconstruction import reconstruct
+        from localbrain.experiments.reconstruction.contract import reconstruct
         first = load_snapshots(self.db, self.manifest)[0]
         self.change("UPDATE activity_events SET text='Fix parsing. Improve indexing.'")
         self.manifest["snapshots"][0]["events"] = [selection("event-1", "Fix parsing. Improve indexing.")]
@@ -285,9 +295,9 @@ class ReconstructionInputTests(unittest.TestCase):
                 VALUES (?,1,?,'/synthetic/extra','Synthetic',1)""", (sid, str(sid)))
             self.change("""INSERT INTO activity_events(id,session_id,sequence,occurred_at,event_type,role,text,source_line)
                 VALUES (?,?,1,?,'message','user','Fix parsing.',1)""", ("event-{}".format(sid), sid, at))
-        with patch("localbrain.work_reconstruction_experiment.reconstruct", side_effect=AssertionError("prediction")), \
-             patch("localbrain.work_reconstruction.reconstruct", side_effect=AssertionError("prediction")), \
-             patch("localbrain.work_reconstruction.metadata_baseline", side_effect=AssertionError("prediction")):
+        with patch("localbrain.experiments.reconstruction.experiment.reconstruct", side_effect=AssertionError("prediction")), \
+             patch("localbrain.experiments.reconstruction.contract.reconstruct", side_effect=AssertionError("prediction")), \
+             patch("localbrain.experiments.reconstruction.contract.metadata_baseline", side_effect=AssertionError("prediction")):
             prepared = self.prepare()
         selected = prepared["manifest"]["snapshots"][-1]["session_ids"]
         self.assertEqual(len(selected), 60)
@@ -314,12 +324,12 @@ class ReconstructionInputTests(unittest.TestCase):
 
     def test_current_preparation_checks_scope_and_time_before_bodies(self):
         self.change("UPDATE sessions SET index_policy='metadata_only'")
-        with patch("localbrain.work_reconstruction_preparation._prefix") as prefix:
+        with patch("localbrain.experiments.reconstruction.preparation._prefix") as prefix:
             with self.assertRaises(ExperimentError): self.prepare()
             prefix.assert_not_called()
         self.change("UPDATE sessions SET index_policy='full'")
         self.change("UPDATE activity_events SET occurred_at='2035-01-01T00:00:00Z'")
-        with patch("localbrain.work_reconstruction_preparation._prefix") as prefix:
+        with patch("localbrain.experiments.reconstruction.preparation._prefix") as prefix:
             with self.assertRaises(ExperimentError): self.prepare()
             prefix.assert_not_called()
 
@@ -330,7 +340,7 @@ class ReconstructionInputTests(unittest.TestCase):
                 VALUES (?,?,?,'/synthetic/extra','Synthetic',1)""", (sid, sid, str(sid)))
             self.change("""INSERT INTO activity_events(id,session_id,sequence,occurred_at,event_type,role,text,source_line)
                 VALUES (?,?,1,?,'message','user','Fix parsing.',1)""", ("extra-{}".format(sid), sid, AT))
-        with patch("localbrain.work_reconstruction_preparation._prefix") as prefix:
+        with patch("localbrain.experiments.reconstruction.preparation._prefix") as prefix:
             with self.assertRaises(ExperimentError): self.prepare()
             prefix.assert_not_called()
 
@@ -383,7 +393,7 @@ class ReconstructionRuntimeTests(unittest.TestCase):
             with self.assertRaises(ExperimentError): publish(output, {}, "synthetic", "2000-01-01T00:00:00Z")
             expiry = (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
             with self.assertRaises(ExperimentError): publish(ROOT / "forbidden-experiment-output", {}, "synthetic", expiry)
-            with patch("localbrain.work_reconstruction_experiment.os.open", side_effect=OSError("synthetic write failure")):
+            with patch("localbrain.experiments.reconstruction.experiment.os.open", side_effect=OSError("synthetic write failure")):
                 with self.assertRaises(OSError): publish(output, {}, "synthetic", expiry)
             self.assertFalse(output.exists())
             self.assertEqual(list(root.iterdir()), [])
@@ -410,7 +420,7 @@ class ReconstructionRuntimeTests(unittest.TestCase):
 
     def test_missing_resource_monitor_fails_closed(self):
         data = snapshot([record("r", "Fix parsing.")])
-        with patch("localbrain.work_reconstruction_experiment._memory_usage", side_effect=ExperimentError("MONITOR_UNAVAILABLE")):
+        with patch("localbrain.experiments.reconstruction.experiment._memory_usage", side_effect=ExperimentError("MONITOR_UNAVAILABLE")):
             with self.assertRaises(ExperimentError): supervise("text", (data,))
 
     def test_three_snapshots_record_stability_without_private_claim(self):
@@ -426,7 +436,7 @@ class ReconstructionRuntimeTests(unittest.TestCase):
         self.assertEqual(report["viability"], "unverified")
 
     def test_import_and_help_do_not_load_application_or_config(self):
-        code = "import localbrain.work_reconstruction_experiment,sys; assert 'localbrain.config' not in sys.modules; assert 'localbrain.db' not in sys.modules"
+        code = "import localbrain.experiments.reconstruction.experiment, sys\nassert 'localbrain.foundation.config' not in sys.modules\nassert 'localbrain.persistence.db' not in sys.modules\n"
         result = subprocess.run([sys.executable, "-B", "-c", code], capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
         help_result = subprocess.run([sys.executable, "-B", str(ROOT / "scripts/experiment-work-reconstruction.py"), "--help"], capture_output=True, text=True)

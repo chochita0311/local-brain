@@ -14,7 +14,7 @@ SOURCE_ROOT = ROOT / "src"
 if str(SOURCE_ROOT) not in sys.path:
     sys.path.insert(0, str(SOURCE_ROOT))
 
-from localbrain.value_registry import (  # noqa: E402
+from localbrain.persistence.value_registry import (
     REGISTRY_PATH,
     ValueRegistryError,
     validate_value_registry,

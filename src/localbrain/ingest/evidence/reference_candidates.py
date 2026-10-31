@@ -4,6 +4,8 @@ import json
 import re
 from typing import Any, Dict, List, Optional
 
+from localbrain.references.urls import trim_url_token
+
 from ..common import text_from_content
 from ..contracts import ApprovedResourceCall, ParsedReferenceCandidate, ParsedUrlEvidence
 
@@ -11,7 +13,7 @@ from ..contracts import ApprovedResourceCall, ParsedReferenceCandidate, ParsedUr
 EVIDENCE_EXTRACTOR_VERSION = "localbrain.atlassian-evidence.v4"
 
 
-REFERENCE_EXTRACTOR_VERSION = "localbrain.session-reference.v3"
+REFERENCE_EXTRACTOR_VERSION = "localbrain.session-reference.v4"
 
 
 URL_PATTERN = re.compile(r"https?://[^\s<>'\"`]+", re.IGNORECASE)
@@ -97,25 +99,6 @@ MAX_RESULT_CANDIDATES = 100
 
 
 MAX_RESULT_STRING_BYTES = 1_000_000
-
-
-def trim_url_token(value: str) -> str:
-    candidate = value.rstrip(".,;:!?")
-    opening_for = {")": "(", "]": "[", "}": "{"}
-    openings = set(opening_for.values())
-    stack = []
-    for index, character in enumerate(candidate):
-        if character in openings:
-            stack.append(character)
-            continue
-        expected = opening_for.get(character)
-        if expected is None:
-            continue
-        if stack and stack[-1] == expected:
-            stack.pop()
-            continue
-        return candidate[:index].rstrip(".,;:!?")
-    return candidate
 
 
 def visible_url_evidence(

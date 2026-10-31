@@ -1,12 +1,13 @@
 import sqlite3
 import tempfile
 import unittest
+from localbrain.persistence.migrations.contracts import migration_contracts_current
 from pathlib import Path
 from unittest.mock import patch
 
-from localbrain import db
-from localbrain.config import Settings
-from localbrain.source_revision_migration import (
+from localbrain.persistence import db
+from localbrain.foundation.config import Settings
+from localbrain.persistence.migrations.session_revisions import (
     BACKUP_SUFFIX,
     LEGACY_REVISIONS,
     REVISION_CHECK,
@@ -325,7 +326,7 @@ class SessionRevisionMigrationTests(unittest.TestCase):
                 self.assertEqual(backup.stat().st_mtime_ns, stamp)
                 with db.connect() as current:
                     self.assertEqual(current.execute("SELECT session_contract_version FROM source_files").fetchone()[0], 12)
-                    self.assertTrue(db.migration_contracts_current(current))
+                    self.assertTrue(migration_contracts_current(current))
 
     def test_future_numeric_revision_survives_constraint_rebuild(self):
         with sqlite3.connect(":memory:") as connection:

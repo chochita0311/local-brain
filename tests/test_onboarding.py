@@ -8,8 +8,8 @@ from unittest.mock import patch
 from fastapi import FastAPI
 from jinja2 import Environment, FileSystemLoader
 
-from localbrain.preferences import PreferencesError
-from localbrain.settings_web import install_settings_routes
+from localbrain.foundation.preferences import PreferencesError
+from localbrain.app.settings import install_settings_routes
 
 
 ROOT = Path(__file__).parents[1]
@@ -22,7 +22,7 @@ class OnboardingTests(unittest.TestCase):
         install_settings_routes(app, None)
         entry = next(route.endpoint for route in app.routes if route.path == "/onboarding")
         for screen in ("sessions", "sessions-dashboard", "context"):
-            with self.subTest(screen=screen), patch("localbrain.settings_web.read_preferences",
+            with self.subTest(screen=screen), patch("localbrain.app.settings.read_preferences",
                     return_value={"effective": {"startup_screen": screen}}):
                 response = entry(None)
                 self.assertEqual(response.status_code, 303)
@@ -32,7 +32,7 @@ class OnboardingTests(unittest.TestCase):
         app = FastAPI()
         install_settings_routes(app, None)
         entry = next(route.endpoint for route in app.routes if route.path == "/onboarding")
-        with patch("localbrain.settings_web.read_preferences", side_effect=PreferencesError("invalid")):
+        with patch("localbrain.app.settings.read_preferences", side_effect=PreferencesError("invalid")):
             self.assertEqual(entry(None).headers["location"], "/settings")
 
     def render_shell(self, *, desktop, completed, page="sessions", setup=False):

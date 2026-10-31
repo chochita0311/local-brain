@@ -11,8 +11,8 @@ try:
 except ModuleNotFoundError:
     import tomli as tomllib
 
-from localbrain.personal_insight_guidance import CORE_VERSION, REPORT_VERSION
-from localbrain.personal_insight_runs import (
+from localbrain.insights.guidance import CORE_VERSION, REPORT_VERSION
+from localbrain.insights.runs import (
     _render_report,
     _runner_args,
     _validate_result,
@@ -65,8 +65,8 @@ class PersonalInsightRunGuidanceTests(unittest.TestCase):
         binary.write_text("synthetic executable placeholder")
         launcher = Path(self.directory.name) / "launcher"
         launcher.symlink_to(binary)
-        with patch("localbrain.personal_insight_runs.settings", self.settings), patch(
-            "localbrain.personal_insight_runs.runner_choices", return_value=[choice]
+        with patch("localbrain.insights.runs.settings", self.settings), patch(
+            "localbrain.insights.runs.runner_choices", return_value=[choice]
         ):
             run_id = prepare_insight_run(
                 self.connection, mode="ask", question="설명 개선", runner="codex"
@@ -96,8 +96,8 @@ class PersonalInsightRunGuidanceTests(unittest.TestCase):
             "model": "synthetic-model", "codex_home": self.directory.name,
             "profile": "Synthetic",
         }
-        with patch("localbrain.personal_insight_runs.settings", self.settings), patch(
-            "localbrain.personal_insight_runs.runner_choices", return_value=[choice]
+        with patch("localbrain.insights.runs.settings", self.settings), patch(
+            "localbrain.insights.runs.runner_choices", return_value=[choice]
         ):
             run_id = prepare_insight_run(
                 self.connection, mode="ask", question="왜 설명을 다시 물어보지?", runner="codex"

@@ -9,6 +9,8 @@ import sys
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple
 
+from schema_migration_sources import migration_source_digest, migration_source_files
+
 
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGE_OUTPUT = ROOT / "src/localbrain/schema-presentation.json"
@@ -17,7 +19,7 @@ ENTRY_PATH = ROOT / "docs/policies/project/data-model.md"
 if str(ROOT / "src") not in sys.path:
     sys.path.insert(0, str(ROOT / "src"))
 
-from localbrain.db import _run_compatible_migrations  # noqa: E402
+from localbrain.persistence.migrations.compatible import _run_compatible_migrations
 
 
 class PresentationBuildError(RuntimeError):
@@ -379,15 +381,14 @@ def build_manifest(root: Path = ROOT) -> dict:
     expected_schema_digest = re.search(
         r"^- `schema\.sql` SHA-256: `([0-9a-f]{64})`$", entry, re.MULTILINE
     )
-    expected_db_digest = re.search(
-        r"^- `db\.py` SHA-256: `([0-9a-f]{64})`$", entry, re.MULTILINE
+    expected_migration_digest = re.search(
+        r"^- Migration sources SHA-256: `([0-9a-f]{64})`$", entry, re.MULTILINE
     )
     schema_path = root / "src/localbrain/schema.sql"
-    db_path = root / "src/localbrain/db.py"
     if not expected_schema_digest or expected_schema_digest.group(1) != sha256(schema_path):
         raise PresentationBuildError("Data Model schema.sql baseline digest is stale")
-    if not expected_db_digest or expected_db_digest.group(1) != sha256(db_path):
-        raise PresentationBuildError("Data Model db.py baseline digest is stale")
+    if not expected_migration_digest or expected_migration_digest.group(1) != migration_source_digest(root):
+        raise PresentationBuildError("Data Model migration sources baseline digest is stale")
 
     connection = effective_connection(root)
     try:
@@ -492,11 +493,8 @@ def build_manifest(root: Path = ROOT) -> dict:
                         "role": "fresh-schema-truth",
                         "sha256": sha256(schema_path),
                     },
-                    {
-                        "path": "src/localbrain/db.py",
-                        "role": "compatible-structure-truth",
-                        "sha256": sha256(db_path),
-                    },
+                    *({**source, "role": "compatible-structure-truth"}
+                      for source in migration_source_files(root)),
                     *semantic_sources,
                 ],
             },

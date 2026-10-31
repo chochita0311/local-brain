@@ -1,13 +1,12 @@
 import sqlite3
 import tempfile
 import unittest
+from localbrain.ingest.extensions import observe_ingestion
+from localbrain.atlassian.ingestion import AtlassianIngestion
 from pathlib import Path
 
-from localbrain.atlassian import (
-    create_or_reuse_atlassian_stub,
-    register_atlassian_site,
-)
-from localbrain.atlassian_evidence import (
+from localbrain.atlassian.catalog import create_or_reuse_atlassian_stub, register_atlassian_site
+from localbrain.atlassian.evidence import (
     atlassian_url_container_hint,
     configured_atlassian_site_fingerprint,
     document_evidence_source_fingerprint,
@@ -18,7 +17,7 @@ from localbrain.atlassian_evidence import (
     reconcile_document_evidence,
     reconcile_session_evidence,
 )
-from localbrain.contexts import add_context_root, remove_context_root
+from localbrain.local_context.service import add_context_root, remove_context_root
 from localbrain.ingest.scanner import scan_context_root
 from localbrain.ingest.evidence.reference_candidates import EVIDENCE_EXTRACTOR_VERSION
 from localbrain.ingest.contracts import ParsedUrlEvidence
@@ -29,6 +28,9 @@ SCHEMA_PATH = Path(__file__).parents[1] / "src" / "localbrain" / "schema.sql"
 
 class AtlassianEvidenceTests(unittest.TestCase):
     def setUp(self):
+        observers = observe_ingestion((AtlassianIngestion(),))
+        observers.__enter__()
+        self.addCleanup(observers.__exit__, None, None, None)
         self.connection = sqlite3.connect(":memory:")
         self.connection.row_factory = sqlite3.Row
         self.connection.execute("PRAGMA foreign_keys = ON")

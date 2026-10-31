@@ -3,7 +3,7 @@ import unittest
 from dataclasses import replace
 from pathlib import Path
 
-from localbrain.workflow_assertions import (
+from localbrain.workflow.assertions import (
     MAX_WORKFLOW_ASSERTION_HISTORY,
     WORKFLOW_ASSERTION_KINDS,
     WORKFLOW_ASSERTION_OVERLAY_VERSION,
@@ -15,8 +15,8 @@ from localbrain.workflow_assertions import (
     workflow_assertion_history,
     workflow_boundary_key,
 )
-from localbrain.workflow_focus import workflow_focus_projection
-from localbrain.workflow_projection import WorkflowRelation, WorkflowRelationReason
+from localbrain.workflow.focus import workflow_focus_projection
+from localbrain.workflow.projection import WorkflowRelation, WorkflowRelationReason
 
 
 ROOT = Path(__file__).resolve().parents[1]

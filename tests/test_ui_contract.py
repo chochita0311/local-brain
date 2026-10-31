@@ -6,8 +6,8 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
 
-from localbrain.usage_queries import usage_dashboard_data
-from localbrain.value_registry import display_value_label, visible_value_help
+from localbrain.usage.queries import usage_dashboard_data
+from localbrain.persistence.value_registry import display_value_label, visible_value_help
 
 
 ROOT = Path(__file__).parents[1]
@@ -28,7 +28,9 @@ SESSIONS_DASHBOARD = ROOT / "src" / "localbrain" / "templates" / "sessions_dashb
 SESSION_INSIGHTS = ROOT / "src" / "localbrain" / "templates" / "session_insights.html"
 SCHEMA_EXPLORER = ROOT / "src" / "localbrain" / "templates" / "schema.html"
 WORKSTREAM = ROOT / "src" / "localbrain" / "templates" / "workstream.html"
-MAIN = ROOT / "src" / "localbrain" / "main.py"
+ROUTES = ROOT / "src/localbrain/app/routes.py"
+SESSIONS_WEB = ROOT / "src/localbrain/sessions/web.py"
+ATLASSIAN_WEB = ROOT / "src/localbrain/atlassian/web.py"
 SCHEMA_SCRIPT = ROOT / "src" / "localbrain" / "static" / "schema-explorer.js"
 SCHEMA = ROOT / "src" / "localbrain" / "schema.sql"
 ATLASSIAN = ROOT / "src" / "localbrain" / "templates" / "atlassian.html"
@@ -107,7 +109,9 @@ class UiContractTests(unittest.TestCase):
         cls.session_insights = SESSION_INSIGHTS.read_text(encoding="utf-8")
         cls.schema_explorer = SCHEMA_EXPLORER.read_text(encoding="utf-8")
         cls.workstream = WORKSTREAM.read_text(encoding="utf-8")
-        cls.main = MAIN.read_text(encoding="utf-8")
+        cls.routes = ROUTES.read_text(encoding="utf-8")
+        cls.sessions_web = SESSIONS_WEB.read_text(encoding="utf-8")
+        cls.atlassian_web = ATLASSIAN_WEB.read_text(encoding="utf-8")
         cls.schema_script = SCHEMA_SCRIPT.read_text(encoding="utf-8")
         cls.atlassian = ATLASSIAN.read_text(encoding="utf-8")
         cls.atlassian_add_form = ATLASSIAN_ADD_FORM.read_text(encoding="utf-8")
@@ -401,7 +405,8 @@ class UiContractTests(unittest.TestCase):
             self.assertIn(style, self.styles)
 
     def test_marker_creation_ui_and_api_are_removed(self):
-        for content in (self.dashboard, self.workstream, self.script, self.main):
+        for content in (self.dashboard, self.workstream, self.script, self.routes,
+                        (ROOT / "src/localbrain/workstreams/web.py").read_text()):
             self.assertNotIn("data-maintenance-run", content)
             self.assertNotIn("data-copy-marker", content)
             self.assertNotIn("/api/maintenance-runs", content)
@@ -527,7 +532,8 @@ class UiContractTests(unittest.TestCase):
             self.atlassian_script.index("syncAddSheetOffset();", open_flow),
             self.atlassian_script.index("atlassianAddDialog.showModal();", open_flow),
         )
-        self.assertIn("MAX_ATLASSIAN_FORM_BYTES = 160 * 1024", self.main)
+        from localbrain.app.forms import MAX_FORM_BYTES
+        self.assertEqual(MAX_FORM_BYTES, 160 * 1024)
 
     def test_atlassian_local_sync_is_zero_input_and_preserves_explorer_state(self):
         sync_form_start = self.atlassian.index(
@@ -1485,9 +1491,9 @@ class UiContractTests(unittest.TestCase):
             self.assertNotIn("Subagents", template)
             self.assertIn("Subsession", template)
 
-        self.assertIn('/sessions/{session_id}/subsessions/{file_name}', self.main)
-        self.assertIn('/sessions/{session_id}/subagents/{file_name}', self.main)
-        self.assertIn("redirect_legacy_subagent_route", self.main)
+        self.assertIn('/sessions/{session_id}/subsessions/{file_name}', self.routes)
+        self.assertIn('/sessions/{session_id}/subagents/{file_name}', self.routes)
+        self.assertIn("redirect_legacy_subagent_route", self.sessions_web)
 
     def test_session_detail_source_cues_use_stable_source_identity(self):
         for template in (self.sessions, self.session_detail, self.subsession_detail):
@@ -1527,7 +1533,7 @@ class UiContractTests(unittest.TestCase):
             "session_conversation_events(connection, session_id)",
             "event.event_type == \"message\"",
         ):
-            self.assertIn(marker, self.main)
+            self.assertIn(marker, self.sessions_web)
 
         for rule in (
             ".conversation-markdown-properties {",
@@ -1558,7 +1564,7 @@ class UiContractTests(unittest.TestCase):
             "/atlassian/refresh?scope=all_known", self.atlassian
         )
         self.assertIn(
-            '"/atlassian/refresh?{}".format', self.main
+            '"/atlassian/refresh?{}".format', self.atlassian_web
         )
         self.assertIn(
             "/atlassian/refresh?scope=workstream", self.workstream

@@ -7,6 +7,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from localbrain.resources.catalog import bind_document, bind_external_link
 from contextlib import closing
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -16,10 +17,12 @@ from unittest.mock import patch
 from starlette.requests import Request
 
 from auto_work_fixtures import seed
-from localbrain import auto_work
-from localbrain import main as web
-from localbrain.work_reconstruction import ExperimentError, reconstruct
-from localbrain.work_reconstruction_preparation import prepare_current
+from localbrain.auto_work import preview as auto_work
+from localbrain.auto_work import web
+from localbrain.main import app
+from localbrain.foundation.validation import ExperimentError
+from localbrain.experiments.reconstruction.contract import reconstruct
+from localbrain.experiments.reconstruction.preparation import prepare_current
 
 
 def direct_worker(operation, args):
@@ -58,11 +61,24 @@ class AutoWorkTests(unittest.TestCase):
             return {"type": "http.request", "body": body, "more_body": False}
         return Request({"type": "http", "method": method, "path": "/auto-work",
                         "query_string": query, "headers": headers, "scheme": "http",
-                        "server": (host, 8016), "app": web.app}, receive=receive)
+                        "server": (host, 8016), "app": app}, receive=receive)
 
     def render(self, query=b""):
         with patch.object(web, "settings", self.settings):
             return web.auto_work_page(self.request(query=b"mode=sample&" + query))
+
+    def test_feature_cache_retirement_preserves_lock_and_source_database(self):
+        from localbrain.auto_work.storage import maintain_cache
+        self.prepare()
+        before = self.database.read_bytes()
+        preview = maintain_cache(self.root, apply=False, at=self.now + timedelta(days=8))
+        self.assertEqual(preview["eligible_files"], 1)
+        self.assertTrue(self.target.exists())
+        result = maintain_cache(self.root, at=self.now + timedelta(days=8))
+        self.assertEqual(result["removed_files"], 1)
+        self.assertFalse(self.target.exists())
+        self.assertEqual({p.name for p in self.target.parent.iterdir()}, {"preview.lock"})
+        self.assertEqual(self.database.read_bytes(), before)
 
     def test_preparation_and_browse_preserve_database_and_have_no_quality_claim(self):
         before = self.database.read_bytes()
@@ -269,17 +285,18 @@ class AutoWorkTests(unittest.TestCase):
             connection.execute("INSERT INTO atlassian_sites(id,normalized_domain,canonical_base_url) VALUES (1,'example.test','https://example.test')")
             connection.execute("""INSERT INTO atlassian_items(external_resource_id,site_id,service,item_type,coverage,remote_id)
                 VALUES (1,1,'confluence','confluence_page','indexed','42')""")
-            connection.execute("""INSERT INTO atlassian_item_content(external_resource_id,source_format,source_body,source_hash,
+            connection.execute("""INSERT INTO external_resource_content(external_resource_id,source_format,source_body,source_hash,
                 normalized_document_json,normalized_text,normalizer_version,applied_at)
                 VALUES (1,'plain_text','Synthetic unadmitted raw payload',?,'{}','Reduce latency.','synthetic',?)""", ("2" * 64, at))
-            for number, kind, document, item in ((1, "context_document", 1, None), (2, "atlassian_item", None, 1)):
+            connection.row_factory = sqlite3.Row
+            for number, resource_id in ((1, bind_document(connection, 1)), (2, bind_external_link(connection, 1))):
                 identity = "synthetic-reference-{}".format(number)
                 connection.execute("""INSERT INTO session_reference_evidence(session_id,source_path,source_line,evidence_ordinal,
-                    target_kind,target_key,context_document_id,external_resource_id,evidence_kind,observed_identity,
+                    resource_id,target_key,evidence_kind,observed_identity,
                     normalized_url,observed_at,extractor_version,evidence_key,first_observed_at,last_observed_at)
-                    VALUES (1,'/synthetic/source',1,?,?,?,?,?,'user_mention',?,?,?,'synthetic',?,?,?)""",
-                    (number, kind, identity, document, item, identity,
-                     "https://example.test/wiki/42" if item else None, at, str(number) * 64, at, at))
+                    VALUES (1,'/synthetic/source',1,?,?,?,'user_mention',?,?,?,'synthetic',?,?,?)""",
+                    (number, resource_id, identity, identity,
+                     "https://example.test/wiki/42" if number == 2 else None, at, str(number) * 64, at, at))
         self.prepare()
         groups = self.view()["groups"] + self.view(page=2)["groups"]
         destinations = []

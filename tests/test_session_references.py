@@ -5,12 +5,15 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from localbrain.resources.catalog import bind_external_link
+from localbrain.references.urls import parse_url
 from localbrain.ingest.sync import sessions
 from localbrain.ingest.contracts import ParsedReferenceCandidate
 from localbrain.ingest.evidence.reference_candidates import REFERENCE_EXTRACTOR_VERSION
-from localbrain import session_references
+from localbrain.sessions import references as session_references
 from localbrain.ingest import scanner
-from localbrain.session_references import (
+from localbrain.sessions.references import (
+    SessionReferenceError,
     SessionReferenceLookupCache,
     finalize_session_references,
     reconcile_session_references,
@@ -84,6 +87,8 @@ class SessionReferenceTests(unittest.TestCase):
             """
         )
 
+        bind_external_link(self.connection, 40)
+
     def tearDown(self):
         self.connection.close()
 
@@ -112,7 +117,9 @@ class SessionReferenceTests(unittest.TestCase):
             read_outcome=outcome,
         )
 
-    def _reconcile(self, candidates, path="/sessions/a.jsonl", finalize=True):
+    def _reconcile(
+        self, candidates, path="/sessions/a.jsonl", finalize=True,
+    ):
         return reconcile_session_references(
             self.connection,
             session_id=10,
@@ -122,6 +129,108 @@ class SessionReferenceTests(unittest.TestCase):
             candidates=candidates,
             finalize=finalize,
         )
+
+    def _evidence(self):
+        return self.connection.execute("""
+            SELECT e.*, r.kind AS target_kind, r.product,
+                   d.document_id AS context_document_id
+            FROM session_reference_evidence e
+            JOIN reference_resources r ON r.id = e.resource_id
+            LEFT JOIN resource_documents d ON d.resource_id = r.id
+            ORDER BY e.source_line, e.id
+        """).fetchall()
+
+    def test_url_resolution_needs_no_database_tables(self):
+        values = (
+            "https://example.test/browse/SYN-62?theme=dark",
+            "https://example.test/issues/SYN-62#comment",
+            "https://example.test/wiki/pages/viewpage.action?pageId=123&view=full",
+            "https://example.test/wiki/spaces/TEAM/pages/123/title",
+            "https://example.test/other?q=discarded",
+        )
+        parsed = [parse_url(value) for value in values]
+        self.assertTrue(all(parsed))
+        self.assertEqual(parsed[0].target_key, parsed[1].target_key)
+        self.assertEqual(parsed[2].target_key, parsed[3].target_key)
+        self.assertEqual(parsed[4].normalized_url, "https://example.test/other")
+
+    def test_registration_removal_keeps_reference_identity_and_evidence(self):
+        candidates = [self._candidate("https://jira.example.test/browse/SYN-62")]
+        self._reconcile(candidates)
+        before = dict(self._evidence()[0])
+        self.connection.execute("DELETE FROM atlassian_items")
+        self.connection.execute("DELETE FROM atlassian_sites")
+        self._reconcile(candidates)
+        after = dict(self._evidence()[0])
+        self.assertEqual(after["resource_id"], before["resource_id"])
+        self.assertEqual(after["target_key"], before["target_key"])
+        self.assertEqual(after["observed_identity"], before["observed_identity"])
+        self.assertEqual(after["product"], "jira")
+
+    def test_unsafe_urls_are_rejected_and_markdown_reuses_the_document(self):
+        self._reconcile([
+            self._candidate("https://" + "account:value" + "@example.test/browse/SYN-62"),
+            self._candidate("/workspace/docs/guide.md", reference_kind="markdown", line=2),
+        ])
+        rows = self._evidence()
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["context_document_id"], 20)
+
+    def test_catalog_failure_uses_caller_savepoint_and_preserves_prior_evidence(self):
+        candidates = [self._candidate("https://jira.example.test/browse/SYN-62")]
+        self._reconcile(candidates)
+        prior = [tuple(row) for row in self.connection.execute(
+            "SELECT * FROM session_reference_evidence ORDER BY id"
+        )]
+        self.connection.commit()
+        self.connection.execute("UPDATE sessions SET title = 'Caller pending change' WHERE id = 10")
+
+        def failing_resolver(connection, parsed):
+            self.assertIs(connection, self.connection)
+            connection.execute("UPDATE sessions SET title = 'Adapter change' WHERE id = 10")
+            raise RuntimeError("synthetic resolver failure")
+
+        with patch.object(session_references, "parsed_url_resource", failing_resolver), self.assertRaisesRegex(SessionReferenceError, "synthetic resolver failure") as raised:
+            self._reconcile(candidates)
+        self.assertIsInstance(raised.exception.__cause__, RuntimeError)
+        self.assertTrue(self.connection.in_transaction)
+        self.assertEqual(self.connection.execute(
+            "SELECT title FROM sessions WHERE id = 10"
+        ).fetchone()[0], "Caller pending change")
+        self.assertEqual([tuple(row) for row in self.connection.execute(
+            "SELECT * FROM session_reference_evidence ORDER BY id"
+        )], prior)
+        scan = self.connection.execute("SELECT * FROM session_reference_scans").fetchone()
+        self.assertEqual(scan["status"], "error")
+        self.assertEqual(scan["error_code"], "reference-reconciliation-error")
+
+    def test_core_ingestion_classifies_urls_without_optional_registration(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / "registered-links.jsonl"
+            source.write_text("\n".join(json.dumps(record) for record in (
+                {"type": "session_meta", "payload": {"id": "registered-links", "cwd": "/workspace"}},
+                {"type": "event_msg", "payload": {
+                    "type": "user_message", "message": " ".join((
+                        "https://jira.example.test/browse/SYN-62",
+                        "https://jira.example.test/browse/SYN-63",
+                        "https://unregistered.example.test/wiki/pages/viewpage.action?pageId=123",
+                    )),
+                }},
+            )) + "\n", encoding="utf-8")
+            self.connection.execute("DELETE FROM sessions")
+            self.connection.execute("UPDATE sources SET root_path = ? WHERE id = 1", (str(root),))
+            report = sessions._scan_session_source(
+                self.connection, 1, "Synthetic Codex", root,
+                scanner.parse_codex_session, scanner.CODEX_USAGE_CONTRACT_VERSION,
+                provider_kind="codex",
+            )
+            self.assertEqual(report, (1, 0, 0))
+            rows = self._evidence()
+            self.assertEqual([row["target_kind"] for row in rows], ["url", "url", "url"])
+            self.assertEqual([row["product"] for row in rows], ["jira", "jira", "confluence"])
+            self.assertEqual(self.connection.execute("SELECT COUNT(*) FROM atlassian_items").fetchone()[0], 1)
+            self.assertEqual(rows[2]["normalized_url"], "https://unregistered.example.test/wiki/pages/viewpage.action?pageId=123")
 
     def test_safe_url_and_exact_markdown_resolution(self):
         candidates = [
@@ -169,17 +278,11 @@ class SessionReferenceTests(unittest.TestCase):
         ]
 
         self._reconcile(candidates)
-        rows = self.connection.execute(
-            """
-            SELECT target_kind, context_document_id, normalized_url
-            FROM session_reference_evidence
-            ORDER BY target_kind, context_document_id, normalized_url
-            """
-        ).fetchall()
+        rows = self._evidence()
 
         self.assertEqual(len(rows), 4)
         self.assertEqual(
-            {row["context_document_id"] for row in rows if row["target_kind"] == "context_document"},
+            {row["context_document_id"] for row in rows if row["target_kind"] == "path"},
             {20, 21},
         )
         self.assertEqual(
@@ -226,8 +329,8 @@ class SessionReferenceTests(unittest.TestCase):
 
         self.assertEqual(projection["retained_total"], 1)
         item = projection["items"][0]
-        self.assertEqual(item["target_kind"], "atlassian_item")
-        self.assertEqual(item["destination"], "/atlassian/items/40")
+        self.assertEqual(item["target_kind"], "url")
+        self.assertEqual(item["destination"], "https://jira.example.test/browse/SYN-62")
         self.assertEqual(
             item["evidence"],
             [
@@ -266,13 +369,7 @@ class SessionReferenceTests(unittest.TestCase):
             )
         }
         self._reconcile(candidates)
-        rows = self.connection.execute(
-            """
-            SELECT target_kind, target_key, normalized_url
-            FROM session_reference_evidence
-            ORDER BY source_line
-            """
-        ).fetchall()
+        rows = self._evidence()
 
         expected_key = (
             "url:a42aa269be59f4c54139e2dfb761c018ec228978aa1ecbd0428e2065b7b6d9b5"
@@ -316,14 +413,7 @@ class SessionReferenceTests(unittest.TestCase):
                 ),
             ]
         )
-        rows = self.connection.execute(
-            """
-            SELECT target_kind, target_key, external_resource_id,
-                   normalized_url
-            FROM session_reference_evidence
-            ORDER BY source_line
-            """
-        ).fetchall()
+        rows = self._evidence()
 
         self.assertEqual(len({row["target_key"] for row in rows}), 1)
         self.assertEqual({row["target_kind"] for row in rows}, {"url"})
@@ -331,7 +421,7 @@ class SessionReferenceTests(unittest.TestCase):
             {row["normalized_url"] for row in rows},
             {"https://new.example.test/browse/NEW-1"},
         )
-        self.assertTrue(all(row["external_resource_id"] is None for row in rows))
+        self.assertTrue(all(row["product"] == "jira" for row in rows))
         self.assertEqual(
             self.connection.execute(
                 "SELECT COUNT(*) FROM atlassian_items"
@@ -397,19 +487,14 @@ class SessionReferenceTests(unittest.TestCase):
                 ),
             ]
         )
-        rows = self.connection.execute(
-            """
-            SELECT source_line, target_kind, external_resource_id
-            FROM session_reference_evidence ORDER BY source_line
-            """
-        ).fetchall()
+        rows = self._evidence()
 
         self.assertEqual(
-            [tuple(row) for row in rows],
-            [(1, "atlassian_item", 40), (2, "url", None)],
+            [(row["source_line"], row["target_kind"], row["product"]) for row in rows],
+            [(1, "url", "jira"), (2, "url", "jira")],
         )
 
-    def test_configured_item_exact_add_alias_wins_before_identity_fallback(self):
+    def test_configured_alias_does_not_override_url_identity(self):
         self.connection.executescript(
             """
             UPDATE external_resources
@@ -450,18 +535,13 @@ class SessionReferenceTests(unittest.TestCase):
                 )
             ]
         )
-        row = self.connection.execute(
-            """
-            SELECT target_kind, external_resource_id, normalized_url
-            FROM session_reference_evidence
-            """
-        ).fetchone()
+        row = self._evidence()[0]
 
         self.assertEqual(
-            tuple(row),
+            (row["target_kind"], row["product"], row["normalized_url"]),
             (
-                "atlassian_item",
-                40,
+                "url",
+                "jira",
                 "https://jira.example.test/browse/SYN-62",
             ),
         )
@@ -501,18 +581,13 @@ class SessionReferenceTests(unittest.TestCase):
                 )
             ]
         )
-        row = self.connection.execute(
-            """
-            SELECT target_kind, external_resource_id, normalized_url
-            FROM session_reference_evidence
-            """
-        ).fetchone()
+        row = self._evidence()[0]
 
         self.assertEqual(
-            tuple(row),
+            (row["target_kind"], row["product"], row["normalized_url"]),
             (
-                "atlassian_item",
-                41,
+                "url",
+                "confluence",
                 "https://wiki.example.test/wiki/pages/viewpage.action?pageId=123",
             ),
         )
@@ -557,7 +632,7 @@ class SessionReferenceTests(unittest.TestCase):
         ]
         cache = SessionReferenceLookupCache()
         with patch(
-            "localbrain.session_references._eligible_document_rows",
+            "localbrain.sessions.references._eligible_document_rows",
             wraps=session_references._eligible_document_rows,
         ) as eligible_rows:
             self._reconcile(candidates)
@@ -575,7 +650,7 @@ class SessionReferenceTests(unittest.TestCase):
                 source_mtime_ns=200,
                 candidates=candidates,
                 lookup=cache.get(self.connection),
-            )
+                    )
             cached = [
                 tuple(row)
                 for row in self.connection.execute(
@@ -659,8 +734,9 @@ class SessionReferenceTests(unittest.TestCase):
         read_rows = self.connection.execute(
             """
             SELECT COUNT(*) FROM session_reference_evidence
-            WHERE target_key = 'atlassian:40'
-            """
+            WHERE target_key = ?
+            """,
+            (parse_url("https://jira.example.test/browse/SYN-62").target_key,),
         ).fetchone()[0]
 
         self.assertEqual(
@@ -669,7 +745,7 @@ class SessionReferenceTests(unittest.TestCase):
         )
         self.assertEqual(read_rows, 50)
         self.assertIn(
-            "atlassian:40",
+            parse_url("https://jira.example.test/browse/SYN-62").target_key,
             {
                 item["target_key"]
                 for item in session_reference_projection(self.connection, 10)["items"]

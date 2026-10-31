@@ -93,10 +93,10 @@
         }
       },
       "producers": [
-        "src/localbrain/session_sources.py"
+        "src/localbrain/sources/registry.py"
       ],
       "consumers": [
-        "src/localbrain/source_profiles.py"
+        "src/localbrain/sources/profiles.py"
       ],
       "consequence": "Projects the configured profile color without changing provider or imported identity.",
       "presentation": {
@@ -113,7 +113,7 @@
       },
       "visible_consumers": [
         {
-          "path": "src/localbrain/source_profiles.py",
+          "path": "src/localbrain/sources/profiles.py",
           "state": "registry-backed"
         }
       ],
@@ -158,12 +158,12 @@
       },
       "producers": [
         "src/localbrain/ingest/scanner.py",
-        "src/localbrain/db.py"
+        "src/localbrain/persistence/migrations/sources.py"
       ],
       "consumers": [
         "src/localbrain/ingest/scanner.py",
-        "src/localbrain/usage_queries.py",
-        "src/localbrain/main.py"
+        "src/localbrain/usage/queries.py",
+        "src/localbrain/sources/web.py"
       ],
       "consequence": "Selects parser, Usage normalizer, and provider-specific reconciliation without defining user-facing source scope.",
       "presentation": {
@@ -226,8 +226,8 @@
         "src/localbrain/ingest/scanner.py"
       ],
       "consumers": [
-        "src/localbrain/queries.py",
-        "src/localbrain/usage_queries.py",
+        "src/localbrain/sources/queries.py",
+        "src/localbrain/usage/queries.py",
         "src/localbrain/templates/sessions.html",
         "src/localbrain/templates/sessions_dashboard.html",
         "src/localbrain/templates/sources.html"
@@ -295,8 +295,8 @@
         "src/localbrain/ingest/scanner.py"
       ],
       "consumers": [
-        "src/localbrain/queries.py",
-        "src/localbrain/usage_queries.py"
+        "src/localbrain/sources/queries.py",
+        "src/localbrain/usage/queries.py"
       ],
       "consequence": "Stale or error rows reduce freshness and require a rescan.",
       "presentation": {
@@ -346,10 +346,10 @@
         }
       },
       "producers": [
-        "src/localbrain/external_access.py"
+        "src/localbrain/atlassian/access.py"
       ],
       "consumers": [
-        "src/localbrain/atlassian_registration.py",
+        "src/localbrain/atlassian/registration.py",
         "src/localbrain/templates/atlassian-connections.html"
       ],
       "consequence": "Selects the approved MCP dispatch adapter.",
@@ -374,7 +374,7 @@
         },
         {
           "kind": "python-constants",
-          "path": "src/localbrain/external_access.py",
+          "path": "src/localbrain/atlassian/access.py",
           "names": [
             "PROVIDER_MCP_GATEWAY",
             "PROVIDER_ATLASSIAN_CLOUD"
@@ -412,10 +412,10 @@
         }
       },
       "producers": [
-        "src/localbrain/external_access.py"
+        "src/localbrain/atlassian/access.py"
       ],
       "consumers": [
-        "src/localbrain/atlassian_registration.py",
+        "src/localbrain/atlassian/registration.py",
         "src/localbrain/templates/atlassian-connections.html"
       ],
       "consequence": "Limits calls and identities to one Atlassian service.",
@@ -435,7 +435,7 @@
         },
         {
           "kind": "python-constants",
-          "path": "src/localbrain/external_access.py",
+          "path": "src/localbrain/atlassian/access.py",
           "names": [
             "SERVICE_JIRA",
             "SERVICE_CONFLUENCE"
@@ -471,10 +471,10 @@
         }
       },
       "producers": [
-        "src/localbrain/external_access.py"
+        "src/localbrain/atlassian/access.py"
       ],
       "consumers": [
-        "src/localbrain/atlassian_registration.py",
+        "src/localbrain/atlassian/registration.py",
         "src/localbrain/templates/atlassian-connections.html"
       ],
       "consequence": "Disabled connections cannot authorize external reads.",
@@ -532,11 +532,11 @@
         }
       },
       "producers": [
-        "src/localbrain/external_access.py"
+        "src/localbrain/atlassian/access.py"
       ],
       "consumers": [
-        "src/localbrain/external_access.py",
-        "src/localbrain/atlassian_registration.py"
+        "src/localbrain/atlassian/access.py",
+        "src/localbrain/atlassian/registration.py"
       ],
       "consequence": "Only a current available observation can authorize a read.",
       "presentation": {
@@ -557,7 +557,7 @@
         },
         {
           "kind": "python-constant",
-          "path": "src/localbrain/external_access.py",
+          "path": "src/localbrain/atlassian/access.py",
           "name": "AVAILABILITY_VALUES"
         }
       ]
@@ -598,10 +598,10 @@
         }
       },
       "producers": [
-        "src/localbrain/external_access.py"
+        "src/localbrain/atlassian/access.py"
       ],
       "consumers": [
-        "src/localbrain/atlassian_registration.py",
+        "src/localbrain/atlassian/registration.py",
         "src/localbrain/templates/atlassian-connections.html",
         "src/localbrain/templates/atlassian-refresh.html"
       ],
@@ -632,7 +632,7 @@
       "sources": [
         {
           "kind": "application",
-          "path": "src/localbrain/external_access.py",
+          "path": "src/localbrain/atlassian/access.py",
           "name": "capability_state"
         }
       ]
@@ -668,7 +668,7 @@
         "src/localbrain/ingest/scanner.py"
       ],
       "consumers": [
-        "src/localbrain/queries.py",
+        "src/localbrain/sessions/queries.py",
         "src/localbrain/templates/sessions.html",
         "src/localbrain/templates/session.html"
       ],
@@ -728,11 +728,11 @@
       "producers": [
         "src/localbrain/ingest/providers/codex.py",
         "src/localbrain/ingest/scanner.py",
-        "src/localbrain/runner.py"
+        "src/localbrain/workstreams/runner.py"
       ],
       "consumers": [
-        "src/localbrain/queries.py",
-        "src/localbrain/retrieval.py"
+        "src/localbrain/sessions/queries.py",
+        "src/localbrain/workstreams/retrieval.py"
       ],
       "consequence": "Maintenance Sessions, including recognized provider-internal helpers, are excluded from ordinary user Session surfaces.",
       "presentation": {
@@ -780,7 +780,7 @@
         "src/localbrain/ingest/providers/codex.py"
       ],
       "consumers": [
-        "src/localbrain/queries.py",
+        "src/localbrain/sessions/queries.py",
         "src/localbrain/templates/sessions.html",
         "src/localbrain/templates/session.html",
         "src/localbrain/templates/subsession.html"
@@ -845,10 +845,10 @@
       "producers": [
         "src/localbrain/ingest/providers/codex.py",
         "src/localbrain/ingest/scanner.py",
-        "src/localbrain/runner.py"
+        "src/localbrain/workstreams/runner.py"
       ],
       "consumers": [
-        "src/localbrain/retrieval.py"
+        "src/localbrain/workstreams/retrieval.py"
       ],
       "consequence": "Metadata-only Sessions never expose conversation content to search.",
       "presentation": {
@@ -897,8 +897,8 @@
         "src/localbrain/ingest/scanner.py"
       ],
       "consumers": [
-        "src/localbrain/queries.py",
-        "src/localbrain/session_reading.py",
+        "src/localbrain/sessions/queries.py",
+        "src/localbrain/sessions/reading.py",
         "src/localbrain/templates/_conversation.html"
       ],
       "consequence": "Native Codex final_answer phases and Claude end_turn responses select a neutral conversation frame without implying task success. Claude tool_use maps to commentary; split records share signals within the same native API message ID. Missing, conflicting, malformed or error signals keep the ordinary assistant presentation.",
@@ -946,7 +946,7 @@
         "src/localbrain/ingest/scanner.py"
       ],
       "consumers": [
-        "src/localbrain/skill_observations.py"
+        "src/localbrain/sessions/skills.py"
       ],
       "consequence": "Retains the original Claude or Codex parser family even when the current Source row is unavailable.",
       "presentation": {
@@ -1002,7 +1002,7 @@
         "src/localbrain/ingest/providers/codex.py"
       ],
       "consumers": [
-        "src/localbrain/skill_observations.py"
+        "src/localbrain/sessions/skills.py"
       ],
       "consequence": "Distinguishes native calls/contexts, completed reads, named conversation references, identifiable skill script executions and retained historical declarations. All observed kinds count at most once per source/native Session/skill. No application-phrase classification or proof of success/benefit.",
       "presentation": {
@@ -1046,11 +1046,11 @@
         }
       },
       "producers": [
-        "src/localbrain/skill_observations.py",
+        "src/localbrain/sessions/skills.py",
         "src/localbrain/ingest/scanner.py"
       ],
       "consumers": [
-        "src/localbrain/skill_observations.py"
+        "src/localbrain/sessions/skills.py"
       ],
       "consequence": "Only observed rows enter the ranking; maintenance or later proven-invalid records remain inspectable without counting.",
       "presentation": {
@@ -1098,7 +1098,7 @@
         "src/localbrain/ingest/scanner.py"
       ],
       "consumers": [
-        "src/localbrain/queries.py"
+        "src/localbrain/sessions/queries.py"
       ],
       "consequence": "Distinguishes complete, safety-bounded, and stale-after-error reference evidence.",
       "presentation": {
@@ -1111,54 +1111,6 @@
         {
           "kind": "schema-check",
           "field": "session_reference_scans.status"
-        }
-      ]
-    },
-    {
-      "id": "session-reference.target-kind",
-      "subject": "workspace-and-session-activity",
-      "physical_fields": [
-        "session_reference_evidence.target_kind"
-      ],
-      "values": [
-        "url",
-        "context_document",
-        "atlassian_item"
-      ],
-      "enforcement": "schema-check",
-      "axis": "Session reference target family",
-      "default": null,
-      "fallbacks": {
-        "null": {
-          "action": "reject"
-        },
-        "unknown": {
-          "action": "reject"
-        },
-        "invalid": {
-          "action": "reject"
-        },
-        "future": {
-          "action": "reject"
-        }
-      },
-      "producers": [
-        "src/localbrain/ingest/scanner.py"
-      ],
-      "consumers": [
-        "src/localbrain/queries.py"
-      ],
-      "consequence": "Selects generic URL, exact Context Document, or configured Atlassian Item identity.",
-      "presentation": {
-        "mode": "internal-only",
-        "labels": {},
-        "help": null
-      },
-      "visible_consumers": [],
-      "sources": [
-        {
-          "kind": "schema-check",
-          "field": "session_reference_evidence.target_kind"
         }
       ]
     },
@@ -1197,7 +1149,7 @@
         "src/localbrain/ingest/scanner.py"
       ],
       "consumers": [
-        "src/localbrain/queries.py"
+        "src/localbrain/sessions/queries.py"
       ],
       "consequence": "Explains whether the Session mentioned, observed, or read the target.",
       "presentation": {
@@ -1251,7 +1203,7 @@
         "src/localbrain/ingest/scanner.py"
       ],
       "consumers": [
-        "src/localbrain/queries.py"
+        "src/localbrain/sessions/queries.py"
       ],
       "consequence": "A success requires one matched completed non-error call; failure never implies remote content or freshness.",
       "presentation": {
@@ -1302,10 +1254,10 @@
       "producers": [
         "src/localbrain/ingest/providers/claude.py",
         "src/localbrain/ingest/providers/codex.py",
-        "src/localbrain/personal_insight_usage.py"
+        "src/localbrain/insights/usage.py"
       ],
       "consumers": [
-        "src/localbrain/usage_queries.py"
+        "src/localbrain/usage/queries.py"
       ],
       "consequence": "Prevents child-token double counting.",
       "presentation": {
@@ -1357,10 +1309,10 @@
       "producers": [
         "src/localbrain/ingest/providers/claude.py",
         "src/localbrain/ingest/providers/codex.py",
-        "src/localbrain/personal_insight_usage.py"
+        "src/localbrain/insights/usage.py"
       ],
       "consumers": [
-        "src/localbrain/usage_queries.py"
+        "src/localbrain/usage/queries.py"
       ],
       "consequence": "Incomplete or malformed facts reduce coverage confidence.",
       "presentation": {
@@ -1412,12 +1364,12 @@
         }
       },
       "producers": [
-        "src/localbrain/usage.py"
+        "src/localbrain/usage/records.py"
       ],
       "consumers": [
-        "src/localbrain/usage_queries.py",
+        "src/localbrain/usage/queries.py",
         "src/localbrain/templates/sessions_dashboard.html",
-        "src/localbrain/personal_insight_usage.py",
+        "src/localbrain/insights/usage.py",
         "src/localbrain/templates/session_insights.html"
       ],
       "consequence": "Only priced records contribute an estimated cost value.",
@@ -1475,11 +1427,11 @@
         }
       },
       "producers": [
-        "src/localbrain/db.py",
-        "src/localbrain/usage.py"
+        "src/localbrain/persistence/migrations/compatible.py",
+        "src/localbrain/usage/records.py"
       ],
       "consumers": [
-        "src/localbrain/usage_queries.py"
+        "src/localbrain/usage/queries.py"
       ],
       "consequence": "Explains how an immutable usage snapshot was assigned to a Project.",
       "presentation": {
@@ -1499,7 +1451,7 @@
         },
         {
           "kind": "python-constant",
-          "path": "src/localbrain/db.py",
+          "path": "src/localbrain/persistence/migrations/usage.py",
           "name": "USAGE_ATTRIBUTION_VALUES"
         }
       ]
@@ -1537,7 +1489,7 @@
         }
       },
       "producers": [
-        "src/localbrain/usage_queries.py"
+        "src/localbrain/usage/queries.py"
       ],
       "consumers": [
         "src/localbrain/templates/sessions_dashboard.html"
@@ -1557,7 +1509,7 @@
       "sources": [
         {
           "kind": "application",
-          "path": "src/localbrain/usage_queries.py",
+          "path": "src/localbrain/usage/queries.py",
           "name": "_freshness"
         }
       ]
@@ -1593,10 +1545,10 @@
         }
       },
       "producers": [
-        "src/localbrain/contexts.py"
+        "src/localbrain/local_context/service.py"
       ],
       "consumers": [
-        "src/localbrain/contexts.py"
+        "src/localbrain/local_context/service.py"
       ],
       "consequence": "Selects the local reader and lifecycle behavior.",
       "presentation": {
@@ -1612,7 +1564,7 @@
       "sources": [
         {
           "kind": "application",
-          "path": "src/localbrain/contexts.py"
+          "path": "src/localbrain/local_context/service.py"
         }
       ]
     },
@@ -1644,10 +1596,10 @@
         }
       },
       "producers": [
-        "src/localbrain/contexts.py"
+        "src/localbrain/local_context/service.py"
       ],
       "consumers": [
-        "src/localbrain/contexts.py",
+        "src/localbrain/local_context/service.py",
         "src/localbrain/templates/context.html"
       ],
       "consequence": "Unreadable roots are retained but cannot be scanned.",
@@ -1700,11 +1652,11 @@
         }
       },
       "producers": [
-        "src/localbrain/contexts.py",
+        "src/localbrain/local_context/service.py",
         "src/localbrain/ingest/scanner.py"
       ],
       "consumers": [
-        "src/localbrain/contexts.py",
+        "src/localbrain/local_context/service.py",
         "src/localbrain/templates/context.html"
       ],
       "consequence": "Only ready readable roots participate in ordinary scans.",
@@ -1728,7 +1680,7 @@
       "sources": [
         {
           "kind": "application",
-          "path": "src/localbrain/contexts.py"
+          "path": "src/localbrain/local_context/service.py"
         },
         {
           "kind": "application",
@@ -1764,10 +1716,10 @@
         }
       },
       "producers": [
-        "src/localbrain/contexts.py"
+        "src/localbrain/local_context/service.py"
       ],
       "consumers": [
-        "src/localbrain/contexts.py"
+        "src/localbrain/local_context/service.py"
       ],
       "consequence": "Disabling removes the root from scans without deleting the original files.",
       "presentation": {
@@ -1818,10 +1770,10 @@
         }
       },
       "producers": [
-        "src/localbrain/workstreams.py"
+        "src/localbrain/workstreams/service.py"
       ],
       "consumers": [
-        "src/localbrain/workstreams.py",
+        "src/localbrain/workstreams/service.py",
         "src/localbrain/templates/workstreams.html",
         "src/localbrain/templates/workstream.html"
       ],
@@ -1849,7 +1801,7 @@
       "sources": [
         {
           "kind": "python-constant",
-          "path": "src/localbrain/workstreams.py",
+          "path": "src/localbrain/workstreams/service.py",
           "name": "WORKSTREAM_STATUSES"
         }
       ]
@@ -1886,10 +1838,10 @@
         }
       },
       "producers": [
-        "src/localbrain/workstreams.py"
+        "src/localbrain/workstreams/service.py"
       ],
       "consumers": [
-        "src/localbrain/workstreams.py"
+        "src/localbrain/workstreams/service.py"
       ],
       "consequence": "Controls priority and blocked-work visibility without removing evidence.",
       "presentation": {
@@ -1911,7 +1863,7 @@
       "sources": [
         {
           "kind": "python-constant",
-          "path": "src/localbrain/workstreams.py",
+          "path": "src/localbrain/workstreams/service.py",
           "name": "THREAD_STATUSES"
         }
       ]
@@ -1950,10 +1902,10 @@
         }
       },
       "producers": [
-        "src/localbrain/workstreams.py"
+        "src/localbrain/workstreams/service.py"
       ],
       "consumers": [
-        "src/localbrain/workstreams.py",
+        "src/localbrain/workstreams/service.py",
         "src/localbrain/templates/workstream.html"
       ],
       "consequence": "Selects the target table for application-enforced links.",
@@ -1977,7 +1929,7 @@
       "sources": [
         {
           "kind": "python-constant",
-          "path": "src/localbrain/workstreams.py",
+          "path": "src/localbrain/workstreams/service.py",
           "name": "ENTITY_TYPES"
         }
       ]
@@ -2016,11 +1968,11 @@
         }
       },
       "producers": [
-        "src/localbrain/workstreams.py",
-        "src/localbrain/atlassian.py"
+        "src/localbrain/resources/store.py",
+        "src/localbrain/atlassian/catalog.py"
       ],
       "consumers": [
-        "src/localbrain/workstreams.py",
+        "src/localbrain/resources/store.py",
         "src/localbrain/templates/workstream.html"
       ],
       "consequence": "Selects detail routing and resource labeling.",
@@ -2045,7 +1997,7 @@
       "sources": [
         {
           "kind": "python-constant",
-          "path": "src/localbrain/workstreams.py",
+          "path": "src/localbrain/resources/store.py",
           "name": "RESOURCE_TYPES"
         }
       ]
@@ -2082,10 +2034,10 @@
         }
       },
       "producers": [
-        "src/localbrain/workstreams.py"
+        "src/localbrain/resources/store.py"
       ],
       "consumers": [
-        "src/localbrain/workstreams.py",
+        "src/localbrain/resources/store.py",
         "src/localbrain/templates/local_resource.html"
       ],
       "consequence": "Controls local resource iconography and path behavior.",
@@ -2112,7 +2064,7 @@
       "sources": [
         {
           "kind": "application",
-          "path": "src/localbrain/workstreams.py"
+          "path": "src/localbrain/resources/store.py"
         }
       ]
     },
@@ -2144,10 +2096,10 @@
         }
       },
       "producers": [
-        "src/localbrain/workstreams.py"
+        "src/localbrain/resources/store.py"
       ],
       "consumers": [
-        "src/localbrain/retrieval.py",
+        "src/localbrain/workstreams/retrieval.py",
         "src/localbrain/templates/local_resource.html"
       ],
       "consequence": "Missing resources remain as historical references but cannot be opened.",
@@ -2204,13 +2156,13 @@
         }
       },
       "producers": [
-        "src/localbrain/atlassian.py",
-        "src/localbrain/atlassian_registration.py",
-        "src/localbrain/atlassian_structure_references.py"
+        "src/localbrain/atlassian/catalog.py",
+        "src/localbrain/atlassian/registration.py",
+        "src/localbrain/atlassian/structure_references.py"
       ],
       "consumers": [
-        "src/localbrain/atlassian_browse.py",
-        "src/localbrain/atlassian_structure_references.py",
+        "src/localbrain/atlassian/browse.py",
+        "src/localbrain/atlassian/structure_references.py",
         "src/localbrain/templates/atlassian.html",
         "src/localbrain/templates/atlassian-connections.html",
         "src/localbrain/templates/search.html"
@@ -2245,7 +2197,7 @@
         },
         {
           "kind": "python-constant",
-          "path": "src/localbrain/atlassian_browse.py",
+          "path": "src/localbrain/atlassian/browse.py",
           "name": "SERVICE_VALUES"
         }
       ]
@@ -2283,11 +2235,11 @@
         }
       },
       "producers": [
-        "src/localbrain/atlassian_structure_references.py"
+        "src/localbrain/atlassian/structure_references.py"
       ],
       "consumers": [
-        "src/localbrain/atlassian_structure_references.py",
-        "src/localbrain/atlassian_browse.py"
+        "src/localbrain/atlassian/structure_references.py",
+        "src/localbrain/atlassian/browse.py"
       ],
       "consequence": "Selects stable semantic identity, family label, and read-only Explorer/Search projection without creating an Item or Space.",
       "presentation": {
@@ -2333,10 +2285,10 @@
         }
       },
       "producers": [
-        "src/localbrain/atlassian_registration.py"
+        "src/localbrain/atlassian/registration.py"
       ],
       "consumers": [
-        "src/localbrain/atlassian_registration.py",
+        "src/localbrain/atlassian/registration.py",
         "src/localbrain/templates/atlassian-connections.html",
         "src/localbrain/templates/atlassian-refresh.html"
       ],
@@ -2395,10 +2347,10 @@
         }
       },
       "producers": [
-        "src/localbrain/atlassian.py"
+        "src/localbrain/atlassian/catalog.py"
       ],
       "consumers": [
-        "src/localbrain/atlassian_browse.py",
+        "src/localbrain/atlassian/browse.py",
         "src/localbrain/templates/_atlassian-item-preview.html",
         "src/localbrain/templates/atlassian-item.html",
         "src/localbrain/templates/search.html"
@@ -2433,7 +2385,7 @@
         },
         {
           "kind": "python-constant",
-          "path": "src/localbrain/atlassian_browse.py",
+          "path": "src/localbrain/atlassian/browse.py",
           "name": "ITEM_TYPE_VALUES"
         }
       ]
@@ -2469,10 +2421,10 @@
         }
       },
       "producers": [
-        "src/localbrain/atlassian.py"
+        "src/localbrain/atlassian/catalog.py"
       ],
       "consumers": [
-        "src/localbrain/atlassian_browse.py",
+        "src/localbrain/atlassian/browse.py",
         "src/localbrain/templates/_atlassian-item-preview.html",
         "src/localbrain/templates/atlassian.html",
         "src/localbrain/templates/atlassian-item.html",
@@ -2518,7 +2470,7 @@
         },
         {
           "kind": "python-constant",
-          "path": "src/localbrain/atlassian.py",
+          "path": "src/localbrain/atlassian/catalog.py",
           "name": "COVERAGE_VALUES"
         }
       ]
@@ -2555,10 +2507,10 @@
         }
       },
       "producers": [
-        "src/localbrain/atlassian_browse.py"
+        "src/localbrain/atlassian/browse.py"
       ],
       "consumers": [
-        "src/localbrain/atlassian_browse.py",
+        "src/localbrain/atlassian/browse.py",
         "src/localbrain/templates/_atlassian-item-preview.html",
         "src/localbrain/templates/atlassian.html",
         "src/localbrain/templates/atlassian-item.html",
@@ -2600,7 +2552,7 @@
         },
         {
           "kind": "python-constant",
-          "path": "src/localbrain/atlassian.py",
+          "path": "src/localbrain/atlassian/catalog.py",
           "name": "ATTENTION_VALUES"
         }
       ]
@@ -2634,12 +2586,12 @@
         }
       },
       "producers": [
-        "src/localbrain/atlassian.py",
-        "src/localbrain/atlassian_structure_references.py"
+        "src/localbrain/atlassian/catalog.py",
+        "src/localbrain/atlassian/structure_references.py"
       ],
       "consumers": [
-        "src/localbrain/atlassian.py",
-        "src/localbrain/atlassian_structure_references.py"
+        "src/localbrain/atlassian/catalog.py",
+        "src/localbrain/atlassian/structure_references.py"
       ],
       "consequence": "Canonical URL is the stable display target while Item and structure-reference aliases preserve observed identity.",
       "presentation": {
@@ -2694,11 +2646,11 @@
         }
       },
       "producers": [
-        "src/localbrain/atlassian.py",
-        "src/localbrain/external_sync.py"
+        "src/localbrain/atlassian/catalog.py",
+        "src/localbrain/atlassian/sync.py"
       ],
       "consumers": [
-        "src/localbrain/atlassian.py",
+        "src/localbrain/atlassian/catalog.py",
         "src/localbrain/templates/_atlassian-item-preview.html",
         "src/localbrain/templates/atlassian-item.html",
         "src/localbrain/templates/atlassian-refresh.html"
@@ -2737,7 +2689,7 @@
         },
         {
           "kind": "python-constant",
-          "path": "src/localbrain/atlassian.py",
+          "path": "src/localbrain/atlassian/catalog.py",
           "name": "OUTCOMES"
         }
       ]
@@ -2770,10 +2722,10 @@
         }
       },
       "producers": [
-        "src/localbrain/atlassian.py"
+        "src/localbrain/atlassian/catalog.py"
       ],
       "consumers": [
-        "src/localbrain/atlassian.py"
+        "src/localbrain/atlassian/catalog.py"
       ],
       "consequence": "Marks an observed change without replacing local user state.",
       "presentation": {
@@ -2817,10 +2769,10 @@
         }
       },
       "producers": [
-        "src/localbrain/atlassian.py"
+        "src/localbrain/atlassian/catalog.py"
       ],
       "consumers": [
-        "src/localbrain/atlassian.py"
+        "src/localbrain/atlassian/catalog.py"
       ],
       "consequence": "Requests deterministic local projection repair.",
       "presentation": {
@@ -2837,10 +2789,10 @@
       ]
     },
     {
-      "id": "atlassian-content.source-format",
-      "subject": "atlassian-source-memory",
+      "id": "external-content.source-format",
+      "subject": "work-organization-and-resources",
       "physical_fields": [
-        "atlassian_item_content.source_format"
+        "external_resource_content.source_format"
       ],
       "values": [
         "jira_adf",
@@ -2867,10 +2819,10 @@
         }
       },
       "producers": [
-        "src/localbrain/atlassian.py"
+        "src/localbrain/atlassian/catalog.py"
       ],
       "consumers": [
-        "src/localbrain/atlassian.py"
+        "src/localbrain/atlassian/catalog.py"
       ],
       "consequence": "Selects the safe normalizer before text is indexed.",
       "presentation": {
@@ -2882,11 +2834,11 @@
       "sources": [
         {
           "kind": "schema-check",
-          "field": "atlassian_item_content.source_format"
+          "field": "external_resource_content.source_format"
         },
         {
           "kind": "python-constant",
-          "path": "src/localbrain/atlassian.py",
+          "path": "src/localbrain/atlassian/catalog.py",
           "name": "SOURCE_FORMATS"
         }
       ]
@@ -2921,10 +2873,10 @@
         }
       },
       "producers": [
-        "src/localbrain/atlassian_browse.py"
+        "src/localbrain/atlassian/browse.py"
       ],
       "consumers": [
-        "src/localbrain/atlassian_browse.py",
+        "src/localbrain/atlassian/browse.py",
         "src/localbrain/templates/atlassian-item.html"
       ],
       "consequence": "Topics may carry descriptions; Tags remain name-only.",
@@ -2949,7 +2901,7 @@
         },
         {
           "kind": "python-constant",
-          "path": "src/localbrain/atlassian_browse.py",
+          "path": "src/localbrain/atlassian/browse.py",
           "name": "CLASSIFICATION_KINDS"
         }
       ]
@@ -2982,10 +2934,10 @@
         }
       },
       "producers": [
-        "src/localbrain/atlassian_evidence.py"
+        "src/localbrain/atlassian/evidence.py"
       ],
       "consumers": [
-        "src/localbrain/atlassian_evidence.py"
+        "src/localbrain/atlassian/evidence.py"
       ],
       "consequence": "Errors preserve bounded diagnostics without creating unconfirmed Items.",
       "presentation": {
@@ -3030,12 +2982,12 @@
         }
       },
       "producers": [
-        "src/localbrain/atlassian_evidence.py",
-        "src/localbrain/atlassian_structure_references.py"
+        "src/localbrain/atlassian/evidence.py",
+        "src/localbrain/atlassian/structure_references.py"
       ],
       "consumers": [
-        "src/localbrain/atlassian_evidence.py",
-        "src/localbrain/atlassian_structure_references.py"
+        "src/localbrain/atlassian/evidence.py",
+        "src/localbrain/atlassian/structure_references.py"
       ],
       "consequence": "Only visible text and explicitly approved tool results may produce evidence.",
       "presentation": {
@@ -3089,10 +3041,10 @@
         }
       },
       "producers": [
-        "src/localbrain/atlassian.py"
+        "src/localbrain/atlassian/catalog.py"
       ],
       "consumers": [
-        "src/localbrain/atlassian_browse.py",
+        "src/localbrain/atlassian/browse.py",
         "src/localbrain/templates/_atlassian-item-preview.html",
         "src/localbrain/templates/atlassian.html",
         "src/localbrain/templates/atlassian-item.html",
@@ -3136,7 +3088,7 @@
       "sources": [
         {
           "kind": "python-constant",
-          "path": "src/localbrain/atlassian_browse.py",
+          "path": "src/localbrain/atlassian/browse.py",
           "name": "FRESHNESS_VALUES"
         }
       ]
@@ -3170,11 +3122,11 @@
         }
       },
       "producers": [
-        "src/localbrain/workstreams.py",
-        "src/localbrain/runner.py"
+        "src/localbrain/workstreams/service.py",
+        "src/localbrain/workstreams/runner.py"
       ],
       "consumers": [
-        "src/localbrain/workstreams.py"
+        "src/localbrain/workstreams/service.py"
       ],
       "consequence": "Selects the explicit acceptance operation; no suggestion changes organization silently.",
       "presentation": {
@@ -3186,11 +3138,11 @@
       "sources": [
         {
           "kind": "application",
-          "path": "src/localbrain/workstreams.py"
+          "path": "src/localbrain/workstreams/service.py"
         },
         {
           "kind": "application",
-          "path": "src/localbrain/runner.py"
+          "path": "src/localbrain/workstreams/runner.py"
         }
       ]
     },
@@ -3222,11 +3174,11 @@
         }
       },
       "producers": [
-        "src/localbrain/workstreams.py",
-        "src/localbrain/runner.py"
+        "src/localbrain/workstreams/service.py",
+        "src/localbrain/workstreams/runner.py"
       ],
       "consumers": [
-        "src/localbrain/workstreams.py"
+        "src/localbrain/workstreams/service.py"
       ],
       "consequence": "Resolves the application-enforced review target.",
       "presentation": {
@@ -3238,7 +3190,7 @@
       "sources": [
         {
           "kind": "application",
-          "path": "src/localbrain/workstreams.py"
+          "path": "src/localbrain/workstreams/service.py"
         }
       ]
     },
@@ -3274,10 +3226,10 @@
         }
       },
       "producers": [
-        "src/localbrain/workstreams.py"
+        "src/localbrain/workstreams/service.py"
       ],
       "consumers": [
-        "src/localbrain/workstreams.py",
+        "src/localbrain/workstreams/service.py",
         "src/localbrain/templates/workstream.html"
       ],
       "consequence": "Only acceptance may apply a reviewable suggestion.",
@@ -3300,7 +3252,7 @@
       "sources": [
         {
           "kind": "application",
-          "path": "src/localbrain/workstreams.py"
+          "path": "src/localbrain/workstreams/service.py"
         }
       ]
     },
@@ -3335,10 +3287,10 @@
         }
       },
       "producers": [
-        "src/localbrain/workstreams.py"
+        "src/localbrain/workstreams/service.py"
       ],
       "consumers": [
-        "src/localbrain/workstreams.py"
+        "src/localbrain/workstreams/service.py"
       ],
       "consequence": "Preserves the referenced resource set captured at confirmation time.",
       "presentation": {
@@ -3350,7 +3302,7 @@
       "sources": [
         {
           "kind": "python-constant",
-          "path": "src/localbrain/workstreams.py",
+          "path": "src/localbrain/workstreams/service.py",
           "name": "ENTITY_TYPES"
         }
       ]
@@ -3385,11 +3337,14 @@
         }
       },
       "producers": [
-        "src/localbrain/runner.py",
-        "src/localbrain/external_sync.py"
+        "src/localbrain/workstreams/runner.py",
+        "src/localbrain/atlassian/runner.py",
+        "src/localbrain/atlassian/sync.py"
       ],
       "consumers": [
-        "src/localbrain/runner.py",
+        "src/localbrain/maintenance/service.py",
+        "src/localbrain/workstreams/runner.py",
+        "src/localbrain/atlassian/runner.py",
         "src/localbrain/templates/run.html",
         "src/localbrain/templates/_atlassian-item-preview.html",
         "src/localbrain/templates/atlassian-connections.html",
@@ -3430,7 +3385,7 @@
       "sources": [
         {
           "kind": "python-constant",
-          "path": "src/localbrain/external_sync.py",
+          "path": "src/localbrain/atlassian/sync.py",
           "name": "RUNNERS"
         }
       ]
@@ -3468,11 +3423,11 @@
         }
       },
       "producers": [
-        "src/localbrain/runner.py",
-        "src/localbrain/external_sync.py"
+        "src/localbrain/workstreams/runner.py",
+        "src/localbrain/atlassian/sync.py"
       ],
       "consumers": [
-        "src/localbrain/runner.py",
+        "src/localbrain/workstreams/runner.py",
         "src/localbrain/templates/run.html",
         "src/localbrain/templates/workstream.html"
       ],
@@ -3500,12 +3455,12 @@
       "sources": [
         {
           "kind": "application",
-          "path": "src/localbrain/runner.py",
+          "path": "src/localbrain/workstreams/runner.py",
           "name": "TASK_DEFINITIONS"
         },
         {
           "kind": "application",
-          "path": "src/localbrain/external_sync.py",
+          "path": "src/localbrain/atlassian/sync.py",
           "name": "EXTERNAL_SYNC_TASK"
         }
       ]
@@ -3547,11 +3502,15 @@
         }
       },
       "producers": [
-        "src/localbrain/runner.py",
-        "src/localbrain/external_sync.py"
+        "src/localbrain/maintenance/service.py",
+        "src/localbrain/workstreams/runner.py",
+        "src/localbrain/atlassian/runner.py",
+        "src/localbrain/atlassian/sync.py"
       ],
       "consumers": [
-        "src/localbrain/runner.py",
+        "src/localbrain/maintenance/service.py",
+        "src/localbrain/workstreams/runner.py",
+        "src/localbrain/atlassian/runner.py",
         "src/localbrain/templates/run.html",
         "src/localbrain/templates/workstream.html",
         "src/localbrain/templates/_atlassian-item-preview.html",
@@ -3604,11 +3563,19 @@
       "sources": [
         {
           "kind": "application",
-          "path": "src/localbrain/runner.py"
+          "path": "src/localbrain/maintenance/service.py"
         },
         {
           "kind": "application",
-          "path": "src/localbrain/external_sync.py"
+          "path": "src/localbrain/atlassian/sync.py"
+        },
+        {
+          "kind": "application",
+          "path": "src/localbrain/workstreams/runner.py"
+        },
+        {
+          "kind": "application",
+          "path": "src/localbrain/atlassian/runner.py"
         }
       ]
     },
@@ -3640,10 +3607,10 @@
         }
       },
       "producers": [
-        "src/localbrain/runner.py"
+        "src/localbrain/workstreams/runner.py"
       ],
       "consumers": [
-        "src/localbrain/runner.py"
+        "src/localbrain/workstreams/runner.py"
       ],
       "consequence": "Controls whether a Run may supersede matching pending Suggestions.",
       "presentation": {
@@ -3687,11 +3654,13 @@
         }
       },
       "producers": [
-        "src/localbrain/external_sync.py",
-        "src/localbrain/runner.py"
+        "src/localbrain/atlassian/sync.py",
+        "src/localbrain/workstreams/runner.py",
+        "src/localbrain/atlassian/runner.py"
       ],
       "consumers": [
-        "src/localbrain/runner.py",
+        "src/localbrain/workstreams/runner.py",
+        "src/localbrain/atlassian/runner.py",
         "src/localbrain/templates/run.html"
       ],
       "consequence": "Records observed budget breaches; the flag does not itself stop calls. Legacy CLI tasks use advisory accounting, while external synchronization rejects selected requests above its hard budget before execution.",
@@ -3749,10 +3718,10 @@
         }
       },
       "producers": [
-        "src/localbrain/external_sync.py"
+        "src/localbrain/atlassian/sync.py"
       ],
       "consumers": [
-        "src/localbrain/external_sync.py",
+        "src/localbrain/atlassian/sync.py",
         "src/localbrain/templates/atlassian-refresh.html"
       ],
       "consequence": "Bounds target selection before any external read.",
@@ -3780,7 +3749,7 @@
         },
         {
           "kind": "python-constant",
-          "path": "src/localbrain/external_sync.py",
+          "path": "src/localbrain/atlassian/sync.py",
           "name": "SCOPE_KINDS"
         }
       ]
@@ -3816,10 +3785,10 @@
         }
       },
       "producers": [
-        "src/localbrain/external_sync.py"
+        "src/localbrain/atlassian/sync.py"
       ],
       "consumers": [
-        "src/localbrain/external_sync.py",
+        "src/localbrain/atlassian/sync.py",
         "src/localbrain/templates/atlassian-refresh.html"
       ],
       "consequence": "Records the selected service or a mixed-service aggregate while each target retains its approved Source Instance and single-service dispatch boundary.",
@@ -3841,7 +3810,7 @@
       "sources": [
         {
           "kind": "application",
-          "path": "src/localbrain/external_sync.py"
+          "path": "src/localbrain/atlassian/sync.py"
         }
       ]
     },
@@ -3879,10 +3848,10 @@
         }
       },
       "producers": [
-        "src/localbrain/external_sync.py"
+        "src/localbrain/atlassian/sync.py"
       ],
       "consumers": [
-        "src/localbrain/external_sync.py",
+        "src/localbrain/atlassian/sync.py",
         "src/localbrain/templates/atlassian-refresh.html"
       ],
       "consequence": "Determines partial versus completed Run status and per-target retained evidence.",
@@ -3907,7 +3876,7 @@
       "sources": [
         {
           "kind": "python-constant",
-          "path": "src/localbrain/external_sync.py",
+          "path": "src/localbrain/atlassian/sync.py",
           "name": "OUTCOMES"
         }
       ]
@@ -3940,11 +3909,11 @@
         }
       },
       "producers": [
-        "src/localbrain/workflow_assertions.py"
+        "src/localbrain/workflow/assertions.py"
       ],
       "consumers": [
-        "src/localbrain/workflow_assertions.py",
-        "src/localbrain/workflow_correction_view.py"
+        "src/localbrain/workflow/assertions.py",
+        "src/localbrain/workflow/correction_view.py"
       ],
       "consequence": "Selects Episode-pair relation validation or one-Episode lifecycle validation.",
       "presentation": {
@@ -3960,7 +3929,7 @@
         },
         {
           "kind": "python-constant",
-          "path": "src/localbrain/workflow_assertions.py",
+          "path": "src/localbrain/workflow/assertions.py",
           "name": "WORKFLOW_BOUNDARY_KINDS"
         }
       ]
@@ -3996,12 +3965,12 @@
         }
       },
       "producers": [
-        "src/localbrain/workflow_assertions.py"
+        "src/localbrain/workflow/assertions.py"
       ],
       "consumers": [
-        "src/localbrain/workflow_assertions.py",
-        "src/localbrain/workflow_correction.py",
-        "src/localbrain/workflow_correction_view.py"
+        "src/localbrain/workflow/assertions.py",
+        "src/localbrain/workflow/correction.py",
+        "src/localbrain/workflow/correction_view.py"
       ],
       "consequence": "Determines the exact relation or lifecycle transition recorded in one append-only assertion.",
       "presentation": {
@@ -4017,7 +3986,7 @@
       },
       "visible_consumers": [
         {
-          "path": "src/localbrain/workflow_correction_view.py",
+          "path": "src/localbrain/workflow/correction_view.py",
           "state": "registry-backed"
         }
       ],
@@ -4028,7 +3997,7 @@
         },
         {
           "kind": "python-constant",
-          "path": "src/localbrain/workflow_assertions.py",
+          "path": "src/localbrain/workflow/assertions.py",
           "name": "WORKFLOW_ASSERTION_KINDS"
         }
       ]
@@ -4061,11 +4030,11 @@
         }
       },
       "producers": [
-        "src/localbrain/workflow_assertions.py"
+        "src/localbrain/workflow/assertions.py"
       ],
       "consumers": [
-        "src/localbrain/workflow_assertions.py",
-        "src/localbrain/workflow_correction_view.py"
+        "src/localbrain/workflow/assertions.py",
+        "src/localbrain/workflow/correction_view.py"
       ],
       "consequence": "Marks a superseding row as an explicit reversal while retaining the original five-value assertion kind.",
       "presentation": {
@@ -4115,11 +4084,11 @@
         }
       },
       "producers": [
-        "src/localbrain/workflow_assertions.py"
+        "src/localbrain/workflow/assertions.py"
       ],
       "consumers": [
-        "src/localbrain/workflow_assertions.py",
-        "src/localbrain/workflow_correction_view.py"
+        "src/localbrain/workflow/assertions.py",
+        "src/localbrain/workflow/correction_view.py"
       ],
       "consequence": "Makes every assertion and reversal replayable without reinterpreting its original before/after state.",
       "presentation": {
@@ -4137,7 +4106,7 @@
       },
       "visible_consumers": [
         {
-          "path": "src/localbrain/workflow_correction_view.py",
+          "path": "src/localbrain/workflow/correction_view.py",
           "state": "registry-backed"
         }
       ],
@@ -4152,7 +4121,7 @@
         },
         {
           "kind": "python-constant",
-          "path": "src/localbrain/workflow_assertions.py",
+          "path": "src/localbrain/workflow/assertions.py",
           "name": "WORKFLOW_ASSERTION_MEANINGS"
         }
       ]
@@ -4190,12 +4159,12 @@
         }
       },
       "producers": [
-        "src/localbrain/workflow_assertions.py"
+        "src/localbrain/workflow/assertions.py"
       ],
       "consumers": [
-        "src/localbrain/workflow_assertions.py",
-        "src/localbrain/workflow_correction.py",
-        "src/localbrain/workflow_correction_view.py"
+        "src/localbrain/workflow/assertions.py",
+        "src/localbrain/workflow/correction.py",
+        "src/localbrain/workflow/correction_view.py"
       ],
       "consequence": "Qualifies only a closed before/after lifecycle meaning and never derives closure from inactivity.",
       "presentation": {
@@ -4211,7 +4180,7 @@
       },
       "visible_consumers": [
         {
-          "path": "src/localbrain/workflow_correction_view.py",
+          "path": "src/localbrain/workflow/correction_view.py",
           "state": "registry-backed"
         }
       ],
@@ -4226,7 +4195,7 @@
         },
         {
           "kind": "python-constant",
-          "path": "src/localbrain/workflow_projection.py",
+          "path": "src/localbrain/workflow/projection.py",
           "name": "CLOSURE_REASONS"
         }
       ]
@@ -4258,11 +4227,11 @@
         }
       },
       "producers": [
-        "src/localbrain/workflow_assertions.py"
+        "src/localbrain/workflow/assertions.py"
       ],
       "consumers": [
-        "src/localbrain/workflow_assertions.py",
-        "src/localbrain/workflow_correction_view.py"
+        "src/localbrain/workflow/assertions.py",
+        "src/localbrain/workflow/correction_view.py"
       ],
       "consequence": "Keeps durable user correction distinct from observation, deterministic candidacy, and organization evidence.",
       "presentation": {
@@ -4274,7 +4243,7 @@
       },
       "visible_consumers": [
         {
-          "path": "src/localbrain/workflow_correction_view.py",
+          "path": "src/localbrain/workflow/correction_view.py",
           "state": "registry-backed"
         }
       ],
@@ -4285,7 +4254,7 @@
         },
         {
           "kind": "python-constant",
-          "path": "src/localbrain/workflow_assertions.py",
+          "path": "src/localbrain/workflow/assertions.py",
           "name": "WORKFLOW_ASSERTION_AUTHORITIES"
         }
       ]
@@ -4320,14 +4289,14 @@
         }
       },
       "producers": [
-        "src/localbrain/retrieval.py",
-        "src/localbrain/atlassian.py",
-        "src/localbrain/atlassian_structure_references.py"
+        "src/localbrain/workstreams/retrieval.py",
+        "src/localbrain/atlassian/catalog.py",
+        "src/localbrain/atlassian/structure_references.py"
       ],
       "consumers": [
-        "src/localbrain/retrieval.py",
-        "src/localbrain/atlassian_browse.py",
-        "src/localbrain/atlassian_structure_references.py"
+        "src/localbrain/workstreams/retrieval.py",
+        "src/localbrain/atlassian/browse.py",
+        "src/localbrain/atlassian/structure_references.py"
       ],
       "consequence": "Selects the source table and result route for a derived row.",
       "presentation": {
@@ -4339,15 +4308,15 @@
       "sources": [
         {
           "kind": "application",
-          "path": "src/localbrain/retrieval.py"
+          "path": "src/localbrain/workstreams/retrieval.py"
         },
         {
           "kind": "application",
-          "path": "src/localbrain/atlassian.py"
+          "path": "src/localbrain/atlassian/catalog.py"
         },
         {
           "kind": "application",
-          "path": "src/localbrain/atlassian_structure_references.py"
+          "path": "src/localbrain/atlassian/structure_references.py"
         }
       ]
     },
@@ -4381,10 +4350,10 @@
         }
       },
       "producers": [
-        "src/localbrain/personal_insight_runs.py"
+        "src/localbrain/insights/runs.py"
       ],
       "consumers": [
-        "src/localbrain/personal_insight_runs.py",
+        "src/localbrain/insights/runs.py",
         "src/localbrain/templates/session_insights.html"
       ],
       "consequence": "Separates question-led analysis from owner-requested discovery.",
@@ -4444,10 +4413,10 @@
         }
       },
       "producers": [
-        "src/localbrain/personal_insight_runs.py"
+        "src/localbrain/insights/runs.py"
       ],
       "consumers": [
-        "src/localbrain/personal_insight_runs.py",
+        "src/localbrain/insights/runs.py",
         "src/localbrain/templates/session_insights.html"
       ],
       "consequence": "Controls report availability, polling, cancellation, and failure recovery.",
@@ -4506,10 +4475,10 @@
         }
       },
       "producers": [
-        "src/localbrain/personal_insight_runs.py"
+        "src/localbrain/insights/runs.py"
       ],
       "consumers": [
-        "src/localbrain/personal_insight_runs.py",
+        "src/localbrain/insights/runs.py",
         "src/localbrain/templates/session_insights.html"
       ],
       "consequence": "Identifies the Codex CLI data-transfer path; settings freeze the local profile.",
@@ -4564,11 +4533,11 @@
         }
       },
       "producers": [
-        "src/localbrain/learning.py"
+        "src/localbrain/learning/service.py"
       ],
       "consumers": [
         "src/localbrain/templates/learning-reader.html",
-        "src/localbrain/learning.py"
+        "src/localbrain/learning/service.py"
       ],
       "consequence": "Self-reported evidence and reviewed source scope; never objective mastery or automatic currentness.",
       "presentation": {
@@ -4584,7 +4553,7 @@
       },
       "visible_consumers": [
         {
-          "path": "src/localbrain/learning.py",
+          "path": "src/localbrain/learning/service.py",
           "state": "registry-backed"
         }
       ],
@@ -4596,7 +4565,7 @@
         },
         {
           "kind": "python-constant",
-          "path": "src/localbrain/learning.py",
+          "path": "src/localbrain/learning/service.py",
           "name": "OUTCOME_VALUES"
         }
       ]
@@ -4631,11 +4600,11 @@
         }
       },
       "producers": [
-        "src/localbrain/learning.py"
+        "src/localbrain/learning/service.py"
       ],
       "consumers": [
         "src/localbrain/templates/learning-reader.html",
-        "src/localbrain/learning.py"
+        "src/localbrain/learning/service.py"
       ],
       "consequence": "Self-reported evidence and reviewed source scope; never objective mastery or automatic currentness.",
       "presentation": {
@@ -4649,7 +4618,7 @@
       },
       "visible_consumers": [
         {
-          "path": "src/localbrain/learning.py",
+          "path": "src/localbrain/learning/service.py",
           "state": "registry-backed"
         }
       ],
@@ -4661,7 +4630,7 @@
         },
         {
           "kind": "python-constant",
-          "path": "src/localbrain/learning.py",
+          "path": "src/localbrain/learning/service.py",
           "name": "CONFIDENCE_VALUES"
         }
       ]
@@ -4694,11 +4663,11 @@
         }
       },
       "producers": [
-        "src/localbrain/learning.py"
+        "src/localbrain/learning/service.py"
       ],
       "consumers": [
         "src/localbrain/templates/learning-reader.html",
-        "src/localbrain/learning.py"
+        "src/localbrain/learning/service.py"
       ],
       "consequence": "Self-reported evidence and reviewed source scope; never objective mastery or automatic currentness.",
       "presentation": {
@@ -4751,11 +4720,11 @@
         }
       },
       "producers": [
-        "src/localbrain/learning.py"
+        "src/localbrain/learning/service.py"
       ],
       "consumers": [
         "src/localbrain/templates/learning-library.html",
-        "src/localbrain/learning.py"
+        "src/localbrain/learning/service.py"
       ],
       "consequence": "Self-reported evidence and reviewed source scope; never objective mastery or automatic currentness.",
       "presentation": {
@@ -4808,11 +4777,11 @@
         }
       },
       "producers": [
-        "src/localbrain/learning.py"
+        "src/localbrain/learning/service.py"
       ],
       "consumers": [
         "src/localbrain/templates/learning-article.html",
-        "src/localbrain/learning.py",
+        "src/localbrain/learning/service.py",
         "src/localbrain/templates/learning-library.html",
         "src/localbrain/templates/learning-reader.html"
       ],
@@ -4842,7 +4811,7 @@
       "sources": [
         {
           "kind": "python-constant",
-          "path": "src/localbrain/learning.py",
+          "path": "src/localbrain/learning/service.py",
           "name": "VERSION_STATUSES"
         }
       ]
@@ -4875,10 +4844,10 @@
         }
       },
       "producers": [
-        "src/localbrain/learning.py"
+        "src/localbrain/learning/service.py"
       ],
       "consumers": [
-        "src/localbrain/learning.py",
+        "src/localbrain/learning/service.py",
         "src/localbrain/templates/learning-library.html",
         "src/localbrain/templates/learning-reader.html"
       ],
@@ -4904,7 +4873,7 @@
       "sources": [
         {
           "kind": "python-constant",
-          "path": "src/localbrain/learning.py",
+          "path": "src/localbrain/learning/service.py",
           "name": "SOURCE_KINDS"
         }
       ]
@@ -4937,11 +4906,11 @@
         }
       },
       "producers": [
-        "src/localbrain/learning.py"
+        "src/localbrain/learning/service.py"
       ],
       "consumers": [
         "src/localbrain/templates/learning-reader.html",
-        "src/localbrain/learning.py"
+        "src/localbrain/learning/service.py"
       ],
       "consequence": "Self-reported evidence and reviewed source scope; never objective mastery or automatic currentness.",
       "presentation": {
@@ -4961,7 +4930,7 @@
       "sources": [
         {
           "kind": "python-constant",
-          "path": "src/localbrain/learning.py",
+          "path": "src/localbrain/learning/service.py",
           "name": "QUESTION_KINDS"
         }
       ]
@@ -4995,7 +4964,7 @@
         }
       },
       "producers": [
-        "src/localbrain/learning.py"
+        "src/localbrain/learning/service.py"
       ],
       "consumers": [
         "src/localbrain/templates/learning-article.html",
@@ -5029,7 +4998,7 @@
       "sources": [
         {
           "kind": "python-constant",
-          "path": "src/localbrain/learning.py",
+          "path": "src/localbrain/learning/service.py",
           "name": "REVIEWER_ROLES"
         }
       ]
@@ -5062,10 +5031,10 @@
         }
       },
       "producers": [
-        "src/localbrain/learning.py"
+        "src/localbrain/learning/service.py"
       ],
       "consumers": [
-        "src/localbrain/learning.py",
+        "src/localbrain/learning/service.py",
         "src/localbrain/templates/learning-library.html",
         "src/localbrain/templates/learning-scene.html"
       ],
@@ -5091,7 +5060,7 @@
       "sources": [
         {
           "kind": "python-constant",
-          "path": "src/localbrain/learning.py",
+          "path": "src/localbrain/learning/service.py",
           "name": "SCENE_KINDS"
         }
       ]
@@ -5124,10 +5093,10 @@
         }
       },
       "producers": [
-        "src/localbrain/learning.py"
+        "src/localbrain/learning/service.py"
       ],
       "consumers": [
-        "src/localbrain/learning.py",
+        "src/localbrain/learning/service.py",
         "src/localbrain/templates/learning-article.html",
         "src/localbrain/templates/learning-library.html",
         "src/localbrain/templates/learning-scene.html"
@@ -5158,7 +5127,7 @@
       "sources": [
         {
           "kind": "python-constant",
-          "path": "src/localbrain/learning.py",
+          "path": "src/localbrain/learning/service.py",
           "name": "SCENE_ORIGINS"
         }
       ]
@@ -5193,10 +5162,10 @@
         }
       },
       "producers": [
-        "src/localbrain/learning.py"
+        "src/localbrain/learning/service.py"
       ],
       "consumers": [
-        "src/localbrain/learning.py",
+        "src/localbrain/learning/service.py",
         "src/localbrain/templates/learning-scene.html"
       ],
       "consequence": "Self-reported evidence and reviewed source scope; never objective mastery or automatic currentness.",
@@ -5219,7 +5188,7 @@
       "sources": [
         {
           "kind": "python-constant",
-          "path": "src/localbrain/learning.py",
+          "path": "src/localbrain/learning/service.py",
           "name": "EXECUTION_STATES"
         }
       ]
@@ -5254,10 +5223,10 @@
         }
       },
       "producers": [
-        "src/localbrain/learning.py"
+        "src/localbrain/learning/service.py"
       ],
       "consumers": [
-        "src/localbrain/learning.py",
+        "src/localbrain/learning/service.py",
         "src/localbrain/templates/learning-scene.html"
       ],
       "consequence": "Self-reported evidence and reviewed source scope; never objective mastery or automatic currentness.",
@@ -5280,7 +5249,7 @@
       "sources": [
         {
           "kind": "python-constant",
-          "path": "src/localbrain/learning.py",
+          "path": "src/localbrain/learning/service.py",
           "name": "GIT_STATES"
         }
       ]
@@ -5314,10 +5283,10 @@
         }
       },
       "producers": [
-        "src/localbrain/learning.py"
+        "src/localbrain/learning/service.py"
       ],
       "consumers": [
-        "src/localbrain/learning.py",
+        "src/localbrain/learning/service.py",
         "src/localbrain/templates/learning-library.html",
         "src/localbrain/templates/learning-reader.html"
       ],
@@ -5344,7 +5313,7 @@
       "sources": [
         {
           "kind": "python-constant",
-          "path": "src/localbrain/learning.py",
+          "path": "src/localbrain/learning/service.py",
           "name": "QUESTION_DEPTHS"
         }
       ]
@@ -5379,10 +5348,10 @@
         }
       },
       "producers": [
-        "src/localbrain/learning.py"
+        "src/localbrain/learning/service.py"
       ],
       "consumers": [
-        "src/localbrain/learning.py"
+        "src/localbrain/learning/service.py"
       ],
       "consequence": "Self-reported evidence and reviewed source scope; never objective mastery or automatic currentness.",
       "presentation": {
@@ -5394,8 +5363,103 @@
       "sources": [
         {
           "kind": "python-constant",
-          "path": "src/localbrain/learning.py",
+          "path": "src/localbrain/learning/service.py",
           "name": "SELECTION_SIGNALS"
+        }
+      ]
+    },
+    {
+      "id": "reference-resource.kind",
+      "subject": "work-organization-and-resources",
+      "physical_fields": [
+        "reference_resources.kind"
+      ],
+      "values": [
+        "url",
+        "path",
+        "note"
+      ],
+      "enforcement": "schema-check",
+      "axis": "Shared resource locator family",
+      "default": null,
+      "fallbacks": {
+        "null": {
+          "action": "reject"
+        },
+        "unknown": {
+          "action": "reject"
+        },
+        "invalid": {
+          "action": "reject"
+        },
+        "future": {
+          "action": "reject"
+        }
+      },
+      "producers": [
+        "src/localbrain/resources/catalog.py"
+      ],
+      "consumers": [
+        "src/localbrain/sessions/references.py"
+      ],
+      "consequence": "Separates URL, filesystem path and opaque provider-note identities without owning their content.",
+      "presentation": {
+        "mode": "internal-only",
+        "labels": {},
+        "help": null
+      },
+      "visible_consumers": [],
+      "sources": [
+        {
+          "kind": "schema-check",
+          "field": "reference_resources.kind"
+        }
+      ]
+    },
+    {
+      "id": "reference-resource.product",
+      "subject": "work-organization-and-resources",
+      "physical_fields": [
+        "reference_resources.product"
+      ],
+      "values": [
+        "jira",
+        "confluence"
+      ],
+      "enforcement": "schema-check",
+      "axis": "Product inferred from URL grammar",
+      "default": null,
+      "fallbacks": {
+        "null": {
+          "action": "internal"
+        },
+        "unknown": {
+          "action": "reject"
+        },
+        "invalid": {
+          "action": "reject"
+        },
+        "future": {
+          "action": "reject"
+        }
+      },
+      "producers": [
+        "src/localbrain/resources/catalog.py"
+      ],
+      "consumers": [
+        "src/localbrain/sessions/references.py"
+      ],
+      "consequence": "Classifies recognized URLs independently of Atlassian registration; NULL means an unclassified URL or local resource.",
+      "presentation": {
+        "mode": "internal-only",
+        "labels": {},
+        "help": null
+      },
+      "visible_consumers": [],
+      "sources": [
+        {
+          "kind": "schema-check",
+          "field": "reference_resources.product"
         }
       ]
     }

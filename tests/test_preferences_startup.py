@@ -8,7 +8,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from localbrain.config import _system_timezone_name
+from localbrain.foundation.config import _system_timezone_name
 
 
 class PreferencesStartupTests(unittest.TestCase):
@@ -35,22 +35,7 @@ class PreferencesStartupTests(unittest.TestCase):
             "HF_HUB_OFFLINE": "1",
             "TRANSFORMERS_OFFLINE": "1",
         })
-        code = '''import asyncio, json
-from localbrain.main import app, lifespan
-from localbrain.preferences import PreferencesError, read_preferences
-
-async def run():
-    async with lifespan(app):
-        try:
-            result = {"preferences": read_preferences(), "error": None}
-        except PreferencesError as error:
-            result = {"preferences": None, "error": str(error)}
-        result["sync"] = app.state.session_sync.status()
-        result["context_sync"] = app.state.context_sync.status()
-        print(json.dumps(result), flush=True)
-
-asyncio.run(run())
-'''
+        code = "import asyncio, json\nfrom localbrain.main import app\nfrom localbrain.app.lifecycle import lifespan\nfrom localbrain.foundation.preferences import PreferencesError, read_preferences\n\nasync def run():\n    async with lifespan(app):\n        try:\n            result = {'preferences': read_preferences(), 'error': None}\n        except PreferencesError as error:\n            result = {'preferences': None, 'error': str(error)}\n        result['sync'] = app.state.session_sync.status()\n        result['context_sync'] = app.state.context_sync.status()\n        print(json.dumps(result), flush=True)\nasyncio.run(run())\n"
         result = subprocess.run([sys.executable, "-c", code], env=environment,
                                 capture_output=True, text=True, timeout=30)
         self.assertEqual(result.returncode, 0, result.stderr)

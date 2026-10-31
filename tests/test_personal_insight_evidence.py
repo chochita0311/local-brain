@@ -3,7 +3,7 @@ import unittest
 from datetime import datetime, timezone
 from pathlib import Path
 
-from localbrain.personal_insight_evidence import (
+from localbrain.insights.evidence import (
     MAX_EXCERPTS,
     MAX_SESSIONS,
     MAX_TOTAL_CHARS,

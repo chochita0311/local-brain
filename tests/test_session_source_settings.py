@@ -5,11 +5,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from localbrain.config import Settings
-from localbrain.session_sources import (
-    load_session_source_settings,
-    reconcile_session_source_settings,
-)
+from localbrain.foundation.config import Settings
+from localbrain.sources.registry import load_session_source_settings, reconcile_session_source_settings
 
 
 SCHEMA_PATH = Path(__file__).parents[1] / "src" / "localbrain" / "schema.sql"
@@ -195,7 +192,7 @@ root = "{}"
 """.format(unreadable)
         )
 
-        with patch("localbrain.session_sources.os.access", return_value=False):
+        with patch("localbrain.sources.registry.os.access", return_value=False):
             loaded = load_session_source_settings(self.settings)
 
         self.assertFalse(loaded.file_error)

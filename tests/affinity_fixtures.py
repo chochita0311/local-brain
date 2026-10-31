@@ -6,8 +6,8 @@ from collections import defaultdict
 from contextlib import closing
 from pathlib import Path
 
-from localbrain.session_simulation import simulate
-from localbrain.work_reconstruction import digest
+from localbrain.auto_work.simulation import simulate
+from localbrain.foundation.fingerprints import digest
 
 
 class Encoder:

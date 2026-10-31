@@ -4,8 +4,8 @@ import copy
 import threading
 from contextlib import contextmanager
 
-from ..model_installation import model_root
-from ..session_simulation_model import LocalEncoder
+from localbrain.models.installation import model_root
+from localbrain.models.embedding import LocalEncoder
 
 QUERY_INSTRUCTION = ("Instruct: Given a search query, retrieve relevant passages from work sessions "
                      "and documents that answer the query.\nQuery: ")

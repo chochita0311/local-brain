@@ -4,8 +4,8 @@ import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
-from ...atlassian_structure_references import project_structure_reference_search
-from ...path_display import home_relative_path
+from localbrain.ingest.extensions import deleting_owner
+from localbrain.foundation.paths import home_relative_path
 from ..contracts import SessionRevisionError
 
 
@@ -215,42 +215,19 @@ def _replace_search_item(
     )
 
 
-def _delete_structure_evidence_owner(
+def _delete_source_owner(
     connection: sqlite3.Connection,
     *,
     session_id: Optional[int] = None,
     document_id: Optional[int] = None,
 ) -> None:
     if (session_id is None) == (document_id is None):
-        raise ValueError("Exactly one structure evidence owner is required")
-    if session_id is not None:
-        reference_query = """
-            SELECT DISTINCT reference_id
-            FROM atlassian_structure_reference_evidence
-            WHERE session_id = ?
-            ORDER BY reference_id
-        """
-        delete_query = "DELETE FROM sessions WHERE id = ?"
-        owner_id = session_id
-    else:
-        reference_query = """
-            SELECT DISTINCT reference_id
-            FROM atlassian_structure_reference_evidence
-            WHERE document_id = ?
-            ORDER BY reference_id
-        """
-        delete_query = "DELETE FROM context_documents WHERE id = ?"
-        owner_id = document_id
-    reference_ids = tuple(
-        int(row["reference_id"])
-        for row in connection.execute(
-            reference_query,
-            (owner_id,),
-        ).fetchall()
-    )
-    connection.execute(delete_query, (owner_id,))
-    for reference_id in reference_ids:
-        project_structure_reference_search(connection, reference_id)
+        raise ValueError("Exactly one source owner is required")
+    with deleting_owner(connection, session_id=session_id, document_id=document_id):
+        if session_id is not None:
+            connection.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
+        else:
+            connection.execute("DELETE FROM context_documents WHERE id = ?", (document_id,))
 
 
 def _context_source_id(connection):

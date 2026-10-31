@@ -46,11 +46,11 @@ def main():
                 raise ChatError('INPUT', '모델 선택을 확인해 주세요.')
             if generator is None:
                 emit({'type': 'status', 'phase': 'loading'})
-                from ..model_installation import install_model, model_root
+                from localbrain.models.installation import install_model, model_root
                 root = model_root(key)
                 if not (root / 'model.json').is_file():
                     install_model(key, local_only=True)
-                from ..work_context_model import LocalGenerator
+                from localbrain.models.generation import LocalGenerator
                 generator = LocalGenerator(root, thinking=False, max_output=1024, max_seconds=90)
                 generator._load()
             emit(answer(generator, request['sources'], history, emit))

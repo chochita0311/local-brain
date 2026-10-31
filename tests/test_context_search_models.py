@@ -6,9 +6,9 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
-from localbrain.model_installation import generation_models, generation_runtime_missing, runtime_missing
-from localbrain.model_setup import ModelSetupService
-from localbrain.preferences import PreferencesError
+from localbrain.models.installation import generation_models, generation_runtime_missing, runtime_missing
+from localbrain.models.setup import ModelSetupService
+from localbrain.foundation.preferences import PreferencesError
 
 
 class ModelSetupTests(unittest.TestCase):
@@ -25,15 +25,15 @@ class ModelSetupTests(unittest.TestCase):
     def test_cached_original_is_available_without_app_registration_or_hashing(self):
         repo = self.root / 'shared'; snapshot = repo / 'snapshots/pinned'; snapshot.mkdir(parents=True)
         (snapshot / 'model.safetensors').write_bytes(b'public sample')
-        with patch('localbrain.model_installation.hub_repository', return_value=repo), patch(
-                'localbrain.work_context_model.model_spec', return_value={'id': 'Qwen/Demo', 'revision': 'pinned', 'assets': {'model.safetensors'}}):
+        with patch('localbrain.models.installation.hub_repository', return_value=repo), patch(
+                'localbrain.models.generation.model_spec', return_value={'id': 'Qwen/Demo', 'revision': 'pinned', 'assets': {'model.safetensors'}}):
             models = generation_models(self.config)
             self.assertTrue(all(m['cached'] and m['available'] and not m['registered'] for m in models))
         self.assertFalse(self.config.data_dir.exists())
         self.assertEqual((snapshot / 'model.safetensors').read_bytes(), b'public sample')
 
     def test_generation_does_not_require_embedding_packages(self):
-        with patch('localbrain.model_installation.importlib.util.find_spec', side_effect=lambda name: object() if name in {'torch','transformers','huggingface_hub'} else None):
+        with patch('localbrain.models.installation.importlib.util.find_spec', side_effect=lambda name: object() if name in {'torch','transformers','huggingface_hub'} else None):
             self.assertEqual(generation_runtime_missing(), [])
             self.assertIn('sentence_transformers', runtime_missing())
 
@@ -51,7 +51,7 @@ class ModelSetupTests(unittest.TestCase):
         self.search.request_prepare.assert_called_once()
 
     def test_unknown_model_never_starts_process(self):
-        with patch('localbrain.model_setup.subprocess.Popen') as start, self.assertRaises(PreferencesError):
+        with patch('localbrain.models.setup.subprocess.Popen') as start, self.assertRaises(PreferencesError):
             self.service.start('arbitrary/remote-model')
         start.assert_not_called()
 
@@ -62,9 +62,9 @@ class ModelSetupTests(unittest.TestCase):
         self.assertEqual(self.service._generation_phases['8b'], 'canceled')
 
     def test_install_command_passes_only_pinned_model_key_and_app_root(self):
-        with patch('localbrain.model_setup.runtime_missing', return_value=[]), patch(
-                'localbrain.model_setup.generation_runtime_missing', return_value=[]), patch(
-                'localbrain.model_setup.subprocess.Popen') as start, patch('localbrain.model_setup.threading.Thread'):
+        with patch('localbrain.models.setup.runtime_missing', return_value=[]), patch(
+                'localbrain.models.setup.generation_runtime_missing', return_value=[]), patch(
+                'localbrain.models.setup.subprocess.Popen') as start, patch('localbrain.models.setup.threading.Thread'):
             self.service.start('8b')
         env = start.call_args.kwargs['env']
         self.assertEqual(env['LOCALBRAIN_MODEL_KEY'], '8b')

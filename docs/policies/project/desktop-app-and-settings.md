@@ -411,6 +411,9 @@ their existing explicit authority. Picking does not persist a path independently
 - Restore is same-Mac recovery, with a recovery copy and rollback on failure.
   A restart reopens restored state. Cache cleanup is explicit, limited to owned
   inactive derived data and must never follow symlinks into external content.
+  Common search-cache cleanup invokes only included features' additional cleanup
+  handlers. Files retained from an excluded feature stay untouched and do not
+  require that feature's implementation to be available.
 
 ## Generalized Session Profiles
 

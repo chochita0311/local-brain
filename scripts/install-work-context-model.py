@@ -8,8 +8,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from localbrain.work_context_model import MODEL_ID, MODEL_IDS, install, verify
-from localbrain.work_reconstruction import ExperimentError
+from localbrain.models.generation import MODEL_ID, MODEL_IDS, install, verify
+from localbrain.foundation.validation import ExperimentError
 
 
 class Parser(argparse.ArgumentParser):

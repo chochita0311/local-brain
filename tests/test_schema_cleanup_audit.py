@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from localbrain.db import _run_compatible_migrations
+from localbrain.persistence.migrations.compatible import _run_compatible_migrations
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -44,15 +44,15 @@ class SchemaCleanupAuditTests(unittest.TestCase):
             text=True,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("732 objects", result.stdout)
-        self.assertIn("keep=620, change=0, remove=0, defer=112", result.stdout)
+        self.assertIn("755 objects", result.stdout)
+        self.assertIn("keep=643, change=0, remove=0, defer=112", result.stdout)
 
     def test_manifest_inventory_matches_audit_boundary(self):
         manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
-        self.assertEqual(len(manifest["tables"]), 49)
-        self.assertEqual(sum(len(table["columns"]) for table in manifest["tables"]), 543)
-        self.assertEqual(sum(len(table["indexes"]) for table in manifest["tables"]), 52)
-        self.assertEqual(len(manifest["relationships"]["physical"]), 59)
+        self.assertEqual(len(manifest["tables"]), 53)
+        self.assertEqual(sum(len(table["columns"]) for table in manifest["tables"]), 556)
+        self.assertEqual(sum(len(table["indexes"]) for table in manifest["tables"]), 51)
+        self.assertEqual(len(manifest["relationships"]["physical"]), 66)
         self.assertEqual(len(manifest["relationships"]["application"]), 29)
 
     def test_audit_checker_rejects_coverage_and_safety_drift(self):

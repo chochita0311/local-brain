@@ -2,8 +2,8 @@
 
 import threading
 
-from ..model_installation import model_root, runtime_missing
-from ..session_simulation import read_json
+from localbrain.models.installation import model_root, runtime_missing
+from localbrain.foundation.private_json import read_json
 from .index import folder, prepare, read_settings, save_settings, writer_active
 from .model import SearchEncoder
 from .retrieval import Retriever, database_stamp

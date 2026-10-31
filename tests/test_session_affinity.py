@@ -11,10 +11,12 @@ from types import SimpleNamespace
 from starlette.requests import Request
 
 from affinity_fixtures import prepare, seed
-from localbrain import session_affinity as reader
-from localbrain.session_simulation import atomic_json, now, read_json
-from localbrain import main as web
-from localbrain.work_reconstruction import digest
+from localbrain.auto_work import affinity as reader
+from localbrain.foundation.private_json import atomic_json, read_json
+from localbrain.foundation.clock import now
+from localbrain.auto_work import web
+from localbrain.main import app
+from localbrain.foundation.fingerprints import digest
 
 
 def query(url):
@@ -47,7 +49,7 @@ class AffinityTests(unittest.TestCase):
 
     def render(self, query_string=b""):
         request = Request({"type": "http", "method": "GET", "path": "/auto-work", "query_string": query_string,
-                           "headers": [], "scheme": "http", "server": ("127.0.0.1", 8018), "app": web.app})
+                           "headers": [], "scheme": "http", "server": ("127.0.0.1", 8018), "app": app})
         with patch.object(web, "settings", SimpleNamespace(database_path=self.database, data_dir=self.root)):
             return web.auto_work_page(request)
 
@@ -276,7 +278,7 @@ class AffinityTests(unittest.TestCase):
     def test_view_does_not_write_source_or_store_or_encode(self):
         paths = [self.database] + [p for p in self.folder.iterdir() if p.is_file()]
         before = {p: p.read_bytes() for p in paths}
-        with patch("localbrain.session_simulation.simulate", side_effect=AssertionError("no hidden work")):
+        with patch("localbrain.auto_work.simulation.simulate", side_effect=AssertionError("no hidden work")):
             first = self.view()
             self.view(**query(first["nodes"][0]["href"]))
             with patch.object(reader, "inventory", side_effect=AssertionError("unchanged cache")):

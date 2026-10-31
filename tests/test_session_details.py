@@ -5,15 +5,15 @@ from pathlib import Path
 from unittest.mock import patch
 
 from localbrain.ingest.contracts import ParsedEvent, ParsedSession
-from localbrain.queries import (
+from localbrain.sessions.queries import (
     session_conversation_events,
     session_events,
     session_id_prefix,
     session_parent,
     session_subsessions,
 )
-from localbrain.session_reading import conversation_event_view, conversation_event_views
-from localbrain.subagents import list_subagents
+from localbrain.sessions.reading import conversation_event_view, conversation_event_views
+from localbrain.sessions.subagents import list_subagents
 
 
 SCHEMA_PATH = Path(__file__).parents[1] / "src" / "localbrain" / "schema.sql"
@@ -257,7 +257,7 @@ class SessionDetailTests(unittest.TestCase):
                 ],
             )
 
-            with patch("localbrain.subagents.parse_claude_session", return_value=parsed):
+            with patch("localbrain.sessions.subagents.parse_claude_session", return_value=parsed):
                 items = list_subagents(str(source_path), "parent")
 
         self.assertEqual(len(items), 1)
@@ -286,7 +286,7 @@ class SessionDetailTests(unittest.TestCase):
             text="<unsafe>",
         )
         with patch(
-            "localbrain.markdown._MARKDOWN.render",
+            "localbrain.rendering.markdown._MARKDOWN.render",
             side_effect=ValueError("synthetic"),
         ):
             fallback = conversation_event_view(eligible)

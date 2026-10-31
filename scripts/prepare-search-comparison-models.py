@@ -10,7 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src'))
-from localbrain.runtime_storage import private_directory
+from localbrain.foundation.files import private_directory
 
 MODELS = {
     'laya': ('convaiinnovations/laya-multilingual', 'e4e9ddf21a7b1903b7acffd8814ad4307bf63a67'),

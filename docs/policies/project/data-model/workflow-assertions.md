@@ -52,13 +52,13 @@ or changes assertion meaning.
   row with no successor referencing it. Ordinary product behavior never updates
   or deletes history, and assertion state requires database backup for recovery.
 - Producers: validated, user-initiated operations in
-  `workflow_assertions.py`. Session ingestion, source reconciliation,
+  `workflow/assertions.py`. Session ingestion, source reconciliation,
   Suggestions, Workstream organization, connectors, and models never write the
   table.
-- Consumers: `workflow_assertions.py` resolves active chains, returns bounded
+- Consumers: `workflow/assertions.py` resolves active chains, returns bounded
   history, computes optimistic projection revisions, and overlays effective
   relation/lifecycle state after deterministic Workflow Focus candidate production.
-  `workflow_correction_view.py` presents active state and exact contextual
+  `workflow/correction_view.py` presents active state and exact contextual
   transitions; the Session Workflow Focus correction POST is a product mutation
   consumer. Focus GET remains a read consumer.
 - Relations and deletion: nullable `source_session_id` and

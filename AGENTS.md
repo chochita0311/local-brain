@@ -33,7 +33,7 @@ Out of scope unless explicitly planned:
 
 ## Codebase Map
 
-- `src/localbrain/`: FastAPI application, SQLite access, ingestion, retrieval, and Task Runner
+- `src/localbrain/`: stable entrypoints plus feature packages; [Architecture](docs/policies/project/architecture.md#package-ownership) owns the package/layer map
 - `src/localbrain/templates/`: server-rendered Jinja2 views
 - `src/localbrain/static/`: browser assets
 - `tests/`: unit and integration-oriented behavior tests

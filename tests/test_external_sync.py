@@ -9,13 +9,10 @@ from dataclasses import replace
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
-from localbrain.external_access import (
-    record_capability_observation,
-    register_source_instance,
-)
-from localbrain.config import settings
-from localbrain.db import init_db
-from localbrain.external_sync import (
+from localbrain.atlassian.access import record_capability_observation, register_source_instance
+from localbrain.foundation.config import settings
+from localbrain.persistence.db import init_db
+from localbrain.atlassian.sync import (
     MANIFEST_SCHEMA,
     MODEL_RESULT_SCHEMA_VERSION,
     RESULT_SCHEMA_VERSION,
@@ -28,12 +25,8 @@ from localbrain.external_sync import (
     prepare_external_sync_run,
     validate_provider_result,
 )
-from localbrain.runner import (
-    _execute_run,
-    cancel_run,
-    external_runner_command_args,
-    reconcile_interrupted_runs,
-)
+from localbrain.atlassian.runner import (_execute_run, external_runner_command_args)
+from localbrain.maintenance.service import (cancel_run, reconcile_interrupted_runs)
 
 
 SCHEMA_PATH = Path(__file__).parents[1] / "src" / "localbrain" / "schema.sql"
@@ -161,9 +154,9 @@ class ExternalSyncTests(unittest.TestCase):
 
     def runner_patches(self):
         return (
-            patch("localbrain.runner.connect", return_value=self.connection),
+            patch("localbrain.maintenance.service.connect", return_value=self.connection),
             patch(
-                "localbrain.runner.transaction",
+                "localbrain.maintenance.service.transaction",
                 side_effect=lambda: self.transaction_context(),
             ),
         )
@@ -237,7 +230,7 @@ class ExternalSyncTests(unittest.TestCase):
             data_dir=self.db_path.parent,
             database_path=self.db_path,
         )
-        with patch("localbrain.db.settings", runtime_settings):
+        with patch("localbrain.persistence.db.settings", runtime_settings):
             init_db()
         self.connection = sqlite3.connect(str(self.db_path))
         self.connection.row_factory = sqlite3.Row
@@ -621,13 +614,13 @@ class ExternalSyncTests(unittest.TestCase):
 
                 connect_patch, transaction_patch = self.runner_patches()
                 with connect_patch, transaction_patch, patch(
-                    "localbrain.runner.runner_executable",
+                    "localbrain.atlassian.runner.runner_executable",
                     return_value="/synthetic/runner",
                 ), patch(
-                    "localbrain.runner.asyncio.create_subprocess_exec",
+                    "localbrain.maintenance.service.asyncio.create_subprocess_exec",
                     side_effect=create_process,
                 ), patch(
-                    "localbrain.runner._sync_native_runner_sessions",
+                    "localbrain.maintenance.service._sync_native_runner_sessions",
                     return_value=True,
                 ) as session_sync:
                     asyncio.run(_execute_run(run_id, executor))
@@ -709,13 +702,13 @@ class ExternalSyncTests(unittest.TestCase):
 
                 connect_patch, transaction_patch = self.runner_patches()
                 with connect_patch, transaction_patch, patch(
-                    "localbrain.runner.runner_executable",
+                    "localbrain.atlassian.runner.runner_executable",
                     return_value="/synthetic/claude",
                 ), patch(
-                    "localbrain.runner.asyncio.create_subprocess_exec",
+                    "localbrain.maintenance.service.asyncio.create_subprocess_exec",
                     side_effect=create_process,
                 ), patch(
-                    "localbrain.runner._sync_native_runner_sessions",
+                    "localbrain.maintenance.service._sync_native_runner_sessions",
                     return_value=True,
                 ):
                     asyncio.run(_execute_run(run_id, executor))
@@ -743,10 +736,10 @@ class ExternalSyncTests(unittest.TestCase):
         )
         connect_patch, transaction_patch = self.runner_patches()
         with connect_patch, transaction_patch, patch(
-            "localbrain.runner.asyncio.create_subprocess_exec",
+            "localbrain.maintenance.service.asyncio.create_subprocess_exec",
             new_callable=AsyncMock,
         ) as create_process, patch(
-            "localbrain.runner._sync_native_runner_sessions",
+            "localbrain.maintenance.service._sync_native_runner_sessions",
             return_value=True,
         ):
             asyncio.run(_execute_run(run_id))
@@ -793,13 +786,13 @@ class ExternalSyncTests(unittest.TestCase):
 
         connect_patch, transaction_patch = self.runner_patches()
         with connect_patch, transaction_patch, patch(
-            "localbrain.runner.runner_executable",
+            "localbrain.atlassian.runner.runner_executable",
             return_value="/synthetic/claude",
         ), patch(
-            "localbrain.runner.asyncio.create_subprocess_exec",
+            "localbrain.maintenance.service.asyncio.create_subprocess_exec",
             side_effect=invalid_process,
         ), patch(
-            "localbrain.runner._sync_native_runner_sessions",
+            "localbrain.maintenance.service._sync_native_runner_sessions",
             return_value=True,
         ):
             asyncio.run(_execute_run(invalid_id, executor))
@@ -825,7 +818,7 @@ class ExternalSyncTests(unittest.TestCase):
         )
         connect_patch, transaction_patch = self.runner_patches()
         with connect_patch, transaction_patch, patch(
-            "localbrain.runner._sync_native_runner_sessions",
+            "localbrain.maintenance.service._sync_native_runner_sessions",
             return_value=True,
         ) as session_sync:
             self.assertTrue(asyncio.run(cancel_run(cancel_id)))
@@ -853,7 +846,7 @@ class ExternalSyncTests(unittest.TestCase):
         self.connection.commit()
         connect_patch, transaction_patch = self.runner_patches()
         with connect_patch, transaction_patch, patch(
-            "localbrain.runner._sync_native_runner_sessions",
+            "localbrain.maintenance.service._sync_native_runner_sessions",
             return_value=True,
         ) as session_sync:
             self.assertEqual(reconcile_interrupted_runs(), 1)

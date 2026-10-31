@@ -11,8 +11,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "tests"))
-from localbrain.work_context_diagnostic import LIMITS, diagnose, matrix, suite_identity
-from localbrain.work_reconstruction import ExperimentError
+from localbrain.experiments.context.diagnostic import LIMITS, diagnose, matrix, suite_identity
+from localbrain.foundation.validation import ExperimentError
 from work_context_diagnostic_cases import CASES
 
 
@@ -36,7 +36,7 @@ def main(argv=None):
             raise ExperimentError("INVALID_ARGUMENTS")
         print("SYNTHETIC_DIAGNOSTIC_RUNNING", flush=True)
         with open(os.devnull, "w") as quiet, contextlib.redirect_stdout(quiet), contextlib.redirect_stderr(quiet):
-            from localbrain.work_context_model import LocalGenerator
+            from localbrain.models.generation import LocalGenerator
             generator = LocalGenerator(args.model_root, device="mps", max_tokens=LIMITS["max_tokens"],
                                        max_output=LIMITS["max_output"], max_seconds=LIMITS["call_seconds"])
             diagnose(generator, CASES, args.output)

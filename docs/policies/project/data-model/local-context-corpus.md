@@ -6,6 +6,10 @@ This subject owns user-managed Context source registration and the locally index
 
 [Value Dictionary](value-dictionaries/local-context-corpus.md) owns this subject's bounded physical/logical/presentation mappings.
 
+Local Context owns indexed document bodies and source paths. The [shared resource registry](work-organization-and-resources.md) adds `resource_documents` bindings without moving that authority. Local bookmarks remain separate metadata: a matching path shares the same resource ID, while a folder/repository bookmark has no implied Document. Index deletion removes its binding but preserves Session observations and manual bookmark notes; same-path reindexing restores navigation. Workstream/Thread links and Atlassian sightings are outgoing mappings owned by those consumers, never prerequisites for Local Context storage or reading.
+
+Core ingestion has no optional observers by default. `app/reference_integrations.py` explicitly installs the optional Atlassian observer for the app, background scans and CLI; `ingest/extensions.py` scopes it to the caller connection/transaction. Document and local-resource pages receive optional membership readers from app assembly and can render without Workstream access. No unregistered file is read or imported to satisfy a Session reference.
+
 ## Focused ERD
 
 ```mermaid
@@ -42,11 +46,11 @@ erDiagram
 
 - Purpose and authority: user-managed registry of folders, individual files, and Apple Notes sources, including readability, enablement, scan status, and error state.
 - Lifecycle: user-curated and non-rebuildable as a registry. A default Context directory may be discovered compatibly only for previously indexed Documents; fresh installations require explicit registration. User additions/removals and source types require backup.
-- Producers: `contexts.py` adds, restores, disables, and validates roots; `ingest/sync/contexts.py` updates scan outcomes; `db.py` compatibly seeds/migrates folder roots for previously indexed Documents.
-- Consumers: Context source listing/detail in `contexts.py` and `queries.py`, scanner source enumeration, Workstream pickers/suggestions, and document visibility filters.
-- Relations and deletion: optional physical parent of `context_documents` with `ON DELETE SET NULL`; ordinary removal disables the root and removes indexed rows for that source boundary rather than deleting the registry row or original local content.
+- Producers: `local_context/service.py` adds, restores, disables, and validates roots; `ingest/sync/contexts.py` updates scan outcomes; `persistence/migrations/local_context.py` compatibly seeds/migrates folder roots for previously indexed Documents.
+- Consumers: Context source listing/detail in `local_context/service.py` and `local_context/queries.py`, scanner source enumeration, Workstream pickers/suggestions, and document visibility filters.
+- Relations and deletion: optional physical parent of `context_documents` with `ON DELETE SET NULL`; ordinary removal disables the root and removes its FTS projections and source-file tracking. It retains the registry, Document rows, shared resource bindings and Session evidence; the disabled root makes those Documents unavailable for normal reading. Original local content remains untouched. Actual Document deletion during collection removes its binding but preserves shared identity and Session evidence.
 - Recovery: restore the LocalBrain database or re-register every root manually, then scan. Original files/Notes remain external authorities.
-- DDL ownership: fresh definition in `schema.sql`; `db.py` compatibly adds `source_type`, `display_order`, `readable`, `status`, and `error` and migrates document ownership.
+- DDL ownership: fresh definition in `schema.sql`; `persistence/migrations/` compatibly adds `source_type`, `display_order`, `readable`, `status`, and `error` and migrates document ownership.
 
 | Column | Contract |
 | --- | --- |
@@ -68,12 +72,13 @@ Constraints: uniqueness of `path`. Explicit indexes: none.
 ### `context_documents`
 
 - Purpose and authority: normalized text and metadata indexed from a registered local file/folder/Notes source, with source path, content fingerprint, and optional current workspace association.
+- Inventory: each indexed file has an absolute `path` and source-relative `relative_path`; `local_context/service.py::context_source_tree` reconstructs folder nodes from those relative paths. There is no separate persisted folder tree or universal catalog of every local Markdown file. Multiple Session reference rows may point to the shared resource bound to the same indexed Document.
 - Lifecycle: source-derived and rebuildable while the external source remains available. The stored body is local indexed content and is never copied into tracked schema evidence.
-- Producers: `ingest/sync/contexts.py` upserts documents and removes disappeared rows; `db.py` migrates older root associations and relative paths.
-- Consumers: Context browse/detail in `queries.py` and `main.py`, retrieval evidence, Runner context manifests, Workstream links/suggestions, source summaries, `search_index` projection, direct Session reference resolution, and the Session `관련 자료` read projection for directly referenced or explicitly Thread/Workstream-linked Documents. Workspace identity may bound exact reference resolution but never makes a Document a visible related-material candidate by itself. The projection reads identity and metadata only and never copies the stored body into Session ownership.
-- Relations and deletion: source deletion cascades. Context root and workspace deletion set their keys null, retaining the document until scanner/root lifecycle removes it. Scanner and `contexts.py` explicitly remove matching FTS rows; disabling a Context root also clears its derived Atlassian evidence without deleting any Item. It is an application target for Workstream, Thread, and checkpoint references.
+- Producers: `ingest/sync/contexts.py` upserts documents and removes disappeared rows; `persistence/migrations/local_context.py` migrates older root associations and relative paths.
+- Consumers: Context browse/detail in `local_context/queries.py` and `local_context/web.py`, retrieval evidence, Runner context manifests, Workstream links/suggestions, source summaries, `search_index` projection, direct Session reference resolution, and the Session `관련 자료` read projection for directly referenced Documents. Thread/Workstream membership does not supply candidates to Session detail. Workspace identity may bound exact reference resolution but never makes a Document a visible related-material candidate by itself. The projection reads identity and metadata only and never copies the stored body into Session ownership.
+- Relations and deletion: source deletion cascades. Physical Context root and workspace deletion set their keys null, retaining the Document. Ordinary root removal only disables it; collection can delete a Document whose source disappeared. Actual Document deletion removes its shared-resource binding while preserving the resource and Session evidence. Scanner and `local_context/service.py` explicitly remove matching FTS rows; when installed, the optional ingestion adapter also clears the root's derived Atlassian evidence without deleting any Item. It is an application target for Workstream, Thread, and checkpoint references.
 - Recovery: rescan external sources. If the original content is gone, only a database/host backup can recover the indexed body; LocalBrain is not the authority for the original file.
-- DDL ownership: fresh definition plus `idx_documents_mtime` in `schema.sql`; compatible `context_root_id` and `content_type`, migration assignment, and runtime-only `idx_documents_context_root` in `db.py`.
+- DDL ownership: fresh definition plus `idx_documents_mtime` in `schema.sql`; compatible `context_root_id` and `content_type`, migration assignment, and runtime-only `idx_documents_context_root` in `persistence/migrations/`.
 
 | Column | Contract |
 | --- | --- |

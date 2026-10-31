@@ -11,7 +11,7 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 import data_model_value_registry as checker  # noqa: E402
-from localbrain.value_registry import (  # noqa: E402
+from localbrain.persistence.value_registry import (
     ValueRegistryError,
     display_value_label,
     load_value_registry,
@@ -28,7 +28,7 @@ class ValueRegistryContractTests(unittest.TestCase):
 
     def test_registry_covers_eleven_subjects_and_current_required_inventories(self):
         self.assertEqual(len(self.registry["subjects"]), 11)
-        self.assertEqual(len(self.registry["families"]), 87)
+        self.assertEqual(len(self.registry["families"]), 88)
         self.assertFalse(checker.validate_registry(ROOT, self.registry))
         self.assertFalse(checker.check_documents(ROOT))
         self.assertFalse(

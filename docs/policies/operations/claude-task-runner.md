@@ -21,6 +21,28 @@ The Task Runner starts a local maintenance process. Existing Workstream resource
 
 `LOCALBRAIN_CLAUDE_BIN` and `LOCALBRAIN_CODEX_BIN` may select their respective executable. `LOCALBRAIN_RUN_ID` is provided to the child process for Run attribution.
 
+## Code Ownership And Restart Recovery
+
+Workstream tasks own their preparation, Claude commands and pending Suggestion
+application in `workstreams/runner.py`. External read execution and the terminal
+Atlassian projection transaction belong to `atlassian/runner.py`.
+`maintenance/service.py` tracks the coroutine supplied by either feature and owns
+shared Run state, process cancellation and interrupted-run recovery. It does not
+import Workstream or Atlassian implementations. Shared stream/output decoding is
+in `maintenance/streams.py`; the Workstream start endpoint is in `workstreams/web.py`
+and the shared Run console/status/cancel endpoints remain in `maintenance/web.py`.
+
+Recovery is part of the registered Task Runner's lifecycle, not a requirement of
+Session ingestion or reading. In the development web edition, startup marks rows
+with `status IN ('queued', 'running', 'cancelling')`, a non-null `task_type` and a
+non-null `stream_path` as `interrupted`, clears their PID and records completion
+time/error before synchronizing the affected native runner sources. It does not
+restart those tasks. Shutdown terminates the tracked child processes and records
+their interrupted state. The desktop edition does not invoke either hook. An
+internal app assembly with neither Workstream nor Atlassian execution omits this
+lifecycle contribution entirely. Full production assembly retains the existing
+startup/shutdown order and terminal transaction boundaries.
+
 ## External Synchronization
 
 `external_source_sync` uses `localbrain.external-sync-manifest.v1` for both runner kinds. Detailed selected locators, metadata/content/hierarchy coverage, known remote evidence, field allowlists, logical operations, and the hard preparation-time call budget remain in the private manifest. `external_sync_runs` stores only the source-neutral query projection.
@@ -36,7 +58,7 @@ The selected model sees only the validated local manifest and evidence:
 
 Both return `localbrain.external-sync-model-result.v1`, which contains only Run identity and a bounded summary. LocalBrain assembles `localbrain.external-sync-result.v1` from host-validated facts plus that presentation summary. Model prose cannot author or replace source facts.
 
-All-success target outcomes finish `completed`; mixed success and failure finishes `partial`; no successful target, absent executor, launch failure, or invalid model output finishes `failed`. Cancel and restart behavior remains source-neutral and never applies or deletes prior external Item state. For an explicit Atlassian refresh manifest, the host validates the complete result and atomically applies the Item remote state and content owned by [Atlassian Source Memory](../project/data-model/atlassian-source-memory.md) before committing the same terminal Run transaction. Invalid target, source, locator, or result mappings leave both the last-known Item state and terminal success unset.
+All-success target outcomes finish `completed`; mixed success and failure finishes `partial`; no successful target, absent executor, launch failure, or invalid model output finishes `failed`. Cancel and restart behavior remains source-neutral and never applies or deletes prior external Item state. For an explicit Atlassian refresh manifest, the host validates the complete result and atomically applies the Item remote state owned by [Atlassian Source Memory](../project/data-model/atlassian-source-memory.md) and the body owned by [shared External Resource content](../project/data-model/work-organization-and-resources.md#external_resource_content) before committing the same terminal Run transaction. Invalid target, source, locator, or result mappings leave both the last-known Item state and terminal success unset.
 
 Atlassian refresh preparation is a product-level specialization of this contract. Its local preview makes no external or model call, supports Item, Space, Thread, Workstream, and all-known scopes, and hard-caps the submitted selection at 20 calculated reads. One mixed-Source user action remains one maintenance Run. Jira Space scope contains known selected Items only. Confluence catalog expansion is a separately selected request for one page of at most 200 regular Page identities; Page bodies are not fetched by that catalog request.
 

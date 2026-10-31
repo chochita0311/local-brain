@@ -10,17 +10,18 @@ from urllib.parse import urlencode
 
 from starlette.requests import Request
 
-from localbrain.main import app, correct_session_workflow, show_session_workflow
-from localbrain.value_registry import ValueRegistryError
-from localbrain.workflow_assertions import workflow_boundary_key
-from localbrain.workflow_correction import (
+from localbrain.main import app
+from localbrain.workflow.web import correct_session_workflow, show_session_workflow
+from localbrain.persistence.value_registry import ValueRegistryError
+from localbrain.workflow.assertions import workflow_boundary_key
+from localbrain.workflow.correction import (
     MAX_WORKFLOW_CORRECTION_FORM_BYTES,
     WorkflowCorrectionRequestError,
     parse_workflow_correction_form,
     reject_cross_site_workflow_correction,
 )
-from localbrain.workflow_focus import workflow_focus_projection
-from localbrain.workflow_map import workflow_map_view
+from localbrain.workflow.focus import workflow_focus_projection
+from localbrain.workflow.map import workflow_map_view
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -244,8 +245,10 @@ class WorkflowCorrectionRouteTests(unittest.TestCase):
         )
 
     def _post(self, values, *, enhanced=True, fetch_site="same-origin"):
-        with patch("localbrain.main.transaction", self._transaction), patch(
-            "localbrain.main.connect", return_value=self.connection
+        with patch('localbrain.workflow.web.transaction', self._transaction), patch(
+            'localbrain.workflow.web.connect', return_value=self.connection
+        ), patch(
+            'localbrain.app.templating.connect', return_value=self.connection
         ):
             return asyncio.run(
                 correct_session_workflow(
@@ -371,7 +374,7 @@ class WorkflowCorrectionRouteTests(unittest.TestCase):
             "expected_revision": projection.assertion_revision,
         }
         with patch(
-            "localbrain.main.transaction",
+            'localbrain.workflow.web.transaction',
             side_effect=AssertionError("transaction must not open"),
         ):
             response = asyncio.run(
@@ -385,7 +388,7 @@ class WorkflowCorrectionRouteTests(unittest.TestCase):
         malformed = dict(values)
         malformed["unknown"] = "value"
         with patch(
-            "localbrain.main.transaction",
+            'localbrain.workflow.web.transaction',
             side_effect=AssertionError("transaction must not open"),
         ):
             response = asyncio.run(
@@ -410,7 +413,7 @@ class WorkflowCorrectionRouteTests(unittest.TestCase):
             response.headers["location"],
             "/sessions/11/workflow?workflow_result=corrected#workflow-correction-feedback",
         )
-        with patch("localbrain.main.connect", return_value=self.connection):
+        with patch('localbrain.workflow.web.connect', return_value=self.connection), patch('localbrain.app.templating.connect', return_value=self.connection):
             page = show_session_workflow(
                 Request(
                     {
@@ -446,10 +449,10 @@ class WorkflowCorrectionRouteTests(unittest.TestCase):
             connection.execute("UPDATE sessions SET title = 'mutated' WHERE id = 12")
             raise RuntimeError("private source path and note")
 
-        with patch("localbrain.main.transaction", self._transaction), patch(
-            "localbrain.main.connect", return_value=self.connection
+        with patch('localbrain.workflow.web.transaction', self._transaction), patch(
+            'localbrain.workflow.web.connect', return_value=self.connection
         ), patch(
-            "localbrain.main.apply_workflow_assertion",
+            'localbrain.workflow.web.apply_workflow_assertion',
             side_effect=fail_after_write,
         ):
             response = asyncio.run(

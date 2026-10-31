@@ -12,7 +12,7 @@ def main():
         from .context_search.worker import main as worker_main
         return worker_main()
     if "--install-search-model" in sys.argv:
-        from .model_setup import download_worker
+        from localbrain.models.setup import download_worker
         return download_worker()
     os.environ["LOCALBRAIN_EDITION"] = "desktop"
     os.environ.setdefault("HF_HUB_DISABLE_TELEMETRY", "1")
@@ -20,7 +20,7 @@ def main():
     if not os.environ.get("LOCALBRAIN_DESKTOP_TOKEN"):
         raise SystemExit("The backend must be launched by LocalBrain.app")
     import uvicorn
-    from .main import app
+    from localbrain.main import app
 
     class DesktopServer(uvicorn.Server):
         async def startup(self, sockets=None):

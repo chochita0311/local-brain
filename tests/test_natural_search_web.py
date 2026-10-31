@@ -7,7 +7,8 @@ from contextlib import ExitStack
 from unittest.mock import patch
 from urllib.parse import urlencode, urlsplit
 
-from localbrain import main as web
+from localbrain.natural_search import web
+from localbrain.main import app
 from localbrain.natural_search.index import prepare, save_settings
 from localbrain.natural_search.molecules import Profile
 from localbrain.natural_search.presentation import safe_return
@@ -25,9 +26,13 @@ class NaturalSearchWebTests(unittest.TestCase):
         self.addCleanup(self.service.stop)
         self.stack = ExitStack()
         self.addCleanup(self.stack.close)
-        self.stack.enter_context(patch.object(web, 'settings', self.config))
         self.stack.enter_context(patch.object(web, 'connect', lambda: source_connection(self.config.database_path)))
-        self.stack.enter_context(patch.object(web.app.state, 'natural_search', self.service, create=True))
+        self.stack.enter_context(patch('localbrain.app.templating.connect', lambda: source_connection(self.config.database_path)))
+        self.stack.enter_context(patch('localbrain.app.templating.settings', self.config))
+        self.stack.enter_context(patch('localbrain.search.web.connect', lambda: source_connection(self.config.database_path)))
+        self.stack.enter_context(patch('localbrain.sessions.web.connect', lambda: source_connection(self.config.database_path)))
+        self.stack.enter_context(patch('localbrain.local_context.web.connect', lambda: source_connection(self.config.database_path)))
+        self.stack.enter_context(patch.object(app.state, 'natural_search', self.service, create=True))
 
     def call(self, url, *, method='GET', form=None, headers=()):
         # These cases cover the AI mode. Keyword availability has its own cases.
@@ -52,7 +57,7 @@ class NaturalSearchWebTests(unittest.TestCase):
             async def send(message):
                 output.append(message)
 
-            await web.app({'type': 'http', 'asgi': {'version': '3.0'}, 'http_version': '1.1',
+            await app({'type': 'http', 'asgi': {'version': '3.0'}, 'http_version': '1.1',
                            'method': method, 'path': parsed.path, 'raw_path': parsed.path.encode(),
                            'query_string': parsed.query.encode(), 'headers': header_list,
                            'scheme': 'http', 'server': ('127.0.0.1', 8000), 'client': ('127.0.0.1', 1234)}, receive, send)

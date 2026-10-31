@@ -13,13 +13,13 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: user-selected profile color
 - Default: `NULL`
 - Fallbacks: `null`: label → 기본 색상; `unknown`: label → 알 수 없는 색상; `invalid`: reject; `future`: label → 새 색상
-- Producers: `src/localbrain/session_sources.py`
-- Consumers: `src/localbrain/source_profiles.py`
+- Producers: `src/localbrain/sources/registry.py`
+- Consumers: `src/localbrain/sources/profiles.py`
 - Consequence: Projects the configured profile color without changing provider or imported identity.
 - Presentation mode: `logical-label`
 - Labels: `green` → 녹색; `blue` → 파란색; `orange` → 주황색; `yellow` → 노란색; `red` → 빨간색; `gray` → 회색
 - Help: 프로필을 구분하는 색상입니다.
-- Visible consumer inventory: `src/localbrain/source_profiles.py` (registry-backed)
+- Visible consumer inventory: `src/localbrain/sources/profiles.py` (registry-backed)
 
 ## `source.provider-kind`
 
@@ -29,8 +29,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: local source adapter family
 - Default: `unknown`
 - Fallbacks: `null`: reject; `unknown`: label → 알 수 없는 어댑터; `invalid`: reject; `future`: label → 새 어댑터
-- Producers: `src/localbrain/ingest/scanner.py`, `src/localbrain/db.py`
-- Consumers: `src/localbrain/ingest/scanner.py`, `src/localbrain/usage_queries.py`, `src/localbrain/main.py`
+- Producers: `src/localbrain/ingest/scanner.py`, `src/localbrain/persistence/migrations/sources.py`
+- Consumers: `src/localbrain/ingest/scanner.py`, `src/localbrain/usage/queries.py`, `src/localbrain/sources/web.py`
 - Consequence: Selects parser, Usage normalizer, and provider-specific reconciliation without defining user-facing source scope.
 - Presentation mode: `logical-label`
 - Labels: `claude` → Claude; `codex` → Codex; `context` → Local Context; `unknown` → 알 수 없는 어댑터
@@ -46,7 +46,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Default: `NULL`
 - Fallbacks: `null`: label → 동기화 전; `unknown`: label → 상태 확인 필요; `invalid`: reject; `future`: label → 새 상태
 - Producers: `src/localbrain/ingest/scanner.py`
-- Consumers: `src/localbrain/queries.py`, `src/localbrain/usage_queries.py`, `src/localbrain/templates/sessions.html`, `src/localbrain/templates/sessions_dashboard.html`, `src/localbrain/templates/sources.html`
+- Consumers: `src/localbrain/sources/queries.py`, `src/localbrain/usage/queries.py`, `src/localbrain/templates/sessions.html`, `src/localbrain/templates/sessions_dashboard.html`, `src/localbrain/templates/sources.html`
 - Consequence: Distinguishes successful, empty, unavailable, configuration, and scan-failure outcomes without changing retained source ownership.
 - Presentation mode: `logical-label`
 - Labels: `completed` → 완료; `empty` → 비어 있음; `unavailable` → 경로 확인 필요; `configuration_error` → 설정 확인 필요; `scan_failed` → 동기화 실패
@@ -62,7 +62,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Default: `ok`
 - Fallbacks: `null`: reject; `unknown`: label → 상태 확인 필요; `invalid`: reject; `future`: label → 새 상태
 - Producers: `src/localbrain/ingest/scanner.py`
-- Consumers: `src/localbrain/queries.py`, `src/localbrain/usage_queries.py`
+- Consumers: `src/localbrain/sources/queries.py`, `src/localbrain/usage/queries.py`
 - Consequence: Stale or error rows reduce freshness and require a rescan.
 - Presentation mode: `logical-label`
 - Labels: `ok` → 최신; `stale` → 다시 동기화 필요; `error` → 동기화 오류
@@ -77,8 +77,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: MCP connection method
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: label → 알 수 없는 연결 방식; `invalid`: reject; `future`: label → 새 연결 방식
-- Producers: `src/localbrain/external_access.py`
-- Consumers: `src/localbrain/atlassian_registration.py`, `src/localbrain/templates/atlassian-connections.html`
+- Producers: `src/localbrain/atlassian/access.py`
+- Consumers: `src/localbrain/atlassian/registration.py`, `src/localbrain/templates/atlassian-connections.html`
 - Consequence: Selects the approved MCP dispatch adapter.
 - Presentation mode: `logical-label`
 - Labels: `mcp_gateway` → 회사 MCP Gateway; `atlassian_cloud` → 공식 Atlassian MCP
@@ -93,8 +93,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: Atlassian product service
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: label → 알 수 없는 서비스; `invalid`: reject; `future`: label → 새 서비스
-- Producers: `src/localbrain/external_access.py`
-- Consumers: `src/localbrain/atlassian_registration.py`, `src/localbrain/templates/atlassian-connections.html`
+- Producers: `src/localbrain/atlassian/access.py`
+- Consumers: `src/localbrain/atlassian/registration.py`, `src/localbrain/templates/atlassian-connections.html`
 - Consequence: Limits calls and identities to one Atlassian service.
 - Presentation mode: `logical-label`
 - Labels: `jira` → Jira; `confluence` → Confluence
@@ -109,8 +109,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: registered connection availability
 - Default: `1`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/external_access.py`
-- Consumers: `src/localbrain/atlassian_registration.py`, `src/localbrain/templates/atlassian-connections.html`
+- Producers: `src/localbrain/atlassian/access.py`
+- Consumers: `src/localbrain/atlassian/registration.py`, `src/localbrain/templates/atlassian-connections.html`
 - Consequence: Disabled connections cannot authorize external reads.
 - Presentation mode: `logical-label`
 - Labels: `0` → 사용 안 함; `1` → 사용
@@ -125,8 +125,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: last explicit capability inspection
 - Default: `NULL`
 - Fallbacks: `null`: label → 확인 전; `unknown`: label → 알 수 없음; `invalid`: reject; `future`: label → 새 상태
-- Producers: `src/localbrain/external_access.py`
-- Consumers: `src/localbrain/external_access.py`, `src/localbrain/atlassian_registration.py`
+- Producers: `src/localbrain/atlassian/access.py`
+- Consumers: `src/localbrain/atlassian/access.py`, `src/localbrain/atlassian/registration.py`
 - Consequence: Only a current available observation can authorize a read.
 - Presentation mode: `logical-label`
 - Labels: `available` → 사용 가능; `unavailable` → 사용 불가; `unauthorized` → 권한 없음; `error` → 확인 오류
@@ -141,8 +141,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: usable capability state
 - Default: `unknown`
 - Fallbacks: `null`: label → 확인 전; `unknown`: label → 확인 전; `invalid`: reject; `future`: label → 새 상태
-- Producers: `src/localbrain/external_access.py`
-- Consumers: `src/localbrain/atlassian_registration.py`, `src/localbrain/templates/atlassian-connections.html`, `src/localbrain/templates/atlassian-refresh.html`
+- Producers: `src/localbrain/atlassian/access.py`
+- Consumers: `src/localbrain/atlassian/registration.py`, `src/localbrain/templates/atlassian-connections.html`, `src/localbrain/templates/atlassian-refresh.html`
 - Consequence: Combines registration, freshness, and availability before dispatch.
 - Presentation mode: `logical-label`
 - Labels: `unknown` → 확인 전; `current` → 연결됨; `stale` → 다시 확인 필요; `disabled` → 사용 안 함; `unavailable` → 사용 불가; `unauthorized` → 권한 없음; `error` → 확인 오류

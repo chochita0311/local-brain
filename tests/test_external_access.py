@@ -7,8 +7,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from localbrain.db import init_db
-from localbrain.external_access import (
+from localbrain.persistence.db import init_db
+from localbrain.atlassian.access import (
     CAPABILITY_SCHEMA,
     READ_POLICY_VERSION,
     ExternalAccessError,
@@ -678,7 +678,7 @@ class ExternalAccessTests(unittest.TestCase):
                 database_path=database_path,
                 context_root=data_dir / "context",
             )
-            with patch("localbrain.db.settings", synthetic_settings):
+            with patch("localbrain.persistence.db.settings", synthetic_settings):
                 init_db()
                 init_db()
 

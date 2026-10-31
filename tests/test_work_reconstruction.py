@@ -1,10 +1,10 @@
 import copy
 import unittest
 
-from localbrain.work_reconstruction import (
-    ExperimentError, reconstruct, metadata_baseline, metadata_view, digest,
-)
-from localbrain.work_reconstruction_scoring import compare_snapshot, score, stability
+from localbrain.foundation.validation import ExperimentError
+from localbrain.experiments.reconstruction.contract import reconstruct, metadata_baseline, metadata_view
+from localbrain.foundation.fingerprints import digest
+from localbrain.experiments.reconstruction.scoring import compare_snapshot, score, stability
 from work_reconstruction_cases import (
     LANGUAGE_CASES, bind_expectations, goal, long_history, member, record, snapshot,
 )
@@ -90,8 +90,8 @@ class WorkReconstructionTests(unittest.TestCase):
         self.assertEqual(retained["label_changes"], 0)
 
     def test_cross_source_long_effort_survives_changing_workspaces_and_references(self):
-        from localbrain.workstream_candidates import candidate_artifact_key
-        from localbrain.workflow_projection import workflow_episode_key
+        from localbrain.workflow.candidates import candidate_artifact_key
+        from localbrain.workflow.projection import workflow_episode_key
         data, _ = long_history()
         original = reconstruct(data)
         for s in data["sessions"]:
@@ -178,8 +178,8 @@ class WorkReconstructionTests(unittest.TestCase):
                 reconstruct(data)
 
     def test_shared_ten_artifacts_yield_45_baseline_pairs_but_one_text_flow(self):
-        from localbrain.workstream_candidates import candidate_artifact_key
-        from localbrain.workflow_projection import workflow_episode_key
+        from localbrain.workflow.candidates import candidate_artifact_key
+        from localbrain.workflow.projection import workflow_episode_key
         rows = [record("a", "Improve session synchronization.", 1), record("b", "Improve session synchronization.", 2)]
         data = snapshot(rows)
         data["artifacts"] = [{"kind": "context-document", "source_scope": "synthetic", "source_identity": str(n),
@@ -200,8 +200,8 @@ class WorkReconstructionTests(unittest.TestCase):
         self.assertNotIn("Fix parsing", str(metadata_view(data)))
 
     def test_remaining_snapshot_and_pair_caps_fail_without_prefix_results(self):
-        from localbrain.workstream_candidates import candidate_artifact_key
-        from localbrain.workflow_projection import workflow_episode_key
+        from localbrain.workflow.candidates import candidate_artifact_key
+        from localbrain.workflow.projection import workflow_episode_key
         variants = [snapshot([record(str(i), "x", 1) for i in range(201)]),
                     snapshot([record(str(i), "x" * 4000, 1) for i in range(9)])]
         for field, count in (("artifacts", 2001), ("references", 12001), ("organization_links", 201)):
@@ -222,7 +222,7 @@ class WorkReconstructionTests(unittest.TestCase):
 
     def test_pure_arms_do_not_access_sources_network_processes_or_database(self):
         from unittest.mock import patch
-        import localbrain.workstream_candidates  # Preload existing pure dependencies.
+        import localbrain.workflow.candidates
         data = snapshot([record("r", "Fix parsing.")])
         with patch("builtins.open", side_effect=AssertionError("file access")), \
              patch("sqlite3.connect", side_effect=AssertionError("database access")), \

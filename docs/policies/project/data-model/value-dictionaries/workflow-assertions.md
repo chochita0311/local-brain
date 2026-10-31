@@ -13,8 +13,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: asserted workflow boundary family
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/workflow_assertions.py`
-- Consumers: `src/localbrain/workflow_assertions.py`, `src/localbrain/workflow_correction_view.py`
+- Producers: `src/localbrain/workflow/assertions.py`
+- Consumers: `src/localbrain/workflow/assertions.py`, `src/localbrain/workflow/correction_view.py`
 - Consequence: Selects Episode-pair relation validation or one-Episode lifecycle validation.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
@@ -29,13 +29,13 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: user workflow correction action
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/workflow_assertions.py`
-- Consumers: `src/localbrain/workflow_assertions.py`, `src/localbrain/workflow_correction.py`, `src/localbrain/workflow_correction_view.py`
+- Producers: `src/localbrain/workflow/assertions.py`
+- Consumers: `src/localbrain/workflow/assertions.py`, `src/localbrain/workflow/correction.py`, `src/localbrain/workflow/correction_view.py`
 - Consequence: Determines the exact relation or lifecycle transition recorded in one append-only assertion.
 - Presentation mode: `logical-label`
 - Labels: `same-flow` → 같은 흐름; `split-here` → 여기서 분기; `merge-into` → 여기로 병합; `close` → 종료; `reopen` → 다시 열기
 - Help: 사용자가 확인한 업무 흐름의 관계 또는 종료 경계를 나타냅니다.
-- Visible consumer inventory: `src/localbrain/workflow_correction_view.py` (registry-backed)
+- Visible consumer inventory: `src/localbrain/workflow/correction_view.py` (registry-backed)
 
 ## `workflow-assertion.undo`
 
@@ -45,8 +45,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: assertion reversal marker
 - Default: `0`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/workflow_assertions.py`
-- Consumers: `src/localbrain/workflow_assertions.py`, `src/localbrain/workflow_correction_view.py`
+- Producers: `src/localbrain/workflow/assertions.py`
+- Consumers: `src/localbrain/workflow/assertions.py`, `src/localbrain/workflow/correction_view.py`
 - Consequence: Marks a superseding row as an explicit reversal while retaining the original five-value assertion kind.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
@@ -61,13 +61,13 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: canonical workflow boundary meaning
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/workflow_assertions.py`
-- Consumers: `src/localbrain/workflow_assertions.py`, `src/localbrain/workflow_correction_view.py`
+- Producers: `src/localbrain/workflow/assertions.py`
+- Consumers: `src/localbrain/workflow/assertions.py`, `src/localbrain/workflow/correction_view.py`
 - Consequence: Makes every assertion and reversal replayable without reinterpreting its original before/after state.
 - Presentation mode: `logical-label`
 - Labels: `relation:absent` → 관계 없음; `relation:continues` → 이어짐; `relation:branches-from` → 분기; `relation:merged-into` → 병합; `lifecycle:unknown` → 종료 여부 미확인; `lifecycle:open` → 열림; `lifecycle:closed` → 종료
 - Help: 교정 전과 후의 정확한 업무 경계를 비교합니다.
-- Visible consumer inventory: `src/localbrain/workflow_correction_view.py` (registry-backed)
+- Visible consumer inventory: `src/localbrain/workflow/correction_view.py` (registry-backed)
 
 ## `workflow-assertion.closure-reason`
 
@@ -77,13 +77,13 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: explicit closure reason
 - Default: `NULL`
 - Fallbacks: `null`: label → 종료 사유 없음; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/workflow_assertions.py`
-- Consumers: `src/localbrain/workflow_assertions.py`, `src/localbrain/workflow_correction.py`, `src/localbrain/workflow_correction_view.py`
+- Producers: `src/localbrain/workflow/assertions.py`
+- Consumers: `src/localbrain/workflow/assertions.py`, `src/localbrain/workflow/correction.py`, `src/localbrain/workflow/correction_view.py`
 - Consequence: Qualifies only a closed before/after lifecycle meaning and never derives closure from inactivity.
 - Presentation mode: `logical-label`
 - Labels: `completed` → 완료; `abandoned` → 중단; `superseded` → 다른 흐름으로 대체; `merged` → 병합됨; `other` → 기타
 - Help: 사용자가 직접 확인한 종료 이유입니다.
-- Visible consumer inventory: `src/localbrain/workflow_correction_view.py` (registry-backed)
+- Visible consumer inventory: `src/localbrain/workflow/correction_view.py` (registry-backed)
 
 ## `workflow-assertion.authority`
 
@@ -93,13 +93,13 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: workflow assertion authority
 - Default: `user-confirmed`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/workflow_assertions.py`
-- Consumers: `src/localbrain/workflow_assertions.py`, `src/localbrain/workflow_correction_view.py`
+- Producers: `src/localbrain/workflow/assertions.py`
+- Consumers: `src/localbrain/workflow/assertions.py`, `src/localbrain/workflow/correction_view.py`
 - Consequence: Keeps durable user correction distinct from observation, deterministic candidacy, and organization evidence.
 - Presentation mode: `logical-label`
 - Labels: `user-confirmed` → 사용자 확인
 - Help: 사용자가 직접 확인하거나 되돌린 경계입니다.
-- Visible consumer inventory: `src/localbrain/workflow_correction_view.py` (registry-backed)
+- Visible consumer inventory: `src/localbrain/workflow/correction_view.py` (registry-backed)
 
 ## Explicit Exclusions
 

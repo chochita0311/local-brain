@@ -32,7 +32,7 @@ from localbrain.ingest.common import (
     text_from_content,
     token_value,
 )
-from localbrain.official_pricing import select_snapshot
+from localbrain.usage.pricing import select_snapshot
 from localbrain.ingest.evidence.skill_loads import SkillReadCollector
 from localbrain.ingest.contracts import CODEX_SESSION_REVISION, CODEX_USAGE_CONTRACT_VERSION
 

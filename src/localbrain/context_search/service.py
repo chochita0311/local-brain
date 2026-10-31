@@ -10,9 +10,9 @@ import threading
 import time
 from dataclasses import dataclass, field
 
-from ..config import cache_directory
-from ..model_installation import generation_models, generation_runtime_missing as runtime_missing
-from ..runtime_storage import private_directory
+from localbrain.foundation.config import cache_directory
+from localbrain.models.installation import generation_models, generation_runtime_missing as runtime_missing
+from localbrain.foundation.files import private_directory
 from .engine import ChatError, validate_request
 from .tools import public_sources, source_catalog
 

@@ -22,11 +22,6 @@
           {% endfor %}
         </span>
       {% endif %}
-      {% if item.organization %}
-        <span class="related-material-organization">
-          {{ item.organization[0].label }}{% if item.organization | length > 1 %} 외 {{ (item.organization | length) - 1 }}개 연결{% endif %}
-        </span>
-      {% endif %}
   {% if item.href %}
     </a>
   {% else %}
@@ -54,7 +49,7 @@
       {% else %}
         <div class="related-material-groups">
           {% for group in related_context.groups %}
-            {% if group.key == 'organization' or group['items'] or group.notices %}
+            {% if group['items'] or group.notices %}
               <section class="related-material-group" aria-labelledby="related-material-group-{{ group.key }}">
                 <header class="related-material-group-heading">
                   <h3 id="related-material-group-{{ group.key }}">{{ group.label }}</h3>

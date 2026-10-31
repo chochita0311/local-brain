@@ -2,8 +2,8 @@ import copy
 from hashlib import sha256
 import unittest
 
-from localbrain.personal_insight_evidence import MANIFEST_VERSION
-from localbrain.personal_insight_guidance import (
+from localbrain.insights.evidence import MANIFEST_VERSION
+from localbrain.insights.guidance import (
     CORE_VERSION,
     GUIDE_ROOT,
     PLAYBOOK_IDS,

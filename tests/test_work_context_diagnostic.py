@@ -12,10 +12,11 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
-from localbrain.session_simulation import atomic_json, read_json
-from localbrain.work_context_diagnostic import LIMITS, assess, diagnose, matrix, summarize, suite_identity
-from localbrain.work_context_model import LocalGenerator, MODEL_8B, generation_settings
-from localbrain.work_reconstruction import ExperimentError, digest
+from localbrain.foundation.private_json import atomic_json, read_json
+from localbrain.experiments.context.diagnostic import LIMITS, assess, diagnose, matrix, summarize, suite_identity
+from localbrain.models.generation import LocalGenerator, MODEL_8B, generation_settings
+from localbrain.foundation.validation import ExperimentError
+from localbrain.foundation.fingerprints import digest
 from work_context_diagnostic_cases import CASES
 
 
@@ -87,7 +88,7 @@ class MatrixTests(unittest.TestCase):
         changed = copy.deepcopy(CASES)
         changed[0]["expected"] = "none"
         self.assertNotEqual(initial, suite_identity(changed))
-        with patch.dict("localbrain.work_context_diagnostic.FORMATS", {"text": "changed prompt"}):
+        with patch.dict("localbrain.experiments.context.diagnostic.FORMATS", {"text": "changed prompt"}):
             self.assertNotEqual(initial, suite_identity(CASES))
         self.assertEqual(initial, suite_identity(CASES))
 
@@ -251,7 +252,7 @@ class StoreTests(unittest.TestCase):
     def test_elapsed_budget_is_enforced_after_a_call_and_on_resume(self):
         generator = Generator(self.cases)
         with patch.dict(LIMITS, {"max_seconds": 1}), patch(
-                "localbrain.work_context_diagnostic.time.monotonic", side_effect=[0, 2]):
+                "localbrain.experiments.context.diagnostic.time.monotonic", side_effect=[0, 2]):
             with self.assertRaisesRegex(ExperimentError, "DIAGNOSTIC_BUDGET_EXHAUSTED"):
                 diagnose(generator, self.cases, self.output)
             self.assertEqual(generator.calls, 1)

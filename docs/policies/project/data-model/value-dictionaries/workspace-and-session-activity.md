@@ -14,7 +14,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Default: `0`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
 - Producers: `src/localbrain/ingest/scanner.py`
-- Consumers: `src/localbrain/queries.py`, `src/localbrain/templates/sessions.html`, `src/localbrain/templates/session.html`
+- Consumers: `src/localbrain/sessions/queries.py`, `src/localbrain/templates/sessions.html`, `src/localbrain/templates/session.html`
 - Consequence: Missing paths remain historical but cannot be opened locally.
 - Presentation mode: `logical-label`
 - Labels: `0` → 현재 경로 없음; `1` → 현재 경로 있음
@@ -29,8 +29,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: session ownership class
 - Default: `work`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/ingest/providers/codex.py`, `src/localbrain/ingest/scanner.py`, `src/localbrain/runner.py`
-- Consumers: `src/localbrain/queries.py`, `src/localbrain/retrieval.py`
+- Producers: `src/localbrain/ingest/providers/codex.py`, `src/localbrain/ingest/scanner.py`, `src/localbrain/workstreams/runner.py`
+- Consumers: `src/localbrain/sessions/queries.py`, `src/localbrain/workstreams/retrieval.py`
 - Consequence: Maintenance Sessions, including recognized provider-internal helpers, are excluded from ordinary user Session surfaces.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
@@ -46,7 +46,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Default: `primary`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
 - Producers: `src/localbrain/ingest/providers/claude.py`, `src/localbrain/ingest/providers/codex.py`
-- Consumers: `src/localbrain/queries.py`, `src/localbrain/templates/sessions.html`, `src/localbrain/templates/session.html`, `src/localbrain/templates/subsession.html`
+- Consumers: `src/localbrain/sessions/queries.py`, `src/localbrain/templates/sessions.html`, `src/localbrain/templates/session.html`, `src/localbrain/templates/subsession.html`
 - Consequence: Controls top-level inventory placement and Subsession navigation.
 - Presentation mode: `logical-label`
 - Labels: `primary` → Session; `subsession` → Subsession
@@ -61,8 +61,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: search indexing policy
 - Default: `full`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/ingest/providers/codex.py`, `src/localbrain/ingest/scanner.py`, `src/localbrain/runner.py`
-- Consumers: `src/localbrain/retrieval.py`
+- Producers: `src/localbrain/ingest/providers/codex.py`, `src/localbrain/ingest/scanner.py`, `src/localbrain/workstreams/runner.py`
+- Consumers: `src/localbrain/workstreams/retrieval.py`
 - Consequence: Metadata-only Sessions never expose conversation content to search.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
@@ -78,7 +78,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Default: `NULL`
 - Fallbacks: `null`: internal; `unknown`: internal; `invalid`: reject; `future`: internal
 - Producers: `src/localbrain/ingest/providers/claude.py`, `src/localbrain/ingest/providers/codex.py`, `src/localbrain/ingest/scanner.py`
-- Consumers: `src/localbrain/queries.py`, `src/localbrain/session_reading.py`, `src/localbrain/templates/_conversation.html`
+- Consumers: `src/localbrain/sessions/queries.py`, `src/localbrain/sessions/reading.py`, `src/localbrain/templates/_conversation.html`
 - Consequence: Native Codex final_answer phases and Claude end_turn responses select a neutral conversation frame without implying task success. Claude tool_use maps to commentary; split records share signals within the same native API message ID. Missing, conflicting, malformed or error signals keep the ordinary assistant presentation.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
@@ -94,7 +94,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
 - Producers: `src/localbrain/ingest/scanner.py`
-- Consumers: `src/localbrain/skill_observations.py`
+- Consumers: `src/localbrain/sessions/skills.py`
 - Consequence: Retains the original Claude or Codex parser family even when the current Source row is unavailable.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
@@ -110,7 +110,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
 - Producers: `src/localbrain/ingest/providers/claude.py`, `src/localbrain/ingest/providers/codex.py`
-- Consumers: `src/localbrain/skill_observations.py`
+- Consumers: `src/localbrain/sessions/skills.py`
 - Consequence: Distinguishes native calls/contexts, completed reads, named conversation references, identifiable skill script executions and retained historical declarations. All observed kinds count at most once per source/native Session/skill. No application-phrase classification or proof of success/benefit.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
@@ -125,8 +125,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: historical observation validity
 - Default: `observed`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/skill_observations.py`, `src/localbrain/ingest/scanner.py`
-- Consumers: `src/localbrain/skill_observations.py`
+- Producers: `src/localbrain/sessions/skills.py`, `src/localbrain/ingest/scanner.py`
+- Consumers: `src/localbrain/sessions/skills.py`
 - Consequence: Only observed rows enter the ranking; maintenance or later proven-invalid records remain inspectable without counting.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
@@ -142,24 +142,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
 - Producers: `src/localbrain/ingest/scanner.py`
-- Consumers: `src/localbrain/queries.py`
+- Consumers: `src/localbrain/sessions/queries.py`
 - Consequence: Distinguishes complete, safety-bounded, and stale-after-error reference evidence.
-- Presentation mode: `internal-only`
-- Labels: none; the family is not visible on ordinary screens.
-- Help: none
-- Visible consumer inventory: none.
-
-## `session-reference.target-kind`
-
-- Physical field or projection: `session_reference_evidence.target_kind`
-- Allowed values: `url`, `context_document`, `atlassian_item`
-- Enforcement: `schema-check`
-- Logical axis: Session reference target family
-- Default: `NULL`
-- Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/ingest/scanner.py`
-- Consumers: `src/localbrain/queries.py`
-- Consequence: Selects generic URL, exact Context Document, or configured Atlassian Item identity.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
 - Help: none
@@ -174,7 +158,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: label → 참조 근거 알 수 없음; `invalid`: reject; `future`: label → 새 참조 근거
 - Producers: `src/localbrain/ingest/scanner.py`
-- Consumers: `src/localbrain/queries.py`
+- Consumers: `src/localbrain/sessions/queries.py`
 - Consequence: Explains whether the Session mentioned, observed, or read the target.
 - Presentation mode: `logical-label`
 - Labels: `user_mention` → 사용자 메시지에서 언급; `assistant_mention` → Agent 응답에서 언급; `tool_result` → 도구 결과에서 확인; `resource_read` → MCP 조회
@@ -190,7 +174,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: label → 조회 결과 알 수 없음; `invalid`: reject; `future`: label → 새 조회 결과
 - Producers: `src/localbrain/ingest/scanner.py`
-- Consumers: `src/localbrain/queries.py`
+- Consumers: `src/localbrain/sessions/queries.py`
 - Consequence: A success requires one matched completed non-error call; failure never implies remote content or freshness.
 - Presentation mode: `logical-label`
 - Labels: `success` → MCP 조회; `failure` → MCP 조회 실패

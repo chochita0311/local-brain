@@ -2,9 +2,10 @@ import hashlib
 import json
 import sqlite3
 import unittest
+from localbrain.resources.catalog import bind_document
 from pathlib import Path
 
-from localbrain.workflow_focus import (
+from localbrain.workflow.focus import (
     MAX_WORKFLOW_BRANCH_EPISODES,
     MAX_WORKFLOW_BRANCH_ROOTS,
     MAX_WORKFLOW_CANDIDATES,
@@ -150,15 +151,20 @@ class WorkflowFocusTests(unittest.TestCase):
                 session_id, target_key, line, target_kind
             ).encode("utf-8")
         ).hexdigest()
+        if context_document_id is not None:
+            resource_id = bind_document(self.connection, context_document_id)
+        else:
+            self.connection.execute("INSERT OR IGNORE INTO reference_resources(identity_key, kind, locator) VALUES (?, 'url', ?)", (target_key, normalized_url))
+            resource_id = self.connection.execute("SELECT id FROM reference_resources WHERE identity_key = ?", (target_key,)).fetchone()[0]
         self.connection.execute(
             """
             INSERT INTO session_reference_evidence(
                 session_id, source_path, source_event_id, source_line,
-                evidence_ordinal, target_kind, target_key,
-                context_document_id, evidence_kind, observed_identity,
+                evidence_ordinal, resource_id, target_key,
+                evidence_kind, observed_identity,
                 normalized_url, observed_at, extractor_version, evidence_key,
                 first_observed_at, last_observed_at
-            ) VALUES (?, ?, ?, ?, 1, ?, ?, ?, 'user_mention', ?, ?, ?,
+            ) VALUES (?, ?, ?, ?, 1, ?, ?, 'user_mention', ?, ?, ?,
                       'synthetic-v1', ?, ?, ?)
             """,
             (
@@ -166,9 +172,8 @@ class WorkflowFocusTests(unittest.TestCase):
                 "/private/source-{}.jsonl".format(session_id),
                 "event-{}-{}".format(session_id, line),
                 line,
-                target_kind,
+                resource_id,
                 target_key,
-                context_document_id,
                 identity,
                 normalized_url,
                 observed_at,

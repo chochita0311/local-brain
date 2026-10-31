@@ -13,8 +13,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: Atlassian content service
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: label → 알 수 없는 서비스; `invalid`: reject; `future`: label → 새 서비스
-- Producers: `src/localbrain/atlassian.py`, `src/localbrain/atlassian_registration.py`, `src/localbrain/atlassian_structure_references.py`
-- Consumers: `src/localbrain/atlassian_browse.py`, `src/localbrain/atlassian_structure_references.py`, `src/localbrain/templates/atlassian.html`, `src/localbrain/templates/atlassian-connections.html`, `src/localbrain/templates/search.html`
+- Producers: `src/localbrain/atlassian/catalog.py`, `src/localbrain/atlassian/registration.py`, `src/localbrain/atlassian/structure_references.py`
+- Consumers: `src/localbrain/atlassian/browse.py`, `src/localbrain/atlassian/structure_references.py`, `src/localbrain/templates/atlassian.html`, `src/localbrain/templates/atlassian-connections.html`, `src/localbrain/templates/search.html`
 - Consequence: Keeps Space, Item, and URL-derived structure-reference identity service-scoped.
 - Presentation mode: `logical-label`
 - Labels: `jira` → Jira; `confluence` → Confluence
@@ -29,8 +29,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: URL-derived Atlassian structure family
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/atlassian_structure_references.py`
-- Consumers: `src/localbrain/atlassian_structure_references.py`, `src/localbrain/atlassian_browse.py`
+- Producers: `src/localbrain/atlassian/structure_references.py`
+- Consumers: `src/localbrain/atlassian/structure_references.py`, `src/localbrain/atlassian/browse.py`
 - Consequence: Selects stable semantic identity, family label, and read-only Explorer/Search projection without creating an Item or Space.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
@@ -45,8 +45,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: Space management coverage
 - Default: `selected-content`
 - Fallbacks: `null`: reject; `unknown`: label → 범위 알 수 없음; `invalid`: reject; `future`: label → 새 관리 범위
-- Producers: `src/localbrain/atlassian_registration.py`
-- Consumers: `src/localbrain/atlassian_registration.py`, `src/localbrain/templates/atlassian-connections.html`, `src/localbrain/templates/atlassian-refresh.html`
+- Producers: `src/localbrain/atlassian/registration.py`
+- Consumers: `src/localbrain/atlassian/registration.py`, `src/localbrain/templates/atlassian-connections.html`, `src/localbrain/templates/atlassian-refresh.html`
 - Consequence: Selected content limits management to explicitly registered Items; full content permits Space-wide inventory.
 - Presentation mode: `logical-label`
 - Labels: `selected-content` → 선택한 항목만; `full-content` → Space 전체
@@ -61,8 +61,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: Atlassian Item shape
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: label → 알 수 없는 항목; `invalid`: reject; `future`: label → 새 항목 유형
-- Producers: `src/localbrain/atlassian.py`
-- Consumers: `src/localbrain/atlassian_browse.py`, `src/localbrain/templates/_atlassian-item-preview.html`, `src/localbrain/templates/atlassian-item.html`, `src/localbrain/templates/search.html`
+- Producers: `src/localbrain/atlassian/catalog.py`
+- Consumers: `src/localbrain/atlassian/browse.py`, `src/localbrain/templates/_atlassian-item-preview.html`, `src/localbrain/templates/atlassian-item.html`, `src/localbrain/templates/search.html`
 - Consequence: Selects identity validation and detail semantics.
 - Presentation mode: `logical-label`
 - Labels: `jira_issue` → Jira 티켓; `confluence_page` → Confluence Page
@@ -77,8 +77,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: locally retained content coverage
 - Default: `reference`
 - Fallbacks: `null`: reject; `unknown`: label → 범위 알 수 없음; `invalid`: reject; `future`: label → 새 저장 범위
-- Producers: `src/localbrain/atlassian.py`
-- Consumers: `src/localbrain/atlassian_browse.py`, `src/localbrain/templates/_atlassian-item-preview.html`, `src/localbrain/templates/atlassian.html`, `src/localbrain/templates/atlassian-item.html`, `src/localbrain/templates/atlassian-refresh.html`, `src/localbrain/templates/search.html`
+- Producers: `src/localbrain/atlassian/catalog.py`
+- Consumers: `src/localbrain/atlassian/browse.py`, `src/localbrain/templates/_atlassian-item-preview.html`, `src/localbrain/templates/atlassian.html`, `src/localbrain/templates/atlassian-item.html`, `src/localbrain/templates/atlassian-refresh.html`, `src/localbrain/templates/search.html`
 - Consequence: Reference stores identity only, metadata stores bounded fields, indexed also stores approved normalized content.
 - Presentation mode: `logical-label`
 - Labels: `reference` → 링크만; `metadata` → 기본 정보; `indexed` → 본문 검색 가능
@@ -93,8 +93,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: owner attention state
 - Default: `normal`
 - Fallbacks: `null`: reject; `unknown`: label → 상태 알 수 없음; `invalid`: reject; `future`: label → 새 관심 상태
-- Producers: `src/localbrain/atlassian_browse.py`
-- Consumers: `src/localbrain/atlassian_browse.py`, `src/localbrain/templates/_atlassian-item-preview.html`, `src/localbrain/templates/atlassian.html`, `src/localbrain/templates/atlassian-item.html`, `src/localbrain/templates/search.html`
+- Producers: `src/localbrain/atlassian/browse.py`
+- Consumers: `src/localbrain/atlassian/browse.py`, `src/localbrain/templates/_atlassian-item-preview.html`, `src/localbrain/templates/atlassian.html`, `src/localbrain/templates/atlassian-item.html`, `src/localbrain/templates/search.html`
 - Consequence: Pinned sorts first; archived is hidden from ordinary browse unless explicitly requested.
 - Presentation mode: `logical-label`
 - Labels: `normal` → 일반; `pinned` → 고정됨; `ignored` → 관심 없음; `archived` → 보관됨
@@ -109,8 +109,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: normalized URL identity role
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/atlassian.py`, `src/localbrain/atlassian_structure_references.py`
-- Consumers: `src/localbrain/atlassian.py`, `src/localbrain/atlassian_structure_references.py`
+- Producers: `src/localbrain/atlassian/catalog.py`, `src/localbrain/atlassian/structure_references.py`
+- Consumers: `src/localbrain/atlassian/catalog.py`, `src/localbrain/atlassian/structure_references.py`
 - Consequence: Canonical URL is the stable display target while Item and structure-reference aliases preserve observed identity.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
@@ -125,8 +125,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: last approved remote read result
 - Default: `NULL`
 - Fallbacks: `null`: label → 조회 전; `unknown`: label → 결과 알 수 없음; `invalid`: reject; `future`: label → 새 조회 결과
-- Producers: `src/localbrain/atlassian.py`, `src/localbrain/external_sync.py`
-- Consumers: `src/localbrain/atlassian.py`, `src/localbrain/templates/_atlassian-item-preview.html`, `src/localbrain/templates/atlassian-item.html`, `src/localbrain/templates/atlassian-refresh.html`
+- Producers: `src/localbrain/atlassian/catalog.py`, `src/localbrain/atlassian/sync.py`
+- Consumers: `src/localbrain/atlassian/catalog.py`, `src/localbrain/templates/_atlassian-item-preview.html`, `src/localbrain/templates/atlassian-item.html`, `src/localbrain/templates/atlassian-refresh.html`
 - Consequence: Failures retain prior known data and expose a bounded error state.
 - Presentation mode: `logical-label`
 - Labels: `resolved` → 조회됨; `unchanged` → 변경 없음; `changed` → 변경됨; `unavailable` → 조회 불가; `not_found` → 원격에서 찾을 수 없음; `error` → 조회 오류
@@ -141,8 +141,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: known remote change marker
 - Default: `0`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/atlassian.py`
-- Consumers: `src/localbrain/atlassian.py`
+- Producers: `src/localbrain/atlassian/catalog.py`
+- Consumers: `src/localbrain/atlassian/catalog.py`
 - Consequence: Marks an observed change without replacing local user state.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
@@ -157,25 +157,9 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: search projection repair marker
 - Default: `0`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/atlassian.py`
-- Consumers: `src/localbrain/atlassian.py`
+- Producers: `src/localbrain/atlassian/catalog.py`
+- Consumers: `src/localbrain/atlassian/catalog.py`
 - Consequence: Requests deterministic local projection repair.
-- Presentation mode: `internal-only`
-- Labels: none; the family is not visible on ordinary screens.
-- Help: none
-- Visible consumer inventory: none.
-
-## `atlassian-content.source-format`
-
-- Physical field or projection: `atlassian_item_content.source_format`
-- Allowed values: `jira_adf`, `confluence_adf`, `confluence_html`, `confluence_markdown`, `plain_text`
-- Enforcement: `schema-check`
-- Logical axis: approved source body format
-- Default: `NULL`
-- Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/atlassian.py`
-- Consumers: `src/localbrain/atlassian.py`
-- Consequence: Selects the safe normalizer before text is indexed.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
 - Help: none
@@ -189,8 +173,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: local classification kind
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: label → 분류; `invalid`: reject; `future`: label → 새 분류
-- Producers: `src/localbrain/atlassian_browse.py`
-- Consumers: `src/localbrain/atlassian_browse.py`, `src/localbrain/templates/atlassian-item.html`
+- Producers: `src/localbrain/atlassian/browse.py`
+- Consumers: `src/localbrain/atlassian/browse.py`, `src/localbrain/templates/atlassian-item.html`
 - Consequence: Topics may carry descriptions; Tags remain name-only.
 - Presentation mode: `logical-label`
 - Labels: `topic` → Topic; `tag` → Tag
@@ -205,8 +189,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: local evidence extraction result
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/atlassian_evidence.py`
-- Consumers: `src/localbrain/atlassian_evidence.py`
+- Producers: `src/localbrain/atlassian/evidence.py`
+- Consumers: `src/localbrain/atlassian/evidence.py`
 - Consequence: Errors preserve bounded diagnostics without creating unconfirmed Items.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
@@ -221,8 +205,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: evidence provenance channel
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/atlassian_evidence.py`, `src/localbrain/atlassian_structure_references.py`
-- Consumers: `src/localbrain/atlassian_evidence.py`, `src/localbrain/atlassian_structure_references.py`
+- Producers: `src/localbrain/atlassian/evidence.py`, `src/localbrain/atlassian/structure_references.py`
+- Consumers: `src/localbrain/atlassian/evidence.py`, `src/localbrain/atlassian/structure_references.py`
 - Consequence: Only visible text and explicitly approved tool results may produce evidence.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
@@ -237,8 +221,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: remote memory freshness
 - Default: `unknown`
 - Fallbacks: `null`: label → 조회 전; `unknown`: label → 조회 전; `invalid`: reject; `future`: label → 새 상태
-- Producers: `src/localbrain/atlassian.py`
-- Consumers: `src/localbrain/atlassian_browse.py`, `src/localbrain/templates/_atlassian-item-preview.html`, `src/localbrain/templates/atlassian.html`, `src/localbrain/templates/atlassian-item.html`, `src/localbrain/templates/atlassian-refresh.html`, `src/localbrain/templates/search.html`
+- Producers: `src/localbrain/atlassian/catalog.py`
+- Consumers: `src/localbrain/atlassian/browse.py`, `src/localbrain/templates/_atlassian-item-preview.html`, `src/localbrain/templates/atlassian.html`, `src/localbrain/templates/atlassian-item.html`, `src/localbrain/templates/atlassian-refresh.html`, `src/localbrain/templates/search.html`
 - Consequence: Due and stale invite an explicit refresh; unavailable retains last-known facts.
 - Presentation mode: `logical-label`
 - Labels: `unknown` → 조회 전; `current` → 최신; `due` → 조회 권장; `stale` → 다시 조회 필요; `unavailable` → 조회 불가

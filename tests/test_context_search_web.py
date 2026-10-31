@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 from localbrain.context_search.engine import validate_request
 from localbrain.context_search.service import Job
 from localbrain.context_search.web import install_routes
-from localbrain.edition import install_boundary
+from localbrain.app.edition import install_boundary
 
 
 class WebTests(unittest.TestCase):

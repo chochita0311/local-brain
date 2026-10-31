@@ -3,7 +3,7 @@
 import argparse
 import json
 
-from ..config import settings
+from localbrain.foundation.config import settings
 from .index import prepare, read_settings, save_settings
 from .model import SearchEncoder
 from .molecules import Profile

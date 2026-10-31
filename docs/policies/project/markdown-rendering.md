@@ -7,7 +7,7 @@
 
 ## Ownership
 
-- `src/localbrain/markdown.py` owns the shared renderer implementation.
+- `src/localbrain/rendering/markdown.py` owns the shared renderer implementation.
 - Authoritative Document and Activity Event text remains owned by its source record and is never replaced by rendered HTML.
 - Rendered HTML is derived runtime presentation. It is not persisted, indexed, or treated as source evidence.
 - Reviewed changes to this shared renderer contract may extend the allowlist, but consumers must not create page-local Markdown parsers or trust rules.

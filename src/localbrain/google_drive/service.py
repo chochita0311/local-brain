@@ -6,7 +6,7 @@ import sqlite3
 from contextlib import closing
 from datetime import datetime, timezone
 
-from ..preferences import effective_preferences
+from localbrain.foundation.preferences import effective_preferences
 from .api import API
 from .auth import GcloudAuth
 from .engine import Engine

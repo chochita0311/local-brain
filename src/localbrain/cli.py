@@ -7,15 +7,16 @@ import sqlite3
 import sys
 
 def main(argv=None):
+    from localbrain.app.features import DEFAULT_FEATURE_PACKAGES
     argv = sys.argv[1:] if argv is None else argv
     if argv and argv[0] == "learning":
-        from .learning_cli import main as learning_main
+        from localbrain.learning.cli import main as learning_main
         return learning_main(argv[1:])
     if argv and argv[0] == "search":
         from .natural_search.cli import main as search_main
         return search_main(argv[1:])
-    if argv and argv[0] == "simulate":
-        from .session_simulation_cli import main as simulate_main
+    if argv and argv[0] == "simulate" and "auto_work" in DEFAULT_FEATURE_PACKAGES:
+        from localbrain.auto_work.simulation_cli import main as simulate_main
         return simulate_main(argv[1:], application_defaults=True)
     parser = argparse.ArgumentParser(prog="localbrain")
     subparsers = parser.add_subparsers(dest="command")
@@ -24,7 +25,8 @@ def main(argv=None):
     serve_parser.add_argument("--host", choices=("127.0.0.1", "::1"), default="127.0.0.1")
     serve_parser.add_argument("--port", type=int, default=8000)
     subparsers.add_parser("doctor", help="Report installation and optional local-model readiness")
-    subparsers.add_parser("simulate", help="Explicitly prepare or inspect the full-history map")
+    if "auto_work" in DEFAULT_FEATURE_PACKAGES:
+        subparsers.add_parser("simulate", help="Explicitly prepare or inspect the full-history map")
     subparsers.add_parser("search", help="Prepare or query the local natural-language index")
     subparsers.add_parser("learning", help="Import reviewed local learning lessons")
     models_parser = subparsers.add_parser("models", help="Manage pinned public local-model assets")
@@ -58,7 +60,7 @@ def main(argv=None):
         return 0
 
     if args.command in {"models", "doctor"}:
-        from .model_installation import install_model, model_status, verify_model
+        from localbrain.models.installation import install_model, model_status, verify_model
         if args.command == "doctor":
             print(json.dumps({"platform": platform.system(), "machine": platform.machine(),
                               "python": platform.python_version(), "local_models": model_status()}, indent=2))
@@ -82,23 +84,29 @@ def main(argv=None):
             print("LOCAL_MODELS_EXTRA_REQUIRED")
             return 2
         except Exception as error:
-            from .work_reconstruction import ExperimentError
-            from .runtime_storage import StorageError
+            from localbrain.foundation.validation import ExperimentError
+            from localbrain.foundation.files import StorageError
             print(str(error) if isinstance(error, (ExperimentError, StorageError)) else "MODEL_OPERATION_FAILED")
             return 2
 
     if args.command == "storage":
-        from .config import cache_directory, development_directory, settings
-        from .runtime_storage import inactive_files, maintain_migration_backups, storage_status
-        from .storage_layout import maintain_derived_cache, migrate_storage
+        from localbrain.foundation.config import cache_directory, development_directory, settings
+        from localbrain.foundation.files import inactive_files
+        from localbrain.persistence.storage import maintain_migration_backups, storage_status
+        from localbrain.app.storage.layout import migrate_storage
         if args.storage_action == "status":
             print(json.dumps(storage_status(settings.data_dir, cache_dir=cache_directory(settings),
                                             development_dir=development_directory(settings)), indent=2))
             return 0
+        cache_owners, maintain_feature_cache = {}, None
+        if "auto_work" in DEFAULT_FEATURE_PACKAGES:
+            from localbrain.auto_work.storage import LEGACY_CACHE_OWNERS, maintain_cache
+            cache_owners, maintain_feature_cache = LEGACY_CACHE_OWNERS, maintain_cache
         if args.storage_action == "migrate":
-            from .runtime_storage import StorageError
+            from localbrain.foundation.files import StorageError
             try:
-                result = migrate_storage(settings, apply=args.apply, include_development=args.include_development)
+                result = migrate_storage(settings, apply=args.apply, include_development=args.include_development,
+                                         cache_owners=cache_owners)
                 print(json.dumps(result, indent=2))
                 return 0
             except Exception as error:
@@ -118,7 +126,8 @@ def main(argv=None):
                 result = {"migration_backups": maintain_migration_backups(database, connection, apply=args.apply)}
             finally:
                 connection.close()
-            result["derived_cache"] = maintain_derived_cache(cache_directory(settings), apply=args.apply)
+            if maintain_feature_cache is not None:
+                result["derived_cache"] = maintain_feature_cache(cache_directory(settings), apply=args.apply)
             print(json.dumps(result, indent=2))
             return 0
         except Exception:
@@ -127,9 +136,11 @@ def main(argv=None):
 
     if args.command == "scan":
         from .ingest.scanner import scan_all
-        from .config import settings
+        from localbrain.foundation.config import settings
         from .natural_search.service import refresh_after_scan
-        report = scan_all(force=args.full)
+        from localbrain.app.reference_integrations import default_ingestion_observers, with_ingestion_observers
+        observers = default_ingestion_observers() if "atlassian" in DEFAULT_FEATURE_PACKAGES else ()
+        report = with_ingestion_observers(scan_all, observers)(force=args.full)
         try:
             search_refresh = refresh_after_scan(settings)
             if search_refresh is not None:
@@ -139,7 +150,7 @@ def main(argv=None):
         print(json.dumps(report, ensure_ascii=False, indent=2))
         return 0
 
-    from .db import init_db
+    from localbrain.persistence.db import init_db
     init_db()
     print("LocalBrain database initialized")
     return 0

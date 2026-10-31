@@ -5,8 +5,8 @@ import inspect
 import json
 import unittest
 
-import localbrain.atlassian_locators as locator_module
-from localbrain.atlassian_locators import (
+import localbrain.references.atlassian as locator_module
+from localbrain.references.atlassian import (
     ATLASSIAN_LOCATOR_VERSION,
     atlassian_item_container_hint,
     atlassian_locator_identity,
@@ -72,11 +72,15 @@ class AtlassianLocatorTests(unittest.TestCase):
             "sqlite3",
             "pathlib",
             "requests",
-            "localbrain.",
         ):
             self.assertFalse(
                 any(module.startswith(forbidden) for module in imported_modules)
             )
+        self.assertTrue(all(
+            not module.startswith("localbrain.")
+            or module.startswith("localbrain.references.")
+            for module in imported_modules
+        ))
 
         locators = (
             describe_atlassian_url(

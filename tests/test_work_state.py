@@ -5,8 +5,14 @@ import random
 import unittest
 from unittest.mock import patch
 
-from localbrain.work_state import (
-    PRODUCER, VERSION, WorkStateError, anchor_key, claim_key, project_work_state, text_revision,
+from localbrain.experiments.claims.state import (
+    PRODUCER,
+    VERSION,
+    WorkStateError,
+    anchor_key,
+    claim_key,
+    project_work_state,
+    text_revision,
 )
 from work_state_cases import Packet, pending_completed, scenarios
 
@@ -485,7 +491,7 @@ class WorkStateRejectionTests(unittest.TestCase):
         self.rejects(lambda p: p["snapshot"].update(id=nested), "PACKET_LIMIT")
 
     def test_every_collection_bound_is_enforced_before_processing(self):
-        from localbrain.work_state import LIMITS
+        from localbrain.experiments.claims.state import LIMITS
         for field, limit in LIMITS.items():
             with self.subTest(field=field):
                 self.rejects(lambda p: p.update({field: [{}] * (limit + 1)}), "PACKET_LIMIT")

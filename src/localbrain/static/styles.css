@@ -1111,7 +1111,6 @@ h1 { margin: var(--space-none); font-family: var(--type-display-font); font-size
 }
 .session-related-context-content { padding-right: var(--space-section); }
 .related-material-groups { display: grid; gap: var(--space-card); }
-.related-material-group + .related-material-group { padding-top: var(--space-card); border-top: var(--border-width-control) solid var(--border-subtle); }
 .related-material-group-heading { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-control-gap); margin-bottom: var(--space-control-gap); }
 .related-material-group-heading h3 { margin: var(--space-none); font-size: var(--type-body-small-size); }
 .related-material-group-heading > span { color: var(--text-tertiary); font-size: var(--type-caption-size); font-weight: var(--type-semibold); }
@@ -1126,8 +1125,7 @@ h1 { margin: var(--space-none); font-family: var(--type-display-font); font-size
 }
 a.related-material-item:hover strong { color: var(--text-link); }
 .related-material-item > strong,
-.related-material-detail,
-.related-material-organization { overflow-wrap: anywhere; }
+.related-material-detail { overflow-wrap: anywhere; }
 .related-material-item > strong { font-size: var(--type-label-size); font-weight: var(--type-semibold); }
 .related-material-meta { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-control-gap); color: var(--text-tertiary); font-size: var(--type-micro-size); font-weight: var(--type-bold); }
 .related-material-availability { color: var(--text-warning); }
@@ -1135,7 +1133,6 @@ a.related-material-item:hover strong { color: var(--text-link); }
 .related-material-evidence { display: flex; flex-wrap: wrap; gap: var(--space-micro) var(--space-compact); color: var(--text-secondary); font-size: var(--type-micro-size); }
 .related-material-evidence > span + span::before { margin-right: var(--space-compact); color: var(--text-tertiary); content: "·"; }
 .related-material-evidence > span.failed { color: var(--text-danger); font-weight: var(--type-bold); }
-.related-material-organization { color: var(--text-secondary); font-size: var(--type-micro-size); }
 .related-material-disclosure:not([open]) { border-top: var(--border-width-control) solid var(--border-subtle); }
 .related-material-disclosure[open] { display: flex; flex-direction: column; }
 .related-material-disclosure summary { order: 0; min-height: var(--control-min-height-touch); display: flex; align-items: center; justify-content: center; color: var(--text-link); cursor: pointer; list-style: none; font-size: var(--type-micro-size); font-weight: var(--type-bold); }

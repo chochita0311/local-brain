@@ -13,8 +13,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: maintenance model runner
 - Default: `claude`
 - Fallbacks: `null`: reject; `unknown`: label → 알 수 없는 Runner; `invalid`: reject; `future`: label → 새 Runner
-- Producers: `src/localbrain/runner.py`, `src/localbrain/external_sync.py`
-- Consumers: `src/localbrain/runner.py`, `src/localbrain/templates/run.html`, `src/localbrain/templates/_atlassian-item-preview.html`, `src/localbrain/templates/atlassian-connections.html`, `src/localbrain/templates/atlassian-item.html`, `src/localbrain/templates/atlassian-refresh.html`
+- Producers: `src/localbrain/workstreams/runner.py`, `src/localbrain/atlassian/runner.py`, `src/localbrain/atlassian/sync.py`
+- Consumers: `src/localbrain/maintenance/service.py`, `src/localbrain/workstreams/runner.py`, `src/localbrain/atlassian/runner.py`, `src/localbrain/templates/run.html`, `src/localbrain/templates/_atlassian-item-preview.html`, `src/localbrain/templates/atlassian-connections.html`, `src/localbrain/templates/atlassian-item.html`, `src/localbrain/templates/atlassian-refresh.html`
 - Consequence: Selects the local CLI invocation contract.
 - Presentation mode: `logical-label`
 - Labels: `claude` → Claude; `codex` → Codex
@@ -29,8 +29,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: maintenance task contract
 - Default: `NULL`
 - Fallbacks: `null`: label → 일반 유지관리; `unknown`: label → 알 수 없는 작업; `invalid`: reject; `future`: label → 새 작업
-- Producers: `src/localbrain/runner.py`, `src/localbrain/external_sync.py`
-- Consumers: `src/localbrain/runner.py`, `src/localbrain/templates/run.html`, `src/localbrain/templates/workstream.html`
+- Producers: `src/localbrain/workstreams/runner.py`, `src/localbrain/atlassian/sync.py`
+- Consumers: `src/localbrain/workstreams/runner.py`, `src/localbrain/templates/run.html`, `src/localbrain/templates/workstream.html`
 - Consequence: Selects prompt, result schema, and execution boundary.
 - Presentation mode: `logical-label`
 - Labels: `organize_resources` → 자원 연결 정리; `checkpoint_draft` → Checkpoint 초안; `priority_review` → 우선순위 검토; `external_source_sync` → 외부 소스 동기화
@@ -45,8 +45,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: maintenance run lifecycle
 - Default: `prepared`
 - Fallbacks: `null`: reject; `unknown`: label → 상태 알 수 없음; `invalid`: reject; `future`: label → 새 실행 상태
-- Producers: `src/localbrain/runner.py`, `src/localbrain/external_sync.py`
-- Consumers: `src/localbrain/runner.py`, `src/localbrain/templates/run.html`, `src/localbrain/templates/workstream.html`, `src/localbrain/templates/_atlassian-item-preview.html`, `src/localbrain/templates/atlassian-connections.html`, `src/localbrain/templates/atlassian-item.html`, `src/localbrain/templates/atlassian-refresh.html`
+- Producers: `src/localbrain/maintenance/service.py`, `src/localbrain/workstreams/runner.py`, `src/localbrain/atlassian/runner.py`, `src/localbrain/atlassian/sync.py`
+- Consumers: `src/localbrain/maintenance/service.py`, `src/localbrain/workstreams/runner.py`, `src/localbrain/atlassian/runner.py`, `src/localbrain/templates/run.html`, `src/localbrain/templates/workstream.html`, `src/localbrain/templates/_atlassian-item-preview.html`, `src/localbrain/templates/atlassian-connections.html`, `src/localbrain/templates/atlassian-item.html`, `src/localbrain/templates/atlassian-refresh.html`
 - Consequence: Controls polling, cancellation, finalization, and retained evidence.
 - Presentation mode: `logical-label`
 - Labels: `prepared` → 준비됨; `queued` → 대기 중; `running` → 실행 중; `cancelling` → 중지 중; `cancelled` → 중지됨; `completed` → 완료; `partial` → 일부 완료; `failed` → 실패; `interrupted` → 중단됨
@@ -61,8 +61,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: suggestion refresh request
 - Default: `0`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/runner.py`
-- Consumers: `src/localbrain/runner.py`
+- Producers: `src/localbrain/workstreams/runner.py`
+- Consumers: `src/localbrain/workstreams/runner.py`
 - Consequence: Controls whether a Run may supersede matching pending Suggestions.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
@@ -77,8 +77,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: MCP call budget result
 - Default: `0`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/external_sync.py`, `src/localbrain/runner.py`
-- Consumers: `src/localbrain/runner.py`, `src/localbrain/templates/run.html`
+- Producers: `src/localbrain/atlassian/sync.py`, `src/localbrain/workstreams/runner.py`, `src/localbrain/atlassian/runner.py`
+- Consumers: `src/localbrain/workstreams/runner.py`, `src/localbrain/atlassian/runner.py`, `src/localbrain/templates/run.html`
 - Consequence: Records observed budget breaches; the flag does not itself stop calls. Legacy CLI tasks use advisory accounting, while external synchronization rejects selected requests above its hard budget before execution.
 - Presentation mode: `logical-label`
 - Labels: `0` → 예산 내; `1` → 호출 예산 초과
@@ -93,8 +93,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: approved external read scope
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: label → 범위 알 수 없음; `invalid`: reject; `future`: label → 새 조회 범위
-- Producers: `src/localbrain/external_sync.py`
-- Consumers: `src/localbrain/external_sync.py`, `src/localbrain/templates/atlassian-refresh.html`
+- Producers: `src/localbrain/atlassian/sync.py`
+- Consumers: `src/localbrain/atlassian/sync.py`, `src/localbrain/templates/atlassian-refresh.html`
 - Consequence: Bounds target selection before any external read.
 - Presentation mode: `logical-label`
 - Labels: `item` → 선택한 항목; `space` → Space; `thread` → Thread; `workstream` → Workstream; `all_known` → 등록된 전체 항목
@@ -109,8 +109,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: external synchronization service
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: label → 알 수 없는 서비스; `invalid`: reject; `future`: label → 새 서비스
-- Producers: `src/localbrain/external_sync.py`
-- Consumers: `src/localbrain/external_sync.py`, `src/localbrain/templates/atlassian-refresh.html`
+- Producers: `src/localbrain/atlassian/sync.py`
+- Consumers: `src/localbrain/atlassian/sync.py`, `src/localbrain/templates/atlassian-refresh.html`
 - Consequence: Records the selected service or a mixed-service aggregate while each target retains its approved Source Instance and single-service dispatch boundary.
 - Presentation mode: `logical-label`
 - Labels: `jira` → Jira; `confluence` → Confluence; `mixed` → 여러 서비스
@@ -125,8 +125,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: per-target external read result
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: label → 결과 알 수 없음; `invalid`: reject; `future`: label → 새 조회 결과
-- Producers: `src/localbrain/external_sync.py`
-- Consumers: `src/localbrain/external_sync.py`, `src/localbrain/templates/atlassian-refresh.html`
+- Producers: `src/localbrain/atlassian/sync.py`
+- Consumers: `src/localbrain/atlassian/sync.py`, `src/localbrain/templates/atlassian-refresh.html`
 - Consequence: Determines partial versus completed Run status and per-target retained evidence.
 - Presentation mode: `logical-label`
 - Labels: `resolved` → 조회됨; `unchanged` → 변경 없음; `changed` → 변경됨; `unavailable` → 조회 불가; `not_found` → 원격에서 찾을 수 없음; `error` → 조회 오류
@@ -141,8 +141,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: personal analysis entry path
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: label → 분석 방식 확인 필요; `invalid`: reject; `future`: label → 새 분석 방식
-- Producers: `src/localbrain/personal_insight_runs.py`
-- Consumers: `src/localbrain/personal_insight_runs.py`, `src/localbrain/templates/session_insights.html`
+- Producers: `src/localbrain/insights/runs.py`
+- Consumers: `src/localbrain/insights/runs.py`, `src/localbrain/templates/session_insights.html`
 - Consequence: Separates question-led analysis from owner-requested discovery.
 - Presentation mode: `logical-label`
 - Labels: `ask` → 질문 분석; `discover` → 개선 기회 찾기
@@ -157,8 +157,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: personal analysis lifecycle
 - Default: `queued`
 - Fallbacks: `null`: reject; `unknown`: label → 상태 확인 필요; `invalid`: reject; `future`: label → 새 상태
-- Producers: `src/localbrain/personal_insight_runs.py`
-- Consumers: `src/localbrain/personal_insight_runs.py`, `src/localbrain/templates/session_insights.html`
+- Producers: `src/localbrain/insights/runs.py`
+- Consumers: `src/localbrain/insights/runs.py`, `src/localbrain/templates/session_insights.html`
 - Consequence: Controls report availability, polling, cancellation, and failure recovery.
 - Presentation mode: `logical-label`
 - Labels: `queued` → 대기 중; `running` → 분석 중; `completed` → 완료; `no_finding` → 발견 없음; `failed` → 실패; `cancelled` → 중지됨; `interrupted` → 중단됨
@@ -173,8 +173,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: personal analysis runner
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: label → 실행기 확인 필요; `invalid`: reject; `future`: label → 새 실행기
-- Producers: `src/localbrain/personal_insight_runs.py`
-- Consumers: `src/localbrain/personal_insight_runs.py`, `src/localbrain/templates/session_insights.html`
+- Producers: `src/localbrain/insights/runs.py`
+- Consumers: `src/localbrain/insights/runs.py`, `src/localbrain/templates/session_insights.html`
 - Consequence: Identifies the Codex CLI data-transfer path; settings freeze the local profile.
 - Presentation mode: `logical-label`
 - Labels: `codex` → Codex CLI

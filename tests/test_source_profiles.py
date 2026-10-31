@@ -6,15 +6,15 @@ from contextlib import ExitStack
 from pathlib import Path
 from unittest.mock import patch
 
-from localbrain import db
-from localbrain.config import Settings
+from localbrain.persistence import db
+from localbrain.foundation.config import Settings
 from localbrain.ingest import scanner
-from localbrain.preferences import PreferencesError, toml_text, tomllib
-from localbrain.queries import session_source_scopes, session_inventory_page
-from localbrain.session_chart_preferences import get_project_visibility, set_project_visibility
-from localbrain.session_sources import load_session_source_settings
-from localbrain.source_settings import source_inventory, update_source, migrate_source_settings
-from localbrain.usage_queries import normalize_usage_scope
+from localbrain.foundation.preferences import PreferencesError, toml_text, tomllib
+from localbrain.sessions.queries import session_source_scopes, session_inventory_page
+from localbrain.sessions.chart_preferences import get_project_visibility, set_project_visibility
+from localbrain.sources.registry import load_session_source_settings
+from localbrain.sources.settings import source_inventory, update_source, migrate_source_settings
+from localbrain.usage.queries import normalize_usage_scope
 import test_session_sync as sync_fixtures
 
 
@@ -144,7 +144,7 @@ class SourceProfileTests(unittest.TestCase):
         state = self.register('Personal')
         before = self.path.read_bytes()
         folder = self.root/'other';folder.mkdir()
-        with patch('localbrain.source_settings.atomic_private_write', side_effect=OSError('disk full')):
+        with patch('localbrain.sources.settings.atomic_private_write', side_effect=OSError('disk full')):
             with self.assertRaises(OSError):
                 update_source(dict(revision=state['revision'], provider_kind='codex', display_label='Other', root=str(folder)), self.config)
         self.assertEqual(self.path.read_bytes(), before)
@@ -209,7 +209,7 @@ class SourceProfileTests(unittest.TestCase):
             self.assertEqual(connection.execute('SELECT root_path FROM sources WHERE id=?', (source['id'],)).fetchone()[0], source['root_path'])
 
     def test_error_after_file_replacement_restores_both_stores(self):
-        import localbrain.source_settings as module
+        import localbrain.sources.settings as module
         state=self.register('Personal');source_id=state['sources'][0]['id']
         before=self.path.read_bytes();real=module.atomic_private_write;calls=[]
         def interrupted(path,data):
@@ -221,7 +221,7 @@ class SourceProfileTests(unittest.TestCase):
         self.assertEqual(source_inventory(self.config)['sources'][0]['color'],'green')
 
     def test_pk_is_the_only_identity_even_when_labels_look_like_ids(self):
-        from localbrain.source_profiles import profile_map
+        from localbrain.sources.profiles import profile_map
         with db.transaction() as connection:
             connection.execute("INSERT INTO sources(id,provider_kind,name,root_path) VALUES (1,'codex','2','/synthetic/first'),(2,'codex','Second','/synthetic/second')")
             self.assertEqual(profile_map(connection)['2']['name'],'Second')
@@ -229,9 +229,9 @@ class SourceProfileTests(unittest.TestCase):
             self.assertEqual(set(profile_map(connection)), {'1','2'})
 
     def test_registry_upgrade_migrates_dependents_and_is_idempotent(self):
-        from localbrain.source_identity_migration import _episode_key
-        from localbrain.workflow_assertions import workflow_boundary_key
-        from localbrain.workflow_projection import workflow_episode_key
+        from localbrain.persistence.migrations.sources import _episode_key
+        from localbrain.workflow.assertions import workflow_boundary_key
+        from localbrain.workflow.projection import workflow_episode_key
         self.legacy_fixture()
         old_episode = _episode_key('codex', 'shared-external-id')
         with db.transaction() as connection:
@@ -277,7 +277,7 @@ class SourceProfileTests(unittest.TestCase):
         self.assertEqual(self.path.read_bytes(),config_before)
 
     def test_registry_upgrade_failure_restores_database_and_file(self):
-        import localbrain.source_identity_migration as migration
+        import localbrain.persistence.migrations.sources as migration
         self.legacy_fixture()
         before=self.evidence(); file_before=self.path.read_bytes()
         health=self.data/'session-sync-state.json'

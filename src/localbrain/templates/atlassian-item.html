@@ -120,17 +120,17 @@
               {% for membership in item.memberships %}
                 <div class="atlassian-membership-row">
                   <span><strong>{{ membership.workstream_name }}</strong>{% if membership.thread_title %} · {{ membership.thread_title }}{% endif %}</span>
-                  <form method="post" action="/atlassian/items/{{ item.id }}/links/{{ membership.scope_type }}/{{ membership.scope_id }}/{{ membership.link_id }}">
+                  {% if workstreams_available | default(true) %}<form method="post" action="/atlassian/items/{{ item.id }}/links/{{ membership.scope_type }}/{{ membership.scope_id }}/{{ membership.link_id }}">
                     <input type="hidden" name="return_to" value="{{ return_to }}">
                     <button class="text-button danger" type="submit">연결 해제</button>
-                  </form>
+                  </form>{% endif %}
                 </div>
               {% endfor %}
             </div>
           {% else %}
             <p class="atlassian-inline-state neutral">Workstream에 연결하지 않아도 검색과 분류를 모두 사용할 수 있습니다.</p>
           {% endif %}
-          {% if item.workstreams %}
+          {% if item.workstreams and workstreams_available | default(true) %}
             <form class="atlassian-link-form" method="post" action="/atlassian/items/{{ item.id }}/links">
               <input type="hidden" name="return_to" value="{{ return_to }}">
               <label for="item-link-target">기존 작업에 연결</label>

@@ -13,8 +13,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: token aggregation boundary
 - Default: `direct`
 - Fallbacks: `null`: reject; `unknown`: label → 범위 알 수 없음; `invalid`: reject; `future`: label → 새 집계 범위
-- Producers: `src/localbrain/ingest/providers/claude.py`, `src/localbrain/ingest/providers/codex.py`, `src/localbrain/personal_insight_usage.py`
-- Consumers: `src/localbrain/usage_queries.py`
+- Producers: `src/localbrain/ingest/providers/claude.py`, `src/localbrain/ingest/providers/codex.py`, `src/localbrain/insights/usage.py`
+- Consumers: `src/localbrain/usage/queries.py`
 - Consequence: Prevents child-token double counting.
 - Presentation mode: `logical-label`
 - Labels: `direct` → 이 Session만; `includes_children` → 하위 Session 포함
@@ -29,8 +29,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: source usage completeness
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: label → 확인 필요; `invalid`: reject; `future`: label → 새 상태
-- Producers: `src/localbrain/ingest/providers/claude.py`, `src/localbrain/ingest/providers/codex.py`, `src/localbrain/personal_insight_usage.py`
-- Consumers: `src/localbrain/usage_queries.py`
+- Producers: `src/localbrain/ingest/providers/claude.py`, `src/localbrain/ingest/providers/codex.py`, `src/localbrain/insights/usage.py`
+- Consumers: `src/localbrain/usage/queries.py`
 - Consequence: Incomplete or malformed facts reduce coverage confidence.
 - Presentation mode: `logical-label`
 - Labels: `complete` → 완전함; `partial` → 일부만 있음; `malformed` → 형식 오류
@@ -45,8 +45,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: estimated cost calculation
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: label → 계산 상태 알 수 없음; `invalid`: reject; `future`: label → 새 계산 상태
-- Producers: `src/localbrain/usage.py`
-- Consumers: `src/localbrain/usage_queries.py`, `src/localbrain/templates/sessions_dashboard.html`, `src/localbrain/personal_insight_usage.py`, `src/localbrain/templates/session_insights.html`
+- Producers: `src/localbrain/usage/records.py`
+- Consumers: `src/localbrain/usage/queries.py`, `src/localbrain/templates/sessions_dashboard.html`, `src/localbrain/insights/usage.py`, `src/localbrain/templates/session_insights.html`
 - Consequence: Only priced records contribute an estimated cost value.
 - Presentation mode: `logical-label`
 - Labels: `priced` → 비용 계산됨; `unpriced` → 가격 정보 없음; `partial` → 일부만 계산됨; `failed` → 계산 실패
@@ -61,8 +61,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: Project attribution evidence
 - Default: `unassigned`
 - Fallbacks: `null`: reject; `unknown`: label → 근거 알 수 없음; `invalid`: reject; `future`: label → 새 귀속 근거
-- Producers: `src/localbrain/db.py`, `src/localbrain/usage.py`
-- Consumers: `src/localbrain/usage_queries.py`
+- Producers: `src/localbrain/persistence/migrations/compatible.py`, `src/localbrain/usage/records.py`
+- Consumers: `src/localbrain/usage/queries.py`
 - Consequence: Explains how an immutable usage snapshot was assigned to a Project.
 - Presentation mode: `logical-label`
 - Labels: `git_root` → Git 루트 일치; `workspace_path` → 작업 경로 일치; `unassigned` → Project 미지정
@@ -77,7 +77,7 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: usage source freshness
 - Default: `not_synchronized`
 - Fallbacks: `null`: label → 동기화 전; `unknown`: label → 상태 알 수 없음; `invalid`: reject; `future`: label → 새 상태
-- Producers: `src/localbrain/usage_queries.py`
+- Producers: `src/localbrain/usage/queries.py`
 - Consumers: `src/localbrain/templates/sessions_dashboard.html`
 - Consequence: Stale or error state keeps prior estimates visible with a warning.
 - Presentation mode: `logical-label`

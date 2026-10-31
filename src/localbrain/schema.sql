@@ -240,6 +240,32 @@ CREATE TABLE IF NOT EXISTS session_reference_scans (
     )
 );
 
+CREATE TABLE IF NOT EXISTS reference_resources (
+    id INTEGER PRIMARY KEY,
+    identity_key TEXT NOT NULL UNIQUE,
+    kind TEXT NOT NULL CHECK(kind IN ('url', 'path', 'note')),
+    locator TEXT NOT NULL,
+    product TEXT CHECK(product IN ('jira', 'confluence')),
+    remote_key TEXT,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS resource_documents (
+    document_id INTEGER PRIMARY KEY REFERENCES context_documents(id) ON DELETE CASCADE,
+    resource_id INTEGER NOT NULL REFERENCES reference_resources(id) ON DELETE RESTRICT,
+    UNIQUE(resource_id)
+);
+
+CREATE TABLE IF NOT EXISTS resource_local_paths (
+    local_resource_id INTEGER PRIMARY KEY REFERENCES local_resources(id) ON DELETE CASCADE,
+    resource_id INTEGER NOT NULL REFERENCES reference_resources(id) ON DELETE RESTRICT
+);
+
+CREATE TABLE IF NOT EXISTS resource_external_links (
+    external_resource_id INTEGER PRIMARY KEY REFERENCES external_resources(id) ON DELETE CASCADE,
+    resource_id INTEGER NOT NULL REFERENCES reference_resources(id) ON DELETE RESTRICT
+);
+
 CREATE TABLE IF NOT EXISTS session_reference_evidence (
     id INTEGER PRIMARY KEY,
     session_id INTEGER NOT NULL
@@ -248,13 +274,8 @@ CREATE TABLE IF NOT EXISTS session_reference_evidence (
     source_event_id TEXT,
     source_line INTEGER NOT NULL CHECK(source_line > 0),
     evidence_ordinal INTEGER NOT NULL CHECK(evidence_ordinal > 0),
-    target_kind TEXT NOT NULL
-        CHECK(target_kind IN ('url', 'context_document', 'atlassian_item')),
+    resource_id INTEGER NOT NULL REFERENCES reference_resources(id) ON DELETE RESTRICT,
     target_key TEXT NOT NULL,
-    context_document_id INTEGER
-        REFERENCES context_documents(id) ON DELETE CASCADE,
-    external_resource_id INTEGER
-        REFERENCES atlassian_items(external_resource_id) ON DELETE CASCADE,
     evidence_kind TEXT NOT NULL
         CHECK(
             evidence_kind IN (
@@ -294,26 +315,6 @@ CREATE TABLE IF NOT EXISTS session_reference_evidence (
     ),
     CHECK(length(extractor_version) > 0 AND length(extractor_version) <= 80),
     CHECK(length(evidence_key) = 64),
-    CHECK(
-        (
-            target_kind = 'url'
-            AND context_document_id IS NULL
-            AND external_resource_id IS NULL
-            AND normalized_url IS NOT NULL
-        )
-        OR (
-            target_kind = 'context_document'
-            AND context_document_id IS NOT NULL
-            AND external_resource_id IS NULL
-            AND normalized_url IS NULL
-        )
-        OR (
-            target_kind = 'atlassian_item'
-            AND context_document_id IS NULL
-            AND external_resource_id IS NOT NULL
-            AND normalized_url IS NOT NULL
-        )
-    ),
     CHECK(
         (
             evidence_kind IN ('user_mention', 'assistant_mention')
@@ -655,6 +656,7 @@ CREATE TABLE IF NOT EXISTS workstream_links (
     workstream_id INTEGER NOT NULL REFERENCES workstreams(id) ON DELETE CASCADE,
     entity_type TEXT NOT NULL,
     entity_id TEXT NOT NULL,
+    resource_id INTEGER REFERENCES reference_resources(id) ON DELETE RESTRICT,
     relation_type TEXT NOT NULL DEFAULT 'related-to',
     confidence REAL,
     linked_by TEXT NOT NULL DEFAULT 'user',
@@ -682,6 +684,7 @@ CREATE TABLE IF NOT EXISTS thread_links (
     thread_id INTEGER NOT NULL REFERENCES threads(id) ON DELETE CASCADE,
     entity_type TEXT NOT NULL,
     entity_id TEXT NOT NULL,
+    resource_id INTEGER REFERENCES reference_resources(id) ON DELETE RESTRICT,
     relation_type TEXT NOT NULL DEFAULT 'related-to',
     confidence REAL,
     linked_by TEXT NOT NULL DEFAULT 'user',
@@ -850,9 +853,9 @@ CREATE TABLE IF NOT EXISTS atlassian_item_remote_state (
     )
 );
 
-CREATE TABLE IF NOT EXISTS atlassian_item_content (
+CREATE TABLE IF NOT EXISTS external_resource_content (
     external_resource_id INTEGER PRIMARY KEY
-        REFERENCES atlassian_items(external_resource_id) ON DELETE CASCADE,
+        REFERENCES external_resources(id) ON DELETE CASCADE,
     source_format TEXT NOT NULL
         CHECK(
             source_format IN (
@@ -878,9 +881,9 @@ CREATE TABLE IF NOT EXISTS atlassian_item_content (
     CHECK(search_projection_hash IS NULL OR length(search_projection_hash) = 64)
 );
 
-CREATE TABLE IF NOT EXISTS atlassian_item_local_state (
+CREATE TABLE IF NOT EXISTS external_resource_notes (
     external_resource_id INTEGER PRIMARY KEY
-        REFERENCES atlassian_items(external_resource_id) ON DELETE CASCADE,
+        REFERENCES external_resources(id) ON DELETE CASCADE,
     note TEXT NOT NULL DEFAULT '',
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1259,16 +1262,14 @@ CREATE INDEX IF NOT EXISTS idx_skill_observations_source_session
 CREATE INDEX IF NOT EXISTS idx_session_reference_evidence_session
     ON session_reference_evidence(
         session_id,
-        target_kind,
+        resource_id,
         target_key,
         evidence_kind,
         source_line,
         evidence_ordinal
     );
-CREATE INDEX IF NOT EXISTS idx_session_reference_evidence_document
-    ON session_reference_evidence(context_document_id, session_id);
-CREATE INDEX IF NOT EXISTS idx_session_reference_evidence_atlassian
-    ON session_reference_evidence(external_resource_id, session_id);
+CREATE INDEX IF NOT EXISTS idx_session_reference_evidence_resource
+    ON session_reference_evidence(resource_id, session_id);
 CREATE INDEX IF NOT EXISTS idx_workflow_assertions_source_created
     ON workflow_assertions(source_episode_key, created_at DESC, id DESC);
 CREATE INDEX IF NOT EXISTS idx_workflow_assertions_target_created

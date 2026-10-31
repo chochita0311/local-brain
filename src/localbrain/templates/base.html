@@ -35,18 +35,18 @@
             <a class="lnb-item {% if active_page == 'sessions-dashboard' %}active{% endif %}" href="/sessions-dashboard" {% if active_page == 'sessions-dashboard' %}aria-current="page"{% endif %}>
               <span class="nav-symbol" aria-hidden="true">02</span><span>Sessions Dashboard</span>
             </a>
-            <a class="lnb-item {% if active_page == 'context-search' %}active{% endif %}" href="/context-search" {% if active_page == 'context-search' %}aria-current="page"{% endif %}>
+            {% if context_search_available | default(true) %}<a class="lnb-item {% if active_page == 'context-search' %}active{% endif %}" href="/context-search" {% if active_page == 'context-search' %}aria-current="page"{% endif %}>
               <span class="nav-symbol" aria-hidden="true">CS</span><span>Context Search</span>
-            </a>
+            </a>{% endif %}
           </div>
           <div class="nav-group">
             <span class="nav-group-label">Workspace</span>
-            {% if auto_work_available %}
+            {% if auto_work_available and auto_work_package_available | default(true) %}
             <a class="lnb-item {% if active_page == 'auto-work' %}active{% endif %}" href="/auto-work" {% if active_page == 'auto-work' %}aria-current="page"{% endif %}>
               <span class="nav-symbol" aria-hidden="true">AW</span><span>자동 작업</span>
             </a>
             {% endif %}
-            {% if not desktop_edition %}
+            {% if not desktop_edition and workstreams_available | default(true) %}
             <a class="lnb-item {% if active_page == 'workstreams' %}active{% endif %}" href="/workstreams" {% if active_page == 'workstreams' %}aria-current="page"{% endif %}>
               <span class="nav-symbol" aria-hidden="true">03</span><span>Workstreams</span>
             </a>
@@ -57,7 +57,7 @@
             <a class="lnb-item {% if active_page == 'context' %}active{% endif %}" href="/context" {% if active_page == 'context' %}aria-current="page"{% endif %}>
               <span class="nav-symbol" aria-hidden="true">05</span><span>Local Contexts</span>
             </a>
-            {% if not desktop_edition %}
+            {% if not desktop_edition and atlassian_available | default(true) %}
             <a class="lnb-item {% if active_page == 'atlassian' %}active{% endif %}" href="/atlassian" {% if active_page == 'atlassian' %}aria-current="page"{% endif %}>
               <span class="nav-symbol" aria-hidden="true">06</span><span>Atlassian</span>
             </a>

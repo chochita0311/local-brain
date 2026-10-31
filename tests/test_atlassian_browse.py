@@ -12,14 +12,14 @@ from urllib.parse import parse_qs, quote_plus, urlsplit
 from fastapi import HTTPException
 from starlette.requests import Request
 
-from localbrain.atlassian import (
+from localbrain.atlassian.catalog import (
     apply_atlassian_target_result,
     bind_atlassian_remote_identity,
     create_or_reuse_atlassian_stub,
     register_atlassian_site,
     register_atlassian_space,
 )
-from localbrain.atlassian_browse import (
+from localbrain.atlassian.browse import (
     AtlassianBrowseError,
     atlassian_item_detail,
     atlassian_item_preview,
@@ -28,23 +28,23 @@ from localbrain.atlassian_browse import (
     browse_inventory,
     update_atlassian_local_state,
 )
-from localbrain.atlassian_locators import describe_atlassian_url
-from localbrain.atlassian_structure_references import (
+from localbrain.references.atlassian import describe_atlassian_url
+from localbrain.atlassian.structure_references import (
     ensure_structure_reference,
     insert_or_reuse_structure_reference_evidence,
     project_structure_reference_search,
 )
-from localbrain.main import (
+from localbrain.atlassian.web import (
     _atlassian_inventory_return_path,
-    app,
     atlassian_add_local_link,
     atlassian_item_page,
     atlassian_page,
     atlassian_reference_page,
     atlassian_update_local,
 )
-from localbrain.queries import search
-from localbrain.workstreams import add_link
+from localbrain.main import app
+from localbrain.search.legacy import search
+from localbrain.workstreams.service import add_link
 
 
 SCHEMA_PATH = Path(__file__).parents[1] / "src" / "localbrain" / "schema.sql"
@@ -247,7 +247,7 @@ class AtlassianBrowseTests(unittest.TestCase):
             "reference": None,
         }
         values.update(overrides)
-        with patch("localbrain.main.connect", return_value=self.connection):
+        with patch('localbrain.atlassian.web.connect', return_value=self.connection):
             return atlassian_page(
                 self._request(
                     headers=headers, query_string=query_string
@@ -518,7 +518,7 @@ class AtlassianBrowseTests(unittest.TestCase):
         )
         self.connection.execute(
             """
-            INSERT INTO atlassian_item_local_state(
+            INSERT INTO external_resource_notes(
                 external_resource_id, note
             ) VALUES (?, 'Available local memory phrase')
             """,
@@ -1371,13 +1371,13 @@ class AtlassianBrowseTests(unittest.TestCase):
             "reference",
         )
         with patch(
-            "localbrain.main.registration_inventory",
+            "localbrain.atlassian.registration.registration_inventory",
             side_effect=AssertionError("Browse must not load setup inventory"),
         ), patch(
-            "localbrain.main.registration_sites",
+            'localbrain.atlassian.web.registration_sites',
             side_effect=AssertionError("Browse must not load setup sites"),
         ), patch(
-            "localbrain.main.registered_scope_overview",
+            'localbrain.atlassian.web.registered_scope_overview',
             side_effect=AssertionError("Browse must not load setup scopes"),
         ):
             response = self._page()
@@ -1450,7 +1450,7 @@ class AtlassianBrowseTests(unittest.TestCase):
         self.assertNotIn('name="note"', rendered)
 
         with patch(
-            "localbrain.main.browse_inventory",
+            'localbrain.atlassian.web.browse_inventory',
             side_effect=AssertionError("partial must not load broad inventory"),
         ):
             partial = self._page(
@@ -1523,10 +1523,10 @@ class AtlassianBrowseTests(unittest.TestCase):
 
     def test_preview_clear_and_invalid_selection_keep_server_fallbacks(self):
         with patch(
-            "localbrain.main.browse_inventory",
+            'localbrain.atlassian.web.browse_inventory',
             side_effect=AssertionError("clear partial must not load inventory"),
         ), patch(
-            "localbrain.main.atlassian_item_preview",
+            'localbrain.atlassian.web.atlassian_item_preview',
             side_effect=AssertionError("clear partial must not read an Item"),
         ):
             cleared = self._page(
@@ -1877,7 +1877,7 @@ class AtlassianBrowseTests(unittest.TestCase):
             ],
         )
 
-        with patch("localbrain.main.connect", return_value=self.connection):
+        with patch('localbrain.atlassian.web.connect', return_value=self.connection):
             detail = atlassian_item_page(
                 self._request(
                     path="/atlassian/items/{}".format(
@@ -2008,7 +2008,7 @@ class AtlassianBrowseTests(unittest.TestCase):
         app.state.external_read_executor = None
         try:
             with patch(
-                "localbrain.main.connect", return_value=self.connection
+                'localbrain.atlassian.web.connect', return_value=self.connection
             ):
                 browse = atlassian_page(
                     self._request(),
@@ -2038,7 +2038,7 @@ class AtlassianBrowseTests(unittest.TestCase):
                     notice=None,
                 )
             with patch(
-                "localbrain.main.transaction",
+                'localbrain.atlassian.web.transaction',
                 side_effect=lambda: self._transaction(),
             ):
                 updated = asyncio.run(
@@ -2081,9 +2081,9 @@ class AtlassianBrowseTests(unittest.TestCase):
         return_to = "/atlassian?view=jira&item={}".format(item_id)
         encoded_return = quote_plus(return_to)
         with patch(
-            "localbrain.main.transaction",
+            'localbrain.atlassian.web.transaction',
             side_effect=lambda: self._transaction(),
-        ), patch("localbrain.main.connect", return_value=self.connection):
+        ), patch('localbrain.atlassian.web.connect', return_value=self.connection):
             invalid_topic = asyncio.run(
                 atlassian_update_local(
                     self._request(
@@ -2197,7 +2197,7 @@ class AtlassianBrowseTests(unittest.TestCase):
             missing.body.decode("utf-8"),
         )
 
-        with patch("localbrain.main.connect", return_value=self.connection):
+        with patch('localbrain.atlassian.web.connect', return_value=self.connection):
             direct = atlassian_reference_page(
                 self._request(
                     path="/atlassian/references/{}".format(reference_id)
@@ -2224,7 +2224,7 @@ class AtlassianBrowseTests(unittest.TestCase):
             'data-preview-state="archived"',
             archived.body.decode("utf-8"),
         )
-        with patch("localbrain.main.connect", return_value=self.connection):
+        with patch('localbrain.atlassian.web.connect', return_value=self.connection):
             archived_direct = atlassian_reference_page(
                 self._request(
                     path="/atlassian/references/{}".format(reference_id)
@@ -2235,7 +2235,7 @@ class AtlassianBrowseTests(unittest.TestCase):
         self.assertIn("보관됨", archived_direct.body.decode("utf-8"))
 
         changes_before_missing = self.connection.total_changes
-        with patch("localbrain.main.connect", return_value=self.connection):
+        with patch('localbrain.atlassian.web.connect', return_value=self.connection):
             missing_direct = atlassian_reference_page(
                 self._request(path="/atlassian/references/999999"),
                 999999,

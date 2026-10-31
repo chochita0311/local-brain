@@ -60,15 +60,13 @@ erDiagram
     SESSION_REFERENCE_EVIDENCE {
         integer id PK
         integer session_id FK
-        integer context_document_id FK
-        integer external_resource_id FK
-        string target_kind
+        integer resource_id FK
         string evidence_kind
         string read_outcome
         string evidence_key UK
     }
     CONTEXT_DOCUMENTS { integer id PK }
-    ATLASSIAN_ITEMS { integer external_resource_id PK }
+    REFERENCE_RESOURCES { integer id PK }
     MAINTENANCE_RUNS { string id PK }
     PERSONAL_INSIGHT_RUNS { string id PK }
     USAGE_RECORDS { string id PK integer session_id FK }
@@ -82,8 +80,7 @@ erDiagram
     SESSIONS ||--o| SESSION_PINS : "physical CASCADE"
     SESSIONS ||--o| SESSION_REFERENCE_SCANS : "physical CASCADE"
     SESSIONS ||--o{ SESSION_REFERENCE_EVIDENCE : "physical CASCADE"
-    CONTEXT_DOCUMENTS ||--o{ SESSION_REFERENCE_EVIDENCE : "physical CASCADE target"
-    ATLASSIAN_ITEMS ||--o{ SESSION_REFERENCE_EVIDENCE : "physical CASCADE target"
+    REFERENCE_RESOURCES ||--o{ SESSION_REFERENCE_EVIDENCE : "physical RESTRICT target"
     SESSIONS ||--o{ USAGE_RECORDS : "physical CASCADE"
     MAINTENANCE_RUNS o|--o| SESSIONS : "physical SET_NULL unique"
     PERSONAL_INSIGHT_RUNS o|..o| SESSIONS : "app usage accounting"
@@ -95,11 +92,11 @@ erDiagram
 
 - Purpose and authority: current canonical project/workspace identity discovered from Session working directories; the containing Git repository root is current discovery, not historical branch state.
 - Lifecycle: mixed source identity and curated references. Discovery can rebuild path metadata, but Workstream/Thread links and Usage Record snapshot browsing use its stable ID, so delete-and-recreate is not equivalent to update-in-place.
-- Producers: `ingest/sync/storage.py` upserts path, display name, Git root, existence, and activity; `db.py` removes the obsolete `git_branch` column during compatible migration.
+- Producers: `ingest/sync/storage.py` upserts path, display name, Git root, existence, and activity; `persistence/migrations/` removes the obsolete `git_branch` column during compatible migration.
 - Consumers: inventory/detail queries, retrieval, Workstream resource pickers and links, Runner context, activity attribution, and Usage Record attribution/browse joins.
 - Relations and deletion: physical optional parent of `sessions` and `context_documents`, both `SET NULL`. It is an application target for `project` polymorphic links and `usage_records.workspace_id_snapshot`; those are not cascaded by SQLite.
 - Recovery: rescan Sessions to rediscover paths. Preserve or restore the database to retain stable link targets and historical current-row resolution.
-- DDL ownership: fresh definition in `schema.sql`; compatible migration in `db.py` drops legacy `git_branch`. No explicit named index.
+- DDL ownership: fresh definition in `schema.sql`; compatible migration in `persistence/migrations/` drops legacy `git_branch`. No explicit named index.
 
 | Column | Contract |
 | --- | --- |
@@ -151,11 +148,11 @@ Constraints: uniqueness of `canonical_path`. Explicit indexes: none.
   maintenance index/event policy is restricted; the private Runner stream is an
   operational artifact only.
   Ephemeral personal insight executions are a bounded exception: a retained CLI usage observation creates a metadata-only Maintenance Session accounting parent with identity `localbrain-insight:<Run ID>`. It contains no conversation, events, search entry, workspace, or native source-file registration. The independent Run is its application owner; native-source disappearance does not delete this accounting projection.
-- Producers: `ingest/sync/session_store.py` plus Claude/Codex parsers create Sessions and Usage Records; parent reconciliation updates self-references and propagates maintenance policy to Claude or Codex children. `runner.py` synchronizes the selected native source after terminal and recovered Runs. `source_files` versions Session projection freshness independently, allowing classification/parser changes to rebuild Sessions, Activity Events and search. A Session parser-version change rebuilds available projections on the next explicit Sync. Neither operation replaces Usage solely because the Session contract changed. `db.py` owns the classification/Run-link constraint repair. `personal_insight_usage.py` separately creates insight accounting parents and canonical Usage Records from observed ephemeral CLI usage.
+- Producers: `ingest/sync/session_store.py` plus Claude/Codex parsers create Sessions and Usage Records; parent reconciliation updates self-references and propagates maintenance policy to Claude or Codex children. `maintenance/service.py` synchronizes the selected native source after terminal and recovered Runs. `source_files` versions Session projection freshness independently, allowing classification/parser changes to rebuild Sessions, Activity Events and search. A Session parser-version change rebuilds available projections on the next explicit Sync. Neither operation replaces Usage solely because the Session contract changed. `persistence/migrations/` owns the classification/Run-link constraint repair. `insights/usage.py` separately creates insight accounting parents and canonical Usage Records from observed ephemeral CLI usage.
 - Consumers: Session inventory/detail, dashboard counts, normalized activity, retrieval, Workstream linking/suggestions, Runner context, search projection, Usage Records, and Usage Dashboard denominators. Sessions inventory headline, rows, pagination, and Project grouping share the same `work` plus `primary` denominator with no age cutoff. A selected source matches the stable `sources.id`, not `provider_kind`, so personal and company Codex remain statistically separate while sharing one adapter.
 - Relations and deletion: physical `source_id` cascades; optional `workspace_id`, `parent_session_id`, and unique `maintenance_run_id` set null. After a successful scan of a present source root, stale-file reconciliation deletes a normalized Session when neither its owning native JSONL nor another tracked path remains valid; a valid tracked sibling instead becomes its owner. Parsed-empty reconciliation is a separate branch: for full-index Sessions, stale conversation/search can be cleared and the Session considered for retirement only when its current owner path belongs to the parsed-empty set AND every tracked sibling path also belongs to that set. A meaningful shared owner, including a source containing only admitted skill observations, prevents that parsed-empty cleanup; retained historical Usage keeps the Session meaningful even after its stale conversation is cleared. Deleting that Session cascades `activity_events`, `usage_records`, derived `session_reference_scans` and `session_reference_evidence`, and the optional user-owned `session_pins` row; scanner also removes its search and source-file projection while preserving a present native stub. A wholly missing source root does not trigger the same stale-file reconciliation. `skill_observations` has no cascading FK and keeps admitted historical uses. Polymorphic links and checkpoint refs are application edges and can retain an unresolved historical ID.
 - Recovery: rescan the authoritative native source file and reconcile parents. Restoring only a Task Runner stream cannot rebuild a Session or Usage Record; restore the selected runner's native Claude or Codex JSONL and the Run ledger together. The insight accounting exception is recoverable from the independent Run ledger plus retained usage summaries or CLI usage events. A full database rebuild cannot restore user-curated links, exact operational history, or confirmed review state without backup.
-- DDL ownership: fresh definition and `idx_sessions_last_event`, `idx_sessions_workspace` in `schema.sql`; compatible columns, backup-backed classification/Run-link table repair, and runtime-only `idx_sessions_class`, `idx_sessions_role`, `idx_sessions_parent` in `db.py`. Before that structural repair, startup preserves `localbrain.db-pre-maintenance-session-contract-v1.bak` and validates it with SQLite `quick_check`. An older additive layout may have the same approved columns in a different physical order; migration validates every name/type/null/default/key contract, copies values by canonical column name, and converges only the physical order.
+- DDL ownership: fresh definition and `idx_sessions_last_event`, `idx_sessions_workspace` in `schema.sql`; compatible columns, backup-backed classification/Run-link table repair, and runtime-only `idx_sessions_class`, `idx_sessions_role`, `idx_sessions_parent` in `persistence/migrations/`. Before that structural repair, startup preserves `localbrain.db-pre-maintenance-session-contract-v1.bak` and validates it with SQLite `quick_check`. An older additive layout may have the same approved columns in a different physical order; migration validates every name/type/null/default/key contract, copies values by canonical column name, and converges only the physical order.
 
 | Column | Contract |
 | --- | --- |
@@ -233,7 +230,7 @@ For parsed-empty reconciliation, these ownership checks apply before retiring th
 - Purpose and authority: normalized, ordered Session events used for conversation presentation, activity calculation, retrieval evidence, and tool/message counts without exposing raw event payload files.
 - Lifecycle: source-derived and rebuildable. Scanner replaces the Session's event set atomically during re-import. Existing event PKs are retained by matching `(session_id, sequence, event_type, source_line)`. New event IDs include the numeric source PK, so identical native events in different profiles coexist without an alias.
 - Producers: `ingest/sync/session_store.py` from normalized parser events; provider-backed phase normalization retains only explicit, unambiguous completion or continuation evidence.
-- Consumers: `queries.py` Session detail and counts, `activity.py` active-time attribution, `retrieval.py` evidence loading, and `personal_insight_evidence.py` bounded read-only message sampling for later personal insight Runs. Primary Session `관련 자료` consumes the separate normalized reference-evidence projection rather than reparsing Activity Event text at request time; workspace membership alone is not a related-material relation. The projection adds no Session column or relationship row.
+- Consumers: `sessions/queries.py` Session detail and counts, `sessions/activity.py` active-time attribution, `workstreams/retrieval.py` evidence loading, and `insights/evidence.py` bounded read-only message sampling for later personal insight Runs. Primary Session `관련 자료` consumes the separate normalized reference-evidence projection rather than reparsing Activity Event text at request time; workspace membership alone is not a related-material relation. The projection adds no Session column or relationship row.
 - Relations and deletion: `session_id` cascades from `sessions`; replacement deletes prior rows before inserting the new normalized sequence.
 - Recovery: rescan the Session source. Opaque tool arguments/results are not indexed by default; a later concrete metadata requirement must introduce an explicit bounded contract rather than relying on an unused generic JSON slot.
 - DDL ownership: fresh definition in `schema.sql`; event ordering uses the leading `session_id, sequence` keys of the table's UNIQUE autoindex. Compatible migration removes the former redundant named index only after verifying that coverage and removes the legacy metadata column only when every value is `NULL`. An additive nullable `message_phase` column preserves existing rows; the next explicit Claude or Codex Sync backfills available source phases through the versioned Session contract without repricing unchanged source files.
@@ -272,8 +269,8 @@ The personal insight evidence manifest is a private derived value, not a new dat
 
 - Purpose and authority: durable native calls/contexts, successful instruction reads, named conversation references and identifiable skill script executions. Names are established by source evidence within the Session; availability catalogs alone do not count. References are matched by identifiers without interpreting use wording or language. All observed evidence contributes to use/reference Session reach, not proof of application, success or benefit. Previously recorded declarations are retained as historical references; no new phrase-based declarations are extracted.
 - Lifecycle: retained historical observation. Parser-version upgrades backfill available files once; subsequent changed/resumed files insert only new events. Native events deduplicate by source, Session and event identity; read/mention/script events also include normalized skill identity. Earlier declaration identities guard equivalent mention replay, including corrections. Request identity remains provenance, with null scope allowed. Missing files or Session rows, and removal of source registration, do not retract evidence. Maintenance Sessions and reconciled children are invalidated, and targeted corrections remain supported. Insights counts each normalized skill at most once per source and native Session across all requests/signals. Constituent events remain in the ledger.
-- Producers: Claude/Codex parsers, `ingest/evidence/skill_loads.py` and `ingest/evidence/skill_usage.py` extract bounded signals; `ingest/sync/sessions.py` and `skill_observations.py` persist them within the source scan transaction and reconcile maintenance exclusion. Native Codex turn IDs, Claude user UUIDs or retained user-message identity establish request scope. A targeted native-event correction can set erroneous evidence to `corrected` without making ordinary disappearance a deletion signal.
-- Consumers: `skill_observations.py` all-time use/reference Session ranking, latest admitted reference time and extraction coverage for Insights. Compatible `use_count` and `last_used_at` fields mean Session count and latest reference time. No files means `not_scanned`; stale parser contracts mean `partial`. Historical observations without current files remain distinguishable. Usage & Cost does not query this table.
+- Producers: Claude/Codex parsers, `ingest/evidence/skill_loads.py` and `ingest/evidence/skill_usage.py` extract bounded signals; `ingest/sync/sessions.py` and `sessions/skills.py` persist them within the source scan transaction and reconcile maintenance exclusion. Native Codex turn IDs, Claude user UUIDs or retained user-message identity establish request scope. A targeted native-event correction can set erroneous evidence to `corrected` without making ordinary disappearance a deletion signal.
+- Consumers: `insights/skills.py` all-time use/reference Session ranking, latest admitted reference time and extraction coverage for Insights. Compatible `use_count` and `last_used_at` fields mean Session count and latest reference time. No files means `not_scanned`; stale parser contracts mean `partial`. Historical observations without current files remain distinguishable. Usage & Cost does not query this table.
 - Relations and deletion: `source_id` is a non-null FK to `sources.id` with `NO ACTION`; a source with retained skill evidence cannot be deleted. (`source_id`, `external_session_id`) may resolve to a current `sessions` row. Session deletion and registration removal do not cascade into this ledger. Evidence links appear only after a successful current-row join.
 - Recovery: restore the database to retain observations whose native Session files have disappeared. Still-available files can be rescanned, but cannot reproduce lost historical events.
 - DDL ownership: fresh additive table and `idx_skill_observations_group`, `idx_skill_observations_source_session` in `schema.sql`; compatible startup creates the absent table without rewriting existing Session rows.
@@ -301,8 +298,8 @@ Constraints: `UNIQUE(source_id, external_session_id, native_event_id, skill_grou
 
 - Purpose and authority: current owner-selected recall state for an eligible persisted primary work Session. Row presence means pinned; absence means unpinned. The table has no status, active, or soft-delete value.
 - Lifecycle: user-curated and non-rebuildable. Pinning inserts one row, repeated pin is idempotent and preserves `pinned_at`, unpinning deletes only that row, and pinning again creates a new timestamp.
-- Producers: trusted local pin/unpin operations in `session_pins.py`. Session scanners and source adapters never write this table.
-- Consumers: pinned Session membership, bounded internal queries, and the uncapped product recall projection in `session_pins.py`; Sessions inventory/detail controls and the global `Pinned Sessions` panel are downstream consumers.
+- Producers: trusted local pin/unpin operations in `sessions/pins.py`. Session scanners and source adapters never write this table.
+- Consumers: pinned Session membership, bounded internal queries, and the uncapped product recall projection in `sessions/pins.py`; Sessions inventory/detail controls and the global `Pinned Sessions` panel are downstream consumers.
 - Relations and deletion: `session_id` is both primary key and FK to `sessions.id`, `ON DELETE CASCADE`. Explicit Session or source deletion removes the pin because no reopenable Session remains. Ordinary Session upserts preserve the stable Session row and its pin.
 - Recovery: restore the LocalBrain database backup. Native Claude or Codex Session files can rebuild the Session but cannot reconstruct owner pin intent or its pin time.
 - DDL ownership: complete fresh definition in `schema.sql`; normal startup creates the absent table on a compatible older database through the same idempotent schema application. No explicit named index.
@@ -318,7 +315,7 @@ Constraints: one row per Session, required pin time, and cascading physical owne
 
 - Purpose and authority: current user-selected Project visibility for the Sessions Chart, independent of browser storage. It stores display intent and never changes Session observations, membership, pins or work classification.
 - Lifecycle: user-curated and non-rebuildable. One row per source/workspace scope contains the complete hidden-folder list; an empty list means all-selected. An absent row permits one-time browser migration through create-if-absent. Normal user changes replace this scope's current choice.
-- Producers: trusted local Project visibility writes in `session_chart_preferences.py`, exposed by the bounded same-origin Sessions preference endpoint. Scanners and source adapters never write this table.
+- Producers: trusted local Project visibility writes in `sessions/chart_preferences.py`, exposed by the bounded same-origin Sessions preference endpoint. Scanners and source adapters never write this table.
 - Consumers: Sessions Chart GET and Project checkbox controls; browser camera and selection remain separate tab navigation state.
 - Relations and deletion: composite scope identity has no physical or application FK. Empty workspace scope means all workspaces. Source/workspace removal does not delete the preference, and temporarily absent hidden folder identities remain retained. Removing this row resets that scope's visibility to default all; it never deletes imported or organized work.
 - Recovery: restore the LocalBrain database backup or reselect Projects. Native Session files cannot reconstruct user display intent; browser site-data removal has no effect on a confirmed DB setting.
@@ -341,7 +338,7 @@ Constraints: composite primary key on `(source_scope, workspace_scope)`; both sc
 - Consumers: Session reference skip/retry diagnostics and the bounded primary Session detail projection. A detail request never reads JSONL to reinterpret this state.
 - Relations and deletion: `session_id` is both primary key and FK to `sessions.id`, `ON DELETE CASCADE`. Removing the Session removes only its derived scan state and cannot delete a Document, Resource, remote Item fact, or organization link.
 - Recovery: synchronize the still-available registered Session source. If the source is unavailable, retain prior valid evidence plus error state until a later successful reconciliation.
-- DDL ownership: complete fresh definition in `schema.sql`; ordinary idempotent schema application creates the absent table on compatible older databases without rewriting retained rows. No runtime-only migration or named index is required.
+- DDL ownership: complete fresh definition in `schema.sql`; ordinary idempotent schema application creates an absent table. The shared-resource data migration in `persistence/migrations/resources.py` recomputes retained target counts after identity merging and observed counts for completed `ok` scans. For other prior states, observed count becomes `MAX(previous observed count, new retained count)`. Only prior `partial` scans become `error` with `resource-identity-migration` and require recollection because the full omitted set cannot be reconstructed. No separate named index is required.
 
 | Column | Contract |
 | --- | --- |
@@ -361,7 +358,8 @@ Constraints: 64-character source fingerprint; bounded extractor and error values
 ### `session_reference_evidence`
 
 - Purpose and authority: one privacy-minimized normalized evidence location showing that an eligible primary work Session visibly mentioned, observed through an approved result, or completed an approved read attempt for one target. The row owns Session-facing observed identity and read outcome, not Activity Event text, Resource title, Document content, remote truth, or organization membership.
-- Lifecycle: fully derived per Session source evidence. Successful reconciliation
+- Lifecycle: source-derived evidence retained for its owning Session, including
+  references whose Document or optional Item is no longer present. Successful reconciliation
   replaces each contributing source path's current deterministic evidence-key set,
   then finalizes one aggregate Session bound and removes obsolete rows. Failed
   parsing or reconciliation retains the last valid set through
@@ -370,21 +368,12 @@ Constraints: 64-character source fingerprint; bounded extractor and error values
   multi-file Session reparses current siblings before finalization so evidence
   previously outside the 100-target bound can re-enter when stronger targets
   disappear.
-- Producers: shared Claude/Codex `ParsedReferenceCandidate` adapters and the
-  source-neutral resolver/reconciler in `session_references.py`, invoked only by
-  Session synchronization.
-- Consumers: the bounded Session-reference read projection and primary Session `관련 자료` rail. The rail maps evidence to `MCP 조회`, `MCP 조회 실패`, `사용자 메시지에서 언급`, `Agent 응답에서 언급`, or `도구 결과에서 확인`, uses `observed_identity` before shared Resource titles, orders retained direct targets by their oldest `observed_at` with deterministic source-location fallback, and keeps the direct target under its strongest group when an explicit organization relation also exists. Read counts use distinct completed resource-read call IDs; mention and observation counts use distinct normalized source locations.
-- Relations and deletion: required Session FK plus an optional target FK selected by `target_kind`. Session, exact Context Document target, or configured Atlassian Item deletion cascades the now-unresolvable derived row. The edge points from evidence to the shared target, so evidence reconciliation never deletes or mutates the Document, External Resource/Item, remote content, note, classification, Thread, or Workstream.
-- Recovery: rescan the authoritative Session source while its exact eligible Document and configured Atlassian Item targets remain resolvable. Generic safe URLs are rebuilt from the Session source without creating shared Resource rows.
-- Atlassian descriptor projection remains a generic `url` target until an exact
-  configured Item resolves. For recognized Item, structure, or Site families,
-  `target_key` hashes the canonical semantic domain/service/kind/identity tuple
-  rather than the whole safe URL. Locator spelling and non-authoritative
-  container hint do not enter grouping. `normalized_url` retains only the
-  canonical allowlisted safe locator needed for later deterministic reparse;
-  RapidBoard can retain positive `rapidView` and one validated `projectKey`
-  hint, while raw query, JQL, and unrelated parameters are discarded.
-- DDL ownership: complete fresh definition and `idx_session_reference_evidence_session`, `idx_session_reference_evidence_document`, and `idx_session_reference_evidence_atlassian` in `schema.sql`; ordinary idempotent schema application adds them to compatible older databases.
+- Producers: Claude/Codex `ParsedReferenceCandidate` adapters and `sessions/references.py` during Session synchronization. `references/` owns pure URL classification; `resources/catalog.py` owns shared identity. No Atlassian configuration or table is consulted. Bare Jira/page-ID hints require exactly one already-known shared URL; ambiguity is not guessed.
+- Consumers: the bounded Session-reference read projection and primary Session `관련 자료` rail. The rail maps evidence to `MCP 조회`, `MCP 조회 실패`, `사용자 메시지에서 언급`, `Agent 응답에서 언급`, or `도구 결과에서 확인`, uses `observed_identity` before shared Resource titles, orders retained direct targets by their oldest `observed_at` with deterministic source-location fallback, and does not query organization memberships or merge their indirect targets into Session detail. Read counts use distinct completed resource-read call IDs; mention and observation counts use distinct normalized source locations.
+- Relations and deletion: required Session FK cascades when its owner Session is removed; required `resource_id` FK points only to `reference_resources` and restricts resource deletion. Removing an Atlassian Item, bookmark or indexed Document preserves evidence and its shared identity. Missing/disabled/unreadable Documents have inactive destinations; same-path reindexing reconnects through `resource_documents`. Reconciliation never deletes source bodies, user notes or organization.
+- Recovery: backup preserves historical observations. Current Session sources can be recollected; New Markdown admission requires an exact eligible indexed Document. Recollection of the same native location can retain its previously admitted path when the index is unavailable; it cannot guess a new unindexed target. Safe URL admission needs no registration. The shared-resource migration preserves existing evidence IDs, keys, locations and timestamps, then changes only target bindings/grouping keys. Extractor v4 schedules normal recollection.
+- URL grouping always uses the shared key, regardless of registration. Recognized Jira/Confluence item, structure and site URLs hash domain/service/kind/identity; locator variants and container hints cannot split identity. `normalized_url` preserves only the allowlisted safe locator for deterministic reparse. RapidBoard may keep positive `rapidView` and a validated `projectKey`; raw query, JQL and unrelated parameters are discarded. Different domains are never automatically merged or followed through redirects.
+- DDL ownership: `schema.sql` defines `idx_session_reference_evidence_session` and `idx_session_reference_evidence_resource`; `persistence/migrations/resources.py` rebuilds legacy evidence atomically after a verified recovery copy.
 
 | Column | Contract |
 | --- | --- |
@@ -394,14 +383,12 @@ Constraints: 64-character source fingerprint; bounded extractor and error values
 | `source_event_id` | nullable non-empty `TEXT` up to 1,000 characters; provider event identity when available. |
 | `source_line` | positive `INTEGER NOT NULL`; source JSONL location. |
 | `evidence_ordinal` | positive `INTEGER NOT NULL`; normalized occurrence within the source location. |
-| `target_kind` | `TEXT NOT NULL`; checked to `url`, `context_document`, or `atlassian_item`. |
-| `target_key` | non-empty `TEXT NOT NULL` up to 300 characters; opaque deterministic grouping key, never display copy. Generic URL grouping hashes the whole safe URL; a recognized Atlassian Item/structure/Site URL hashes its canonical semantic descriptor so locator aliases and container hints cannot split identity. |
-| `context_document_id` | nullable FK to `context_documents.id`, `ON DELETE CASCADE`; required only for `context_document`. |
-| `external_resource_id` | nullable FK to `atlassian_items.external_resource_id`, `ON DELETE CASCADE`; required only for `atlassian_item`. |
+| `resource_id` | `INTEGER NOT NULL` FK to `reference_resources.id`, `ON DELETE RESTRICT`; stable shared target. |
+| `target_key` | non-empty `TEXT NOT NULL` up to 300 characters; shared resource identity key copied for deterministic grouping, never display copy. Generic URL grouping hashes the whole safe URL; a recognized Atlassian Item/structure/Site URL hashes its canonical semantic descriptor so locator aliases and container hints cannot split identity. |
 | `evidence_kind` | `TEXT NOT NULL`; checked to `user_mention`, `assistant_mention`, `tool_result`, or `resource_read`. |
 | `read_outcome` | nullable `TEXT`; `success` or `failure` and required only for `resource_read`. |
 | `observed_identity` | non-empty `TEXT NOT NULL` up to 500 characters; bounded Session-facing issue key, file identity, or safe host/path identity. |
-| `normalized_url` | nullable non-empty `TEXT` up to 8,000 characters; required for URL and Atlassian targets and prohibited for Context Documents. It contains only approved normalized safe destination data. Generic URLs contain no query; a recognized Atlassian descriptor may retain only its canonical bounded identity-query projection and optional approved grouping hint. |
+| `normalized_url` | nullable non-empty `TEXT` up to 8,000 characters; written for URL targets and omitted for indexed Document targets by the producer. It contains only approved normalized safe destination data. Generic URLs contain no query; a recognized Atlassian descriptor may retain only its canonical bounded identity-query projection and optional approved grouping hint. |
 | `tool_name` | nullable non-empty `TEXT` up to 200 characters; required only for approved tool-result and resource-read evidence. |
 | `tool_call_id` | nullable non-empty `TEXT` up to 500 characters; required only for approved tool-result and completed resource-read correlation. |
 | `observed_at` | nullable `TEXT`; source event/result time when available. |
@@ -411,12 +398,12 @@ Constraints: 64-character source fingerprint; bounded extractor and error values
 | `last_observed_at` | `TEXT NOT NULL`; latest successful reconciliation retaining the key. |
 | `updated_at` | `TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP`; latest row write. |
 
-Constraints: exact target-kind/FK/normalized-URL parity; exact evidence-kind/read-outcome/tool identity parity; positive locations; bounded paths, identities, URLs, tool fields, and extractor version; unique 64-character evidence key. The producer retains at most 100 target keys per Session and at most 50 deterministic evidence locations per retained target. Explicit indexes: `idx_session_reference_evidence_session` for target grouping and stable evidence order, `idx_session_reference_evidence_document`, and `idx_session_reference_evidence_atlassian` for target lifecycle and reverse diagnostics.
+Constraints: required shared-resource FK; producer-owned identity-key/locator consistency; exact evidence-kind/read-outcome/tool identity parity; positive locations; bounded paths, identities, URLs, tool fields, and extractor version; unique 64-character evidence key. The producer retains at most 100 target keys per Session and at most 50 deterministic evidence locations per retained target. Explicit indexes: `idx_session_reference_evidence_session` for target grouping and stable evidence order, `idx_session_reference_evidence_resource` for target lookup and reverse diagnostics.
 
 ## Derived Workflow Episode And Relations
 
 - This subject adds no table, index, migration, or value-registry family. The
-  versioned `workflow_projection.py` descriptors are in-memory, fully
+  versioned `workflow/projection.py` descriptors are in-memory, fully
   rebuildable views over approved normalized facts.
 - One Episode is eligible only when its source row is a primary work Session.
   Its opaque stable key hashes the length-delimited `sources.id` and
@@ -449,7 +436,7 @@ Constraints: exact target-kind/FK/normalized-URL parity; exact evidence-kind/rea
 
 ## Derived Workstream Candidate Contract
 
-- `workstream_candidates.py` adds only immutable derived descriptors. There is
+- `workflow/candidates.py` adds only immutable derived descriptors. There is
   no candidate table, index, migration, schema/value-registry entry, cache, or
   database-backed discovery read in this contract.
 - One seed has two canonical artifact identities and at least two distinct

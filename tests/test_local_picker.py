@@ -10,8 +10,8 @@ from unittest.mock import patch
 
 from fastapi import FastAPI, HTTPException, Request
 
-from localbrain import local_picker
-from localbrain.settings_web import install_settings_routes
+from localbrain.app import picker as local_picker
+from localbrain.app.settings import install_settings_routes
 
 
 class LocalPickerTests(unittest.TestCase):

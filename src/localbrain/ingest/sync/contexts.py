@@ -11,11 +11,8 @@ from html.parser import HTMLParser
 from pathlib import Path
 from typing import Optional, Tuple
 from urllib.parse import quote
-from ...atlassian_evidence import (
-    document_evidence_source_fingerprint,
-    evidence_scan_is_current,
-    reconcile_document_evidence,
-)
+from localbrain.resources.catalog import bind_document
+from localbrain.ingest import extensions
 from . import control, storage
 
 
@@ -167,6 +164,7 @@ def _upsert_context_document(
         body,
         path,
     )
+    bind_document(connection, document_id)
     return document_id
 
 
@@ -184,7 +182,7 @@ def _remove_context_source_documents(
             "DELETE FROM search_index WHERE entity_type = 'document' AND entity_id = ?",
             (str(row["id"]),),
         )
-        storage._delete_structure_evidence_owner(
+        storage._delete_source_owner(
             connection, document_id=int(row["id"])
         )
 
@@ -228,12 +226,10 @@ def _scan_context_file(
             """,
             (root_row["id"], str(path)),
         ).fetchone()
-        if document and evidence_scan_is_current(
+        if document and extensions.document_is_current(
             connection,
             document_id=int(document["id"]),
-            source_fingerprint=document_evidence_source_fingerprint(
-                document["content_hash"]
-            ),
+            content_hash=document["content_hash"],
         ):
             return 0, 1, 0
     body, content_type, error = _read_context_file(path)
@@ -269,12 +265,10 @@ def _scan_context_file(
         content_type,
         workspace_id,
     )
-    reconcile_document_evidence(
+    extensions.document_indexed(
         connection,
         document_id=document_id,
-        source_fingerprint=document_evidence_source_fingerprint(
-            hashlib.sha256(body.encode("utf-8")).hexdigest()
-        ),
+        content_hash=hashlib.sha256(body.encode("utf-8")).hexdigest(),
         body=body,
     )
     storage._record_source_file(connection, source_id, path)
@@ -362,16 +356,16 @@ def _scan_apple_notes(
             "application/x-apple-note",
         )
         content_hash = hashlib.sha256(body.encode("utf-8")).hexdigest()
-        source_fingerprint = document_evidence_source_fingerprint(content_hash)
-        if not evidence_scan_is_current(
+        source_fingerprint = content_hash
+        if not extensions.document_is_current(
             connection,
             document_id=document_id,
-            source_fingerprint=source_fingerprint,
+            content_hash=source_fingerprint,
         ):
-            reconcile_document_evidence(
+            extensions.document_indexed(
                 connection,
                 document_id=document_id,
-                source_fingerprint=source_fingerprint,
+                content_hash=source_fingerprint,
                 body=body,
             )
         imported += 1
@@ -478,7 +472,7 @@ def _scan_context_documents(
                 "DELETE FROM search_index WHERE entity_type = 'document' AND entity_id = ?",
                 (str(row["id"]),),
             )
-            storage._delete_structure_evidence_owner(
+            storage._delete_source_owner(
                 connection, document_id=int(row["id"])
             )
             connection.execute(
@@ -496,12 +490,10 @@ def _scan_context_documents(
                     """,
                     (root_row["id"], str(path)),
                 ).fetchone()
-                if document and evidence_scan_is_current(
+                if document and extensions.document_is_current(
                     connection,
                     document_id=int(document["id"]),
-                    source_fingerprint=document_evidence_source_fingerprint(
-                        document["content_hash"]
-                    ),
+                    content_hash=document["content_hash"],
                 ):
                     skipped += 1
                     continue
@@ -564,12 +556,11 @@ def _scan_context_documents(
                     body,
                     str(path),
                 )
-                reconcile_document_evidence(
+                bind_document(connection, int(document_row["id"]))
+                extensions.document_indexed(
                     connection,
                     document_id=int(document_row["id"]),
-                    source_fingerprint=document_evidence_source_fingerprint(
-                        document_row["content_hash"]
-                    ),
+                    content_hash=document_row["content_hash"],
                     body=body,
                 )
                 storage._record_source_file(connection, source_id, path)

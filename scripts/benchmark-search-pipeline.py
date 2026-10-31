@@ -12,13 +12,13 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'tests'))
 from natural_search_benchmark import aggregate, metrics, seed
-from localbrain.config import settings
+from localbrain.foundation.config import settings
 from localbrain.natural_search.index import prepare
 from localbrain.natural_search.model import SearchEncoder
 from localbrain.natural_search.molecules import Profile
 from localbrain.natural_search.retrieval import Retriever
 from localbrain.natural_search.source import digest
-from localbrain.runtime_storage import private_directory
+from localbrain.foundation.files import private_directory
 
 
 def main():

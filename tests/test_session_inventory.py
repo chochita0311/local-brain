@@ -5,18 +5,18 @@ from unittest.mock import patch
 
 from starlette.requests import Request
 
-from localbrain.main import app, sessions_page, show_session
-from localbrain.queries import (
+from localbrain.main import app
+from localbrain.sessions.web import sessions_page, show_session
+from localbrain.sessions.queries import (
     SESSION_PAGE_SIZE,
-    compact_pagination_items,
-    dashboard_stats,
-    pagination_items,
     project_activity,
     session_detail,
     session_inventory_page,
     session_source_scopes,
-    source_inventory,
 )
+from localbrain.foundation.pagination import compact_pagination_items, pagination_items
+from localbrain.app.dashboard_queries import dashboard_stats
+from localbrain.sources.queries import source_inventory
 
 
 SCHEMA_PATH = Path(__file__).parents[1] / "src" / "localbrain" / "schema.sql"
@@ -283,7 +283,7 @@ class SessionInventoryTests(unittest.TestCase):
             (company_source_id, company_session_id),
         ).lastrowid
 
-        with patch("localbrain.main.connect", return_value=self.connection):
+        with patch('localbrain.sessions.web.connect', return_value=self.connection), patch('localbrain.app.templating.connect', return_value=self.connection):
             unknown = sessions_page(
                 self._request(b"source=phantom&workspace=2&page=4"),
                 source="phantom",

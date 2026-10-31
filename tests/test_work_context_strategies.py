@@ -9,11 +9,11 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
-from localbrain.work_context import infer, inference_identity
-from localbrain.work_context_evaluation import evaluate
-from localbrain.work_context_model import MODEL_ID, REVISION, LocalGenerator, final_token_ids, generation_settings
-from localbrain.work_context_staged import INVENTORY
-from localbrain.work_reconstruction import ExperimentError
+from localbrain.experiments.context.contract import infer, inference_identity
+from localbrain.experiments.context.evaluation import evaluate
+from localbrain.models.generation import MODEL_ID, REVISION, LocalGenerator, final_token_ids, generation_settings
+from localbrain.experiments.context.staged import INVENTORY
+from localbrain.foundation.validation import ExperimentError
 from test_work_context import FakeGenerator, fact, unit
 from work_context_cases import message
 
@@ -35,10 +35,10 @@ class ProtocolTests(unittest.TestCase):
         torch = SimpleNamespace(__version__="synthetic", backends=SimpleNamespace(
             mps=SimpleNamespace(is_available=lambda: True)))
         with patch.dict(sys.modules, {"torch": torch, "transformers": SimpleNamespace(__version__="synthetic")}), \
-             patch("localbrain.work_context_model.verify", return_value=(Path("/synthetic"), {
+             patch("localbrain.models.generation.verify", return_value=(Path("/synthetic"), {
                  "fingerprint": "synthetic", "model_id": MODEL_ID, "revision": REVISION})), \
-             patch("localbrain.work_context_model.offline_environment"), \
-             patch("localbrain.work_context_model.block_network"):
+             patch("localbrain.models.generation.offline_environment"), \
+             patch("localbrain.models.generation.block_network"):
             mps = LocalGenerator(Path("/synthetic"))
             cpu = LocalGenerator(Path("/synthetic"), device="cpu")
         self.assertEqual(mps.contract["attention"], "eager")
@@ -180,7 +180,7 @@ class StagedTests(unittest.TestCase):
     def test_strategy_and_stage_prompt_changes_invalidate_identity(self):
         baseline = inference_identity({}, "staged")
         self.assertNotEqual(baseline, inference_identity({}, "single"))
-        with patch("localbrain.work_context_staged.PROMPTS", [INVENTORY + "changed"]):
+        with patch("localbrain.experiments.context.staged.PROMPTS", [INVENTORY + "changed"]):
             self.assertNotEqual(baseline, inference_identity({}, "staged"))
 
     def test_invalid_packet_or_strategy_never_calls_model(self):

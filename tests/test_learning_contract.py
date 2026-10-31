@@ -4,8 +4,13 @@ import sqlite3
 import unittest
 from pathlib import Path
 
-from localbrain.learning import (LearningError, assess_attempt, import_packet,
-                                 set_visibility, submit_attempt)
+from localbrain.learning.service import (
+    LearningError,
+    assess_attempt,
+    import_packet,
+    set_visibility,
+    submit_attempt,
+)
 
 
 def packet():

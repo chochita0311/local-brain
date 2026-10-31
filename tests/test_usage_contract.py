@@ -5,8 +5,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from localbrain.config import Settings
-from localbrain.db import init_db
+from localbrain.foundation.config import Settings
+from localbrain.persistence.db import init_db
 from localbrain.ingest.providers.claude import parse_claude_session
 from localbrain.ingest.contracts import CODEX_USAGE_CONTRACT_VERSION
 from localbrain.ingest.providers.codex import parse_codex_session
@@ -15,11 +15,13 @@ from localbrain.ingest.common import stable_id
 from localbrain.ingest.sync.storage import _file_is_current
 from localbrain.ingest.sync.sessions import _scan_session_source
 from localbrain.ingest.sync.session_store import _store_session
-from localbrain.official_pricing import (
-    FAST_LONG_CONTEXT_PROXY_SPECS, PRICE_SPECS, SPARK_PROXY_SPECS,
+from localbrain.usage.pricing import (
+    FAST_LONG_CONTEXT_PROXY_SPECS,
+    PRICE_SPECS,
+    SPARK_PROXY_SPECS,
     UNAVAILABLE_SNAPSHOT_ID,
 )
-from localbrain.usage import (
+from localbrain.usage.records import (
     CODEX_FAST_PRICE_SNAPSHOT_ID,
     CODEX_FAST_TIERED_PRICE_SNAPSHOT_ID,
     CODEX_FAST_TIERED_SPARK_PRICE_SNAPSHOT_ID,
@@ -1325,7 +1327,7 @@ class UsageContractTests(unittest.TestCase):
             "SELECT price_snapshot_id, estimated_cost_usd FROM usage_records"
         ).fetchone()
 
-        with patch("localbrain.usage.DEFAULT_PRICE_SNAPSHOT_ID", "future-snapshot"):
+        with patch("localbrain.usage.records.DEFAULT_PRICE_SNAPSHOT_ID", "future-snapshot"):
             ensure_default_price_snapshot(self.connection)
             self.connection.execute(
                 """
@@ -1392,7 +1394,7 @@ class UsageContractTests(unittest.TestCase):
                 codex_root=data_dir / "codex",
                 mcp_call_budget=20,
             )
-            with patch("localbrain.db.settings", settings):
+            with patch("localbrain.persistence.db.settings", settings):
                 init_db()
                 upgraded = sqlite3.connect(str(database_path))
                 self.assertEqual(

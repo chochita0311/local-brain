@@ -2,27 +2,28 @@ import hashlib
 import json
 import sqlite3
 import unittest
+from localbrain.resources.catalog import url_resource
 from pathlib import Path
 from unittest.mock import patch
 
-from localbrain.atlassian import (
+from localbrain.atlassian.catalog import (
     create_or_reuse_atlassian_stub,
     normalize_atlassian_url,
     register_atlassian_site,
 )
-from localbrain.atlassian_evidence_sync import (
+from localbrain.atlassian.evidence_sync import (
     SOURCE_REASON_CODES,
     _DocumentStreamScanner,
     _SYNC_LOCK,
     sync_atlassian_local_evidence,
 )
-from localbrain.atlassian_evidence import (
+from localbrain.atlassian.evidence import (
     configured_atlassian_site_fingerprint,
     document_evidence_source_fingerprint,
     evidence_scan_is_current,
     reconcile_document_evidence,
 )
-from localbrain.atlassian_browse import browse_inventory
+from localbrain.atlassian.browse import browse_inventory
 from localbrain.ingest.evidence.reference_candidates import (
     EVIDENCE_EXTRACTOR_VERSION,
     REFERENCE_EXTRACTOR_VERSION,
@@ -143,17 +144,10 @@ class AtlassianEvidenceSyncTests(unittest.TestCase):
         line=1,
         ordinal=1,
         evidence_kind="user_mention",
-        target_kind="url",
     ):
-        normalized_url = url if target_kind == "url" else None
-        external_resource_id = None
-        target_key = "url:{}".format(hashlib.sha256(url.encode()).hexdigest())
-        if target_kind == "atlassian_item":
-            row = self.connection.execute(
-                "SELECT external_resource_id FROM atlassian_items ORDER BY 1 LIMIT 1"
-            ).fetchone()
-            external_resource_id = int(row[0])
-            target_key = "atlassian:{}".format(external_resource_id)
+        normalized_url = url
+        resource_id = url_resource(self.connection, url)
+        target_key = self.connection.execute("SELECT identity_key FROM reference_resources WHERE id = ?", (resource_id,)).fetchone()[0]
         evidence_key = hashlib.sha256(
             "{}:{}:{}:{}".format(
                 session_id, line, ordinal, evidence_kind
@@ -171,12 +165,12 @@ class AtlassianEvidenceSyncTests(unittest.TestCase):
             """
             INSERT INTO session_reference_evidence(
                 session_id, source_path, source_event_id, source_line,
-                evidence_ordinal, target_kind, target_key,
-                external_resource_id, evidence_kind, read_outcome,
+                evidence_ordinal, resource_id, target_key,
+                evidence_kind, read_outcome,
                 observed_identity, normalized_url, tool_name, tool_call_id,
                 extractor_version, evidence_key,
                 first_observed_at, last_observed_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'retained identity', ?, ?, ?, ?, ?,
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'retained identity', ?, ?, ?, ?, ?,
                       '2026-08-29T00:00:00Z', '2026-08-29T00:00:00Z',
                       '2026-08-29T00:00:00Z')
             """,
@@ -186,9 +180,8 @@ class AtlassianEvidenceSyncTests(unittest.TestCase):
                 "event-{}-{}".format(session_id, line),
                 line,
                 ordinal,
-                target_kind,
+                resource_id,
                 target_key,
-                external_resource_id,
                 evidence_kind,
                 read_outcome,
                 normalized_url,
@@ -439,7 +432,7 @@ class AtlassianEvidenceSyncTests(unittest.TestCase):
             "peer-retries.md",
             "https://rollback.empty.test/browse/ROLL-2\n",
         )
-        from localbrain import atlassian_evidence_sync as sync_module
+        from localbrain.atlassian import evidence_sync as sync_module
 
         original_register = sync_module.register_atlassian_site
         calls = 0
@@ -1306,7 +1299,7 @@ class AtlassianEvidenceSyncTests(unittest.TestCase):
                 session_class="maintenance",
                 index_policy="metadata_only",
             )
-        from localbrain import atlassian_evidence_sync as sync_module
+        from localbrain.atlassian import evidence_sync as sync_module
 
         original_batches = sync_module._source_id_batches
         batch_sizes = []
@@ -1349,7 +1342,7 @@ class AtlassianEvidenceSyncTests(unittest.TestCase):
             )
             for index in range(1, 102)
         ]
-        from localbrain import atlassian_evidence_sync as sync_module
+        from localbrain.atlassian import evidence_sync as sync_module
 
         original = sync_module._process_document
         inserted_ids = []
@@ -1568,7 +1561,7 @@ class AtlassianEvidenceSyncTests(unittest.TestCase):
 
         refreshed_at = "2026-08-29T12:34:56Z"
         with patch(
-            "localbrain.atlassian_evidence_sync.utc_now",
+            "localbrain.atlassian.evidence_sync.utc_now",
             return_value=refreshed_at,
         ):
             changed = sync_atlassian_local_evidence(self.connection)
@@ -1639,7 +1632,7 @@ class AtlassianEvidenceSyncTests(unittest.TestCase):
         self.connection.set_trace_callback(statements.append)
 
         with patch(
-            "localbrain.atlassian_evidence_sync.utc_now",
+            "localbrain.atlassian.evidence_sync.utc_now",
             return_value="2026-08-29T13:34:56Z",
         ):
             repeat = sync_atlassian_local_evidence(self.connection)
@@ -1730,7 +1723,7 @@ class AtlassianEvidenceSyncTests(unittest.TestCase):
             ),
         )
 
-        from localbrain import atlassian_evidence_sync as sync_module
+        from localbrain.atlassian import evidence_sync as sync_module
 
         original = sync_module._read_document_scan
 
@@ -1785,7 +1778,7 @@ class AtlassianEvidenceSyncTests(unittest.TestCase):
             "failed.md", "https://jira.example.test/browse/FAIL-1\n"
         )
         with patch(
-            "localbrain.atlassian_evidence_sync._read_document_scan",
+            "localbrain.atlassian.evidence_sync._read_document_scan",
             side_effect=RuntimeError("synthetic bounded failure"),
         ):
             failed = sync_atlassian_local_evidence(self.connection)
@@ -1905,7 +1898,7 @@ class AtlassianEvidenceSyncTests(unittest.TestCase):
             "https://multi.example.test/browse/MULTI-1\n",
         )
 
-        from localbrain import atlassian_evidence_sync as sync_module
+        from localbrain.atlassian import evidence_sync as sync_module
 
         original_snapshot = sync_module.configured_atlassian_sync_scope_snapshot
 
@@ -1958,7 +1951,7 @@ class AtlassianEvidenceSyncTests(unittest.TestCase):
             session_id, "https://jira.example.test/browse/COMMIT-1"
         )
         self._document("later.md", "No URL\n")
-        from localbrain import atlassian_evidence_sync as sync_module
+        from localbrain.atlassian import evidence_sync as sync_module
 
         original = sync_module._source_id_batches
         batch_calls = 0

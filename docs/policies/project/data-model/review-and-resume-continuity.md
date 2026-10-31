@@ -50,11 +50,11 @@ Checkpoint resource targets use the same application mapping as Workstream links
 
 - Purpose and authority: proposed organizational or checkpoint changes with evidence, deterministic fingerprint, provenance, confidence, and explicit pending/accepted/rejected review state.
 - Lifecycle: generated review state. Pending content can be regenerated, but accepted/rejected decisions, resolution times, and original Run provenance are non-rebuildable history.
-- Producers: quick-match generation and refresh in `workstreams.py`; structured Task Runner output and reconciliation in `runner.py`.
+- Producers: quick-match generation and refresh in `workstreams/service.py`; structured Workstream Task Runner output and Suggestion reconciliation in `workstreams/runner.py`. Common Run state and recovery remain in `maintenance/service.py`.
 - Consumers: Dashboard and Workstream review queues, retrieval exclusions/context, accept/reject actions, and pending counts.
 - Relations and deletion: `target_type` plus `target_id` application-addresses a Workstream or Thread; `origin_run_id` application-addresses `maintenance_runs.id`. No physical cascade applies. Refresh replaces eligible pending suggestions while preserving rejected decisions and other protected state.
 - Recovery: rerun generation for new pending proposals; restore the database for historical review decisions and exact provenance.
-- DDL ownership: fresh definition and `idx_suggestions_target` in `schema.sql`; compatible `origin_run_id`, repeated target index, and runtime-only `idx_suggestions_origin_run` in `db.py`.
+- DDL ownership: fresh definition and `idx_suggestions_target` in `schema.sql`; compatible `origin_run_id`, repeated target index, and runtime-only `idx_suggestions_origin_run` in `persistence/migrations/`.
 
 | Column | Contract |
 | --- | --- |
@@ -79,11 +79,11 @@ Constraints: uniqueness of `fingerprint`; target/status/payload validation is ap
 
 - Purpose and authority: versioned, human-confirmed resume state for a Workstream, including facts, decisions, open questions, next actions, files, and the activity boundary it summarizes.
 - Lifecycle: confirmed continuity snapshot; user-curated and non-rebuildable.
-- Producers: `workstreams.py` creates the next Workstream-scoped version and snapshots current links.
+- Producers: `workstreams/service.py` creates the next Workstream-scoped version and snapshots current links.
 - Consumers: Workstream detail/resume presentation and checkpoint history.
 - Relations and deletion: Workstream deletion cascades checkpoints, then checkpoint resource references. This destructive path is not an implied cleanup action.
 - Recovery: database backup or an explicit export; Sessions and documents do not reconstruct confirmed wording or decision boundaries.
-- DDL ownership: fresh definition in `schema.sql`; compatible `based_on_activity_at`, `version`, and `updated_at` plus value backfill in `db.py`. On an older database, `updated_at` remains nullable and has no database default after the one-time backfill. The fresh and compatible paths create `idx_checkpoints_workstream_version`.
+- DDL ownership: fresh definition in `schema.sql`; compatible `based_on_activity_at`, `version`, and `updated_at` plus value backfill in `persistence/migrations/`. On an older database, `updated_at` remains nullable and has no database default after the one-time backfill. The fresh and compatible paths create `idx_checkpoints_workstream_version`.
 
 | Column | Contract |
 | --- | --- |
@@ -107,8 +107,8 @@ Constraints: version uniqueness per Workstream is application-enforced by next-v
 
 - Purpose and authority: immutable-at-creation snapshot of Workstream- and Thread-level links included in one checkpoint.
 - Lifecycle: confirmed continuity snapshot. It is generated from curated links at checkpoint time but cannot be regenerated after those links change.
-- Producers: `_snapshot_checkpoint_resources` in `workstreams.py` copies current Workstream/Thread links with `INSERT OR IGNORE`.
-- Consumers: checkpoint detail and resume evidence in `workstreams.py`.
+- Producers: `_snapshot_checkpoint_resources` in `workstreams/service.py` copies current Workstream/Thread links with `INSERT OR IGNORE`.
+- Consumers: checkpoint detail and resume evidence in `workstreams/service.py`.
 - Relations and deletion: checkpoint deletion cascades; Thread deletion sets `thread_id` null while retaining the captured heterogeneous identity. `entity_type` and `entity_id` target Session, Context Document, Workspace, External Resource, or Local Resource by application contract only.
 - Recovery: restore the database. Re-running a snapshot produces current, not historical, membership.
 - DDL ownership: fresh definition in `schema.sql`; checkpoint/thread lookup uses the leading keys of the table's UNIQUE autoindex, and the compatible migration removes the former redundant named index only after verifying that coverage.

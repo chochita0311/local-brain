@@ -30,7 +30,7 @@ erDiagram
   authority, not an automated truth judgment.
 - Lifecycle: user-curated and non-rebuildable. Revisions append; newest inserted
   ID per key is current. Reimporting an existing revision never rolls back current.
-- Producers: `learning_cli.py` through validated `learning.import_packet`.
+- Producers: `learning/cli.py` through validated `learning.import_packet`.
 - Consumers: learning home, library, article, source/question reader, attempts and scheduling.
 - Relations and deletion: attempts reference the exact revision with RESTRICT;
   visibility joins the stable key by application. No source deletion cascades into
@@ -66,7 +66,7 @@ version statements and nonfuture checked dates before inserting an atomic batch.
 - Lifecycle: user-curated and non-rebuildable. Answers are immutable; only pending
   outcome transitions once to again/partial/recalled with assessed time. Reading
   is born completed. Same-token identical replay is idempotent.
-- Producers: local same-origin learning POST handlers through `learning.py`.
+- Producers: local same-origin learning POST handlers through `learning/service.py`.
 - Consumers: reader/history and deterministic daily selection/review scheduling.
 - Relations and deletion: non-null lesson FK uses ON DELETE RESTRICT, retaining
   question and source revision. `question_id` application-resolves inside that

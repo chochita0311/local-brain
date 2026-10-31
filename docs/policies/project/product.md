@@ -160,14 +160,14 @@ The same Resource may relate to multiple Threads. Relationship-specific evidence
 - A persisted primary Session detail projects a bounded `관련 자료` rail from
   existing local data. `이 세션의 참조` uses source-neutral Session reference
   evidence and Session-observed identity for explicit Markdown/URL mentions and
-  approved MCP read outcomes; `연결된 작업` follows only Documents or Resources
-  sharing an explicit user-managed Thread or Workstream. A target in both
-  groups remains once under the direct group, and successful reads take
-  precedence over failure-only attempts.
-- Each group owns an independent total and shows up to 100 retained rows
-  initially. When the rail contains related state, the `연결된 작업` heading and
-  its zero total remain visible even when no organization-only target remains,
-  preserving that exploration path. Material kinds appear once as
+  approved MCP read outcomes. Successful reads take precedence over failure-only
+  attempts. Session detail does not query or display Thread/Workstream memberships,
+  their indirect materials, or organization badges on direct references. Existing
+  user-managed relationships remain owned by Workstreams and Threads.
+- Links and local paths have shared resource identities; each Session keeps its own discovery/read evidence pointing to them. Jira and Confluence URL families are recognized by URL grammar even without an Atlassian tab registration, and open their safe external destination in both web and Desktop editions. Equal item IDs on different domains are not merged; no redirect lookup is performed. Bare IDs require one unambiguous already-known URL.
+- Local Context remains the indexed document owner. A local path bookmark does not import a Markdown file, and its title/notes remain separate from Document content even when both share one resource. Removing a Document index or optional Atlassian registration preserves Session evidence; unavailable Documents are inactive, and same-path reindexing restores their links. Workstream/Thread mappings remain optional consumers of those resources.
+- The direct-reference group owns its total and shows up to 100 retained rows
+  initially. Material kinds appear once as
   alphabetically ordered sections, while direct references within each kind
   follow their oldest source occurrence so the rail progresses with the
   conversation.
@@ -176,11 +176,11 @@ The same Resource may relate to multiple Threads. Relationship-specific evidence
   available through a reversible native disclosure whose collapse control
   follows the expanded rows in DOM, visual, and keyboard-focus order. Direct
   evidence retains the 100-target safety boundary with observed-versus-retained
-  partial copy, while explicit organization lookup is independently bounded.
+  partial copy.
 - Same workspace, directory, repository, path, and global recency never
-  generate a candidate or fallback. Missing local paths and unsafe external
-  destinations remain visible but inactive; unresolved polymorphic targets are
-  omitted with a bounded count. Loading the projection reads only bounded
+  generate a candidate or fallback. Retained direct references whose targets
+  are unavailable and unsafe external destinations remain visible but inactive.
+  Loading the projection reads only bounded
   SQLite identity/evidence metadata, copies no content body, writes no
   relationship, and starts no source parse, model, embedding, remote,
   capability, scan, or maintenance work. A projection error never blocks the

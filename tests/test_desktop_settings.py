@@ -15,14 +15,14 @@ from pathlib import Path
 from unittest.mock import patch
 from unittest.mock import Mock
 
-from localbrain import db
-from localbrain.config import Settings, load_settings, _system_timezone_name
-from localbrain.local_operations import OperationBusy, operation_lock
-from localbrain.preferences import PreferencesError, read_preferences, save_preferences
-from localbrain.path_display import home_relative_path
-from localbrain.source_settings import source_inventory, update_source
-from localbrain.session_sync import SessionSyncService
-from localbrain.storage_recovery import create_backup, validate_backup, backend_storage_lease, clear_owned_cache
+from localbrain.persistence import db
+from localbrain.foundation.config import Settings, load_settings, _system_timezone_name
+from localbrain.foundation.operations import OperationBusy, operation_lock
+from localbrain.foundation.preferences import PreferencesError, read_preferences, save_preferences
+from localbrain.foundation.paths import home_relative_path
+from localbrain.sources.settings import source_inventory, update_source
+from localbrain.sources.session_sync import SessionSyncService
+from localbrain.app.storage.recovery import create_backup, validate_backup, backend_storage_lease, clear_owned_cache
 
 
 class DesktopSettingsTests(unittest.TestCase):
@@ -104,7 +104,7 @@ class DesktopSettingsTests(unittest.TestCase):
                 'context_sync_enabled': True, 'context_sync_minutes': 30, 'onboarding_completed': False})
             self.assertEqual(set(current['source'].values()), {'default'})
             self.assertFalse((self.data / 'settings.toml').exists())
-            with patch('localbrain.config.Path.resolve', return_value=Path('/usr/share/zoneinfo/Asia/Seoul')):
+            with patch('localbrain.foundation.config.Path.resolve', return_value=Path('/usr/share/zoneinfo/Asia/Seoul')):
                 self.assertEqual(_system_timezone_name(), 'Asia/Seoul')
                 self.assertEqual(load_settings().timezone_name, 'Asia/Seoul')
 
@@ -116,7 +116,7 @@ class DesktopSettingsTests(unittest.TestCase):
         service = SessionSyncService(self.config, lambda **kwargs: calls.append(1) or {'outcome': 'complete'})
         service._write({'completed_at': 1000})
         with patch.dict(os.environ, {'LOCALBRAIN_SESSION_SYNC_MINUTES': '60', 'LOCALBRAIN_SESSION_SYNC_ENABLED': 'false'}), \
-             patch('localbrain.source_sync.time.time', return_value=1600):
+             patch('localbrain.sources.sync.time.time', return_value=1600):
             service._collect(False)
             self.assertEqual(len(calls), 1)
             self.assertTrue(service.status()['enabled'])
@@ -125,7 +125,7 @@ class DesktopSettingsTests(unittest.TestCase):
         current = read_preferences(self.config)
         save_preferences({'session_sync_enabled': False}, current['revision'], self.config)
         with patch.dict(os.environ, {'LOCALBRAIN_SESSION_SYNC_ENABLED': 'true'}), \
-             patch('localbrain.source_sync.time.time', return_value=5000):
+             patch('localbrain.sources.sync.time.time', return_value=5000):
             service._collect(False)
             self.assertEqual(len(calls), 1)
             self.assertFalse(service.status()['enabled'])
@@ -164,16 +164,16 @@ class DesktopSettingsTests(unittest.TestCase):
         calls = []
         service = SessionSyncService(self.config, lambda **kwargs: calls.append(1) or {'outcome': 'complete'})
         service._write({'completed_at': 1000})
-        with patch('localbrain.source_sync.time.time', return_value=2019):
+        with patch('localbrain.sources.sync.time.time', return_value=2019):
             service._collect(False)
             self.assertEqual(calls, [])
             self.assertEqual(service.status()['next_at'], 2020)
-        with patch('localbrain.source_sync.time.time', return_value=2020):
+        with patch('localbrain.sources.sync.time.time', return_value=2020):
             service._collect(False)
             self.assertEqual(calls, [1])
             self.assertEqual(service.status()['next_at'], 3040)
         current = save_preferences({'session_sync_enabled': False}, current['revision'], self.config)
-        with patch('localbrain.source_sync.time.time', return_value=3040):
+        with patch('localbrain.sources.sync.time.time', return_value=3040):
             service._collect(False)
             self.assertEqual(calls, [1])
             self.assertIsNone(service.status()['next_at'])
@@ -192,7 +192,7 @@ class DesktopSettingsTests(unittest.TestCase):
                      ('/Users/<other>/app', '/Users/<other>/app'),
                      ('~/missing/app', '~/missing/app'), ('relative/app', 'relative/app'),
                      ('', ''), (None, '')]
-            with patch('localbrain.path_display.Path.home', return_value=home):
+            with patch('localbrain.foundation.paths.Path.home', return_value=home):
                 for value, expected in cases:
                     with self.subTest(home=home, path=value):
                         self.assertEqual(home_relative_path(value), expected)
@@ -200,7 +200,7 @@ class DesktopSettingsTests(unittest.TestCase):
     def test_home_display_does_not_resolve_symlinks_or_require_existing_paths(self):
         link = self.root / 'linked-folder'
         link.symlink_to('/Volumes/Unavailable')
-        with patch('localbrain.path_display.Path.home', return_value=self.root), \
+        with patch('localbrain.foundation.paths.Path.home', return_value=self.root), \
              patch.object(Path, 'resolve', side_effect=AssertionError('Display must not resolve paths')), \
              patch.object(Path, 'exists', side_effect=AssertionError('Display must not probe paths')):
             self.assertEqual(home_relative_path(link / 'missing'), '~/linked-folder/missing')
@@ -218,7 +218,7 @@ class DesktopSettingsTests(unittest.TestCase):
                 saved = save_preferences({'timezone': 'UTC'}, current['revision'], self.config)
                 for key in ('project_display', 'projects', 'future_note'):
                     self.assertEqual(saved['raw'][key], current['raw'][key])
-                with patch('localbrain.path_display.Path.home', return_value=Path('/Users/<demo>')):
+                with patch('localbrain.foundation.paths.Path.home', return_value=Path('/Users/<demo>')):
                     self.assertEqual(home_relative_path('/Users/<demo>/Project1'), '~/Project1')
 
     def test_retired_settings_cannot_be_written_or_created(self):
@@ -236,7 +236,7 @@ class DesktopSettingsTests(unittest.TestCase):
         project = home / 'Projects'
         project.mkdir(parents=True)
         canonical = str(project.resolve())
-        with db.connect() as connection, patch('localbrain.path_display.Path.home', return_value=home.resolve()):
+        with db.connect() as connection, patch('localbrain.foundation.paths.Path.home', return_value=home.resolve()):
             old_id = connection.execute('INSERT INTO workspaces(canonical_path, display_name) VALUES (?, ?)',
                                         (canonical, '.')).lastrowid
             self.assertEqual(_upsert_workspace(connection, canonical, None), old_id)
@@ -245,10 +245,10 @@ class DesktopSettingsTests(unittest.TestCase):
             self.assertEqual(row['display_name'], '~/Projects')
 
     def test_context_home_display_uses_same_rule_without_changing_source_path(self):
-        from localbrain.contexts import add_context_root, list_context_sources
+        from localbrain.local_context.service import add_context_root, list_context_sources
         with db.connect() as connection:
             source_id = add_context_root(connection, str(self.root))
-            with patch('localbrain.path_display.Path.home', return_value=self.root.resolve()):
+            with patch('localbrain.foundation.paths.Path.home', return_value=self.root.resolve()):
                 source = next(row for row in list_context_sources(connection) if row['id'] == source_id)
             self.assertEqual(source['display_path'], '~')
             self.assertEqual(source['path'], str(self.root.resolve()))
@@ -290,16 +290,7 @@ class DesktopSettingsTests(unittest.TestCase):
         self.assertEqual(outcome, ['busy'])
 
     def test_operations_exclude_another_backend_process(self):
-        code = '''from pathlib import Path
-from types import SimpleNamespace
-import sys
-from localbrain.local_operations import operation_lock, OperationBusy
-try:
-    with operation_lock(SimpleNamespace(data_dir=Path(sys.argv[1])), 'other-backend'):
-        print('unexpected-write')
-except OperationBusy:
-    print('busy')
-'''
+        code = "from pathlib import Path\nfrom types import SimpleNamespace\nimport sys\nfrom localbrain.foundation.operations import operation_lock, OperationBusy\ntry:\n    with operation_lock(SimpleNamespace(data_dir=Path(sys.argv[1])), 'other-backend'):\n        print('unexpected-write')\nexcept OperationBusy:\n    print('busy')\n"
         with operation_lock(self.config, 'first-backend'):
             result = subprocess.run([sys.executable, '-c', code, str(self.data)], capture_output=True, text=True, timeout=10)
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -308,13 +299,13 @@ except OperationBusy:
     def test_sync_completion_interval_failure_retains_success(self):
         calls = []
         service = SessionSyncService(self.config, lambda **kwargs: calls.append(1) or {'outcome': 'complete'})
-        with patch('localbrain.source_sync.time.time', return_value=1000):
+        with patch('localbrain.sources.sync.time.time', return_value=1000):
             service._collect(False)
         self.assertEqual(service.status()['last_success_at'], 1000)
-        with patch('localbrain.source_sync.time.time', return_value=1599):
+        with patch('localbrain.sources.sync.time.time', return_value=1599):
             service._collect(False)
         self.assertEqual(len(calls), 1)
-        with patch('localbrain.source_sync.time.time', return_value=1600):
+        with patch('localbrain.sources.sync.time.time', return_value=1600):
             service._collect(False)
         self.assertEqual(len(calls), 2)
         service.scanner = lambda **kwargs: (_ for _ in ()).throw(RuntimeError('private detail'))
@@ -356,9 +347,7 @@ except OperationBusy:
         self.assertIsNone(service.status()['next_at'])
 
     def test_download_worker_exits_when_parent_pipe_closes(self):
-        code = ('import time; from localbrain import model_installation; '
-                'model_installation.install_embedding=lambda *a, **k: time.sleep(60); '
-                'from localbrain.model_setup import download_worker; download_worker()')
+        code = ('import time\nfrom localbrain.models import installation as model_installation\nmodel_installation.install_embedding = lambda *a, **k: time.sleep(60)\nfrom localbrain.models.setup import download_worker\ndownload_worker()\n')
         process = subprocess.Popen([sys.executable, '-c', code], stdin=subprocess.PIPE,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             env={**os.environ, 'LOCALBRAIN_DATA_DIR': str(self.data), 'LOCALBRAIN_MODEL_PARENT_PIPE': '1'})
@@ -370,11 +359,7 @@ except OperationBusy:
                 process.kill(); process.wait()
 
     def test_successful_download_worker_exits_with_parent_pipe_open(self):
-        code = ('import sys; from types import SimpleNamespace; '
-                'sys.modules["truststore"]=SimpleNamespace(inject_into_ssl=lambda: None); '
-                'from localbrain import model_installation; '
-                'model_installation.install_embedding=lambda *a, **k: None; '
-                'from localbrain.model_setup import download_worker; sys.exit(download_worker())')
+        code = ("import sys\nfrom types import SimpleNamespace\nsys.modules['truststore'] = SimpleNamespace(inject_into_ssl=lambda: None)\nfrom localbrain.models import installation as model_installation\nmodel_installation.install_embedding = lambda *a, **k: None\nfrom localbrain.models.setup import download_worker\nsys.exit(download_worker())\n")
         process = subprocess.Popen([sys.executable, '-c', code], stdin=subprocess.PIPE,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             env={**os.environ, 'LOCALBRAIN_DATA_DIR': str(self.data), 'LOCALBRAIN_MODEL_PARENT_PIPE': '1'})
@@ -423,10 +408,19 @@ except OperationBusy:
             validate_backup(archive, staged, self.config)
         self.assertFalse((self.root / 'escaped').exists())
 
+    def test_cache_cleanup_restarts_search_when_feature_cleanup_fails(self):
+        search = Mock()
+        cleanup = Mock(side_effect=RuntimeError("Synthetic feature failure"))
+        with self.assertRaisesRegex(RuntimeError, "Synthetic feature failure"):
+            clear_owned_cache(search, self.config, maintain_feature_cache=cleanup)
+        cleanup.assert_called_once_with(self.config.cache_dir)
+        search.stop.assert_called_once_with()
+        search.start.assert_called_once_with()
+
     def test_cache_cleanup_checks_owner_and_preserves_originals(self):
         from localbrain.natural_search import index
         from localbrain.natural_search.source import digest
-        from localbrain.runtime_storage import private_database
+        from localbrain.foundation.files import private_database
         original = self.root / 'original.md'; original.write_text('keep original')
         with index.writer(self.config) as folder:
             database = folder / 'building.sqlite3'

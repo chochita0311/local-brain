@@ -13,8 +13,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: reviewable suggestion operation
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/workstreams.py`, `src/localbrain/runner.py`
-- Consumers: `src/localbrain/workstreams.py`
+- Producers: `src/localbrain/workstreams/service.py`, `src/localbrain/workstreams/runner.py`
+- Consumers: `src/localbrain/workstreams/service.py`
 - Consequence: Selects the explicit acceptance operation; no suggestion changes organization silently.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
@@ -29,8 +29,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: suggestion review owner
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/workstreams.py`, `src/localbrain/runner.py`
-- Consumers: `src/localbrain/workstreams.py`
+- Producers: `src/localbrain/workstreams/service.py`, `src/localbrain/workstreams/runner.py`
+- Consumers: `src/localbrain/workstreams/service.py`
 - Consequence: Resolves the application-enforced review target.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
@@ -45,8 +45,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: suggestion review lifecycle
 - Default: `pending`
 - Fallbacks: `null`: reject; `unknown`: label → 상태 알 수 없음; `invalid`: reject; `future`: label → 새 검토 상태
-- Producers: `src/localbrain/workstreams.py`
-- Consumers: `src/localbrain/workstreams.py`, `src/localbrain/templates/workstream.html`
+- Producers: `src/localbrain/workstreams/service.py`
+- Consumers: `src/localbrain/workstreams/service.py`, `src/localbrain/templates/workstream.html`
 - Consequence: Only acceptance may apply a reviewable suggestion.
 - Presentation mode: `logical-label`
 - Labels: `pending` → 검토 대기; `accepted` → 수락됨; `rejected` → 거절됨; `superseded` → 새 제안으로 대체됨
@@ -61,8 +61,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: snapshot reference target
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/workstreams.py`
-- Consumers: `src/localbrain/workstreams.py`
+- Producers: `src/localbrain/workstreams/service.py`
+- Consumers: `src/localbrain/workstreams/service.py`
 - Consequence: Preserves the referenced resource set captured at confirmation time.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.

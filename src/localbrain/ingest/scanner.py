@@ -3,13 +3,10 @@
 import sqlite3
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Set, Tuple
-from ..config import settings
-from ..db import init_db, transaction
-from ..session_sources import (
-    SessionSourceRegistration,
-    load_and_reconcile_session_sources,
-)
-from ..session_references import SessionReferenceLookupCache
+from localbrain.foundation.config import settings
+from localbrain.persistence.db import init_db, transaction
+from localbrain.sources.registry import SessionSourceRegistration, load_and_reconcile_session_sources
+from localbrain.sessions.references import SessionReferenceLookupCache
 from localbrain.ingest.contracts import CLAUDE_SESSION_REVISION, CLAUDE_USAGE_CONTRACT_VERSION
 from localbrain.ingest.providers.claude import parse_claude_session
 from localbrain.ingest.contracts import CODEX_SESSION_REVISION, CODEX_USAGE_CONTRACT_VERSION
@@ -333,7 +330,7 @@ def _scan_session_sources(
     selected_provider: Optional[str] = None,
     progress: Optional[control.ScanProgressCallback] = None,
 ) -> Dict[str, Any]:
-    from ..source_settings import migrate_source_settings
+    from localbrain.sources.settings import migrate_source_settings
     migrate_source_settings(settings)
     with transaction() as connection:
         registry = load_and_reconcile_session_sources(connection, settings)
@@ -486,7 +483,7 @@ def _scan_claude_source(
 
 
 def _scan_provider_sessions(provider: str, force: bool) -> Dict[str, int]:
-    from ..local_operations import operation_lock
+    from localbrain.foundation.operations import operation_lock
     with operation_lock(settings, "session-sync"):
         init_db()
         report = _scan_session_sources(force=force, selected_provider=provider)
@@ -507,7 +504,7 @@ def scan_session_sources(
     progress: Optional[control.ScanProgressCallback] = None,
     cancelled: Optional[Callable[[], bool]] = None,
 ) -> Dict[str, Any]:
-    from ..local_operations import operation_lock
+    from localbrain.foundation.operations import operation_lock
     token = control._SCAN_CANCELLED.set(cancelled)
     try:
         with operation_lock(settings, "session-sync"):
@@ -519,7 +516,7 @@ def scan_session_sources(
 
 
 def scan_all(force: bool = False) -> Dict[str, Any]:
-    from ..local_operations import operation_lock
+    from localbrain.foundation.operations import operation_lock
     with operation_lock(settings, "scan-all"):
         return _scan_all(force)
 
@@ -537,7 +534,7 @@ def scan_context_sources(
     cancelled: Optional[Callable[[], bool]] = None,
 ) -> Dict[str, Any]:
     """Collect registered Context sources without scanning Session profiles."""
-    from ..local_operations import operation_lock
+    from localbrain.foundation.operations import operation_lock
     token = control._SCAN_CANCELLED.set(cancelled)
     try:
         with operation_lock(settings, "context-sync"):

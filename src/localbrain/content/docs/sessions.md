@@ -13,6 +13,10 @@ The Session ID display is shortened for reading; use its copy control when you n
 
 Path labels use `~` for the home directory and `~/…` for folders within it; paths elsewhere are shown in full. Saved locations and historical Project attribution remain unchanged. For example, `~/Projects/app`, `~/Project1`, and `~/Project2` all follow the same home-directory rule.
 
+## Read a Session's references
+
+The **Related materials** (`관련 자료`) rail on a primary Session shows Markdown and URLs mentioned in that conversation, plus recorded resource-read outcomes. Markdown links open an indexed Local Context document when the recorded path resolves to one eligible document. The rail does not list other material just because it shares a Workstream, Thread, or working folder. If no direct references were found, it shows an empty state; Subsession detail has no rail.
+
 ## Keep a Session handy
 
 Use a pin control in List or Session detail to add a primary work Session to **Pinned Sessions**. Unpinning removes that shortcut, not the original conversation. Subsessions are reached through their parent rather than pinned independently.

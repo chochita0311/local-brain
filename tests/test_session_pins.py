@@ -8,9 +8,10 @@ from unittest.mock import patch
 
 from starlette.requests import Request
 
-from localbrain.main import app, pin_session_page, unpin_session_page
-from localbrain.db import _run_compatible_migrations
-from localbrain.session_pins import (
+from localbrain.main import app
+from localbrain.sessions.web import pin_session_page, unpin_session_page
+from localbrain.persistence.migrations.compatible import _run_compatible_migrations
+from localbrain.sessions.pins import (
     SessionPinError,
     group_pinned_sessions,
     is_session_pinned,
@@ -325,7 +326,7 @@ class SessionPinOperationTests(unittest.TestCase):
             pin_session(self.connection, self.rows[key])
         pins_before = list(self.connection.execute("SELECT * FROM session_pins ORDER BY session_id"))
 
-        with patch("localbrain.path_display.Path.home", return_value=Path("/synthetic/home")):
+        with patch("localbrain.foundation.paths.Path.home", return_value=Path("/synthetic/home")):
             before = group_pinned_sessions(list_all_pinned_sessions(self.connection))
             # Only one project has been revisited by incremental synchronization.
             self.connection.execute(
@@ -449,7 +450,7 @@ class SessionPinRouteTests(unittest.TestCase):
     def test_pin_and_unpin_preserve_inventory_scope_and_focus_target(self):
         session_id = self.rows["primary-a"]
         return_to = "/sessions?source=codex&workspace=7&page=3"
-        with patch("localbrain.main.transaction", self._transaction):
+        with patch('localbrain.sessions.web.transaction', self._transaction):
             pinned = asyncio.run(
                 pin_session_page(
                     self._request(
@@ -480,7 +481,7 @@ class SessionPinRouteTests(unittest.TestCase):
 
     def test_pin_rejects_missing_session_and_external_return_destination(self):
         missing_id = 999999
-        with patch("localbrain.main.transaction", self._transaction):
+        with patch('localbrain.sessions.web.transaction', self._transaction):
             response = asyncio.run(
                 pin_session_page(
                     self._request(

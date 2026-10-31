@@ -3,12 +3,13 @@
 import sqlite3
 from pathlib import Path
 from typing import Iterable, Optional, Tuple
-from ...session_references import clear_session_reference_source
-from ...usage import UsagePersistenceCache, store_usage_records
+from localbrain.sessions.references import clear_session_reference_source
+from localbrain.usage.records import UsagePersistenceCache, store_usage_records
 from localbrain.ingest.contracts import CLAUDE_USAGE_CONTRACT_VERSION
 from localbrain.ingest.contracts import CODEX_USAGE_CONTRACT_VERSION
 from localbrain.ingest.contracts import ParsedSession
 from localbrain.ingest.common import stable_id
+from localbrain.ingest import extensions
 from . import storage
 
 
@@ -55,34 +56,10 @@ def _remove_stale_sessions(
             "DELETE FROM search_index WHERE entity_type = 'session' AND entity_id = ?",
             (str(row["id"]),),
         )
-        storage._delete_structure_evidence_owner(
+        storage._delete_source_owner(
             connection, session_id=int(row["id"])
         )
-    scan_rows = connection.execute(
-        """
-        SELECT atlassian_evidence_scans.id,
-               atlassian_evidence_scans.session_id,
-               atlassian_evidence_scans.source_path
-        FROM atlassian_evidence_scans
-        JOIN sessions ON sessions.id = atlassian_evidence_scans.session_id
-        WHERE sessions.source_id = ?
-        """,
-        (source_id,),
-    ).fetchall()
-    for row in scan_rows:
-        if row["source_path"] in valid:
-            continue
-        connection.execute(
-            """
-            DELETE FROM atlassian_item_evidence
-            WHERE session_id = ? AND source_path = ?
-            """,
-            (row["session_id"], row["source_path"]),
-        )
-        connection.execute(
-            "DELETE FROM atlassian_evidence_scans WHERE id = ?",
-            (row["id"],),
-        )
+    extensions.session_sources_pruned(connection, source_id, valid)
     source_file_rows = connection.execute(
         "SELECT id, path FROM source_files WHERE source_id = ?", (source_id,)
     ).fetchall()
@@ -162,30 +139,7 @@ def _remove_empty_session_candidates(
                 session_id=int(reference_source["session_id"]),
                 source_path=source_path,
             )
-        scan_rows = connection.execute(
-            """
-            SELECT atlassian_evidence_scans.id,
-                   atlassian_evidence_scans.session_id
-            FROM atlassian_evidence_scans
-            JOIN sessions
-              ON sessions.id = atlassian_evidence_scans.session_id
-            WHERE sessions.source_id = ?
-              AND atlassian_evidence_scans.source_path = ?
-            """,
-            (source_id, source_path),
-        ).fetchall()
-        for scan_row in scan_rows:
-            connection.execute(
-                """
-                DELETE FROM atlassian_item_evidence
-                WHERE session_id = ? AND source_path = ?
-                """,
-                (scan_row["session_id"], source_path),
-            )
-            connection.execute(
-                "DELETE FROM atlassian_evidence_scans WHERE id = ?",
-                (scan_row["id"],),
-            )
+        extensions.empty_session_source(connection, source_id, source_path)
 
         session_rows = connection.execute(
             """
@@ -245,7 +199,7 @@ def _remove_empty_session_candidates(
                 """,
                 (str(session_id),),
             )
-            storage._delete_structure_evidence_owner(
+            storage._delete_source_owner(
                 connection, session_id=session_id
             )
 

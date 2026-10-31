@@ -20,11 +20,11 @@ def main():
                       ('LOCALBRAIN_CLAUDE_ROOT', 'claude'), ('LOCALBRAIN_CODEX_ROOT', 'codex')]:
         os.environ[key] = str(root / leaf)
     import localbrain
-    from localbrain.config import settings
-    from localbrain.db import init_db
+    from localbrain.foundation.config import settings
+    from localbrain.persistence.db import init_db
     from localbrain.cli import main as command
     from localbrain.natural_search.service import SearchService
-    from localbrain.runtime_storage import private_directory
+    from localbrain.foundation.files import private_directory
     assert 'site-packages' in Path(localbrain.__file__).parts, 'Must use an installed distribution'
     private_directory(root)
     init_db()

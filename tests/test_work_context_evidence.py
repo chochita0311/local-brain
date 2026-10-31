@@ -11,12 +11,14 @@ from datetime import timedelta
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from localbrain.session_simulation import atomic_json, now, read_json
-from localbrain.work_context import infer, inference_identity, validate_relation, validate_units
-from localbrain.work_context_evaluation import evaluate, verify_evidence_development
-from localbrain.work_context_choices import ChoiceTrie, validate_codes
-from localbrain.work_context_evidence import CONTRACT, PROMPTS, evidence_spans
-from localbrain.work_reconstruction import ExperimentError, digest
+from localbrain.foundation.private_json import atomic_json, read_json
+from localbrain.foundation.clock import now
+from localbrain.experiments.context.contract import infer, inference_identity, validate_relation, validate_units
+from localbrain.experiments.context.evaluation import evaluate, verify_evidence_development
+from localbrain.models.choices import ChoiceTrie, validate_codes
+from localbrain.experiments.context.evidence import CONTRACT, PROMPTS, evidence_spans
+from localbrain.foundation.validation import ExperimentError
+from localbrain.foundation.fingerprints import digest
 from work_context_cases import CASES as ORIGINAL_CASES, assess as original_assess, message
 from work_context_evidence_cases import CASES, COMPOSITIONAL_CASES, assess
 
@@ -188,7 +190,7 @@ class InferenceTests(unittest.TestCase):
                 infer(generator, "extract", {"messages": [message("a", "Work.")]}, strategy="evidence")
         self.assertEqual(len(generator.calls), 1)
         generator = Generator()
-        with patch("localbrain.work_context_evidence.time.monotonic", side_effect=lambda: 121 if generator.calls else 0):
+        with patch("localbrain.experiments.context.evidence.time.monotonic", side_effect=lambda: 121 if generator.calls else 0):
             with self.assertRaisesRegex(ExperimentError, "CASE_BUDGET_EXCEEDED"):
                 infer(generator, "extract", {"messages": [message("a", "Work.")]}, strategy="evidence")
 
@@ -232,7 +234,7 @@ class EvaluationTests(unittest.TestCase):
         self.result = validate_units({"units": []}, self.cases[0]["packet"]["messages"])
 
     def run_evaluation(self, effect=None, cases=None):
-        with patch("localbrain.work_context_evaluation.infer", return_value=self.result, side_effect=effect) as call:
+        with patch("localbrain.experiments.context.evaluation.infer", return_value=self.result, side_effect=effect) as call:
             report = evaluate(self.generator, cases or self.cases, original_assess, self.folder, strategy="evidence")
         return report, call
 
@@ -370,7 +372,7 @@ class FixtureAndCliTests(unittest.TestCase):
         base = ["--model-root", "/synthetic/model", "--output", "/synthetic/output", "--strategy", "evidence"]
         for extra in (["--split", "all"], ["--split", "holdout"], ["--thinking"], ["--device", "cpu"],
                       ["--development-report", "/synthetic/report.json"], ["--database", "/private/secret"]):
-            with redirect_stdout(io.StringIO()) as out, patch("localbrain.work_context_model.LocalGenerator") as model:
+            with redirect_stdout(io.StringIO()) as out, patch("localbrain.models.generation.LocalGenerator") as model:
                 self.assertEqual(main(base + extra), 2)
             model.assert_not_called()
             self.assertNotIn("secret", out.getvalue())
@@ -379,7 +381,7 @@ class FixtureAndCliTests(unittest.TestCase):
         main = runpy.run_path(str(Path(__file__).resolve().parents[1] / "scripts/evaluate-work-context-model.py"))["main"]
         evaluate_mock = Mock(return_value={"gate_passed": False})
         with patch.dict(main.__globals__, {"evaluate": evaluate_mock}), patch(
-                "localbrain.work_context_model.LocalGenerator", return_value=Generator()), redirect_stdout(io.StringIO()):
+                "localbrain.models.generation.LocalGenerator", return_value=Generator()), redirect_stdout(io.StringIO()):
             self.assertEqual(main(["--model-root", "/synthetic/model", "--output", "/synthetic/output",
                                    "--strategy", "evidence"]), 3)
         cases = evaluate_mock.call_args.args[1]

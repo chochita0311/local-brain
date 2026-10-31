@@ -4,15 +4,10 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from localbrain.config import Settings
-from localbrain.db import (
-    _atlassian_site_access_backup_path,
-    _atlassian_site_access_contract_exists,
-    _external_resource_url_scope_backup_path,
-    _external_resource_url_unique_exists,
-    _repair_external_resource_url_scope,
-    init_db,
-)
+from localbrain.foundation.config import Settings
+from localbrain.persistence.migrations.atlassian import _atlassian_site_access_backup_path, _atlassian_site_access_contract_exists
+from localbrain.persistence.migrations.resources import _external_resource_url_scope_backup_path, _external_resource_url_unique_exists, _repair_external_resource_url_scope
+from localbrain.persistence.db import init_db
 
 
 SCHEMA_PATH = Path(__file__).parents[1] / "src" / "localbrain" / "schema.sql"
@@ -274,7 +269,7 @@ class ExternalResourceUrlScopeMigrationTests(unittest.TestCase):
                 codex_root=data_dir / "codex",
                 mcp_call_budget=20,
             )
-            with patch("localbrain.db.settings", settings):
+            with patch("localbrain.persistence.db.settings", settings):
                 init_db()
                 backup_path = _external_resource_url_scope_backup_path(
                     database_path
@@ -373,7 +368,7 @@ class AtlassianSiteAccessMigrationTests(unittest.TestCase):
             )
             connection.execute(
                 """
-                INSERT INTO atlassian_item_local_state(
+                INSERT INTO external_resource_notes(
                     external_resource_id, note
                 ) VALUES (?, 'Preserved local note')
                 """,
@@ -395,7 +390,7 @@ class AtlassianSiteAccessMigrationTests(unittest.TestCase):
                 codex_root=data_dir / "codex",
                 mcp_call_budget=20,
             )
-            with patch("localbrain.db.settings", settings):
+            with patch("localbrain.persistence.db.settings", settings):
                 init_db()
                 backup_path = _atlassian_site_access_backup_path(database_path)
                 self.assertTrue(backup_path.is_file())
@@ -453,7 +448,7 @@ class AtlassianSiteAccessMigrationTests(unittest.TestCase):
             self.assertEqual(
                 upgraded.execute(
                     """
-                    SELECT note FROM atlassian_item_local_state
+                    SELECT note FROM external_resource_notes
                     WHERE external_resource_id = ?
                     """,
                     (resource_id,),
@@ -536,7 +531,7 @@ class AtlassianSiteAccessMigrationTests(unittest.TestCase):
                 codex_root=data_dir / "codex",
                 mcp_call_budget=20,
             )
-            with patch("localbrain.db.settings", settings):
+            with patch("localbrain.persistence.db.settings", settings):
                 init_db()
                 init_db()
 

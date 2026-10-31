@@ -3,18 +3,20 @@ import unittest
 from datetime import datetime, timezone
 from pathlib import Path
 
-from localbrain.db import _run_compatible_migrations
+from localbrain.persistence.migrations.compatible import _run_compatible_migrations
 from localbrain.ingest.contracts import ParsedEvent, ParsedSession
 from localbrain.ingest.sync.session_store import _reconcile_session_parents, _store_session
-from localbrain.queries import (
+from localbrain.app.dashboard_queries import (
     daily_activity,
     dashboard_stats,
-    project_activity,
-    recent_sessions,
-    session_detail,
     source_activity,
     top_tools,
     top_workspace_activity,
+)
+from localbrain.sessions.queries import (
+    project_activity,
+    recent_sessions,
+    session_detail,
 )
 
 

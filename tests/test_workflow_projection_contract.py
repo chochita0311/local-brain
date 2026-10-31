@@ -1,7 +1,7 @@
 import json
 import unittest
 
-from localbrain.workflow_projection import (
+from localbrain.workflow.projection import (
     ACTIVITY_STATES,
     AUTHORITY_STATES,
     CLOSURE_REASONS,

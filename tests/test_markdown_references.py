@@ -1,6 +1,6 @@
 import unittest
 
-from localbrain.markdown_references import (
+from localbrain.local_context.references import (
     MarkdownDocumentReference,
     MarkdownReferenceContext,
     document_anchor_index,

@@ -5,13 +5,13 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from localbrain.activity import (
+from localbrain.sessions.activity import (
     activity_summary,
     activity_summary_from_events,
     calendar_day_bounds,
     calendar_week_bounds,
 )
-from localbrain.db import _run_compatible_migrations
+from localbrain.persistence.migrations.compatible import _run_compatible_migrations
 from localbrain.ingest.contracts import ParsedSession, ParsedUsageRecord
 from localbrain.ingest.sync.session_store import _store_session
 

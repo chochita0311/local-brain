@@ -7,18 +7,15 @@ from pathlib import Path
 from unittest.mock import patch
 
 from localbrain.ingest.sync import sessions
-from localbrain.config import Settings
-from localbrain.db import init_db
+from localbrain.foundation.config import Settings
+from localbrain.persistence.db import init_db
 from localbrain.ingest import scanner
 from localbrain.ingest.providers.claude import parse_claude_session
 from localbrain.ingest.contracts import CODEX_SESSION_REVISION, CODEX_USAGE_CONTRACT_VERSION
 from localbrain.ingest.providers.codex import parse_codex_session
 from localbrain.ingest.contracts import ParsedSession, ParsedSkillObservation
-from localbrain.skill_observations import (
-    correct_skill_observation,
-    skill_insights_data,
-    store_skill_observations,
-)
+from localbrain.sessions.skills import correct_skill_observation, store_skill_observations
+from localbrain.insights.skills import skill_insights_data
 
 
 SCHEMA_PATH = Path(__file__).parents[1] / "src" / "localbrain" / "schema.sql"
@@ -375,7 +372,7 @@ class SkillObservationTests(unittest.TestCase):
                 codex_root=data_dir / "codex",
                 mcp_call_budget=20,
             )
-            with patch("localbrain.db.settings", settings):
+            with patch("localbrain.persistence.db.settings", settings):
                 init_db()
                 init_db()
 

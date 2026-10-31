@@ -9,12 +9,22 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from localbrain.session_simulation import atomic_json, read_json
-from localbrain.work_context import inference_identity
-from localbrain.work_context_model import (MODEL_ID, MODEL_8B, OWNER, LocalGenerator,
-                                          check_directory, configure_transfer, file_inventory, installation,
-                                          model_spec, verify)
-from localbrain.work_reconstruction import ExperimentError, digest
+from localbrain.foundation.private_json import atomic_json, read_json
+from localbrain.experiments.context.contract import inference_identity
+from localbrain.models.generation import (
+    MODEL_ID,
+    MODEL_8B,
+    OWNER,
+    LocalGenerator,
+    check_directory,
+    configure_transfer,
+    file_inventory,
+    installation,
+    model_spec,
+    verify,
+)
+from localbrain.foundation.validation import ExperimentError
+from localbrain.foundation.fingerprints import digest
 
 
 class PinnedModelTests(unittest.TestCase):
@@ -84,7 +94,7 @@ class PinnedModelTests(unittest.TestCase):
         self.assertEqual(read_json(self.root / "owner.json"), marker)
 
     def test_8b_auto_verification_and_explicit_mismatch(self):
-        with patch("localbrain.work_context_model.PINNED_HASHES_8B", {}):
+        with patch("localbrain.models.generation.PINNED_HASHES_8B", {}):
             self.synthetic_installation(MODEL_8B)
             self.assertEqual(verify(self.root)[1]["model_id"], MODEL_8B)
             self.assertEqual(verify(self.root, MODEL_8B)[1]["revision"], model_spec(MODEL_8B)["revision"])
@@ -92,7 +102,7 @@ class PinnedModelTests(unittest.TestCase):
                 verify(self.root, MODEL_ID)
 
     def test_8b_hash_and_manifest_tampering_are_rejected(self):
-        with patch("localbrain.work_context_model.PINNED_HASHES_8B", {}):
+        with patch("localbrain.models.generation.PINNED_HASHES_8B", {}):
             snapshot = self.synthetic_installation(MODEL_8B)
             (snapshot / "tokenizer.json").write_text("changed synthetic")
             with self.assertRaisesRegex(ExperimentError, "MODEL_ASSETS_CHANGED"):
@@ -109,7 +119,7 @@ class PinnedModelTests(unittest.TestCase):
                 check_directory(self.root)
 
     def test_manifest_must_agree_with_owner_model(self):
-        with patch("localbrain.work_context_model.PINNED_HASHES_8B", {}):
+        with patch("localbrain.models.generation.PINNED_HASHES_8B", {}):
             self.synthetic_installation(MODEL_8B)
             manifest = read_json(self.root / "model.json")
             atomic_json(self.root / "model.json", {**manifest, "model_id": MODEL_ID})
@@ -123,9 +133,9 @@ class PinnedModelTests(unittest.TestCase):
             spec = model_spec(model_id)
             manifest = {"model_id": model_id, "revision": spec["revision"], "fingerprint": "synthetic"}
             with patch.dict(sys.modules, {"torch": torch, "transformers": SimpleNamespace(__version__="synthetic")}), \
-                 patch("localbrain.work_context_model.verify", return_value=(Path("/synthetic"), manifest)), \
-                 patch("localbrain.work_context_model.offline_environment"), \
-                 patch("localbrain.work_context_model.block_network"):
+                 patch("localbrain.models.generation.verify", return_value=(Path("/synthetic"), manifest)), \
+                 patch("localbrain.models.generation.offline_environment"), \
+                 patch("localbrain.models.generation.block_network"):
                 generator = LocalGenerator(Path("/synthetic"), device="cpu")
             self.assertEqual(generator.contract["model"], model_id)
             self.assertEqual(generator.contract["revision"], spec["revision"])

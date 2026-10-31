@@ -3,8 +3,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from localbrain.retrieval import build_candidate_bundle, write_candidate_evidence
-from localbrain.workstreams import get_workstream
+from localbrain.workstreams.retrieval import build_candidate_bundle, write_candidate_evidence
+from localbrain.workstreams.service import get_workstream
 
 
 SCHEMA_PATH = Path(__file__).parents[1] / "src" / "localbrain" / "schema.sql"

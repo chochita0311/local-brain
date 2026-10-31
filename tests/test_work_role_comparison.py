@@ -12,14 +12,23 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from localbrain.session_simulation import atomic_json, read_json
-from localbrain.work_context_choices import validate_codes
-from localbrain.work_context_evidence import PROMPTS, SUPPORT, SYSTEM, evidence_spans
-from localbrain.work_context_model import MODEL_8B, generation_settings
-from localbrain.work_reconstruction import ExperimentError, digest
-from localbrain.work_role_comparison import (
-    FIELDS, LIMITS, ROLE_SETS, compare, matrix, observation_hash, preflight_tokenizer,
-    role_options, summarize, suite_identity,
+from localbrain.foundation.private_json import atomic_json, read_json
+from localbrain.models.choices import validate_codes
+from localbrain.experiments.context.evidence import PROMPTS, SUPPORT, SYSTEM, evidence_spans
+from localbrain.models.generation import MODEL_8B, generation_settings
+from localbrain.foundation.validation import ExperimentError
+from localbrain.foundation.fingerprints import digest
+from localbrain.experiments.context.role_comparison import (
+    FIELDS,
+    LIMITS,
+    ROLE_SETS,
+    compare,
+    matrix,
+    observation_hash,
+    preflight_tokenizer,
+    role_options,
+    summarize,
+    suite_identity,
 )
 from work_role_comparison_cases import CASES
 
@@ -132,7 +141,7 @@ class MatrixTests(unittest.TestCase):
         cases = copy.deepcopy(CASES)
         cases[0]["expected"] = []
         self.assertNotEqual(before, suite_identity(cases))
-        with patch("localbrain.work_role_comparison.DIRECT", "new question"):
+        with patch("localbrain.experiments.context.role_comparison.DIRECT", "new question"):
             self.assertNotEqual(before, suite_identity(CASES))
         with patch.dict(PROMPTS, {"scope": "changed relation premise"}):
             self.assertNotEqual(before, suite_identity(CASES))
@@ -283,7 +292,7 @@ class StoreTests(unittest.TestCase):
 
     def test_budget_before_first_call_does_not_manufacture_a_terminal_observation(self):
         with patch.dict(LIMITS, {"max_seconds": 1}), patch(
-                "localbrain.work_role_comparison.time.monotonic", side_effect=[0, 2, 3]):
+                "localbrain.experiments.context.role_comparison.time.monotonic", side_effect=[0, 2, 3]):
             with self.assertRaisesRegex(ExperimentError, "COMPARISON_BUDGET_EXHAUSTED"):
                 compare(Generator(self.cases), self.cases, self.output)
         progress = read_json(self.output / "progress.json")

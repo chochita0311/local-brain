@@ -15,15 +15,18 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from localbrain.model_installation import (
-    EMBEDDING_ASSETS, EMBEDDING_ID, EMBEDDING_REVISION, install_embedding, model_root,
+from localbrain.models.installation import (
+    EMBEDDING_ASSETS,
+    EMBEDDING_ID,
+    EMBEDDING_REVISION,
+    install_embedding,
+    model_root,
 )
-from localbrain.runtime_storage import (
-    MIGRATION_BACKUP_SUFFIXES, StorageError, maintain_migration_backups,
-    private_database, private_directory,
-)
-from localbrain.storage_layout import maintain_derived_cache, migrate_storage
-from localbrain.session_simulation_model import verified_assets
+from localbrain.persistence.storage import MIGRATION_BACKUP_SUFFIXES, maintain_migration_backups
+from localbrain.foundation.files import StorageError, private_database, private_directory
+from localbrain.app.storage.layout import migrate_storage
+from localbrain.auto_work.storage import LEGACY_CACHE_OWNERS, maintain_cache
+from localbrain.models.embedding import verified_assets
 
 
 class InstallationStorageTests(unittest.TestCase):
@@ -45,7 +48,7 @@ class InstallationStorageTests(unittest.TestCase):
         return path
 
     def maintain(self, **kwargs):
-        with patch("localbrain.db.migration_contracts_current", return_value=True):
+        with patch("localbrain.persistence.migrations.contracts.migration_contracts_current", return_value=True):
             return maintain_migration_backups(self.database, self.connection, **kwargs)
 
     def test_private_runtime_permissions(self):
@@ -109,10 +112,10 @@ class InstallationStorageTests(unittest.TestCase):
 
     def test_uncertain_activity_or_incomplete_migrations_preserve_recovery(self):
         backup = self.backup(0, 30)
-        with patch("localbrain.runtime_storage.inactive_files", return_value=False):
+        with patch("localbrain.persistence.storage.inactive_files", return_value=False):
             self.maintain()
         self.assertTrue(backup.exists())
-        with patch("localbrain.db.migration_contracts_current", return_value=False):
+        with patch("localbrain.persistence.migrations.contracts.migration_contracts_current", return_value=False):
             maintain_migration_backups(self.database, self.connection)
         self.assertTrue(backup.exists())
 
@@ -137,8 +140,8 @@ class InstallationStorageTests(unittest.TestCase):
         fingerprint = hashlib.sha256((json.dumps(files, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode()).hexdigest()
         metadata = self.root / "app-models" / "embedding"
         with patch.dict(os.environ, {"HF_HUB_CACHE": str(hub)}), \
-             patch("localbrain.model_installation.EMBEDDING_FINGERPRINT", fingerprint), \
-             patch("localbrain.session_simulation_model.EMBEDDING_FINGERPRINT", fingerprint):
+             patch("localbrain.models.installation.EMBEDDING_FINGERPRINT", fingerprint), \
+             patch("localbrain.models.embedding.EMBEDDING_FINGERPRINT", fingerprint):
             with patch.dict(sys.modules, {"huggingface_hub": None}):
                 install_embedding(metadata, local_only=True)
                 install_embedding(metadata, local_only=True)
@@ -178,7 +181,7 @@ class StorageLayoutTests(unittest.TestCase):
         path.chmod(0o600)
 
     def simulation(self, base, *, expired=True):
-        from localbrain.session_simulation import OWNER
+        from localbrain.auto_work.simulation import OWNER
         private_directory(base)
         folder = private_directory(base / "session-simulation")
         expires = self.now + timedelta(days=-1 if expired else 1)
@@ -190,7 +193,7 @@ class StorageLayoutTests(unittest.TestCase):
         return folder
 
     def development(self):
-        from localbrain.work_context_evaluation import OWNER
+        from localbrain.experiments.context.evaluation import OWNER
         folder = private_directory(self.config.data_dir / "work-context-synthetic-development")
         self.write(folder / "owner.json", json.dumps({"owner": OWNER}).encode())
         self.write(folder / "report.json", b'{"synthetic":true}')
@@ -199,12 +202,12 @@ class StorageLayoutTests(unittest.TestCase):
     def test_preview_and_apply_preserve_content_modification_times_and_primary_data(self):
         source = self.simulation(self.config.data_dir)
         before = {p.name: (p.read_bytes(), p.stat().st_mtime_ns) for p in source.iterdir()}
-        preview = migrate_storage(self.config)
+        preview = migrate_storage(self.config, cache_owners=LEGACY_CACHE_OWNERS)
         self.assertEqual(preview["eligible_directories"], 1)
         self.assertEqual(preview["moved_directories"], 0)
         self.assertFalse(self.config.cache_dir.exists())
         self.assertFalse(self.config.development_dir.exists())
-        result = migrate_storage(self.config, apply=True)
+        result = migrate_storage(self.config, cache_owners=LEGACY_CACHE_OWNERS, apply=True)
         self.assertEqual(result["moved_directories"], 1)
         self.assertFalse(source.exists())
         destination = self.config.cache_dir / source.name
@@ -214,14 +217,39 @@ class StorageLayoutTests(unittest.TestCase):
             self.assertEqual(path.stat().st_mode & 0o777, 0o600)
         self.assertEqual(destination.stat().st_mode & 0o777, 0o700)
         self.assertEqual(self.database.read_bytes(), b"synthetic primary database")
-        self.assertEqual(migrate_storage(self.config, apply=True)["moved_directories"], 0)
+        self.assertEqual(migrate_storage(self.config, cache_owners=LEGACY_CACHE_OWNERS, apply=True)["moved_directories"], 0)
 
     def test_development_archive_requires_explicit_inclusion(self):
         source = self.development()
-        self.assertEqual(migrate_storage(self.config, apply=True)["moved_directories"], 0)
+        self.assertEqual(migrate_storage(self.config, cache_owners=LEGACY_CACHE_OWNERS, apply=True)["moved_directories"], 0)
         self.assertTrue(source.exists())
         self.assertFalse(self.config.development_dir.exists())
-        result = migrate_storage(self.config, apply=True, include_development=True)
+        result = migrate_storage(self.config, cache_owners=LEGACY_CACHE_OWNERS, apply=True, include_development=True)
+        self.assertEqual(result["moved_directories"], 1)
+        self.assertEqual((self.config.development_dir / source.name / "report.json").read_bytes(),
+                         b'{"synthetic":true}')
+
+    def test_unregistered_feature_cache_is_not_read_or_moved(self):
+        source = self.simulation(self.config.data_dir)
+        before = {p.name: (p.read_bytes(), p.stat().st_mtime_ns) for p in source.iterdir()}
+        with patch.dict(LEGACY_CACHE_OWNERS, {"session-simulation": lambda _: self.fail("Excluded owner")}):
+            result = migrate_storage(self.config, apply=True)
+        self.assertEqual(result["eligible_directories"], 0)
+        self.assertEqual({p.name: (p.read_bytes(), p.stat().st_mtime_ns) for p in source.iterdir()}, before)
+        self.assertFalse(self.config.cache_dir.exists())
+
+    def test_legacy_development_migration_does_not_load_experiment_implementation(self):
+        import builtins
+        source = self.development()
+        original_import = builtins.__import__
+
+        def without_experiments(name, *args, **kwargs):
+            if name == "localbrain.experiments" or name.startswith("localbrain.experiments."):
+                self.fail("Historical migration loaded an experiment implementation")
+            return original_import(name, *args, **kwargs)
+
+        with patch("builtins.__import__", side_effect=without_experiments):
+            result = migrate_storage(self.config, apply=True, include_development=True)
         self.assertEqual(result["moved_directories"], 1)
         self.assertEqual((self.config.development_dir / source.name / "report.json").read_bytes(),
                          b'{"synthetic":true}')
@@ -231,33 +259,33 @@ class StorageLayoutTests(unittest.TestCase):
         development = self.development()
         private_directory(self.config.cache_dir / source.name)
         with self.assertRaisesRegex(StorageError, "DESTINATION_EXISTS"):
-            migrate_storage(self.config, apply=True, include_development=True)
+            migrate_storage(self.config, cache_owners=LEGACY_CACHE_OWNERS, apply=True, include_development=True)
         self.assertTrue(source.exists())
         self.assertTrue(development.exists())
         self.assertFalse(self.config.development_dir.exists())
 
     def test_busy_or_changed_sources_refuse_migration(self):
         source = self.simulation(self.config.data_dir)
-        with patch("localbrain.storage_layout._inactive", return_value=False):
+        with patch("localbrain.app.storage.layout.tree_is_inactive", return_value=False):
             with self.assertRaisesRegex(StorageError, "BUSY"):
-                migrate_storage(self.config, apply=True)
-        with patch("localbrain.storage_layout._unchanged", side_effect=StorageError("STORAGE_CHANGED")):
+                migrate_storage(self.config, cache_owners=LEGACY_CACHE_OWNERS, apply=True)
+        with patch("localbrain.app.storage.layout.ensure_tree_unchanged", side_effect=StorageError("STORAGE_CHANGED")):
             with self.assertRaisesRegex(StorageError, "CHANGED"):
-                migrate_storage(self.config, apply=True)
+                migrate_storage(self.config, cache_owners=LEGACY_CACHE_OWNERS, apply=True)
         self.assertTrue(source.exists())
         self.assertFalse(self.config.cache_dir.exists())
 
     def test_unknown_files_linked_files_and_symlink_folders_are_preserved(self):
         source = self.simulation(self.config.data_dir)
         self.write(source / "unknown.txt", b"synthetic unknown content")
-        self.assertEqual(migrate_storage(self.config, apply=True)["preserved_directories"], 1)
+        self.assertEqual(migrate_storage(self.config, cache_owners=LEGACY_CACHE_OWNERS, apply=True)["preserved_directories"], 1)
         (source / "unknown.txt").unlink()
         os.link(source / "state.sqlite3", self.root / "linked-state")
-        self.assertEqual(migrate_storage(self.config, apply=True)["preserved_directories"], 1)
+        self.assertEqual(migrate_storage(self.config, cache_owners=LEGACY_CACHE_OWNERS, apply=True)["preserved_directories"], 1)
         (self.root / "linked-state").unlink()
         preview = self.config.data_dir / "auto-work-preview"
         preview.symlink_to(source, target_is_directory=True)
-        result = migrate_storage(self.config)
+        result = migrate_storage(self.config, cache_owners=LEGACY_CACHE_OWNERS)
         self.assertEqual(result["preserved_directories"], 1)
         self.assertEqual(result["eligible_directories"], 1)
         self.assertTrue(source.exists())
@@ -265,35 +293,35 @@ class StorageLayoutTests(unittest.TestCase):
     def test_overlap_and_git_or_public_cache_destinations_are_rejected(self):
         self.config.cache_dir = self.config.data_dir
         with self.assertRaisesRegex(StorageError, "ROOTS_OVERLAP"):
-            migrate_storage(self.config)
+            migrate_storage(self.config, cache_owners=LEGACY_CACHE_OWNERS)
         repository = self.root / "synthetic-repository"
         repository.mkdir()
         (repository / ".git").write_text("gitdir: /synthetic")
         self.config.cache_dir = repository / "cache"
         with self.assertRaisesRegex(StorageError, "IN_REPOSITORY"):
-            migrate_storage(self.config)
+            migrate_storage(self.config, cache_owners=LEGACY_CACHE_OWNERS)
         self.assertFalse(self.config.cache_dir.exists())
         public = self.root / "public-models"
         self.config.cache_dir = public / "private-cache"
         with patch.dict(os.environ, {"HF_HUB_CACHE": str(public)}):
             with self.assertRaisesRegex(StorageError, "OVERLAPS_PUBLIC_MODEL_CACHE"):
-                migrate_storage(self.config)
+                migrate_storage(self.config, cache_owners=LEGACY_CACHE_OWNERS)
         self.assertFalse(public.exists())
 
     def test_expired_results_retire_after_preview_and_keep_markers_and_locks(self):
         folder = self.simulation(self.config.cache_dir)
-        preview = maintain_derived_cache(self.config.cache_dir, apply=False, at=self.now)
+        preview = maintain_cache(self.config.cache_dir, apply=False, at=self.now)
         self.assertEqual(preview["eligible_files"], 2)
         self.assertEqual(preview["removed_files"], 0)
         self.assertTrue((folder / "state.sqlite3").exists())
-        result = maintain_derived_cache(self.config.cache_dir, at=self.now)
+        result = maintain_cache(self.config.cache_dir, at=self.now)
         self.assertEqual(result["removed_files"], 2)
         self.assertEqual({p.name for p in folder.iterdir()}, {"owner.json", "writer.lock"})
         self.assertEqual(self.database.read_bytes(), b"synthetic primary database")
 
     def test_unexpired_unknown_and_malformed_cache_is_preserved(self):
         folder = self.simulation(self.config.cache_dir, expired=False)
-        self.assertEqual(maintain_derived_cache(self.config.cache_dir, at=self.now)["removed_files"], 0)
+        self.assertEqual(maintain_cache(self.config.cache_dir, at=self.now)["removed_files"], 0)
         marker = json.loads((folder / "owner.json").read_text())
         marker["expires_at"] = (self.now - timedelta(days=1)).isoformat()
         for field, value in (("expires_at", "invalid"), ("expires_at", "2049-01-01"),
@@ -301,22 +329,22 @@ class StorageLayoutTests(unittest.TestCase):
             with self.subTest(field=field, value=value):
                 changed = {**marker, field: value}
                 self.write(folder / "owner.json", json.dumps(changed).encode())
-                result = maintain_derived_cache(self.config.cache_dir, at=self.now)
+                result = maintain_cache(self.config.cache_dir, at=self.now)
                 self.assertEqual(result["preserved_directories"], 1)
                 self.assertTrue((folder / "state.sqlite3").exists())
         self.write(folder / "owner.json", json.dumps(marker).encode())
         self.write(folder / "unknown.txt", b"synthetic unknown content")
-        self.assertEqual(maintain_derived_cache(self.config.cache_dir, at=self.now)["removed_files"], 0)
+        self.assertEqual(maintain_cache(self.config.cache_dir, at=self.now)["removed_files"], 0)
         self.assertTrue((folder / "unknown.txt").exists())
 
     def test_writer_lock_and_open_readers_preserve_expired_cache(self):
         folder = self.simulation(self.config.cache_dir)
         with (folder / "state.sqlite3").open("rb"):
-            self.assertEqual(maintain_derived_cache(self.config.cache_dir, at=self.now)["removed_files"], 0)
+            self.assertEqual(maintain_cache(self.config.cache_dir, at=self.now)["removed_files"], 0)
         with (folder / "writer.lock").open("r+b") as lock:
             fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-            with patch("localbrain.storage_layout.inactive_files", return_value=True):
-                self.assertEqual(maintain_derived_cache(self.config.cache_dir, at=self.now)["removed_files"], 0)
+            with patch("localbrain.foundation.files.inactive_files", return_value=True):
+                self.assertEqual(maintain_cache(self.config.cache_dir, at=self.now)["removed_files"], 0)
         self.assertTrue((folder / "state.sqlite3").exists())
 
 

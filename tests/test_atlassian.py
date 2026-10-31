@@ -4,7 +4,7 @@ import unittest
 from datetime import datetime, timezone
 from pathlib import Path
 
-from localbrain.atlassian import (
+from localbrain.atlassian.catalog import (
     AtlassianContractError,
     apply_atlassian_target_result,
     atlassian_item_state,
@@ -19,7 +19,7 @@ from localbrain.atlassian import (
     register_atlassian_space,
     set_atlassian_item_axes,
 )
-from localbrain.queries import search
+from localbrain.search.legacy import search
 
 
 SCHEMA_PATH = Path(__file__).parents[1] / "src" / "localbrain" / "schema.sql"
@@ -511,7 +511,7 @@ class AtlassianContractTests(unittest.TestCase):
                 """
                 SELECT source_hash, normalized_text, applied_at, updated_at,
                        search_projection_hash
-                FROM atlassian_item_content
+                FROM external_resource_content
                 WHERE external_resource_id = ?
                 """,
                 (item_id,),
@@ -551,7 +551,7 @@ class AtlassianContractTests(unittest.TestCase):
                 """
                 SELECT source_hash, normalized_text, applied_at, updated_at,
                        search_projection_hash
-                FROM atlassian_item_content
+                FROM external_resource_content
                 WHERE external_resource_id = ?
                 """,
                 (item_id,),
@@ -590,7 +590,7 @@ class AtlassianContractTests(unittest.TestCase):
                     """
                     SELECT source_hash, normalized_text, applied_at, updated_at,
                            search_projection_hash
-                    FROM atlassian_item_content
+                    FROM external_resource_content
                     WHERE external_resource_id = ?
                     """,
                     (item_id,),
@@ -722,7 +722,7 @@ class AtlassianContractTests(unittest.TestCase):
         self.assertIsNone(
             self.connection.execute(
                 """
-                SELECT source_hash FROM atlassian_item_content
+                SELECT source_hash FROM external_resource_content
                 WHERE external_resource_id = ?
                 """,
                 (item_id,),
@@ -900,7 +900,7 @@ class AtlassianContractTests(unittest.TestCase):
             "atlassian_items",
             "atlassian_item_urls",
             "atlassian_item_remote_state",
-            "atlassian_item_content",
+            "external_resource_content",
         ):
             self.assertEqual(
                 self.connection.execute(
@@ -979,7 +979,7 @@ class AtlassianContractTests(unittest.TestCase):
         row = self.connection.execute(
             """
             SELECT source_format, normalized_text
-            FROM atlassian_item_content
+            FROM external_resource_content
             WHERE external_resource_id = ?
             """,
             (stub["external_resource_id"],),

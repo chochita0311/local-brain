@@ -457,8 +457,51 @@ is followed by [RUN-137](run/run-20261002-137-insight-closeout-corrections.md), 
   Neither full processing nor technical tests establish semantic usefulness or
   authorize production ownership, replacement UI or legacy cleanup.
 
+## Active Refactoring
+
+No active refactoring track. Completed work and its remaining validation limits
+are recorded below.
+
 ## Completed Refactoring
 
+- [REFACTOR-0003: Session-Centered Package Boundaries](refactoring/refactor-0003-session-centered-package-boundaries.md)
+  is complete after the 2026-10-31 cache-boundary correction and subagent re-review.
+  Foundation/model, feature packages, HTTP/query/resource ownership, persistence
+  internals and optional-feature assembly are separated; the package root contains
+  four Python entry files. REFACTOR-0004/0005 own the intervening approved
+  Session-material and shared-resource semantic changes.
+  The [completion review](refactoring/logs/2026-10-31_refactor-0003_completion-review.md)
+  reopened a Settings cache-clear failure when Auto Work was omitted but its old
+  cache remained. The [fix and re-review](refactoring/logs/2026-10-31_refactor-0003_feature-cache-boundary.md)
+  close it with feature-owned cache handlers, retained-state omission checks,
+  default CLI comparison, installed-wheel checks, actual frozen-backend
+  start/restart and browser validation. Its [session closeout](refactoring/logs/2026-10-31_refactor-0003_feature-cache-boundary.md#follow-up--session-closeout)
+  reconciles the three tracks after independent ownership/meaning reviews and
+  records a final 1,478-test pass after generated metadata corrections. Earlier
+  [assembly evidence](refactoring/logs/2026-10-31_refactor-0003_feature-assembly.md)
+  retains the baseline response comparisons. Google Drive transport checks remain
+  deferred by the user and strict parity stays provisional. Actual feature/table
+  removal, native app installation and a merge decision remain separate.
+
+- [REFACTOR-0005: Shared Resource Ownership](refactoring/refactor-0005-shared-resource-ownership.md)
+  gives Session evidence a shared URL/path identity, binds existing Documents and
+  bookmarks without losing manual metadata, and preserves external bodies/notes
+  independently of optional Atlassian Items. Core ingestion and document reads
+  use optional adapters supplied by app assembly.
+  [Validation](refactoring/logs/2026-10-30_refactor-0005_shared-resource-ownership.md)
+  records 1,463 passing tests, preserving/repeated/failed migration checks,
+  optional-package/table absence, synthetic app lifecycle/routes, responsive
+  rendering and installed-wheel verification. Eleven Drive loopback tests remain
+  deferred. Its follow-up operational migration and restart preservation checks also passed;
+  the latest structural review did not rerun that live operation. Whole-feature removal
+  remains a separate boundary.
+
+- [REFACTOR-0004: Direct Session Materials](refactoring/refactor-0004-direct-session-materials.md)
+  removes Session detail's linked-work strip and indirect organization materials while
+  preserving direct references and stored Workstream/Thread relations.
+  [Validation](refactoring/logs/2026-10-30_refactor-0004_direct-session-materials.md)
+  records 1,451 passing tests, 11 deferred Drive loopback tests, and desktop/compact
+  browser checks. Its shared-resource/FK handoff is implemented by REFACTOR-0005.
 - [REFACTOR-0002: Ingestion Layers And Session Revisions](refactoring/refactor-0002-ingestion-layers-and-session-revisions.md)
   delivered numeric Session freshness, newer-result refusal and provider/evidence/
   synchronization boundaries. The independent parity audit found P2-1 in DDL

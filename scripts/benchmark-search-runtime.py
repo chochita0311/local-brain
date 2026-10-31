@@ -15,14 +15,14 @@ sys.path.insert(0, str(ROOT / 'tests'))
 
 from natural_search_benchmark import aggregate, metrics
 from natural_search_holdout import seed
-from localbrain.config import settings
+from localbrain.foundation.config import settings
 from localbrain.natural_search.index import folder, prepare
 from localbrain.natural_search.model import SearchEncoder
 from localbrain.natural_search.molecules import Profile
 from localbrain.natural_search.retrieval import Retriever
 from localbrain.natural_search.source import digest, source_connection
-from localbrain.queries import search as keyword_search
-from localbrain.runtime_storage import private_directory
+from localbrain.search.legacy import search as keyword_search
+from localbrain.foundation.files import private_directory
 
 
 def percentiles(values):

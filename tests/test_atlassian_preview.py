@@ -6,12 +6,12 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import patch
 
-from localbrain.atlassian import (
+from localbrain.atlassian.catalog import (
     apply_atlassian_target_result,
     create_or_reuse_atlassian_stub,
     normalize_atlassian_url,
 )
-from localbrain.atlassian_browse import (
+from localbrain.atlassian.browse import (
     AtlassianBrowseError,
     atlassian_item_preview,
     normalize_browse_filters,
@@ -91,7 +91,7 @@ class AtlassianPreviewTests(unittest.TestCase):
         )
         self.connection.execute(
             """
-            INSERT INTO atlassian_item_local_state(
+            INSERT INTO external_resource_notes(
                 external_resource_id, note, updated_at
             ) VALUES (?, ?, '2026-08-28T12:31:00Z')
             """,
@@ -205,7 +205,7 @@ class AtlassianPreviewTests(unittest.TestCase):
         self.connection.set_trace_callback(statements.append)
         try:
             with patch(
-                "localbrain.atlassian_browse._item_rows",
+                "localbrain.atlassian.browse._item_rows",
                 side_effect=AssertionError("broad item rows"),
             ):
                 normalized = normalize_browse_structure(
@@ -637,7 +637,7 @@ class AtlassianPreviewTests(unittest.TestCase):
                 for symbol in forbidden:
                     stack.enter_context(
                         patch(
-                            "localbrain.atlassian_browse.{}".format(symbol),
+                            "localbrain.atlassian.browse.{}".format(symbol),
                             side_effect=AssertionError(symbol),
                         )
                     )
@@ -726,7 +726,7 @@ class AtlassianPreviewTests(unittest.TestCase):
     def test_query_eligibility_projects_only_bounded_content_and_note(self):
         self.connection.execute(
             """
-            UPDATE atlassian_item_content
+            UPDATE external_resource_content
             SET normalized_text = ?
             WHERE external_resource_id = ?
             """,
@@ -734,7 +734,7 @@ class AtlassianPreviewTests(unittest.TestCase):
         )
         self.connection.execute(
             """
-            UPDATE atlassian_item_local_state
+            UPDATE external_resource_notes
             SET note = ?
             WHERE external_resource_id = ?
             """,
@@ -761,28 +761,28 @@ class AtlassianPreviewTests(unittest.TestCase):
         sql = "\n".join(" ".join(value.lower().split()) for value in statements)
         self.assertIn(
             "localbrain_atlassian_exact_phrase( "
-            "atlassian_item_content.normalized_text )",
+            "external_resource_content.normalized_text )",
             sql,
         )
         self.assertIn(
             "localbrain_atlassian_exact_phrase( "
-            "atlassian_item_local_state.note )",
+            "external_resource_notes.note )",
             sql,
         )
         self.assertIn(
-            "substr( atlassian_item_content.normalized_text, 1, 1201 )",
+            "substr( external_resource_content.normalized_text, 1, 1201 )",
             sql,
         )
         self.assertIn(
-            "substr( atlassian_item_local_state.note, 1, 601 )",
+            "substr( external_resource_notes.note, 1, 601 )",
             sql,
         )
         self.assertNotIn(
-            "atlassian_item_content.normalized_text as normalized_text",
+            "external_resource_content.normalized_text as normalized_text",
             sql,
         )
         self.assertNotIn(
-            "atlassian_item_local_state.note as note",
+            "external_resource_notes.note as note",
             sql,
         )
 

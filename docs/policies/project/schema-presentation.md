@@ -7,11 +7,11 @@ This contract defines the deterministic, package-owned data consumed by LocalBra
 ## Source Ownership
 
 - `src/localbrain/schema.sql` owns fresh executable structure.
-- `src/localbrain/db.py` owns compatible structure and runtime-only indexes. Generation invokes its real structural path against SQLite `:memory:` with data migrations disabled.
+- `src/localbrain/persistence/migrations/compatible.py` orders compatible structure and runtime-only indexes, using the domain migration modules. Generation invokes this real structural path against SQLite `:memory:` with data migrations disabled. The source fingerprint covers `db.py`, `bootstrap.py` and every Python file in `persistence/migrations/`, so a domain migration change cannot hide behind an unchanged entrypoint.
 - `docs/policies/project/data-model.md` and its eleven subject documents own order, subject ownership, lifecycle/recovery semantics, column explanations, application relations, and Mermaid definitions.
-- `scripts/schema_presentation_builder.py` owns transformation and validation only.
+- `scripts/schema_presentation_builder.py` owns transformation and validation only; `scripts/schema_migration_sources.py` provides its shared ordered source manifest and digest.
 - `src/localbrain/schema-presentation.json` is committed derived output and is packaged with LocalBrain.
-- `src/localbrain/schema_presentation.py` is the only application loader. Consumers must not parse repository Markdown or introspect a runtime database as fallback.
+- `src/localbrain/persistence/schema_presentation.py` is the only application loader. Consumers must not parse repository Markdown or introspect a runtime database as fallback.
 
 ## V1 Shape
 
@@ -37,7 +37,7 @@ Each table contains:
 | `foreign_keys` | Table-local physical target, columns, and update/delete behavior. |
 | `semantics` | Purpose/authority, lifecycle contract and class, rebuildability code, producers, consumers, deletion effect, recovery path, DDL/migration ownership, and documented constraints. |
 
-The current baseline has eleven subjects, 48 ordinary tables plus one FTS5 object, 543 effective columns, 52 explicit indexes, 59 physical relations, and 29 application relations. Count changes are accepted only with the implementation and semantic owners updated together.
+The current baseline has eleven subjects, 52 ordinary tables plus one FTS5 object, 556 effective columns, 51 explicit indexes, 66 physical relations, and 29 application relations. Count changes are accepted only with the implementation and semantic owners updated together.
 
 ## Determinism And Failure
 
@@ -60,7 +60,7 @@ The loader never exposes parser internals to a screen and never falls back to do
 
 ## Product Consumer
 
-`localbrain.schema_explorer` is the bounded read model for `GET /schema`. It normalizes optional `area` and `table` query state against v1, projects only the selected table's related physical and application edges, and supplies ordinary server-rendered links plus approved text and Mermaid definitions. An invalid area returns the global overview; an invalid or cross-area table returns the valid area overview. Raw invalid query values are not reflected.
+`localbrain.persistence.explorer` is the bounded read model for `GET /schema`. It normalizes optional `area` and `table` query state against v1, projects only the selected table's related physical and application edges, and supplies ordinary server-rendered links plus approved text and Mermaid definitions. An invalid area returns the global overview; an invalid or cross-area table returns the valid area overview. Raw invalid query values are not reflected.
 
 The route never opens the configured database or reads repository Markdown. Missing or invalid package data produces the loader's intentional unavailable state. JavaScript progressively replaces only the Schema region for history and focus continuity, but it is not a data producer and the complete selected table catalog remains executable HTML without it.
 
@@ -72,7 +72,7 @@ Successfully rendered diagrams start at their existing `100%` width and expose b
 
 Only schema identifiers and approved semantic text enter the manifest. Runtime rows, configured or source paths, source names, document/session content, private or runtime URLs, credentials, Run artifacts, and machine state are prohibited. Repository-relative owner paths and source hashes are allowed provenance. Reviewed public documentation citations in repository-owned semantic text are also allowed; the schema-presentation test pins their exact URLs. This exception does not admit imported URLs or fetch anything during generation, loading, or page rendering.
 
-The wheel must contain `localbrain/schema-presentation.json` and `localbrain/schema_presentation.py`. An installed package must load them with the repository, Node, runtime database, and network unavailable.
+The wheel must contain `localbrain/schema-presentation.json` and `localbrain/persistence/schema_presentation.py`. An installed package must load them with the repository, Node, runtime database, and network unavailable.
 
 ## Change Rule
 

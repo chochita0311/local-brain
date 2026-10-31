@@ -26,7 +26,7 @@ from localbrain.ingest.common import (
     text_from_content,
     token_value,
 )
-from localbrain.official_pricing import select_snapshot
+from localbrain.usage.pricing import select_snapshot
 from localbrain.ingest.evidence.skill_loads import SkillReadCollector
 from localbrain.ingest.contracts import CLAUDE_SESSION_REVISION, CLAUDE_USAGE_CONTRACT_VERSION
 

@@ -19,7 +19,7 @@ from localbrain.google_drive.engine import Engine
 from localbrain.google_drive.policy import DriveError, FOLDER, MAX_FILE_BYTES, local_inventory, next_slot, root_url
 from localbrain.google_drive.store import Store
 from localbrain.google_drive.service import DriveService
-from localbrain.config import Settings
+from localbrain.foundation.config import Settings
 
 
 class FakeAPI:
@@ -534,7 +534,7 @@ class WebTests(TempCase):
         import asyncio
         from fastapi import FastAPI
         from starlette.requests import Request
-        from localbrain.google_drive_web import install_routes
+        from localbrain.google_drive.web import install_routes
         self.asyncio,self.Request=asyncio,Request
         self.service=ServiceTests.service(self)
         self.app=FastAPI();self.app.state.google_drive=self.service

@@ -106,10 +106,7 @@ class ServiceTests(unittest.TestCase):
         self.assertNotIn('messages',env)
 
     def test_child_terminates_on_owner_eof_while_loading(self):
-        code = ('import os,time; from localbrain import model_installation; '
-                'model_installation.model_root=lambda k: __import__("pathlib").Path("/missing-demo-model"); '
-                'model_installation.install_model=lambda *a, **k: time.sleep(60); '
-                'from localbrain.context_search.worker import main; main()')
+        code = ("import os, time\nfrom localbrain.models import installation as model_installation\nmodel_installation.model_root = lambda k: __import__('pathlib').Path('/missing-demo-model')\nmodel_installation.install_model = lambda *a, **k: time.sleep(60)\nfrom localbrain.context_search.worker import main\nmain()\n")
         process=subprocess.Popen([sys.executable,'-c',code],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,env={**os.environ,'LOCALBRAIN_CHAT_MODEL':'4b'})
         try:
             payload=dict(model='4b',messages=[dict(role='user',content='Demo')],sources=[])

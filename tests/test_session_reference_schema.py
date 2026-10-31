@@ -2,7 +2,8 @@ import sqlite3
 import unittest
 from pathlib import Path
 
-from localbrain.db import _run_compatible_migrations
+from localbrain.persistence.migrations.compatible import _run_compatible_migrations
+from localbrain.resources.catalog import url_resource, bind_document
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -39,16 +40,15 @@ class SessionReferenceSchemaTests(unittest.TestCase):
         self.connection.close()
 
     def _insert_evidence(self, **overrides):
+        resource_id = url_resource(self.connection, "https://example.test/path")
         values = {
             "session_id": 10,
             "source_path": "/synthetic/session-10.jsonl",
             "source_event_id": "event-1",
             "source_line": 1,
             "evidence_ordinal": 1,
-            "target_kind": "url",
+            "resource_id": resource_id,
             "target_key": "url:" + "a" * 64,
-            "context_document_id": None,
-            "external_resource_id": None,
             "evidence_kind": "user_mention",
             "read_outcome": None,
             "observed_identity": "example.test/path",
@@ -88,7 +88,7 @@ class SessionReferenceSchemaTests(unittest.TestCase):
         }
         self.assertEqual(
             foreign_targets,
-            {"sessions", "context_documents", "atlassian_items"},
+            {"sessions", "reference_resources"},
         )
         indexes = {
             row["name"]
@@ -99,8 +99,7 @@ class SessionReferenceSchemaTests(unittest.TestCase):
         self.assertTrue(
             {
                 "idx_session_reference_evidence_session",
-                "idx_session_reference_evidence_document",
-                "idx_session_reference_evidence_atlassian",
+                "idx_session_reference_evidence_resource",
             }.issubset(indexes)
         )
 
@@ -165,9 +164,8 @@ class SessionReferenceSchemaTests(unittest.TestCase):
         self._insert_evidence(
             source_event_id="event-2",
             source_line=2,
-            target_kind="context_document",
             target_key="document:20",
-            context_document_id=20,
+            resource_id=bind_document(self.connection, 20),
             observed_identity="notes.md",
             normalized_url=None,
             evidence_kind="assistant_mention",
@@ -184,7 +182,7 @@ class SessionReferenceSchemaTests(unittest.TestCase):
         )
 
         invalid_rows = (
-            {"context_document_id": 20, "evidence_key": "e" * 64},
+            {"resource_id": 999999, "evidence_key": "e" * 64},
             {"read_outcome": "success", "evidence_key": "f" * 64},
             {
                 "evidence_kind": "resource_read",
@@ -198,7 +196,7 @@ class SessionReferenceSchemaTests(unittest.TestCase):
             with self.assertRaises(sqlite3.IntegrityError):
                 self._insert_evidence(**row)
 
-    def test_session_and_target_deletion_remove_only_derived_evidence(self):
+    def test_document_deletion_keeps_evidence_and_session_deletion_removes_only_its_evidence(self):
         self.connection.execute(
             """
             INSERT INTO session_reference_scans(
@@ -209,9 +207,8 @@ class SessionReferenceSchemaTests(unittest.TestCase):
             ("a" * 64,),
         )
         self._insert_evidence(
-            target_kind="context_document",
             target_key="document:20",
-            context_document_id=20,
+            resource_id=bind_document(self.connection, 20),
             observed_identity="notes.md",
             normalized_url=None,
         )
@@ -221,7 +218,7 @@ class SessionReferenceSchemaTests(unittest.TestCase):
             self.connection.execute(
                 "SELECT COUNT(*) FROM session_reference_evidence"
             ).fetchone()[0],
-            0,
+            1,
         )
         self.assertIsNotNone(
             self.connection.execute("SELECT id FROM sessions WHERE id = 10").fetchone()

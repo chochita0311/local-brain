@@ -12,8 +12,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.requests import Request
 
-from localbrain import app_docs
-from localbrain.markdown import render_markdown
+from localbrain.app import docs as app_docs
+from localbrain.rendering.markdown import render_markdown
 
 
 class Anchors(HTMLParser):
@@ -32,7 +32,7 @@ class Anchors(HTMLParser):
 
 class AppDocsTests(unittest.TestCase):
     def setUp(self):
-        package = Path(app_docs.__file__).parent
+        package = Path(app_docs.__file__).parents[1]
         self.app = FastAPI()
         self.app.mount("/static", StaticFiles(directory=package / "static"), name="static")
         self.preferences = SimpleNamespace(timezone="UTC", onboarding_completed=False)

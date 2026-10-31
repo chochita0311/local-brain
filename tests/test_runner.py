@@ -6,22 +6,10 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from localbrain.runner import (
-    _finalize_run,
-    _extract_text,
-    _extract_tool_uses,
-    _is_mcp_tool,
-    _structured_result,
-    persist_structured_suggestions,
-    prepare_run,
-    render_structured_result,
-    reconcile_interrupted_runs,
-    runner_command_args,
-    runner_command_preview,
-    supersede_runner_suggestions,
-    task_choices,
-)
-from localbrain.workstreams import resolve_suggestion
+from localbrain.maintenance.service import (_finalize_run, reconcile_interrupted_runs)
+from localbrain.workstreams.runner import (_extract_text, _extract_tool_uses, _is_mcp_tool, persist_structured_suggestions, prepare_run, render_structured_result, runner_command_args, runner_command_preview, supersede_runner_suggestions, task_choices)
+from localbrain.maintenance.streams import (_structured_result)
+from localbrain.workstreams.service import resolve_suggestion
 
 
 SCHEMA_PATH = Path(__file__).parents[1] / "src" / "localbrain" / "schema.sql"
@@ -186,8 +174,8 @@ class RunnerTests(unittest.TestCase):
 
             return Context()
 
-        with patch("localbrain.runner.transaction", transaction_context), patch(
-            "localbrain.runner._sync_native_claude_sessions", return_value=True
+        with patch("localbrain.maintenance.service.transaction", transaction_context), patch(
+            "localbrain.maintenance.service._sync_native_claude_sessions", return_value=True
         ) as sync:
             _finalize_run(run_id, "completed", pid=None)
         self.assertEqual(
@@ -217,8 +205,8 @@ class RunnerTests(unittest.TestCase):
 
             return Context()
 
-        with patch("localbrain.runner.transaction", transaction_context), patch(
-            "localbrain.runner._sync_native_claude_sessions", return_value=True
+        with patch("localbrain.maintenance.service.transaction", transaction_context), patch(
+            "localbrain.maintenance.service._sync_native_claude_sessions", return_value=True
         ) as sync:
             self.assertEqual(reconcile_interrupted_runs(), 1)
         self.assertEqual(

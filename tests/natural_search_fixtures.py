@@ -3,7 +3,7 @@
 import sqlite3
 from pathlib import Path
 
-from localbrain.config import Settings
+from localbrain.foundation.config import Settings
 
 
 class CharacterTokenizer:
@@ -43,7 +43,7 @@ def fixture(root):
     config = Settings(data, data / "localbrain.db", root / "context", root / "claude", root / "codex",
                       20, "Asia/Seoul", cache_dir=root / "cache", development_dir=root / "evidence")
     config.codex_root.mkdir()
-    from localbrain.preferences import toml_text
+    from localbrain.foundation.preferences import toml_text
     (data / "session-sources.toml").write_text(toml_text({"schema_version": 2, "session_sources": [
         {"source_id": 1, "provider_kind": "codex", "display_label": "synthetic-fixture", "root": str(config.codex_root)}]}))
     with sqlite3.connect(config.database_path) as connection:

@@ -5,12 +5,12 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from localbrain.config import Settings
-from localbrain.db import init_db
+from localbrain.foundation.config import Settings
+from localbrain.persistence.db import init_db
 from localbrain.ingest.providers.codex import parse_codex_session
 from localbrain.ingest.sync.session_store import _store_session
-from localbrain.official_pricing import PRICE_SPECS, UNAVAILABLE_SNAPSHOT_ID, select_snapshot
-from localbrain.usage import price_existing_unpriced_sol_6_1_records, price_existing_unpriced_spark_records
+from localbrain.usage.pricing import PRICE_SPECS, UNAVAILABLE_SNAPSHOT_ID, select_snapshot
+from localbrain.usage.records import price_existing_unpriced_sol_6_1_records, price_existing_unpriced_spark_records
 
 
 SCHEMA = Path(__file__).parents[1] / "src/localbrain/schema.sql"
@@ -142,7 +142,7 @@ class OfficialSolPricingTests(unittest.TestCase):
         with sqlite3.connect(database_path) as target:
             self.connection.backup(target)
         settings = Settings(data_dir, database_path, data_dir / "context", data_dir / "claude", data_dir / "codex", 20)
-        with patch("localbrain.db.settings", settings):
+        with patch("localbrain.persistence.db.settings", settings):
             init_db()
             with sqlite3.connect(database_path) as connection:
                 connection.row_factory = sqlite3.Row

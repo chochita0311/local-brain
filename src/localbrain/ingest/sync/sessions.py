@@ -3,21 +3,17 @@
 import sqlite3
 from pathlib import Path
 from typing import Callable, Optional, Tuple
-from ...atlassian_evidence import (
-    evidence_scan_is_current,
-    reconcile_session_evidence,
-    session_evidence_source_fingerprint,
-)
-from ...session_references import (
+from localbrain.sessions.references import (
     SessionReferenceLookupCache,
     finalize_session_references,
     mark_session_reference_error,
     reconcile_session_references,
     session_reference_scan_is_current,
 )
-from ...skill_observations import store_skill_observations
-from ...usage import UsagePersistenceCache, reconcile_usage_record_contract
+from localbrain.sessions.skills import store_skill_observations
+from localbrain.usage.records import UsagePersistenceCache, reconcile_usage_record_contract
 from localbrain.ingest.evidence.reference_candidates import REFERENCE_EXTRACTOR_VERSION
+from localbrain.ingest import extensions
 from . import control, session_store, storage
 
 
@@ -250,7 +246,7 @@ def _scan_session_source(
         native_file_current = storage._source_file_row_is_current(
             tracked_file, current_stat
         )
-        evidence_source_fingerprint = session_evidence_source_fingerprint(
+        source_observation = dict(
             source_id=source_id,
             source_path=source_path,
             size_bytes=current_stat.st_size,
@@ -264,11 +260,10 @@ def _scan_session_source(
         )
         evidence_current = bool(
             mapped_session_id is not None
-            and evidence_scan_is_current(
+            and extensions.session_is_current(
                 connection,
                 session_id=mapped_session_id,
-                source_path=source_path,
-                source_fingerprint=evidence_source_fingerprint,
+                **source_observation,
             )
         )
         if (
@@ -312,7 +307,7 @@ def _scan_session_source(
             or source_path in forced_reference_paths
             or not reference_scan_current
         )
-        refresh_atlassian_evidence = bool(
+        refresh_extensions = bool(
             force
             or session_contract_repair_required
             or reference_contract_repair_required
@@ -367,12 +362,11 @@ def _scan_session_source(
                 provider_kind=effective_provider_kind,
                 parsed=parsed,
             )
-            if refresh_atlassian_evidence:
-                reconcile_session_evidence(
+            if refresh_extensions:
+                extensions.session_indexed(
                     connection,
                     session_id=session_id,
-                    source_path=source_path,
-                    source_fingerprint=evidence_source_fingerprint,
+                    **source_observation,
                     candidates=parsed.url_evidence,
                 )
             if refresh_references:

@@ -10,12 +10,12 @@ from urllib.parse import parse_qs, urlencode, urlsplit
 
 from starlette.requests import Request
 
-from localbrain.atlassian import (
+from localbrain.atlassian.catalog import (
     AtlassianContractError,
     register_atlassian_site,
     register_atlassian_space,
 )
-from localbrain.atlassian_registration import (
+from localbrain.atlassian.registration import (
     AtlassianRegistrationError,
     prepare_space_catalog_run,
     recognize_registration_url,
@@ -28,12 +28,9 @@ from localbrain.atlassian_registration import (
     space_catalog_candidates,
     update_atlassian_connection,
 )
-from localbrain.external_access import (
-    record_capability_observation,
-    register_source_instance,
-)
-from localbrain.main import (
-    app,
+from localbrain.atlassian.access import record_capability_observation, register_source_instance
+from localbrain.main import app
+from localbrain.atlassian.web import (
     atlassian_add_page,
     atlassian_connections_page,
     atlassian_discover_spaces,
@@ -168,7 +165,7 @@ class AtlassianRegistrationTests(unittest.TestCase):
         optional_int = lambda name: (
             int(value(name)) if value(name) not in (None, "") else None
         )
-        with patch("localbrain.main.connect", return_value=self.connection):
+        with patch('localbrain.atlassian.web.connect', return_value=self.connection):
             return atlassian_page(
                 self._get_request(location),
                 view=value("view", "all"),
@@ -733,7 +730,7 @@ class AtlassianRegistrationTests(unittest.TestCase):
             )
         }
         with patch(
-            "localbrain.atlassian_registration.create_or_reuse_atlassian_stub",
+            "localbrain.atlassian.registration.create_or_reuse_atlassian_stub",
             side_effect=AtlassianContractError(
                 "synthetic-late-failure", "synthetic late failure"
             ),
@@ -752,8 +749,8 @@ class AtlassianRegistrationTests(unittest.TestCase):
 
     def test_no_script_registration_route_preserves_errors_and_redirects_success(self):
         with patch(
-            "localbrain.main.transaction", side_effect=self._transaction
-        ), patch("localbrain.main.connect", return_value=self.connection):
+            'localbrain.atlassian.web.transaction', side_effect=self._transaction
+        ), patch('localbrain.atlassian.web.connect', return_value=self.connection):
             invalid = asyncio.run(
                 atlassian_register(
                     self._form_request("service=jira&url=SYN-12")
@@ -810,8 +807,8 @@ class AtlassianRegistrationTests(unittest.TestCase):
             (item_id,),
         )
         with patch(
-            "localbrain.main.transaction", side_effect=self._transaction
-        ), patch("localbrain.main.connect", return_value=self.connection):
+            'localbrain.atlassian.web.transaction', side_effect=self._transaction
+        ), patch('localbrain.atlassian.web.connect', return_value=self.connection):
             reused = asyncio.run(
                 atlassian_register(
                     self._form_request(
@@ -849,8 +846,8 @@ class AtlassianRegistrationTests(unittest.TestCase):
             (registered_space["id"], item_id),
         )
         with patch(
-            "localbrain.main.transaction", side_effect=self._transaction
-        ), patch("localbrain.main.connect", return_value=self.connection):
+            'localbrain.atlassian.web.transaction', side_effect=self._transaction
+        ), patch('localbrain.atlassian.web.connect', return_value=self.connection):
             contained = asyncio.run(
                 atlassian_register(
                     self._form_request(
@@ -887,8 +884,8 @@ class AtlassianRegistrationTests(unittest.TestCase):
         self.assertEqual(len(url), 8000)
         self.assertGreater(len(body.encode("utf-8")), 32_768)
         with patch(
-            "localbrain.main.transaction", side_effect=self._transaction
-        ), patch("localbrain.main.connect", return_value=self.connection):
+            'localbrain.atlassian.web.transaction', side_effect=self._transaction
+        ), patch('localbrain.atlassian.web.connect', return_value=self.connection):
             response = asyncio.run(
                 atlassian_register(self._form_request(body))
             )
@@ -914,8 +911,8 @@ class AtlassianRegistrationTests(unittest.TestCase):
             }
         )
         with patch(
-            "localbrain.main.transaction", side_effect=self._transaction
-        ), patch("localbrain.main.connect", return_value=self.connection):
+            'localbrain.atlassian.web.transaction', side_effect=self._transaction
+        ), patch('localbrain.atlassian.web.connect', return_value=self.connection):
             response = asyncio.run(
                 atlassian_register(self._form_request(body))
             )
@@ -931,8 +928,8 @@ class AtlassianRegistrationTests(unittest.TestCase):
 
     def test_no_script_local_registration_and_separate_access_routes(self):
         with patch(
-            "localbrain.main.transaction", side_effect=self._transaction
-        ), patch("localbrain.main.connect", return_value=self.connection):
+            'localbrain.atlassian.web.transaction', side_effect=self._transaction
+        ), patch('localbrain.atlassian.web.connect', return_value=self.connection):
             preview = atlassian_registration_preview(
                 url="https://first.example.test/browse/FIRST-9",
                 service="jira",
@@ -1096,7 +1093,7 @@ class AtlassianRegistrationTests(unittest.TestCase):
         )
 
     def test_connections_views_are_canonical_and_isolated(self):
-        with patch("localbrain.main.connect", return_value=self.connection):
+        with patch('localbrain.atlassian.web.connect', return_value=self.connection):
             for view in ("jira", "wiki"):
                 with self.subTest(view=view):
                     response = atlassian_connections_page(
@@ -1128,7 +1125,7 @@ class AtlassianRegistrationTests(unittest.TestCase):
         self.connection.set_trace_callback(statements.append)
         try:
             with patch(
-                "localbrain.main.connect", return_value=self.connection
+                'localbrain.atlassian.web.connect', return_value=self.connection
             ):
                 response = atlassian_connections_page(
                     self._get_request("/atlassian/connections"),
@@ -1146,8 +1143,8 @@ class AtlassianRegistrationTests(unittest.TestCase):
         self.assertIn("group by site_id", item_reads[0])
         for forbidden in (
             "atlassian_item_urls",
-            "atlassian_item_content",
-            "atlassian_item_local_state",
+            "external_resource_content",
+            "external_resource_notes",
             "atlassian_item_evidence",
             "external_resources",
             "workstream_links",
@@ -1170,13 +1167,13 @@ class AtlassianRegistrationTests(unittest.TestCase):
             path="/atlassian/spaces/discover",
         )
         with patch(
-            "localbrain.main.transaction", side_effect=self._transaction
+            'localbrain.atlassian.web.transaction', side_effect=self._transaction
         ), patch(
-            "localbrain.main.connect", return_value=self.connection
+            'localbrain.atlassian.web.connect', return_value=self.connection
         ), patch(
-            "localbrain.main.prepare_space_catalog_run"
+            'localbrain.atlassian.web.prepare_space_catalog_run'
         ) as prepare, patch(
-            "localbrain.main.runner_executable"
+            'localbrain.atlassian.web.runner_executable'
         ) as executable:
             response = asyncio.run(atlassian_discover_spaces(mismatched))
         self.assertEqual(response.status_code, 422)
@@ -1201,15 +1198,15 @@ class AtlassianRegistrationTests(unittest.TestCase):
                 path="/atlassian/spaces/discover",
             )
             with patch(
-                "localbrain.main.transaction", side_effect=self._transaction
+                'localbrain.atlassian.web.transaction', side_effect=self._transaction
             ), patch(
-                "localbrain.main.connect", return_value=self.connection
+                'localbrain.atlassian.web.connect', return_value=self.connection
             ), patch(
-                "localbrain.main.runner_executable", return_value=True
+                'localbrain.atlassian.web.runner_executable', return_value=True
             ), patch(
-                "localbrain.main.prepare_space_catalog_run",
+                'localbrain.atlassian.web.prepare_space_catalog_run',
                 return_value="lb-synthetic-catalog",
-            ) as prepare, patch("localbrain.main.start_run") as start:
+            ) as prepare, patch('localbrain.atlassian.web.start_run') as start:
                 response = asyncio.run(atlassian_discover_spaces(valid))
         finally:
             app.state.external_read_executor = prior_executor
@@ -1237,9 +1234,9 @@ class AtlassianRegistrationTests(unittest.TestCase):
             "service": "jira",
         }
         with patch(
-            "localbrain.main.transaction", side_effect=self._transaction
+            'localbrain.atlassian.web.transaction', side_effect=self._transaction
         ), patch(
-            "localbrain.main.register_space_catalog_candidate",
+            'localbrain.atlassian.web.register_space_catalog_candidate',
             return_value=result,
         ) as register:
             response = asyncio.run(

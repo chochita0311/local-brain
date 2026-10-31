@@ -8,14 +8,24 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from localbrain import work_state as state
-from localbrain.session_simulation import atomic_json, read_json
-from localbrain.work_claims import (EXTRACT, LIMITS, Anchors, bind_claims, binding_prompt, extract_claims,
-                                    extraction_prompt, legacy_units, producer, records_for)
-from localbrain.work_claim_assessment import binding_checks, extraction_checks, gates
-from localbrain.work_claim_trial import PINNED, record_primary_review, run_trial, suite_identity
-from localbrain.work_context_model import generation_settings
-from localbrain.work_reconstruction import ExperimentError
+from localbrain.experiments.claims import state
+from localbrain.foundation.private_json import atomic_json, read_json
+from localbrain.experiments.claims.contract import (
+    EXTRACT,
+    LIMITS,
+    Anchors,
+    bind_claims,
+    binding_prompt,
+    extract_claims,
+    extraction_prompt,
+    legacy_units,
+    producer,
+    records_for,
+)
+from localbrain.experiments.claims.assessment import binding_checks, extraction_checks, gates
+from localbrain.experiments.claims.trial import PINNED, record_primary_review, run_trial, suite_identity
+from localbrain.models.generation import generation_settings
+from localbrain.foundation.validation import ExperimentError
 from work_claim_cases import CASES, HOLDOUT, annotate, claim, ordinary, span
 from work_context_evidence_cases import assess
 
@@ -423,7 +433,7 @@ class TrialTests(unittest.TestCase):
         before = suite_identity(CASES, HOLDOUT)
         cases = copy.deepcopy(CASES); cases[0]["reference"]["states"] = {}
         self.assertNotEqual(before, suite_identity(cases, HOLDOUT))
-        with patch("localbrain.work_claim_trial.implementation_fingerprint", return_value="changed"):
+        with patch("localbrain.experiments.claims.trial.implementation_fingerprint", return_value="changed"):
             self.assertNotEqual(before, suite_identity(CASES, HOLDOUT))
 
 
