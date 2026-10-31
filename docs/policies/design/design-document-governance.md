@@ -8,8 +8,8 @@ Define ownership, hierarchy, conflict resolution, and update rules for LocalBrai
 
 | Document | Role |
 |---|---|
-| [Design Constitution](./design-constitution.md) | durable design source of truth and implementation contract |
-| [Design Evaluation](./design-evaluation.md) | reusable visual review checks derived from repeated findings |
+| [Design Constitution](design-constitution.md) and its explicitly linked surface companions | durable design source of truth and implementation contract |
+| [Design Evaluation](design-evaluation.md) | reusable visual review checks derived from repeated findings |
 | [DESIGN.md](../../../DESIGN.md) | creative source, visual rationale, and source interpretation |
 | Design plan, only when explicitly created | active scope, sequencing, unresolved decisions, and implementation deltas |
 | [Design System Change History](../../plans/design/design-system-change-history.md) | dated durable-change records; current design law remains in the constitution |
@@ -20,8 +20,8 @@ These documents are related but are not peers. Updating one does not require mec
 
 For implementation and evaluation:
 
-1. [Design Constitution](./design-constitution.md) governs durable visual and interaction rules.
-2. [Design Evaluation](./design-evaluation.md) supplies reusable checks that are narrower than constitution law.
+1. [Design Constitution](design-constitution.md) governs durable visual and interaction rules.
+2. [Design Evaluation](design-evaluation.md) supplies reusable checks that are narrower than constitution law.
 3. [DESIGN.md](../../../DESIGN.md) supplies creative intent and rationale.
 4. An explicit design plan may govern active sequencing and unresolved work, but never overrides durable law.
 
@@ -46,7 +46,7 @@ The initial baseline is recoverable from the design outputs:
 - Initial upstream design system (AI) is the stable public alias for the initial upstream visual and token source.
 - LocalBrain policies, code, templates, and existing screens provide product and implementation compatibility evidence.
 - [DESIGN.md](../../../DESIGN.md) records the creative interpretation and imported/adapted boundary.
-- [Design Constitution](./design-constitution.md) records the self-contained reconciled system.
+- [Design Constitution](design-constitution.md) records the self-contained reconciled system.
 
 Private external file keys and URLs are not documentation dependencies. A source must remain identifiable by its public name, or by a stable public alias when the source is private, together with date, scope, and contribution, without requiring external access to interpret the constitution.
 
@@ -91,7 +91,12 @@ Does not own:
 - build order
 - one-off visual polish
 
-Update it before or with any durable system change. The constitution should remain usable without opening Figma, `DESIGN.md`, or a plan.
+Update it before or with any durable system change. The constitution and its
+explicitly linked `surfaces/` companions form the complete design contract;
+surface companions own detailed screen rules, while the constitution owns common
+tokens, component/family law and their discovery map. Neither depends on Figma,
+`DESIGN.md`, or a plan to define current rules. A companion cannot override common
+law; an intentional exception must be reconciled in the constitution first.
 
 ### `design-evaluation.md`
 
@@ -156,6 +161,6 @@ A constitution change fails when:
 ## Practical Summary
 
 - [DESIGN.md](../../../DESIGN.md) explains why the product should feel this way.
-- [Design Constitution](./design-constitution.md) defines what implementation and evaluation must obey.
-- [Design Evaluation](./design-evaluation.md) preserves recurring checks that should be applied again.
+- [Design Constitution](design-constitution.md) defines what implementation and evaluation must obey.
+- [Design Evaluation](design-evaluation.md) preserves recurring checks that should be applied again.
 - A design plan, if explicitly created, describes what is changing now.

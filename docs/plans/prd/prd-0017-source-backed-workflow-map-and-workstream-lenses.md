@@ -1385,3 +1385,81 @@ zero-routine-confirmation requirement.
   without generation or counter/hash change. Contract PASS, Functional FAIL;
   Feature/admission blocked, original holdout/private/UI untouched. Review the
   output/evidence interface before any separately approved next candidate.
+
+## Documentation Index Reconciliation — 2026-10-31
+
+The following preserves the detailed navigation snapshot relocated from the
+Plans Index. Its dated execution/approval facts and evidence limits remain with
+this owning record and its linked artifacts; it is not a new execution grant or
+an update to unrelated acceptance. Current definitions remain in policy owners.
+
+### Boundary And Delivery Context
+
+- The workflow-map track is paused at the owner's request after the continuous-map
+  inspection. The
+  [design-plan handoff](../design/workflow-map-design-plan.md#handoff-to-next-track)
+  owns its resume boundary. The separately approved Sessions Dashboard → Insights
+  track has since implemented a skill ranking and analysis-only Run UI. The
+  ranking's [FEAT-0105](../feature/feat-0105-skill-observation-retention.md) and
+  [FEAT-0106](../feature/feat-0106-first-session-insights-view.md) passed their
+  formal evaluations under [PRD-0005](prd-0005-workflow-and-skill-intelligence.md).
+  [FEAT-0111](../feature/feat-0111-automatic-skill-load-observation.md) extends the
+  ranking with automatic skill-file reads and grouping within an identified request.
+  [FEAT-0112](../feature/feat-0112-session-skill-use-estimate.md) records the prior
+  application-declaration estimate. The owner-approved
+  [FEAT-0113](../feature/feat-0113-skill-reference-session-count.md) replaces it with
+  use/reference Session counts, at most one per skill per Session, without
+  language-based application classification.
+  [PRD-0018](prd-0018-personal-ai-use-improvement-insights.md) owns the
+  remaining analyzer decisions. FEAT-0107/0108 foundations and the executable
+  FEAT-0110 first increment are delivered. Owner-started question Runs now
+  produced both no-finding and finding reports. The
+  [first-increment closeout](../feature/feat-0110-executable-personal-insight-runs.md#first-increment-closeout-review)
+  records the initial findings; [RUN-137](../run/run-20261002-137-insight-closeout-corrections.md) closes the cost-display, shared-layout and stale-test issues and adds missing Sol pricing. Actual intervention benefit and later review-state features remain open.
+
+### Boundary And Delivery Context
+
+- [PRD-0017: Source-Backed Workflow Map And Workstream Lenses](prd-0017-source-backed-workflow-map-and-workstream-lenses.md)
+  is `approved` for bounded automatic-reconstruction experiment planning after
+  the owner accepted limited local-text analysis and bounded validation. The
+  direction replaces manual Workstream/Thread maintenance with minimum routine
+  confirmation. Its
+  [design plan](../design/workflow-map-design-plan.md) records the Quartz/Obsidian
+  reference boundary and the revised sequence: whole-history affinity inspection
+  follows its own data readiness, relation quality is separately assessed,
+  production replacement follows quality/identity evidence, then controlled
+  legacy transition with finite
+  retention and obsolete-storage retirement. The first dependency-ordered
+  Session Focus chain remains passed:
+  - [FEAT-0085: Workflow Episode And Direction Contract](../feature/feat-0085-workflow-episode-and-direction-contract.md)
+    (`passed`; Episode and direction foundation)
+  - [FEAT-0086: Deterministic Cross-Source Workflow Projection](../feature/feat-0086-deterministic-cross-source-workflow-projection.md)
+    (`passed`; deterministic cross-source projection)
+  - [FEAT-0087: Session Workflow Focus Map](../feature/feat-0087-session-workflow-focus-map.md)
+    (`passed`; separate read-only Session Focus map)
+  - [FEAT-0088: Workflow Assertion And Correction Contract](../feature/feat-0088-workflow-assertion-and-correction-contract.md)
+    (`passed`; append-only correction ledger and Focus overlay)
+  - [FEAT-0089: Workflow Boundary Corrections](../feature/feat-0089-workflow-boundary-corrections.md)
+    (`passed`; contextual Focus correction controls)
+
+  [FEAT-0090](../feature/feat-0090-workstream-candidate-discovery-contract.md)
+  retains a technical PASS for pure reference-pair normalization only. Its
+  top-level grouping and mandatory review/promotion follow-up were rejected as
+  the replacement product. [FEAT-0091–0094](#superseded-candidate-feature-chain)
+  are superseded proposals, not the next execution chain.
+
+  [FEAT-0095: Bounded Work Reconstruction Experiment](../feature/feat-0095-bounded-work-reconstruction-experiment.md)
+  is approved and implemented under [RUN-20260915-101](../run/run-20260915-101-bounded-work-reconstruction-experiment.md),
+  with synthetic technical evidence for its minimal non-model extractor,
+  metadata/text comparison, scoring, and read-only local command. The Feature
+  remains `blocked` on independent quality evidence. The owner selected current
+  LocalBrain data through now; bounded preparation and an unassessed private
+  execution check passed. That earlier trial used no model, UI replacement or
+  migration; the newer full-population model run is tracked under
+  [RUN-103](../run/run-20260922-103-replayable-session-simulation.md).
+  [FEAT-0096: Auto Work Inspection](../feature/feat-0096-auto-work-inspection.md)
+  delivered the sidebar entry and now remains at `/auto-work?mode=sample`, showing actual
+  unassessed output and source evidence under an explicit pre-quality inspection
+  exception. [RUN-20260916-102](../run/run-20260916-102-auto-work-inspection.md)
+  owns its UI/transport verification and local handoff; it does not pass FEAT-0095.
+  Global Atlas rendering and terrain remain separate later choices.

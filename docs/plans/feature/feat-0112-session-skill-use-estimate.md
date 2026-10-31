@@ -14,7 +14,7 @@
 
 ## Later Owner Direction
 
-On 2026-10-04 the owner rejected language-bound declarations and approved [FEAT-0113](../feature/feat-0113-skill-reference-session-count.md), counting each skill once per use/reference Session. This completed artifact retains its original evidence and boundary.
+On 2026-10-04 the owner rejected language-bound declarations and approved [FEAT-0113](feat-0113-skill-reference-session-count.md), counting each skill once per use/reference Session. This completed artifact retains its original evidence and boundary.
 
 ## Goal And Owner Boundary
 

@@ -240,3 +240,10 @@ The importer requires all question/source IDs to resolve and validates the whole
 packet before insertion. Unsupported fields, oversized packets, invalid dates,
 unadmitted URLs and unknown enum values produce bounded diagnostics. The CLI
 prints only inserted/unchanged counts; it never echoes lesson content on success.
+
+## Implementation Ownership
+
+- `learning/service.py`, `learning/cli.py`, `learning/web.py`: reviewed local packet
+  intake, immutable lessons/source snapshots, personal attempts, deterministic
+  daily selection and native home/library/reader forms. Durable state is in the
+  main DB; this flow does not invoke search, generation or external retrieval.

@@ -99,7 +99,7 @@
       {
         "path": "docs/policies/project/data-model/workspace-and-session-activity.md",
         "role": "semantic-truth",
-        "sha256": "231d3250f659eb3c2ca0e4e412a58b83f575de4028bc3c39becc59c712c1a945"
+        "sha256": "f9b0f4644ea7a52277a04f5f12f994bacdb74b74fd9febd039420afdf3722866"
       },
       {
         "path": "docs/policies/project/data-model/usage-and-cost-records.md",
@@ -134,7 +134,7 @@
       {
         "path": "docs/policies/project/data-model/workflow-assertions.md",
         "role": "semantic-truth",
-        "sha256": "164bc02b644f2e1ec3b0476b52059aa95b349463d28091320586a1521be1df31"
+        "sha256": "1b6cdafcba0af6a36df4e61abc980d6838c09967279ce20216455e42fd3d6172"
       },
       {
         "path": "docs/policies/project/data-model/personal-learning.md",

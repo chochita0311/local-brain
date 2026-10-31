@@ -47,7 +47,7 @@ startup/shutdown order and terminal transaction boundaries.
 
 `external_source_sync` uses `localbrain.external-sync-manifest.v1` for both runner kinds. Detailed selected locators, metadata/content/hierarchy coverage, known remote evidence, field allowlists, logical operations, and the hard preparation-time call budget remain in the private manifest. `external_sync_runs` stores only the source-neutral query projection.
 
-Preparation requires every selected target's Source Instance to have enabled registration and one current capability observation. Each logical read must also satisfy the version-controlled [external read policy](../project/architecture.md#external-access-and-synchronization-constraints). A single-source Run keeps the original manifest source shape. A mixed-source Run keeps the aggregate source identity nullable and carries an authorized `source_instance_id` on each target; one target can never switch source after preparation. Every request is a logical operation; `authorize_external_read` resolves and validates the immutable provider dispatch before a Run is queued. A manifest or model cannot provide a tool name.
+Preparation requires every selected target's Source Instance to have enabled registration and one current capability observation. Each logical read must also satisfy the version-controlled [external read policy](../project/atlassian.md#external-access-and-synchronization-constraints). A single-source Run keeps the original manifest source shape. A mixed-source Run keeps the aggregate source identity nullable and carries an authorized `source_instance_id` on each target; one target can never switch source after preparation. Every request is a logical operation; `authorize_external_read` resolves and validates the immutable provider dispatch before a Run is queued. A manifest or model cannot provide a tool name.
 
 Execution requires an injected host-side read executor. That executor receives only approved dispatch descriptors and returns bounded evidence. LocalBrain validates outcome, source identity, metadata, eligible content, remote version/update evidence, and safe errors; it computes content hashes locally. Tool-call accounting retains request ID, target ID, logical operation, resolved tool name, and outcome, but excludes arguments and returned content.
 
@@ -125,3 +125,11 @@ Maintenance prompt headers identify housekeeping activity:
 ```
 
 The [internal-header classifier](../project/data-model/maintenance-execution.md#maintenance_runs) recognizes a matching prefix in any normalized user message. The classified Session retains source metadata but is excluded from activity events, full-text search, workflow statistics, and the Sessions Dashboard primary-work Session denominator. A registered Run ID populates the unique Run FK; an unregistered header remains maintenance with no physical Run relation. Claude and Codex child Sessions inherit maintenance classification and metadata-only indexing from a linked maintenance parent while retaining their own directly observed Usage Records; only the primary holds the unique Run FK. Direct Maintenance Usage Records remain eligible for token and estimated-cost totals. Run artifacts remain outside ordinary Session and Local Context ingestion.
+
+## Implementation Ownership
+
+- `src/localbrain/workstreams/service.py`: Workstreams, Threads, checkpoints, links, Suggestions and retrieval mappings; shared identity/bindings belong to `resources/catalog.py` and metadata CRUD to `resources/store.py`.
+
+- `src/localbrain/workstreams/retrieval.py`: deterministic candidate selection and evidence preparation
+
+- `src/localbrain/maintenance/service.py`, `streams.py`: common Run tracking, recovery/cancellation, terminal state helpers and stream decoding; feature execution belongs to `workstreams/runner.py` and `atlassian/runner.py`

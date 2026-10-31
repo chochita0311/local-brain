@@ -77,3 +77,9 @@ The wheel must contain `localbrain/schema-presentation.json` and `localbrain/per
 ## Change Rule
 
 Update the executable and Data Model owners first, run their parity checks, rebuild the manifest, review the JSON delta, then run check, tests, wheel verification, and privacy scanning. Product surfaces consume v1 but do not hand-edit it. A breaking shape requires a new schema identifier and an approved consumer migration.
+
+## Implementation Ownership
+
+- `src/localbrain/persistence/explorer.py`: manifest-only Schema query normalization and read model; it never opens the runtime database
+
+- `src/localbrain/persistence/schema_presentation.py` and `schema-presentation.json`: bounded loader and derived package data for read-only Schema consumers

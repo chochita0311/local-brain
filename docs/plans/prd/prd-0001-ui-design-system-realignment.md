@@ -39,9 +39,9 @@
 
 ### Current Implementation References
 
-- [Application routes](../../../src/localbrain/main.py): current route and behavior inventory
+- [Application routes](../../../src/localbrain/app/routes.py): current route registration and links to the feature handlers that own behavior
 - [Shared shell](../../../src/localbrain/templates/base.html): persistent navigation, header, global search, and content boundary
-- [Screen templates](../../../src/localbrain/templates/): current screen structure and user-visible states
+- [Screen templates](../../../src/localbrain/templates): current screen structure and user-visible states
 - [Styles](../../../src/localbrain/static/styles.css): current palette, geometry, layout, component, and responsive implementation
 - [Browser interactions](../../../src/localbrain/static/app.js): current forms, destructive actions, Suggestions, scans, and Run controls
 

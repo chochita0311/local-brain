@@ -161,3 +161,18 @@ A bounded contract review is the next approval decision, not automatic training,
 another model download, private execution or UI work. Existing vectors, original
 sources, historical reports and legacy organization remain unchanged. The ultimate
 all-Session area/effort/flow-map destination remains outstanding.
+
+## Documentation Index Reconciliation — 2026-10-31
+
+The following preserves the detailed navigation snapshot relocated from the
+Plans Index. Its dated execution/approval facts and evidence limits remain with
+this owning record and its linked artifacts; it is not a new execution grant or
+an update to unrelated acceptance. Current definitions remain in policy owners.
+
+### Recorded Trial Outcome
+
+- [RUN-20260923-110](run-20260923-110-work-role-formulation-comparison.md):
+  `passed` for the matched diagnostic and zero-generation replay, not admission.
+  Direct role sets pass 15/32 order conditions versus 8/32, but only 6/16 contexts
+  are correct in both orders; omissions and completed-work-as-pending remain.
+  Relation controls pass 5/6 with a false continuation. No holdout/private/UI run.

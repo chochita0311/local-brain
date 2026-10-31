@@ -24,6 +24,11 @@ Drive 자동 실행은 앱에서 설정한 시간대의 정해진 시각에 맞�
 
 ## Source Set
 
+Source links below that use a fixed Git revision preserve the referenced
+pre-refactor implementation as historical evidence. Use the
+[current contract map](../../policies/project/product.md#feature-contracts)
+for present implementation ownership; the old source layout is not a live path.
+
 아래 과거 앱 제공 Client·좁은 scope 결정은 이후 사용자가 승인한 gcloud/full-Drive 인증으로 대체됐다. 다른 동기화 요구와 개인정보 경계는 유지한다.
 
 | Source | Adopted scope and limits |
@@ -48,7 +53,7 @@ Drive 자동 실행은 앱에서 설정한 시간대의 정해진 시각에 맞�
 | 사용자가 지정한 기존 클라우드 게시 방식의 비공개 runbook | 방향·폴더를 고정한 변경 파일 비교·복사, 상대경로 유지, 크기/SHA·전송 중 변경·원격 metadata 확인, 충돌 시 보존을 참고한다. 그 방식은 목적지 전용 파일을 보존하고 자동 삭제 mirror·상시 전송을 하지 않는다. 이번 양방향 경로의 삭제 반영·구조 변경·자동 동기화 검증 결과를 그 구현에서 가져오지 않는다. |
 | [Roadmap](../project/roadmap.md#phase-4-external-read-only-sources), [Controlled Actions](../project/roadmap.md#phase-6-handoff-and-controlled-actions) | 기존 외부 연결은 읽기 중심이며 외부 쓰기는 미리보기·귀속·명시적 승인 대상이다. 클라우드 동기화는 기존 MVP의 보류 범위다. 이 PRD는 제한된 Drive 교환과 자동화의 새 경계를 제안한다. |
 | [Privacy](../../policies/project/privacy-and-data.md), [Storage](../../policies/project/installation-and-storage.md#storage-ownership-and-configuration) | 공개 코드·배포물, 비공개 데이터·파생 캐시·인증정보의 분리, 보관·정리 소유권. 다운로드가 검색·색인 동의로 승격되지 않는 규칙. |
-| [Settings And Runtime](../../policies/project/desktop-app-and-settings.md), [Current Local Context Formats](../../policies/project/desktop-app-and-settings.md#supported-material-and-permissions), [Backend Lifecycle](../../../src/localbrain/main.py), [Desktop Close And Quit](../../../desktop/src-tauri/src/main.rs), [Current Local Sync Clock](../../../src/localbrain/source_sync.py) | 기존 Session·Local Context 동기화는 backend가 살아 있는 동안 직전 작업 종료 시각을 기준으로 간격을 계산한다. 앱 창 닫기와 완전 종료, 브라우저 닫기와 서버 종료를 구별한다. Drive는 backend 생존 경계만 재사용하고 주기 계산·놓친 실행 처리는 이 PRD의 정시 규칙을 따른다. 기존 로컬 동기화의 시계나 외부 접근 권한을 변경하지 않는다. |
+| [Settings And Runtime](../../policies/project/desktop-app-and-settings.md), [Current Local Context Formats](../../policies/project/desktop-app-and-settings.md#supported-material-and-permissions), [Backend Lifecycle](../../../src/localbrain/app/lifecycle.py), [Desktop Close And Quit](../../../desktop/src-tauri/src/main.rs), [Current Local Sync Clock](https://github.com/chochita0311/local-brain/blob/6c03265701d0d8b552fc8bb60e346ba1971f4bb3/src/localbrain/source_sync.py) | 기존 Session·Local Context 동기화는 backend가 살아 있는 동안 직전 작업 종료 시각을 기준으로 간격을 계산한다. 앱 창 닫기와 완전 종료, 브라우저 닫기와 서버 종료를 구별한다. Drive는 backend 생존 경계만 재사용하고 주기 계산·놓친 실행 처리는 이 PRD의 정시 규칙을 따른다. 기존 로컬 동기화의 시계나 외부 접근 권한을 변경하지 않는다. |
 | [Current Search Contract](../../policies/project/natural-language-search.md), [Source Admission](../../../src/localbrain/natural_search/source.py) | 검색은 현재 동기화와 별개다. 다운로드 위치가 자동 검색 대상이 되는 것은 아니며 이번에 검색 허용 규칙을 바꾸지 않는다. |
 | [In-App Documentation](../../policies/project/app-documentation.md) | 설치자용 인증·연결 안내는 기존 Settings guide의 확장으로 계획하고 Google Drive 탭에서 연결한다. 앱 제공자의 OAuth 운영 안내와 사용자 이용 안내를 구별한다. 이번 PRD 작성이 실제 앱 가이드 구현을 뜻하지 않는다. |
 | Google 공식 문서, `2026-10-28` 확인 | 아래 OAuth·폴더·변경·삭제 제약의 근거다. 실제 계정·폴더에 대한 통신·권한·동기화 검증을 수행했다는 뜻은 아니다. |
@@ -462,3 +467,64 @@ Initial delivery, before the approved authentication revision below: OP-02/05/06
 - `2026-10-28`: 소용량 자료의 긴 실행 시간에 대한 후속 피드백을 [Run220](../run/run-20261028-220-drive-local-publishing.md)에서 다뤘다. 원본 외 분석/추출/색인을 추가한 것이 아니라 개별 네트워크 왕복이 병목이었다. 선택한 자료의 알려진 원격 ID 메타데이터를 최대100개씩 조회하고 독립 항목은 최대4개씩 처리한다. 부모 확인·체크포인트 사본·실패 보존·취소 후 작업 정리·삭제 경계를 유지한다.87Drive 테스트와 합성 UI/패키지를 검증했고, 별도 승인 범위 내 읽기 전용 메타데이터 표본에서 실제 응답/지연을 확인했다. 전체 업로드 시간·새 runtime 적용·native/recipient 수락은 이 표본과 구별한다. 실제 사용자 작업/프로세스는 중단하거나 재실행하지 않았다.
 
 - `2026-10-29` 후속 실행 경로: [Run221](../run/run-20261028-221-drive-local-publishing.md)은 원격 삭제 후 복구와 불필요한 staging/checkpoint 생략, [Run222](../run/run-20261028-222-drive-local-publishing.md)은 연결 재사용·8개 동시 I/O를 검증했다. 이전4개 동시 처리 표본은 당시 증거로 유지한다. [Run226](../run/run-20261029-226-publication-and-native-integration.md)이 두 증분과 Context Search를 포함한 native 빌드/공개 후보 검증을 소유하며, 실제 두 계정·수신자·광범위 품질 수락은 구별한다.
+
+## Documentation Index Reconciliation — 2026-10-31
+
+The following preserves the detailed navigation snapshot relocated from the
+Plans Index. Its dated execution/approval facts and evidence limits remain with
+this owning record and its linked artifacts; it is not a new execution grant or
+an update to unrelated acceptance. Current definitions remain in policy owners.
+
+### Boundary And Delivery Context
+
+- [PRD-0025: Google Drive Connection And Incremental Sync](prd-0025-google-drive-connection-and-incremental-sync.md)
+  is `approved`; Features 0145–0150 implement the separate Google Drive tab in Settings. Each installer uses the
+  per-PC Google Cloud CLI with their own Google account, chooses a full Drive folder
+  URL and an upload-folder name, then selects Local Context files/folders to publish
+  and other publisher folders to receive. IDs and optional link keys are parsed
+  internally; there is no separate ID-only input mode or private default URL.
+  A selected folder includes its files, subfolders and structure, subject to LocalBrain
+  app policy: a confirmed shared upload/download per-file cap of 100 MB
+  (100,000,000 bytes), distinct from Google Drive service limits. Oversize files
+  are skipped with reasons while eligible files continue; size rejection preserves
+  prior copies and never means source deletion. No aggregate quota is added now.
+  Actual transferred bytes remain bounded when remote size is missing or changes.
+  Own local files
+  are authoritative for upload and selected remote folders for receiving. Both use
+  incremental additions, updates, renames, moves and deletions after the first copy.
+  Uploaded deletions use Google Trash; confirmed remote deletion/trash removes the
+  corresponding managed local copy. No app recovery archive, trash emptying or
+  retention scheduler is added. Stop/deselect preserves existing copies.
+  Recipients control downloaded files, copies, offline use and personal backups.
+  Automatic execution starts OFF; the user selects targets and enables it.
+  Defaults are 6 hours for upload and 24 hours for each independently adjustable
+  received folder. The seven choices are 15/30 minutes and 1/3/6/12/24 hours.
+  Drive uses wall-clock boundaries in the configured timezone, with long periods
+  anchored at midnight. Two days is excluded. Manual runs and completion do not
+  shift the grid; missed slots wait for the next boundary without immediate catch-up.
+  Existing local Session/Context completion clocks remain unchanged.
+  Disconnect preserves choices, intervals, enabled state, files and last-success
+  state. Reconnect resumes the existing configuration and schedule. It does not
+  erase copies, reset settings, revoke Google consent or wipe tokens merely because
+  the connection failed. Backend exit stops sync; closing a window/browser alone
+  leaves a living backend eligible to run. No daemon/autostart is added.
+  The normal flow is OAuth when needed, real root lookup, then manual or enabled
+  automatic sync. Actual auth/access/operation errors show relevant corrective
+  actions. No synthetic write probe, full-tree permission preflight, app user/org
+  allowlist, public-link block, group-member audit or extra/repeated sharing consent
+  flow is added. Saved destinations and selections plus run/enable direct ongoing
+  sync; Google OAuth requirements and actual Drive permissions still apply.
+  Last connection observation, last sync success and next schedule stay distinct;
+  unknown invitation/role causes are not guessed and recurring errors do not spawn
+  repeated popups. Guides cover this normal flow and Google CLI setup.
+  Duplicate publisher names, model/search integration and Local Contexts screen
+  changes are excluded. Remaining OP-02/05/06/07/08/09/11 are engineering follow-ups:
+  transfer limits, integrity/resume/retry/concurrency, actual API permissions,
+  Google CLI authentication and SDK distribution/real-account validation. Normal settings-based
+  ongoing sync is the selected contract; implementation must align its policy owner.
+  Private examples stay out of development/closeout docs. Features0145–0150 now contain
+  the implemented contract, OAuth/API adapter, Settings, publishing, receiving and
+  guides, with linked Runs/Evaluations. Synthetic/browser/packaged-backend checks
+  pass for their declared scope. The owner-approved gcloud/full-Drive revision removes the Client/project setup
+  prerequisite; Runs215–217 own that revision. [Run218](../run/run-20261028-218-drive-settings-connection.md) repairs save/check setup and system-trust HTTPS without altering sync scope. [Run219](../run/run-20261028-219-drive-local-publishing.md) reduces small-upload request overhead and adds transient upload progress with71focused tests. [Run220](../run/run-20261028-220-drive-local-publishing.md) batches known selected metadata and bounds independent item I/O at4, with87focused tests and a separate live read-only metadata sample. [Run221](../run/run-20261028-221-drive-local-publishing.md) repairs missing published copies and skips unchanged staging/checkpoint writes, with 101 focused tests and a bounded user-requested worker audit. [Run222](../run/run-20261028-222-drive-local-publishing.md) adds owned connection reuse and an eight-item cap, with 121 focused tests on current/minimum urllib3 versions and separate read-only metadata timings. Full two-account
+  My Drive/Shared Drive operations remain unverified; final acceptance is open.

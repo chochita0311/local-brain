@@ -49,7 +49,7 @@ Durable rules and current contracts live under `docs/policies/`.
 - [Developer Guide](policies/project/developer-guide.md): source setup, development-web workflows, distribution builds, configuration, model experiments, private evaluation archives and verification
 - [Markdown Rendering Contract](policies/project/markdown-rendering.md): shared syntax, trust, local-reference, highlighting, consumer, and fallback rules
 - [Maintenance Task Runner](policies/operations/claude-task-runner.md): in-app Claude/Codex maintenance execution, retrieval, external-sync boundaries, persistence, and review behavior
-- [Harness Policies](policies/harness/): planning approval, execution routing, profiles, delegation, operator continuity, and traceability
+- [Harness Policies](policies/harness): planning approval, execution routing, profiles, delegation, operator continuity, and traceability
 - [Competence-First Delegation](policies/harness/competence-first-delegation.md): delegation admission, worker suitability, context transfer, fallback, and binding lifecycle
 - [Operator Briefing And Review Receipts](policies/harness/operator-briefing-and-review-receipts.md): orientation, work-start, direction-change, review, block, and handoff continuity
 - [Harness Improvement](policies/harness/harness-improvement.md): configured private stage experience, reusable improvement records, comparisons, and reviewed common export
@@ -66,10 +66,36 @@ Durable rules and current contracts live under `docs/policies/`.
 - [In-App Documentation](policies/project/app-documentation.md): bundled English user-guide ownership, /help routes, reader and shared Markdown link authority, packaging and privacy
 - [macOS Test Distribution Guide](policies/project/standalone-test-app-guide.md): artifact-specific first launch, manual replacement, environment evidence and recipient-validation limits
 
+## Feature Contracts And Development Operations
+
+[Product Model](policies/project/product.md#feature-contracts) maps product domains;
+[Architecture](policies/project/architecture.md#current-capabilities-and-owners)
+maps runtime responsibilities. Their detailed current contracts are:
+
+| Area | Owner |
+| --- | --- |
+| Native Session capture, revisions, repair and references | [Session Ingestion](policies/project/session-ingestion.md) |
+| Session inventory, pins, Chart and detail | [Sessions](policies/project/sessions.md) |
+| Direct usage, frozen cost/Project snapshots and dashboard | [Usage And Cost](policies/project/usage-and-cost.md) |
+| Registered document collection/reading | [Local Context](policies/project/local-context.md) |
+| Episode Focus and user assertions | [Session Workflow](policies/project/workflow.md) |
+| Pure provisional candidate descriptors | [Workstream Candidates](policies/project/workstream-candidates.md) |
+| Skill reach, evidence, frozen guides/reports and analysis | [Personal Insights](policies/project/personal-insights.md) |
+| Local Atlassian memory and approved remote reads | [Atlassian](policies/project/atlassian.md) |
+| Explicit simulation, passive affinity and sample inspection | [Auto Work](policies/project/auto-work.md) |
+| Isolated model-free comparison | [Work Reconstruction](policies/project/work-reconstruction.md) |
+| Quoted model protocols and diagnostics | [Work Context Inference](policies/project/work-context-inference.md) |
+| Explicit model setup, comparisons, trials and replay | [Model Tool Operations](policies/project/development/model-tools.md) |
+
+Runtime versions, supported legacy formats, immutable content fingerprints and
+failure/migration conditions remain current contracts. Per-trial approvals,
+consumed budgets and evaluation outcomes remain with their plans and records;
+moving documentation grants no fresh execution or review authority.
+
 ## Design System
 
 - [Creative Design Brief](../DESIGN.md): visual north star, source interpretation, and creative rationale
-- [Design Constitution](policies/design/design-constitution.md): durable tokens, layout rules, state-to-UI mapping, and component contracts
+- [Design Constitution](policies/design/design-constitution.md): common tokens, layout, states and component/family law; linked [Chart](policies/design/surfaces/sessions-chart.md) and [Session reading](policies/design/surfaces/session-reading.md) companions own detailed screen contracts
 - [Design Document Governance](policies/design/design-document-governance.md): design document ownership, source hierarchy, and update rules
 - [Design Evaluation](policies/design/design-evaluation.md): reusable visual and screen-surface checks
 

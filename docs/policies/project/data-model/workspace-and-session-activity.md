@@ -263,7 +263,7 @@ Message position, wording, the next user input and file end do not establish com
 
 #### Personal Insight Evidence Manifest
 
-The personal insight evidence manifest is a private derived value, not a new database subject or retained observation ledger. [Personal Insight Evidence](../architecture.md#personal-insight-evidence) owns current selection, eligibility, message positions, compatibility and reference review. The value neither retains disappeared Session content nor claims current verification from a historical skill count. A Run may freeze the value in its own private artifact owner; the producer itself persists nothing.
+The personal insight evidence manifest is a private derived value, not a new database subject or retained observation ledger. [Personal Insight Evidence](../personal-insights.md#personal-insight-evidence) owns current selection, eligibility, message positions, compatibility and reference review. The value neither retains disappeared Session content nor claims current verification from a historical skill count. A Run may freeze the value in its own private artifact owner; the producer itself persists nothing.
 
 ### `skill_observations`
 
@@ -455,7 +455,7 @@ Constraints: required shared-resource FK; producer-owned identity-key/locator co
   anchors cause abstention and do not authorize deletion or reassignment of any
   future user review state.
 - Privacy, serialized evidence samples, and partial coverage follow the
-  [candidate architecture contract](../architecture.md#workstream-candidate-contract).
+  [candidate architecture contract](../workstream-candidates.md#workstream-candidate-contract).
 
 ## Subject Recovery Boundary
 

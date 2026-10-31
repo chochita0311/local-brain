@@ -64,3 +64,25 @@ production/UI or legacy changes are part of this Run.
 - The 4B choice was a low-cost first baseline using an existing runtime, not a
   verified quality winner or a hardware memory ceiling. Failure cannot yet be
   assigned exclusively to parameter count rather than this extraction recipe.
+
+## Retained Baseline Disposition
+
+The frozen 4B work-extraction candidate remains rejected. It has no admitted
+map or private-history reconstruction consumer. This is the retained outcome
+formerly repeated in the general development model-role table; documentation
+reorganization does not authorize another execution or change that outcome.
+
+## Documentation Index Reconciliation — 2026-10-31
+
+The following preserves the detailed navigation snapshot relocated from the
+Plans Index. Its dated execution/approval facts and evidence limits remain with
+this owning record and its linked artifacts; it is not a new execution grant or
+an update to unrelated acceptance. Current definitions remain in policy owners.
+
+### Recorded Trial Outcome
+
+- [RUN-20260923-104](run-20260923-104-local-work-context-inference.md):
+  pinned Qwen3-4B installation and offline work-context/continuity trial completed.
+  `blocked`: the final development configuration passes 2/4 cases, with goal
+  omission and incomplete grounding. Holdout/private execution did not run;
+  a revised extraction/model comparison is needed before full-history use.

@@ -17,7 +17,7 @@
 
 Continuity, 2026-10-03: the owner returned the displayed load count because inspection reads inflated it. [FEAT-0112](feat-0112-session-skill-use-estimate.md) owns the subsequent estimated-use projection; this completed load-evidence extension remains historical.
 
-The current use/reference Session projection is owned by [FEAT-0113](../feature/feat-0113-skill-reference-session-count.md).
+The current use/reference Session projection is owned by [FEAT-0113](feat-0113-skill-reference-session-count.md).
 
 ## Goal And Approved Boundary
 

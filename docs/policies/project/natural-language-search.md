@@ -64,7 +64,7 @@ establish complete intent understanding or reasoning over every Session together
 Each comparison model has its own pinned weights in the user-level public Hub
 cache. Sharing that cache with the embedding checkpoint does not make them one
 model. [Installation And Local Storage](installation-and-storage.md#optional-local-models)
-owns these asset boundaries; the [Developer Guide](developer-guide.md#natural-language-search-comparisons)
+owns these asset boundaries; the [Developer Guide](development/search-comparisons.md#operations)
 owns reproduction, comparison-runtime isolation and private loader adaptations.
 Keeping downloaded comparison weights does not enable those models in the app or establish that a past test
 environment still exists.
@@ -177,3 +177,16 @@ threshold settings screen.
 - Compare body sizes 256/512/768, dimensions 512/1024 and candidate cutoffs including 0.7 without tuning the score scale to that number. Report the selected default and regressions. No claim of general Korean readiness from one small synthetic set.
 - Measure current Mac only: full eligible index, incremental reuse, interrupted resume, changes/deletions, peak rebuild disk, model memory, and foreground search during background work. Any unavailable model trial is an evidence gap with its reason; it is not a win for another model.
 - Unit/integration checks use isolated synthetic DBs and deterministic encoders where appropriate; these establish contracts, not model accuracy. Real-model runs establish only their observed corpus and query scope. Final report must distinguish them.
+
+## Implementation Ownership
+
+- `natural_search/`: eligible read-only source snapshot, original-span molecularization,
+  private SQLite/FTS/vector generations, persistent offline Qwen encoder, explicit
+  condition interpretation, parent-ranked retrieval and Sync refresh worker.
+  `natural_search/web.py` owns loopback handlers; `app/routes.py` registers them
+  and `app/lifecycle.py` owns startup/shutdown. Templates and `natural-search.js`
+  own the shared header and evidence navigation. Keyword search is the default;
+  AI search is explicit. The legacy `/search` URL redirects to keyword mode in
+  the desktop edition and remains compatible in development web. [Natural-Language Search](natural-language-search.md)
+  owns the detailed source, score, input-budget, refresh and recovery contracts.
+  Laya and Qwen Reranker are development comparisons, not runtime dependencies.

@@ -110,3 +110,25 @@ Status: 완료.
 
 세션·문서·링크의 기본 자원과 관측 근거가 선택 기능과 독립적으로 남고, 기능별
 매핑·adapter를 통해 기존 파일럿을 유지하거나 제거할 수 있는 경계가 검증된다.
+
+## Documentation Index Reconciliation — 2026-10-31
+
+The following preserves the detailed navigation snapshot relocated from the
+Plans Index. Its dated execution/approval facts and evidence limits remain with
+this owning record and its linked artifacts; it is not a new execution grant or
+an update to unrelated acceptance. Current definitions remain in policy owners.
+
+### Completion And Validation Limits
+
+- [REFACTOR-0005: Shared Resource Ownership](refactor-0005-shared-resource-ownership.md)
+  gives Session evidence a shared URL/path identity, binds existing Documents and
+  bookmarks without losing manual metadata, and preserves external bodies/notes
+  independently of optional Atlassian Items. Core ingestion and document reads
+  use optional adapters supplied by app assembly.
+  [Validation](logs/2026-10-30_refactor-0005_shared-resource-ownership.md)
+  records 1,463 passing tests, preserving/repeated/failed migration checks,
+  optional-package/table absence, synthetic app lifecycle/routes, responsive
+  rendering and installed-wheel verification. Eleven Drive loopback tests remain
+  deferred. Its follow-up operational migration and restart preservation checks also passed;
+  the latest structural review did not rerun that live operation. Whole-feature removal
+  remains a separate boundary.

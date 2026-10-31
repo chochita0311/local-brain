@@ -230,7 +230,7 @@ These items may remain open at the PRD level, but each must be resolved before a
 
 ### Review Skill Use And Reference Sessions
 
-- The first ranking shows source-backed use/reference Session counts and latest reference times under the [Insights contract](../../policies/project/product.md#insights). Session and Project distribution remains later scope.
+- The first ranking shows source-backed use/reference Session counts and latest reference times under the [Insights contract](../../policies/project/personal-insights.md#insights). Session and Project distribution remains later scope.
 - Missing source coverage does not appear as zero usage without a caveat.
 
 ### Review A Skill Candidate
@@ -315,3 +315,17 @@ The owner accepted the PRD boundary on 2026-09-27 and directed the first skill-r
 - `2026-09-27`: the owner chose to sum skill-use counts by the same name across Claude and Codex sources in the visible ranking; individual source observations remain distinct evidence.
 - `2026-09-27`: the owner chose explicit source load/invocation signals for counting and excluded direct `SKILL.md` file reads because they can represent inspection or editing. Coverage remains a visible limit of the first ranking.
 - `2026-09-27`: the owner removed the `All time` and signal-coverage explainer line and the source/Session row disclosure from the first Insights view. Historical counts remain in storage, and incomplete synchronization still has a bounded state notice.
+
+## Documentation Index Reconciliation — 2026-10-31
+
+The following preserves the detailed navigation snapshot relocated from the
+Plans Index. Its dated execution/approval facts and evidence limits remain with
+this owning record and its linked artifacts; it is not a new execution grant or
+an update to unrelated acceptance. Current definitions remain in policy owners.
+
+### Boundary And Delivery Context
+
+- [PRD-0005: Workflow And Skill Intelligence](prd-0005-workflow-and-skill-intelligence.md)
+  remains `approved` for later workflow-intelligence proposals; its bounded
+  first skill-ranking increment passed FEAT-0105/0106. The separate improvement
+  analyzer is owned by PRD-0018.

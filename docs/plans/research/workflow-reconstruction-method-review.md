@@ -614,3 +614,27 @@ data contract without claiming causal work identity; detailed state extraction
 does not gate that narrower surface. The rejected trial and this planning
 review change no source data, vectors, UI or legacy state. No new research search,
 model inference or empirical quality result was produced by the planning review.
+
+## Documentation Index Reconciliation — 2026-10-31
+
+The following preserves the detailed navigation snapshot relocated from the
+Plans Index. Its dated execution/approval facts and evidence limits remain with
+this owning record and its linked artifacts; it is not a new execution grant or
+an update to unrelated acceptance. Current definitions remain in policy owners.
+
+### Recorded Trial Outcome
+
+- The owner-requested
+  [research review](workflow-reconstruction-method-review.md) is complete.
+  The owner subsequently approved its controlled protocol/semantic diagnostic
+  under RUN-108, then the evidence-first candidate under RUN-109. Both are complete;
+  the latter fails semantic admission. The owner then approved the matched
+  direct-role/property-judgment comparison under RUN-110, not more same-model approval layers.
+  That diagnostic is complete without an admitted candidate. The subsequent
+  owner-approved source-claim/current-state review led to FEAT-0099 above, now
+  approved and implemented under RUN-111. Its pure synthetic contract passes;
+  no further prompt variant or private execution has been started.
+  Existing expectations and the unconsumed model holdout are preserved; no private
+  backfill or revised extraction admission is established.
+  Neither full processing nor technical tests establish semantic usefulness or
+  authorize production ownership, replacement UI or legacy cleanup.

@@ -104,3 +104,18 @@ invalid-probability exception occurred. The ten holdout cases remain untouched.
 - Further approach changes need a new bounded decision. Do not extrapolate this
   failure into a requirement for training, a larger model or owner classification
   of every Session. The intended minimum-confirmation product direction stands.
+
+## Documentation Index Reconciliation — 2026-10-31
+
+The following preserves the detailed navigation snapshot relocated from the
+Plans Index. Its dated execution/approval facts and evidence limits remain with
+this owning record and its linked artifacts; it is not a new execution grant or
+an update to unrelated acceptance. Current definitions remain in policy owners.
+
+### Recorded Trial Outcome
+
+- [RUN-20260923-106](run-20260923-106-work-context-model-size-comparison.md):
+  `blocked` after the completed Qwen3-8B fixed-condition comparison. Installation
+  passed (16.4 GB additional); thinking passes 1/4 and staging 2/4 development
+  cases. Time, shape, grounding and abstention failures prevent admission.
+  Holdout/private execution remain untouched; the 4B baseline is retained.

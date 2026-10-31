@@ -49,3 +49,7 @@ reader behavior and delivery contract.
 ## Google CLI Setup Links
 
 The Settings guide includes authored links to the official Google Cloud CLI installation and authentication guides because Drive connections depend on that installed CLI. These open only by user choice, do not preload remote content or carry account data, and do not add source registration, indexing or model work. The six guide routes remain fixed.
+
+## Implementation Ownership
+
+- `app/docs.py`, package `content/docs/`, `templates/app-docs.html` and `static/app-docs.css`: fixed user-guide registry, canonical English content and in-app reader. [In-App Documentation](app-documentation.md) owns the product routes, shared Markdown link exception, package delivery and content boundary.

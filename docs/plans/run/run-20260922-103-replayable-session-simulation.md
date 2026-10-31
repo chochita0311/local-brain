@@ -78,3 +78,19 @@ consumes this report; no UI or semantic-quality acceptance is claimed here.
 Complete processing is not semantic quality acceptance. The time-oriented map,
 supported temporal lineage, naming quality and legacy replacement remain
 downstream work. No recurring classification approval is introduced.
+
+## Documentation Index Reconciliation — 2026-10-31
+
+The following preserves the detailed navigation snapshot relocated from the
+Plans Index. Its dated execution/approval facts and evidence limits remain with
+this owning record and its linked artifacts; it is not a new execution grant or
+an update to unrelated acceptance. Current definitions remain in policy owners.
+
+### Recorded Trial Outcome
+
+- [RUN-20260922-103](run-20260922-103-replayable-session-simulation.md):
+  whole-population affinity backfill completed; the current DB has subsequent
+  additions. Returned to planning following owner review of affinity versus
+  actual workflow understanding. Its historical return is preserved; RUN-113
+  subsequently closed the real replay gap with zero-encoding unchanged/grouping
+  replays, and the passed affinity consumer now reads its derived report.

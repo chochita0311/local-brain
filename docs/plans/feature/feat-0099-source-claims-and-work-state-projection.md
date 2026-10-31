@@ -274,3 +274,24 @@ downstream, not abandoned.
   Eighteen synthetic scenarios, 50 tests, permutation/revision replay and full
   900-test regression pass (one existing optional graph skip). Original model
   gates remain blocked; no private source, model, UI or persistence was added.
+
+## Documentation Index Reconciliation — 2026-10-31
+
+The following preserves the detailed navigation snapshot relocated from the
+Plans Index. Its dated execution/approval facts and evidence limits remain with
+this owning record and its linked artifacts; it is not a new execution grant or
+an update to unrelated acceptance. Current definitions remain in policy owners.
+
+### Boundary And Delivery Context
+
+- Preceding source-state foundation:
+  [FEAT-0099: Source Claims And Work State Projection](feat-0099-source-claims-and-work-state-projection.md)
+  (`passed`, foundation), implemented under
+  [RUN-111](../run/run-20260923-111-source-claims-and-work-state-projection.md).
+  Its pure synthetic-supplied projector separates historical claims from current
+  reported state without using the user-confirmed correction ledger. Fifty tests
+  and full 900-test regression pass (one optional skip). The subsequent adapter
+  review produced the separate FEAT-0100 above, subsequently approved on its own
+  boundary rather than authorized by the pure foundation's PASS.
+  FEAT-0098 remains admission-blocked; no private/UI execution or routine Session
+  classification is implied.

@@ -38,6 +38,8 @@ Keep completed private bindings, identifying locators, experience indexes, recor
 
 ## Local Persistence
 
+### Transient Questions And Reviewed Learning
+
 Context Search follows its [source and transient-dialogue contract](context-search.md): explicit questions may read enabled Local Context and already received Drive copies through bounded read-only tools. Public originals remain in the shared Hub; app metadata and compiler/kernel caches have separate private owners. No answer table, transcript file or browser persistence is created. Conversation clears on screen/tab leave, and isolated inference network blocking never changes web/Drive networking. This scoped bridge does not admit all application data into ordinary indexing.
 
 Reviewed learning lessons, source snapshots, answer/confidence/self-assessment
@@ -45,6 +47,8 @@ history and visibility choices are durable private DB content. Importing a local
 packet does not send it elsewhere or train a model. Learning routes make no
 external calls; an official-source link opens only by explicit user navigation
 with referrer suppression. Private lesson packets and captures stay outside Git.
+
+### Runtime Storage And Search
 
 The default runtime directory is:
 
@@ -90,11 +94,15 @@ The [installation/storage contract](installation-and-storage.md) owns configurab
 roots and the explicit upgrade command. Migration preserves source content,
 the main DB, saved Runs and frozen evaluation files; it never publishes them.
 
+### Maintenance And Personal Insight Evidence
+
 An in-app Task Runner stream remains a private Run artifact used for the Run Console and result parsing. It must not be re-imported as a Session, Usage Record, Local Context document, Activity Event, or search row. The selected Claude or Codex runner's persisted native JSONL is the sole Session and Usage source for that execution; maintenance policy keeps its content and resolved child content out of ordinary activity and search consumers while their direct real-model Usage Records remain eligible for cost totals.
 
 The personal insight evidence producer is a read-only projection of currently normalized primary work Session messages. Its bounded excerpts and question are private values; the producer alone does not persist them, log them, open native files, call a model, or transmit them. The versioned core guide and category playbooks are local package resources; they contain no user's Session content. Only an explicit Insights analysis submission freezes a manifest and sends selected excerpts through Codex CLI using the selected local `CODEX_HOME` profile to that model service. The one-Run manifest, exact prompt, structured response, locally validated result, CLI diagnostics, and Markdown report live under private `personal-insight-runs/<id>/` outside Git. Reports do not expire automatically and can be downloaded repeatedly; no file is copied into a work location by analysis alone. The CLI runs without native Session persistence or model tools, preventing its generated conversation from becoming future behavioral evidence. Observed tokens are retained on the independent Run row before report validation and projected into canonical Usage Records through a metadata-only Maintenance Session accounting parent. This parent contains no conversation, events, or search text; it remains outside ordinary Sessions and future analysis evidence. The selected Codex source owns the usage, while Project attribution stays unassigned. The explicit ephemeral-analysis producer is separate from the native Maintenance Task Runner stream boundary above. A deleted or changed source Session does not erase the frozen report; current-reference checks must label it unavailable or stale if re-evaluated. The historical skill-use ledger is not a substitute for retained Session text.
 
 Recognized provider-internal Codex guardian JSONL follows the same content boundary without becoming a LocalBrain Run: LocalBrain retains only its normalized Session metadata, parent relation, and direct Usage Records. Approval-review prompts and decisions, including embedded Session history, remain outside Activity Events, search, question counts, and ordinary Session/Subsession presentation.
+
+### Pure Workflow And Candidate Descriptors
 
 Workflow Episode and direction descriptors are ephemeral derived state. Their
 opaque Episode key hashes only the length-delimited numeric source ID and
@@ -118,6 +126,8 @@ global discovery claims. No candidate, review assertion, organization link,
 cache, or feedback label is persisted by this contract, and no source, remote,
 model, synchronization, or filesystem operation occurs. Its fixtures and
 validation use synthetic data only.
+
+### Explicit Experimental Input And Review
 
 The isolated work-reconstruction experiment is a separate, explicit bounded-text
 boundary; it does not relax the metadata-only Focus or candidate contracts.
@@ -144,17 +154,18 @@ Reruns cannot overwrite it. Task scratch is removed on completion/failure/cancel
 retained results need owner-managed expiry cleanup because no scheduler is added.
 No full database copy or permanent archive is created. Synthetic tests alone
 cannot establish private extraction quality or approve production transition.
-The current [experimental contract](architecture.md#isolated-work-reconstruction-experiment)
-owns exact caps; the [Developer Guide](developer-guide.md#earlier-model-free-comparator)
-owns invocation and file shapes. Human review is limited to one batch of at most
-five consequential ambiguous cases. This public record does not establish whether that
-allowance is already spent: its remaining availability is unknown. Unknown or
-spent review budget cannot be treated as available, and reproduction, replay or
-documentation cleanup creates no new allowance or reset. If unresolved
-expectations or unassessed corrections prevent a verdict, return insufficient
-evidence rather than requesting another review batch.
+The current [experimental contract](work-reconstruction.md#isolated-work-reconstruction-experiment)
+owns exact caps; the [Developer Guide](development/work-reconstruction.md#operations)
+owns invocation and file shapes. The approved experiment's
+[Feature](../../plans/feature/feat-0095-bounded-work-reconstruction-experiment.md#review-allowance-disposition)
+owns its one-time human-review allowance and remaining availability. Unknown or
+spent review budget cannot be treated as available; reproduction, replay and
+documentation cleanup create no allowance or reset. Unresolved expectations or
+unassessed corrections return insufficient evidence rather than a new review batch.
 
-The current [full-Session simulation](architecture.md#full-history-simulation-producer)
+### Simulation And Passive Inspection
+
+The current [full-Session simulation](auto-work.md#full-history-simulation-producer)
 uses exhaustive eligible history rather than that bounded sample, only for its explicit CLI. It accounts for all
 stored Sessions and reads all nonempty user/assistant message content of
 primary/full work Sessions through a read-only SQLite connection. Maintenance,
@@ -202,6 +213,8 @@ Trace coordinates and edge visibility, not evidence. GET never renews expiry, de
 model work, ingests or changes organization. Missing/stale/expired/invalid results
 are explicit, not replaced by the previous sample. No private screenshot, title,
 quote or inventory enters tracked/browser-test evidence; fixtures are synthetic.
+
+### Public Model Assets And Synthetic Trials
 
 The explicit [work-context model installation](installation-and-storage.md#optional-local-models)
 may install the allowlisted pinned public Qwen3-4B and Qwen3-8B assets
@@ -299,6 +312,8 @@ semantic review receipt; it is still synthetic, never a private input path.
 No training, download, private source/DB access, product consumer,
 organization mutation or legacy deletion follows from the trial.
 
+### Sample Inspection And Workflow Runtime
+
 The previous-sample Auto Work viewer is a narrow local consumer of the
 experimental extraction contract. A single `auto-work-preview/current.json`
 under the configured private cache directory retains an owner/version, seven-day
@@ -355,6 +370,8 @@ record once. Focus changes and corrections fetch no second Session or source
 body; evidence links use only destinations already admitted by the Focus
 projection. Tracked route tests, browser fixtures, and screenshots use
 synthetic records only.
+
+### Source Removal And Local Recovery
 
 Removing a source from LocalBrain must be distinguished from deleting the original local file or note. The application must not delete an original source as a side effect of unregistering or purging its index.
 
@@ -416,8 +433,8 @@ No connector may silently promote content from `reference` or `cache` into durab
   process-local, expire, and are never persisted. Provider is never inferred
   from URL content; credentials and tokens are never accepted. Invalid input or
   failed local setup creates no partial rows and triggers no remote lookup. The
-  [Product Model](product.md#atlassian-explorer-add-connections-sync-and-refresh)
-  owns the user-visible flow, and [Project Architecture](architecture.md#external-access-and-synchronization-constraints)
+  [Atlassian product flow](atlassian.md#atlassian-explorer-add-connections-sync-and-refresh)
+  owns the user-visible flow, and [Atlassian access constraints](atlassian.md#external-access-and-synchronization-constraints)
   owns request limits, dispatch, and transaction boundaries.
 - Connected candidate discovery and refresh require explicit submission through an authorized Source Instance. Candidate results and per-target manifests are private runtime evidence, never authorize automatic bulk registration, and must not imply complete company-wide enumeration.
 - Validated remote results may update only their approved remote-state and content owners. They must not overwrite local attention, notes, Topics, Tags, Workstream/Thread relations, or other user-owned organization state.

@@ -194,7 +194,7 @@ use the same resolved public Hub cache as the Qwen embedding and 4B/8B assets,
 with separate model directories and weights. They are not part of the app's
 `local-models` extra or its default search path. The comparison's Python packages
 and private hash manifests have a separate development lifecycle. See the
-[comparison setup](developer-guide.md#natural-language-search-comparisons) for
+[comparison setup](development/search-comparisons.md#operations) for
 explicit installation and offline reproduction; a retained checkpoint alone is
 not a ready-to-run comparison environment.
 

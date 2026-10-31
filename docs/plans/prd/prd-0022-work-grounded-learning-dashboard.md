@@ -226,3 +226,22 @@ pilot defaults. Their adjustment does not imply that learning effectiveness has
 been established. Source-fetch policy, generator model/resource budget and
 semantic quality thresholds must be resolved before activating automated lessons.
 The first implementation can proceed with reviewed local material independently.
+
+## Documentation Index Reconciliation — 2026-10-31
+
+The following preserves the detailed navigation snapshot relocated from the
+Plans Index. Its dated execution/approval facts and evidence limits remain with
+this owning record and its linked artifacts; it is not a new execution grant or
+an update to unrelated acceptance. Current definitions remain in policy owners.
+
+### Boundary And Delivery Context
+
+- [PRD-0022: Work-Grounded Learning Dashboard](prd-0022-work-grounded-learning-dashboard.md)
+  is approved for the reviewed-content pilot and continued implementation.
+  [FEAT-0124](../feature/feat-0124-learning-evidence-contract.md) fixes the evidence,
+  revision and learning-state contract; [FEAT-0125](../feature/feat-0125-reviewed-learning-home.md)
+  delivered the original local intake, attempts, reviews and learning home under
+  [RUN-163](../run/run-20261017-163-reviewed-learning-home.md), now returned to planning
+  for PRD-0023. Its preserved records/contracts are reused; its functional evidence
+  gap is not closed by the successor. Automatic source
+  retrieval/generation and learning benefit remain separate, unproven boundaries.

@@ -1,514 +1,63 @@
 # Plans Index
 
-Use this index for current planning and execution navigation. Each PRD, Feature,
-Spec, Run, and Evaluation document owns its own detailed status and history.
+Use this index for current work, review boundaries and the next owning record.
+PRDs/Features own approval and acceptance; Runs/evaluations/refactor records own
+execution history and evidence limits. [Current contracts](../README.md#feature-contracts-and-development-operations)
+are defined independently of those records.
+Each PRD, Feature, Spec, Run and Evaluation retains its detailed status and history.
 
 ## Start Here
 
-- [Project Roadmap](project/roadmap.md): phase direction, current priorities,
-  validation strategy, and risk controls
-- [Project Backlog](project/backlog.md): unresolved implementation work and
-  decisions ordered by priority
-- [Agent Workflow](../agents/README.md): approval gates and the PRD → Feature →
-  Spec → Run → Evaluation flow
-- [Artifact Catalog](artifact-catalog.md): generated link index for every tracked
-  historical PRD, Feature, Spec, Run, Evaluation, Fix, and heuristic artifact
+- [Roadmap](project/roadmap.md): direction and sequencing.
+- [Backlog](project/backlog.md): unresolved implementation work and decisions ordered by priority.
+- [Agent Workflow](../agents/README.md): approval gates and PRD → Feature → Spec → Run → Evaluation.
+- [Artifact Catalog](artifact-catalog.md): complete generated historical navigation.
 
 ## Open Planning Boundaries
 
-- [PRD-0026: Context Search And Grounded Local Answers](prd/prd-0026-context-search-grounded-local-answers.md)
-  is `approved` for the bounded first delivery: a simple question/answer entry
-  below Sessions Dashboard, jointly reading enabled Local Contexts and received
-  Drive copies through read-only list/search/read tools, without an embedding
-  prerequisite. Shared Hub originals remain separate from app metadata/private
-  execution caches.4B/8B selection and Settings installation are owned by
-  [FEAT-0152](feature/feat-0152-context-search-model-setup.md); transient follow-up
-  conversation, evidence, cancellation and clear-on-leave are owned by
-  [FEAT-0153](feature/feat-0153-context-search-conversation.md), after the passed
-  [source/storage contract](feature/feat-0151-context-search-contract.md).
-  No answer schema, browser persistence, external AI or saved-history design is
-  included. Broader model quality/native recipient evidence remain separate from
-  bounded implementation evaluation; Drive transfer and existing semantic search
-  retain their own contracts.
-  [Run226](run/run-20261029-226-publication-and-native-integration.md) adds the native build, frozen-runtime and current public-candidate closeout; existing installed app/server and live-provider/recipient/quality gates remain separate.
-- [PRD-0025: Google Drive Connection And Incremental Sync](prd/prd-0025-google-drive-connection-and-incremental-sync.md)
-  is `approved`; Features 0145–0150 implement the separate Google Drive tab in Settings. Each installer uses the
-  per-PC Google Cloud CLI with their own Google account, chooses a full Drive folder
-  URL and an upload-folder name, then selects Local Context files/folders to publish
-  and other publisher folders to receive. IDs and optional link keys are parsed
-  internally; there is no separate ID-only input mode or private default URL.
-  A selected folder includes its files, subfolders and structure, subject to LocalBrain
-  app policy: a confirmed shared upload/download per-file cap of 100 MB
-  (100,000,000 bytes), distinct from Google Drive service limits. Oversize files
-  are skipped with reasons while eligible files continue; size rejection preserves
-  prior copies and never means source deletion. No aggregate quota is added now.
-  Actual transferred bytes remain bounded when remote size is missing or changes.
-  Own local files
-  are authoritative for upload and selected remote folders for receiving. Both use
-  incremental additions, updates, renames, moves and deletions after the first copy.
-  Uploaded deletions use Google Trash; confirmed remote deletion/trash removes the
-  corresponding managed local copy. No app recovery archive, trash emptying or
-  retention scheduler is added. Stop/deselect preserves existing copies.
-  Recipients control downloaded files, copies, offline use and personal backups.
-  Automatic execution starts OFF; the user selects targets and enables it.
-  Defaults are 6 hours for upload and 24 hours for each independently adjustable
-  received folder. The seven choices are 15/30 minutes and 1/3/6/12/24 hours.
-  Drive uses wall-clock boundaries in the configured timezone, with long periods
-  anchored at midnight. Two days is excluded. Manual runs and completion do not
-  shift the grid; missed slots wait for the next boundary without immediate catch-up.
-  Existing local Session/Context completion clocks remain unchanged.
-  Disconnect preserves choices, intervals, enabled state, files and last-success
-  state. Reconnect resumes the existing configuration and schedule. It does not
-  erase copies, reset settings, revoke Google consent or wipe tokens merely because
-  the connection failed. Backend exit stops sync; closing a window/browser alone
-  leaves a living backend eligible to run. No daemon/autostart is added.
-  The normal flow is OAuth when needed, real root lookup, then manual or enabled
-  automatic sync. Actual auth/access/operation errors show relevant corrective
-  actions. No synthetic write probe, full-tree permission preflight, app user/org
-  allowlist, public-link block, group-member audit or extra/repeated sharing consent
-  flow is added. Saved destinations and selections plus run/enable direct ongoing
-  sync; Google OAuth requirements and actual Drive permissions still apply.
-  Last connection observation, last sync success and next schedule stay distinct;
-  unknown invitation/role causes are not guessed and recurring errors do not spawn
-  repeated popups. Guides cover this normal flow and Google CLI setup.
-  Duplicate publisher names, model/search integration and Local Contexts screen
-  changes are excluded. Remaining OP-02/05/06/07/08/09/11 are engineering follow-ups:
-  transfer limits, integrity/resume/retry/concurrency, actual API permissions,
-  Google CLI authentication and SDK distribution/real-account validation. Normal settings-based
-  ongoing sync is the selected contract; implementation must align its policy owner.
-  Private examples stay out of development/closeout docs. Features0145–0150 now contain
-  the implemented contract, OAuth/API adapter, Settings, publishing, receiving and
-  guides, with linked Runs/Evaluations. Synthetic/browser/packaged-backend checks
-  pass for their declared scope. The owner-approved gcloud/full-Drive revision removes the Client/project setup
-  prerequisite; Runs215–217 own that revision. [Run218](run/run-20261028-218-drive-settings-connection.md) repairs save/check setup and system-trust HTTPS without altering sync scope. [Run219](run/run-20261028-219-drive-local-publishing.md) reduces small-upload request overhead and adds transient upload progress with71focused tests. [Run220](run/run-20261028-220-drive-local-publishing.md) batches known selected metadata and bounds independent item I/O at4, with87focused tests and a separate live read-only metadata sample. [Run221](run/run-20261028-221-drive-local-publishing.md) repairs missing published copies and skips unchanged staging/checkpoint writes, with 101 focused tests and a bounded user-requested worker audit. [Run222](run/run-20261028-222-drive-local-publishing.md) adds owned connection reuse and an eight-item cap, with 121 focused tests on current/minimum urllib3 versions and separate read-only metadata timings. Full two-account
-  My Drive/Shared Drive operations remain unverified; final acceptance is open.
-- [PRD-0024: Deployed App Docs](prd/prd-0024-deployed-app-docs.md)
-  has delivered English in-app Docs immediately above settings, fixed /help routes,
-  first-use access and offline package content. The owner's latest correction
-  selects six canonical guides, removes reader clutter and keeps necessary recovery
-  guidance in feature pages under [FEAT-0144](feature/feat-0144-canonical-product-docs.md)
-  and [Run 208](run/run-20261027-208-canonical-product-docs.md). Later owner review
-  removed About, retained path-label meaning in Sessions and corrected search and
-  source-removal guidance. The final Docs-only snapshot passes all 1,257 tests,
-  six-guide desktop/narrow browser checks and relocated-wheel guide tests.
-  Earlier [Run 207](run/run-20261026-207-app-docs-reader.md)
-  owns the initial reader/offline/relocated-wheel evidence and five unrelated
-  schema/value inventory failures reproduced without Docs. The PRD remains `in-loop`
-  for human review. [Run226](run/run-20261029-226-publication-and-native-integration.md)
-  now owns the rebuilt native app/ZIP and bounded frozen-runtime checks;
-  Docs human acceptance and recipient execution remain open.
-- [PRD-0023: Code And Command Learning](prd/prd-0023-code-and-command-learning.md)
-  is approved for the source contract and manually reviewed code/command reader.
-  [FEAT-0126](feature/feat-0126-code-learning-contract.md) completed the document
-  contract; [FEAT-0127](feature/feat-0127-code-command-reader.md) implements exact
-  scenes, one daily recommendation and concept depth under the active
-  [RUN-165](run/run-20261017-165-code-command-reader.md). Two private work scenes
-  with six reviewed questions are imported. Initial desktop/narrow presentation
-  is observed; functional transitions remain untested and block formal pass.
-  The [design plan](design/code-and-command-learning-design-plan.md) retains the
-  synthetic storyboard and later automation boundaries. Automatic discovery,
-  official-source updates and Qwen generation are not running.
-- [PRD-0022: Work-Grounded Learning Dashboard](prd/prd-0022-work-grounded-learning-dashboard.md)
-  is approved for the reviewed-content pilot and continued implementation.
-  [FEAT-0124](feature/feat-0124-learning-evidence-contract.md) fixes the evidence,
-  revision and learning-state contract; [FEAT-0125](feature/feat-0125-reviewed-learning-home.md)
-  delivered the original local intake, attempts, reviews and learning home under
-  [RUN-163](run/run-20261017-163-reviewed-learning-home.md), now returned to planning
-  for PRD-0023. Its preserved records/contracts are reused; its functional evidence
-  gap is not closed by the successor. Automatic source
-  retrieval/generation and learning benefit remain separate, unproven boundaries.
-- [PRD-0021: macOS Standalone Test App And Local Settings](prd/prd-0021-macos-standalone-test-app-and-local-settings.md)
-  has completed local implementation and is `blocked` for final native/recipient
-  acceptance of the standalone Mac test app centered on Session browsing/detail,
-  Sessions Dashboard and Local Context, with private local settings, first-run
-  setup and model-optional search. It owns the 13-Feature/21-commit planning estimate,
-  selected Tauri/Apple Silicon direction, source contracts and release boundary.
-  The `2026-10-18` decisions retain Sessions Dashboard and exclude the top-level
-  Dashboard/learning, Workstreams, Auto Work, Atlassian, Insights and Session
-  workflow from the installed edition. Agent homes/session roots, Git projects
-  and document locations are generalized separately. Existing authorized network
-  and agent communication stays; additional network controls and app encryption
-  are outside this increment. Its [decision status](prd/prd-0021-macos-standalone-test-app-and-local-settings.md#decision-status--2026-10-18)
-  records accepted settings/runtime/lifecycle recommendations and reuse of the
-  deprecated keyword search. The later owner correction removes path-display
-  preferences and registered display roots: current-home abbreviation is fixed
-  across the app, with source registration and historical attribution preserved.
-  [C07](feature/feat-0134-general-and-project-settings.md) tracks that correction. The test-stage delivery decision targets quick testing
-  through one `.app` in a ZIP, with ad-hoc signing and app-specific first-launch
-  guidance. Developer ID, notarization and DMG production are deferred; contract
-  details are implemented; transferred-app execution evidence remains pending. The selected
-  delivery flow is local packaged-app validation, internal Drive ZIP sharing,
-  then a teammate's download and execution on a supported Mac; personal data
-  stays on each user's machine. The later 2026-10-20 direction is a company-independent public Mac app under normal macOS security; signing/notarization and recipient evidence remain release follow-up.
-  The owner also selected Session synchronization every 10 minutes in both local
-  browser use and the packaged app, retaining the existing manual sync action.
-  The shared backend owns scheduling while running; local settings persist
-  across restarts, and closing browser tabs does not stop a running server.
-  The [current synchronization contract](../policies/project/desktop-app-and-settings.md#synchronization-presentation)
-  owns lifecycle, settings and non-disruptive refresh. The PRD records the
-  [approved periodic-sync scope](prd/prd-0021-macos-standalone-test-app-and-local-settings.md#periodic-session-synchronization);
-  C13 adds two estimated commits, for 13 candidates and 21 commits overall.
-  The owner subsequently authorized implementation and related tests plus browser/app
-  execution. FEAT-0128–0140 and RUN-166–178 track the delivered code, local build
-  and evidence limits. Keyword-default/explicit-AI search is now the common entry.
-  Current source and documentation closeout after RUN-204 is recorded in the
-  [2026-10-26 verification](evaluation/eval-0139-functional-standalone-test-app.md#session-closeout--2026-10-26).
-  The historical 2026-10-19 [integration receipt](evaluation/eval-0139-functional-standalone-test-app.md)
-  records 1,174/1,178 passing tests (four pre-existing learning inventory failures),
-  browser checks, relocated ZIP/native execution and real model download/search.
-  The [startup repair](fix/fix-0131-desktop-startup-cookie.md) supersedes the original
-  ZIP after reproducing and fixing its first-page authentication/encoding failure;
-  actual WKWebView landing/API checks now pass. Native chooser/shortcut interactions and a teammate's actual Mac execution
-  remain open. Internal Drive upload is external follow-up; they are not implied by the developer Mac checks. The stopped
-  workflow track keeps its existing boundary.
-- [PRD-0020: Local Natural Language Search](prd/prd-0020-local-natural-language-search.md)
-  is `approved` for Korean natural-language retrieval over all eligible Sessions
-  and registered Local Context documents, with hidden document molecularization
-  and a single shared-header natural-language search entry after the owner's
-  approved parallel-input cleanup. The deprecated keyword-search route remains
-  available for existing URLs. It owns the product
-  boundary, public/private resource separation, internal cutoff comparison,
-  and remaining decisions. Validation is limited to the owner's current Apple
-  Silicon Mac. FEAT-0115–0121 completed contracts, implementation, full indexing,
-  model comparisons and independent installation tests. The [comparison report](evaluation/eval-0121-functional-natural-search-local-comparison.md)
-  records the historical Qwen/RRF baseline. [FEAT-0122](feature/feat-0122-natural-search-ranking-precision.md)
-  replaced it with cosine and exact-identifier lexical admission.
-  [FEAT-0123](feature/feat-0123-general-work-search.md) now combines original/focused
-  query views and loads page excerpts after ranking, preserving the model/index/cutoff.
-  Some first results improve, while individual recall/order regressions and no
-  new holdout gain remain explicit. The [search policy](../policies/project/natural-language-search.md)
-  owns current implementation contracts and flows. The baseline can close for
-  local use; further tuning depends on recurring observed burden. [RUN-160](run/run-20261013-160-general-work-search.md#session-closeout--2026-10-13)
-  records subsequent runtime/documentation verification and the authorized
-  public-code/docs closeout; private evidence stays local.
-  [RUN-161](run/run-20261016-161-session-parsing-and-search-closeout.md) records the
-  later parser/conversation, Session ID, dashboard and unified-search closeout.
-- [PRD-0019: Observed Session Chart](prd/prd-0019-observed-session-chart.md)
-  owns the separately approved Sessions List/Chart, whose first phase reached the
-  owner's wrap-up review on 2026-10-12, including the continuous hover-region revision under
-  [FEAT-0114](feature/feat-0114-observed-session-chart.md) and
-  [RUN-151](run/run-20261009-151-session-chart-hover-region.md), retaining held descriptions in
-  [RUN-150](run/run-20261008-150-session-chart-hover-preview.md) and scaled labels in
-  [RUN-149](run/run-20261007-149-session-chart-scaled-branch-labels.md), HEAD handling in
-  [RUN-148](run/run-20261007-148-session-chart-head-reference-tracks.md), the wheel controls in
-  [RUN-147](run/run-20261007-147-session-chart-wheel-controls.md) and the local-DB/end-space
-  [RUN-146](run/run-20261007-146-local-chart-preferences-and-pan-space.md), extending
-  the toolbar/pin [RUN-145](run/run-20261007-145-session-chart-controls-and-pins.md) and
-  the filter/overview [RUN-144](run/run-20261006-144-filtered-session-chart-overview.md) and
-  [RUN-143](run/run-20261006-143-project-branch-session-chart.md). The first
-  [RUN-141](run/run-20261006-141-observed-session-chart.md) and irregular-field
-  [RUN-142](run/run-20261006-142-stable-session-constellation.md) retain historical
-  evidence. Chart uses recorded time, name-sorted launch-folder rows, stored branch
-  guides from first observation. Exact HEAD remains original metadata but does
-  not create a branch; HEAD/missing-only folders use one line without an empty
-  baseline. Named-branch folders retain one unassigned HEAD/missing track.
-  Chart also offers Project checkbox visibility, compact tracks,
-  whole-diagram fit and resisted date ends with balanced adaptive space. Project
-  and branch names stay present and scale with rows; no zoom cutoff hides branches.
-  Existing focus restores reading scale from tiny whole-fit names. Node hover/focus
-  opens a temporary description maintained across the node/card/passage, with
-  local card reading/scrolling and native exit grace; node activation holds it and repeat/blank activation
-  releases it. Other hover keeps the held description/activity intact, with native
-  emphasis and no hover-driven camera, persistence or activity change. Shift-wheel
-  moves horizontally from either input axis; Cmd/Ctrl+Shift-wheel changes time spacing
-  without changing vertical projection or position. Project
-  choices persist per scope in the private LocalBrain DB across browsers using it,
-  with valid browser-choice migration and contextual save retry. The simplified
-  toolbar and static native pin cues
-  preserve exact-member selection. It reads no
-  actual Git ancestry and infers no work relationship. List, Session Workflow Focus
-  and the stopped Auto Work track retain their scope. The owner-approved seven
-  portable UI/UX criteria are published in ai-assets
-  [commit 3dfcc36](https://github.com/chochita0311/ai-assets/commit/3dfcc36bd91e6f2c2461fe91d8f387dfca2ca17b).
-  The requested LocalBrain documentation and verification closeout is complete.
-  Physical wheel-gesture evidence remains unverified from R7; any later relationship
-  proposal requires its own approval.
-- The workflow-map track is paused at the owner's request after the continuous-map
-  inspection. The
-  [design-plan handoff](design/workflow-map-design-plan.md#handoff-to-next-track)
-  owns its resume boundary. The separately approved Sessions Dashboard → Insights
-  track has since implemented a skill ranking and analysis-only Run UI. The
-  ranking's [FEAT-0105](feature/feat-0105-skill-observation-retention.md) and
-  [FEAT-0106](feature/feat-0106-first-session-insights-view.md) passed their
-  formal evaluations under [PRD-0005](prd/prd-0005-workflow-and-skill-intelligence.md).
-  [FEAT-0111](feature/feat-0111-automatic-skill-load-observation.md) extends the
-  ranking with automatic skill-file reads and grouping within an identified request.
-  [FEAT-0112](feature/feat-0112-session-skill-use-estimate.md) records the prior
-  application-declaration estimate. The owner-approved
-  [FEAT-0113](feature/feat-0113-skill-reference-session-count.md) replaces it with
-  use/reference Session counts, at most one per skill per Session, without
-  language-based application classification.
-  [PRD-0018](prd/prd-0018-personal-ai-use-improvement-insights.md) owns the
-  remaining analyzer decisions. FEAT-0107/0108 foundations and the executable
-  FEAT-0110 first increment are delivered. Owner-started question Runs now
-  produced both no-finding and finding reports. The
-  [first-increment closeout](feature/feat-0110-executable-personal-insight-runs.md#first-increment-closeout-review)
-  records the initial findings; [RUN-137](run/run-20261002-137-insight-closeout-corrections.md) closes the cost-display, shared-layout and stale-test issues and adds missing Sol pricing. Actual intervention benefit and later review-state features remain open.
-- Inspection increment: owner review corrected the freeform constellation to
-  [FEAT-0104 temporal affinity flow](feature/feat-0104-temporal-affinity-flow.md)
-  (RUN-117): one horizontally scrollable time canvas, activity gaps, curved
-  similarity strands and period evidence. Only the text list paginates; its
-  pages retain graph connections and camera. The
-  [relation-first inspection track](design/workflow-map-design-plan.md#relation-first-inspection-track)
-  separates full-history affinity exploration from detailed extraction and a
-  narrowly evaluated relationship layer. The owner authorized continuous UI
-  delivery; simulation replay passed RUN-113, followed by
-  [FEAT-0101](feature/feat-0101-full-history-affinity-inspection-contract.md)
-  (passed read contract, RUN-114) and
-  [FEAT-0102](feature/feat-0102-full-history-affinity-map.md)
-  (historical technical PASS, RUN-115; freeform UI superseded by FEAT-0104).
-  The actual local screen supports group →
-  subgroup → Session → exact evidence and return without routine classification.
-  [FEAT-0103](feature/feat-0103-direct-context-work-relation-trial.md)
-  remains an independent draft, not executed or required for the map. Similarity
-  is not verified work identity; no 60-Session cap, candidate inbox, legacy change
-  or production-replacement quality claim is introduced.
-- Current quality-blocked boundary:
-  [FEAT-0100: Source Claim Extraction And Binding Trial](feature/feat-0100-source-claim-extraction-and-binding-trial.md)
-  (`blocked`, foundation), completed its single trial under
-  [RUN-112](run/run-20260923-112-source-claim-extraction-and-binding-trial.md).
-  Model-aware provenance, staged extraction/binding and deterministic projection
-  are implemented; contract and zero-generation replay pass. All 28 extractions
-  are protocol-rejected, while reference-conditioned binding fully passes 3/28;
-  no end-to-end call becomes eligible. Functional quality fails, leaving holdout
-  unconsumed and private/UI processing excluded from that trial. Its subsequent
-  output/evidence-interface review produced the separate boundaries above, not another
-  automatic model run or owner Session-classification queue. FEAT-0100's blocked
-  outcome is unchanged by the narrower affinity-inspection proposal.
-- Preceding source-state foundation:
-  [FEAT-0099: Source Claims And Work State Projection](feature/feat-0099-source-claims-and-work-state-projection.md)
-  (`passed`, foundation), implemented under
-  [RUN-111](run/run-20260923-111-source-claims-and-work-state-projection.md).
-  Its pure synthetic-supplied projector separates historical claims from current
-  reported state without using the user-confirmed correction ledger. Fifty tests
-  and full 900-test regression pass (one optional skip). The subsequent adapter
-  review produced the separate FEAT-0100 above, subsequently approved on its own
-  boundary rather than authorized by the pure foundation's PASS.
-  FEAT-0098 remains admission-blocked; no private/UI execution or routine Session
-  classification is implied.
-- [PRD-0017: Source-Backed Workflow Map And Workstream Lenses](prd/prd-0017-source-backed-workflow-map-and-workstream-lenses.md)
-  is `approved` for bounded automatic-reconstruction experiment planning after
-  the owner accepted limited local-text analysis and bounded validation. The
-  direction replaces manual Workstream/Thread maintenance with minimum routine
-  confirmation. Its
-  [design plan](design/workflow-map-design-plan.md) records the Quartz/Obsidian
-  reference boundary and the revised sequence: whole-history affinity inspection
-  follows its own data readiness, relation quality is separately assessed,
-  production replacement follows quality/identity evidence, then controlled
-  legacy transition with finite
-  retention and obsolete-storage retirement. The first dependency-ordered
-  Session Focus chain remains passed:
-  - [FEAT-0085: Workflow Episode And Direction Contract](feature/feat-0085-workflow-episode-and-direction-contract.md)
-    (`passed`; Episode and direction foundation)
-  - [FEAT-0086: Deterministic Cross-Source Workflow Projection](feature/feat-0086-deterministic-cross-source-workflow-projection.md)
-    (`passed`; deterministic cross-source projection)
-  - [FEAT-0087: Session Workflow Focus Map](feature/feat-0087-session-workflow-focus-map.md)
-    (`passed`; separate read-only Session Focus map)
-  - [FEAT-0088: Workflow Assertion And Correction Contract](feature/feat-0088-workflow-assertion-and-correction-contract.md)
-    (`passed`; append-only correction ledger and Focus overlay)
-  - [FEAT-0089: Workflow Boundary Corrections](feature/feat-0089-workflow-boundary-corrections.md)
-    (`passed`; contextual Focus correction controls)
-
-  [FEAT-0090](feature/feat-0090-workstream-candidate-discovery-contract.md)
-  retains a technical PASS for pure reference-pair normalization only. Its
-  top-level grouping and mandatory review/promotion follow-up were rejected as
-  the replacement product. [FEAT-0091–0094](prd/prd-0017-source-backed-workflow-map-and-workstream-lenses.md#superseded-candidate-feature-chain)
-  are superseded proposals, not the next execution chain.
-
-  [FEAT-0095: Bounded Work Reconstruction Experiment](feature/feat-0095-bounded-work-reconstruction-experiment.md)
-  is approved and implemented under [RUN-20260915-101](run/run-20260915-101-bounded-work-reconstruction-experiment.md),
-  with synthetic technical evidence for its minimal non-model extractor,
-  metadata/text comparison, scoring, and read-only local command. The Feature
-  remains `blocked` on independent quality evidence. The owner selected current
-  LocalBrain data through now; bounded preparation and an unassessed private
-  execution check passed. That earlier trial used no model, UI replacement or
-  migration; the newer full-population model run is tracked separately below.
-  [FEAT-0096: Auto Work Inspection](feature/feat-0096-auto-work-inspection.md)
-  delivered the sidebar entry and now remains at `/auto-work?mode=sample`, showing actual
-  unassessed output and source evidence under an explicit pre-quality inspection
-  exception. [RUN-20260916-102](run/run-20260916-102-auto-work-inspection.md)
-  owns its UI/transport verification and local handoff; it does not pass FEAT-0095.
-  Global Atlas rendering and terrain remain separate later choices.
-- [PRD-0005: Workflow And Skill Intelligence](prd/prd-0005-workflow-and-skill-intelligence.md)
-  remains `approved` for later workflow-intelligence proposals; its bounded
-  first skill-ranking increment passed FEAT-0105/0106. The separate improvement
-  analyzer is owned by PRD-0018.
-- [PRD-0010: Atlassian UI And Interaction Reconciliation](prd/prd-0010-atlassian-ui-and-interaction-reconciliation.md)
-  is an approved incremental boundary that remains open for later owner
-  observations. Its current child Features are passed:
-  - [FEAT-0062: Atlassian Local Site And Access-Binding Contract](feature/feat-0062-atlassian-local-site-and-access-binding-contract.md)
-  - [FEAT-0063: Atlassian Local-Only Add And Access Setup](feature/feat-0063-atlassian-local-only-add-and-access-setup.md)
+| Boundary | Current position and next review |
+| --- | --- |
+| [Context Search](prd/prd-0026-context-search-grounded-local-answers.md) | Approved bounded delivery and native integration are implemented; broader model quality, native recipient and release evidence remain separate. |
+| [Google Drive](prd/prd-0025-google-drive-connection-and-incremental-sync.md) | Approved Features 0145–0150 and gcloud revision are implemented; final two-account My Drive/Shared Drive acceptance remains open. |
+| [In-app Docs](prd/prd-0024-deployed-app-docs.md) | Six English guides are delivered; PRD remains in-loop for human acceptance. Native recipient execution is separate. |
+| [Code/command learning](prd/prd-0023-code-and-command-learning.md) | Reviewed manual reader is implemented; required functional transitions remain untested and block formal pass. Automatic discovery, official updates and generation are not running. |
+| [Work-grounded learning](prd/prd-0022-work-grounded-learning-dashboard.md) | Pilot returned to planning for the code/command successor; preserved contracts are reused and the earlier functional gap remains open. Learning benefit is unproven. |
+| [Standalone test app](prd/prd-0021-macos-standalone-test-app-and-local-settings.md) | Local implementation is complete; final native/recipient acceptance remains blocked. Signed/notarized public release is separate from the ad-hoc test ZIP. |
+| [Natural-language search](prd/prd-0020-local-natural-language-search.md) | Approved local baseline is implemented; additional tuning depends on observed burden. Quality evidence retains its recorded source/hardware/holdout limits. |
+| [Observed Sessions Chart](prd/prd-0019-observed-session-chart.md) | First-phase documentation/verification closeout is complete; physical wheel-gesture evidence remains unverified. Relationship proposals need separate approval. |
+| [Workflow reconstruction and map](prd/prd-0017-source-backed-workflow-map-and-workstream-lenses.md) | Owner-paused after continuous-map inspection. [Design handoff](design/workflow-map-design-plan.md#handoff-to-next-track) owns resumption; failed extraction trials are not queued to restart. |
+| [Workflow/skill intelligence](prd/prd-0005-workflow-and-skill-intelligence.md) | Approved for later proposals; bounded skill ranking passed. The analyzer has its own PRD below. |
+| [Personal improvement](prd/prd-0018-personal-ai-use-improvement-insights.md) | First analysis-only Run increment and corrections are delivered; actual intervention benefit and later review-state features remain open. [Backlog](project/backlog.md#personal-improvement-insights) owns follow-up. |
+| [Atlassian UI reconciliation](prd/prd-0010-atlassian-ui-and-interaction-reconciliation.md) | Current child Features are passed; the approved incremental boundary remains open for later owner observations. |
 
 <a id="active-execution"></a>
 
-## Execution State And Trial History
+## Execution State
 
-The workflow-map track has no active calculation or implementation Run; its
-completed boundary is [RUN-117](run/run-20260924-117-continuous-affinity-canvas.md).
-The separate Insights track passed [RUN-118](run/run-20260927-118-personal-insight-evidence-manifest.md),
-[RUN-119](run/run-20260928-119-insights-analyzer-screen-preview.md),
-[RUN-120](run/run-20260928-120-executable-personal-insight-runs.md), and
-[RUN-121](run/run-20260928-121-personal-improvement-guide-and-finding-contract.md),
-and [RUN-122](run/run-20260928-122-guided-personal-insight-result-integration.md)
-within their recorded evidence limits. RUN-120 did not invoke a model; RUN-121
-completed the detailed guide, and RUN-122 connected it to new executable Runs
-with synthetic and browser checks. The records below preserve
-earlier outcomes and unresolved admission gates, not a queue to resume
-automatically. Historical test counts apply to their named Runs.
+The workflow-map track has no active calculation or implementation Run. Its
+completed inspection boundary is [Run117](run/run-20260924-117-continuous-affinity-canvas.md).
+The separate Insights track retains its delivered analysis-only behavior and
+evidence limits under [PRD-0018](prd/prd-0018-personal-ai-use-improvement-insights.md).
 
-The first skill-ranking increment passed [RUN-123](run/run-20260928-123-skill-observation-retention.md)
-and [RUN-124](run/run-20260928-124-first-session-insights-view.md) using
-synthetic ingestion and browser evidence. These checks did not execute the
-personal-improvement model.
-
-The automatic skill-load extension passed [RUN-138](run/run-20261002-138-automatic-skill-load-observation.md)
-with source-backed read admission, request grouping, retained-evidence migration,
-local backfill and active-browser checks. Observed loading remains distinct from
-actual application or benefit.
-
-The owner then requested a practical estimate of automatic use without new
-activation instrumentation. [RUN-139](run/run-20261003-139-session-skill-use-estimate.md)
-records the prior [estimated-use correction](feature/feat-0112-session-skill-use-estimate.md).
-The owner then approved [RUN-140](run/run-20261004-140-skill-reference-session-count.md)
-to count use/reference Sessions without application-phrase matching.
-
-The analyzer track's corrections cover usage accounting (RUN-125), selection and
-evidence requests (RUN-128/129), concrete application handoffs (RUN-134), live
-CLI startup (RUN-135), and existing-proposal follow-through (RUN-136). Two
-owner-started question Runs now supply live no-finding/finding reports. The
-[closeout review](feature/feat-0110-executable-personal-insight-runs.md#first-increment-closeout-review)
-is followed by [RUN-137](run/run-20261002-137-insight-closeout-corrections.md), which resolves the reported cost-display/layout/test issues and missing GPT-6.1 Sol pricing. The [follow-up backlog](project/backlog.md#personal-improvement-insights) owns remaining work; older Runs retain their original evidence limits.
-
-- [RUN-20260923-112](run/run-20260923-112-source-claim-extraction-and-binding-trial.md):
-  `blocked` on quality after the completed source-claim adapter and one frozen
-  installed-8B synthetic trial. Contract/replay pass; extraction is rejected 28/28,
-  conditioned binding passes 3/28, all end-to-end calls are prerequisite-skipped.
-  No active calculation, holdout, private corpus or product consumer.
-- [RUN-20260923-111](run/run-20260923-111-source-claims-and-work-state-projection.md):
-  `passed`, pure source-claim/current-state contract with scoped completion,
-  partial order, correction/retraction, cutoff and revision/replay coverage.
-  No model, private source, new persistence or product consumer was introduced.
-- [RUN-20260923-110](run/run-20260923-110-work-role-formulation-comparison.md):
-  `passed` for the matched diagnostic and zero-generation replay, not admission.
-  Direct role sets pass 15/32 order conditions versus 8/32, but only 6/16 contexts
-  are correct in both orders; omissions and completed-work-as-pending remain.
-  Relation controls pass 5/6 with a false continuation. No holdout/private/UI run.
-- [RUN-20260923-109](run/run-20260923-109-evidence-first-work-context.md):
-  `blocked` after the completed evidence-first 8B candidate. Original development
-  passes 3/4; new composition passes 4/12, with role confusion and unsupported
-  relationships surviving same-model audits. Contract and zero-generation replay
-  pass, but both semantic gates fail. No holdout, private processing or UI change.
-- [RUN-20260923-108](run/run-20260923-108-work-context-protocol-diagnostic.md):
-  `passed` for the owner-approved fixed-model diagnostic: twelve synthetic cases,
-  all 288 controlled conditions and zero-generation replay. Order/code sensitivity
-  and unsupported continuity are separate findings; changing answer format alone
-  does not grant FEAT-0098 admission. No holdout/private run or model download.
-- [RUN-20260923-107](run/run-20260923-107-source-selected-work-extraction.md):
-  `blocked` after the completed source-choice extraction redesign. Classified
-  variants pass 3/4 and 2/4 content cases; goal-first selection passes 3/4 but
-  fragments mixed work and misassigns fields before failing anchor preservation.
-  Format constraints do not establish semantic quality. No holdout/private run.
-- [RUN-20260923-106](run/run-20260923-106-work-context-model-size-comparison.md):
-  `blocked` after the completed Qwen3-8B fixed-condition comparison. Installation
-  passed (16.4 GB additional); thinking passes 1/4 and staging 2/4 development
-  cases. Time, shape, grounding and abstention failures prevent admission.
-  Holdout/private execution remain untouched; the 4B baseline is retained.
-- [RUN-20260923-105](run/run-20260923-105-work-context-strategy-comparison.md):
-  `blocked` after the completed same-model reasoning/staged comparison. A fused
-  GPU numerical failure was bypassed, but the corrected candidates still fail
-  admission (3/4 and 2/4 automated cases, plus field-level semantic errors).
-  Holdout and private execution remain unperformed; no new model or UI changes.
-- [RUN-20260923-104](run/run-20260923-104-local-work-context-inference.md):
-  pinned Qwen3-4B installation and offline work-context/continuity trial completed.
-  `blocked`: the final development configuration passes 2/4 cases, with goal
-  omission and incomplete grounding. Holdout/private execution did not run;
-  a revised extraction/model comparison is needed before full-history use.
-- [RUN-20260922-103](run/run-20260922-103-replayable-session-simulation.md):
-  whole-population affinity backfill completed; the current DB has subsequent
-  additions. Returned to planning following owner review of affinity versus
-  actual workflow understanding. Its historical return is preserved; RUN-113
-  subsequently closed the real replay gap with zero-encoding unchanged/grouping
-  replays, and the passed affinity consumer now reads its derived report.
-
-- [RUN-20260916-102](run/run-20260916-102-auto-work-inspection.md): Auto Work
-  inspection UI implemented and verified; available for post-run owner review.
-
-- [RUN-20260915-101](run/run-20260915-101-bounded-work-reconstruction-experiment.md)
-  is `blocked` after synthetic verification and an unassessed current-data
-  execution check. Its Contract and
-  Functional technical results have partial Feature coverage; real local
-  extraction viability is unverified. Its model-free results remain a comparator.
-- [RUN-20260915-100](run/run-20260915-100-workstream-candidate-discovery-contract.md)
-  is `returned-to-planning` after owner review. Its recorded 33 new tests and
-  584-test regression remain evidence for the isolated pair contract, not
-  automatic work reconstruction or acceptance of its superseded consumers.
-- The owner-requested
-  [research review](research/workflow-reconstruction-method-review.md) is complete.
-  The owner subsequently approved its controlled protocol/semantic diagnostic
-  under RUN-108, then the evidence-first candidate under RUN-109. Both are complete;
-  the latter fails semantic admission. The owner then approved the matched
-  direct-role/property-judgment comparison under RUN-110, not more same-model approval layers.
-  That diagnostic is complete without an admitted candidate. The subsequent
-  owner-approved source-claim/current-state review led to FEAT-0099 above, now
-  approved and implemented under RUN-111. Its pure synthetic contract passes;
-  no further prompt variant or private execution has been started.
-  Existing expectations and the unconsumed model holdout are preserved; no private
-  backfill or revised extraction admission is established.
-  Neither full processing nor technical tests establish semantic usefulness or
-  authorize production ownership, replacement UI or legacy cleanup.
+| Unresolved experiment boundary | Route |
+| --- | --- |
+| [Source-claim extraction/binding](feature/feat-0100-source-claim-extraction-and-binding-trial.md) | Quality-blocked after one frozen trial; no holdout/private/UI processing or automatic new trial. [Run112](run/run-20260923-112-source-claim-extraction-and-binding-trial.md) owns the outcome and consumed allowance. |
+| [Quoted work-context inference](feature/feat-0098-local-work-context-inference.md) | Admission-blocked; diagnostics and zero-generation replay do not approve an extractor. [PRD-0017](prd/prd-0017-source-backed-workflow-map-and-workstream-lenses.md) owns the trial lineage. |
+| [Model-free reconstruction](feature/feat-0095-bounded-work-reconstruction-experiment.md) | Blocked on independent quality evidence; unassessed execution is not a viability pass. Its one-time review allowance is not renewed by replay or documentation work. |
 
 ## Active Refactoring
 
-No active refactoring track. Completed work and its remaining validation limits
-are recorded below.
+No active code-refactoring track. Completed tracks retain their own remaining
+parity, release and feature-removal limits.
 
 ## Completed Refactoring
 
-- [REFACTOR-0003: Session-Centered Package Boundaries](refactoring/refactor-0003-session-centered-package-boundaries.md)
-  is complete after the 2026-10-31 cache-boundary correction and subagent re-review.
-  Foundation/model, feature packages, HTTP/query/resource ownership, persistence
-  internals and optional-feature assembly are separated; the package root contains
-  four Python entry files. REFACTOR-0004/0005 own the intervening approved
-  Session-material and shared-resource semantic changes.
-  The [completion review](refactoring/logs/2026-10-31_refactor-0003_completion-review.md)
-  reopened a Settings cache-clear failure when Auto Work was omitted but its old
-  cache remained. The [fix and re-review](refactoring/logs/2026-10-31_refactor-0003_feature-cache-boundary.md)
-  close it with feature-owned cache handlers, retained-state omission checks,
-  default CLI comparison, installed-wheel checks, actual frozen-backend
-  start/restart and browser validation. Its [session closeout](refactoring/logs/2026-10-31_refactor-0003_feature-cache-boundary.md#follow-up--session-closeout)
-  reconciles the three tracks after independent ownership/meaning reviews and
-  records a final 1,478-test pass after generated metadata corrections. Earlier
-  [assembly evidence](refactoring/logs/2026-10-31_refactor-0003_feature-assembly.md)
-  retains the baseline response comparisons. Google Drive transport checks remain
-  deferred by the user and strict parity stays provisional. Actual feature/table
-  removal, native app installation and a merge decision remain separate.
-
-- [REFACTOR-0005: Shared Resource Ownership](refactoring/refactor-0005-shared-resource-ownership.md)
-  gives Session evidence a shared URL/path identity, binds existing Documents and
-  bookmarks without losing manual metadata, and preserves external bodies/notes
-  independently of optional Atlassian Items. Core ingestion and document reads
-  use optional adapters supplied by app assembly.
-  [Validation](refactoring/logs/2026-10-30_refactor-0005_shared-resource-ownership.md)
-  records 1,463 passing tests, preserving/repeated/failed migration checks,
-  optional-package/table absence, synthetic app lifecycle/routes, responsive
-  rendering and installed-wheel verification. Eleven Drive loopback tests remain
-  deferred. Its follow-up operational migration and restart preservation checks also passed;
-  the latest structural review did not rerun that live operation. Whole-feature removal
-  remains a separate boundary.
-
-- [REFACTOR-0004: Direct Session Materials](refactoring/refactor-0004-direct-session-materials.md)
-  removes Session detail's linked-work strip and indirect organization materials while
-  preserving direct references and stored Workstream/Thread relations.
-  [Validation](refactoring/logs/2026-10-30_refactor-0004_direct-session-materials.md)
-  records 1,451 passing tests, 11 deferred Drive loopback tests, and desktop/compact
-  browser checks. Its shared-resource/FK handoff is implemented by REFACTOR-0005.
-- [REFACTOR-0002: Ingestion Layers And Session Revisions](refactoring/refactor-0002-ingestion-layers-and-session-revisions.md)
-  delivered numeric Session freshness, newer-result refusal and provider/evidence/
-  synchronization boundaries. The independent parity audit found P2-1 in DDL
-  recognition; its SQL token, quote/comment/BOM correction now passes 1,444 tests,
-  exact differential replay, installed-wheel/native checks and live initialization
-  preservation. Older app copies require rebuild/replacement; recipient and
-  native-browser acceptance retain their separate scopes.
+| Track | Result and retained boundary |
+| --- | --- |
+| [Session-centered packages](refactoring/refactor-0003-session-centered-package-boundaries.md) | Completed after the cache-boundary correction; strict parity remains provisional and Drive transport/native installation/whole-feature removal retain separate scopes. |
+| [Shared resources](refactoring/refactor-0005-shared-resource-ownership.md) | Completed shared identity/bindings and operational migration/restart preservation; whole-feature removal and deferred Drive checks remain separate. |
+| [Direct Session materials](refactoring/refactor-0004-direct-session-materials.md) | Completed direct-only detail behavior; Workstream/Thread data is preserved. |
+| [Ingestion layers/revisions](refactoring/refactor-0002-ingestion-layers-and-session-revisions.md) | Completed revision admission and DDL correction; older app copies require rebuild/replacement and recipient/native-browser acceptance remain separate. |
 
 ## Recently Completed Chains
 
@@ -548,11 +97,14 @@ complete Feature, Spec, Run, Evaluation, and Fix lineage.
 
 ## Maintenance Rule
 
-- Keep this index limited to open boundaries, active execution, and recent
-  completed chains; do not turn it into a registry of every historical artifact.
-- Update this index when one of those navigation states changes, but keep the
-  owning artifact's metadata and continuity notes as the detailed truth.
-- Regenerate the complete historical catalog with
-  `uv run python scripts/build-plan-artifact-catalog.py build` whenever a
-  catalog-managed PRD, Feature, Spec, Run, Evaluation, Fix, or heuristic artifact
-  is added, removed, or renamed.
+Keep this index to current position, remaining judgment and next owner. Put
+attempt chronology, test counts and detailed delivery changes in the relevant
+PRD, Feature, Run, evaluation or refactor record. Those records retain the
+detailed snapshots formerly repeated here.
+Update this index when open boundaries, active execution or recent completion
+changes; keep detailed metadata and continuity with the owning artifacts.
+
+Regenerate [Artifact Catalog](artifact-catalog.md) with
+`uv run python scripts/build-plan-artifact-catalog.py build` when a catalog-managed
+PRD, Feature, Spec, Run, Evaluation, Fix or heuristic artifact is added, removed
+or renamed. Current contract-owner moves do not alter historical artifact IDs.

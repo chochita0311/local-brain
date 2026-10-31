@@ -18,6 +18,11 @@ The original request covered PRD authoring only. The subsequent instruction auth
 
 ## Source Set
 
+Source links below that use a fixed Git revision preserve the referenced
+pre-refactor implementation as historical evidence. Use the
+[current contract map](../../policies/project/product.md#feature-contracts)
+for present implementation ownership; the old source layout is not a live path.
+
 | Source | Adopted scope and limits |
 | --- | --- |
 | User request and follow-up choices, `2026-10-26` | Cover only the distributed app, keep the content concise and proportionate, explain settings and main screens, and place Docs above Settings. Follow-up choices confirmed **reading inside the app** and **English**. |
@@ -25,7 +30,7 @@ The original request covered PRD authoring only. The subsequent instruction auth
 | [Quartz Getting Started](https://quartz.jzhao.xyz/getting-started/) | Reference its concise introduction and links to the next relevant topics. This does not require adopting Quartz or building a documentation website. |
 | [Desktop App And Common Local Settings](../../policies/project/desktop-app-and-settings.md) | Distributed-app boundaries, current settings categories and application timing, and source, synchronization, search, and recovery contracts. |
 | [Existing App Guide](../../policies/project/standalone-test-app-guide.md) | User-facing evidence for first launch, setup, quitting, app replacement, and data storage. Do not transfer internal test distribution, build instructions, or development validation records into Docs. |
-| [Shared App Shell](../../../src/localbrain/templates/base.html), [Settings Dialog](../../../src/localbrain/templates/_settings.html), [Packaged Edition Boundary](../../../src/localbrain/edition.py) | Draft-time navigation and exposed functionality: before this increment, the shell and packaged-route allowlist had no product Docs entry. The implemented state is owned by the delivery contract and Run 207. |
+| [Shared App Shell](https://github.com/chochita0311/local-brain/blob/6e38b58dad017bf1d176a3cf4edf0099e8619fd9/src/localbrain/templates/base.html), [Settings Dialog](https://github.com/chochita0311/local-brain/blob/6e38b58dad017bf1d176a3cf4edf0099e8619fd9/src/localbrain/templates/_settings.html), [Packaged Edition Boundary](https://github.com/chochita0311/local-brain/blob/6e38b58dad017bf1d176a3cf4edf0099e8619fd9/src/localbrain/edition.py) | Draft-time navigation and exposed functionality: before this increment, the shell and packaged-route allowlist had no product Docs entry. The implemented state is owned by the delivery contract and Run 207. |
 | [Sessions Dashboard](../../../src/localbrain/templates/sessions_dashboard.html), [Sessions](../../../src/localbrain/templates/sessions.html), [Session Detail](../../../src/localbrain/templates/session.html), [Local Contexts](../../../src/localbrain/templates/context.html), [Search](../../../src/localbrain/templates/natural-search.html) | Current screen names and user flows. Inspecting the development working tree does not establish that a particular distributed binary has been validated. |
 | [Usage Contract](../../policies/project/data-model/usage-and-cost-records.md) | Usage and estimated-cost limitations and the meaning of Project aggregation. |
 | [Design Constitution](../../policies/design/design-constitution.md), [Design Evaluation](../../policies/design/design-evaluation.md), [Interaction Evaluation](../../policies/experience/interaction-evaluation.md) | Consistency with the existing shell and reading surfaces, plus accessibility, navigation, and responsive review criteria. |
@@ -185,3 +190,28 @@ The [correction evaluation](../evaluation/eval-0144-canonical-product-docs.md) p
 - Search now distinguishes automatic preparation after a successful model download from manual preparation/retry for an installed model. It explicitly excludes subsessions from search and links to reading them through their parent in Sessions, preserving all existing eligibility and source exclusions.
 - Settings and Local Contexts now state unregister confirmation, collection/search/browsing exclusion and search-entry cleanup, while retaining saved source details, imported documents, originals/Notes and re-registration. Internal cleanup for excluded integrations remains in its behavior owner rather than public app guidance.
 - [Run 208](../run/run-20261027-208-canonical-product-docs.md) owns closeout checks and publication scope; the [evaluation](../evaluation/eval-0144-canonical-product-docs.md) distinguishes original evidence, follow-up corrections and final verification. No separate session log is created. Unrelated learning/schema work remains outside this session's commit.
+
+## Documentation Index Reconciliation — 2026-10-31
+
+The following preserves the detailed navigation snapshot relocated from the
+Plans Index. Its dated execution/approval facts and evidence limits remain with
+this owning record and its linked artifacts; it is not a new execution grant or
+an update to unrelated acceptance. Current definitions remain in policy owners.
+
+### Boundary And Delivery Context
+
+- [PRD-0024: Deployed App Docs](prd-0024-deployed-app-docs.md)
+  has delivered English in-app Docs immediately above settings, fixed /help routes,
+  first-use access and offline package content. The owner's latest correction
+  selects six canonical guides, removes reader clutter and keeps necessary recovery
+  guidance in feature pages under [FEAT-0144](../feature/feat-0144-canonical-product-docs.md)
+  and [Run 208](../run/run-20261027-208-canonical-product-docs.md). Later owner review
+  removed About, retained path-label meaning in Sessions and corrected search and
+  source-removal guidance. The final Docs-only snapshot passes all 1,257 tests,
+  six-guide desktop/narrow browser checks and relocated-wheel guide tests.
+  Earlier [Run 207](../run/run-20261026-207-app-docs-reader.md)
+  owns the initial reader/offline/relocated-wheel evidence and five unrelated
+  schema/value inventory failures reproduced without Docs. The PRD remains `in-loop`
+  for human review. [Run226](../run/run-20261029-226-publication-and-native-integration.md)
+  now owns the rebuilt native app/ZIP and bounded frozen-runtime checks;
+  Docs human acceptance and recipient execution remain open.

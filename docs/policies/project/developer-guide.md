@@ -70,10 +70,10 @@ Ordinary app usage belongs to the [bundled user guides](app-documentation.md).
 | --- | --- |
 | Reviewed learning | Dashboard and `/learning`; [Work-Grounded Learning](work-grounded-learning.md) owns reviewed imports, attempts and intervals, and [Code And Command Learning](code-command-learning.md) owns exact scenes and question depth. |
 | Work organization | Workstreams and Threads; [Product Model](product.md#workstream-centered-organization) owns user-created organization, linked resources, checkpoints and reversible Suggestions. [Maintenance Task Runner](../operations/claude-task-runner.md) owns Claude-backed organization, checkpoint and priority tasks. |
-| Atlassian references | Atlassian; [Explorer contract](product.md#atlassian-explorer-add-connections-sync-and-refresh) distinguishes local Browse, Add and evidence Sync from Connections and remote Refresh. |
+| Atlassian references | Atlassian; [Explorer contract](atlassian.md#atlassian-explorer-add-connections-sync-and-refresh) distinguishes local Browse, Add and evidence Sync from Connections and remote Refresh. |
 | Personal improvement | Sessions Dashboard → Insights; [Personal Improvement Analysis](#personal-improvement-analysis) covers configuration and explicit analysis Runs. |
-| Affinity inspection | `/auto-work`; [Auto Work Inspection](product.md#auto-work-inspection) owns the observation-only map and separate earlier sample. |
-| Session workflow | Session detail → `작업 흐름`; [Episode and direction](product.md#workflow-episode-and-direction) and [correction](product.md#workflow-assertion-and-correction) contracts own deterministic lineage and reversible user assertions. |
+| Affinity inspection | `/auto-work`; [Auto Work Inspection](auto-work.md#auto-work-inspection) owns the observation-only map and separate earlier sample. |
+| Session workflow | Session detail → `작업 흐름`; [Episode and direction](workflow.md#workflow-episode-and-direction) and [correction](workflow.md#workflow-assertion-and-correction) contracts own deterministic lineage and reversible user assertions. |
 | Schema reference | System → Schema; [Schema Presentation](schema-presentation.md) owns read-only access to the packaged data model, subject ERDs and table contracts. |
 
 ### Reviewed Learning
@@ -120,7 +120,7 @@ owns its private index and public model cache.
 
 ### Browse The Full-History Affinity Map
 
-Prepare the result with the [full-history simulation commands](#full-history-simulation-and-model-trials),
+Prepare the result with the [full-history simulation commands](development/session-simulation.md#operations),
 then open **자동 작업** above **Workstreams**, or `/auto-work`.
 
 - **전체 이력 지도** runs left-to-right in actual message time. Select a strand
@@ -137,7 +137,7 @@ then open **자동 작업** above **Workstreams**, or `/auto-work`.
 Curved strands group similar records, knots show observed activity and dashed
 gaps show periods with no observed records. Unknown dates stay unplaced; none
 of these marks establishes continuous work duration or causal work relationships.
-The [product contract](product.md#auto-work-inspection) owns whole-population
+The [product contract](auto-work.md#auto-work-inspection) owns whole-population
 coverage, coarse/finer grouping, occurrence-based knot sizes, overlap and
 fragmentation disclosures, title search and narrow/no-script evidence access.
 
@@ -207,7 +207,7 @@ record rather than encoding that description into the constant value. Usage and
 reference freshness remain independent. Higher stored Session revisions refuse
 Sync and reconnection until the running application is updated; force does not
 bypass this check. See [the storage contract](data-model/source-registry-and-scans.md#source_files)
-for legacy-token conversion and [Architecture](architecture.md#ingestion-module-ownership)
+for legacy-token conversion and [Architecture](session-ingestion.md#ingestion-module-ownership)
 for module ownership.
 
 ## Dependency Certificate Troubleshooting
@@ -268,11 +268,11 @@ substantial tokens. The report appears below the Run list when complete. Use
 analysis creates a new Run and preserves earlier reports. The selected profile
 and model are retained with each Run; the default model is `gpt-6-astra`.
 
-The Insights analyzer uses Codex CLI. `LOCALBRAIN_INSIGHT_CODEX_HOME` takes priority over `CODEX_HOME`; without either setting, an existing `~/.codex-company` home is preferred to `~/.codex`. A new Run freezes that home, selected model, exact prompt and the [guide/result bundle](architecture.md#guide-bundle-and-result-contract), including independent core/playbook versions and digests and the response schema. That canonical contract owns current versions and historical report compatibility. Changing environment settings or the package guide affects future Runs only. The guide sources are `src/localbrain/personal_insight_guides/`; private evidence, prompts, responses, validated results, diagnostics, and reports are kept under `<LOCALBRAIN_DATA_DIR>/personal-insight-runs/<id>/`, outside Git. An explicit Run start sends selected Session excerpts to the configured model service; opening the screen or a past report does not.
+The Insights analyzer uses Codex CLI. `LOCALBRAIN_INSIGHT_CODEX_HOME` takes priority over `CODEX_HOME`; without either setting, an existing `~/.codex-company` home is preferred to `~/.codex`. A new Run freezes that home, selected model, exact prompt and the [guide/result bundle](personal-insights.md#guide-bundle-and-result-contract), including independent core/playbook versions and digests and the response schema. That canonical contract owns current versions and historical report compatibility. Changing environment settings or the package guide affects future Runs only. The guide sources are `src/localbrain/personal_insight_guides/`; private evidence, prompts, responses, validated results, diagnostics, and reports are kept under `<LOCALBRAIN_DATA_DIR>/personal-insight-runs/<id>/`, outside Git. An explicit Run start sends selected Session excerpts to the configured model service; opening the screen or a past report does not.
 
-New findings use the existing work-session handoff to explain the proposed application mechanism, target, concrete content, actors, activation, setup and repeated work. The [application contract](product.md#concrete-application-handoff) distinguishes temporary trials, conditional adoption and unresolved placement facts. This guide requirement is evaluated semantically; the JSON validator only enforces its existing structural rules.
+New findings use the existing work-session handoff to explain the proposed application mechanism, target, concrete content, actors, activation, setup and repeated work. The [application contract](personal-insights.md#concrete-application-handoff) distinguishes temporary trials, conditional adoption and unresolved placement facts. This guide requirement is evaluated semantically; the JSON validator only enforces its existing structural rules.
 
-The [existing-proposal contract](product.md#existing-proposal-follow-through) distinguishes mention, application, outcome and deferral from supplied evidence. A useful next step can carry an earlier proposal forward without inventing a new method. These are generation rules; the product does not persist an adoption state or infer it from a report's existence.
+The [existing-proposal contract](personal-insights.md#existing-proposal-follow-through) distinguishes mention, application, outcome and deferral from supplied evidence. A useful next step can carry an earlier proposal forward without inventing a new method. These are generation rules; the product does not persist an adoption state or infer it from a report's existence.
 
 The analysis launcher resolves the Codex executable before starting it and grants its sandboxed startup helpers read access to that exact binary. The profile home is used for client authentication and is not added to the command filesystem allowlist. Artifact writes and command network access remain blocked. Restart a server that was already running when runner code changed before submitting a new analysis.
 
@@ -280,7 +280,7 @@ Run detail displays the same stored estimated cost used by Usage & Cost, with it
 
 Owner-requested guide evaluations can retain frozen inputs, raw outputs, and review reports under `<LOCALBRAIN_DEVELOPMENT_DIR>/personal-insight-evaluations/<id>/`, with owner-only access. This private archive is separate from product Run records: subagent simulations do not create Insights history rows. Tracked evaluation documents contain only sanitized conclusions.
 
-Discovery uses deterministic [source/month sampling](architecture.md#evidence-selection-and-excerpts), not a random project picker. Within each source/month group it prefers recently active Sessions; project balance and prior recommendation history are not selection inputs. The [current guide bundle](architecture.md#guide-bundle-and-result-contract) supplies all eleven bounded playbooks under the [Product decision rules](product.md#personal-improvement-finding-decisions). The model identifies the owner's goal and observed friction before choosing a type; incidental words in quoted source material do not exclude types before analysis. A reported candidate is not a global priority ranking, and repeating discovery does not promise a different project or a new recommendation. Insights shows frozen selected/eligible counts, sources, time coverage, and truncation; each new report explains the candidate and finding type with source anchors.
+Discovery uses deterministic [source/month sampling](personal-insights.md#evidence-selection-and-excerpts), not a random project picker. Within each source/month group it prefers recently active Sessions; project balance and prior recommendation history are not selection inputs. The [current guide bundle](personal-insights.md#guide-bundle-and-result-contract) supplies all eleven bounded playbooks under the [Product decision rules](personal-insights.md#personal-improvement-finding-decisions). The model identifies the owner's goal and observed friction before choosing a type; incidental words in quoted source material do not exclude types before analysis. A reported candidate is not a global priority ranking, and repeating discovery does not promise a different project or a new recommendation. Insights shows frozen selected/eligible counts, sources, time coverage, and truncation; each new report explains the candidate and finding type with source anchors.
 
 For conversation requests, report v3 identifies up to five missing messages by a supplied anchor and frozen eligible-message position. Local validation rejects requests for already supplied complete messages; a clipped message can be requested in full. The product renders the request from those validated positions, not free-form resend instructions. Unknown current goals/outcomes use separate bounded questions and are checked semantically by the guide; positional validation alone cannot detect every redundant factual question. Invalid results fail without automatic paid retry, retaining emitted usage and diagnostics.
 
@@ -377,7 +377,7 @@ uv run python scripts/build-schema-presentation.py check
 ```
 
 - Generation uses SQLite `:memory:` and invokes compatible structure/index migrations with data migrations disabled. It must not open the configured database, inspect Context roots, read runtime rows, or serialize machine state.
-- Commit `src/localbrain/schema-presentation.json` with the source change. Later application screens load it only through `localbrain.schema_presentation.load_schema_presentation`; missing or invalid package data stays a bounded unavailable state and never triggers runtime introspection.
+- Commit `src/localbrain/schema-presentation.json` with the source change. Later application screens load it only through `localbrain.persistence.schema_presentation.load_schema_presentation`; missing or invalid package data stays a bounded unavailable state and never triggers runtime introspection.
 
 ### Data Model Value Dictionaries
 
@@ -439,505 +439,12 @@ Do not claim full verification when a required local source, macOS permission, C
 
 ## Local Model Development Tools
 
-These tools require a source checkout. A normal installed application uses the
-packaged commands in [the installation guide](installation-and-storage.md).
-From the repository root, install the optional development runtime with
-`uv sync --python 3.11 --extra local-models --frozen`.
-
-Public model weights stay in the shared Hub cache. Model registrations belong
-under `<LOCALBRAIN_DATA_DIR>/models/<model-slug>`. Put comparison reports and
-checkpoints under `<LOCALBRAIN_DEVELOPMENT_DIR>/`, outside all Git repositories.
-The default development archive is `~/Library/Application Support/LocalBrain-Development`.
-Create the chosen private parent before invoking a script with explicit output
-paths. Such scripts never create development archives during normal app startup.
-
-Migrating an archive preserves its original files and hashes. Historical paths
-inside frozen logs or diagnostic snapshots describe their original execution;
-they are evidence, not live commands or dependencies on those locations.
-
-### Natural-Language Search Comparisons
-
-The product uses only the existing `local-models` extra and verified
-Qwen3-Embedding-0.6B checkpoint for natural search. Qwen3-Reranker-0.6B is a
-separate candidate scorer; Qwen3-4B/8B generation trials do not run in this path.
-The [search contract](natural-language-search.md) owns the current default;
-public synthetic comparisons and private full-index measurements have distinct
-evidence scope. No private corpus is required to reproduce the public comparison.
-Use fresh private output directories for each command. Run GPU measurements
-sequentially without another model job; timings include completed MPS work.
-
-```bash
-uv run --no-sync python scripts/benchmark-natural-search.py --device mps --output "$HOME/Library/Application Support/LocalBrain-Development/search-comparison/retrieval"
-uv run --no-sync python scripts/benchmark-search-runtime.py --output "$HOME/Library/Application Support/LocalBrain-Development/search-comparison/runtime"
-uv run --no-sync python scripts/benchmark-search-throughput.py --output "$HOME/Library/Application Support/LocalBrain-Development/search-comparison/throughput"
-```
-
-The first command compares 256/512/768 body targets, 512/1024 dimensions, lexical,
-dense and hybrid retrieval including cutoff 0.7. It reuses full-dimension model
-outputs for the pinned model's Matryoshka prefix comparison; accuracy-loop query
-caching is disabled for latency. The runtime command evaluates the frozen default
-on separate authored topic families, then measures unchanged/incremental refresh
-and foreground searches during actual model preparation. The optional throughput
-command compares batch sizes and float16 explicitly; it does not alter app settings.
-
-Current `hybrid` uses the original query and a conservative topic/action
-view, orders by their mean cosine and retains exact-identifier lexical admission.
-These commands use the current implementation. `dense` remains the original-query
-baseline. The dedicated precision comparator reconstructs the RRF and
-single-view cosine orderings on identical fragment scores, using dense mode plus
-unchanged hybrid admission for single identifiers:
-
-```bash
-uv run --no-sync python scripts/benchmark-search-precision.py --device mps --output "$HOME/Library/Application Support/LocalBrain-Development/search-comparison/precision"
-```
-
-This compares the fixed0/0.03/0.05/0.08 lexical-bonus grid on authored development
-and prior selection cases, then the frozen zero-bonus choice against the historical
-baseline on the fixed observed and holdout topic cohorts. It caches query vectors only
-for quality comparison and makes no query-latency claim. Synthetic indexes live
-in task-owned temporary directories and are removed automatically. The fresh
-private output retains fixture hashes, runtime and complete per-query judgments;
-these are authored labels, not private human ground truth.
-
-The general-work comparator covers broad purposes, conversational descriptions,
-ambiguous terms and multiple relevant activities across work domains:
-
-```bash
-uv run --no-sync python scripts/benchmark-search-general.py --stage development --device mps --output "$HOME/Library/Application Support/LocalBrain-Development/search-comparison/general-development"
-uv run --no-sync python scripts/benchmark-search-general.py --stage holdout --selected equal --device mps --output "$HOME/Library/Application Support/LocalBrain-Development/search-comparison/general-holdout"
-```
-
-Freeze the selection after development and before observing a fresh holdout.
-The shipped holdout is now observed regression evidence, not an unseen test for
-future tuning. `equal` is the admitted default: original/focused cosine mean,
-with admission from either view. The script checks comparator/engine agreement
-and reports per-query/category metrics, including topic coverage for broad queries.
-It reuses vectors only for quality comparison; measure latency with fresh encoding.
-
-Laya and Qwen Reranker are optional development-only dependencies. Create a separate
-Python 3.11 environment outside the repository; do not replace the application's
-runtime. The frozen reproduction configuration uses `laya==0.4.4`, `torch==2.8.0`,
-`transformers==4.57.6`, `huggingface-hub==0.36.2`, `numpy==1.26.4` and
-`truststore==0.10.4`. The following setup downloads only pinned public assets into
-the shared Hub cache and writes a local hash manifest; `--offline` reuses existing
-assets. This explicit setup is the only network stage.
-
-The paths below describe a reproducible environment to create, not an inventory
-claim that a previous comparison environment is still installed. Shared public
-checkpoint retention and private comparison-runtime retention are independent.
-
-```bash
-uv venv --python 3.11 "$HOME/Library/Application Support/LocalBrain-Development/search-comparison/runtime-judge"
-uv pip install --system-certs --python "$HOME/Library/Application Support/LocalBrain-Development/search-comparison/runtime-judge/bin/python" laya==0.4.4 torch==2.8.0 transformers==4.57.6 huggingface-hub==0.36.2 numpy==1.26.4 truststore==0.10.4
-"$HOME/Library/Application Support/LocalBrain-Development/search-comparison/runtime-judge/bin/python" scripts/prepare-search-comparison-models.py --output "$HOME/Library/Application Support/LocalBrain-Development/search-comparison/assets"
-```
-
-Use that environment's Python to run `scripts/benchmark-search-judges.py` with
-`--assets <assets>/assets.json --candidates <retrieval>/candidates.json
---output <fresh-private-output> --role laya --device mps --laya-fp32`; repeat with
-`--role reranker` and omit `--laya-fp32`. Both score the same frozen parent texts
-at K10/20/50. Full-path measurement uses the application Python and
-`scripts/benchmark-search-pipeline.py --assets <assets>/assets.json
---output <fresh-private-output> --judge-python <runtime-judge>/bin/python
---role laya` (then `--role reranker`). This measures retrieval and the resident
-judge through local pipes, not an external service. Full-path trials use K20,
-retrieval cutoff0 and judge threshold0.5; their scores have a different contract
-from the product's cosine cutoff0.45.
-
-A checkpoint/runtime producing non-finite scores fails that attempt. Use
-`--laya-fp32` to disable Laya's MPS autocast explicitly; the Qwen Reranker uses float32
-and eager attention. Reports record these conditions, input budgets and truncation
-refusal. Laya's loader adaptation copies only metadata into its private evaluation
-owner and links immutable public weights; shared downloaded files stay unchanged.
-
-`tests/standalone_natural_search.py --output <fresh-private-output>` is an
-explicit real-model smoke for the installed wheel environment. Run it with the
-installed environment's Python from outside the checkout, after adding the
-`local-models` extra and caching the public embedding checkpoint. It uses the
-installed schema/code, registers assets offline, builds only its authored Session
-and Context data and asserts actual semantic matches. It refuses an existing
-output or an editable source import. It is separate from ordinary unit discovery.
-
-No script writes personal content to Git, collects background query history or
-changes source organization. Development archives are deliberate evidence owners;
-retire their reports, synthetic DBs and isolated runtimes explicitly when no longer
-needed. Shared public checkpoints have a separate lifecycle.
-
-### Full-History Simulation And Model Trials
-
-The following table describes simulation and work-reconstruction experiments. [Context Search](context-search.md) separately admits local4B/8B read-only questions; that approval does not admit a rejected work extractor or reconstruction producer. The experimental model roles remain separate:
-
-| Model | Current purpose | Consumer/admission boundary |
-| --- | --- | --- |
-| Qwen3-Embedding-0.6B | Encode source chunks for similarity-based grouping | Prepared embeddings feed the observation-only map; browsing runs no model |
-| Qwen3-4B | Explicit quoted work-context and relationship inference baseline | Frozen work-extraction candidate remains rejected; no map or private-history reconstruction consumer |
-| Qwen3-8B | Explicit quoted work-context, protocol and source-claim diagnostics | No admitted work extractor/reconstruction producer or generative map |
-
-These are pretrained models, not locally trained weights or LoRA adapters.
-The installed 4B/8B assets are reusable independently of the embedding cache and
-expiring evaluation reports. The commands below are explicit tools, not an
-automatic pipeline for newly imported Sessions.
-
-Install LocalBrain's optional runtime and embedding model, then explicitly
-prepare the full-history result:
-
-```bash
-uv sync --python 3.11 --extra local-models --frozen
-uv run --no-sync localbrain models install embedding
-uv run --no-sync localbrain simulate
-```
-
-Public model files already in the shared cache are verified and reused. New
-metadata belongs to LocalBrain. The [installation guide](installation-and-storage.md#optional-local-models)
-also covers installed-app commands and offline adoption. The full-data,
-replayable semantic simulation additionally supports explicit paths:
-
-```bash
-uv run --no-sync python scripts/simulate-work-sessions.py --help
-uv run --no-sync python scripts/simulate-work-sessions.py \
-  --database /absolute/private/localbrain.db \
-  --output /absolute/private/session-simulation --inventory-only
-uv run --no-sync python scripts/simulate-work-sessions.py \
-  --database /absolute/private/localbrain.db \
-  --output /absolute/private/session-simulation \
-  --model-manifest /absolute/private/models/qwen3-embedding-0-6b/model.json
-```
-
-Use LocalBrain's `local-models` environment and its installed embedding manifest.
-Set the same `HF_HUB_CACHE` as the installer when using a non-default cache.
-The simulation reads verified installed assets and keeps private embeddings in
-its output directory. All eligible stored primary-work Session messages are
-processed, with no 60-Session, 32-message or prefix sampling cap.
-Excluded and empty Sessions are accounted
-for. Original data is unchanged. `/auto-work` reads the prepared full-history
-result; the earlier sampled comparator is explicitly `mode=sample`.
-
-Repeat the same command to resume or reuse cached embeddings. Change
-`--neighbors`, `--similarity`, `--area-resolution` or `--work-resolution` to rerun
-grouping with compatible vectors. `--force-reembed` explicitly recomputes
-embeddings. Source/model/chunking changes are fingerprinted; a concurrent source
-change prevents publication. `--status` reports a fixed state code;
-`--show-counts` explicitly exposes aggregate progress. Private `report.json`
-contains coverage, source locators, communities and replay comparison, not a
-semantic-quality verdict or a finished workflow map. Results expire after 30
-inactive days; `--purge` removes the owned derived state, never source data.
-The [current simulation producer contract](architecture.md#full-history-simulation-producer)
-owns report, source-binding, parameter and lifecycle definitions. `--chunk-chars`
-changes the exhaustive window size, `--batch-size` controls committed embedding
-batches and `--device` selects `auto`, `cpu`, `mps` or `cuda`. The script's
-`--help` lists these controls; `--inventory-only`, `--status` and `--purge` are
-mutually exclusive. Inventory/status/purge need no encoder invocation. CLI grouping
-uses seed zero; its accepted numeric bounds and defaults are in that contract.
-Use [reader states](architecture.md#affinity-reader-contract-and-states) to
-distinguish missing, busy, stale, expired or invalid preparation from a current
-map or an obsolete selection; browsing does not repair or rerun them.
-
-### Local Work-Context Model Trial
-
-The separate generative experiment uses the allowlisted pinned `Qwen/Qwen3-4B`
-and `Qwen/Qwen3-8B` models to extract quoted work units
-and assess explicit continuation. It does not train the model or replace the
-embedding cache. Installation is an explicit public download (about 8.1 GB for
-4B or an additional 16.4 GB / 15.3 GiB for 8B; about 24.5 GB for both);
-choose a new dedicated installation-metadata folder outside the repository with
-an existing parent. Public weights use the user-level Hugging Face Hub cache,
-normally `~/.cache/huggingface/hub`.
-Use LocalBrain's optional `local-models` environment. Installed applications can
-use `localbrain models install 4b` or `8b` with default private metadata locations;
-the source scripts also accept explicit roots:
-
-```bash
-uv run --no-sync python scripts/install-work-context-model.py --root /absolute/private/models/qwen3-4b
-uv run --no-sync python scripts/install-work-context-model.py --root /absolute/private/models/qwen3-4b --verify
-uv run --no-sync python scripts/install-work-context-model.py --model Qwen/Qwen3-8B --root /absolute/private/models/qwen3-8b
-uv run --no-sync python scripts/evaluate-work-context-model.py \
-  --model-root /absolute/private/models/qwen3-4b \
-  --output /absolute/private/work-context-evaluation --split development
-```
-
-The default installation remains 4B. `--verify` and evaluation infer the model
-only from its allowlisted ownership/revision and verified manifest; they do not
-discover arbitrary models. Reusing a model folder for a different model is
-rejected. `--root` / `--model-root` selects LocalBrain's private metadata folder
-(`owner.json`, `install.lock`, `model.json`); new v2 model manifests refer to the
-shared cache. Existing v1 app-local installations remain readable. Model snapshots
-link to public blobs within their model repository; the 4B baseline is not
-automatically removed, and no app cleanup purges shared weights.
-
-The [shared cache configuration](installation-and-storage.md#storage-ownership-and-configuration)
-owns cache precedence and relocation settings. Use the same cache setting across
-consumers. A cache relocation with
-unchanged assets/runtime does not require re-embedding.
-
-Private databases, generated embeddings, prompts, reports and inference caches
-remain project-owned. Future LoRA adapters/checkpoints belong in a durable private
-project directory with backups, their base model ID/revision and training
-configuration. A merged model is likewise a derived artifact and must not replace
-shared pretrained weights. This storage contract adds no training behavior.
-
-HTTP transfer is the default. An optional `--xet-cache /absolute/new-empty-private-dir`
-uses an already-installed official Xet downloader with task-scoped diagnostics and
-chunk/shard caches disabled. Remove only that owned transfer directory after the
-installer process exits; it is not model storage and no durable output depends on it.
-
-`--decoding sampled` selects the separately fingerprinted official non-thinking
-sampling settings with a stable per-packet seed; the default is greedy.
-Add `--thinking` with sampled decoding for the official reasoning-mode settings
-and a bounded 8,192-token reasoning-plus-answer budget. Only the final answer is
-decoded/stored; reasoning is counted, not retained. `--strategy staged` first
-inventories source-backed work anchors or pair evidence, then extracts/judges
-against the original messages. The default `single` strategy is one pass.
-The opt-in `--strategy classified --decoding greedy` instead asks the model to
-select source roles, work membership, targets and relationship evidence using
-bounded answer codes. It requires non-thinking greedy decoding. A token-prefix
-constraint enforces codes plus EOS; code serializes the selected original quotes,
-never repairs a failed free-form answer or chooses missing citations. A well-formed
-choice can still be semantically wrong. This experimental strategy refuses more
-than 64 sentence/line spans, ambiguous multi-goal spans, excess output or uncertain
-membership; it does not silently truncate inputs or declare one unit per sentence.
-`--strategy selected --decoding greedy` uses the same code decoder but selects
-whole-conversation work anchors first, then selects each anchor's field evidence.
-It preserves the anchor and rejects a ninth unit/item instead of truncating.
-These two source-choice variants are experimental alternatives, not admitted automatic workflow producers.
-All original messages remain in each decision's context. The case budget is 144
-choices/180 seconds, checked between and after calls rather than hard cancellation
-of an in-flight model call. Strategy prompts/projection/bounds govern cache identity.
-MPS uses the installed library's eager attention; this requires no dependency
-update or changed weights.
-Use distinct owned output folders for candidate/split comparisons; changing
-configuration in one folder replaces that folder's previous evaluation state
-for single/staged/classified/selected (the evidence strategy below refuses it).
-After selecting a frozen development-passing configuration, `--split holdout`
-runs the untouched cases. `--split all` runs both splits, but each split must
-pass independently; do not tune on holdout failures. The command opens no private
-source DB. It runs the installed model
-offline and records per-case checkpoints, evidence validation, quality failures
-and timing in an owned private report; repeating the same configuration reuses
-validated results. Evaluation state expires after 30 inactive days. Installed
-public model assets are separately owned and retained for reuse, not deleted
-with an expired evaluation. A completed evaluation is not a passing quality
-gate; a development-only pass is not a holdout pass. Whole-history inference and
-UI integration remain unadmitted. The current
-[context-inference contract](architecture.md#quoted-work-context-model-contract)
-owns packet/output shapes, generation bounds and model identity.
-
-`--strategy evidence` is a separate, opt-in 8B/MPS-eager/non-thinking/greedy
-candidate. It assesses source-backed goals/actions/results/pending work before
-grouping, and requires recoverable goals, compatible scope and a selected link
-before continuing work. Model judgments of missing/conflicting support
-automatically withhold the relationship; this does not create an owner
-confirmation queue or guarantee that semantic mistakes are recognized.
-Semantic labels use an explicit
-32-character bound with the same eight-token/EOS limit; older codes keep their
-eight-character default. Source citations are assembled from selected originals,
-not generated or repaired quotations. Same-model audits remain inferred safeguards,
-not proof of semantic correctness.
-
-```bash
-uv run --no-sync python scripts/evaluate-work-context-model.py \
-  --model-root /absolute/private/models/qwen3-8b \
-  --output /absolute/private/evidence-development \
-  --strategy evidence --split development
-```
-
-This runs the fixed four-case development cohort and twelve-case compositional
-cohort, with independent gates. It does not rerun the 288-cell diagnostic or
-read private Sessions. Case attempts are bounded to 32 spans, 96 choices and 120
-soft seconds (30 per generation). Same-config replay retains completed failures
-as well as successes; changed configurations and corrupt cached observations
-refuse without replacement. A clean interruption allows at most one additional
-attempt for its incomplete case; an unclean in-flight crash refuses automatic
-resume. Existing storage ownership, writer lock and 30-day expiry still apply.
-
-Only after both development gates **and primary semantic review** pass may this
-candidate run `--split holdout` once, in a separate output folder, with
-`--development-report /absolute/private/evidence-development/report.json`.
-The command revalidates the report's identity, observations and both split scores;
-an aggregate PASS is insufficient. `--split all` is refused for this strategy.
-Neither this candidate nor its gate starts private backfill or changes the UI.
-The frozen evidence-first candidate remains rejected and ineligible for holdout
-or workflow reconstruction. Reproduction and replay do not renew its consumed
-attempts, reset its budget or authorize another model run.
-
-The separate protocol diagnostic investigates answer-format, option-order and
-answer-code sensitivity on twelve fixed synthetic cases. It does not consume the
-admission holdout or open private Sessions:
-
-```bash
-uv run --no-sync python scripts/diagnose-work-context-protocol.py --describe
-uv run --no-sync python scripts/diagnose-work-context-protocol.py \
-  --model-root /absolute/private/models/qwen3-8b \
-  --output /absolute/private/work-context-protocol-diagnostic
-```
-
-This fixed 8B/MPS-eager comparison has 288 conditions, a 300-attempt/1,200-second
-cumulative budget and 30-second soft generation limits. It compares numeric
-choices, semantic-label choices and short text; meaning, format and literal
-grounding are scored separately. The twelve cases, not the correlated conditions,
-are the evidence units. Completion never means model admission. Results retain
-the evaluation owner/lock/30-day expiry rules above. Unlike the
-single/staged/classified/selected admission strategies,
-diagnostic replay reuses completed wrong/invalid/refused observations too, and a
-changed configuration refuses an unexpired folder instead of replacing evidence.
-Clean interruption can resume missing observations within cumulative bounds;
-an unclean in-flight crash refuses automatic restart because elapsed time is
-unknown. No default strategy, model weights or embedding vectors are changed.
-
-A separate matched formulation comparison tests sixteen fixed focused contexts
-with independent property questions versus direct selection of the complete role
-set. Both use the same source and facet definitions, with canonical/reversed
-option orders. Compound action/result statements can keep both roles. Six separate
-controls run the unchanged evidence-first relationship pipeline; better role
-classification alone does not establish correct work continuity.
-
-```bash
-uv run --no-sync python scripts/compare-work-role-formulations.py --describe
-uv run --no-sync python scripts/compare-work-role-formulations.py \
-  --model-root /absolute/private/models/qwen3-8b \
-  --output /absolute/private/work-role-comparison
-```
-
-The command accepts no private input or tuning/holdout options. It preflights the
-semantic vocabulary, uses the installed 8B offline, and reports 166 observations
-(160 focused choices plus six multi-call controls). The whole comparison has a
-512-choice-attempt/1,200-soft-second budget and at most two attempts for an
-incomplete observation. Completed wrong/refused answers replay without generation;
-changed configurations, corrupt records and unclean in-flight state refuse.
-It shares the existing evaluation owner/lock/atomic/30-day expiry contract.
-Exact role-set matches, extra/missing roles, order changes and relationship errors
-are separate findings, never an automatic extraction admission or UI update.
-
-### Source-Claim Extraction And State Trial
-
-The separate [source-claim adapter](source-claims-and-work-state.md#model-aware-v2-and-synthetic-adapter)
-extracts historical claims, proposes scoped work bindings and lifecycle effects,
-then computes reported state with a pure deterministic projector. Model-inferred
-fulfillment is distinct from a source explicitly reporting completion. A completed
-check does not complete its parent effort.
-
-```bash
-uv run --no-sync python scripts/evaluate-source-claims.py --describe
-uv run --no-sync python scripts/evaluate-source-claims.py \
-  --model-root /absolute/private/models/qwen3-8b \
-  --output /absolute/private/source-claim-trial
-uv run --no-sync python scripts/evaluate-source-claims.py \
-  --model-root /absolute/private/models/qwen3-8b \
-  --output /absolute/private/source-claim-trial --replay
-```
-
-Use the existing compatible model runtime. This is one frozen 8B/MPS-eager,
-non-thinking candidate, not training or a new model installation. Twenty-eight
-synthetic development histories allow at most 84 generation calls; the original
-ten holdout cases allow 20 additional calls only after all development gates and
-a report-bound primary semantic review. `--holdout` cannot bypass that gate.
-Each call is bounded to 8,192 combined/2,048 generated tokens and 60 soft seconds.
-The whole candidate allows at most 104 generation calls, including the gated
-holdout allowance, and a 120-minute cumulative active-run launch gate, including model load,
-verification and preflight. Reservations and elapsed time survive clean resume;
-these ceilings are not a fresh allowance for a closed or exhausted candidate.
-Input is never truncated.
-
-Reference-conditioned binding receives correct claims/targets for diagnosis;
-end-to-end generation must discover them from raw source. Neither technical tests
-nor conditional results establish extraction quality. Completed failures replay
-without generation. The owned report uses the existing 30-day inactivity rule;
-changed config, corrupt/unclean state and expired trial budgets refuse reuse.
-No private input argument, all-Session job, server/UI update or organization write
-is added. The frozen candidate remains rejected for admission; holdout, private
-processing and UI updates remain withheld. A replay or documentation cleanup
-does not reopen the candidate, renew consumed calls or reset its budget. This
-command is an evaluation tool, not an admitted work extractor.
-
-### Earlier Model-Free Comparator
-
-An isolated non-model tool compares reference-pair grouping with explicit
-Korean/English goal extraction. It does not replace the current Workstream UI
-or change its data. Inspect its options without opening runtime storage:
-
-```bash
-uv run --no-sync python scripts/experiment-work-reconstruction.py --help
-```
-
-Execution accepts an explicit supplied fixture or an existing database plus a
-frozen selection manifest. After selecting an existing database and through-time,
-`--prepare-through <UTC> --unassessed` can prepare a deterministic bounded sample
-and check execution without an answer key. It covers the selected population's
-whole existing time range, not every record, and reports omissions explicitly.
-Scored quality still requires separate source-bound expectations. Results need
-a new private output directory outside the repository and an owner/expiry;
-default output contains status codes only. No private database is opened by
-default, and predictions never become the answer key. The current
-[Architecture contract](architecture.md#isolated-work-reconstruction-experiment)
-owns the wire shapes, caps, source permissions and assessment boundaries; the
-invocation and file shapes below describe this command.
-Synthetic correctness is not evidence that real work is reconstructed usefully.
-
-#### Model-Free Invocation And Files
-
-Choose exactly one input mode. All paths below are explicit local paths; use a
-new absolute output directory with an existing canonical nonsymlink parent
-outside the repository. Set `RECONSTRUCTION_EXPIRES_AT` to an explicit future
-aware ISO timestamp before a supplied-fixture or preparation invocation.
-
-```bash
-uv run --no-sync python scripts/experiment-work-reconstruction.py \
-  --fixture /absolute/private/fixture.json \
-  --expectations /absolute/private/expectations.json \
-  --output-dir /absolute/private/new-fixture-result \
-  --owner reconstruction-review --expires-at "$RECONSTRUCTION_EXPIRES_AT"
-
-uv run --no-sync python scripts/experiment-work-reconstruction.py \
-  --database /absolute/private/localbrain.db \
-  --manifest /absolute/private/selection.json \
-  --expectations /absolute/private/expectations.json \
-  --output-dir /absolute/private/new-scored-result
-
-uv run --no-sync python scripts/experiment-work-reconstruction.py \
-  --database /absolute/private/localbrain.db \
-  --prepare-through '2026-09-15T00:00:00+00:00' --unassessed \
-  --output-dir /absolute/private/new-unassessed-result \
-  --owner reconstruction-review --expires-at "$RECONSTRUCTION_EXPIRES_AT"
-```
-
-The preparation cutoff is an explicit scope choice, not a default or permission
-to open another database. Preparation requires database mode, `--unassessed`,
-and no manifest or expectations. Other database runs require a manifest;
-supplied-fixture and scored database runs require an independent expectations
-file. The selected manifest supplies database-mode owner/expiry. Fixture and
-preparation modes require explicit owner/expiry arguments. Expiry must be later
-than the current time, and preparation also requires expiry after its cutoff.
-No invocation creates missing database/schema/source state.
-
-| File | Current shape and validation |
-| --- | --- |
-| Supplied fixture | Exactly `{"version":1,"snapshots":[...]}`; 1–12 distinct named snapshots obey the [current snapshot contract](architecture.md#reconstruction-input-and-bounds) |
-| Private selection | Exactly `version`, `source_ids`, `start`, `end`, `snapshots`, `owner`, `expires_at`; version 1, ordered snapshot cutoffs, one bounded hash-verified selection per record and the source/permission predicates in Architecture |
-| Expectations | Exactly `{"version":1,"snapshots":{"snapshot-name":...}}`; names exactly match all supplied snapshots. Each version-1 answer key binds `snapshot_digest` and independently supplies `groups`, `negative`, `unresolved`; group/member/label bounds and contradictory-span refusal are in [assessment](architecture.md#reconstruction-output-and-assessment) |
-| Result | One new `comparison.json`, encoded at most 10 MiB, wrapped as `owner`, `expires_at`, `report`; directory mode 0700/file mode 0600. Existing output is never replaced; a failed write removes only paths created by that invocation |
-
-JSON inputs must be existing nonsymlink files no larger than 10 MiB; duplicate
-keys, non-finite constants, malformed data and hard-bound overflow refuse.
-Answer keys are validated against every frozen snapshot before either arm runs.
-The command compares text and metadata with/without organization, checks
-unchanged replay, and records scores, source/expectation digests, resource
-measurements and chronological stability. Results include `technical`,
-`input_kind`, `private_quality`, `viability`, `snapshots`, `history`, `sample`,
-`required_review`, `admission_resources` and `assessment`; preparation adds its
-frozen `input_manifest` and omission/sample metadata. `assessment: unassessed`
-retains unknown expectations and cannot pass quality; fixture execution cannot
-establish private quality. `viability` remains `unverified` even after technical
-success. The [finite human-review allowance](privacy-and-data.md#local-persistence)
-is separate and is never renewed by these commands.
-
-Each admission, extraction, comparator or scoring worker has a 120-second wall
-limit and 512-MiB peak-RSS bound, with monitor availability checked fail-closed;
-cancellation/failure terminates and reaps only its task-owned worker. The command
-opens no native file, source parser, connector or model. It adds no background
-retention scheduler or full database copy. Owner-managed expiry cleanup remains
-required for retained results. Standard output is only `EXPERIMENT_RECORDED`
-(exit 0), `EXPERIMENT_FAILED` (exit 2), or `EXPERIMENT_CANCELLED` (exit 130).
-Only explicit `--share-summary` replaces the success code with the non-identifying
-`technical`/`private_quality`/`viability` summary; private payloads never print.
+Use [Model Tool Operations](development/model-tools.md) for optional-runtime setup,
+private evaluation ownership, search comparisons, full-history simulation and
+the separate quoted-context, source-claim and model-free reconstruction trials.
+These guides retain each tool's source limits, invocation, replay and admission
+conditions. Running a tool does not approve a product consumer or renew a closed
+candidate's budget.
 
 ## Google Drive Development
 

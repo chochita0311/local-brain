@@ -76,3 +76,17 @@ source claims and supported target links, then score those upstream judgments
 separately from deterministic projection. This Run does not approve another
 model trial or private processing and does not change FEAT-0098 admission.
 No routine Session-by-Session approval or new 60-Session processing cap is added.
+
+## Documentation Index Reconciliation — 2026-10-31
+
+The following preserves the detailed navigation snapshot relocated from the
+Plans Index. Its dated execution/approval facts and evidence limits remain with
+this owning record and its linked artifacts; it is not a new execution grant or
+an update to unrelated acceptance. Current definitions remain in policy owners.
+
+### Recorded Trial Outcome
+
+- [RUN-20260923-111](run-20260923-111-source-claims-and-work-state-projection.md):
+  `passed`, pure source-claim/current-state contract with scoped completion,
+  partial order, correction/retraction, cutoff and revision/replay coverage.
+  No model, private source, new persistence or product consumer was introduced.

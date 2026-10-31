@@ -187,7 +187,7 @@ native input, native-browser or recipient acceptance.
 In frozen target `c7eadd3`, shape validation at original lines 79–87 removed
 whitespace and searched SQL substrings; current-contract detection at original
 lines 99–100 also treated required CHECK text anywhere in SQL as enforcement.
-Neither interpreted comments. The [current module](../../../../src/localbrain/source_revision_migration.py)
+Neither interpreted comments. The [corrected pre-refactor module](https://github.com/chochita0311/local-brain/blob/6c03265701d0d8b552fc8bb60e346ba1971f4bb3/src/localbrain/source_revision_migration.py)
 contains their correction described below. The subagent reproduced the following in-memory on
 SQLite **3.51.0**; the primary independently confirmed all four on configured
 SQLite **3.53.1**:
@@ -318,3 +318,10 @@ existing private experiment owner retains bounded receipts and synthetic replay
 evidence. Application recovery backup retention follows the storage owner.
 The resulting Git commit and verified remote ref own publication identity.
 Existing heuristic/recipient limits remain separate follow-ups.
+
+## Historical Source References
+
+Source links in this record that use a fixed Git revision preserve the referenced
+pre-refactor implementation as historical evidence. Use the
+[current contract map](../../../policies/project/product.md#feature-contracts)
+for present implementation ownership; the old source layout is not a live path.

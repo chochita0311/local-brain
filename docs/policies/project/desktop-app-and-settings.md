@@ -471,3 +471,19 @@ their existing explicit authority. Picking does not persist a path independently
 ## Google Drive Settings
 
 The independent Google Drive tab follows the [Drive contract](google-drive-sync.md) and the bundled [Settings guide](../../../src/localbrain/content/docs/settings.md#google-drive). It does not merge Drive management into Local Context registration. The backend owns fixed wall-clock jobs until Quit/server exit; window hiding does not stop them. Local SDK readiness, Google authentication, API/root observations and per-job success/next slot remain distinct. Explicit save/check reuses the SDK login then checks the root; initial sync controls appear after root verification, and selected targets reveal schedules/actions. Account/login options and detailed observations remain in disclosures. A later access failure preserves configured controls. Drive transport uses the Mac system trust store with HTTPS verification enabled; certificate errors are distinct from OAuth login errors.
+
+## Implementation Ownership
+
+- `foundation/preferences.py`, `sources/settings.py`, `app/settings.py`: shared local preferences,
+  optimistic configuration revisions, source registration/reconnection and UI APIs.
+
+- `sources/sync.py`, `sources/session_sync.py`, `sources/context_sync.py`, `foundation/operations.py`: independent
+  completion-based Session and Context scheduling, persisted health outside the main DB,
+  and process/thread exclusion for mutations.
+
+- `app/edition.py`, `desktop.py`, `desktop/src-tauri/`: route/runtime admission, per-launch
+  local authentication, native window/process lifecycle and bundled resources.
+
+- `search/keyword.py`, `models/setup.py`, `app/storage/recovery.py`: model-free eligible
+  FTS retrieval, explicit cancellable public-model installation, private backup,
+  restart-only restore and bounded owned-cache cleanup.

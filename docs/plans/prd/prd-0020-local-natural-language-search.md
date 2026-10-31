@@ -23,6 +23,11 @@
 
 ## Source Set
 
+Source links below that use a fixed Git revision preserve the referenced
+pre-refactor implementation as historical evidence. Use the
+[current contract map](../../policies/project/product.md#feature-contracts)
+for present implementation ownership; the old source layout is not a live path.
+
 ### Human Direction
 
 - 문서 분자화는 원래 세션·문서 아래에 있는 내부 검색 구조다. 별도 문서 분류 체계, 지식 저장소 화면, 사용자 관리 계층을 만들지 않는다.
@@ -44,7 +49,7 @@
 - [Project Architecture](../../policies/project/architecture.md), [Installation And Local Storage](../../policies/project/installation-and-storage.md), [Privacy And Data Handling](../../policies/project/privacy-and-data.md): 설치·저장·원본·공개 경계.
 - [Derived Retrieval Index](../../policies/project/data-model/derived-retrieval-index.md): 현재 검색 대상의 허용 정책과 재생성 가능한 색인.
 - [Design Constitution](../../policies/design/design-constitution.md), [Design Evaluation](../../policies/design/design-evaluation.md), [Interaction Evaluation](../../policies/experience/interaction-evaluation.md): 공유 헤더, 검색 화면, 상태·상세 복귀 규칙.
-- [Shared header](../../../src/localbrain/templates/base.html), [search query](../../../src/localbrain/queries.py), [search route](../../../src/localbrain/main.py), [model catalog](../../../src/localbrain/model_catalog.py), [embedding adapter](../../../src/localbrain/session_simulation_model.py), [simulation projection](../../../src/localbrain/session_simulation.py).
+- [Shared header](../../../src/localbrain/templates/base.html), [search query](https://github.com/chochita0311/local-brain/blob/6c03265701d0d8b552fc8bb60e346ba1971f4bb3/src/localbrain/queries.py), [search handlers](../../../src/localbrain/natural_search/web.py), [route registration](../../../src/localbrain/app/routes.py), [model catalog](https://github.com/chochita0311/local-brain/blob/6c03265701d0d8b552fc8bb60e346ba1971f4bb3/src/localbrain/model_catalog.py), [embedding adapter](https://github.com/chochita0311/local-brain/blob/6c03265701d0d8b552fc8bb60e346ba1971f4bb3/src/localbrain/session_simulation_model.py), [simulation projection](https://github.com/chochita0311/local-brain/blob/6c03265701d0d8b552fc8bb60e346ba1971f4bb3/src/localbrain/session_simulation.py).
 
 ### Research Evidence And Limits
 
@@ -413,7 +418,7 @@ ranking baselines below do not select the current default.
 
 | Record | Historical scope and evidence |
 | --- | --- |
-| Planning and approval | [PRD-0020](prd-0020-local-natural-language-search.md) records the search increment; sequential implementation and local tests were approved on 2026-10-12. The approved [standalone settings increment](prd-0021-macos-standalone-test-app-and-local-settings.md) added the common explicit keyword/AI entry. The [baseline decision](prd-0020-local-natural-language-search.md#decisions-and-remaining-review) records the local-use and optional-tuning boundary. |
+| Planning and approval | [PRD-0020](prd-0020-local-natural-language-search.md) records the search increment; sequential implementation and local tests were approved on 2026-10-12. The approved [standalone settings increment](prd-0021-macos-standalone-test-app-and-local-settings.md) added the common explicit keyword/AI entry. The [baseline decision](#decisions-and-remaining-review) records the local-use and optional-tuning boundary. |
 | Contract foundations | FEAT-0115–0118 were reviewed before their downstream implementations. |
 | Runtime and UI | [FEAT-0119](../feature/feat-0119-local-natural-search-engine.md) implemented the engine. [FEAT-0120](../feature/feat-0120-parallel-natural-search.md) used the `fullstack-product` profile and `screen-alignment` extend mode. |
 | Initial comparison | [FEAT-0121](../feature/feat-0121-natural-search-local-comparison.md) and its [local comparison](../evaluation/eval-0121-functional-natural-search-local-comparison.md) record the initial RRF baseline, model/profile selection and resource evidence. |
@@ -421,3 +426,35 @@ ranking baselines below do not select the current default.
 | General work search | [FEAT-0123](../feature/feat-0123-general-work-search.md) added the conservative second query view and page-bounded excerpts. Its multi-domain comparison superseded the original-query-only default without changing the document index. The [general-work evaluation](../evaluation/eval-0123-functional-general-work-search.md) records the current ranking observations and mixed quality results. |
 | Environment verification | Historical runtime measurements remain attached to their original environments. The [RUN-160 closeout](../run/run-20261013-160-general-work-search.md#session-closeout--2026-10-13) records subsequent environment and documentation verification. |
 | Dependency rationale | Dependency depth beyond two was intentional: independent source/query/storage/evaluation contracts → working engine → UI and measured comparisons. Each prerequisite was stable and checked before its consumer executed. |
+
+## Documentation Index Reconciliation — 2026-10-31
+
+The following preserves the detailed navigation snapshot relocated from the
+Plans Index. Its dated execution/approval facts and evidence limits remain with
+this owning record and its linked artifacts; it is not a new execution grant or
+an update to unrelated acceptance. Current definitions remain in policy owners.
+
+### Boundary And Delivery Context
+
+- [PRD-0020: Local Natural Language Search](prd-0020-local-natural-language-search.md)
+  is `approved` for Korean natural-language retrieval over all eligible Sessions
+  and registered Local Context documents, with hidden document molecularization
+  and a single shared-header natural-language search entry after the owner's
+  approved parallel-input cleanup. The deprecated keyword-search route remains
+  available for existing URLs. It owns the product
+  boundary, public/private resource separation, internal cutoff comparison,
+  and remaining decisions. Validation is limited to the owner's current Apple
+  Silicon Mac. FEAT-0115–0121 completed contracts, implementation, full indexing,
+  model comparisons and independent installation tests. The [comparison report](../evaluation/eval-0121-functional-natural-search-local-comparison.md)
+  records the historical Qwen/RRF baseline. [FEAT-0122](../feature/feat-0122-natural-search-ranking-precision.md)
+  replaced it with cosine and exact-identifier lexical admission.
+  [FEAT-0123](../feature/feat-0123-general-work-search.md) now combines original/focused
+  query views and loads page excerpts after ranking, preserving the model/index/cutoff.
+  Some first results improve, while individual recall/order regressions and no
+  new holdout gain remain explicit. The [search policy](../../policies/project/natural-language-search.md)
+  owns current implementation contracts and flows. The baseline can close for
+  local use; further tuning depends on recurring observed burden. [RUN-160](../run/run-20261013-160-general-work-search.md#session-closeout--2026-10-13)
+  records subsequent runtime/documentation verification and the authorized
+  public-code/docs closeout; private evidence stays local.
+  [RUN-161](../run/run-20261016-161-session-parsing-and-search-closeout.md) records the
+  later parser/conversation, Session ID, dashboard and unified-search closeout.

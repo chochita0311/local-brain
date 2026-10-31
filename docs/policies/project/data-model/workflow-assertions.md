@@ -9,7 +9,7 @@ Workstream/Thread organization, or the effective graph produced at read time.
 [Value Dictionary](value-dictionaries/workflow-assertions.md) owns this subject's
 bounded physical/logical/presentation mappings.
 
-[Session Episode identity](workspace-and-session-activity.md#derived-workflow-episode-and-relations) defines the stable endpoint keys; [Workflow Focus](../architecture.md#workflow-focus-read-model) owns deterministic candidate production before the user assertion overlay.
+[Session Episode identity](workspace-and-session-activity.md#derived-workflow-episode-and-relations) defines the stable endpoint keys; [Workflow Focus](../workflow.md#workflow-focus-read-model) owns deterministic candidate production before the user assertion overlay.
 
 ## Focused ERD
 

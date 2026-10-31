@@ -17,7 +17,7 @@
 ## Evidence Invalidation
 
 - This Attempt 1 result is historical and is not current execution truth.
-- Live Chrome evidence in [Attempt 2](./eval-0014-design-context-explorer-attempt-2.md) found blocking selection-visibility, touch-geometry, contrast, and accessible-state defects and returned the evaluator result to `FAIL`.
+- Live Chrome evidence in [Attempt 2](eval-0014-design-context-explorer-attempt-2.md) found blocking selection-visibility, touch-geometry, contrast, and accessible-state defects and returned the evaluator result to `FAIL`.
 
 ## Scope And Checks
 

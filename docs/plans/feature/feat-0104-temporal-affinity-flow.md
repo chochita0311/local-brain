@@ -77,3 +77,32 @@ state and a running local handoff. Task-owned synthetic artifacts are removed.
 evaluators. The actual local screen uses the existing whole-history calculation.
 No training, re-embedding, source ingestion or organization change. Human visual
 preference and semantic work-identity quality are not preemptively accepted.
+
+## Documentation Index Reconciliation — 2026-10-31
+
+The following preserves the detailed navigation snapshot relocated from the
+Plans Index. Its dated execution/approval facts and evidence limits remain with
+this owning record and its linked artifacts; it is not a new execution grant or
+an update to unrelated acceptance. Current definitions remain in policy owners.
+
+### Boundary And Delivery Context
+
+- Inspection increment: owner review corrected the freeform constellation to
+  [FEAT-0104 temporal affinity flow](feat-0104-temporal-affinity-flow.md)
+  (RUN-117): one horizontally scrollable time canvas, activity gaps, curved
+  similarity strands and period evidence. Only the text list paginates; its
+  pages retain graph connections and camera. The
+  [relation-first inspection track](../design/workflow-map-design-plan.md#relation-first-inspection-track)
+  separates full-history affinity exploration from detailed extraction and a
+  narrowly evaluated relationship layer. The owner authorized continuous UI
+  delivery; simulation replay passed RUN-113, followed by
+  [FEAT-0101](feat-0101-full-history-affinity-inspection-contract.md)
+  (passed read contract, RUN-114) and
+  [FEAT-0102](feat-0102-full-history-affinity-map.md)
+  (historical technical PASS, RUN-115; freeform UI superseded by FEAT-0104).
+  The actual local screen supports group →
+  subgroup → Session → exact evidence and return without routine classification.
+  [FEAT-0103](feat-0103-direct-context-work-relation-trial.md)
+  remains an independent draft, not executed or required for the map. Similarity
+  is not verified work identity; no 60-Session cap, candidate inbox, legacy change
+  or production-replacement quality claim is introduced.

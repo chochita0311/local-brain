@@ -348,3 +348,18 @@
 - `2026-08-02`: separated pre-implementation behavior from the approved
   contract, removed stale draft/review wording, and made the open incremental
   boundary explicit without changing scope.
+
+## Documentation Index Reconciliation — 2026-10-31
+
+The following preserves the detailed navigation snapshot relocated from the
+Plans Index. Its dated execution/approval facts and evidence limits remain with
+this owning record and its linked artifacts; it is not a new execution grant or
+an update to unrelated acceptance. Current definitions remain in policy owners.
+
+### Boundary And Delivery Context
+
+- [PRD-0010: Atlassian UI And Interaction Reconciliation](prd-0010-atlassian-ui-and-interaction-reconciliation.md)
+  is an approved incremental boundary that remains open for later owner
+  observations. Its current child Features are passed:
+  - [FEAT-0062: Atlassian Local Site And Access-Binding Contract](../feature/feat-0062-atlassian-local-site-and-access-binding-contract.md)
+  - [FEAT-0063: Atlassian Local-Only Add And Access Setup](../feature/feat-0063-atlassian-local-only-add-and-access-setup.md)

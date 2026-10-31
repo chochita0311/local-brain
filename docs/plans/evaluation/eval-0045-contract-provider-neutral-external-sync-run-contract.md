@@ -18,7 +18,7 @@
 ## Evidence Invalidation
 
 - This Attempt 1 failure is historical execution evidence.
-- The targeted repair is recorded in [FIX-0045](../fix/fix-0045-metadata-coverage-enforcement.md), and [Contract Attempt 2](./eval-0045-contract-provider-neutral-external-sync-run-contract-attempt-2.md) is the current evaluator result.
+- The targeted repair is recorded in [FIX-0045](../fix/fix-0045-metadata-coverage-enforcement.md), and [Contract Attempt 2](eval-0045-contract-provider-neutral-external-sync-run-contract-attempt-2.md) is the current evaluator result.
 
 ## Scope
 

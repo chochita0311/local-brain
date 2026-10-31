@@ -75,6 +75,11 @@ DMG 제작을 필수로 추가하지 않는다. 공증 제출물에는 프로그
 
 ## Source Set
 
+Source links below that use a fixed Git revision preserve the referenced
+pre-refactor implementation as historical evidence. Use the
+[current contract map](../../policies/project/product.md#feature-contracts)
+for present implementation ownership; the old source layout is not a live path.
+
 ### Human Direction
 
 - 개인 개발 환경을 넘어 다른 사용자가 설치하고 실행하는 macOS 앱을 원한다.
@@ -117,13 +122,13 @@ DMG 제작을 필수로 추가하지 않는다. 공증 제출물에는 프로그
 
 ### Implementation References
 
-- [Package manifest](../../../pyproject.toml), [CLI](../../../src/localbrain/cli.py), [Application](../../../src/localbrain/main.py): Python 패키지, 선택 의존성, loopback 서버, 시작·종료 처리.
-- [Configuration](../../../src/localbrain/config.py), [Session sources](../../../src/localbrain/session_sources.py), [Contexts](../../../src/localbrain/contexts.py): 환경변수·로컬 파일·DB에 나뉜 설정과 소스 등록.
-- [Session queries](../../../src/localbrain/queries.py), [Usage queries](../../../src/localbrain/usage_queries.py), [Source cues](../../../src/localbrain/templates/_source_cue.html): 동적 소스 필터와 남아 있는 특정 소스 표시 처리.
-- [Scanner](../../../src/localbrain/ingest/scanner.py), [Database](../../../src/localbrain/db.py): 기본 경로, 프로젝트 표시, 초기 Context 등록, 원본 변경 처리, PDF·Apple Notes 읽기.
+- [Package manifest](../../../pyproject.toml), [CLI](../../../src/localbrain/cli.py), [ASGI entrypoint](../../../src/localbrain/main.py), [Application lifecycle](../../../src/localbrain/app/lifecycle.py): Python 패키지, 선택 의존성, loopback 서버, 시작·종료 처리.
+- [Configuration](https://github.com/chochita0311/local-brain/blob/6c03265701d0d8b552fc8bb60e346ba1971f4bb3/src/localbrain/config.py), [Session sources](https://github.com/chochita0311/local-brain/blob/6c03265701d0d8b552fc8bb60e346ba1971f4bb3/src/localbrain/session_sources.py), [Contexts](https://github.com/chochita0311/local-brain/blob/6c03265701d0d8b552fc8bb60e346ba1971f4bb3/src/localbrain/contexts.py): 환경변수·로컬 파일·DB에 나뉜 설정과 소스 등록.
+- [Session queries](https://github.com/chochita0311/local-brain/blob/6c03265701d0d8b552fc8bb60e346ba1971f4bb3/src/localbrain/queries.py), [Usage queries](https://github.com/chochita0311/local-brain/blob/6c03265701d0d8b552fc8bb60e346ba1971f4bb3/src/localbrain/usage_queries.py), [Source cues](../../../src/localbrain/templates/_source_cue.html): 동적 소스 필터와 남아 있는 특정 소스 표시 처리.
+- [Scanner](../../../src/localbrain/ingest/scanner.py), [Database](https://github.com/chochita0311/local-brain/blob/6c03265701d0d8b552fc8bb60e346ba1971f4bb3/src/localbrain/db.py): 기본 경로, 프로젝트 표시, 초기 Context 등록, 원본 변경 처리, PDF·Apple Notes 읽기.
 - [Session actions](../../../src/localbrain/static/app.js), [Session list](../../../src/localbrain/templates/sessions.html), [Search retrieval](../../../src/localbrain/natural_search/retrieval.py): 수동 동기화의 진행·전체 화면 갱신, DB 변경 감지와 검색 준비의 연결.
 - [Shared shell](../../../src/localbrain/templates/base.html), [Sources](../../../src/localbrain/templates/sources.html), [Natural search view](../../../src/localbrain/templates/natural-search.html): 현재 탐색 구조와 설치 안내.
-- [Model installation](../../../src/localbrain/model_installation.py), [Model catalog](../../../src/localbrain/model_catalog.py), [Search service](../../../src/localbrain/natural_search/service.py), [Insights runner](../../../src/localbrain/personal_insight_runs.py): 모델과 실행 환경, 검색 준비, 별도 외부 분석 의존성.
+- [Model installation](https://github.com/chochita0311/local-brain/blob/6c03265701d0d8b552fc8bb60e346ba1971f4bb3/src/localbrain/model_installation.py), [Model catalog](https://github.com/chochita0311/local-brain/blob/6c03265701d0d8b552fc8bb60e346ba1971f4bb3/src/localbrain/model_catalog.py), [Search service](../../../src/localbrain/natural_search/service.py), [Insights runner](https://github.com/chochita0311/local-brain/blob/6c03265701d0d8b552fc8bb60e346ba1971f4bb3/src/localbrain/personal_insight_runs.py): 모델과 실행 환경, 검색 준비, 별도 외부 분석 의존성.
 
 ### External Reference Evidence
 
@@ -627,7 +632,7 @@ UI 검증은 해당 화면의 실제 WebView에서 설정 열기/닫기, 키보�
 - 실제 경로가 없는 기록을 가짜 프로젝트로 만들지 않는다. 분석·Maintenance·프로젝트 미지정 작업·귀속된 작업이 섞인 조회에서도 work 클래스만의 Project 행·합계·비율, 보존된 전체 합계와 원본 귀속 불변을 검증한다. Git 루트나 실행 폴더(`~` 포함)는 계속 Project로 표시하고, 실제 미귀속 작업은 `프로젝트 미지정`으로 둔다. 구체적 집계 조건은 C07 Spec과 Usage 계약이 소유한다.
 - 원본이나 등록 경로를 이동하지 않고 세션·문서 수집 범위를 넓히지 않는다. 기존 설정의 호환·저장 실패 보존을 유지하며 일반 설정의 환경변수 덮어쓰기를 제거한다.
 
-근거: 사용자의 개인화·홈 축약 제안, [공통 경로 표시](../../../src/localbrain/path_display.py), [설정 호환](../../../src/localbrain/preferences.py), [작업 폴더 수집](../../../src/localbrain/ingest/scanner.py), [Sessions/Chart 조회](../../../src/localbrain/queries.py), [Usage 귀속](../../../src/localbrain/usage.py), [Usage 분류](../../../src/localbrain/usage_queries.py), [앱 내부 분석 사용량 기록](../../../src/localbrain/personal_insight_usage.py), [기존 공통 설정 계약](../../policies/project/desktop-app-and-settings.md).
+근거: 사용자의 개인화·홈 축약 제안, [공통 경로 표시](https://github.com/chochita0311/local-brain/blob/6c03265701d0d8b552fc8bb60e346ba1971f4bb3/src/localbrain/path_display.py), [설정 호환](https://github.com/chochita0311/local-brain/blob/6c03265701d0d8b552fc8bb60e346ba1971f4bb3/src/localbrain/preferences.py), [작업 폴더 수집](../../../src/localbrain/ingest/scanner.py), [Sessions/Chart 조회](https://github.com/chochita0311/local-brain/blob/6c03265701d0d8b552fc8bb60e346ba1971f4bb3/src/localbrain/queries.py), [Usage 귀속](https://github.com/chochita0311/local-brain/blob/6c03265701d0d8b552fc8bb60e346ba1971f4bb3/src/localbrain/usage.py), [Usage 분류](https://github.com/chochita0311/local-brain/blob/6c03265701d0d8b552fc8bb60e346ba1971f4bb3/src/localbrain/usage_queries.py), [앱 내부 분석 사용량 기록](https://github.com/chochita0311/local-brain/blob/6c03265701d0d8b552fc8bb60e346ba1971f4bb3/src/localbrain/personal_insight_usage.py), [기존 공통 설정 계약](../../policies/project/desktop-app-and-settings.md).
 
 ## Continuity Notes
 
@@ -663,3 +668,65 @@ UI 검증은 해당 화면의 실제 WebView에서 설정 열기/닫기, 키보�
 - `2026-10-19` 사용자 설정 정정: 일반 설정은 로컬 설정 파일을 따른다. 기존 환경변수 우선 적용과 저장값/적용값 구분을 제거하고 없는 필드만 기본값으로 채운다. C01/C07 계약을 이 결정으로 대체하며 기존 파일·도메인 저장소·적용 시점은 보존한다.
 
 - `2026-10-20` 사용자 승인: By Project / Project 명칭을 유지하고 Project만 일반 작업·하위 세션 기준으로 집계한다. 분석·Maintenance의 전체 사용량은 보존한다. C07의 이전 앱 내부 분석 Project 범주를 대체하며 [Run 179](../run/run-20261020-179-work-session-project-usage.md)에서 검증한다.
+
+## Original MVP Sequencing Context — 2026-10-31 Reconciliation
+
+The original Product Model deferred native macOS packaging before workflow
+validation and used “The local web workflow proves useful before desktop
+packaging begins” as a sequencing criterion. This describes the original rollout
+order, not the current absence of a native test app. The implemented test-edition
+boundary and the separate public-release acceptance remain unchanged.
+
+## Documentation Index Reconciliation — 2026-10-31
+
+The following preserves the detailed navigation snapshot relocated from the
+Plans Index. Its dated execution/approval facts and evidence limits remain with
+this owning record and its linked artifacts; it is not a new execution grant or
+an update to unrelated acceptance. Current definitions remain in policy owners.
+
+### Boundary And Delivery Context
+
+- [PRD-0021: macOS Standalone Test App And Local Settings](prd-0021-macos-standalone-test-app-and-local-settings.md)
+  has completed local implementation and is `blocked` for final native/recipient
+  acceptance of the standalone Mac test app centered on Session browsing/detail,
+  Sessions Dashboard and Local Context, with private local settings, first-run
+  setup and model-optional search. It owns the 13-Feature/21-commit planning estimate,
+  selected Tauri/Apple Silicon direction, source contracts and release boundary.
+  The `2026-10-18` decisions retain Sessions Dashboard and exclude the top-level
+  Dashboard/learning, Workstreams, Auto Work, Atlassian, Insights and Session
+  workflow from the installed edition. Agent homes/session roots, Git projects
+  and document locations are generalized separately. Existing authorized network
+  and agent communication stays; additional network controls and app encryption
+  are outside this increment. Its [decision status](#decision-status--2026-10-18)
+  records accepted settings/runtime/lifecycle recommendations and reuse of the
+  deprecated keyword search. The later owner correction removes path-display
+  preferences and registered display roots: current-home abbreviation is fixed
+  across the app, with source registration and historical attribution preserved.
+  [C07](../feature/feat-0134-general-and-project-settings.md) tracks that correction. The test-stage delivery decision targets quick testing
+  through one `.app` in a ZIP, with ad-hoc signing and app-specific first-launch
+  guidance. Developer ID, notarization and DMG production are deferred; contract
+  details are implemented; transferred-app execution evidence remains pending. The selected
+  delivery flow is local packaged-app validation, internal Drive ZIP sharing,
+  then a teammate's download and execution on a supported Mac; personal data
+  stays on each user's machine. The later 2026-10-20 direction is a company-independent public Mac app under normal macOS security; signing/notarization and recipient evidence remain release follow-up.
+  The owner also selected Session synchronization every 10 minutes in both local
+  browser use and the packaged app, retaining the existing manual sync action.
+  The shared backend owns scheduling while running; local settings persist
+  across restarts, and closing browser tabs does not stop a running server.
+  The [current synchronization contract](../../policies/project/desktop-app-and-settings.md#synchronization-presentation)
+  owns lifecycle, settings and non-disruptive refresh. The PRD records the
+  [approved periodic-sync scope](#periodic-session-synchronization);
+  C13 adds two estimated commits, for 13 candidates and 21 commits overall.
+  The owner subsequently authorized implementation and related tests plus browser/app
+  execution. FEAT-0128–0140 and RUN-166–178 track the delivered code, local build
+  and evidence limits. Keyword-default/explicit-AI search is now the common entry.
+  Current source and documentation closeout after RUN-204 is recorded in the
+  [2026-10-26 verification](../evaluation/eval-0139-functional-standalone-test-app.md#session-closeout--2026-10-26).
+  The historical 2026-10-19 [integration receipt](../evaluation/eval-0139-functional-standalone-test-app.md)
+  records 1,174/1,178 passing tests (four pre-existing learning inventory failures),
+  browser checks, relocated ZIP/native execution and real model download/search.
+  The [startup repair](../fix/fix-0131-desktop-startup-cookie.md) supersedes the original
+  ZIP after reproducing and fixing its first-page authentication/encoding failure;
+  actual WKWebView landing/API checks now pass. Native chooser/shortcut interactions and a teammate's actual Mac execution
+  remain open. Internal Drive upload is external follow-up; they are not implied by the developer Mac checks. The stopped
+  workflow track keeps its existing boundary.

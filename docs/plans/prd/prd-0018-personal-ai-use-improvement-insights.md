@@ -184,3 +184,48 @@ The [2026-10-02 closeout review](../feature/feat-0110-executable-personal-insigh
 - `2026-10-01`: the owner switches to clarification-and-correction questions. [RUN-132](../run/run-20261001-132-personal-insight-explanation-question.md) completes three real-input analyses, four controls and fresh independent review with the current guide and production ask selector unchanged. The bounded audit passes with precision suggestions; ordinary learning and unsupported apologies are distinguished from substantive corrections. A small future response-review trial is supported, while retrieval quality, generalization and owner benefit remain unverified. No guide change or automatic expansion is introduced.
 
 - `2026-10-01`: the owner selects a previous execution-basis question for the proposed response-review comparison. [RUN-133](../run/run-20261001-133-personal-insight-explanation-trial.md) preserves two fresh current-code answers and a condition-hidden independent review. Both answers are adequate, with a small precision suggestion in the additional-instruction condition. Incremental benefit is not established; the comparison introduces no permanent instruction or product change.
+
+## Documentation Index Reconciliation — 2026-10-31
+
+The following preserves the detailed navigation snapshot relocated from the
+Plans Index. Its dated execution/approval facts and evidence limits remain with
+this owning record and its linked artifacts; it is not a new execution grant or
+an update to unrelated acceptance. Current definitions remain in policy owners.
+
+### Analysis And Skill-Ranking Delivery
+
+The workflow-map track has no active calculation or implementation Run; its
+completed boundary is [RUN-117](../run/run-20260924-117-continuous-affinity-canvas.md).
+The separate Insights track passed [RUN-118](../run/run-20260927-118-personal-insight-evidence-manifest.md),
+[RUN-119](../run/run-20260928-119-insights-analyzer-screen-preview.md),
+[RUN-120](../run/run-20260928-120-executable-personal-insight-runs.md), and
+[RUN-121](../run/run-20260928-121-personal-improvement-guide-and-finding-contract.md),
+and [RUN-122](../run/run-20260928-122-guided-personal-insight-result-integration.md)
+within their recorded evidence limits. RUN-120 did not invoke a model; RUN-121
+completed the detailed guide, and RUN-122 connected it to new executable Runs
+with synthetic and browser checks. The [workflow reconstruction record](prd-0017-source-backed-workflow-map-and-workstream-lenses.md)
+preserves earlier outcomes and unresolved admission gates; these are not a queue
+to resume automatically. Historical test counts apply to their named Runs.
+
+The first skill-ranking increment passed [RUN-123](../run/run-20260928-123-skill-observation-retention.md)
+and [RUN-124](../run/run-20260928-124-first-session-insights-view.md) using
+synthetic ingestion and browser evidence. These checks did not execute the
+personal-improvement model.
+
+The automatic skill-load extension passed [RUN-138](../run/run-20261002-138-automatic-skill-load-observation.md)
+with source-backed read admission, request grouping, retained-evidence migration,
+local backfill and active-browser checks. Observed loading remains distinct from
+actual application or benefit.
+
+The owner then requested a practical estimate of automatic use without new
+activation instrumentation. [RUN-139](../run/run-20261003-139-session-skill-use-estimate.md)
+records the prior [estimated-use correction](../feature/feat-0112-session-skill-use-estimate.md).
+The owner then approved [RUN-140](../run/run-20261004-140-skill-reference-session-count.md)
+to count use/reference Sessions without application-phrase matching.
+
+The analyzer track's corrections cover usage accounting (RUN-125), selection and
+evidence requests (RUN-128/129), concrete application handoffs (RUN-134), live
+CLI startup (RUN-135), and existing-proposal follow-through (RUN-136). Two
+owner-started question Runs now supply live no-finding/finding reports. The
+[closeout review](../feature/feat-0110-executable-personal-insight-runs.md#first-increment-closeout-review)
+is followed by [RUN-137](../run/run-20261002-137-insight-closeout-corrections.md), which resolves the reported cost-display/layout/test issues and missing GPT-6.1 Sol pricing. The [follow-up backlog](../project/backlog.md#personal-improvement-insights) owns remaining work; older Runs retain their original evidence limits.

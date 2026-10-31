@@ -70,3 +70,15 @@ No delegation, source mutation, model, connector, migration or legacy cleanup.
   audit is current (649 objects, keep 543/defer 106); artifact catalog built and
   checked; 1,607 local links across 35 changed Markdown documents validated;
   `git diff --check` passed. `handoff-tmp.md` and task scratch are absent.
+
+## Documentation Index Reconciliation — 2026-10-31
+
+The following preserves the detailed navigation snapshot relocated from the
+Plans Index. Its dated execution/approval facts and evidence limits remain with
+this owning record and its linked artifacts; it is not a new execution grant or
+an update to unrelated acceptance. Current definitions remain in policy owners.
+
+### Recorded Trial Outcome
+
+- [RUN-20260916-102](run-20260916-102-auto-work-inspection.md): Auto Work
+  inspection UI implemented and verified; available for post-run owner review.

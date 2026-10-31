@@ -83,3 +83,18 @@ private corpus remain untouched. A fresh model-weight hash verification passes.
   retained for reproducible comparison under their existing ownership/expiry
   policy. No task-owned scratch remains; diagnostic commands wrote no files.
   Sources, installed model assets, embeddings and existing product UI are unchanged.
+
+## Documentation Index Reconciliation — 2026-10-31
+
+The following preserves the detailed navigation snapshot relocated from the
+Plans Index. Its dated execution/approval facts and evidence limits remain with
+this owning record and its linked artifacts; it is not a new execution grant or
+an update to unrelated acceptance. Current definitions remain in policy owners.
+
+### Recorded Trial Outcome
+
+- [RUN-20260923-105](run-20260923-105-work-context-strategy-comparison.md):
+  `blocked` after the completed same-model reasoning/staged comparison. A fused
+  GPU numerical failure was bypassed, but the corrected candidates still fail
+  admission (3/4 and 2/4 automated cases, plus field-level semantic errors).
+  Holdout and private execution remain unperformed; no new model or UI changes.

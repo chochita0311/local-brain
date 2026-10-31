@@ -323,3 +323,25 @@ outstanding; similarity inspection is not complete work reconstruction.
 - Run: [RUN-112](../run/run-20260923-112-source-claim-extraction-and-binding-trial.md).
 - Evaluations: [Contract PASS](../evaluation/eval-0100-contract-source-claim-extraction-and-binding-trial.md),
   [Functional FAIL](../evaluation/eval-0100-functional-source-claim-extraction-and-binding-trial.md).
+
+## Documentation Index Reconciliation — 2026-10-31
+
+The following preserves the detailed navigation snapshot relocated from the
+Plans Index. Its dated execution/approval facts and evidence limits remain with
+this owning record and its linked artifacts; it is not a new execution grant or
+an update to unrelated acceptance. Current definitions remain in policy owners.
+
+### Boundary And Delivery Context
+
+- Current quality-blocked boundary:
+  [FEAT-0100: Source Claim Extraction And Binding Trial](feat-0100-source-claim-extraction-and-binding-trial.md)
+  (`blocked`, foundation), completed its single trial under
+  [RUN-112](../run/run-20260923-112-source-claim-extraction-and-binding-trial.md).
+  Model-aware provenance, staged extraction/binding and deterministic projection
+  are implemented; contract and zero-generation replay pass. All 28 extractions
+  are protocol-rejected, while reference-conditioned binding fully passes 3/28;
+  no end-to-end call becomes eligible. Functional quality fails, leaving holdout
+  unconsumed and private/UI processing excluded from that trial. Its subsequent
+  output/evidence-interface review produced the separate boundaries above, not another
+  automatic model run or owner Session-classification queue. FEAT-0100's blocked
+  outcome is unchanged by the narrower affinity-inspection proposal.

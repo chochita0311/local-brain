@@ -115,3 +115,17 @@ source/time axes, bounds, overlap, omission, serialization, and no-I/O ownership
 - `2026-09-15`: linked the now-approved experiment's RUN-20260915-101 and
   missing-private-evidence block. The original return classification and
   historical evaluator results remain unchanged.
+
+## Documentation Index Reconciliation — 2026-10-31
+
+The following preserves the detailed navigation snapshot relocated from the
+Plans Index. Its dated execution/approval facts and evidence limits remain with
+this owning record and its linked artifacts; it is not a new execution grant or
+an update to unrelated acceptance. Current definitions remain in policy owners.
+
+### Recorded Trial Outcome
+
+- [RUN-20260915-100](run-20260915-100-workstream-candidate-discovery-contract.md)
+  is `returned-to-planning` after owner review. Its recorded 33 new tests and
+  584-test regression remain evidence for the isolated pair contract, not
+  automatic work reconstruction or acceptance of its superseded consumers.

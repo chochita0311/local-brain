@@ -18,7 +18,7 @@ Sessions에서 `List/Chart`를 전환해 전체 세션 기록을 시간에 따�
 - Directional reference: 사용자가 지목한 Chochita Archive의 Andromeda collection. 점과 작은 카드, 선택 강조, 선택 고정, 화면 이동과 확대·축소의 형식만 참고한다.
 - Interaction reference: 앞선 버전에서 사용자가 승인한 Obsidian Graph view의 장력 느낌. 현재 버전은 사용자가 다시 지정한 실행 폴더별 행과 브랜치 가지를 우선하며, 당김은 해당 가지 안의 작은 임시 움직임으로 제한한다.
 - Design authority: [Design Constitution](../../policies/design/design-constitution.md), [Design Evaluation](../../policies/design/design-evaluation.md), [Interaction Evaluation](../../policies/experience/interaction-evaluation.md).
-- Product and implementation: [Session inventory](../../policies/project/product.md#application-navigation-and-session-inventory), `sessions.html`, `queries.py`, Session 상세의 기존 navigation 상태.
+- Product and implementation: [Session inventory](../../policies/project/sessions.md#session-inventory-and-chart), `sessions.html`, `queries.py`, Session 상세의 기존 navigation 상태.
 
 ## Product Intent
 
@@ -136,3 +136,53 @@ List의 기존 사용 방식과 작업 흐름이 보존되며, Chart는 전체 �
 - `2026-10-06`: 고정 불규칙 배치와 장력 상호작용을 로컬 Chart에 반영했다. [EVAL-0114-R2](../evaluation/eval-0114-r2-stable-session-constellation.md)에 실제 드래그·복귀, 위치 보존, 활동·상세 복귀와 화면 폭 확인을 기록했다. 밀도와 장력의 사용자 검토가 다음 단계이며, 실제 OS 설정·터치 기기와 자동 회귀 검증은 완료로 주장하지 않는다.
 - `2026-10-06`: 사용자는 불규칙 배치가 너무 무질서하다고 평가하고 실행 폴더별 프로젝트 행, master 기준 오른쪽 브랜치 가지와 브랜치 없는 폴더의 한 줄 표시를 요청했다. 추가 답변으로 저장된 브랜치명과 첫 세션 관측 기준을 명시적으로 선택했다. [SPEC-0114-R3](../spec/spec-0114-r3-project-branch-session-chart.md)와 [RUN-143](../run/run-20261006-143-project-branch-session-chart.md)로 현재 방향을 대체한다. 실제 Git 이력 조회와 업무 추론은 추가하지 않는다.
 - `2026-10-06`: 프로젝트·브랜치 Chart를 기존 로컬 서버에 반영했다. [EVAL-0114-R3](../evaluation/eval-0114-r3-project-branch-session-chart.md)에 실제 드래그·겹친 세션 선택·활동·상세 복귀와 1440/700/320px 확인을 기록했다. 새 정본 경로와 최초 시각의 예외 처리는 소스 검토 범위이며, 브라우저의 합성 데이터 확인을 백엔드 실행 검증으로 주장하지 않는다. 사용자 검토는 프로젝트 순서·가지 구성·밀도이며 기존 List·작업 흐름과 자동 작업 중단 범위는 유지한다.
+
+## Documentation Index Reconciliation — 2026-10-31
+
+The following preserves the detailed navigation snapshot relocated from the
+Plans Index. Its dated execution/approval facts and evidence limits remain with
+this owning record and its linked artifacts; it is not a new execution grant or
+an update to unrelated acceptance. Current definitions remain in policy owners.
+
+### Boundary And Delivery Context
+
+- [PRD-0019: Observed Session Chart](prd-0019-observed-session-chart.md)
+  owns the separately approved Sessions List/Chart, whose first phase reached the
+  owner's wrap-up review on 2026-10-12, including the continuous hover-region revision under
+  [FEAT-0114](../feature/feat-0114-observed-session-chart.md) and
+  [RUN-151](../run/run-20261009-151-session-chart-hover-region.md), retaining held descriptions in
+  [RUN-150](../run/run-20261008-150-session-chart-hover-preview.md) and scaled labels in
+  [RUN-149](../run/run-20261007-149-session-chart-scaled-branch-labels.md), HEAD handling in
+  [RUN-148](../run/run-20261007-148-session-chart-head-reference-tracks.md), the wheel controls in
+  [RUN-147](../run/run-20261007-147-session-chart-wheel-controls.md) and the local-DB/end-space
+  [RUN-146](../run/run-20261007-146-local-chart-preferences-and-pan-space.md), extending
+  the toolbar/pin [RUN-145](../run/run-20261007-145-session-chart-controls-and-pins.md) and
+  the filter/overview [RUN-144](../run/run-20261006-144-filtered-session-chart-overview.md) and
+  [RUN-143](../run/run-20261006-143-project-branch-session-chart.md). The first
+  [RUN-141](../run/run-20261006-141-observed-session-chart.md) and irregular-field
+  [RUN-142](../run/run-20261006-142-stable-session-constellation.md) retain historical
+  evidence. Chart uses recorded time, name-sorted launch-folder rows, stored branch
+  guides from first observation. Exact HEAD remains original metadata but does
+  not create a branch; HEAD/missing-only folders use one line without an empty
+  baseline. Named-branch folders retain one unassigned HEAD/missing track.
+  Chart also offers Project checkbox visibility, compact tracks,
+  whole-diagram fit and resisted date ends with balanced adaptive space. Project
+  and branch names stay present and scale with rows; no zoom cutoff hides branches.
+  Existing focus restores reading scale from tiny whole-fit names. Node hover/focus
+  opens a temporary description maintained across the node/card/passage, with
+  local card reading/scrolling and native exit grace; node activation holds it and repeat/blank activation
+  releases it. Other hover keeps the held description/activity intact, with native
+  emphasis and no hover-driven camera, persistence or activity change. Shift-wheel
+  moves horizontally from either input axis; Cmd/Ctrl+Shift-wheel changes time spacing
+  without changing vertical projection or position. Project
+  choices persist per scope in the private LocalBrain DB across browsers using it,
+  with valid browser-choice migration and contextual save retry. The simplified
+  toolbar and static native pin cues
+  preserve exact-member selection. It reads no
+  actual Git ancestry and infers no work relationship. List, Session Workflow Focus
+  and the stopped Auto Work track retain their scope. The owner-approved seven
+  portable UI/UX criteria are published in ai-assets
+  [commit 3dfcc36](https://github.com/chochita0311/ai-assets/commit/3dfcc36bd91e6f2c2461fe91d8f387dfca2ca17b).
+  The requested LocalBrain documentation and verification closeout is complete.
+  Physical wheel-gesture evidence remains unverified from R7; any later relationship
+  proposal requires its own approval.

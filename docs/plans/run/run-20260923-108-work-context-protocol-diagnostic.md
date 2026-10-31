@@ -145,3 +145,18 @@ holdout only after admission prerequisites pass. This is a recommendation for
 the next bounded decision, not an implemented producer or permission for private
 all-Session processing. Whole-history reconstruction and the intended map remain
 the destination; this diagnostic does not change embeddings, UI or legacy data.
+
+## Documentation Index Reconciliation — 2026-10-31
+
+The following preserves the detailed navigation snapshot relocated from the
+Plans Index. Its dated execution/approval facts and evidence limits remain with
+this owning record and its linked artifacts; it is not a new execution grant or
+an update to unrelated acceptance. Current definitions remain in policy owners.
+
+### Recorded Trial Outcome
+
+- [RUN-20260923-108](run-20260923-108-work-context-protocol-diagnostic.md):
+  `passed` for the owner-approved fixed-model diagnostic: twelve synthetic cases,
+  all 288 controlled conditions and zero-generation replay. Order/code sensitivity
+  and unsupported continuity are separate findings; changing answer format alone
+  does not grant FEAT-0098 admission. No holdout/private run or model download.

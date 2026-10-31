@@ -85,3 +85,19 @@ Strict behavioral parity를 주장하지 않는다.
 세션 상세가 직접 발견한 자료만 펼치며, 조직 기능의 기존 사용자 데이터를 보존한
 상태에서 해당 조회 결합이 사라진다. 실행 결과는
 [검증 기록](logs/2026-10-30_refactor-0004_direct-session-materials.md)에 남긴다.
+
+## Documentation Index Reconciliation — 2026-10-31
+
+The following preserves the detailed navigation snapshot relocated from the
+Plans Index. Its dated execution/approval facts and evidence limits remain with
+this owning record and its linked artifacts; it is not a new execution grant or
+an update to unrelated acceptance. Current definitions remain in policy owners.
+
+### Completion And Validation Limits
+
+- [REFACTOR-0004: Direct Session Materials](refactor-0004-direct-session-materials.md)
+  removes Session detail's linked-work strip and indirect organization materials while
+  preserving direct references and stored Workstream/Thread relations.
+  [Validation](logs/2026-10-30_refactor-0004_direct-session-materials.md)
+  records 1,451 passing tests, 11 deferred Drive loopback tests, and desktop/compact
+  browser checks. Its shared-resource/FK handoff is implemented by REFACTOR-0005.

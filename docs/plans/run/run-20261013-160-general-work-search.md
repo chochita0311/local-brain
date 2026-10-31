@@ -92,7 +92,7 @@ publish a distribution release.
 | Original research, hidden molecularization, full eligible corpus, parallel input and approved scope | [PRD-0020](../prd/prd-0020-local-natural-language-search.md) |
 | Source exclusions, fragment budgets/pointers, model roles, query conditions, current ranking and refresh flows | [Natural-Language Search](../../policies/project/natural-language-search.md) |
 | Shared public checkpoints, durable app data, private rebuildable index and Python environment repair | [Installation And Local Storage](../../policies/project/installation-and-storage.md) |
-| Reproducible comparison environments, commands and private loader metadata | [Developer Guide](../../policies/project/developer-guide.md#natural-language-search-comparisons) |
+| Reproducible comparison environments, commands and private loader metadata | [Developer Guide](../../policies/project/development/search-comparisons.md#operations) |
 | Original model/profile/size/cutoff comparisons, local resources and first independent installation | [FEAT-0121 evaluation](../evaluation/eval-0121-functional-natural-search-local-comparison.md) |
 | RRF → v2 cosine and v2 → v3 original/focused-view comparisons, regressions and evidence limits | [FEAT-0122 evaluation](../evaluation/eval-0122-functional-natural-search-ranking-precision.md), [FEAT-0123 evaluation](../evaluation/eval-0123-functional-general-work-search.md) |
 | Optional reopening after recurring real-use burden | [Backlog](../project/backlog.md#p1---sessions-and-retrieval) and PRD decisions |

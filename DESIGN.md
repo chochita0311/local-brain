@@ -4,7 +4,7 @@
 
 This file owns creative intent for LocalBrain. It explains the visual north star, source interpretation, and the reasons behind the design direction.
 
-Durable tokens, component contracts, layout rules, state mappings, and implementation guardrails live in [Design Constitution](./docs/policies/design/design-constitution.md). Document ownership and promotion rules live in [Design Document Governance](./docs/policies/design/design-document-governance.md).
+Durable tokens, component contracts, layout rules, state mappings, and implementation guardrails live in [Design Constitution](docs/policies/design/design-constitution.md). Document ownership and promotion rules live in [Design Document Governance](docs/policies/design/design-document-governance.md).
 
 ## Source Set And Interpretation
 

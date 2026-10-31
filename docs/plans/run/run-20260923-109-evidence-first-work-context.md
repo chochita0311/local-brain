@@ -159,3 +159,25 @@ failures, add training/models, or ask the owner to classify Sessions one by one.
 Any new candidate needs its own bounded approval; all-Session reconstruction,
 area grouping and the inspectable flow map remain the destination, not completed
 work. Existing vectors, source DB, UI and legacy organization are unchanged.
+
+## Retained Admission Disposition
+
+The frozen evidence-first candidate remains rejected and ineligible for holdout
+or workflow reconstruction. Reproduction and replay do not renew its consumed
+attempts, reset its budget or authorize another model run. Documentation
+reorganization preserves this existing disposition and grants no new trial.
+
+## Documentation Index Reconciliation — 2026-10-31
+
+The following preserves the detailed navigation snapshot relocated from the
+Plans Index. Its dated execution/approval facts and evidence limits remain with
+this owning record and its linked artifacts; it is not a new execution grant or
+an update to unrelated acceptance. Current definitions remain in policy owners.
+
+### Recorded Trial Outcome
+
+- [RUN-20260923-109](run-20260923-109-evidence-first-work-context.md):
+  `blocked` after the completed evidence-first 8B candidate. Original development
+  passes 3/4; new composition passes 4/12, with role confusion and unsupported
+  relationships surviving same-model audits. Contract and zero-generation replay
+  pass, but both semantic gates fail. No holdout, private processing or UI change.

@@ -290,7 +290,7 @@ weights; sharing a cache did not make them one model. Comparison Python packages
 were isolated from the app runtime. These setup observations do not establish
 that the historical comparison environment is still present.
 
-[Developer Guide](../../policies/project/developer-guide.md#natural-language-search-comparisons)
+[Developer Guide](../../policies/project/development/search-comparisons.md#operations)
 provides exact scripts, pinned optional runtime setup, asset preparation and fresh
 private output requirements. Source scripts and authored fixtures are public;
 actual private inputs, titles, result texts, paths, DBs, vectors and raw machine

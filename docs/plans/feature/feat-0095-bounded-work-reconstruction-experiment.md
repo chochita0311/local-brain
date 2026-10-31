@@ -321,3 +321,14 @@ runtime parameters and must never be placed in tracked artifacts.
 - `2026-09-16`: current-data execution check succeeded with explicitly unassessed
   quality. `61/61` focused and `645/645` total tests passed. Kept the Feature
   blocked on independent quality evidence, not DB-path or period selection.
+
+## Review Allowance Disposition
+
+The approved allowance is one local review batch of at most five consequential
+ambiguous cases for expectation/correction assessment. The retained public record
+does not establish whether it has already been spent; remaining availability is
+unknown. Unknown or spent allowance is unavailable, and reproduction, replay or
+documentation cleanup never renews it. If unresolved expectations or unassessed
+corrections prevent a verdict, report insufficient evidence rather than request
+another batch. This reconciles the existing Privacy statement; it grants no new
+review, private processing or product transition.

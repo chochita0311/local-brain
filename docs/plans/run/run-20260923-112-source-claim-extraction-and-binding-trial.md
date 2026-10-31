@@ -147,3 +147,26 @@ No next prompt trial or new model is launched automatically, and the user is not
 asked to classify individual Sessions. Whole-history areas/efforts and the
 inspectable temporal map remain the product destination. SPEC-0100 stays approved;
 a materially changed candidate requires its own reviewed boundary.
+
+## Retained Admission Disposition
+
+The frozen source-claim model candidate remains rejected and unadmitted; its
+holdout, private-source processing and UI use remain withheld. Replay or
+documentation cleanup does not reopen the candidate, renew consumed calls or
+reset its budget. No successful semantic quality result or new trial authority
+is established by the pure state contract or this documentation reorganization.
+
+## Documentation Index Reconciliation — 2026-10-31
+
+The following preserves the detailed navigation snapshot relocated from the
+Plans Index. Its dated execution/approval facts and evidence limits remain with
+this owning record and its linked artifacts; it is not a new execution grant or
+an update to unrelated acceptance. Current definitions remain in policy owners.
+
+### Recorded Trial Outcome
+
+- [RUN-20260923-112](run-20260923-112-source-claim-extraction-and-binding-trial.md):
+  `blocked` on quality after the completed source-claim adapter and one frozen
+  installed-8B synthetic trial. Contract/replay pass; extraction is rejected 28/28,
+  conditioned binding passes 3/28, all end-to-end calls are prerequisite-skipped.
+  No active calculation, holdout, private corpus or product consumer.

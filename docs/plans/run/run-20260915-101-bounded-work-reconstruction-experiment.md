@@ -128,3 +128,18 @@ comparison implementation, not the subsequently approved inspection increment.
 - `2026-09-16`: bounded current-data execution succeeded with assessment explicitly
   unknown. Replaced the missing-DB/period route with independent quality
   assessment, retained partial acceptance, and removed task-private artifacts.
+
+## Documentation Index Reconciliation — 2026-10-31
+
+The following preserves the detailed navigation snapshot relocated from the
+Plans Index. Its dated execution/approval facts and evidence limits remain with
+this owning record and its linked artifacts; it is not a new execution grant or
+an update to unrelated acceptance. Current definitions remain in policy owners.
+
+### Recorded Trial Outcome
+
+- [RUN-20260915-101](run-20260915-101-bounded-work-reconstruction-experiment.md)
+  is `blocked` after synthetic verification and an unassessed current-data
+  execution check. Its Contract and
+  Functional technical results have partial Feature coverage; real local
+  extraction viability is unverified. Its model-free results remain a comparator.

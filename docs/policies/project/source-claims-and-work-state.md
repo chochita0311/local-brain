@@ -222,9 +222,26 @@ reset the same Run's budget. Replay revalidates stored raw outcomes without mode
 generation. Conditional holdout requires the same revalidated development report
 and a report-bound primary review receipt. There is no automatic private consumer.
 
-The [Developer Guide](developer-guide.md#source-claim-extraction-and-state-trial)
+The [Developer Guide](development/source-claim-trials.md#operations)
 owns current invocation and numerical trial limits, including cumulative budgets,
-replay and holdout refusal conditions. The frozen source-claim model candidate
-remains rejected and unadmitted; its holdout, private-source and UI use remain
-withheld. This policy establishes no successful semantic quality result and grants
-no fresh trial or budget reset.
+replay and holdout refusal conditions. Trial-specific admission and consumed allowance belong to the
+[owning Run](../../plans/run/run-20260923-112-source-claim-extraction-and-binding-trial.md#retained-admission-disposition).
+This contract establishes no successful semantic quality result, admits no
+private-source or UI consumer, and grants no fresh trial or budget reset.
+
+## Implementation Ownership
+
+- `experiments/claims/state.py`: pure source-claim/reported-state projection: unchanged
+  synthetic-supplied v1 plus model-aware v2 provenance/lifecycle effects, governed
+  by [Source Claims And Work State](source-claims-and-work-state.md).
+  Separates exact anchors, attributed interpretations, scoped target bindings and
+  current state; preserves historical pending claims, partial order, corrections,
+  unresolved support and replay identities. The projector has no source reader,
+  model call, persistent ledger, automatic target discovery or product consumer.
+  It cannot certify the truth of a supplied interpretation or unblock admission.
+
+- `experiments/claims/contract.py`, `experiments/claims/assessment.py`, `experiments/claims/trial.py`: separately
+  invoked synthetic-only extraction/binding adapter, conditional versus end-to-end
+  scoring and bounded failure-preserving evaluation. No private or UI consumer.
+  This adapter invokes the installed generative model during explicit trials;
+  it is separate from the pure state projector and the affinity-map producer.

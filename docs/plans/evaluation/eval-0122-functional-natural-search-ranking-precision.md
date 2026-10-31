@@ -143,7 +143,7 @@ closeout을 따른다. 이번에는 독립 설치 패키지를 새로 빌드하�
 
 ## 재현과 증거 소유
 
-[Developer Guide](../../policies/project/developer-guide.md#natural-language-search-comparisons)의
+[Developer Guide](../../policies/project/development/search-comparisons.md#operations)의
 `benchmark-search-precision.py`가 기존 RRF, 고정 보너스 후보와 당시 v2 원문-cosine
 순위를 재현한다. 현재 hybrid는 v3이므로 이 도구는 dense와 정확 식별자 경로로
 v2의 비교 기준을 유지한다. 품질 비교의 질의 벡터 재사용은 속도 측정에 쓰지 않는다. 임시 합성 색인은

@@ -444,3 +444,20 @@ correction, regression/parity proof and source/package/live checks are complete.
 Existing input-heuristic and recipient/native-browser limits remain explicit.
 
 Execution record: [implementation log](logs/2026-10-30_refactor-0002_implementation.md).
+
+## Documentation Index Reconciliation — 2026-10-31
+
+The following preserves the detailed navigation snapshot relocated from the
+Plans Index. Its dated execution/approval facts and evidence limits remain with
+this owning record and its linked artifacts; it is not a new execution grant or
+an update to unrelated acceptance. Current definitions remain in policy owners.
+
+### Completion And Validation Limits
+
+- [REFACTOR-0002: Ingestion Layers And Session Revisions](refactor-0002-ingestion-layers-and-session-revisions.md)
+  delivered numeric Session freshness, newer-result refusal and provider/evidence/
+  synchronization boundaries. The independent parity audit found P2-1 in DDL
+  recognition; its SQL token, quote/comment/BOM correction now passes 1,444 tests,
+  exact differential replay, installed-wheel/native checks and live initialization
+  preservation. Older app copies require rebuild/replacement; recipient and
+  native-browser acceptance retain their separate scopes.

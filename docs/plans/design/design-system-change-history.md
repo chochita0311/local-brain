@@ -71,3 +71,11 @@ owns update and change-record duties.
 | 2026-10-26 | v59 | Match the color menu frame to both edges of its trigger background and match horizontal/diagonal painted tag widths. Remove menu color-name hover tooltips while preserving accessible names; retain compact heights and scrolling without a width-changing gutter. |
 | 2026-10-26 | v60 | Run204 ties Pinned group ordering to the displayed home-abbreviated path with stable identity fallback, and distinguishes selected palette state from pointer/keyboard focus while preserving visible keyboard navigation. |
 | 2026-10-27 | v61 | Bundled English Docs reuse the native shell and Markdown reading roles. Docs sits immediately above Settings; both utilities remain reachable in compact navigation. One current-topic contents rail enters document flow at 920px, with bounded prose and local table overflow. The shared 16px prose role supports reading without creating a separate visual system. |
+
+## Documentation Ownership Alignment — 2026-10-31
+
+The existing Chart and Session-reading rules moved into explicitly linked
+`surfaces/` companions without new visual values or application changes. Common
+law remains in the constitution. Its obsolete instruction to retain the Session
+`연결된 작업` organization lane was corrected to the already implemented direct-only
+reference contract from REFACTOR-0004; existing organization data remains intact.

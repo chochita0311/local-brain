@@ -991,3 +991,31 @@ flowchart LR
 기본 수집·읽기에서 선택 패키지/테이블을 제외한 검증은 통과했다. 전체 앱의
 파일럿 route/lifecycle/template 등록 제거는 수행하지 않았으며, 이 semantic
 배치의 결과를 앞선 structural parity 증거로 소급하지 않는다.
+
+## Documentation Index Reconciliation — 2026-10-31
+
+The following preserves the detailed navigation snapshot relocated from the
+Plans Index. Its dated execution/approval facts and evidence limits remain with
+this owning record and its linked artifacts; it is not a new execution grant or
+an update to unrelated acceptance. Current definitions remain in policy owners.
+
+### Completion And Validation Limits
+
+- [REFACTOR-0003: Session-Centered Package Boundaries](refactor-0003-session-centered-package-boundaries.md)
+  is complete after the 2026-10-31 cache-boundary correction and subagent re-review.
+  Foundation/model, feature packages, HTTP/query/resource ownership, persistence
+  internals and optional-feature assembly are separated; the package root contains
+  four Python entry files. REFACTOR-0004/0005 own the intervening approved
+  Session-material and shared-resource semantic changes.
+  The [completion review](logs/2026-10-31_refactor-0003_completion-review.md)
+  reopened a Settings cache-clear failure when Auto Work was omitted but its old
+  cache remained. The [fix and re-review](logs/2026-10-31_refactor-0003_feature-cache-boundary.md)
+  close it with feature-owned cache handlers, retained-state omission checks,
+  default CLI comparison, installed-wheel checks, actual frozen-backend
+  start/restart and browser validation. Its [session closeout](logs/2026-10-31_refactor-0003_feature-cache-boundary.md#follow-up--session-closeout)
+  reconciles the three tracks after independent ownership/meaning reviews and
+  records a final 1,478-test pass after generated metadata corrections. Earlier
+  [assembly evidence](logs/2026-10-31_refactor-0003_feature-assembly.md)
+  retains the baseline response comparisons. Google Drive transport checks remain
+  deferred by the user and strict parity stays provisional. Actual feature/table
+  removal, native app installation and a merge decision remain separate.
