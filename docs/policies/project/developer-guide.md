@@ -8,6 +8,10 @@
 - Claude CLI only for Claude-backed maintenance Runs
 - Codex CLI for personal improvement analysis Runs or when selecting Codex for external synchronization
 
+The source/web instructions below target macOS. The current runtime uses Unix
+file-locking APIs, and the native builder targets Apple Silicon macOS. Python-version
+compatibility does not establish Windows installation or execution support.
+
 ## Setup And Run
 
 Use [macOS Installation And Local Storage](installation-and-storage.md) for a
@@ -268,7 +272,14 @@ substantial tokens. The report appears below the Run list when complete. Use
 analysis creates a new Run and preserves earlier reports. The selected profile
 and model are retained with each Run; the default model is `gpt-6-astra`.
 
-The Insights analyzer uses Codex CLI. `LOCALBRAIN_INSIGHT_CODEX_HOME` takes priority over `CODEX_HOME`; without either setting, an existing `~/.codex-company` home is preferred to `~/.codex`. A new Run freezes that home, selected model, exact prompt and the [guide/result bundle](personal-insights.md#guide-bundle-and-result-contract), including independent core/playbook versions and digests and the response schema. That canonical contract owns current versions and historical report compatibility. Changing environment settings or the package guide affects future Runs only. The guide sources are `src/localbrain/personal_insight_guides/`; private evidence, prompts, responses, validated results, diagnostics, and reports are kept under `<LOCALBRAIN_DATA_DIR>/personal-insight-runs/<id>/`, outside Git. An explicit Run start sends selected Session excerpts to the configured model service; opening the screen or a past report does not.
+This optional development-web analyzer uses a Codex CLI execution profile.
+`LOCALBRAIN_INSIGHT_CODEX_HOME` takes priority over `CODEX_HOME`; without either setting, an existing `~/.codex-company` home is preferred to `~/.codex`. A new Run freezes that home, selected model, exact prompt and the [guide/result bundle](personal-insights.md#guide-bundle-and-result-contract), including independent core/playbook versions and digests and the response schema. That canonical contract owns current versions and historical report compatibility. Changing environment settings or the package guide affects future Runs only. The guide sources are `src/localbrain/personal_insight_guides/`; private evidence, prompts, responses, validated results, diagnostics, and reports are kept under `<LOCALBRAIN_DATA_DIR>/personal-insight-runs/<id>/`, outside Git. An explicit Run start sends selected Session excerpts to the configured model service; opening the screen or a past report does not.
+
+Run creation requires exactly one Codex Source row whose resolved root
+matches the resolved `<selected-home>/sessions` path; missing or ambiguous matches
+refuse creation. The [analysis contract](personal-insights.md#personal-improvement-analysis-runs)
+also requires revalidating the frozen Source ID, provider and path binding before
+CLI launch.
 
 New findings use the existing work-session handoff to explain the proposed application mechanism, target, concrete content, actors, activation, setup and repeated work. The [application contract](personal-insights.md#concrete-application-handoff) distinguishes temporary trials, conditional adoption and unresolved placement facts. This guide requirement is evaluated semantically; the JSON validator only enforces its existing structural rules.
 

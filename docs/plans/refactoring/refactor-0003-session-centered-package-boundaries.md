@@ -1019,3 +1019,124 @@ an update to unrelated acceptance. Current definitions remain in policy owners.
   retains the baseline response comparisons. Google Drive transport checks remain
   deferred by the user and strict parity stays provisional. Actual feature/table
   removal, native app installation and a merge decision remain separate.
+
+### Canonical Separation And Public-Source Scope Review
+
+The owner requested this documentation follow-up after the package refactoring:
+current architecture, design and guides should explain their canonical state,
+while project approvals, delivery changes and evaluation history belong in their
+existing planning records. The approved change map became `c76ce44`: 92 changed
+files and 19 new owners, comprising 11 feature contracts, six development guides
+and two design-surface companions. The [Documentation Map](../../README.md) owns
+navigation. Executable versions, independent content fingerprints, immutable
+state, consumed trial budgets and stop/refusal conditions were preserved; moving
+history did not grant new execution authority or complete open acceptance.
+
+A subsequent installation-guidance change, `8cf83d1`, incorrectly generalized
+environment-specific package-manager cache/TLS diagnostics into public guidance.
+The owner rejected that generalization. Corrective commit `aeefaba` restores
+the exact `c76ce44` tree; the intermediate commit remains in Git history. No
+certificate material or global certificate configuration was changed or
+committed. Those local diagnostics establish neither a public installation
+prerequisite nor clean-machine, Windows or native-recipient acceptance.
+
+The subsequent source-scope review makes the following bounded corrections:
+
+- [Architecture](../../policies/project/architecture.md#runtime-shape),
+  [Atlassian](../../policies/project/atlassian.md#external-access-foundation) and
+  [Privacy](../../policies/project/privacy-and-data.md#external-access) distinguish
+  core local collection, optional host-executed Atlassian reads and the separate
+  approved Drive sync path. Local actions retain their locally validated explicit
+  inputs and no-transmission restrictions. Actual provider contracts remain.
+- [Sessions](../../policies/project/sessions.md),
+  [Usage](../../policies/project/usage-and-cost.md) and the
+  [Session data owner](../../policies/project/data-model/workspace-and-session-activity.md#sessions)
+  describe independent source profiles rather than treating a personal/company
+  pair as the product's fixed source set. Retained skill observations remain
+  distinct from the Source binding required for a new
+  [Insights Run](../../policies/project/personal-insights.md#personal-improvement-analysis-runs).
+  The latter preserves exact home precedence, unique matching Source selection,
+  frozen identity and pre-launch revalidation/refusal rules.
+- The [README](../../../README.md#install-the-macos-test-app) labels the ad-hoc,
+  non-notarized macOS test artifact; the
+  [Developer Guide](../../policies/project/developer-guide.md#prerequisites) states
+  the current source/web platform boundary. The
+  [Settings contract](../../policies/project/desktop-app-and-settings.md) retains
+  the macOS/Python condition on system trust-store use. These corrections add no
+  Windows support, native certification or release acceptance.
+
+The initial correction covers 11 authored Markdown documents and three derived
+schema/audit outputs. No Python behavior, template, browser asset, database
+schema, dependency or runtime setting changes. The schema manifest changes only
+the Session owner's fingerprint and two semantic prose fields; the audit decision
+source changes only its manifest fingerprint. All 755 decisions remain unchanged
+(keep 643, change 0, remove 0, defer 112).
+
+The owner's Dashboard question was checked against Git history: `5fcab8d` already
+contains the learning implementation, screens, assets, tests and planning records;
+`6c5a6e4` subsequently moves that implementation into `learning/`. Both are in the
+current branch history and the checked learning files have no uncommitted delta.
+This establishes committed implementation, not completed learning acceptance.
+[PRD-0023](../prd/prd-0023-code-and-command-learning.md#boundary-and-delivery-context)
+and [Run 165](../run/run-20261017-165-code-command-reader.md) retain the reviewed
+private imports and leave functional transitions, owner acceptance and learning
+benefit unverified; later automation remains outside the delivered scope. Private
+lesson payloads remain outside Git under the
+[learning storage contract](../../policies/project/work-grounded-learning.md#immutable-revisions-and-atomic-intake).
+The current private database was not opened for this history check.
+
+Existing behavior still includes the optional analyzer's profile-home fallback,
+the optional Gateway provider's company-oriented display label, and the current
+timezone choices/default discovery. These are separately reviewable product
+decisions, not changed by generalizing documentation. The roadmap's external
+integration inventory still requires selected tools/API operations,
+authentication and read/write capabilities.
+
+### Documentation Closeout Verification And Limits
+
+Earlier session verification reported 1,489 tests passing for the canonical
+separation. The later 14-file correction passed 62 focused tests and 8,049 relative
+file/anchor links; 32 absolute application routes were distinguished from file
+links, with guide routes covered by the App Docs renderer tests. Three independently
+tasked reviewers resolved their findings through follow-up checks. Those are
+earlier results; their temporary raw logs have been removed.
+
+Fresh closeout verification discovered 1,489 tests and ran **1,478, all passing**
+in 49.999 seconds, with no failures, errors or skips. The exact 11
+`test_google_drive_transport.PoolTests.*` cases remain user-deferred and were
+excluded before execution, not counted as passes or skips. The existing Python
+3.11.15 environment was used, with Starlette template deprecation warnings treated
+as errors. Tracked source/test/script/build bytes were unchanged during the run;
+fresh dependency installation was not verified.
+
+Data-model checks confirm 52 ordinary tables plus one FTS5 object, 66 physical FKs,
+51 explicit indexes and 11 subject owners. Value dictionaries, schema presentation,
+the unchanged 755 audit decisions and generated ledger, planning catalog and all
+12 data-model Mermaid diagrams pass their configured checks. Recursive JSON
+comparison confirms only the three stated manifest fields and the audit manifest
+fingerprint changed. Privacy passes for 1,728 candidate files; whitespace checks pass.
+
+Mechanical navigation checks cover 1,233 Markdown documents: 8,056 relative
+file/anchor links pass, while seven app-guide fragments pass through the configured
+App Docs renderer tests, which validate their rewritten runtime heading IDs.
+The 32 absolute application routes are outside the repository-file checker; guide
+routes are covered by those renderer tests. The 258 external links were not fetched.
+Neither these checks nor the earlier whole-tree searches establish a semantic
+audit of every historical document.
+
+The two independent closeout reviews use `docs-structuring` for ownership,
+organization and duplication, and `docs-shaping` for clarity and meaning. The
+learning acceptance sentence was clarified so private import history cannot imply
+verified owner acceptance or learning benefit. Both reviewers rechecked this final
+evidence section and confirmed no remaining material finding. No actual native
+installation, browser session, clean-recipient source install, live Drive/provider
+operation or model execution is added by this
+documentation follow-up. Earlier refactor parity and release limits remain.
+
+The owner explicitly authorized session-only commit and push after the checks and
+material findings are resolved. Publication includes the bounded correction and
+this existing-record reconciliation. Earlier approved commits are retained;
+unrelated or concurrent changes are excluded. Git history and the final receipt
+will identify the commit and verified push. Verification processes exited and both
+reviewers finished before task-owned scratch was removed. No temporary path is
+retained or needed by a durable reference.

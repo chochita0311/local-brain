@@ -390,7 +390,7 @@ Work:
 - inspect installed Claude and Codex local formats and retention behavior
 - inspect representative project, context-folder, Git, and Apple Notes layouts
 - review activity-analysis tools such as cavemem as reference implementations, not LocalBrain sources or connectors
-- inventory approved MCP Gateway tools, authentication, and read/write capabilities
+- inventory approved tools or API operations, authentication, and read/write capabilities for the external integrations selected for this scope
 - define reference, cache, and index policy for each external source type
 - validate the product model against representative Workstreams
 
@@ -520,7 +520,7 @@ Exit criteria:
 
 ## Phase 4: External Read-only Sources
 
-**Goal:** connect approved company context without creating an uncontrolled second data store.
+**Goal:** connect approved external context without creating an uncontrolled second data store.
 
 Planning tracks:
 

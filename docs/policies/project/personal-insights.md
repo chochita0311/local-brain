@@ -2,11 +2,15 @@
 
 This contract owns skill reach, primary-work evidence selection, frozen guide/report compatibility, personal improvement decisions and analysis-only Runs. [Session Ingestion](session-ingestion.md#skill-observation-capture) owns source observation capture.
 
+This contract covers the optional development-web Insights feature. The
+[standalone test edition](desktop-app-and-settings.md#runtime-and-product-boundary)
+excludes it.
+
 ## Insights
 
 Insights may include context switching, tool usage, project and topic distribution, repeated errors or questions, session fragmentation, and idle Workstreams. Metrics should lead back to underlying timelines and actionable context rather than rewarding raw activity volume.
 
-The first Session Insights view is reached from the Sessions Dashboard heading and returns to Usage & Cost from the same position. It ranks every skill by the number of Sessions that used or referenced it, with the latest admitted reference time. Matching names group across Claude Code, Codex and Codex Company. Each skill contributes at most once per source and native Session, even across requests and repeated reads.
+Session Insights is reached from the Sessions Dashboard heading and returns to Usage & Cost from the same position. It ranks every skill by the number of Sessions that used or referenced it, with the latest admitted reference time. Matching names group across retained Claude and Codex skill observations, including multiple profiles using the same provider. Each skill contributes at most once per source and native Session, even across requests and repeated reads.
 
 Native calls/contexts, completed instruction reads, known skill names in visible user/assistant messages and identifiable skill-owned script executions are admitted. Names and unambiguous plugin aliases come from source-backed loads in the same Session; generated availability catalogs alone do not count. There is no application-phrase or language classification. A discussion or inspection can count as a reference, so this metric does not measure execution frequency, successful application or benefit. Unsupported evidence can be missed.
 
@@ -261,6 +265,13 @@ The Insights route separately browses `personal_insight_runs`. A submitted quest
 The exact prompt, core/playbook versions and digests, and report-v3 JSON schema are frozen for that Run; historical core v2/v3 keeps the v2 result shape. Additive eligible-message positions and counts allow the validator to reject conversation requests for fully supplied messages. Reports explain candidate/type selection and show frozen source, count, time, and truncation coverage. Conversation requests are rendered from validated missing-message targets; no automatic expansion or paid retry occurs.
 
 Codex CLI uses the Run's frozen local `CODEX_HOME` profile, no native Session persistence, and no model tools, so the analysis conversation does not enter ordinary Session evidence or feed later analysis. The home is chosen from `LOCALBRAIN_INSIGHT_CODEX_HOME`, `CODEX_HOME`, an existing `~/.codex-company`, or `~/.codex`, in that order.
+
+Run preparation requires exactly one existing Source row with `provider_kind='codex'`
+whose expanded, resolved `root_path` equals the expanded, resolved
+`<selected-home>/sessions` path. A missing or ambiguous match refuses creation.
+The Run freezes that Source ID for usage accounting and revalidates the same ID,
+provider and resolved path before launching the CLI; an invalid frozen binding
+refuses execution.
 
 A validated result has at most three findings, an explicit no-finding outcome, or a bounded request for more evidence. Findings must cite IDs from the frozen manifest; recurrence requires independent Sessions.
 

@@ -14,7 +14,7 @@ Product terminology and organization rules are defined in [Product Model](produc
 - Search: existing SQLite FTS5 plus optional local Qwen semantic ordering and lexical exact-identifier admission
 - Context Search: isolated Qwen4B/8B native tool loop over admitted Local Context and received copies; request/page-memory dialogue, no embedding prerequisite or chat schema
 - Frontend: server-rendered Jinja2 with small JSON API interactions
-- External integration boundary: approved MCP Gateway and source-specific adapters
+- External integration boundary: optional feature-specific adapters and approved authorization contracts
 - Desktop packaging: Tauri 2 and a PyInstaller Python 3.11 bundle, Apple Silicon
 
 The standalone test edition admits Sessions, Sessions Dashboard, Local Context,
@@ -41,11 +41,10 @@ and unchanged-tree checks. Packaged readers and simulation use the configured ca
 Run reports remain durable data; development archives are never normal startup
 outputs. Shared public weights and the primary DB are outside layout migration.
 
-The development-web data flow is:
+The core development-web collection flow is:
 
 ```text
 Claude / Codex / user-managed local context / local project and Git metadata
-Approved external sources through MCP Gateway
                               |
                         Source adapters
                               |
@@ -57,6 +56,15 @@ Approved external sources through MCP Gateway
                       \                 /
                       Local web application
 ```
+
+External integrations follow separate feature contracts. Optional
+[Atlassian reads](atlassian.md#external-access-foundation) use registered provider
+dispatch contracts and an injected host-side read executor. The default
+application leaves that executor unconnected; local URL registration, Browse and
+evidence Sync remain available in development web without remote access.
+[Google Drive](google-drive-sync.md) uses gcloud authentication and direct API
+transfers in its separate synchronization path. Those transfers do not
+automatically register, collect or index received files.
 
 ## Package Ownership
 

@@ -2,6 +2,10 @@
 
 This contract owns local Explorer behavior, URL admission, optional access, evidence Sync and approved remote Refresh. The [Maintenance Task Runner](../operations/claude-task-runner.md) owns process execution; the data-model subjects own durable rows.
 
+This optional feature belongs to the development web application; the
+[standalone test edition](desktop-app-and-settings.md#runtime-and-product-boundary)
+excludes it.
+
 ## Atlassian Explorer, Add, Connections, Sync, And Refresh
 
 ### Scope, Terminology, And Retrieval
@@ -283,6 +287,12 @@ artifacts retain `Item` where it is the stable engineering identity.
 - External synchronization persists a generic maintenance parent plus one source-neutral query envelope. Its model process receives only host-validated local evidence; source facts come from the approved executor and cannot be authored by model output. A validated Atlassian refresh result is applied in the same database transaction as the terminal Run state, so invalid target/source/locator mappings cannot partially mutate Items.
 
 ## External Access Foundation
+
+Remote reads require an approved host-side executor supplied by application
+assembly. The default application leaves this executor unconnected. Registration
+and dispatch contracts alone do not establish a live connection. Local URL
+registration, Browse and evidence Sync remain local operations, independent of
+remote access.
 
 Current external-access foundation:
 
