@@ -24,14 +24,6 @@ lockfile additionally freezes exact dependency versions. Dependency upgrades
 must repeat the standalone wheel startup/page checks before widening those
 constraints, since an unconstrained newer framework can break template calls.
 
-For public Python/web installation, the documented commands must work on a
-supported Mac with a standard Internet connection and publicly trusted HTTPS
-certificates. They must not depend on the maintainer's virtual environment,
-cache, private paths, credentials or organization-specific certificates. A
-managed-network certificate override is local troubleshooting, not part of the
-ordinary public-install procedure. A check that needs that override does not
-establish that installation with the default certificate settings passed.
-
 ### A New Mac With No Development Tools
 
 Use the supplied `.app` ZIP for the standalone test edition. The following steps
