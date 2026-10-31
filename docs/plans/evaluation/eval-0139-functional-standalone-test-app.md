@@ -13,7 +13,42 @@
 - Surface Lanes: shared web, local persistence, model worker, native shell, delivery
 - Evidence Coverage: `partial`
 - Created: `2026-10-18`
-- Updated: `2026-10-26`
+- Updated: `2026-10-31`
+
+## Public Source Installation Check — 2026-10-31
+
+Scoped PASS for independent base Python/web installation and startup from public
+source. This does not change the `FAIL` result for complete distribution
+acceptance or its `partial` evidence coverage. The
+[installation contract](../../policies/project/installation-and-storage.md#supported-installation)
+owns the public installation requirement.
+
+- Downloaded the GitHub source ZIP for public commit
+  [c76ce44](https://github.com/chochita0311/local-brain/commit/c76ce444c1b1a78c4568bf8e231fd11c2d1e03d5)
+  without authentication. Installed from outside the extracted source tree using
+  an empty uv cache and a separate tool environment, without user uv configuration
+  or the repository's `.venv`. The existing Python interpreter was reused;
+  first-time Python/uv installation was not tested.
+- Environment: Apple Silicon macOS, Python 3.11.15 and uv 0.11.21. The installed
+  FastAPI/Starlette/Uvicorn versions were 0.128.8/0.52.1/0.39.0. After installation,
+  moved the source folder from its original location and verified imports from
+  installed `site-packages`, plus the presence of the schema, schema-presentation
+  manifest, value registry, shell template, stylesheet and Getting Started guide.
+  Installed `localbrain doctor` passed without creating application data.
+- Started the installed command with isolated empty app/source/model locations.
+  Health passed; `/`, `/sessions`, `/sessions-dashboard`, `/context`,
+  `/natural-search`, `/help`, `/help/search`, `/settings`, `/schema` and
+  `/static/styles.css` all returned HTTP 200. The server was stopped afterward.
+  No model weights, real Google account or private source material were used.
+
+The default uv certificate path failed on this network with `UnknownIssuer`.
+Only the verification invocation then used `--system-certs`; no persistent
+setting, application code or package dependency was changed. The successful
+installation/startup therefore does not prove that the documented default
+commands pass on an independent standard Internet connection. That check,
+first-time Python/uv setup, optional model installation, browser/native/recipient
+acceptance and live Drive behavior remain outside this scoped pass. Existing
+release and acceptance boundaries remain unchanged.
 
 ## Session Closeout — 2026-10-26
 

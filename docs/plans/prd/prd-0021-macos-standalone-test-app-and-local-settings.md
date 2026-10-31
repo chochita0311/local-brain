@@ -6,7 +6,7 @@
 - Status: `blocked`
 - Owner role: `human`
 - Created: `2026-10-16`
-- Updated: `2026-10-26`
+- Updated: `2026-10-31`
 - User review status: `approved` — 사용자가 현재 범위로 “구현 끝까지 진행”을 요청했다. C01–C13 경계와 공통 브라우저 동기화를 구현하며 실제 실행·전달 근거는 별도로 기록한다.
 - Current authorization: 승인된 범위의 Feature·Spec 작성과 구현, 독립 앱 및 공유용 ZIP 준비. 2026-10-26 세션 종료 요청으로 이 저장소의 세션 변경 검증·커밋·push까지 승인되었다. 실제 Drive 업로드·팀원 통지·유료 가입·Apple 제출은 포함하지 않는다.
 - Planning baseline: **Feature 후보 13개, 예상 최종 커밋 21개** — 계획 문서 2개 + Feature 구현 19개. 테스트 전달 C12는 1개를 유지하고 주기적 세션 동기화 C13에 2개를 추가한 예상치다.
@@ -668,6 +668,9 @@ UI 검증은 해당 화면의 실제 WebView에서 설정 열기/닫기, 키보�
 - `2026-10-19` 사용자 설정 정정: 일반 설정은 로컬 설정 파일을 따른다. 기존 환경변수 우선 적용과 저장값/적용값 구분을 제거하고 없는 필드만 기본값으로 채운다. C01/C07 계약을 이 결정으로 대체하며 기존 파일·도메인 저장소·적용 시점은 보존한다.
 
 - `2026-10-20` 사용자 승인: By Project / Project 명칭을 유지하고 Project만 일반 작업·하위 세션 기준으로 집계한다. 분석·Maintenance의 전체 사용량은 보존한다. C07의 이전 앱 내부 분석 Project 범주를 대체하며 [Run 179](../run/run-20261020-179-work-session-project-usage.md)에서 검증한다.
+
+- `2026-10-31` 공개 소스 설치 확인: 공개 설치는 개발자의 기존 가상환경·캐시·경로·자격정보나 회사별 인증서를 전제로 하지 않아야 한다는 기준을 재확인했다. 정본 기준은 [설치 계약](../../policies/project/installation-and-storage.md#supported-installation)이 소유한다.
+  [설치 검증 기록](../evaluation/eval-0139-functional-standalone-test-app.md#public-source-installation-check--2026-10-31)은 공개 ZIP의 독립 설치·기동 통과와 현재 네트워크의 TLS 제한을 구분한다. 일반망의 기본 인증서 설치와 기존 공개 배포 수용은 이 확인으로 닫지 않는다.
 
 ## Original MVP Sequencing Context — 2026-10-31 Reconciliation
 
