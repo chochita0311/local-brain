@@ -13,7 +13,7 @@ def schema_page(
     table: Optional[str] = Query(default=None),
 ):
     return templates.TemplateResponse(
-        "schema.html",
+        request, "schema.html",
         {
             "request": request,
             "active_page": "schema",

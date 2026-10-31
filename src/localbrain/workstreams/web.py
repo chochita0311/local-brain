@@ -74,7 +74,7 @@ def workstreams_page(request: Request):
     with connect() as connection:
         items = list_workstreams(connection)
     return templates.TemplateResponse(
-        "workstreams.html",
+        request, "workstreams.html",
         {
             "request": request,
             "active_page": "workstreams",
@@ -91,7 +91,7 @@ def show_workstream(request: Request, workstream_id: int):
         resources = picker_resources(connection)
         runs = list_runs(connection, workstream_id)
     return templates.TemplateResponse(
-        "workstream.html",
+        request, "workstream.html",
         {
             "request": request,
             "active_page": "workstreams",

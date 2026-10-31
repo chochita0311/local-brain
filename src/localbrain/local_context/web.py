@@ -79,7 +79,7 @@ def context_page(
             if selected_source else []
         )
     return templates.TemplateResponse(
-        "context.html",
+        request, "context.html",
         {
             "request": request,
             "active_page": "context",
@@ -107,7 +107,7 @@ def show_document(request: Request, document_id: int):
         membership_reader = getattr(request.app.state, "document_memberships", None)
         memberships = membership_reader(connection, "document", document_id) if membership_reader else []
     return templates.TemplateResponse(
-        "document.html",
+        request, "document.html",
         {
             "request": request,
             "active_page": "context",

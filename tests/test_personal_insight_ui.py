@@ -44,7 +44,7 @@ class PersonalInsightUIReferenceTests(unittest.TestCase):
                 'localbrain.insights.web.get_insight_run', return_value=run
             ), patch('localbrain.insights.web.insight_usage_cost', return_value=None), patch('localbrain.insights.web.resolve_insight_evidence_reference', side_effect=resolve) as resolver, patch(
                 'localbrain.insights.web.insight_runner_choices', return_value=[]
-            ), patch('localbrain.app.templating.templates.TemplateResponse', side_effect=lambda _name, context, **kwargs: context), patch(
+            ), patch('localbrain.app.templating.templates.TemplateResponse', side_effect=lambda _request, _name, context, **kwargs: context), patch(
                 "localbrain.insights.runs.prepare_insight_run"
             ) as prepare:
                 context = _session_insights_response(Request({"type": "http", "query_string": b""}), selected_id="example")

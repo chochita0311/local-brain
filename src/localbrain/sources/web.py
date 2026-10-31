@@ -34,7 +34,7 @@ def sources_page(request: Request):
     with connect() as connection:
         sources = source_inventory(connection)
     return templates.TemplateResponse(
-        "sources.html",
+        request, "sources.html",
         {
             "request": request,
             "active_page": "sources",

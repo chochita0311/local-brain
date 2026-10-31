@@ -17,7 +17,7 @@ def auto_work_page(request: Request):
     _auto_work_local_request(request)
     params = request.query_params
     if params.get("mode") != "sample":
-        return templates.TemplateResponse("affinity-map.html", {
+        return templates.TemplateResponse(request, "affinity-map.html", {
             "request": request, "active_page": "auto-work",
             "mapview": affinity_page(settings.database_path, cache_directory(settings), params=params),
         }, headers={"Cache-Control": "no-store, private", "X-Content-Type-Options": "nosniff"})
@@ -28,7 +28,7 @@ def auto_work_page(request: Request):
                "failed": "분석을 완료하지 못했습니다. 유효한 이전 결과는 유지됩니다. 다시 시도할 수 있습니다.",
                "busy": "이미 분석 중입니다. 잠시 후 이 화면을 새로고침해 주세요."}
     notice = params.get("notice")
-    return templates.TemplateResponse("auto-work.html", {
+    return templates.TemplateResponse(request, "auto-work.html", {
         "request": request, "active_page": "auto-work", "preview": preview,
         "notice": notices.get(notice), "notice_failed": notice == "failed",
     }, headers={"Cache-Control": "no-store, private", "X-Content-Type-Options": "nosniff"})

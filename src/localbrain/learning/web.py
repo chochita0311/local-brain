@@ -53,7 +53,7 @@ async def _form(request: Request, allowed: set[str]) -> dict:
 
 
 def _render(templates, name, request, data, status=200):
-    return templates.TemplateResponse(name, {"request": request, "active_page": "dashboard", **data},
+    return templates.TemplateResponse(request, name, {"request": request, "active_page": "dashboard", **data},
                                       status_code=status, headers=HEADERS)
 
 

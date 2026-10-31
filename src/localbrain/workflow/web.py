@@ -69,7 +69,7 @@ def _workflow_page_response(
         if preferred_status_code is not None and workflow["status"] == "ready":
             status_code = preferred_status_code
     return templates.TemplateResponse(
-        "session-workflow.html",
+        request, "session-workflow.html",
         {
             "request": request,
             "active_page": "sessions",

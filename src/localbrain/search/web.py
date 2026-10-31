@@ -68,7 +68,7 @@ def search_page(
         except AtlassianBrowseError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
     return templates.TemplateResponse(
-        "search.html",
+        request, "search.html",
         {
             "request": request,
             "active_page": "search",

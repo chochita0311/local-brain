@@ -104,7 +104,7 @@ def _session_insights_response(
         )
         selected_cost = insight_usage_cost(connection, selected["id"]) if selected else None
     return templates.TemplateResponse(
-        "session_insights.html",
+        request, "session_insights.html",
         {
             "request": request,
             "active_page": "sessions-dashboard",

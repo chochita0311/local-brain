@@ -43,7 +43,7 @@ def install_settings_routes(app, templates):
 
     @app.get("/settings")
     def settings_page(request: Request):
-        return templates.TemplateResponse("settings.html", {"request": request, "active_page": "settings"})
+        return templates.TemplateResponse(request, "settings.html", {"request": request, "active_page": "settings"})
 
     @app.get("/onboarding")
     def onboarding(request: Request):

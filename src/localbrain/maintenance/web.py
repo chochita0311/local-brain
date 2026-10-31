@@ -25,7 +25,7 @@ def show_run(request: Request, run_id: str):
         except json.JSONDecodeError:
             candidate_counts = {}
     return templates.TemplateResponse(
-        "run.html",
+        request, "run.html",
         {
             "request": request,
             "active_page": "workstreams",

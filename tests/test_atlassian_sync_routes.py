@@ -288,7 +288,7 @@ class AtlassianSyncRouteTests(unittest.TestCase):
         )
 
         changed_html = templates.TemplateResponse(
-            "atlassian.html", changed_context
+            changed_context["request"], "atlassian.html", changed_context
         ).body.decode("utf-8")
 
         self.assertIn("새 링크/문서 3", changed_html)
@@ -307,7 +307,7 @@ class AtlassianSyncRouteTests(unittest.TestCase):
             sync_receipt=zero_token,
         )
         zero_html = templates.TemplateResponse(
-            "atlassian.html", zero_context
+            zero_context["request"], "atlassian.html", zero_context
         ).body.decode("utf-8")
         self.assertIn("새 링크/문서 0", zero_html)
         self.assertIn("기존 링크/문서 0", zero_html)

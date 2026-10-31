@@ -1030,7 +1030,7 @@ def atlassian_page(
                     selected_reference_id=selected_reference_id,
                 )
                 return templates.TemplateResponse(
-                    "_atlassian-item-preview.html",
+                    request, "_atlassian-item-preview.html",
                     {
                         "request": request,
                         "preview": preview,
@@ -1050,7 +1050,7 @@ def atlassian_page(
         except AtlassianBrowseError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
     return templates.TemplateResponse(
-        "atlassian.html",
+        request, "atlassian.html",
         page_context,
         headers={"Vary": "X-LocalBrain-Partial"},
     )
@@ -1115,7 +1115,7 @@ def atlassian_add_page(
             return_to, connection
         )
     return templates.TemplateResponse(
-        "atlassian-add.html",
+        request, "atlassian-add.html",
         _atlassian_add_context(
             request,
             return_to=safe_return_to,
@@ -1148,7 +1148,7 @@ def atlassian_connections_page(
             catalog_run=catalog_run,
         )
     return templates.TemplateResponse(
-        "atlassian-connections.html", page_context
+        request, "atlassian-connections.html", page_context
     )
 
 
@@ -1178,13 +1178,13 @@ async def atlassian_register(request: Request):
             == "atlassian-add"
         ):
             return templates.TemplateResponse(
-                "_atlassian-add-form.html",
+                request, "_atlassian-add-form.html",
                 page_context,
                 status_code=422,
                 headers={"Vary": "X-LocalBrain-Partial"},
             )
         return templates.TemplateResponse(
-            "atlassian-add.html", page_context, status_code=422
+            request, "atlassian-add.html", page_context, status_code=422
         )
     return RedirectResponse(
         url=_atlassian_registration_handoff(result),
@@ -1229,7 +1229,7 @@ async def atlassian_register_access(request: Request):
                 access_error=str(exc),
             )
         return templates.TemplateResponse(
-            "atlassian-connections.html", page_context, status_code=422
+            request, "atlassian-connections.html", page_context, status_code=422
         )
     return RedirectResponse(
         url=_atlassian_connections_url(
@@ -1321,7 +1321,7 @@ async def atlassian_update_connection(
                 ),
             )
         return templates.TemplateResponse(
-            "atlassian-connections.html", page_context, status_code=422
+            request, "atlassian-connections.html", page_context, status_code=422
         )
     return RedirectResponse(
         url=_atlassian_connections_url(
@@ -1438,7 +1438,7 @@ async def atlassian_discover_spaces(request: Request):
                 discovery_error=str(exc),
             )
         return templates.TemplateResponse(
-            "atlassian-connections.html", page_context, status_code=422
+            request, "atlassian-connections.html", page_context, status_code=422
         )
     return RedirectResponse(
         url=_atlassian_connections_url(
@@ -1492,7 +1492,7 @@ async def atlassian_register_space_candidate(request: Request):
                 candidate_error=str(exc),
             )
         return templates.TemplateResponse(
-            "atlassian-connections.html", page_context, status_code=422
+            request, "atlassian-connections.html", page_context, status_code=422
         )
     return RedirectResponse(
         url=_atlassian_registration_handoff(result),
@@ -1519,7 +1519,7 @@ def atlassian_item_page(
         "unlinked": "로컬 Workstream 관계를 제거했습니다.",
     }
     return templates.TemplateResponse(
-        "atlassian-item.html",
+        request, "atlassian-item.html",
         {
             "request": request,
             "active_page": "atlassian",
@@ -1554,7 +1554,7 @@ def atlassian_reference_page(
         )
     if not reference:
         return templates.TemplateResponse(
-            "atlassian-reference-missing.html",
+            request, "atlassian-reference-missing.html",
             {
                 "request": request,
                 "active_page": "atlassian",
@@ -1563,7 +1563,7 @@ def atlassian_reference_page(
             status_code=404,
         )
     return templates.TemplateResponse(
-        "atlassian-reference.html",
+        request, "atlassian-reference.html",
         {
             "request": request,
             "active_page": "atlassian",
@@ -1624,7 +1624,7 @@ async def atlassian_update_local(request: Request, item_id: int):
             if value.strip()
         ]
         return templates.TemplateResponse(
-            "atlassian-item.html",
+            request, "atlassian-item.html",
             {
                 "request": request,
                 "active_page": "atlassian",
@@ -1702,7 +1702,7 @@ async def atlassian_add_local_link(request: Request, item_id: int):
                 status_code=404, detail="Atlassian 링크/문서를 찾을 수 없습니다"
             ) from exc
         return templates.TemplateResponse(
-            "atlassian-item.html",
+            request, "atlassian-item.html",
             {
                 "request": request,
                 "active_page": "atlassian",
@@ -1786,7 +1786,7 @@ async def atlassian_remove_local_link(
                 status_code=404, detail="Atlassian 링크/문서를 찾을 수 없습니다"
             ) from exc
         return templates.TemplateResponse(
-            "atlassian-item.html",
+            request, "atlassian-item.html",
             {
                 "request": request,
                 "active_page": "atlassian",
@@ -1911,7 +1911,7 @@ def atlassian_refresh_page(
     except AtlassianRefreshError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     return templates.TemplateResponse(
-        "atlassian-refresh.html", page_context
+        request, "atlassian-refresh.html", page_context
     )
 
 
@@ -1989,7 +1989,7 @@ async def atlassian_start_refresh(request: Request):
                 status_code=422, detail=str(context_exc)
             ) from context_exc
         return templates.TemplateResponse(
-            "atlassian-refresh.html", page_context, status_code=422
+            request, "atlassian-refresh.html", page_context, status_code=422
         )
     query = {"scope": scope_kind, "page": page, "run": run_id}
     if scope_id is not None:

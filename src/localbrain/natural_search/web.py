@@ -31,7 +31,7 @@ def natural_search_page(request: Request, q: str = Query(default="", max_length=
         from localbrain.search.keyword import keyword_search
         with connect() as connection:
             results = keyword_search(connection, q) if q.strip() else []
-        return templates.TemplateResponse("keyword-search.html", {
+        return templates.TemplateResponse(request, "keyword-search.html", {
             "request": request, "active_page": "natural-search", "natural_query": q,
             "results": results, "search_status": _natural_search_status(request), "search_mode": "keyword",
         })
@@ -46,7 +46,7 @@ def natural_search_page(request: Request, q: str = Query(default="", max_length=
                 query_error = "검색어를 더 짧게 입력해 주세요. 이 표현은 검색 모델의 입력 한도를 넘었습니다."
             elif str(error) != "SEARCH_INDEX_UNAVAILABLE":
                 query_error = "검색을 완료하지 못했습니다. 잠시 후 다시 검색해 주세요."
-    return templates.TemplateResponse("natural-search.html", {
+    return templates.TemplateResponse(request, "natural-search.html", {
         "request": request, "active_page": "natural-search", "natural_query": q,
         "search_status": status, "search_response": result, "query_error": query_error, "search_mode": "ai",
         "previous_url": "/natural-search?" + urlencode({"q": q, "mode": "ai", "page": max(1, page - 1)}),
@@ -95,7 +95,7 @@ def natural_search_evidence(request: Request, rowid: int,
         evidence = request.app.state.natural_search.evidence(rowid, generation)
     except (ValueError, OSError, sqlite3.Error, RuntimeError):
         pass
-    return templates.TemplateResponse("natural-search-evidence.html", {
+    return templates.TemplateResponse(request, "natural-search-evidence.html", {
         "request": request, "active_page": "natural-search", "evidence": evidence,
         "return_to": natural_search_return(return_to),
     }, status_code=200 if evidence else 409)

@@ -12,7 +12,7 @@ def show_local_resource(request: Request, resource_id: int):
         membership_reader = getattr(request.app.state, "document_memberships", None)
         memberships = membership_reader(connection, "local", resource_id) if membership_reader else []
     return templates.TemplateResponse(
-        "local_resource.html",
+        request, "local_resource.html",
         {
             "request": request,
             "active_page": "context",

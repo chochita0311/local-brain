@@ -35,4 +35,4 @@ def sessions_dashboard(
             "active_page": "sessions-dashboard",
             "usage": usage,
         }
-    return templates.TemplateResponse("sessions_dashboard.html", page_context)
+    return templates.TemplateResponse(request, "sessions_dashboard.html", page_context)

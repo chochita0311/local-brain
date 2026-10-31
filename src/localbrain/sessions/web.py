@@ -147,7 +147,7 @@ def sessions_page(
             item.update(source_id=profile["id"], color=profile["color"])
             if item["project_key"]:
                 item["project_path"] = home_relative_path(item["project_key"])
-    return templates.TemplateResponse("sessions.html", page_context)
+    return templates.TemplateResponse(request, "sessions.html", page_context)
 
 
 def _save_chart_project_visibility(
@@ -237,7 +237,7 @@ def projects_page(request: Request):
             else None,
         }
     return templates.TemplateResponse(
-        "sessions.html",
+        request, "sessions.html",
         page_context,
     )
 
@@ -453,7 +453,7 @@ def show_session(
                 }
             )
     return templates.TemplateResponse(
-        "session.html",
+        request, "session.html",
         {
             "request": request,
             "active_page": "sessions",
@@ -527,7 +527,7 @@ def show_subsession(
         )
     )
     return templates.TemplateResponse(
-        "subsession.html",
+        request, "subsession.html",
         {
             "request": request,
             "active_page": "sessions",
