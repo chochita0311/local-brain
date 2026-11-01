@@ -108,12 +108,14 @@ def initialize_database(connection: sqlite3.Connection, config) -> None:
             price_existing_partial_fast_long_context_records,
             price_existing_unpriced_spark_records,
             price_existing_unpriced_sol_6_1_records,
+            price_existing_unpriced_terra_6_1_records,
         )
 
         ensure_default_price_snapshot(connection)
         ensure_official_price_snapshots(connection)
         price_existing_unpriced_spark_records(connection)
         price_existing_unpriced_sol_6_1_records(connection)
+        price_existing_unpriced_terra_6_1_records(connection)
         price_existing_partial_fast_long_context_records(connection)
         if not usage_contract_exists:
             connection.execute(

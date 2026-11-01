@@ -1,0 +1,6 @@
+{% macro original_presence(session, show_present=false) -%}
+  {% set state = session.source_presence_state | default('UNKNOWN', true) %}
+  {% if show_present or state != 'PRESENT' %}
+    <span class="session-original-state is-{{ state | lower }}{% if state == 'MISSING' %} missing-label{% endif %}" data-original-presence="{{ state }}"{% if session.source_presence_error | default(none) and state != 'PRESENT' %} title="{{ session.source_presence_error }}"{% endif %}>{{ value_label('source-file.presence-state', state) }}</span>
+  {% endif %}
+{%- endmacro %}

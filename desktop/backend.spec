@@ -19,6 +19,7 @@ hidden = ['uvicorn.logging', 'uvicorn.loops.auto', 'uvicorn.protocols.http.auto'
           'transformers.models.qwen3.modeling_qwen3', 'transformers.models.qwen3.configuration_qwen3',
           'transformers.models.qwen2.tokenization_qwen2_fast', 'sentence_transformers']
 hidden += collect_submodules('sentence_transformers')
+hidden += collect_submodules('backports.zstd')
 a = Analysis([str(project / 'desktop' / 'backend-entry.py')], pathex=[str(project / 'src')],
              binaries=[], datas=datas, hiddenimports=hidden,
              hookspath=[portable_hooks],

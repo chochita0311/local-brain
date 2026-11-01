@@ -10,7 +10,11 @@ from localbrain.persistence.db import init_db
 from localbrain.ingest.providers.codex import parse_codex_session
 from localbrain.ingest.sync.session_store import _store_session
 from localbrain.usage.pricing import PRICE_SPECS, UNAVAILABLE_SNAPSHOT_ID, select_snapshot
-from localbrain.usage.records import price_existing_unpriced_sol_6_1_records, price_existing_unpriced_spark_records
+from localbrain.usage.records import (
+    price_existing_unpriced_sol_6_1_records,
+    price_existing_unpriced_spark_records,
+    price_existing_unpriced_terra_6_1_records,
+)
 
 
 SCHEMA = Path(__file__).parents[1] / "src/localbrain/schema.sql"
@@ -19,7 +23,7 @@ STANDARD = "official-openai-gpt-6-1-sol-standard-20260929-v1"
 FAST = "official-openai-gpt-6-1-sol-fast-20260929-v1"
 
 
-class OfficialSolPricingTests(unittest.TestCase):
+class OfficialCodexPricingTests(unittest.TestCase):
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory(prefix="localbrain-sol-pricing-")
         self.addCleanup(self.directory.cleanup)
@@ -169,6 +173,100 @@ class OfficialSolPricingTests(unittest.TestCase):
             self.assertEqual(row["estimated_cost_usd"], cost)
         self.assertEqual(dict(self.connection.execute("SELECT * FROM usage_records WHERE id = ?", (sol["id"],)).fetchone()), sol)
         self.assertEqual(price_existing_unpriced_spark_records(self.connection), 0)
+
+    def test_terra_prices_each_tier_and_context_from_release_date(self):
+        model = "gpt-6.1-terra"
+        specs = {spec.service_tier: spec for spec in PRICE_SPECS if spec.model == model}
+        for tier, rates in (
+            ("standard", ("1", "5", "0.05", "2", "7.5", "0.10")),
+            ("fast", ("2", "10", "0.10", "4", "15.0", "0.20")),
+        ):
+            with self.subTest(tier=tier):
+                spec = specs[tier]
+                self.assertEqual((spec.input_rate, spec.output_rate, spec.cache_read_rate,
+                                  spec.long_input_rate, spec.long_output_rate,
+                                  spec.long_cache_read_rate), rates)
+                self.assertEqual(spec.effective_on, "2026-10-26")
+                self.assertEqual(spec.inspected_on, "2026-10-31")
+                self.assertEqual(spec.long_context_threshold, 272000)
+                self.assertIn("https://developers.openai.com/api/docs/models/gpt-6.1-terra", spec.source_ref)
+                self.assertIn("https://developers.openai.com/api/docs/changelog", spec.source_ref)
+                self.assertEqual(select_snapshot("codex", model, "2026-10-25", tier), UNAVAILABLE_SNAPSHOT_ID)
+                self.assertEqual(select_snapshot("codex", "openai/" + model, "2026-10-26", tier), spec.snapshot_id)
+        self.assertEqual(select_snapshot("codex", model, "2026-10-31", "unknown"), UNAVAILABLE_SNAPSHOT_ID)
+        self.assertEqual(select_snapshot("codex", model + "-unknown", "2026-10-31"), UNAVAILABLE_SNAPSHOT_ID)
+        for tier, tokens, cached, cost in (
+            ("standard", 1000, 800, "0.000740000000"),
+            ("fast", 1000, 800, "0.001480000000"),
+            ("standard", 272000, 271000, "0.015050000000"),
+            ("standard", 272001, 271001, "0.029850100000"),
+            ("fast", 272000, 271000, "0.030100000000"),
+            ("fast", 272001, 271001, "0.059700200000"),
+        ):
+            with self.subTest(tier=tier, tokens=tokens):
+                row = self.store(model=model, at="2026-10-26T12:00:00Z", tier=tier,
+                                 input_tokens=tokens, cached_input=cached)
+                self.assertEqual((row["calculation_state"], row["estimated_cost_usd"], row["price_snapshot_id"]),
+                                 ("priced", cost, specs[tier].snapshot_id))
+
+    def test_terra_backfill_changes_only_eligible_cost_fields(self):
+        standard = self.store(model="gpt-6.1-terra", at="2026-10-26T12:00:00Z", unavailable=True)
+        fast = self.store(model="gpt-6.1-terra", at="2026-10-31T12:00:00Z", tier="fast",
+                          input_tokens=272001, cached_input=271001, unavailable=True)
+        self.store(model="gpt-6.1-terra", at="2026-10-26T12:00:00Z")
+        self.store(model="gpt-6.1-terra", at="2026-10-25T12:00:00Z", unavailable=True)
+        self.store(unavailable=True)
+        self.store(model="synthetic-unknown", unavailable=True)
+        for capability in ('{"service_tier":"unknown"}', "not-json", "[]"):
+            row = self.store(model="gpt-6.1-terra", at="2026-10-26T12:00:00Z", unavailable=True)
+            self.connection.execute("UPDATE usage_records SET capability_json = ? WHERE id = ?", (capability, row["id"]))
+        aggregate = self.store(model="gpt-6.1-terra", at="2026-10-26T12:00:00Z",
+                               input_tokens=272001, cached_input=271001, unavailable=True)
+        capability = json.loads(aggregate["capability_json"])
+        capability["context_scope"] = "turn_total"
+        self.connection.execute("UPDATE usage_records SET capability_json = ? WHERE id = ?", (json.dumps(capability), aggregate["id"]))
+        self.connection.execute(
+            "UPDATE usage_records SET project_key = 'path:/synthetic/original', "
+            "project_name_snapshot = 'Original project', project_path_snapshot = '/synthetic/original'"
+        )
+        before = {r["id"]: dict(r) for r in self.connection.execute("SELECT * FROM usage_records")}
+        self.assertEqual(price_existing_unpriced_terra_6_1_records(self.connection), 2)
+        after = {r["id"]: dict(r) for r in self.connection.execute("SELECT * FROM usage_records")}
+        mutable = {"calculation_state", "estimated_cost_usd", "price_snapshot_id", "calculator_version", "calculated_at"}
+        expected = {standard["id"]: "0.000740000000", fast["id"]: "0.059700200000"}
+        self.assertEqual(before.keys(), after.keys())
+        for identity, previous in before.items():
+            if identity in expected:
+                self.assertEqual(after[identity]["calculation_state"], "priced")
+                self.assertEqual(after[identity]["estimated_cost_usd"], expected[identity])
+                self.assertEqual({k: v for k, v in previous.items() if k not in mutable},
+                                 {k: v for k, v in after[identity].items() if k not in mutable})
+            else:
+                self.assertEqual(previous, after[identity])
+        self.assertEqual(price_existing_unpriced_terra_6_1_records(self.connection), 0)
+        self.assertEqual(after, {r["id"]: dict(r) for r in self.connection.execute("SELECT * FROM usage_records")})
+
+    def test_startup_backfills_terra_without_reparsing_or_rewriting_priced_history(self):
+        row = self.store(model="gpt-6.1-terra", at="2026-10-26T12:00:00Z", unavailable=True)
+        priced = self.store()
+        self.connection.commit()
+        data_dir = self.root / "terra-runtime"
+        data_dir.mkdir()
+        database_path = data_dir / "localbrain.db"
+        with sqlite3.connect(database_path) as target:
+            self.connection.backup(target)
+        settings = Settings(data_dir, database_path, data_dir / "context", data_dir / "claude", data_dir / "codex", 20)
+        with patch("localbrain.persistence.db.settings", settings):
+            init_db()
+            with sqlite3.connect(database_path) as connection:
+                connection.row_factory = sqlite3.Row
+                before = {r["id"]: dict(r) for r in connection.execute("SELECT * FROM usage_records")}
+                self.assertEqual(before[row["id"]]["estimated_cost_usd"], "0.000740000000")
+                self.assertEqual(before[priced["id"]], priced)
+            init_db()
+            with sqlite3.connect(database_path) as connection:
+                connection.row_factory = sqlite3.Row
+                self.assertEqual(before, {r["id"]: dict(r) for r in connection.execute("SELECT * FROM usage_records")})
 
 
 if __name__ == "__main__":

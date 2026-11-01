@@ -769,7 +769,7 @@ root = "{company}"
             (1, 1),
         )
 
-    def test_same_codex_native_id_and_stale_deletion_are_source_scoped(self):
+    def test_same_codex_native_id_and_missing_history_remain_source_scoped(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             settings = self._settings(root)
@@ -857,8 +857,8 @@ root = "{company}"
                     ).fetchall()
 
         self.assertEqual(first["outcome"], "complete", (first, [dict(row) for row in scan_errors]))
-        self.assertEqual([row["profile_id"] for row in retained], [3])
-        self.assertEqual([row["profile_id"] for row in pins], [3])
+        self.assertEqual([row["profile_id"] for row in retained], [2, 3])
+        self.assertEqual([row["profile_id"] for row in pins], [2, 3])
         outcomes = {item["source_id"]: item for item in second["sources"]}
         self.assertEqual(outcomes[2]["status"], "empty")
         self.assertEqual(outcomes[3]["status"], "completed")
@@ -896,6 +896,9 @@ root = "{company}"
                         FROM sources WHERE id = 3
                         """
                     ).fetchone()
+                    company_file_state = connection.execute(
+                        "SELECT presence_state,presence_error FROM source_files WHERE source_id=3"
+                    ).fetchone()
 
         self.assertEqual(report["outcome"], "partial")
         self.assertEqual(
@@ -911,6 +914,8 @@ root = "{company}"
         self.assertTrue(outcomes[3]["retained_data"])
         self.assertEqual(company_health["last_scan_status"], "unavailable")
         self.assertIn("retained", company_health["last_scan_error"])
+        self.assertEqual(company_file_state["presence_state"], "UNKNOWN")
+        self.assertTrue(company_file_state["presence_error"])
 
     def test_malformed_settings_preserve_registered_source_data(self):
         with tempfile.TemporaryDirectory() as temporary:

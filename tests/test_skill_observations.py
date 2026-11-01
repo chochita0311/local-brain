@@ -280,8 +280,8 @@ class SkillObservationTests(unittest.TestCase):
                               ("/synthetic/old", 1)):
             self.connection.execute(
                 """INSERT INTO source_files(source_id, path, size_bytes, mtime_ns,
-                   last_scanned_at, status, session_contract_version)
-                   VALUES (?, ?, 1, 1, '2026-09-02T00:00:00Z', 'ok', ?)""",
+                   last_scanned_at, status, session_contract_version, presence_state)
+                   VALUES (?, ?, 1, 1, '2026-09-02T00:00:00Z', 'ok', ?, 'PRESENT')""",
                 (source_id, path, version),
             )
         self.assertEqual(skill_insights_data(self.connection)["coverage"], {
@@ -345,7 +345,7 @@ class SkillObservationTests(unittest.TestCase):
             self.assertEqual(scan()[2], 0)
             self.assertEqual(skill_insights_data(self.connection)["top"]["use_count"], 1)
             self.assertEqual(skill_insights_data(self.connection)["coverage"]["state"],
-                             "not_scanned")
+                             "partial")
 
     def test_compatible_startup_adds_skill_table_without_losing_sessions(self):
         with tempfile.TemporaryDirectory() as temporary:

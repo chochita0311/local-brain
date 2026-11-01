@@ -4,8 +4,9 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
 
-CODEX_SESSION_REVISION = 12
-CLAUDE_SESSION_REVISION = 7
+# Session lifecycle now retains missing native inputs independently of parsing.
+CODEX_SESSION_REVISION = 15
+CLAUDE_SESSION_REVISION = 8
 
 CODEX_USAGE_CONTRACT_VERSION = "codex-last-token-usage-v8-official-dated-service-tier"
 CLAUDE_USAGE_CONTRACT_VERSION = "claude-message-usage-v3-official-pricing"

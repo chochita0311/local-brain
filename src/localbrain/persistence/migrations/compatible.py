@@ -70,6 +70,12 @@ def _run_compatible_migrations(
     _ensure_column(
         connection, "source_files", "reference_contract_version", "TEXT"
     )
+    _ensure_column(
+        connection, "source_files", "presence_state",
+        "TEXT NOT NULL DEFAULT 'UNKNOWN' CHECK(presence_state IN ('PRESENT','MISSING','UNKNOWN'))",
+    )
+    _ensure_column(connection, "source_files", "presence_checked_at", "TEXT")
+    _ensure_column(connection, "source_files", "presence_error", "TEXT")
     migrate_session_revisions(connection)
     atlassian_space_url_added = _ensure_column(
         connection,

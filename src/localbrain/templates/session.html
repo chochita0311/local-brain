@@ -2,6 +2,7 @@
 {% from "_conversation.html" import conversation_message %}
 {% from "_session_pin.html" import session_pin_control with context %}
 {% from "_source_cue.html" import source_cue, profile_attrs with context %}
+{% from "_session_source_presence.html" import original_presence with context %}
 {% set session_return_to = (request.url.path ~ (('?' ~ request.url.query) if request.url.query else '')) if request is defined else '/sessions/' ~ session.id %}
 {% set session_pin_error = request.query_params.get('pin_error') if request is defined else none %}
 {% block title %}{{ session.title }} · LocalBrain{% endblock %}
@@ -27,6 +28,11 @@
       {% if parent %}<p class="eyebrow">{{ value_label("session.role", "subsession") | upper }}</p>{% endif %}
       <h1>{{ session.title }}</h1>
       <p class="heading-copy path-copy">{{ (session.workspace_path or session.cwd_raw or session.source_path) | project_path }}</p>
+      <div class="session-meta session-original-info">
+        {{ original_presence(session, show_present=true) }}
+        {% if session.source_presence_checked_at %}<span>확인 <time datetime="{{ session.source_presence_checked_at }}" data-local-time>{{ session.source_presence_checked_at }}</time></span>{% endif %}
+        {% if session.source_presence_state != 'PRESENT' and session.source_presence_error %}<span>{{ session.source_presence_error }}</span>{% endif %}
+      </div>
     </div>
     {% if not parent and session.session_role == 'primary' %}
       <div class="session-heading-action">
@@ -67,7 +73,7 @@
             {% for subsession in subsessions %}
               <a href="{{ subsession.url }}">
                 <span class="session-source" {{ profile_attrs(subsession.source_id) }}><span aria-hidden="true">{{ source_cue(subsession.provider_kind, subsession.source_name) }}</span><span class="sr-only"><span data-profile-label="{{ subsession.source_id }}">{{ subsession.source_name }}</span> · {{ value_label("session.role", "subsession") }}</span></span>
-                <div><strong>{{ subsession.title }}</strong><small>{{ subsession.external_id }}</small></div>
+                <div><strong>{{ subsession.title }}</strong><small>{{ subsession.external_id }}</small>{{ original_presence(subsession) }}</div>
                 <span class="subsession-question-count">질문 {{ subsession.user_message_count }}</span>
                 <span class="subsession-event-count">이벤트 {{ subsession.event_count }}</span>
                 <time datetime="{{ subsession.last_event_at }}" data-local-time>{{ subsession.last_event_at or '-' }}</time>

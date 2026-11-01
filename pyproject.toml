@@ -5,6 +5,7 @@ description = "Local-first developer work context hub"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
+  "backports.zstd>=1,<2 ; python_version < '3.14'",
   "fastapi>=0.128.8,<0.129",
   "jinja2>=3.1,<4",
   "latex2mathml>=3.77,<4",

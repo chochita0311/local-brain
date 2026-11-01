@@ -330,11 +330,17 @@ Sessions synchronization dispatches every enabled, validated entry in file order
 one transaction per Source. The structured report names every Source and records
 latest attempt, latest success, outcome, counts, and a bounded consequence. A
 missing or invalid root never authorizes stale deletion; only a completed scan of
-the accepted, present root may reconcile disappeared JSONL for that Source. The
+the accepted, readable root can establish missing originals. The
+[retained-history contract](session-ingestion.md#retained-native-history-and-presence)
+owns that reconciliation and preserves collected Sessions and descendants. The
 Sources scan applies the same Session-source behavior before scanning enabled
 Local Context roots.
 
 ## Change Approach
+
+Use [Change Scope And Regression Control](change-scope-and-regression.md) to decide
+which dependent edits belong in the task and to diagnose unexpected behavior
+changes. The implementation practices below remain owned by this guide.
 
 - Read the touched modules, tests, and owner docs first.
 - Reuse current FastAPI, SQLite, Jinja2, and local helper patterns before introducing a new abstraction.

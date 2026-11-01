@@ -114,7 +114,9 @@ below apply to function-local imports as well as top-level imports.
 
 Read models belong to `sessions/queries.py`,
 `local_context/queries.py`, `sources/queries.py`, `app/dashboard_queries.py`, and
-`search/legacy.py`; pagination lives in `foundation/pagination.py`. Resource
+`search/legacy.py`; pagination lives in `foundation/pagination.py`.
+Session availability SQL is shared by inventory/detail and pins through
+`sessions/source_presence.py`; it performs no filesystem inspection. Resource
 identity lives in `resources/catalog.py` and metadata CRUD in `resources/store.py`, independently of Workstream
 membership and Suggestion acceptance. Durable skill observations remain in
 `sessions/skills.py`; Insights ranking belongs to `insights/skills.py`.

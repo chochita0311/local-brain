@@ -10,6 +10,27 @@ This contract owns Session identity, inventory, pins, Chart data and conversatio
 - Current Session browsing exposes only direct children of a primary Session. Deeper hierarchy remains preserved but is not flattened into user-facing lists.
 - Work Subsessions remain outside global Search, Session-derived statistics, Workstream organization candidates, and Workstream Claude maintenance evidence. Their stored source and events remain available through approved parent-owned browsing; provider-internal metadata-only children are excluded from that browsing surface.
 
+## Retained History And Original Availability
+
+Sessions retain collected conversations, Usage, pins and relationships when their
+accepted native originals disappear. Stored detail and pin/unpin remain usable;
+normal reads do not reopen files to determine presence. This preserves collected
+content, not an uncollected raw transcript or information never stored in SQLite.
+
+The existing linked file evidence owns independent `PRESENT/MISSING/UNKNOWN`
+presence with check time/reason. List cards, pinned recall and child entries label
+missing or unverified originals; detail labels all three states and the last
+check/reason. `원본 있음` does not claim successful parsing. `원본 없음` requires
+confirmed absence; inability to inspect displays `원본 확인 불가`. These states are
+independent from the current working Project's `경로 없음` and do not disable
+reading or pins. A Session with at least one confirmed linked representation is
+present even if other inputs remain unavailable.
+
+Available inputs continue to synchronize; missing inputs keep prior result
+versions until reprocessing is possible. Reappearance updates the same source
+and native identity, preserving pin edits during absence and frozen Usage facts.
+The ingestion owner defines failure, partial-file, eligibility and repair rules.
+
 ## Session Detail And Related Evidence
 
 - Primary and valid direct-child detail views are conversation-reading surfaces: they show source-ordered user and assistant messages through the shared safe Markdown presentation, omit visible tool-call rows, and preserve source JSONL and normalized tool events. Codex-expanded repository/environment instructions and `<skill>` bodies do not become visible user messages, titles, search text, or reference evidence; the original user-authored prompt, including its literal `$skill` invocation, remains visible. Session text has no owning Local Context source, so source-relative references remain visibly unresolved rather than using a global guess.

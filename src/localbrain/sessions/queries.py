@@ -6,6 +6,7 @@ from localbrain.sessions.activity import parse_timestamp
 from localbrain.foundation.paths import home_relative_path
 from localbrain.foundation.pagination import compact_pagination_items
 from localbrain.foundation.pagination import pagination_items
+from localbrain.sessions.source_presence import source_presence_columns
 
 
 SESSION_PAGE_SIZE = 15
@@ -93,6 +94,7 @@ def session_inventory_page(
             workspaces.canonical_path AS workspace_path,
             workspaces.git_root,
             workspaces.exists_now,
+            {source_presence},
             session_pins.pinned_at
         FROM sessions
         JOIN sources ON sources.id = sessions.source_id
@@ -102,7 +104,7 @@ def session_inventory_page(
         ORDER BY COALESCE(sessions.last_event_at, sessions.started_at) DESC,
                  sessions.id DESC
         LIMIT ? OFFSET ?
-        """.format(where=where),
+        """.format(where=where, source_presence=source_presence_columns()),
         tuple(params + [SESSION_PAGE_SIZE, offset]),
     ).fetchall()
     items = [dict(row) for row in rows]
@@ -112,7 +114,7 @@ def session_inventory_page(
         placeholders = ", ".join("?" for _ in parent_ids)
         child_rows = connection.execute(
             """
-            SELECT children.*,
+            SELECT children.*, {source_presence},
                    sources.provider_kind,
                    sources.name AS source_name,
                    workspaces.display_name AS workspace_name,
@@ -131,7 +133,7 @@ def session_inventory_page(
             ORDER BY children.parent_session_id,
                      COALESCE(children.last_event_at, children.started_at) DESC,
                      children.id DESC
-            """.format(placeholders=placeholders),
+            """.format(placeholders=placeholders, source_presence=source_presence_columns("children")),
             tuple(parent_ids),
         ).fetchall()
         for row in child_rows:
@@ -348,7 +350,7 @@ def session_id_prefix(connection: sqlite3.Connection, external_id: str) -> str:
 def session_detail(connection: sqlite3.Connection, session_id: int):
     return connection.execute(
         """
-        SELECT sessions.*,
+        SELECT sessions.*, {source_presence},
                sources.provider_kind, sources.name AS source_name,
                workspaces.display_name AS workspace_name,
                workspaces.canonical_path AS workspace_path,
@@ -370,7 +372,7 @@ def session_detail(connection: sqlite3.Connection, session_id: int):
               AND parent_sessions.source_id = sessions.source_id
             )
           )
-        """,
+        """.format(source_presence=source_presence_columns()),
         (session_id,),
     ).fetchone()
 
@@ -426,7 +428,7 @@ def session_parent(connection: sqlite3.Connection, session_id: int):
 def session_subsessions(connection: sqlite3.Connection, session_id: int):
     return connection.execute(
         """
-        SELECT children.*,
+        SELECT children.*, {source_presence},
                sources.provider_kind,
                sources.name AS source_name,
                workspaces.display_name AS workspace_name,
@@ -444,6 +446,6 @@ def session_subsessions(connection: sqlite3.Connection, session_id: int):
           AND children.source_id = parents.source_id
         ORDER BY COALESCE(children.last_event_at, children.started_at) DESC,
                  children.id DESC
-        """,
+        """.format(source_presence=source_presence_columns("children")),
         (session_id,),
     ).fetchall()

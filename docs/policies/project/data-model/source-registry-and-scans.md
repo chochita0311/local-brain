@@ -75,8 +75,8 @@ erDiagram
   [Desktop settings](../desktop-app-and-settings.md#source-lifecycle-contract)
   owns the file/DB coordination and recovery journal.
 - Scan health: each registered Session source is dispatched in its own database
-  transaction. A successful readable-root attempt may reconcile disappeared
-  files only inside that Source ID. An unavailable root, invalid configuration,
+  transaction. A successful readable-root attempt records missing originals
+  without deleting collected Session history, only inside that Source ID. An unavailable root, invalid configuration,
   or unexpected source failure records bounded health separately and retains the
   source's existing descendants.
 - Producers: `ingest/sync/storage.py` through the `ingest/scanner.py` coordinator; `persistence/migrations/` reads provider kinds when migration changes must stale Session inputs.
@@ -118,17 +118,22 @@ Explicit indexes: none.
   Usage-normalizer contract version, and generalized Session-reference contract
   version. Provider-internal files outside the adapter's Session candidate
   contract never own rows here.
-- Lifecycle: source-derived and rebuildable. Healthy unchanged rows are freshness
-  inputs; failed rows retain the latest error rather than masquerading as absent.
-  A successful scan removes prior evidence for paths that are no longer accepted
-  provider candidates, using the same normalized-only reconciliation boundary as
-  a disappeared native file while leaving the original file untouched. An accepted
+- Lifecycle: Session file rows retain provenance after accepted originals
+  disappear. Presence/check time/reason are separate from parsed fingerprints,
+  error and result versions; old rows initially have UNKNOWN presence. Healthy
+  unchanged inputs remain freshness evidence. A successful scan may remove
+  provider-excluded artifacts and confirmed empty stubs under their own
+  eligibility contracts, without deleting native files. Context file rows keep
+  their separate Local Context lifecycle. An accepted
   Session path whose parsed content has no Activity Event, Usage Record, or
   admitted skill observation is also omitted: any prior file row is removed, the native stub remains,
   and its lack of a freshness row makes later meaningful growth discoverable.
 - Producers: `ingest/sync/storage.py` inserts and updates scan results for Session and Context services, writes the
   resolved Session mapping and all three contract versions, and replaces mappings on
-  successful reparse; `local_context/service.py` removes Context-owned rows when a root is
+  successful reparse; `ingest/sync/session_files.py` records independent native
+  presence and restores known legacy mappings without inventing parsed versions.
+  Ephemeral analysis accounting parents have no native file registration.
+  `local_context/service.py` removes Context-owned rows when a root is
   disabled; `persistence/migrations/` compatibly adds the optional Session mapping and three
   contract fields.
 - Consumers: `ingest/sync/sessions.py` and `ingest/sync/contexts.py` skip/retry logic, Usage version repair,
@@ -145,14 +150,17 @@ Explicit indexes: none.
   reconciliation decides its path lifecycle. The legacy correlation from `path`
   to `sessions.source_path` and the Context correlation to
   `context_documents.path` remain application-managed. Removing a file row alone
-  does not cascade a Session or Document. Scanner reconciliation explicitly
-  removes disappeared normalized rows and their search/reference projections
-  only after a successful scan of the same accepted, present root. Configuration
-  and root-availability failures do not authorize stale reconciliation.
-- Recovery: rescan the owning source. Errors and exact prior attempt times are operational history and are not reproduced exactly.
+  does not cascade a Session or Document. Session reconciliation retains absent
+  accepted originals, their owners, search and reference evidence; unavailable
+  or failed source inspection records UNKNOWN after admission. A discovered
+  file may be PRESENT with scan error. Physical replacement paths retire only
+  after the admitted same-native-identity replacement succeeds. Context owns
+  its unchanged successful-root document deletion. Configuration and
+  root-availability failures never authorize normalized-history deletion.
+- Recovery: rescan available owning-source inputs to reconstruct current observations. Exact retained provenance for disappeared Session inputs, including prior parsed fingerprints, result versions and multi-file mappings, requires a database backup. An existing Session can restore a minimal legacy path mapping with scan status `stale`, without claiming parsed fingerprints or result versions; presence is observed independently. Errors and exact prior attempt times are operational history and are not reproduced exactly by a rescan.
 - DDL ownership: fresh table definition in `schema.sql`; `persistence/migrations/` compatibly adds
   `session_id`, `session_contract_version`, `usage_contract_version`, and
-  `reference_contract_version`, and creates `idx_source_files_session` after
+  `reference_contract_version`, separate presence/check/reason fields, and creates `idx_source_files_session` after
   those columns exist. `persistence/migrations/session_revisions.py` rebuilds this table with a
   positive-integer-or-null Session revision constraint. Startup validates exact
   known provider-specific legacy tokens, makes a verified private recovery copy,
@@ -169,10 +177,13 @@ Explicit indexes: none.
   only an actual top-level CHECK matching the known revision predicate proves
   the numeric contract current. Comments and standalone SQLite BOM whitespace
   cannot hide unsupported modifiers; keyword text inside quotes cannot create
-  constraints. Literal case is preserved. Other CHECK expressions, even if they
-  might be equivalent, are refused during rebuild rather than assumed safe.
-  Null Session revisions trigger actual Session/skill reprocessing, even when
-  the independent Usage contract is current; that repair does not reprice Usage.
+  constraints. Literal case is preserved. The exact independent presence-state CHECK is
+  also admitted; other CHECK expressions, even if apparently equivalent, are
+  refused during rebuild rather than assumed safe.
+  For available selected inputs, null Session revisions trigger actual
+  Session/skill reprocessing, even when the independent Usage contract is current;
+  that repair does not reprice Usage. Unavailable inputs retain prior results and
+  versions until actual reprocessing is possible.
 - Forward-only Session refresh: the provider revision is a positive integer in
   `ingest/contracts.py`; the DB stores the revision that produced each file's
   results, not executable parser code. Before upserting a source or reconciling
@@ -181,7 +192,8 @@ Explicit indexes: none.
   existing results. Bounded source attempt/failure health still updates; file and
   normalized results stay intact. Other registered sources still run in their own transactions.
   Equal revisions permit unchanged-file skips; lower or null revisions require
-  repair. Codex and Claude revision numbers are independent. This admission check
+  repair when the input is available. Codex and Claude revision numbers are
+  independent. This admission check
   also applies before same-source reconnection can invalidate revision markers. It
   applies to runtimes containing it; rebuild and replace older native bundles
   before using the shared database. It is not a retroactive old-binary write lock.
@@ -197,11 +209,14 @@ Explicit indexes: none.
 | `last_scanned_at` | `TEXT NOT NULL`; latest attempt time for this input. |
 | `status` | `TEXT NOT NULL DEFAULT 'ok'`; freshness state such as healthy, stale, or error. |
 | `error` | nullable `TEXT`; bounded scan or parse error evidence. |
+| `presence_state` | `TEXT NOT NULL DEFAULT 'UNKNOWN'`, checked to `PRESENT`, `MISSING`, `UNKNOWN`; independent native Session file presence. Context does not use this observation yet. |
+| `presence_checked_at` | nullable `TEXT`; UTC time of the latest presence check, including inability to inspect. Null means unverified. |
+| `presence_error` | nullable `TEXT`; application-bounded (500 characters) reason presence could not be established. It does not replace parsing `error`. |
 | `session_contract_version` | nullable positive `INTEGER`; provider-specific parser/classification revision used to decide whether the Session, Activity Events, and Session search projection remain current. Null means no known Session revision; Context files remain null. |
 | `usage_contract_version` | nullable `TEXT`; normalizer contract used to decide whether Usage Records remain current. |
 | `reference_contract_version` | nullable `TEXT`; generalized Session-reference extractor/reconciler contract used to decide whether the mapped Session evidence remains current. |
 
-Constraints: `UNIQUE(source_id, path)` plus optional physical Session ownership; `session_contract_version` is null or has SQLite storage type `integer` and is greater than zero.
+Constraints: `UNIQUE(source_id, path)` plus optional physical Session ownership; `session_contract_version` is null or has SQLite storage type `integer` and is greater than zero; `presence_state` is checked to the three independent presence values.
 Explicit indexes: `idx_source_files_session` on `(session_id, path)` for aggregate
 fingerprints, sibling repair, and Session deletion/reconciliation lookup; SQLite
 also owns the composite source/path uniqueness autoindex.
@@ -257,8 +272,9 @@ Constraints: one row per Source Instance; physical cascade FK; availability voca
 
 ## Subject Recovery Boundary
 
-A full source rescan rebuilds normalized scan state but not the exact chronology
-of prior errors. The Session sync report aggregates independently committed
+A full source rescan rebuilds current scan state from available inputs. Exact
+retained provenance for unavailable Session inputs and the chronology of prior
+errors require a database backup. The Session sync report aggregates independently committed
 Source outcomes as complete, partial, or failed; the wider Sources scan appends
 Local Context without weakening those Session-source transactions. An explicit
 capability inspection can replace capability observations but cannot recreate

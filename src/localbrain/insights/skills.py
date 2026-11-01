@@ -36,6 +36,7 @@ def skill_insights_data(connection: sqlite3.Connection) -> Dict[str, Any]:
         """
         SELECT COUNT(*) AS file_count,
                SUM(CASE WHEN source_files.status = 'ok'
+                         AND source_files.presence_state = 'PRESENT'
                          AND (
                              (sources.provider_kind = 'claude'
                               AND source_files.session_contract_version = ?)

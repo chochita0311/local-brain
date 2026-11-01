@@ -75,6 +75,7 @@ maps runtime responsibilities. Their detailed current contracts are:
 | Area | Owner |
 | --- | --- |
 | Native Session capture, revisions, repair and references | [Session Ingestion](policies/project/session-ingestion.md) |
+| Change impacts, required dependent edits and regression diagnosis | [Change Scope And Regression Control](policies/project/change-scope-and-regression.md) |
 | Session inventory, pins, Chart and detail | [Sessions](policies/project/sessions.md) |
 | Direct usage, frozen cost/Project snapshots and dashboard | [Usage And Cost](policies/project/usage-and-cost.md) |
 | Registered document collection/reading | [Local Context](policies/project/local-context.md) |

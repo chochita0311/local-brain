@@ -77,10 +77,13 @@ Git. Removing or mistyping an entry is configuration state, not deletion
 authority: the registry row and normalized descendants remain in SQLite.
 Synchronization stores only application-generated, 500-character-bounded source
 health explanations; raw parser exceptions and Session content do not enter the
-health field or API report. A successful scan of an unchanged, present root may
-still reconcile a disappeared native JSONL and remove only that Source's
-normalized Session descendants. It may also remove the normalized projection of
-a present metadata-only stub after confirming that parsing yields no Activity
+health field or API report. A successful scan preserves collected Session
+history after native originals disappear and records independent presence.
+Stored conversations, Usage, pins and relationships remain private in SQLite;
+unknown presence never establishes deletion authority. Separately, a successful
+scan may remove the normalized projection of a present metadata-only stub under
+the [Session eligibility contract](session-ingestion.md#session-eligibility),
+after confirming that parsing yields no Activity
 Event, no Usage Record, and no admitted skill observation; LocalBrain never deletes that native file, and a later
 sync can import it after meaningful growth.
 

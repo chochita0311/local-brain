@@ -27,4 +27,8 @@ Project attribution is preserved from the usage record. It is not necessarily th
 
 Check the selected source, dates, and time zone first. Confirm the source is registered and readable in [Settings](/help/settings), then use Session synchronization if needed. Reopen the dashboard after collection. If usage exists but a metric is unavailable, collecting again cannot guarantee missing pricing or usage evidence will appear.
 
+LocalBrain reads Codex usage from the registered profile's original `.jsonl` and `.jsonl.zst` Session files. Compressed history is collected directly; you do not need to extract it. Check both forms before treating an original as missing. If neither form is available, already collected usage remains in the database. Missing usage that was never collected cannot be reconstructed from the conversation list or a total-token counter; that recovery needs the original files or a backup.
+
+After synchronization, dashboard usage and normalized Codex conversation details are read from the local database. Compressed originals are decoded during synchronization, without creating extracted transcript files. If `name.jsonl` and `name.jsonl.zst` are both files in the same directory, only `name.jsonl` is collected; their contents are not merged or compared for freshness. Switching between these two forms preserves the same native Session and its existing pins and frozen Usage facts. This pairing rule applies within each registered source and does not combine personal and company profiles.
+
 Continue with [Sessions](/help/sessions) to read the conversations behind the activity. [Settings](/help/settings) explains source registration and synchronization.

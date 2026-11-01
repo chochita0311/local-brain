@@ -137,6 +137,20 @@ class PersonalInsightUsageTests(unittest.TestCase):
             parse_codex_session, CODEX_USAGE_CONTRACT_VERSION, provider_kind="codex",
         )
         self.assertEqual(self.connection.execute("SELECT COUNT(*) FROM usage_records").fetchone()[0], 1)
+        self.assertEqual(self.connection.execute("SELECT COUNT(*) FROM source_files").fetchone()[0], 0)
+        # A prior erroneous file observation must retire without touching its
+        # independently owned analysis accounting Session or Usage.
+        self.connection.execute(
+            """INSERT INTO source_files(source_id,session_id,path,size_bytes,mtime_ns,last_scanned_at)
+               SELECT source_id,id,source_path,0,0,'fixed' FROM sessions
+               WHERE external_id=?""", ("localbrain-insight:"+run["id"],)
+        )
+        _scan_session_source(
+            self.connection, self.source_id, "Company", native_root,
+            parse_codex_session, CODEX_USAGE_CONTRACT_VERSION, provider_kind="codex",
+        )
+        self.assertEqual(self.connection.execute("SELECT COUNT(*) FROM source_files").fetchone()[0], 0)
+        self.assertEqual(self.connection.execute("SELECT COUNT(*) FROM usage_records").fetchone()[0], 1)
         store_insight_usage(self.connection, self.run_row(), USAGE, observed_at=NOW)
         self.assertEqual(self.dashboard()["aggregate"]["estimated_cost"], Decimal("0.0156"))
 

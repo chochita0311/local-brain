@@ -32,7 +32,7 @@ class SchemaPresentationBuildTests(unittest.TestCase):
         self.assertEqual(len(manifest["subjects"]), 11)
         self.assertEqual(len(manifest["tables"]), 53)
         self.assertEqual(
-            sum(len(table["columns"]) for table in manifest["tables"]), 556
+            sum(len(table["columns"]) for table in manifest["tables"]), 559
         )
         self.assertEqual(
             sum(len(table["indexes"]) for table in manifest["tables"]), 51
@@ -202,6 +202,7 @@ Constraints: first constraint
             "https://platform.claude.com/docs/en/about-claude/pricing",
             "https://github.com/ccusage/ccusage/blob/v20.0.17/rust/crates/ccusage/src/pricing.rs",
             "https://developers.openai.com/api/docs/models/gpt-6.1-sol",
+            "https://developers.openai.com/api/docs/models/gpt-6.1-terra",
             "https://developers.openai.com/api/docs/changelog",
         }
         self.assertEqual(set(re.findall(r'https://[^\s)"\\]+', serialized)), public_citations)

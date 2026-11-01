@@ -9,7 +9,7 @@ collection. [Session Workflow](workflow.md) owns projections and user correction
 [Usage And Cost](usage-and-cost.md) and [Personal Insights](personal-insights.md)
 own their analytical consumers.
 
-Original Claude and Codex JSONL remains the authoritative Session source. LocalBrain stores normalized searchable text, selected metadata, source paths, source line numbers, and deterministic IDs so the index can be rebuilt. New provider-native event and Usage identities are scoped by the numeric Source ID when profiles share an adapter. Re-ingestion matches retained native unique keys to preserve existing event and Usage PKs; the one-time upgrade may read old string keys solely to migrate dependent references.
+Original Claude and Codex JSONL remains the authoritative input for native parsing. LocalBrain retains previously collected normalized history even after those inputs disappear. Stored searchable text, selected metadata, source paths, source line numbers and deterministic IDs are not a complete raw-transcript backup. New provider-native event and Usage identities are scoped by the numeric Source ID when profiles share an adapter. Re-ingestion matches retained native unique keys to preserve existing event and Usage PKs; the one-time upgrade may read old string keys solely to migrate dependent references.
 
 ### Ingestion Module Ownership
 
@@ -22,6 +22,8 @@ Original Claude and Codex JSONL remains the authoritative Session source. LocalB
   and skill signals from source data. It does not reconcile persisted evidence.
 - `ingest/sync/sessions.py` orchestrates one admitted Session source;
   `session_store.py` owns Session/activity/Usage persistence and lifecycle;
+  `session_files.py` owns independent native-presence observations and legacy
+  path mappings, excluding independently owned ephemeral-analysis accounting;
   `ingest/sync/contexts.py` owns folder/file/Notes ingestion; `storage.py` owns shared
   source/file/workspace/search operations and revision admission; `control.py`
   owns the single cancellation context and callback-safe progress delivery.
@@ -36,7 +38,9 @@ Session result revisions are nullable positive integers in
 They identify stored results, while the executable contains one current parser
 per provider. A newer stored revision stops that source before projection/lifecycle writes,
 including forced Sync and same-source reconnection. Null or lower revisions need
-actual Session repair; a Session-only repair leaves current Usage unchanged.
+actual Session repair when inputs are available; unavailable inputs retain their
+prior facts and result versions until reprocessing is possible. A Session-only
+repair leaves current Usage unchanged.
 [Source Registry And Scans](data-model/source-registry-and-scans.md) owns the
 storage constraint, exact legacy conversion and bounded failure contract.
 
@@ -130,7 +134,7 @@ Every repair/force path below requires successful
 A higher stored revision is refused before projection or lifecycle writes;
 bounded source failure-health recording still occurs.
 
-The Sessions inventory owns a Session-only incremental synchronization action. It scans every validated source in the ordered private Session-source registry—the user’s enabled Codex/Claude profiles—regardless of the selected inventory filter, and does not scan Local Context sources. Each accepted file carries independent Session-projection, Usage-normalizer, and generalized-reference versions. After successful Session revision admission, a stale contract reparses the source files needed by that concern but writes only the owned derived lane; a natural file change, missing Session mapping, forced scan, or eligibility repair still refreshes every affected lane. Each source has an independent transaction, source-file set, stale-deletion boundary, and persistent latest attempt/success/status/error health. Unavailable or invalid sources skip stale reconciliation and retain their normalized data; an unexpected failure rolls back only that source. The JSON request API queues or joins the common collector; its status API exposes the bounded per-source report plus complete, partial, or failed aggregate outcome. An additive NDJSON endpoint emits bounded source ID/label, repair kinds, and throttled file counts to the same Sessions result region; it emits no paths or content, and callback/display failure cannot change synchronization. The development-web Sources inventory owns the wider scan that appends every enabled Local Context root without weakening those Session-source commit boundaries. Both web actions retain the source-file freshness check. An otherwise-current source is reparsed only when its versioned Atlassian evidence scan or enabled configured-Site fingerprint is missing or changed; once all owned contracts are current, the source is skipped.
+The Sessions inventory owns a Session-only incremental synchronization action. It scans every validated source in the ordered private Session-source registry—the user’s enabled Codex/Claude profiles—regardless of the selected inventory filter, and does not scan Local Context sources. Each accepted file carries independent Session-projection, Usage-normalizer, and generalized-reference versions. After successful Session revision admission, a stale contract reparses the source files needed by that concern but writes only the owned derived lane; a natural file change, missing Session mapping, forced scan, or eligibility repair still refreshes every affected lane. Each source has an independent transaction, source-file set, retained-history lifecycle boundary, and persistent latest attempt/success/status/error health. Unavailable or invalid sources skip stale reconciliation and retain their normalized data; an unexpected failure rolls back only that source. The JSON request API queues or joins the common collector; its status API exposes the bounded per-source report plus complete, partial, or failed aggregate outcome. An additive NDJSON endpoint emits bounded source ID/label, repair kinds, and throttled file counts to the same Sessions result region; it emits no paths or content, and callback/display failure cannot change synchronization. The development-web Sources inventory owns the wider scan that appends every enabled Local Context root without weakening those Session-source commit boundaries. Both web actions retain the source-file freshness check. An otherwise-current source is reparsed only when its versioned Atlassian evidence scan or enabled configured-Site fingerprint is missing or changed; once all owned contracts are current, the source is skipped.
 
 The shared backend schedules Session and Local Context collection independently,
 defaulting to 10 and 30 minutes after each domain's completion. The Sync settings
@@ -142,8 +146,65 @@ surface or add a status banner. The existing Sessions manual action remains.
 See [the common runtime contract](desktop-app-and-settings.md); shared scheduling
 checks do not establish simultaneous native/web startup acceptance.
 
+### Retained Native History And Presence
+
+Missing accepted native inputs never authorize deletion of their stored Session,
+Activity Events, Usage, pins, references, skills, search or user relationships.
+Detail, pin/unpin and DB-supported calculations continue using collected evidence.
+Forced Sync and parser/normalizer/reference upgrades retain unavailable inputs'
+prior facts and result versions; they do not claim that missing bytes were parsed.
+Original-dependent extraction waits for a future readable input without assuming
+one will return. Stored-data reads and supported corrections require no original.
+
+`source_files` owns `presence_state`, `presence_checked_at` and bounded
+`presence_error`, independently of existing scan `status`/`error`. `PRESENT`
+means the admitted representation was confirmed; the same-path Codex plain/Zstd
+pair has one selected representation. `MISSING` requires complete discovery of a
+readable root and confirmed file absence. An unverified, inaccessible, interrupted
+or out-of-current-root path cannot establish absence and stays/becomes `UNKNOWN`.
+Directory enumeration errors propagate rather than silently implying missing
+files. Presence observation never advances parsing versions or clears parse errors.
+Context-file lifecycle remains owned by Local Context.
+
+A Session derives `PRESENT` from any confirmed linked original, otherwise
+`UNKNOWN` from an unverified linked input (or no mapping), and `MISSING` only when
+all known inputs are confirmed absent. Root unavailability or failed complete
+inspection records unknown presence while keeping normalized data. Newer stored
+Session revisions still refuse before file/projection writes; bounded source
+health may update. Presence checks can advance independently from failed parsing.
+
+When only part of a multi-file Session is available, retain missing-file references
+and Usage; add non-conflicting new Activity Events and keep stored event-key
+conflicts until complete source evidence can establish replacement. Rebuild search
+and counts from those retained Events. Usage contract repair unions the existing
+records of partially/unavailable Sessions with current parsed records. Absent
+files alone do not force repeated repair of current siblings. Reappearance merges
+into the same source/native identity, including pins edited during absence, with
+ordinary frozen pricing/Project rules. Confirmed-empty and provider-internal
+eligibility corrections remain separate, evidence-backed cleanup branches.
+
 ### Adapter-specific Rules
 
+- Codex capture admits native `.jsonl` and `.jsonl.zst` rollouts under each
+  registered source root. Zstandard is streamed through Python's file API
+  (`compression.zstd` on Python 3.14+, the declared `backports.zstd` dependency on
+  older supported Python); collection requires no external `zstd` executable and
+  creates no extracted transcript. Source path/size/mtime identify the actual
+  container; source line numbers and native identities refer to its decompressed
+  JSONL. When both same-directory, same-basename forms are files, `.jsonl` takes
+  precedence over `.jsonl.zst`; collection neither compares their contents/mtimes
+  nor merges them or falls back to the archive if the selected plain file fails.
+- A replacement in either direction between `.jsonl` and `.jsonl.zst` retains
+  the prior normalized owner until the selected replacement has parsed
+  successfully with the same native identity. This includes a plain file
+  reappearing beside an already indexed archive. Successful
+  replacement preserves Session/Activity/Usage IDs, pins and frozen price/Project
+  evidence, retires obsolete source-path evidence and finalizes references against
+  the selected container. Invalid, truncated or mismatched replacements retain the last valid
+  owner and report failure. Full source-contract repair still rolls back as one
+  unit. Repeated unchanged collection skips the current container. Codex's Session
+  revision advances for this admission so older collectors refuse before stale
+  deletion; the Usage normalizer and Claude candidate formats do not change.
 - Import Claude primary and direct `subagents/*.jsonl` files with distinct Session
   roles and a source-backed parent relation. Deeper descendants of the native
   `subagents` tree, including `workflows/**/journal.jsonl`, are internal artifacts

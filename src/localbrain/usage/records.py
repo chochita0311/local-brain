@@ -598,6 +598,11 @@ def price_existing_unpriced_sol_6_1_records(connection: sqlite3.Connection) -> i
     return _price_existing_unpriced_codex_records(connection, "gpt-6.1-sol")
 
 
+def price_existing_unpriced_terra_6_1_records(connection: sqlite3.Connection) -> int:
+    """Fill missing Terra 6.1 estimates using each record's frozen tier and date."""
+    return _price_existing_unpriced_codex_records(connection, "gpt-6.1-terra")
+
+
 def price_existing_partial_fast_long_context_records(
     connection: sqlite3.Connection,
 ) -> int:

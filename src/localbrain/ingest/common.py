@@ -1,8 +1,10 @@
 """Provider-neutral identity, JSONL, text and Session-classification helpers."""
 
 import hashlib
+import io
 import json
 import re
+import sys
 from pathlib import Path
 from typing import Any, Dict, Iterable, List
 
@@ -20,8 +22,19 @@ def token_value(value: Any) -> tuple:
     return value, "available"
 
 
+def open_jsonl_binary(path: Path):
+    """Read a native JSONL container without extracting or changing its bytes."""
+    if path.name.endswith(".jsonl.zst"):
+        if sys.version_info >= (3, 14):
+            from compression import zstd
+        else:
+            from backports import zstd
+        return zstd.open(path, "rb")
+    return path.open("rb")
+
+
 def read_json_lines(path: Path) -> Iterable[tuple]:
-    with path.open("r", encoding="utf-8", errors="replace") as handle:
+    with io.TextIOWrapper(open_jsonl_binary(path), encoding="utf-8", errors="replace") as handle:
         for line_number, raw_line in enumerate(handle, start=1):
             try:
                 yield line_number, json.loads(raw_line)

@@ -700,6 +700,9 @@ h1 { margin: var(--space-none); font-family: var(--type-display-font); font-size
 .session-title-line { display: flex; align-items: center; gap: var(--space-control-gap); min-width: 0; }
 .session-title-line h3 { overflow: hidden; margin: var(--space-none); text-overflow: ellipsis; white-space: nowrap; font-size: var(--type-body-size); }
 .missing-label { flex: 0 0 auto; padding: var(--space-micro) var(--space-control-gap); color: var(--text-warning); background: var(--surface-warning); border-radius: var(--radius-control); font-size: var(--type-micro-size); font-weight: var(--type-bold); }
+.session-original-state { flex: 0 0 auto; color: var(--text-tertiary); font-size: var(--type-micro-size); }
+.session-original-state.is-missing { color: var(--text-warning); }
+.session-original-state.is-present { color: var(--text-secondary); }
 .path-line { overflow: hidden; margin: var(--space-compact) var(--space-none); color: var(--text-secondary); text-overflow: ellipsis; white-space: nowrap; font-family: var(--type-mono-font); font-size: var(--type-caption-size); }
 .session-meta { display: flex; flex-wrap: wrap; gap: var(--space-compact) var(--space-row-block); color: var(--text-tertiary); font-size: var(--type-caption-size); }
 .session-utility-layer {

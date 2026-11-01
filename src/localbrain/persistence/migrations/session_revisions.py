@@ -79,6 +79,7 @@ def _ddl_tokens(sql):
 
 
 _REVISION_CHECK_TOKENS = _ddl_tokens(REVISION_CHECK)
+_PRESENCE_CHECK_TOKENS = _ddl_tokens("CHECK(presence_state IN ('PRESENT','MISSING','UNKNOWN'))")
 
 
 def _revision_checks(tokens):
@@ -100,10 +101,13 @@ def _revision_checks(tokens):
                 index += 1
             check = [
                 ("word", value) if kind == "identifier" and value in
-                {"session_contract_version", "typeof"} else (kind, value)
+                {"session_contract_version", "presence_state", "typeof"} else (kind, value)
                 for kind, value in tokens[start:index]
             ]
-            checks.append(check_depth == 0 and check == _REVISION_CHECK_TOKENS)
+            # Presence is a separate, explicitly known additive file contract.
+            # Other CHECKs still fail shape admission instead of being dropped.
+            if check != _PRESENCE_CHECK_TOKENS:
+                checks.append(check_depth == 0 and check == _REVISION_CHECK_TOKENS)
             continue
         if token == ("symbol", "("):
             depth += 1

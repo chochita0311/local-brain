@@ -785,7 +785,7 @@ class SessionReferenceTests(unittest.TestCase):
 
         self.assertEqual(projection["retained_total"], 1)
 
-    def test_scanner_maps_multi_file_session_repairs_partial_and_reconciles_deletion(self):
+    def test_scanner_maps_multi_file_session_repairs_partial_and_retains_missing_siblings(self):
         def write_session(path, urls):
             path.write_text(
                 "\n".join(
@@ -894,7 +894,7 @@ class SessionReferenceTests(unittest.TestCase):
                     scanner.CODEX_USAGE_CONTRACT_VERSION,
                     provider_kind="codex",
                 )
-                self.assertEqual(delete_sibling_report, (1, 0, 0))
+                self.assertEqual(delete_sibling_report, (0, 1, 0))
                 self.assertEqual(
                     connection.execute("SELECT COUNT(*) FROM sessions").fetchone()[0],
                     1,
@@ -903,7 +903,7 @@ class SessionReferenceTests(unittest.TestCase):
                     connection.execute(
                         "SELECT observed_target_count FROM session_reference_scans"
                     ).fetchone()[0],
-                    54,
+                    109,
                 )
 
                 first_path.unlink()
@@ -918,13 +918,17 @@ class SessionReferenceTests(unittest.TestCase):
                 )
                 self.assertEqual(
                     connection.execute("SELECT COUNT(*) FROM sessions").fetchone()[0],
-                    0,
+                    1,
                 )
                 self.assertEqual(
                     connection.execute(
                         "SELECT COUNT(*) FROM session_reference_evidence"
                     ).fetchone()[0],
-                    0,
+                    100,
+                )
+                self.assertEqual(
+                    {row[0] for row in connection.execute("SELECT presence_state FROM source_files")},
+                    {"MISSING"},
                 )
             finally:
                 connection.close()

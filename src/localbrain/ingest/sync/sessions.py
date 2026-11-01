@@ -1,6 +1,8 @@
 """Session-source file orchestration within the caller transaction."""
 
 import sqlite3
+import os
+import stat
 from pathlib import Path
 from typing import Callable, Optional, Tuple
 from localbrain.sessions.references import (
@@ -14,14 +16,66 @@ from localbrain.sessions.skills import store_skill_observations
 from localbrain.usage.records import UsagePersistenceCache, reconcile_usage_record_contract
 from localbrain.ingest.evidence.reference_candidates import REFERENCE_EXTRACTOR_VERSION
 from localbrain.ingest import extensions
-from . import control, session_store, storage
+from . import control, session_files, session_store, storage
 
 
-def _session_paths(root, path_filter):
-    for path in root.rglob("*.jsonl"):
+def _session_paths(root, path_filter, provider_kind=None):
+    def fail_walk(error):
+        raise error
+
+    # Path.rglob can silently omit unreadable directories. Negative presence
+    # evidence requires a complete walk that propagates enumeration failures.
+    for directory, _, names in os.walk(root, onerror=fail_walk):
         control._check_scan_cancelled()
-        if path_filter is None or path_filter(root, path):
-            yield path
+        for name in names:
+            control._check_scan_cancelled()
+            path = Path(directory) / name
+            if name.endswith(".jsonl"):
+                pass
+            elif provider_kind == "codex" and name.endswith(".jsonl.zst"):
+                try:
+                    if stat.S_ISREG(path.with_suffix("").stat().st_mode):
+                        continue
+                except FileNotFoundError:
+                    pass
+            else:
+                continue
+            if not stat.S_ISREG(path.stat().st_mode):
+                continue
+            if path_filter is None or path_filter(root, path):
+                yield path
+
+
+def _session_container_replacements(connection, source_id, paths):
+    selected_paths = {str(path) for path in paths}
+    if not selected_paths:
+        return {}
+    replacements = {}
+    rows = connection.execute(
+        """SELECT id AS session_id, external_id, source_path AS path
+           FROM sessions WHERE source_id = ?
+           UNION
+           SELECT files.session_id, sessions.external_id, files.path
+           FROM source_files AS files JOIN sessions ON sessions.id = files.session_id
+           WHERE files.source_id = ?""",
+        (source_id, source_id),
+    )
+    for row in rows:
+        prior_path = row["path"]
+        if prior_path in selected_paths:
+            continue
+        if prior_path.endswith(".jsonl.zst"):
+            replacement_path = prior_path[:-4]
+        elif prior_path.endswith(".jsonl"):
+            replacement_path = prior_path + ".zst"
+        else:
+            continue
+        if replacement_path in selected_paths:
+            prior = replacements.get(replacement_path)
+            if prior and prior["session_id"] != row["session_id"]:
+                raise RuntimeError("Session container has conflicting prior owners")
+            replacements[replacement_path] = row
+    return replacements
 
 
 
@@ -50,42 +104,33 @@ def _scan_session_source(
     if reference_lookup_cache is None:
         reference_lookup_cache = SessionReferenceLookupCache()
     if not root.exists():
+        session_files.mark_source_unknown(connection, source_id, "The source root is unavailable.")
         return imported, skipped, failed
 
-    paths = sorted(_session_paths(root, path_filter))
+    paths = sorted(_session_paths(root, path_filter, effective_provider_kind))
+    container_replacements = (
+        _session_container_replacements(connection, source_id, paths)
+        if effective_provider_kind == "codex" else {}
+    )
+    retained_prior_paths = {Path(row["path"]) for row in container_replacements.values()}
+    retained_missing_paths, retained_session_ids = session_files.observe_session_files(
+        connection, source_id, root, paths, container_replacements,
+        effective_provider_kind, path_filter,
+    )
+    selected_paths = {str(path) for path in paths}
+    current_files = [row for row in connection.execute(
+        """SELECT path,session_contract_version,usage_contract_version,reference_contract_version
+           FROM source_files WHERE source_id=?""", (source_id,))
+        if row["path"] in selected_paths]
     session_contract_repair_required = bool(
         session_contract_version is not None
-        and connection.execute(
-            """
-            SELECT 1 FROM source_files
-            WHERE source_id = ?
-              AND COALESCE(session_contract_version, 0) != ?
-            LIMIT 1
-            """,
-            (source_id, session_contract_version),
-        ).fetchone()
+        and any(row["session_contract_version"] != session_contract_version for row in current_files)
     )
-    usage_contract_repair_required = bool(
-        connection.execute(
-            """
-            SELECT 1 FROM source_files
-            WHERE source_id = ?
-              AND COALESCE(usage_contract_version, '') != ?
-            LIMIT 1
-            """,
-            (source_id, usage_contract_version),
-        ).fetchone()
+    usage_contract_repair_required = any(
+        row["usage_contract_version"] != usage_contract_version for row in current_files
     )
-    reference_contract_repair_required = bool(
-        connection.execute(
-            """
-            SELECT 1 FROM source_files
-            WHERE source_id = ?
-              AND COALESCE(reference_contract_version, '') != ?
-            LIMIT 1
-            """,
-            (source_id, REFERENCE_EXTRACTOR_VERSION),
-        ).fetchone()
+    reference_contract_repair_required = any(
+        row["reference_contract_version"] != REFERENCE_EXTRACTOR_VERSION for row in current_files
     )
     source_contract_repair_required = bool(
         session_contract_repair_required
@@ -123,7 +168,10 @@ def _scan_session_source(
     )
     if source_contract_repair_required:
         connection.execute("SAVEPOINT source_contract_repair")
-    session_store._remove_stale_sessions(connection, source_id, paths)
+    # Keep the prior owner until either replacement container has parsed completely.
+    session_store._remove_stale_sessions(
+        connection, source_id, [*paths, *retained_prior_paths, *retained_missing_paths]
+    )
     forced_reference_paths = set()
     if not source_contract_repair_required:
         dirty_session_ids = set()
@@ -319,11 +367,25 @@ def _scan_session_source(
         try:
             scanned_stat = current_stat
             parsed = parser(path)
+            replacement = container_replacements.get(source_path)
+            if replacement and parsed.external_id != replacement["external_id"]:
+                raise RuntimeError("Session container identity differs from its prior owner")
             if not session_store._parsed_session_is_meaningful(parsed):
+                if replacement:
+                    connection.execute(
+                        "UPDATE sessions SET source_path = ? WHERE id = ?",
+                        (source_path, replacement["session_id"]),
+                    )
+                    retained_prior_paths.discard(Path(replacement["path"]))
+                    empty_candidates.append((Path(replacement["path"]), parsed))
                 empty_candidates.append((path, parsed))
                 report_file_progress(processed_files)
                 continue
             if refresh_session:
+                retained_owner = connection.execute(
+                    "SELECT id FROM sessions WHERE source_id=? AND external_id=?",
+                    (source_id, parsed.external_id),
+                ).fetchone()
                 session_id = session_store._store_session(
                     connection,
                     source_id,
@@ -332,6 +394,9 @@ def _scan_session_source(
                     provider_kind=effective_provider_kind,
                     include_usage=refresh_usage,
                     usage_cache=usage_cache,
+                    preserve_existing_events=bool(
+                        retained_owner and retained_owner["id"] in retained_session_ids
+                    ),
                 )
             else:
                 session_row = connection.execute(
@@ -391,6 +456,9 @@ def _scan_session_source(
                 reference_contract_version=REFERENCE_EXTRACTOR_VERSION,
                 session_contract_version=session_contract_version,
             )
+            session_files.record_presence(connection, source_id, path, "PRESENT")
+            if replacement:
+                retained_prior_paths.discard(Path(replacement["path"]))
             if refresh_references:
                 reference_sessions_to_finalize.add(session_id)
             if usage_contract_repair_required:
@@ -411,14 +479,21 @@ def _scan_session_source(
                 ).fetchone()
                 if mapped and mapped["session_id"] is not None:
                     current_session_id = int(mapped["session_id"])
+                elif source_path in container_replacements:
+                    current_session_id = int(container_replacements[source_path]["session_id"])
             if current_session_id is not None:
                 failed_reference_sessions[current_session_id] = str(exc)
             if source_contract_repair_required:
                 repair_errors.append((path, str(exc)))
             else:
                 storage._record_source_file(connection, source_id, path, "error", str(exc))
+                session_files.record_presence(connection, source_id, path, "PRESENT")
             failed += 1
             report_file_progress(processed_files)
+    if container_replacements and not (source_contract_repair_required and failed):
+        session_store._remove_stale_sessions(
+            connection, source_id, [*paths, *retained_prior_paths, *retained_missing_paths]
+        )
     for session_id in sorted(
         reference_sessions_to_finalize - set(failed_reference_sessions)
     ):
@@ -451,9 +526,17 @@ def _scan_session_source(
         empty_candidates = []
         for path, error in repair_errors:
             storage._record_source_file(connection, source_id, path, "error", error)
+            session_files.record_presence(connection, source_id, path, "PRESENT")
     elif source_contract_repair_required:
         try:
             if usage_contract_repair_required:
+                # A missing sibling prevents proving the Session's complete
+                # replacement union. Keep its old direct Usage, with old versions.
+                expected_usage_record_ids.update(
+                    row["id"] for row in connection.execute(
+                        "SELECT id,session_id FROM usage_records WHERE source_id=?", (source_id,))
+                    if row["session_id"] in retained_session_ids
+                )
                 reconcile_usage_record_contract(
                     connection, source_id, expected_usage_record_ids
                 )

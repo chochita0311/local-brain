@@ -60,6 +60,7 @@ Agent harness experience uses the separate, ignored [consumer evidence layout](d
 
 - Read touched modules and their owner docs before changing behavior.
 - Prefer existing patterns and narrowly scoped changes.
+- Apply [Change Scope And Regression Control](docs/policies/project/change-scope-and-regression.md) before editing to classify impacts, complete necessary dependent changes, and verify affected behavior.
 - Preserve provenance for imported, inferred, and user-confirmed information.
 - Keep generated Suggestions reversible and require explicit acceptance before changing Workstream organization.
 - Do not revert unrelated user changes.

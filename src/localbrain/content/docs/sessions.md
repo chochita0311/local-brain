@@ -9,6 +9,10 @@ Sessions lets you revisit imported Codex and Claude Code conversations. Use the 
 
 The conversation view shows messages. Original event counts also include tool activity that the reading view hides, so they need not match the message count. A missing current working folder does not by itself erase an imported conversation.
 
+Collected conversations also remain available when their native Session files disappear. You can keep reading, pin or unpin them, and view their recorded usage. Original availability is shown separately from the working folder: **Original present** (`원본 있음`), **Original missing** (`원본 없음`), or **Original unverified** (`원본 확인 불가`). Unverified means inspection could not establish presence or absence; a present file can still have a separate collection error. Detail shows the last presence check and a reason when available.
+
+Synchronization continues for available inputs. Missing originals keep their collected data and prior processing versions, including during forced synchronization or upgrades. If an original returns, LocalBrain updates the same Session while keeping pins and frozen usage attribution. Information that was never collected cannot be reconstructed without its original; database-supported reads and calculations continue while originals are unavailable.
+
 The Session ID display is shortened for reading; use its copy control when you need the full native identifier.
 
 Path labels use `~` for the home directory and `~/…` for folders within it; paths elsewhere are shown in full. Saved locations and historical Project attribution remain unchanged. For example, `~/Projects/app`, `~/Project1`, and `~/Project2` all follow the same home-directory rule.

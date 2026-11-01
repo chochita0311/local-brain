@@ -3,6 +3,7 @@ from typing import Dict, Iterable, List, Optional
 
 from localbrain.foundation.paths import home_relative_path
 from localbrain.foundation.clock import utc_now
+from localbrain.sessions.source_presence import source_presence_columns
 
 
 class SessionPinError(RuntimeError):
@@ -88,6 +89,7 @@ _PINNED_SESSION_SELECT = """
             sessions.source_path,
             sessions.git_branch,
             sessions.workspace_id,
+            {source_presence},
             sources.provider_kind,
             sources.name AS source_name,
             workspaces.display_name AS workspace_name,
@@ -105,7 +107,7 @@ _PINNED_SESSION_SELECT = """
             COALESCE(sessions.last_event_at, sessions.started_at) DESC,
             session_pins.pinned_at DESC,
             sessions.id DESC
-"""
+""".format(source_presence=source_presence_columns())
 
 
 def list_pinned_sessions(

@@ -543,6 +543,9 @@ Every persisted or user-visible derived state has one semantic family and a text
 | Local Context | `missing` | warning | missing path visible |
 | Source file | `ok` | success | no warning treatment |
 | Source file | `error` | danger | contributes to source error count |
+| Session original presence | `PRESENT` | neutral | original confirmed; ordinary detail label, independent from parsing success |
+| Session original presence | `MISSING` | warning | original absent; retained list/detail/pins remain usable |
+| Session original presence | `UNKNOWN` | neutral | unverified or inaccessible; bounded reason/check time, retained reading stays usable |
 | Local resource | available | success | normal link treatment |
 | Local resource | missing | warning | historical path remains visible |
 | Natural search | `disabled` | neutral | preparation action with local scope |

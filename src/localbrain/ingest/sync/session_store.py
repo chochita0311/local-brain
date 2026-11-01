@@ -248,6 +248,7 @@ def _store_session(
     provider_kind: Optional[str] = None,
     include_usage: bool = True,
     usage_cache: Optional[UsagePersistenceCache] = None,
+    preserve_existing_events: bool = False,
 ) -> int:
     effective_provider_kind = provider_kind or connection.execute("SELECT provider_kind FROM sources WHERE id=?", (source_id,)).fetchone()["provider_kind"]
     workspace_id = storage._upsert_workspace(connection, parsed.cwd_raw, parsed.last_event_at)
@@ -335,7 +336,9 @@ def _store_session(
         )
     event_ids = {(row["sequence"], row["event_type"], row["source_line"]): row["id"] for row in connection.execute(
         "SELECT id,sequence,event_type,source_line FROM activity_events WHERE session_id=?", (session_id,))}
-    connection.execute("DELETE FROM activity_events WHERE session_id = ?", (session_id,))
+    preserve_existing_events = preserve_existing_events and parsed.index_policy == "full"
+    if not preserve_existing_events:
+        connection.execute("DELETE FROM activity_events WHERE session_id = ?", (session_id,))
     connection.execute(
         "DELETE FROM search_index WHERE entity_type = 'session' AND entity_id = ?",
         (str(session_id),),
@@ -347,7 +350,7 @@ def _store_session(
                 id, session_id, sequence, occurred_at, event_type, role, text,
                 tool_name, source_line, message_phase
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
+            """ + (" ON CONFLICT DO NOTHING" if preserve_existing_events else ""),
             [
                 (
                     event_ids.get((event.sequence, event.event_type, event.source_line),
@@ -366,6 +369,23 @@ def _store_session(
             ],
         )
         body = "\n".join(event.text for event in parsed.events if event.text)
+        if preserve_existing_events:
+            # An available sibling is not a complete replacement for a missing
+            # original. Add unambiguous events; keep stored conflicts until the
+            # complete source set can establish a replacement.
+            counts = connection.execute(
+                """SELECT count(*) AS events,
+                          COALESCE(sum(event_type='message' AND role='user'),0) AS users,
+                          COALESCE(sum(event_type='message' AND role='assistant'),0) AS assistants
+                   FROM activity_events WHERE session_id=?""", (session_id,)
+            ).fetchone()
+            connection.execute(
+                "UPDATE sessions SET event_count=?,user_message_count=?,assistant_message_count=? WHERE id=?",
+                (counts["events"], counts["users"], counts["assistants"], session_id),
+            )
+            body = "\n".join(row["text"] for row in connection.execute(
+                "SELECT text FROM activity_events WHERE session_id=? ORDER BY sequence,id", (session_id,)
+            ) if row["text"])
         if parsed.session_role == "primary":
             storage._replace_search_item(
                 connection,

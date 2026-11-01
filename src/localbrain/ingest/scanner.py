@@ -12,7 +12,7 @@ from localbrain.ingest.providers.claude import parse_claude_session
 from localbrain.ingest.contracts import CODEX_SESSION_REVISION, CODEX_USAGE_CONTRACT_VERSION
 from localbrain.ingest.providers.codex import parse_codex_session
 from .contracts import SessionRevisionError
-from .sync import contexts, control, sessions, storage
+from .sync import contexts, control, session_files, sessions, storage
 
 
 def scan_context_root(
@@ -225,6 +225,14 @@ def _scan_registered_session_source(
         with transaction() as connection:
             row = _source_row(connection, registration.source_id)
             source_id = int(row["id"]) if row else registration.source_id
+            adapter = SESSION_SCAN_ADAPTERS.get(registration.provider_kind)
+            if adapter is not None:
+                try:
+                    storage._check_session_revision(connection, source_id, adapter[1])
+                except SessionRevisionError:
+                    pass  # Health may change; a newer stored file contract may not.
+                else:
+                    session_files.mark_source_unknown(connection, source_id, message)
             eligible, tracked = _source_scan_counts(connection, source_id)
             _record_scan_health(
                 connection, source_id, "unavailable", attempted_at, message
@@ -272,7 +280,11 @@ def _scan_registered_session_source(
             row = _source_row(connection, registration.source_id)
             source_id = int(row["id"])
             eligible, tracked = _source_scan_counts(connection, source_id)
-            status = "scan_failed" if values[2] else ("empty" if tracked == 0 else "completed")
+            present = connection.execute(
+                "SELECT count(*) FROM source_files WHERE source_id=? AND presence_state='PRESENT'",
+                (source_id,),
+            ).fetchone()[0]
+            status = "scan_failed" if values[2] else ("empty" if present == 0 else "completed")
             message = (
                 "{} files could not be processed; existing data for those files was retained.".format(values[2])
                 if values[2]
@@ -297,6 +309,16 @@ def _scan_registered_session_source(
             error_message=message,
         )
     except InterruptedError:
+        with transaction() as connection:
+            try:
+                storage._check_session_revision(connection, registration.source_id, session_contract)
+            except SessionRevisionError:
+                pass
+            else:
+                session_files.mark_source_unknown(
+                    connection, registration.source_id,
+                    "Original inspection was interrupted; stored history was retained.",
+                )
         raise
     except Exception as error:
         revision_error = isinstance(error, SessionRevisionError)
@@ -304,6 +326,8 @@ def _scan_registered_session_source(
         with transaction() as connection:
             row = _source_row(connection, registration.source_id)
             source_id = int(row["id"]) if row else registration.source_id
+            if not revision_error:
+                session_files.mark_source_unknown(connection, source_id, message)
             eligible, tracked = _source_scan_counts(connection, source_id)
             _record_scan_health(
                 connection, source_id, "scan_failed", attempted_at, message

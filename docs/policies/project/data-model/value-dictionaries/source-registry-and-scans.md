@@ -69,6 +69,22 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Help: 로컬 원본을 마지막으로 읽은 결과입니다.
 - Visible consumer inventory: none.
 
+## `source-file.presence-state`
+
+- Physical field or projection: `source_files.presence_state`
+- Allowed values: `PRESENT`, `MISSING`, `UNKNOWN`
+- Enforcement: `schema-check`
+- Logical axis: last verified native Session original presence
+- Default: `UNKNOWN`
+- Fallbacks: `null`: reject; `unknown`: label → 원본 확인 불가; `invalid`: reject; `future`: label → 새 원본 상태
+- Producers: `src/localbrain/ingest/sync/session_files.py`
+- Consumers: `src/localbrain/sessions/source_presence.py`, `src/localbrain/templates/_session_source_presence.html`, `src/localbrain/insights/skills.py`
+- Consequence: Original absence or failed inspection preserves stored Session history and never establishes a parser upgrade.
+- Presentation mode: `logical-label`
+- Labels: `PRESENT` → 원본 있음; `MISSING` → 원본 없음; `UNKNOWN` → 원본 확인 불가
+- Help: 마지막으로 확인한 원본 파일 상태이며 수집 성공 여부와 별개입니다.
+- Visible consumer inventory: `src/localbrain/templates/_session_source_presence.html` (registry-backed)
+
 ## `external-source.provider`
 
 - Physical field or projection: `external_source_instances.provider_kind`

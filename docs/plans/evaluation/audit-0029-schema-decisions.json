@@ -3,10 +3,10 @@
   "review_status": "complete",
   "manifest": {
     "path": "src/localbrain/schema-presentation.json",
-    "sha256": "e764ff787b14cb377ca14df5e7c9ba8182fe3d09ca4348e97b4a2ffa659e67a9",
+    "sha256": "59dc6484e224c2429fb4e6784ab0e956946aef57abea3f9b2158c32c3b2a1a48",
     "expected": {
       "tables": 53,
-      "columns": 556,
+      "columns": 559,
       "indexes": 51,
       "physical_relations": 66,
       "application_relations": 29
@@ -67,8 +67,8 @@
     },
     "source_files": {
       "decision": "keep",
-      "risk": "low",
-      "rationale": "Required rebuildable fingerprint and retry ledger; it separates scan state from normalized descendants and drives idempotent ingestion."
+      "risk": "high",
+      "rationale": "Retain Session input provenance, independent PRESENT/MISSING/UNKNOWN observations and prior parsed fingerprints/result versions. Presence cannot claim reprocessing or overwrite scan errors; Context keeps its separate lifecycle."
     },
     "external_source_instances": {
       "decision": "keep",
@@ -87,13 +87,13 @@
     },
     "sessions": {
       "decision": "keep",
-      "risk": "medium",
-      "rationale": "Required normalized Session identity, parent hierarchy, activity boundary, retrieval source, and Usage Record parent under approved PRD-0002 contracts."
+      "risk": "high",
+      "rationale": "Retain stable source/native Session identity, collected history and user links independently from absent originals. Ordinary missing-file synchronization cannot delete its cascading Event/Usage/pin descendants; explicit eligibility corrections remain separately owned."
     },
     "activity_events": {
       "decision": "keep",
-      "risk": "low",
-      "rationale": "The normalized event table remains required; FEAT-0032 removed its unused generic metadata slot after an all-null runtime preflight while preserving event identity, content, provenance, and ordering."
+      "risk": "high",
+      "rationale": "Retain collected dialogue and tool events after original disappearance; rebuildable only from still-available source evidence or the private database snapshot. Partial native inputs cannot erase stored conflicting events; reading and search use retained DB rows."
     },
     "session_pins": {
       "decision": "keep",
@@ -1049,7 +1049,8 @@
     ],
     "source_files": [
       "tests/test_session_contract.py",
-      "tests/test_usage_contract.py"
+      "tests/test_usage_contract.py",
+      "tests/test_session_retention.py"
     ],
     "external_source_instances": [
       "tests/test_external_access.py"
@@ -1066,13 +1067,15 @@
       "tests/test_session_contract.py",
       "tests/test_session_details.py",
       "tests/test_session_inventory.py",
-      "tests/test_usage_contract.py"
+      "tests/test_usage_contract.py",
+      "tests/test_session_retention.py"
     ],
     "activity_events": [
       "tests/test_activity_attribution.py",
       "tests/test_session_details.py",
       "tests/test_retrieval.py",
-      "tests/test_schema_migrations.py"
+      "tests/test_schema_migrations.py",
+      "tests/test_session_retention.py"
     ],
     "session_pins": [
       "tests/test_session_pins.py"
@@ -1100,7 +1103,8 @@
       "tests/test_usage_contract.py",
       "tests/test_usage_dashboard.py",
       "tests/test_activity_attribution.py",
-      "tests/test_schema_migrations.py"
+      "tests/test_schema_migrations.py",
+      "tests/test_session_retention.py"
     ],
     "context_roots": [
       "tests/test_context_roots.py",

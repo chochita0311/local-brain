@@ -57,6 +57,18 @@ DMG 제작을 필수로 추가하지 않는다. 공증 제출물에는 프로그
 근거: [Apple의 배포 앱 확인 절차](https://support.apple.com/en-us/102445),
 [Developer ID와 공증](https://developer.apple.com/developer-id/) — `2026-10-20` 확인.
 
+## Session History Retention — 2026-10-31
+
+The owner explicitly approves implementation of the discussed retained Session
+history policy: missing native originals keep collected conversations, Usage,
+pins and relationships; original presence is independent from collection errors;
+DB-supported processing continues; source-dependent updates wait for originals
+and merge into the same identity if they return. `PRESENT/MISSING/UNKNOWN` belongs
+to linked file evidence and appears separately from Project path availability.
+[FEAT-0154](../feature/feat-0154-retained-session-history.md) and its Spec/Run own
+this bounded follow-up. It does not change native/public distribution gates,
+Local Context deletion, raw-source backup or external-write authorization.
+
 ## Request Summary
 
 개발자의 기존 로컬 환경에서 실행하던 LocalBrain을 다른 사용자도 자신의 Mac에서 빠르게 시험할 수 있는 **독립 실행 테스트 앱**으로 만든다. 전달 형태는 `LocalBrain.app` 하나를 담은 ZIP을 기준안으로 삼고, 압축을 푼 앱을 더블클릭해 실행한다. 별도 설치 프로그램·Applications 복사·App Store 등록을 필수 절차로 만들지 않는다. 사용자별 세션·문서 경로와 일반 설정은 로컬에 저장하고, 하단 설정 진입점과 분류형 설정 대화상자, 첫 실행 안내, 선택형 검색 모델 설치를 제공한다.

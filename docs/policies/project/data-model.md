@@ -12,8 +12,8 @@ This is the durable human entry point for LocalBrain's effective SQLite model. I
 - Physical foreign keys: `66`
 - Effective explicitly named indexes: `51`
 - Focused subject areas: `11`
-- `schema.sql` SHA-256: `2cbb33c1ee68e3e6a39159b966aa625c89a9458f0f1f28291243a4e2e5027981`
-- Migration sources SHA-256: `fba44a89200960ab4c5c9616104ee5300f7c43cece98ae8e77c0cd61b56cebb4`
+- `schema.sql` SHA-256: `6db7fc2edf220d6502599893990276b7cfd6d11ce581d794b0dd7573c4a3f617`
+- Migration sources SHA-256: `4b6149d33dcbc7d6df4720a3486ad39473d15180ba1e8647c729764f0ed7c6b5`
 
 SQLite primary-key and uniqueness autoindexes and FTS5 shadow tables are implementation internals and are not counted as primary objects or explicitly named indexes. Validation applies `schema.sql` only to an in-memory database; no user database or runtime row is read.
 
@@ -242,13 +242,13 @@ erDiagram
 
 | Class | Rebuildability code | Meaning | Primary objects |
 | --- | --- | --- | --- |
-| Source-derived and rebuildable | `source-rebuildable` | Normalized from still-available local sources; rescans can recreate content, though stable relational IDs must be preserved during ordinary refreshes. | `sources`, `source_files`, `sessions`, `activity_events`, `context_documents` |
+| Source-derived and rebuildable | `source-rebuildable` | Normalized from still-available local sources; rescans can recreate content, though stable relational IDs must be preserved during ordinary refreshes. | `sources`, `context_documents` |
 | Mixed source identity and curated references | `conditional-stable-id` | Source-derived identity participates in user-curated links or immutable historical evidence, so delete-and-recreate is not equivalent to an in-place refresh. | `reference_resources`, `workspaces`, `usage_records`, `atlassian_structure_references`, `atlassian_structure_reference_urls` |
 | Code-seeded reference | `code-rebuildable` | Versioned reference data is reproduced from application code and protected once Usage Records cite it. | `usage_price_snapshots`, `usage_model_prices` |
 | User-curated and non-rebuildable | `non-rebuildable` | User intent or registration is authoritative and requires database backup for full recovery. | `context_roots`, `workstreams`, `threads`, `workstream_links`, `thread_links`, `local_resources`, `external_resources`, `external_resource_notes`, `external_source_instances`, `atlassian_sites`, `atlassian_site_bindings`, `atlassian_items`, `atlassian_classifications`, `atlassian_item_classifications`, `session_pins`, `session_chart_preferences`, `workflow_assertions`, `learning_lessons`, `learning_attempts`, `learning_visibility` |
 | External last-known memory | `external-last-known` | Approved external reads may refresh the row, but inaccessible prior facts, aliases, and bodies are retained and are recoverable completely only from database backup. | `atlassian_spaces`, `atlassian_item_urls`, `atlassian_item_remote_state`, `external_resource_content` |
 | Rebuildable operational observation | `operational-rebuildable` | Explicit inspection can recreate the latest bounded operational state; absence must fail closed rather than imply availability. | `external_source_capabilities` |
-| Retained source observation | `retained-source-observation` | Source-derived observations may retain facts after original files disappear; exact recovery depends on the remaining source and admission state. Owner-deletion rules remain table-specific. | `skill_observations`, `session_reference_evidence` |
+| Retained source observation | `retained-source-observation` | Source-derived observations may retain facts after original files disappear; exact recovery depends on the remaining source and admission state. Owner-deletion rules remain table-specific. | `source_files`, `sessions`, `activity_events`, `skill_observations`, `session_reference_evidence` |
 | Generated review state | `partial-review-history` | Suggestions may be regenerated, but accepted/rejected state and origin evidence are not equivalent after regeneration. | `suggestions` |
 | Confirmed continuity snapshot | `non-rebuildable-snapshot` | Human-confirmed resume state and the resource set captured at that time are historical records, not derived views. | `checkpoints`, `checkpoint_resource_refs` |
 | Operational history | `database-plus-artifacts` | Execution state, bounded query projections, and artifact references describe what happened; files outside SQLite may be required for complete recovery. | `maintenance_runs`, `external_sync_runs`, `personal_insight_runs` |

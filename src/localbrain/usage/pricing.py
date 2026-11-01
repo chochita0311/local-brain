@@ -220,6 +220,14 @@ PRICE_SPECS = (
         ),
         inspected_on="2026-10-02",
     ),
+    *_openai(
+        "gpt-6.1-terra", "2026-10-26", "1", "5", cache_read_rate="0.05",
+        source_ref=(
+            "https://developers.openai.com/api/docs/models/gpt-6.1-terra; "
+            + OPENAI_CHANGELOG_URL
+        ),
+        inspected_on="2026-10-31",
+    ),
     _claude("claude-haiku-4-5-20251001", "2025-10-01", "1", "5"),
     _claude("claude-sonnet-4-6", "2026-02-17", "3", "15"),
 )

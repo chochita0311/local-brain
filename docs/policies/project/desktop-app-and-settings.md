@@ -204,8 +204,10 @@ behavior are recorded separately in Feature and Run evidence.
   imported records remain available through existing source-based browsing. Explicit
   re-registration reuses that identity; manually missing config entries still report
   configuration problems. Disabled sources do not make every scheduled scan fail.
-  Successful collection at a readable root keeps the existing mirror policy for
-  disappeared native files; this is not permanent source archiving.
+  Successful collection retains collected Session history when accepted native
+  originals disappear. Linked file presence is tracked separately from parsing
+  and Project-path state; stored reading and pins remain usable. This retains
+  normalized history rather than a complete raw-transcript backup.
 - Collection, source mutation and restore share a data-directory process lock.
   Automatic/manual collection coalesces; multiple tabs or backends cannot run
   concurrent scans of the same store. Runtime state is not a second settings store.

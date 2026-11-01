@@ -37,7 +37,7 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [PRD-0025: Google Drive Connection And Incremental Sync](prd/prd-0025-google-drive-connection-and-incremental-sync.md) | `approved` | — |
 | [PRD-0026: Context Search And Grounded Local Answers](prd/prd-0026-context-search-grounded-local-answers.md) | `approved` | — |
 
-## Features (153)
+## Features (154)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -194,8 +194,9 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [FEAT-0151: Context Search Source And Storage Contract](feature/feat-0151-context-search-contract.md) | `passed` | PRD026 |
 | [FEAT-0152: Selectable Generation Model Setup](feature/feat-0152-context-search-model-setup.md) | `passed` | PRD026 |
 | [FEAT-0153: Transient Context Search Conversation](feature/feat-0153-context-search-conversation.md) | `passed` | PRD026 |
+| [FEAT-0154: Retained Session History](feature/feat-0154-retained-session-history.md) | `passed` | PRD-0021 |
 
-## Specs (162)
+## Specs (163)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -361,8 +362,9 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [SPEC-0151: Context Search Source And Storage Contract](spec/spec-0151-context-search-contract.md) | `approved` | FEAT-0151 |
 | [SPEC-0152: Selectable Generation Model Setup](spec/spec-0152-context-search-model-setup.md) | `approved` | FEAT-0152 |
 | [SPEC-0153: Transient Context Search Conversation](spec/spec-0153-context-search-conversation.md) | `approved` | FEAT-0153 |
+| [SPEC-0154: Retained Session History](spec/spec-0154-retained-session-history.md) | `approved` | FEAT-0154 |
 
-## Runs (227)
+## Runs (229)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -593,8 +595,10 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [run-20261029-225-context-search-conversation: Transient Context Search Conversation](run/run-20261029-225-context-search-conversation.md) | `passed` | FEAT-0153 |
 | [Run226: Public Candidate Review And Native Integration](run/run-20261029-226-publication-and-native-integration.md) | `passed` | FEAT-0153, with approved Drive integration and existing Learning/schema pending changes. |
 | [RUN-227: Codex Empty Page Control](run/run-20261029-227-codex-empty-page-control.md) | `passed` | FEAT-0015 |
+| [RUN-228: Session Dashboard Cost And History](run/run-20261031-228-session-dashboard-cost-and-history.md) | `passed` | FEAT-0020 |
+| [RUN-229: Retained Session History](run/run-20261031-229-retained-session-history.md) | `passed` | FEAT-0154 |
 
-## Evaluations And Schema Audits (469)
+## Evaluations And Schema Audits (471)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -686,6 +690,7 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [EVAL-0020: Usage And Cost Fact Contract — Functional Attempt 3](evaluation/eval-0020-functional-usage-and-cost-fact-contract-attempt-3.md) | `complete` | feat-0020-usage-and-cost-fact-contract |
 | [EVAL-0020: Usage And Cost Fact Contract — Functional Attempt 4](evaluation/eval-0020-functional-usage-and-cost-fact-contract-attempt-4.md) | `complete` | feat-0020-usage-and-cost-fact-contract |
 | [EVAL-0020: Usage And Cost Fact Contract Functional](evaluation/eval-0020-functional-usage-and-cost-fact-contract.md) | `complete` | feat-0020-usage-and-cost-fact-contract |
+| [Session Dashboard Cost And History Evaluation](evaluation/eval-0020-session-dashboard-cost-and-history.md) | `complete` | FEAT-0020 |
 | [EVAL-0021: Activity And Project Attribution Contract](evaluation/eval-0021-contract-activity-and-project-attribution-contract.md) | `complete` | feat-0021-activity-and-project-attribution-contract |
 | [EVAL-0021: Activity And Project Attribution Contract Functional](evaluation/eval-0021-functional-activity-and-project-attribution-contract.md) | `complete` | feat-0021-activity-and-project-attribution-contract |
 | [EVAL-0022: Filter Synthetic Non-Usage — Contract Attempt 3](evaluation/eval-0022-contract-filter-synthetic-non-usage-attempt-3.md) | `complete` | feat-0022-usage-summary-and-history |
@@ -1067,6 +1072,7 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [EVAL-0152: Generation Model Setup](evaluation/eval-0152-context-search-model-setup.md) | — | FEAT-0152 |
 | [EVAL-0153: Transient Context Search](evaluation/eval-0153-context-search-conversation.md) | `complete` | FEAT-0153 |
 | [EVAL-0153: Native Integration And Public Candidate Closeout](evaluation/eval-0153-native-publication-closeout.md) | — | Context Search, with Drive and the pending Learning/schema integration. |
+| [Retained Session History Evaluation](evaluation/eval-0154-retained-session-history.md) | `complete` | FEAT-0154 |
 
 ## Fix Logs (26)
 

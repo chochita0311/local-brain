@@ -415,14 +415,20 @@ Use `localbrain models verify <model>` for each installed model, inspect
 ## Native Session Compression And Recovery
 
 Native Session files are owned by Claude/Codex. LocalBrain does not request their
-compression or apply its migration-backup cleanup policy to them. The current
-Session scanner accepts `.jsonl`; it does not ingest `.jsonl.zst` directly.
-A compressed-only rollout can therefore disappear from the normalized source
-mirror without its conversation having been permanently deleted.
+compression or apply its migration-backup cleanup policy to them. Codex collection
+accepts both `.jsonl` and `.jsonl.zst`, streaming compressed input without writing
+an extracted transcript. Ordinary synchronization and stored reading need no
+manual decompression. Claude retains its own native JSONL admission rules.
 
-Session ingestion is scoped to native local Claude/Codex JSONL. Compressed-file
-recovery is a separately authorized local maintenance operation; direct compressed
-ingestion is outside this contract and is not a planned extension.
+Collected Sessions, conversations, Usage, pins and relationships remain in SQLite
+when accepted originals disappear; linked file evidence records original presence
+independently from parsing errors. Missing originals prevent source-dependent
+reprocessing, not stored reading or DB-supported calculations. Reappearing inputs
+merge into the same source/native identity. The ingestion owner defines exact
+presence, replacement, eligibility and repair rules. This preserves normalized
+history, not bytes that were never collected. Manual provider-file recovery or
+rewriting remains a separately authorized operation; the optional procedure below
+is not required by LocalBrain's compressed ingestion.
 
 Codex's [versioned compression implementation](https://github.com/openai/codex/blob/rust-v0.162.1/codex-rs/rollout/src/compression.rs)
 examines active and archived rollouts, selects files at least seven days old by

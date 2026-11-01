@@ -46,6 +46,13 @@ erDiagram
 
 - Purpose and authority: immutable identity and provenance for a versioned local pricing set used by estimated-cost calculations.
 - Lifecycle: code-seeded reference. `usage.ensure_default_price_snapshot` retains legacy ccusage snapshots without overwriting evidence; `usage.ensure_official_price_snapshots` adds immutable per-model, per-service-tier rates from the [OpenAI pricing and changelog](https://developers.openai.com/api/docs/pricing), [OpenAI Fast price table](https://openai.com/api-fast-mode/), and [Anthropic pricing](https://platform.claude.com/docs/en/about-claude/pricing), inspected on 2026-09-25. [GPT-6.1 Sol](https://developers.openai.com/api/docs/models/gpt-6.1-sol) adds separate Standard/Fast snapshots effective 2026-09-29 per the [release changelog](https://developers.openai.com/api/docs/changelog), inspected on 2026-10-02: Standard input/cache-read/output is $2/$0.10/$10 per million tokens, Fast is 2x, and above 272,000 input tokens the full request uses 2x input/cache and 1.5x output rates. Its 5% cache-read price does not replace GPT-6 Sol's 10% rate. GPT-5.6 Terra/Luna use the July 30 reduction and Sol the August 21 reduction; GPT-6 Astra's $10/$1/$50 input/cache-read/output rate is Standard, while its published Fast rate is twice that amount. GPT-5.6 Priority before July 30 uses a labeled historical 2x inference because an independently archived tier price was unavailable. Older ccusage snapshots remain cited but are superseded for corrected usage. Exact GPT-5.3-Codex-Spark has no independently published API rate; a separate Standard/Fast snapshot uses the [ccusage 20.0.17 model fallback](https://github.com/ccusage/ccusage/blob/v20.0.17/rust/crates/ccusage/src/pricing.rs) as a labeled trend proxy.
+  [GPT-6.1 Terra](https://developers.openai.com/api/docs/models/gpt-6.1-terra)
+  adds its own Standard/Fast snapshots effective 2026-10-26, inspected 2026-10-31:
+  Standard input/cache-read/output is $1/$0.05/$5 per million tokens, Fast is 2x,
+  and requests above 272,000 input tokens use 2x input/cache and 1.5x output.
+  Startup fills only eligible previously unpriced Terra observations using their
+  frozen evidence; already priced history, Usage identity, tokens and attribution
+  remain unchanged. The Usage And Cost contract owns the exact correction conditions.
 - Historical Fast long-context proxy snapshots for GPT-5.5 and pre-August-5 GPT-5.6 use the dated short-context Fast rate and ccusage-style 2x input/cache-read and 1.5x output context factors. Their labels identify the absent historical publisher rate.
 - Producers: `usage/records.py` startup seeding.
 - Consumers: `usage/records.py` calculation/version validation and `usage/queries.py` coverage/provenance data.

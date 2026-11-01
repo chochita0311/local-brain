@@ -26,6 +26,7 @@ from localbrain.ingest.evidence.reference_candidates import (
 from localbrain.ingest.common import (
     compact_title,
     read_json_lines,
+    open_jsonl_binary,
     session_policy,
     stable_id,
     source_native_event_id,
@@ -261,7 +262,7 @@ def _codex_model_from_mapping(value: Any) -> Optional[str]:
 
 def _codex_subagent_replay_second(path: Path) -> Optional[str]:
     try:
-        with path.open("rb") as handle:
+        with open_jsonl_binary(path) as handle:
             header = handle.read(16 * 1024)
             if b"thread_spawn" not in header and b"forked_from_id" not in header:
                 return None
@@ -466,7 +467,8 @@ def _codex_usage_record(
 
 
 def parse_codex_session(path: Path) -> ParsedSession:
-    external_id = path.stem
+    file_stem = path.with_suffix("").stem if path.name.endswith(".jsonl.zst") else path.stem
+    external_id = file_stem
     cwd: Optional[str] = None
     first_user_text = ""
     timestamps: List[str] = []
@@ -860,7 +862,7 @@ def parse_codex_session(path: Path) -> ParsedSession:
         "",
     )
 
-    title = compact_title(first_user_text, path.stem)
+    title = compact_title(first_user_text, file_stem)
     session_class, index_policy, maintenance_run_id = session_policy(events)
     if internal_guardian:
         session_class = "maintenance"

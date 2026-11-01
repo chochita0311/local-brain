@@ -424,13 +424,19 @@ def show_session(
             "event_count": child["event_count"],
             "last_event_at": child["last_event_at"],
             "source_path": child["source_path"],
+            "source_presence_state": child["source_presence_state"],
+            "source_presence_error": child["source_presence_error"],
         }
         for child in direct_children
     ]
     if session["session_role"] == "primary" and session["provider_kind"] == "claude":
         normalized_paths = {item["source_path"] for item in subsessions}
         normalized_external_ids = {item["external_id"] for item in subsessions}
-        for item in list_subagents(session["source_path"], session["external_id"]):
+        try:
+            legacy_subagents = list_subagents(session["source_path"], session["external_id"])
+        except OSError:
+            legacy_subagents = []  # Retained normalized detail needs no original.
+        for item in legacy_subagents:
             if (
                 item["source_path"] in normalized_paths
                 or item["external_id"] in normalized_external_ids
