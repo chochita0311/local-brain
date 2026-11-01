@@ -22,7 +22,7 @@ All regular files including hidden files; local authority; diff-based transfer a
 
 ## State And Data Contract
 
-Use the shared [Drive sync contract](../../policies/project/google-drive-sync.md). Private SQLite owns connection selection, manifests and per-job observations; Google CLI owns OAuth credentials and refresh. A connection/root change has a new namespace. Received copies never enter indexing implicitly. Mutations are serialized against settings changes and cancellation is checked between operations. No local failure, access loss, partial listing, oversize rejection or stopped selection authorizes deletion. Persist checkpoints per verified item; do not claim folder-wide atomicity.
+Use the shared [Drive sync contract](../run/run-20261101-230-feature-availability-and-doc-boundary.md#archived-google-drive-contract). Private SQLite owns connection selection, manifests and per-job observations; Google CLI owns OAuth credentials and refresh. A connection/root change has a new namespace. Received copies never enter indexing implicitly. Mutations are serialized against settings changes and cancellation is checked between operations. No local failure, access loss, partial listing, oversize rejection or stopped selection authorizes deletion. Persist checkpoints per verified item; do not claim folder-wide atomicity.
 
 ## Surface Lanes And Evaluation Focus
 

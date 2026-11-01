@@ -74,7 +74,7 @@ The tool environment owns the installed package, Python and dependencies.
 Templates, browser assets, schema presentation, guides and executable commands
 are package resources. Running the application needs no Git repository or source
 checkout. Installation does not copy a developer's DB, configuration, reports,
-model weights or evaluation archive. Updates and optional extras use the selected
+model weights. Updates and optional extras use the selected
 distribution artifact, not a runtime dependency on its build checkout.
 
 ### Public Source Archive Fallback
@@ -122,7 +122,7 @@ uv run --no-sync localbrain serve
 Keep the extras required by that installation; omit `--extra local-models` for a
 base-only checkout. With the base dependencies installed, also check
 `uv run --no-sync python -c 'import urllib3'` for the original warning; urllib3
-is a base dependency for Drive transport. If the managed interpreter and locked distributions are
+is a base dependency. If the managed interpreter and locked distributions are
 already cached, skip the Python download and add
 `--no-python-downloads --offline` to `uv sync`. For a separately installed app,
 repeat its selected wheel/archive installation with `--python 3.11` and the same
@@ -171,19 +171,15 @@ model. Local inference does not train or update shared pretrained weights.
 | Session ingestion, reading, keyword search, deterministic views | None | None |
 | Natural-language Session / Local Context search | Qwen3-Embedding-0.6B | Same shared asset as affinity |
 | Prepared full-history affinity map | Qwen3-Embedding-0.6B | About 1.21 GB |
-| Context Search read-only folder questions | Qwen3-4B or Qwen3-8B | About8.06GB or16.40GB; reuse existing shared assets |
 | Explicit experimental context trials | Qwen3-4B or Qwen3-8B | About 8.06 GB or 16.40 GB |
 
 Qwen3-Embedding-0.6B is the document/query encoder used by natural search.
-The4B/8B generation models also power explicitly submitted Context Search questions;
-installing them does not enable an LLM on ordinary app startup or an automatic workflow producer.
-Settings → Search Model offers installation/verification for both. Public originals
-remain in the resolved shared Hub cache, including `~/.cache/huggingface/hub` by
-default. App-owned registration manifests stay under data/models; Context Search
-kernel caches belong under cache/context-search. No prompt/answer file or private
-weight fine-tuning is created. Complete public caches can be registered locally
-without downloading; status checks are presence checks, while use verifies integrity.
-See [Context Search](context-search.md) for scope and ephemeral conversation contracts.
+Installing trial models does not enable generation on ordinary app startup
+or an automatic workflow producer. Public originals remain in the resolved
+shared Hub cache, including `~/.cache/huggingface/hub` by default. App-owned
+registration manifests stay under `data/models`. Complete public caches can be
+registered locally without downloading; status checks are presence checks,
+while use verifies integrity. Local inference does not fine-tune private weights.
 Claude/Codex-backed actions have their own CLI/authentication requirements and
 explicit external-service boundary; installing local models does not satisfy
 those requirements.
@@ -275,7 +271,6 @@ does not fetch sources or require a model; see [Learning](work-grounded-learning
 | Model metadata | `<data>/models/<model-slug>` | Small LocalBrain installation manifests/locks |
 | Public pretrained assets | `~/.cache/huggingface/hub` | Shared within this PC's user account |
 | Private derived cache | `~/Library/Caches/LocalBrain` | Simulation, preview and natural-search generations; rebuildable |
-| Development evaluation evidence | `~/Library/Application Support/LocalBrain-Development` | Explicit development archives, separate from installed app data |
 
 `LOCALBRAIN_DATA_DIR` selects private application state. Paths inside a Git
 repository or the installed/source package are rejected before creating the DB.
@@ -303,11 +298,10 @@ tab navigation state. No new file root, cloud sync or automatic backup is added.
 [Workspace And Session Activity](data-model/workspace-and-session-activity.md#session_chart_preferences)
 owns its row and recovery semantics.
 
-`LOCALBRAIN_CACHE_DIR` selects private rebuildable state;
-`LOCALBRAIN_DEVELOPMENT_DIR` selects the private development archive. With a
-custom `LOCALBRAIN_DATA_DIR`, unspecified cache/development roots become sibling
-directories named `<data-name>-cache` and `<data-name>-development`. Explicit
-variables override those locations. Keep all roots outside Git repositories and
+`LOCALBRAIN_CACHE_DIR` selects private rebuildable state. With a custom
+`LOCALBRAIN_DATA_DIR`, an unspecified cache root becomes the sibling directory
+named `<data-name>-cache`. An explicit cache variable overrides that location.
+Keep runtime and cache roots outside Git repositories and
 the installed package. Storage migration requires distinct, non-overlapping
 roots on the same filesystem. Cache contents derived from private Sessions are
 private, even though they can be rebuilt; they never enter the public model cache.
@@ -389,18 +383,11 @@ localbrain storage migrate --apply
 ```
 
 This moves recognized old simulation/preview state to the cache root and model
-registrations under `models/`. Add `--include-development` to both commands when
-explicitly moving existing development archives to the development root.
-Ordinary installations do not create those archives. Original private evaluation
-files, modification times and content hashes are preserved; they keep their existing owner
-and retention contract. Historical paths in archived diagnostics describe the
-original execution, not current runtime dependencies.
+registrations under `models/`.
 
 Feature-cache moves use ownership checks supplied by the included feature.
 If Auto Work is excluded from application composition, its old simulation/preview
-directories stay in place without being decoded or moved. Explicit development
-archive migration recognizes the historical file format independently of the
-experiment implementation.
+directories stay in place without being decoded or moved.
 
 Moves use filesystem rename, without copying the DB, weights or derived index.
 Unknown, linked or unowned content is preserved. Open files, destination
@@ -456,12 +443,21 @@ Ordinary startup does not make a database backup or persistent server log.
 Schema migrations can create a recovery copy before a structural change.
 Following a successful committed initialization, current migration contracts
 and SQLite integrity are checked before retirement: at most the newest eligible
-copy is kept, for seven days. Failed initialization, uncertain ownership, open
+copy is kept, for seven days measured from its file modification time. Older
+eligible copies can be retired before seven days when a newer copy is retained.
+Failed initialization, uncertain ownership, open
 files, symlinks, hard links, or nonempty backup WALs preserve recovery copies.
 The numeric Session-revision migration uses
 `<database>-pre-session-revision-v1.bak` under this same lifecycle.
 This policy covers only enumerated LocalBrain migration suffixes. Arbitrary
 manual backups and unrelated files are never discovered for automatic deletion.
+The automatic check runs after successful DB initialization. Backend startup
+and actual Session/Local Context scans, including scheduled and manual sync,
+call `init_db()`. An eligible copy can therefore be retired during a later sync
+while the app remains running; restarting is not required. A due timer with no
+scan does not initialize the DB, and no independent seven-day cleanup timer is
+installed. Explicit eligible cleanup can also perform retirement. Initialization
+prepares the existing database and schema; it does not clear stored user data.
 
 Inspect aggregate usage and preview/apply eligible retirement while the server
 is stopped:
@@ -498,7 +494,3 @@ their procedures belong to the [Settings guide](../../../src/localbrain/content/
 Native packaging and its verification limits belong to the
 [test distribution guide](standalone-test-app-guide.md). General export remains
 separate future work.
-
-## Google Drive Storage
-
-[Google Drive synchronization](google-drive-sync.md) stores private configuration, selections, cached results and per-file checkpoints in `<data>/google-drive/sync.sqlite3` (schema1). Google Cloud CLI owns credentials and refresh; access tokens are memory-only in LocalBrain. Received copies are `<data>/external-sources/google-drive/<connection-id>/<publisher-id>/`; directories0700/files0600. `<data>/google-drive/staging/` holds bounded immutable upload snapshots, removed after use and recovered on backend restart. Download staging uses private sibling files and atomic replacement. Built-in backup/restore does not include these connection/copy/checkpoint trees or gcloud credentials; restoring ordinary app settings does not restore or revoke Google access. Users may back up received files separately. Do not classify these copies or the sync database as rebuildable cache, publish them or implicitly index them.

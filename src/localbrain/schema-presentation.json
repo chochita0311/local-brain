@@ -89,7 +89,7 @@
       {
         "path": "docs/policies/project/data-model.md",
         "role": "semantic-truth",
-        "sha256": "bff5baa735cd4fd620791fdb08233d086c4c392cfc1a0cf39cd738963c12085e"
+        "sha256": "2da702c796cdb53738866a2c07442307dd4aaafcc5f83b2b65f21751f9048afa"
       },
       {
         "path": "docs/policies/project/data-model/source-registry-and-scans.md",

@@ -299,7 +299,3 @@ uv run python -m unittest discover -s tests -v
 ```
 
 The checks are schema-only and synthetic. They never connect to the configured LocalBrain database.
-
-## Google Drive Private State
-
-Drive synchronization uses a separate schema1 SQLite under the app data root; it does not add source documents to the main database. `state(key,value)` owns connection/job selections and cached observations; `items(namespace,key,value)` owns per-file logical identity, relative path, remote ID, checksum/version and incomplete upload state. Google Cloud CLI owns OAuth credentials; the app stores only a pinned account identity and keeps short-lived access tokens in memory. See [Drive ownership and lifecycle](google-drive-sync.md). Received files are filesystem copies without automatic Context or search membership.

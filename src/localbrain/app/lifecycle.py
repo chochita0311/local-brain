@@ -1,4 +1,3 @@
-import sqlite3
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from starlette.concurrency import run_in_threadpool
@@ -57,14 +56,8 @@ async def lifespan(app: FastAPI):
         app.state.context_sync.start()
         from localbrain.models.setup import ModelSetupService
         app.state.model_setup = ModelSetupService(settings, app.state.natural_search)
-        from localbrain.google_drive.service import DriveService
-        from localbrain.google_drive.policy import DriveError
-        try:
-            app.state.google_drive = DriveService(settings)
-            app.state.google_drive.start()
-        except (DriveError, OSError, sqlite3.DatabaseError):
-            # Drive state failure must not take unrelated local sources offline.
-            app.state.google_drive = None
+        app.state.google_drive = (app.state.google_drive_factory(settings)
+                                  if app.state.google_drive_factory is not None else None)
         app.state.context_search = None
         if app.state.context_search_factory is not None:
             app.state.context_search = app.state.context_search_factory(

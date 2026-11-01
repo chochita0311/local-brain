@@ -559,6 +559,7 @@
     for (const item of model.generation_models || []) {
       const missing = model.generation_runtime_missing || model.runtime_missing;
       const card = $(`[data-generation-model="${item.key}"]`);
+      if (!card) continue;
       const phases = {downloading: '모델 다운로드 중', verifying: '공용 캐시 파일 검증 중', installed: '앱 연결 완료', canceled: '중단됨 · 다시 시도할 수 있습니다', failed: '설치 실패 · 연결과 저장공간을 확인한 후 재시도해 주세요'};
       card.querySelector('[data-generation-status]').textContent = missing.length ? '모델 실행 환경이 필요합니다.' : phases[item.phase] || (item.registered ? '앱에 연결됨 · 사용할 때 파일을 검증합니다' : item.cached ? '공용 캐시에서 발견됨 · 다운로드 없이 연결할 수 있습니다' : '설치 전');
       const install = card.querySelector('[data-generation-action="install"]');

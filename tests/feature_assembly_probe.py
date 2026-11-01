@@ -16,7 +16,8 @@ from unittest.mock import patch
 
 
 def main():
-    omitted = set(json.loads(sys.argv[1]))
+    default_delivery = sys.argv[1] == "defaults"
+    omitted = {"context_search", "google_drive"} if default_delivery else set(json.loads(sys.argv[1]))
     blocked = {"localbrain." + name for name in omitted}
     if {"atlassian", "workstreams"} <= omitted:
         blocked.add("localbrain.maintenance")
@@ -94,8 +95,24 @@ def main():
         seed_old_caches(base)
     old_caches = old_cache_snapshot()
 
-    packages = {"atlassian", "workstreams", "workflow", "auto_work", "context_search"}
-    app = create_app(feature_packages=packages - omitted) if omitted else create_app()
+    retained = {}
+    if default_delivery:
+        drive = private_directory(settings.data_dir / "google-drive") / "sync.sqlite3"
+        with sqlite3.connect(drive) as connection:
+            connection.executescript("CREATE TABLE state(key TEXT PRIMARY KEY,value TEXT NOT NULL);"
+                                     "CREATE TABLE items(namespace TEXT,key TEXT,value TEXT,PRIMARY KEY(namespace,key));"
+                                     "PRAGMA user_version=1;")
+            connection.executemany("INSERT INTO state VALUES (?,?)", [
+                ("connections", json.dumps([{"id": "synthetic", "root_id": "synthetic-root"}])),
+                ("jobs:synthetic", json.dumps({"upload": {"selected": True, "auto": True,
+                                                        "interval": 15, "sources": [1]}})),
+            ])
+        copy = private_directory(settings.data_dir / "external-sources/google-drive/synthetic/peer") / "example.md"
+        copy.write_text("# Retained synthetic Drive copy\n")
+        retained = {path: path.read_bytes() for path in (drive, copy)}
+
+    packages = {"atlassian", "workstreams", "workflow", "auto_work", "context_search", "google_drive"}
+    app = create_app() if default_delivery else create_app(feature_packages=packages - omitted)
 
     async def request(url, method="GET", body=b"", content_type="application/x-www-form-urlencoded"):
         parsed = urlsplit(url)
@@ -135,6 +152,31 @@ def main():
         report = {"responses": {}, "routes": [
             (r.path, sorted(r.methods), r.name) for r in app.routes if hasattr(r, "methods")]}
         async with app.router.lifespan_context(app):
+            if default_delivery:
+                assert app.state.context_search is app.state.google_drive is None
+                assert app.state.context_search_factory is app.state.google_drive_factory is None
+                assert not settings.development_dir.exists()
+                for url, method in (("/context-search", "GET"), ("/api/context-search/status", "GET"),
+                                    ("/api/context-search/answer", "POST"), ("/api/context-search/unload", "POST"),
+                                    ("/api/settings/google-drive", "GET"), ("/api/settings/google-drive/connections", "POST"),
+                                    ("/api/settings/google-drive/synthetic/jobs/upload/run", "POST"),
+                                    ("/api/settings/model/4b/install", "POST"), ("/api/settings/model/8b/cancel", "POST")):
+                    assert (await request(url, method, b"{}", "application/json"))[0] == 404, url
+                positive = {**app.state.model_setup.status(), "generation_models": [
+                    {"key": "4b", "available": True, "registered": True},
+                    {"key": "8b", "available": True, "cached": True},
+                ]}
+                with patch.object(app.state.model_setup, "status", return_value=positive):
+                    status, body, _ = await request("/api/settings")
+                    assert status == 200 and json.loads(body)["model"]["generation_models"] == []
+                for url in ("/sessions", "/settings", "/help", "/help/settings", "/help/search"):
+                    status, body, _ = await request(url)
+                    assert status == 200
+                    assert "Context Search" not in body and "Google Drive" not in body, (
+                        url, [(term, body[max(0, body.find(term) - 80):body.find(term) + 120])
+                              for term in ("Context Search", "Google Drive") if term in body])
+                    assert "data-generation-model=" not in body and "google-drive.js" not in body, url
+                assert (await request("/api/settings/model/cancel", "POST", b"{}", "application/json"))[0] == 200
             with observe_ingestion(app.state.ingestion_observers):
                 scan_report = scan_session_sources(force=True)
                 with transaction() as connection:
@@ -196,6 +238,7 @@ def main():
                 report["schema_sha256"] = hashlib.sha256(json.dumps(ddl).encode()).hexdigest()
         assert not any(name == block or name.startswith(block + ".")
                        for name in sys.modules for block in blocked)
+        assert all(path.read_bytes() == content for path, content in retained.items())
         return report
 
     report = asyncio.run(run())

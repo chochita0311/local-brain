@@ -10,6 +10,8 @@ behavior are recorded separately in Feature and Run evidence.
 ## Common Settings Contract
 
 - `settings.toml` in the resolved local data directory is schema version 1.
+- Saves place `schema_version` first and `onboarding_completed` immediately after
+  it. Field order does not change preference values or defaults.
 - The settings service owns `startup_screen` (`sessions`, `sessions-dashboard`,
   `context`), `timezone` (IANA zone),
   `session_sync_enabled` (boolean), `session_sync_minutes` (integer, 10–1440 minutes),
@@ -129,11 +131,7 @@ behavior are recorded separately in Feature and Run evidence.
   again. Model storage details and backup restoration use disclosures. All model
   actions and backup/restore/cache operations retain explicit invocation and
   existing consequences; collapsed restore still requires its ZIP and replacement
-  confirmation. Browsing settings never downloads a model. Search Model also
-  offers pinned4B/8B answer-model cards with independent public-cache connection,
-  installation verification and cancellable worker status; generation-model
-  setup never prepares the embedding index. [Context Search](context-search.md)
-  owns the separate selector, read-only tools and transient dialogue surface.
+  confirmation. Browsing settings never downloads a model.
 - There is no project-display dropdown, display-root list or root-add action.
   Sessions, Chart, Dashboard, Context and read-only settings path labels use the
   common home formatter. Path editing/selection retains the actual registered
@@ -327,7 +325,7 @@ their existing explicit authority. Picking does not persist a path independently
 ## Synchronization Presentation
 
 - Settings order is General, Session sources, Local Context, Search model, Sync,
-  Google Drive, Storage, About. General contains startup/timezone. Source categories own which
+  Storage, About. General contains startup/timezone. Source categories own which
   locations to read; Sync owns when. Storage remains a separate category.
 - Sync contains Session and Local Context groups. Each has one content-sized dropdown (about 79px at the default scale):
   10/20/30/60 minutes, then Off. Off saves only enabled=false, preserving the interval
@@ -377,10 +375,15 @@ their existing explicit authority. Picking does not persist a path independently
   Closing a browser does not stop its independent server; stopping that server
   stops scheduling. The packaged app owns its backend, closes windows without
   quitting, and shuts down the backend on explicit app quit.
-- The packaged edition exposes Sessions, Sessions Dashboard, Context, search, Context Search,
+- The packaged edition exposes Sessions, Sessions Dashboard, Context, search,
   onboarding, settings and bundled Docs. Dashboard/learning, Workstreams, Auto Work, Atlassian,
   Insights, Session workflow and Schema cannot be enabled by user settings or
   direct HTTP access. The normal development web edition keeps its other routes.
+  Optional routes, settings and lifetime services are installed only when their
+  package is selected in application assembly. The default delivery
+  set is shared by both editions; [feature availability](../../plans/project/feature-availability.md)
+  owns temporary suspension and resumption decisions. Exclusion preserves stored
+  data and model files and is not a user preference.
 - The desktop server binds loopback on an available port, authenticates its
   window with a per-launch secret and rejects cross-origin mutations. Native
   commands expose only explicit path selection and approved app actions.
@@ -390,8 +393,8 @@ their existing explicit authority. Picking does not persist a path independently
   cross-scheme top-level redirect. Lax preserves the first GET while token,
   loopback and mutation-origin checks remain required. The handshake is not
   cached and sends no referrer; boundary JSON errors explicitly declare UTF-8.
-- No autostart, background daemon, other cloud sync, app encryption, paid signing or
-  automatic updater is introduced. Approved selected Google Drive synchronization follows its [separate contract](google-drive-sync.md). Program ZIPs contain no personal runtime data.
+- No autostart, background daemon, cloud sync, app encryption, paid signing or
+  automatic updater is introduced. Program ZIPs contain no personal runtime data.
 - Frozen Python installation metadata resolves against the running bundled
   interpreter prefix. Build-time user-home and checkout paths must not remain
   in shipped metadata, including compressed Python constants. Packaging checks
@@ -469,10 +472,6 @@ their existing explicit authority. Picking does not persist a path independently
 - Collection-root changes use the existing same-source reconnect check. A Home
   edit with an unchanged explicit Session folder changes metadata only. Removing
   registration retains the ID/history; it does not delete transcripts or usage.
-
-## Google Drive Settings
-
-The independent Google Drive tab follows the [Drive contract](google-drive-sync.md) and the bundled [Settings guide](../../../src/localbrain/content/docs/settings.md#google-drive). It does not merge Drive management into Local Context registration. The backend owns fixed wall-clock jobs until Quit/server exit; window hiding does not stop them. Local SDK readiness, Google authentication, API/root observations and per-job success/next slot remain distinct. Explicit save/check reuses the SDK login then checks the root; initial sync controls appear after root verification, and selected targets reveal schedules/actions. Account/login options and detailed observations remain in disclosures. A later access failure preserves configured controls. Drive transport uses the system trust store on macOS with Python 3.10+, and the default SSL context on other runtimes; HTTPS verification stays enabled and certificate errors remain distinct from OAuth login errors.
 
 ## Implementation Ownership
 

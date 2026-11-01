@@ -17,8 +17,7 @@ Each PRD, Feature, Spec, Run and Evaluation retains its detailed status and hist
 
 | Boundary | Current position and next review |
 | --- | --- |
-| [Context Search](prd/prd-0026-context-search-grounded-local-answers.md) | Approved bounded delivery and native integration are implemented; broader model quality, native recipient and release evidence remain separate. |
-| [Google Drive](prd/prd-0025-google-drive-connection-and-incremental-sync.md) | Approved Features 0145–0150 and gcloud revision are implemented; final two-account My Drive/Shared Drive acceptance remains open. |
+| [Suspended features](project/feature-availability.md) | Excluded from default app and development web. An owner return decision is required; implementation history and parked evidence remain with this record. |
 | [In-app Docs](prd/prd-0024-deployed-app-docs.md) | Six English guides are delivered; PRD remains in-loop for human acceptance. Native recipient execution is separate. |
 | [Code/command learning](prd/prd-0023-code-and-command-learning.md) | Reviewed manual reader is implemented; required functional transitions remain untested and block formal pass. Automatic discovery, official updates and generation are not running. |
 | [Work-grounded learning](prd/prd-0022-work-grounded-learning-dashboard.md) | Pilot returned to planning for the code/command successor; preserved contracts are reused and the earlier functional gap remains open. Learning benefit is unproven. |

@@ -32,15 +32,13 @@ optional model installation or development validation.
 
 ## Private Harness Experience
 
-[Harness Improvement](../harness/harness-improvement.md#consumer-evidence-layout) has a separate consumer-owned agent experience store. Its binding/index and stage, improvement, and comparison records may use the ignored local `docs/evidence/` layout after exclusion, ownership, access, and tracked/staged checks pass. These records are separate from application runtime data and original development evaluation artifacts, which retain their existing owners outside the repository. Link original inputs and outputs instead of copying private Session or document bodies into the harness store.
+[Harness Improvement](../harness/harness-improvement.md#consumer-evidence-layout) has a separate consumer-owned agent experience store. Its binding/index and stage, improvement, and comparison records may use the ignored local `docs/evidence/` layout after exclusion, ownership, access, and tracked/staged checks pass. These records are separate from application runtime data. Link original inputs and outputs instead of copying private Session or document bodies into the harness store.
 
 Keep completed private bindings, identifying locators, experience indexes, records, and exchange receipts out of tracked documentation and the harness import manifest. Shared blank templates and schemas remain versioned under `docs/agents/`; explicitly selected public records/catalogs may be versioned under `docs/evidence/`. They do not share ownership with the ignored local outputs. The [setup operation](../../agents/operations/harness-improvement.md#configure-local-experience) owns binding discovery and conflict handling; an ignore rule does not untrack existing files or authorize publication.
 
 ## Local Persistence
 
-### Transient Questions And Reviewed Learning
-
-Context Search follows its [source and transient-dialogue contract](context-search.md): explicit questions may read enabled Local Context and already received Drive copies through bounded read-only tools. Public originals remain in the shared Hub; app metadata and compiler/kernel caches have separate private owners. No answer table, transcript file or browser persistence is created. Conversation clears on screen/tab leave, and isolated inference network blocking never changes web/Drive networking. This scoped bridge does not admit all application data into ordinary indexing.
+### Reviewed Learning
 
 Reviewed learning lessons, source snapshots, answer/confidence/self-assessment
 history and visibility choices are durable private DB content. Importing a local
@@ -65,8 +63,8 @@ or queries. Model inference uses verified local assets offline; page visits
 cannot download them. No automatic query history or feedback archive is written,
 and packaged `serve` disables access logging so query URLs are not copied into
 server logs. Browser history can retain submitted URLs. Private benchmark
-queries, judgments and raw results belong only to an explicitly selected private
-Development archive; tracked fixtures and reports contain authored synthetic
+queries, judgments and raw results must remain in caller-owned private output
+outside Git; tracked fixtures and reports contain authored synthetic
 material. See [Natural-Language Search](natural-language-search.md) for current
 eligibility checks and stale-evidence refusal.
 
@@ -88,14 +86,12 @@ Event, no Usage Record, and no admitted skill observation; LocalBrain never dele
 sync can import it after meaningful growth.
 
 Private rebuildable simulation/preview results live under
-`~/Library/Caches/LocalBrain`, selected by `LOCALBRAIN_CACHE_DIR`. Development
-evaluation archives live under `~/Library/Application Support/LocalBrain-Development`,
-selected by `LOCALBRAIN_DEVELOPMENT_DIR`, and are created only by explicit
-development work. Public pretrained weights remain in the user-level Hub cache;
+`~/Library/Caches/LocalBrain`, selected by `LOCALBRAIN_CACHE_DIR`.
+Public pretrained weights remain in the user-level Hub cache;
 private prompts, vectors, source excerpts and reports never enter that cache.
 The [installation/storage contract](installation-and-storage.md) owns configurable
 roots and the explicit upgrade command. Migration preserves source content,
-the main DB, saved Runs and frozen evaluation files; it never publishes them.
+the main DB and saved Runs; it never publishes them.
 
 ### Maintenance And Personal Insight Evidence
 
@@ -397,7 +393,7 @@ No connector may silently promote content from `reference` or `cache` into durab
 ## External Access
 
 - External systems must be accessed only through capabilities approved for the selected integration.
-- Atlassian external integration begins read-only. Approved Google Drive synchronization has the separate selected read/write contract below.
+- Atlassian external integration begins read-only.
 - Local Source Instance records may store a stable local key, provider/service identity, display name, and a shape-validated Gateway alias or canonical Atlassian Cloud ID, but never arbitrary opaque values, site URLs, credentials, access tokens, sampled content, or raw connector payloads.
 - Capability observations retain only versioned logical-operation names, a schema fingerprint, availability, timestamps, invalidation, and bounded error evidence. They are refreshed explicitly rather than on startup, page load, search, or ordinary preview.
 - A version-controlled allowlist must map logical reads to exact provider targets and validate bounded arguments before dispatch. Runtime rows, model output, prompts, or caller-supplied tool names cannot grant external writes.
@@ -443,7 +439,7 @@ No connector may silently promote content from `reference` or `cache` into durab
 - Validated remote results may update only their approved remote-state and content owners. They must not overwrite local attention, notes, Topics, Tags, Workstream/Thread relations, or other user-owned organization state.
 - Reference coverage rejects remote metadata and body persistence; metadata coverage rejects bodies. Explicitly downgrading indexed coverage removes the stored body and rebuilds the remaining eligible identity/local FTS roles, while ordinary failure or unavailability never performs that destructive downgrade.
 - Due timestamps are local advisory state and perform no external or model call. Failed, unavailable, and not-found checks retain last-known content and local organization until an explicit destructive local action.
-- External writes require a visible preview, attribution, and explicit user confirmation unless a separately approved integration defines persistent selection as authorization. Google Drive synchronization uses the owner-approved [Drive contract](google-drive-sync.md): saved destination and targets plus manual run or automatic enablement authorize subsequent sync within that scope, without repeated sharing or per-file approval. Other integration write boundaries remain unchanged.
+- External writes require a visible preview, attribution, and explicit user confirmation unless a separately approved integration defines persistent selection as authorization.
 - Local content must not be sent to an unapproved AI, embedding service, website, repository, or person.
 - Generated summaries must preserve provenance and must not present inference as confirmed fact.
 - Connector failures, stale content, and inaccessible sources must remain visible rather than being represented as current data.

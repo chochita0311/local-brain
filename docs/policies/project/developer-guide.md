@@ -163,7 +163,7 @@ uv build
 
 The wheel and source archive are written to `dist/`. The wheel contains the
 application code, templates, browser assets, schema and package guides. Runtime
-data, model weights and private evaluation archives stay outside the checkout
+data and model weights stay outside the checkout
 and distribution. Do not add local settings, exports or generated reports to a
 package. Follow the [standalone installation guide](installation-and-storage.md#install-a-distribution-wheel)
 to install the wheel in a separate environment and working directory before
@@ -198,7 +198,7 @@ preserving configured compiler flags. The resulting app is scanned before ZIP
 creation; a detected private path fails the build rather than producing a new archive.
 The [test distribution guide](standalone-test-app-guide.md) owns first launch,
 supported-environment evidence, manual replacement and recipient validation.
-Uploading the program ZIP to internal Drive and notifying teammates are separate
+Uploading the program ZIP to a delivery channel and notifying teammates are separate
 delivery actions.
 
 After changing ingestion, restart the development server unless it runs with
@@ -242,7 +242,6 @@ LocalBrain reads these environment variables at process startup:
 | --- | --- | --- |
 | `LOCALBRAIN_DATA_DIR` | `~/Library/Application Support/LocalBrain` | Primary DB, private configuration, model registrations and saved Runs |
 | `LOCALBRAIN_CACHE_DIR` | `~/Library/Caches/LocalBrain` | Rebuildable search indexes, simulation and preview results |
-| `LOCALBRAIN_DEVELOPMENT_DIR` | `~/Library/Application Support/LocalBrain-Development` | Explicit development evaluations; never created by ordinary app startup |
 | `LOCALBRAIN_CONTEXT_ROOT` | `~/Projects/context` | Legacy Context migration/fallback root. Discovery may run only when no registrations exist, indexed documents already exist and this path is a directory. It selects non-hidden child directories containing Markdown; if none qualify, it selects the root only when top-level Markdown exists. Fresh installs require explicit registration. |
 | `LOCALBRAIN_CLAUDE_ROOT` | `~/.claude/projects` | Legacy Claude reader root; new registrations are explicit in settings |
 | `LOCALBRAIN_CODEX_ROOT` | `~/.codex/sessions` | Legacy Codex reader root; new registrations are explicit in settings |
@@ -258,7 +257,10 @@ General user preferences (startup screen, timezone and automatic sync) follow
 and `LOCALBRAIN_SESSION_SYNC_MINUTES` overrides are ignored. The default timezone
 comes from the Mac system zoneinfo setting, then UTC, independently of process `TZ`.
 
-For a custom `LOCALBRAIN_DATA_DIR`, unspecified cache/development locations are sibling directories named `<data-name>-cache` and `<data-name>-development`. Explicit variables override those defaults. Stop the app before moving existing state; use [the storage migration guide](installation-and-storage.md#upgrade-an-existing-storage-layout).
+For a custom `LOCALBRAIN_DATA_DIR`, an unspecified cache root becomes the sibling
+directory `<data-name>-cache`. An explicit `LOCALBRAIN_CACHE_DIR` overrides that
+default. Stop the app before moving existing state; use
+[the storage migration guide](installation-and-storage.md#upgrade-an-existing-storage-layout).
 
 Do not place secrets in tracked environment files. See [Privacy And Data Handling](privacy-and-data.md) before changing data locations or persistence behavior.
 
@@ -288,8 +290,6 @@ The [existing-proposal contract](personal-insights.md#existing-proposal-follow-t
 The analysis launcher resolves the Codex executable before starting it and grants its sandboxed startup helpers read access to that exact binary. The profile home is used for client authentication and is not added to the command filesystem allowlist. Artifact writes and command network access remain blocked. Restart a server that was already running when runner code changed before submitting a new analysis.
 
 Run detail displays the same stored estimated cost used by Usage & Cost, with its calculation state and frozen price basis in the existing settings disclosure. Missing usage or pricing stays explicitly unavailable, and any CLI-reported amount remains separately labeled. Estimates are API-equivalent trend costs, not subscription bills. Startup seeds exact GPT-6.1 Sol Standard/Fast snapshots effective 2026-09-29 and fills eligible previously unpriced records using retained evidence; already-priced records are preserved.
-
-Owner-requested guide evaluations can retain frozen inputs, raw outputs, and review reports under `<LOCALBRAIN_DEVELOPMENT_DIR>/personal-insight-evaluations/<id>/`, with owner-only access. This private archive is separate from product Run records: subagent simulations do not create Insights history rows. Tracked evaluation documents contain only sanitized conclusions.
 
 Discovery uses deterministic [source/month sampling](personal-insights.md#evidence-selection-and-excerpts), not a random project picker. Within each source/month group it prefers recently active Sessions; project balance and prior recommendation history are not selection inputs. The [current guide bundle](personal-insights.md#guide-bundle-and-result-contract) supplies all eleven bounded playbooks under the [Product decision rules](personal-insights.md#personal-improvement-finding-decisions). The model identifies the owner's goal and observed friction before choosing a type; incidental words in quoted source material do not exclude types before analysis. A reported candidate is not a global priority ranking, and repeating discovery does not promise a different project or a new recommendation. Insights shows frozen selected/eligible counts, sources, time coverage, and truncation; each new report explains the candidate and finding type with source anchors.
 
@@ -462,9 +462,3 @@ the separate quoted-context, source-claim and model-free reconstruction trials.
 These guides retain each tool's source limits, invocation, replay and admission
 conditions. Running a tool does not approve a product consumer or renew a closed
 candidate's budget.
-
-## Google Drive Development
-
-Use [Google CLI authentication and distribution](google-drive-sync.md#google-cli-authentication-and-distribution) for the approved gcloud/full-Drive authentication flow, pinned accounts, SDK credential ownership and live validation boundaries. Run `uv run python -m unittest discover -s tests -p 'test_google_drive*.py' -v` for synthetic sync/transport/scheduler and SDK subprocess tests. These tests use synthetic executable helpers, do not launch real Google login and do not upload developer Contexts or use a real Google account.
-
-Transport tests also own an ephemeral loopback-only HTTP/1.1 server for connection reuse, the eight-connection ceiling, streamed-response cleanup, status/retry and lifecycle checks. It never uses real Google credentials or files and is closed after the test class. Install the base dependencies from the current lock: urllib3 is directly declared for Drive pooling, with a compatible version resolved across the supported Python range. A full suite still does not establish live Google body-transfer timing or native/recipient behavior.

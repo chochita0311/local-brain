@@ -4,6 +4,7 @@ from localbrain.foundation.config import settings
 from localbrain.foundation.paths import home_relative_path, package_root
 from localbrain.foundation.preferences import presentation_preferences
 from localbrain.app.edition import DESKTOP
+from localbrain.app.features import DEFAULT_FEATURE_PACKAGES
 from localbrain.persistence.db import connect
 from localbrain.persistence.value_registry import display_value_label, visible_value_help
 from localbrain.sources.profiles import profile_map
@@ -21,13 +22,14 @@ def _profile_context(request):
     def feature_available(name):
         app = request.scope.get("app")
         selected = getattr(app.state, "feature_packages", None) if app else None
-        return selected is None or name in selected
+        return name in (DEFAULT_FEATURE_PACKAGES if selected is None else selected)
     return {
         "source_profile": source_profile,
         "auto_work_package_available": feature_available("auto_work"),
         "workstreams_available": feature_available("workstreams"),
         "atlassian_available": feature_available("atlassian"),
         "context_search_available": feature_available("context_search"),
+        "google_drive_available": feature_available("google_drive"),
     }
 
 templates = Jinja2Templates(directory=PACKAGE_ROOT / "templates", context_processors=[_profile_context])

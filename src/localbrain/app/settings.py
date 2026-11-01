@@ -33,6 +33,12 @@ async def payload(request):
 
 
 def install_settings_routes(app, templates):
+    def model_status(request):
+        model = request.app.state.model_setup.status()
+        if "context_search" not in request.app.state.feature_packages:
+            model = {**model, "generation_models": [], "generation_runtime_missing": []}
+        return model
+
     @app.exception_handler(PreferencesError)
     async def preferences_error(request, error):
         return JSONResponse({"detail": str(error)}, status_code=409)
@@ -77,7 +83,7 @@ def install_settings_routes(app, templates):
                 "candidates": detected, "errors": errors, "desktop": DESKTOP,
                 "sync": request.app.state.session_sync.status(),
                 "context_sync": request.app.state.context_sync.status(),
-                "model": request.app.state.model_setup.status()}
+                "model": model_status(request)}
 
     @app.patch("/api/settings/preferences")
     async def preferences_update(request: Request):
@@ -129,11 +135,12 @@ def install_settings_routes(app, templates):
                 request.app.state.natural_search.cancel()
         else:
             raise HTTPException(404)
-        return request.app.state.model_setup.status()
+        return model_status(request)
 
     @app.post('/api/settings/model/{key}/{action}')
     def generation_model_action(key: str, action: str, request: Request):
-        if key not in {'4b', '8b'} or action not in {'install', 'cancel'}:
+        if ("context_search" not in request.app.state.feature_packages
+                or key not in {'4b', '8b'} or action not in {'install', 'cancel'}):
             raise HTTPException(404)
         service = request.app.state.model_setup
         if action == 'install':

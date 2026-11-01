@@ -9,21 +9,20 @@ from .edition import install_boundary
 from .lifecycle import lifespan
 from .templating import templates
 from .reference_integrations import install_reference_integrations
-from .features import DEFAULT_FEATURE_PACKAGES
+from .features import DEFAULT_FEATURE_PACKAGES, KNOWN_FEATURE_PACKAGES
 
 
 def create_app(*, feature_packages=DEFAULT_FEATURE_PACKAGES):
     """Compose the installed features; the argument also supports isolated fixtures.
 
     This is an internal assembly boundary, not a user preference or an import
-    fallback. Production entrypoints use the complete explicit default set.
+    fallback. Production entrypoints use the explicit current delivery set.
     """
     feature_packages = frozenset(feature_packages)
-    if not feature_packages <= DEFAULT_FEATURE_PACKAGES:
+    if not feature_packages <= KNOWN_FEATURE_PACKAGES:
         raise ValueError("Unknown application feature package")
     from .settings import install_settings_routes
     from .docs import install_routes as install_app_docs_routes
-    from localbrain.google_drive.web import install_routes as install_google_drive_routes
     from localbrain.learning.web import install_routes as install_learning_routes
     from .routes import install_routes
 
@@ -47,10 +46,16 @@ def create_app(*, feature_packages=DEFAULT_FEATURE_PACKAGES):
     if "context_search" in feature_packages:
         from localbrain.context_search.service import ContextSearchService
         app.state.context_search_factory = ContextSearchService
+    app.state.google_drive_factory = None
+    if "google_drive" in feature_packages:
+        from localbrain.google_drive.service import start_service
+        app.state.google_drive_factory = start_service
     app.state.external_read_executor = None
     app.mount("/static", StaticFiles(directory=package_root() / "static"), name="static")
     install_settings_routes(app, templates)
-    install_google_drive_routes(app)
+    if "google_drive" in feature_packages:
+        from localbrain.google_drive.web import install_routes as install_google_drive_routes
+        install_google_drive_routes(app)
     if "context_search" in feature_packages:
         from localbrain.context_search.web import install_routes as install_context_search_routes
         install_context_search_routes(app, templates)

@@ -12,13 +12,15 @@ Product terminology and organization rules are defined in [Product Model](produc
 - Backend: Python and FastAPI
 - Database: SQLite
 - Search: existing SQLite FTS5 plus optional local Qwen semantic ordering and lexical exact-identifier admission
-- Context Search: isolated Qwen4B/8B native tool loop over admitted Local Context and received copies; request/page-memory dialogue, no embedding prerequisite or chat schema
 - Frontend: server-rendered Jinja2 with small JSON API interactions
 - External integration boundary: optional feature-specific adapters and approved authorization contracts
 - Desktop packaging: Tauri 2 and a PyInstaller Python 3.11 bundle, Apple Silicon
 
 The standalone test edition admits Sessions, Sessions Dashboard, Local Context,
-search, Context Search, settings, onboarding and bundled English Docs. Its immutable runtime boundary excludes the
+search, settings, onboarding and bundled English Docs. Optional packages must also
+be selected in application assembly before their routes, controls or jobs exist.
+The [delivery availability record](../../plans/project/feature-availability.md)
+owns current suspension decisions for both web and desktop. Its immutable runtime boundary excludes the
 unfinished development surfaces; [Desktop App And Settings](desktop-app-and-settings.md)
 owns lifecycle, local authentication and source/settings contracts.
 
@@ -29,17 +31,17 @@ configured runtime paths. Public model assets are shared within the local user
 account; LocalBrain owns its model metadata and optional Python dependencies.
 Runtime state is rejected inside repositories, uses owner-only permissions, and
 has bounded migration-copy retirement after successful committed initialization.
-Ordinary startup creates no permanent log or evaluation archive.
+Ordinary startup creates no permanent diagnostic log.
 
-`foundation/config.py` separates durable data, private rebuildable cache and development
-archive roots. `app/storage/layout.py` owns explicit recognized-directory moves,
-destination-conflict refusal and historical development-archive recognition.
+`foundation/config.py` separates durable data and private rebuildable cache.
+`app/storage/layout.py` owns explicit recognized-directory moves and
+destination-conflict refusal.
 It accepts cache ownership checks from included features. `auto_work/storage.py`
 owns simulation/preview cache recognition and expired-result retirement under
 existing writer locks; `foundation/files.py` supplies shared ownership, activity
 and unchanged-tree checks. Packaged readers and simulation use the configured cache root. Saved
-Run reports remain durable data; development archives are never normal startup
-outputs. Shared public weights and the primary DB are outside layout migration.
+Run reports remain durable data. Shared public weights and the primary DB are
+outside layout migration.
 
 The core development-web collection flow is:
 
@@ -62,9 +64,6 @@ External integrations follow separate feature contracts. Optional
 dispatch contracts and an injected host-side read executor. The default
 application leaves that executor unconnected; local URL registration, Browse and
 evidence Sync remain available in development web without remote access.
-[Google Drive](google-drive-sync.md) uses gcloud authentication and direct API
-transfers in its separate synchronization path. Those transfers do not
-automatically register, collect or index received files.
 
 ## Package Ownership
 
@@ -89,7 +88,6 @@ localbrain/
 ├── resources/                       # resource identity/store and related-resource reads
 ├── rendering/                       # shared Markdown rendering
 ├── search/, natural_search/          # keyword/legacy search and optional AI search
-├── context_search/, google_drive/    # existing separate feature packages
 ├── workstreams/, maintenance/        # organization/review and maintenance execution
 ├── workflow/, auto_work/             # workflow projections/correction and explicit previews
 ├── experiments/                     # context, reconstruction and claims experiments
@@ -143,16 +141,15 @@ The arrows show dependency/reference direction. Deleting a feature mapping or in
 The default application explicitly composes the existing pilot routes, lifecycle
 services, templates and assets. `create_app(feature_packages=...)` is an internal
 composition boundary for verifying an installation without selected packages;
-production entrypoints use the complete default set. It is not a settings or
+production entrypoints use the current delivery set. It is not a settings or
 environment feature toggle and does not catch missing imports. Omitting a package
 also omits its routes, reference callbacks, navigation and lifecycle contribution.
-`app/features.py` owns the explicit default package set shared by web and CLI
-composition. Common startup, Settings cache cleanup and CLI storage operations
+`app/features.py` owns the known package names and explicit default delivery set
+shared by web and CLI composition. Common startup, Settings cache cleanup and CLI storage operations
 receive only included features' cache handlers. Excluded features' old caches
 remain untouched, including malformed files; their presence does not load the
 excluded implementation. CLI command registration and ingestion observers follow
-the same inclusion boundary. Explicit legacy development-archive migration uses
-the historical on-disk contract without importing experiment implementations.
+the same inclusion boundary.
 The retained legacy `/search` combines Atlassian results and belongs to that
 assembly contribution; the normal `/natural-search` keyword and AI modes remain
 independent. `app/forms.py` owns bounded form decoding. Atlassian owns its repeated
@@ -166,8 +163,8 @@ application belong to `atlassian/runner.py`. Each feature submits its own execut
 coroutine to Maintenance. Maintenance imports neither feature implementation.
 The app connects Maintenance recovery/shutdown only when a Run-producing feature
 is included, and calls those hooks only in the development web edition.
-Auto Work cache maintenance and Context Search service construction are
-also explicit contributions. Existing schema history, Run-to-Workstream FK and
+Feature cache maintenance, optional service construction and route registration
+are also explicit contributions. Existing schema history, Run-to-Workstream FK and
 Run display-name query remain database contracts; code detachment does not drop
 their tables or delete private artifacts.
 
@@ -266,8 +263,7 @@ contract, permission and admission limits.
 | --- | --- |
 | Session collection, inventory, pins, Chart and direct evidence | [Session Ingestion](session-ingestion.md) and [Sessions](sessions.md) |
 | Common preferences, source lifecycle, onboarding and native admission | [Desktop App And Settings](desktop-app-and-settings.md) |
-| Local keyword/semantic retrieval and grounded transient folder answers | [Natural-Language Search](natural-language-search.md) and [Context Search](context-search.md) |
-| Selected directional publishing/receiving | [Google Drive Synchronization](google-drive-sync.md) |
+| Local keyword/semantic retrieval | [Natural-Language Search](natural-language-search.md) |
 | Frozen personal-improvement evidence, guide/report values and analysis accounting | [Personal Insights](personal-insights.md) |
 | Deterministic Episode Focus, user corrections and passive affinity inspection | [Session Workflow](workflow.md) and [Auto Work](auto-work.md) |
 | Pure provisional candidates and separately bounded experimental contracts | [Candidates](workstream-candidates.md), [Work Reconstruction](work-reconstruction.md), [Work Context Inference](work-context-inference.md), and [Source Claims](source-claims-and-work-state.md) |
@@ -302,7 +298,7 @@ Implementation priorities and unresolved work belong in the [Project Backlog](..
 - Keep source-specific parsing inside adapters and keep persistence or domain
   behavior out of templates.
 
-External source dispatch and synchronization follow [Atlassian](atlassian.md#external-access-and-synchronization-constraints) and the [Maintenance Task Runner](../operations/claude-task-runner.md). Approved selected Drive writes follow [Google Drive Synchronization](google-drive-sync.md).
+External source dispatch and synchronization follow [Atlassian](atlassian.md#external-access-and-synchronization-constraints) and the [Maintenance Task Runner](../operations/claude-task-runner.md).
 
 ### Persistence And Portability Constraints
 
@@ -311,7 +307,3 @@ External source dispatch and synchronization follow [Atlassian](atlassian.md#ext
 - Historical source paths must remain visible when their current Project relation is missing or changes.
 - The SQLite schema and runtime data must remain portable to a later desktop wrapper.
 - Desktop packaging must not obscure data location, permissions, backup, or shutdown behavior.
-
-## Google Drive Synchronization Boundary
-
-The approved [Drive sync contract](google-drive-sync.md) adds explicit selected external writes. `google_drive/` owns the gcloud authentication adapter, separate private SQLite state, directional engines and backend-lifetime scheduler; `google_drive/web.py` exposes Settings-only local routes. The existing Session/Context collectors and clocks are unchanged. Fixed wall-clock jobs use one serialized worker, per-item verified checkpoints and cancellation between operations. The Drive synchronization path does not route OAuth or received material through a model, gateway executor, search index or automatic source registration. Separately approved [Context Search](context-search.md) may read already received copies within its explicit source boundary. Opening Settings reads cached state; explicit root browse and selected manual/automatic jobs perform real API operations. Native loopback authentication and the existing local same-origin boundary still apply.

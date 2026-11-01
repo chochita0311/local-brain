@@ -1,12 +1,14 @@
 # Project Roadmap
 
-Current review boundary: [Run226](../run/run-20261029-226-publication-and-native-integration.md)
-validates the approved Google Drive and Context Search increments in the native
-app and reviews the current public source/docs candidate before commit/push.
-The source contracts and bounded synthetic model/browser witnesses are delivered;
-recipient/native-host interaction, live two-account Google permissions, broad
-model quality and public signed/notarized release remain separate gates. Learning
-retains its existing product/benefit limits and remains outside the packaged UI.
+Current delivery boundary: the owner suspended Context Search and Google Drive
+on 2026-11-01 in both the app and development web while deciding whether to resume,
+extend or replace them. [Feature Availability](feature-availability.md) owns the
+current exclusions and return conditions; [Run230](../run/run-20261101-230-feature-availability-and-doc-boundary.md)
+records delivery and checks. Earlier [Run226](../run/run-20261029-226-publication-and-native-integration.md)
+remains historical evidence. Its recipient/native-host, live two-account Google
+permissions, broad model-quality and public signed/notarized release gates are
+not satisfied by this suspension. Learning retains its existing product/benefit
+limits and remains outside the packaged UI.
 
 ## Code And Command Learning — 2026-10-17
 
@@ -608,7 +610,7 @@ Exit criteria:
 
 - a Workstream can move between Claude and Codex with source links intact
 - end-of-session state can be recorded in under a minute
-- every external write is previewed, attributable, and explicitly approved. The separately approved [selected Drive synchronization](../../policies/project/google-drive-sync.md) uses saved destinations/targets plus manual run or automatic enablement as continuing authorization; actual Google authentication/permissions still apply, and other integrations retain the general gate.
+- every external write is previewed, attributable, and explicitly approved
 
 ## Phase 7: macOS Packaging
 
@@ -638,7 +640,7 @@ Deferred beyond that boundary:
 - broad MCP integration
 - automatic semantic linking across every source
 - external write-back
-- other cloud sync and collaboration; selected Drive synchronization follows its separately approved contract
+- cloud sync and collaboration
 - mobile support
 - complex graph editing
 - mandatory external AI or embedding APIs

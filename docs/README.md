@@ -24,7 +24,7 @@ owns their content and delivery rules.
 | [Sessions](../src/localbrain/content/docs/sessions.md) | Conversations, projects, pins and Chart |
 | [Sessions Dashboard](../src/localbrain/content/docs/sessions-dashboard.md) | Usage, cost estimates and coverage |
 | [Local Contexts](../src/localbrain/content/docs/local-contexts.md) | Document sources, reading and format limits |
-| [Search](../src/localbrain/content/docs/search.md) | Keyword/meaning search, Context Search answers, models and readiness |
+| [Search](../src/localbrain/content/docs/search.md) | Keyword/meaning search, models and readiness |
 
 The [macOS test distribution guide](policies/project/standalone-test-app-guide.md)
 owns artifact-specific first-launch requirements and distribution verification
@@ -39,14 +39,12 @@ Durable rules and current contracts live under `docs/policies/`.
 - [Project Architecture](policies/project/architecture.md): stack, runtime boundaries, source adapters, storage model, and current capability ownership
 - [macOS Installation And Local Storage](policies/project/installation-and-storage.md): installed wheel/archive setup, optional models, configurable private storage, updates, migration and cleanup
 - [Local Natural Language Search](policies/project/natural-language-search.md): eligible sources, molecularization, model roles, query interpretation, ranking, refresh and evidence navigation
-- [Context Search](policies/project/context-search.md): read-only folder questions, selectable4B/8B, shared-model/private-cache separation, evidence and transient dialogue
 - [Source Claims And Work State](policies/project/source-claims-and-work-state.md): pure supplied-claim state projection and inferred provenance; not an admitted source extractor or map producer
 - [Data Model](policies/project/data-model.md): complete effective SQLite map, global and subject ERDs, table/column catalogs, relationships, lifecycle, recovery, and delta maintenance ownership
 - [Value Dictionaries](policies/project/data-model/value-dictionaries.md): generated subject map from physical and derived bounded values to complete presentation modes, labels, fallbacks, and consumer ownership
 - [Schema Presentation](policies/project/schema-presentation.md): deterministic package manifest, source ownership, loader/failure behavior, and downstream Schema consumer contract
-- [Google Drive Synchronization](policies/project/google-drive-sync.md): selected directional sync, private state, Google CLI authentication and distribution/live-validation boundaries.
 - [Privacy And Data Handling](policies/project/privacy-and-data.md): repository boundary, local persistence, external access, and disclosure constraints
-- [Developer Guide](policies/project/developer-guide.md): source setup, development-web workflows, distribution builds, configuration, model experiments, private evaluation archives and verification
+- [Developer Guide](policies/project/developer-guide.md): source setup, development-web workflows, distribution builds, configuration, model-tool usage and verification
 - [Markdown Rendering Contract](policies/project/markdown-rendering.md): shared syntax, trust, local-reference, highlighting, consumer, and fallback rules
 - [Maintenance Task Runner](policies/operations/claude-task-runner.md): in-app Claude/Codex maintenance execution, retrieval, external-sync boundaries, persistence, and review behavior
 - [Harness Policies](policies/harness): planning approval, execution routing, profiles, delegation, operator continuity, and traceability
@@ -117,6 +115,7 @@ Project plans, sequencing, unresolved work, approvals, change history, and execu
 - [Plans Index](plans/README.md): open planning boundaries, active execution, recently completed chains, and artifact locations
 - [Project Roadmap](plans/project/roadmap.md): phase direction, current priorities, validation strategy, and risk controls
 - [Project Backlog](plans/project/backlog.md): detailed open work and decisions ordered by priority
+- [Feature Availability](plans/project/feature-availability.md): temporary delivery suspensions, preserved state and return conditions
 - [Planning Artifact Catalog](plans/artifact-catalog.md): generated navigation for tracked PRD, Feature, Spec, Run, Evaluation, Fix, and heuristic artifacts
 - `docs/plans/prd/`, `feature/`, and `spec/`: planning and implementation boundaries across their lifecycle
 - `docs/plans/run/`, `evaluation/`, `fix/`, and `heuristic/`: execution and review artifacts

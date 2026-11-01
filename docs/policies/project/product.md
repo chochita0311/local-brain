@@ -58,10 +58,6 @@ Workstreams are created and named by the user. LocalBrain may suggest relationsh
 
 Raw activity should require little manual effort. Workstream assignments, resource links, and checkpoint drafts may be suggested automatically, but they remain pending until accepted. Rejected Suggestions remain reviewable and can be restored.
 
-### Transient Context Questions
-
-[Context Search](context-search.md) answers explicit questions over enabled Local Contexts and already received Drive copies using local4B/8B models and read-only tools. It is separate from Session/semantic search and needs no embedding preparation. Evidence stays inspectable; folder publishers do not automatically become document authors or contacts. Same-screen follow-ups are transient and clear on leaving, with no saved answer schema or automatic organizational change. Public model originals and app-private execution state have separate owners.
-
 ### Preserve Provenance And Uncertainty
 
 Every generated summary, relationship, decision, and claim should retain evidence linking it to its source. LocalBrain must distinguish:
@@ -151,7 +147,7 @@ Bounded database-backed state families use the executable value registry as thei
 ### Application Navigation
 
 The standalone test edition exposes Sessions, Sessions Dashboard, Local Context,
-search, Context Search, first-run setup, categorized settings and bundled Docs. Its menu, HTTP and runtime
+search, first-run setup, categorized settings and bundled Docs. Its menu, HTTP and runtime
 boundaries exclude Dashboard/learning, Workstreams, Auto Work, Atlassian, Insights,
 Session workflow and Schema. The broader navigation below describes development
 web. Both editions use the [common local settings contract](desktop-app-and-settings.md),
@@ -223,21 +219,16 @@ acceptance. Original source material and normalized activity retain their separa
 owners; “activity retention” does not admit opaque tool payloads into the index.
 
 The standalone test app exposes Sessions, Sessions Dashboard, Local Contexts,
-search, Context Search, settings, onboarding and bundled Docs. Its runtime boundary
+search, settings, onboarding and bundled Docs. Its runtime boundary
 excludes the other development surfaces; user settings cannot enable them.
 The [desktop contract](desktop-app-and-settings.md#runtime-and-product-boundary)
 owns the exact admission and lifecycle rules. An ad-hoc test artifact is separate
 from the normal-security signed/notarized public-release goal.
 
-Broad external ingestion/write-back, cloud sync beyond the approved selected
-Drive contract, multi-user collaboration, mobile support, automatic semantic
+Broad external ingestion/write-back, cloud sync, multi-user collaboration, mobile support, automatic semantic
 linking across every source, and mandatory external AI/embedding APIs require
 separate explicit planning. Existing approved CLI-backed analysis and read
 integrations retain their narrower contracts.
-
-### Selected Google Drive Transfer
-
-[Google Drive synchronization](google-drive-sync.md) is managed in a separate Settings tab. User-selected local filesystem contexts publish into the configured root, and selected publisher folders receive into private external-source storage. The source is authoritative in each direction; stop preserves copies, while confirmed active-source deletion follows Drive Trash/outgoing and direct local removal/incoming rules. This transfer adds no model, search membership, organization-sharing controls or shared database replication.
 
 ## Success Criteria
 

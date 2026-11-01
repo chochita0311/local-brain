@@ -18,6 +18,16 @@ def now_text():
     return datetime.now(timezone.utc).isoformat()
 
 
+def start_service(config):
+    """Keep optional Drive state failure from taking local sources offline."""
+    try:
+        service = DriveService(config)
+        service.start()
+        return service
+    except (DriveError, OSError, sqlite3.DatabaseError):
+        return None
+
+
 class DriveService:
     def __init__(self, config, api_factory=None, source_loader=None, auth=None):
         self.config = config

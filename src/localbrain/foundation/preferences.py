@@ -142,8 +142,10 @@ def save_preferences(changes, revision, config=settings):
             raise PreferencesError("다른 창에서 설정이 변경되었습니다. 다시 불러온 뒤 저장해 주세요.")
         values = {**current["saved"], **changes}
         _validate(values)
+        ordered = {"schema_version": 1, "onboarding_completed": values["onboarding_completed"],
+                   **current["raw"], **values}
         atomic_private_write(config.data_dir / "settings.toml",
-                             toml_text({**current["raw"], **values, "schema_version": 1}).encode("utf-8"))
+                             toml_text(ordered).encode("utf-8"))
     return read_preferences(config)
 
 

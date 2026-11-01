@@ -90,7 +90,6 @@ This is an explicit LocalBrain syntax allowlist. Obsidian and third-party plugin
 
 - Consumers pass authoritative text to `render_markdown` and render only its trusted result.
 - Reviewed learning articles are a consumer of this shared renderer. Each article's intro, section bodies and takeaway remain authoritative private packet text; their HTML is ephemeral and uses no local-reference context.
-- Context Search renders transient generated answer text through this same renderer, without local-reference authority. Active HTML remains escaped and images deferred; evidence excerpts use plain text. It creates no answer record or page-local Markdown parser.
 - Visible readers use the shared `.markdown-body` semantic class for prose, headings, code, tables, callouts, footnotes, math, references, embeds, and deferred states; page containers own only composition and scrolling.
 - The renderer owns a non-semantic table scroll wrapper so tables retain native table layout, fill the available reading width, and overflow locally when their minimum column geometry exceeds it.
 - Shared presentation bounds generated MathML and CommonMark indented code blocks inside the owning reading container. Wide technical content scrolls locally and never widens the outer page.

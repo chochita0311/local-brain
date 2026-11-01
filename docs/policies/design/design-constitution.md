@@ -469,9 +469,9 @@ geometry, interaction and source-filter presentation.
 
 ### Navigation Model
 
-The persistent navigation has three groups and ten stable destinations:
+The persistent navigation has three groups and nine stable destinations:
 
-- **Overview:** Dashboard, Sessions Dashboard, Context Search
+- **Overview:** Dashboard, Sessions Dashboard
 - **Workspace:** 자동 작업, Workstreams, Sessions, Atlassian, Local Contexts
 - **System:** Sources, Schema
 

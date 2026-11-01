@@ -10,8 +10,9 @@ Priority meaning:
 
 ## Current Focus
 
-- [ ] Obtain recipient/native-host interaction and two-account Google Drive evidence. Existing source/frozen tests do not certify actual My Drive/Shared Drive permissions or every recipient Mac.
-- [ ] Expand Context Search quality evidence beyond the bounded synthetic fixtures: missing/conflicting sources, broader contact/role questions, multi-folder coverage and device memory/latency. Saved conversation history, extra retrieval indexes and quantization remain separately scoped.
+- Suspended delivery: Context Search and Google Drive are excluded from default
+  app/web assembly under [Feature Availability](feature-availability.md). Their
+  return decision precedes further implementation or release evidence work.
 
 - [ ] **Independent AI search indexing control (P2, deferred by owner 2026-10-24):**
   separate automatic index refresh from AI search availability; preserve complete
@@ -21,12 +22,15 @@ Priority meaning:
   existing activated search refresh remains unchanged. Do not expose a nonfunctional
   settings control or download a model as part of this TODO.
 
-The standalone foundation [PRD-0021](../prd/prd-0021-macos-standalone-test-app-and-local-settings.md) now has separately approved [Drive synchronization](../prd/prd-0025-google-drive-connection-and-incremental-sync.md) and [Context Search](../prd/prd-0026-context-search-grounded-local-answers.md) increments. Run226 owns the current native/publication closeout.
-Local implementation and available browser/bundled-runtime verification are
-complete. Native direct interactions and the teammate download/run receipt remain
-open; [the integration report](../evaluation/eval-0139-functional-standalone-test-app.md)
-owns its historical results and then-observed learning inventory failures; Run226 reconciles the current owner/checker baseline. The code/command learning development below
-continues separately and is excluded from the app edition.
+The standalone foundation [PRD-0021](../prd/prd-0021-macos-standalone-test-app-and-local-settings.md)
+has separately approved [Drive](../prd/prd-0025-google-drive-connection-and-incremental-sync.md)
+and [Context Search](../prd/prd-0026-context-search-grounded-local-answers.md)
+increments whose delivery is currently suspended. Their parked evidence and
+resumption boundary are recorded in [Feature Availability](feature-availability.md).
+Earlier Run226 and [the integration report](../evaluation/eval-0139-functional-standalone-test-app.md)
+retain their bounded source/browser/bundled results, native and recipient gaps,
+and then-observed learning inventory failures. The code/command learning
+development below continues separately and is excluded from the app edition.
 
 The prior implementation focus was the owner's approved code/command learning revision:
 [PRD-0023](../prd/prd-0023-code-and-command-learning.md) and the

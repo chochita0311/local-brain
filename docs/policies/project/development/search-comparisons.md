@@ -14,9 +14,9 @@ Use fresh private output directories for each command. Run GPU measurements
 sequentially without another model job; timings include completed MPS work.
 
 ```bash
-uv run --no-sync python scripts/benchmark-natural-search.py --device mps --output "$HOME/Library/Application Support/LocalBrain-Development/search-comparison/retrieval"
-uv run --no-sync python scripts/benchmark-search-runtime.py --output "$HOME/Library/Application Support/LocalBrain-Development/search-comparison/runtime"
-uv run --no-sync python scripts/benchmark-search-throughput.py --output "$HOME/Library/Application Support/LocalBrain-Development/search-comparison/throughput"
+uv run --no-sync python scripts/benchmark-natural-search.py --device mps --output "/absolute/private/search-comparison/retrieval"
+uv run --no-sync python scripts/benchmark-search-runtime.py --output "/absolute/private/search-comparison/runtime"
+uv run --no-sync python scripts/benchmark-search-throughput.py --output "/absolute/private/search-comparison/throughput"
 ```
 
 The first command compares 256/512/768 body targets, 512/1024 dimensions, lexical,
@@ -35,7 +35,7 @@ single-view cosine orderings on identical fragment scores, using dense mode plus
 unchanged hybrid admission for single identifiers:
 
 ```bash
-uv run --no-sync python scripts/benchmark-search-precision.py --device mps --output "$HOME/Library/Application Support/LocalBrain-Development/search-comparison/precision"
+uv run --no-sync python scripts/benchmark-search-precision.py --device mps --output "/absolute/private/search-comparison/precision"
 ```
 
 This compares the fixed0/0.03/0.05/0.08 lexical-bonus grid on authored development
@@ -50,8 +50,8 @@ The general-work comparator covers broad purposes, conversational descriptions,
 ambiguous terms and multiple relevant activities across work domains:
 
 ```bash
-uv run --no-sync python scripts/benchmark-search-general.py --stage development --device mps --output "$HOME/Library/Application Support/LocalBrain-Development/search-comparison/general-development"
-uv run --no-sync python scripts/benchmark-search-general.py --stage holdout --selected equal --device mps --output "$HOME/Library/Application Support/LocalBrain-Development/search-comparison/general-holdout"
+uv run --no-sync python scripts/benchmark-search-general.py --stage development --device mps --output "/absolute/private/search-comparison/general-development"
+uv run --no-sync python scripts/benchmark-search-general.py --stage holdout --selected equal --device mps --output "/absolute/private/search-comparison/general-holdout"
 ```
 
 Freeze the selection after development and before observing a fresh holdout.
@@ -74,9 +74,9 @@ claim that a previous comparison environment is still installed. Shared public
 checkpoint retention and private comparison-runtime retention are independent.
 
 ```bash
-uv venv --python 3.11 "$HOME/Library/Application Support/LocalBrain-Development/search-comparison/runtime-judge"
-uv pip install --system-certs --python "$HOME/Library/Application Support/LocalBrain-Development/search-comparison/runtime-judge/bin/python" laya==0.4.4 torch==2.8.0 transformers==4.57.6 huggingface-hub==0.36.2 numpy==1.26.4 truststore==0.10.4
-"$HOME/Library/Application Support/LocalBrain-Development/search-comparison/runtime-judge/bin/python" scripts/prepare-search-comparison-models.py --output "$HOME/Library/Application Support/LocalBrain-Development/search-comparison/assets"
+uv venv --python 3.11 "/absolute/private/search-comparison/runtime-judge"
+uv pip install --system-certs --python "/absolute/private/search-comparison/runtime-judge/bin/python" laya==0.4.4 torch==2.8.0 transformers==4.57.6 huggingface-hub==0.36.2 numpy==1.26.4 truststore==0.10.4
+"/absolute/private/search-comparison/runtime-judge/bin/python" scripts/prepare-search-comparison-models.py --output "/absolute/private/search-comparison/assets"
 ```
 
 Use that environment's Python to run `scripts/benchmark-search-judges.py` with
@@ -106,6 +106,6 @@ and Context data and asserts actual semantic matches. It refuses an existing
 output or an editable source import. It is separate from ordinary unit discovery.
 
 No script writes personal content to Git, collects background query history or
-changes source organization. Development archives are deliberate evidence owners;
-retire their reports, synthetic DBs and isolated runtimes explicitly when no longer
-needed. Shared public checkpoints have a separate lifecycle.
+changes source organization. Clean up task-owned outputs, synthetic DBs and
+isolated runtimes once their purpose ends; retained evidence needs an explicit
+private owner outside Git. Shared public checkpoints have a separate lifecycle.

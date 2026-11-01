@@ -48,7 +48,7 @@ class FormContractTests(unittest.TestCase):
 
 class FeatureAssemblyTests(unittest.TestCase):
     def test_each_optional_package_and_all_optional_packages_can_be_absent(self):
-        features = ("atlassian", "workstreams", "workflow", "auto_work", "context_search")
+        features = ("atlassian", "workstreams", "workflow", "auto_work", "context_search", "google_drive")
         for edition in ("web", "desktop"):
             for omitted in [(name,) for name in features] + [features]:
                 with self.subTest(edition=edition, omitted=omitted), tempfile.TemporaryDirectory() as folder:
@@ -62,3 +62,17 @@ class FeatureAssemblyTests(unittest.TestCase):
                     result = subprocess.run([sys.executable, str(ROOT / "tests/feature_assembly_probe.py"), json.dumps(omitted)],
                                             cwd=ROOT, env=env, text=True, capture_output=True, timeout=45)
                     self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_default_delivery_suspends_features_and_preserves_existing_state(self):
+        for edition in ("web", "desktop"):
+            with self.subTest(edition=edition), tempfile.TemporaryDirectory() as folder:
+                root = Path(folder).resolve()
+                env = {**os.environ, "PYTHONDONTWRITEBYTECODE": "1", "PYTHONPATH": str(ROOT / "src"),
+                       "LOCALBRAIN_EDITION": edition, "LOCALBRAIN_DESKTOP_TOKEN": "synthetic-assembly-token",
+                       "HF_HUB_OFFLINE": "1", "TRANSFORMERS_OFFLINE": "1", "HF_HUB_CACHE": str(root / "hub"),
+                       **{"LOCALBRAIN_" + key: str(root / path) for key, path in (
+                           ("DATA_DIR", "data"), ("CACHE_DIR", "cache"), ("DEVELOPMENT_DIR", "development"),
+                           ("CONTEXT_ROOT", "context"), ("CLAUDE_ROOT", "missing-claude"), ("CODEX_ROOT", "codex/sessions"))}}
+                result = subprocess.run([sys.executable, str(ROOT / "tests/feature_assembly_probe.py"), "defaults"],
+                                        cwd=ROOT, env=env, text=True, capture_output=True, timeout=45)
+                self.assertEqual(result.returncode, 0, result.stderr)

@@ -34,7 +34,7 @@ for present implementation ownership; the old source layout is not a live path.
 
 - Human request: 새 메뉴의 위치와 가칭, 첫 질문 화면, 질문·답변 중심 표현, 동기화된 타인 자료의 업무/문의 대상 탐색 목적. 추가 답변으로 **받은 폴더와 내 Local Context를 함께 검색**하도록 선택했다. 실제 개인·조직·저장소 값은 사용하지 않는다.
 - Human follow-up: 대상 폴더와 주제가 주어진 질문에서 4B가 직접 폴더를 뒤지고 파일을 읽는 방식을 검토하고, 색인을 이후 선택지로 둘 수 있는지 질문했다. 구현 방식의 확정으로 승격하지 않는다.
-- [Google Drive PRD](prd-0025-google-drive-connection-and-incremental-sync.md), [Drive sync contract](../../policies/project/google-drive-sync.md): 원본 파일 동기화, 로컬 수신 사본과 출처, 중단/실패/삭제의 기존 의미. 해당 증분은 모델·검색 연결을 제외했으므로 새 상위 경계가 필요하다.
+- [Google Drive PRD](prd-0025-google-drive-connection-and-incremental-sync.md), [Drive sync contract](../run/run-20261101-230-feature-availability-and-doc-boundary.md#archived-google-drive-contract): 원본 파일 동기화, 로컬 수신 사본과 출처, 중단/실패/삭제의 기존 의미. 해당 증분은 모델·검색 연결을 제외했으므로 새 상위 경계가 필요하다.
 - [Natural-language search PRD](prd-0020-local-natural-language-search.md), [bundled search guide](../../../src/localbrain/content/docs/search.md): 현재 검색은 원래 세션·문서의 근거를 찾는 기능이며 생성형 답변 화면과 구별된다.
 - [Model catalog](https://github.com/chochita0311/local-brain/blob/6c03265701d0d8b552fc8bb60e346ba1971f4bb3/src/localbrain/model_catalog.py), [experimental local generator](https://github.com/chochita0311/local-brain/blob/6c03265701d0d8b552fc8bb60e346ba1971f4bb3/src/localbrain/work_context_model.py), [search encoder](../../../src/localbrain/natural_search/model.py), [source reader](../../../src/localbrain/natural_search/source.py): 구현 기준과 재사용 가능성의 근거. 설치/가동/실제 품질을 확인했다는 뜻은 아니다.
 - [Design Constitution](../../policies/design/design-constitution.md): 기존 앱 shell, 근거·상태 구별, 320px 접근성과 디자인 일관성.

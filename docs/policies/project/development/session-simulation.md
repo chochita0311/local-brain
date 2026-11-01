@@ -4,7 +4,10 @@ Use the [shared model-tool prerequisites and private storage rules](model-tools.
 
 ## Operations
 
-The following table describes simulation and work-reconstruction experiments. [Context Search](../context-search.md) separately admits local4B/8B read-only questions; that approval does not admit a rejected work extractor or reconstruction producer. The experimental model roles remain separate:
+The following table describes simulation and work-reconstruction experiments.
+Each experimental producer requires its own admission; another model consumer
+does not admit a rejected extractor or reconstruction producer. The experimental
+model roles remain separate:
 
 | Model | Current purpose | Consumer/admission boundary |
 | --- | --- | --- |

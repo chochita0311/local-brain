@@ -22,11 +22,10 @@ In scope:
 - Workstream, Thread, checkpoint, and resource organization
 - local retrieval, reviewable Suggestions, and workflow insights
 - approved read-only external source integration
-- explicitly selected Google Drive sync under [its approved contract](docs/policies/project/google-drive-sync.md)
 
 Out of scope unless explicitly planned:
 
-- other cloud sync or multi-user collaboration
+- cloud sync or multi-user collaboration
 - silent external writes or unreviewed relationship changes
 - mandatory external AI or embedding services
 - native macOS packaging before the local web workflow is validated
@@ -43,9 +42,9 @@ Out of scope unless explicitly planned:
 - `DESIGN.md`: creative design intent and source interpretation
 - `README.md`: user-facing overview and quick start
 
-Durable runtime data belongs under `~/Library/Application Support/LocalBrain`; private rebuildable caches belong under `~/Library/Caches/LocalBrain`. Development evidence has a separate private archive. These are outside the codebase; [Installation And Local Storage](docs/policies/project/installation-and-storage.md) owns their configuration and lifecycle.
+Durable runtime data belongs under `~/Library/Application Support/LocalBrain`; private rebuildable caches belong under `~/Library/Caches/LocalBrain`. These are outside the codebase; [Installation And Local Storage](docs/policies/project/installation-and-storage.md) owns their configuration and lifecycle.
 
-Agent harness experience uses the separate, ignored [consumer evidence layout](docs/policies/harness/harness-improvement.md#consumer-evidence-layout); application data and original development evaluation evidence keep the owners above.
+Agent harness experience uses the separate, ignored [consumer evidence layout](docs/policies/harness/harness-improvement.md#consumer-evidence-layout); application data keeps its storage owner above.
 
 ## Source Of Truth
 

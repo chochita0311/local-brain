@@ -14,7 +14,7 @@
 
 ## Selected Loop And Contract Surfaces
 
-Owner explicitly approved the PRD and delegated decomposition/development. Primary agent owns orchestration, spec, build, contract, functional and applicable design/interaction evaluation, sequentially; no parallel workers. Foundation acceptance is scoped to local contract readiness before dependent app-only acceptance; shared implementation was evaluated against each Feature separately. Surface lanes: contract/data/backend producer, frontend/integration consumers when applicable, and current docs owners. The [shared contract](../../policies/project/google-drive-sync.md) fixes source authority, API/state, limits and scheduler semantics.
+Owner explicitly approved the PRD and delegated decomposition/development. Primary agent owns orchestration, spec, build, contract, functional and applicable design/interaction evaluation, sequentially; no parallel workers. Foundation acceptance is scoped to local contract readiness before dependent app-only acceptance; shared implementation was evaluated against each Feature separately. Surface lanes: contract/data/backend producer, frontend/integration consumers when applicable, and current docs owners. The [shared contract](run-20261101-230-feature-availability-and-doc-boundary.md#archived-google-drive-contract) fixes source authority, API/state, limits and scheduler semantics.
 
 ## Attempts
 

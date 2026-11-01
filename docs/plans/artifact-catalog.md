@@ -364,7 +364,7 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [SPEC-0153: Transient Context Search Conversation](spec/spec-0153-context-search-conversation.md) | `approved` | FEAT-0153 |
 | [SPEC-0154: Retained Session History](spec/spec-0154-retained-session-history.md) | `approved` | FEAT-0154 |
 
-## Runs (229)
+## Runs (230)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -597,6 +597,7 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [RUN-227: Codex Empty Page Control](run/run-20261029-227-codex-empty-page-control.md) | `passed` | FEAT-0015 |
 | [RUN-228: Session Dashboard Cost And History](run/run-20261031-228-session-dashboard-cost-and-history.md) | `passed` | FEAT-0020 |
 | [RUN-229: Retained Session History](run/run-20261031-229-retained-session-history.md) | `passed` | FEAT-0154 |
+| [RUN-20261101-230: Feature Availability And Documentation Boundary](run/run-20261101-230-feature-availability-and-doc-boundary.md) | `passed` | `run-20261101-230` |
 
 ## Evaluations And Schema Audits (471)
 

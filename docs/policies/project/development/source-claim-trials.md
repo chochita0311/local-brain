@@ -14,10 +14,10 @@ check does not complete its parent effort.
 uv run --no-sync python scripts/evaluate-source-claims.py --describe
 uv run --no-sync python scripts/evaluate-source-claims.py \
   --model-root /absolute/private/models/qwen3-8b \
-  --output /absolute/private/source-claim-trial
+  --output /absolute/private/evaluation-output
 uv run --no-sync python scripts/evaluate-source-claims.py \
   --model-root /absolute/private/models/qwen3-8b \
-  --output /absolute/private/source-claim-trial --replay
+  --output /absolute/private/evaluation-output --replay
 ```
 
 Use the existing compatible model runtime. This is one frozen 8B/MPS-eager,

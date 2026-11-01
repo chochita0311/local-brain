@@ -22,7 +22,7 @@ uv run --no-sync python scripts/install-work-context-model.py --root /absolute/p
 uv run --no-sync python scripts/install-work-context-model.py --model Qwen/Qwen3-8B --root /absolute/private/models/qwen3-8b
 uv run --no-sync python scripts/evaluate-work-context-model.py \
   --model-root /absolute/private/models/qwen3-4b \
-  --output /absolute/private/work-context-evaluation --split development
+  --output /absolute/private/evaluation-output --split development
 ```
 
 The default installation remains 4B. `--verify` and evaluation infer the model
@@ -165,7 +165,7 @@ classification alone does not establish correct work continuity.
 uv run --no-sync python scripts/compare-work-role-formulations.py --describe
 uv run --no-sync python scripts/compare-work-role-formulations.py \
   --model-root /absolute/private/models/qwen3-8b \
-  --output /absolute/private/work-role-comparison
+  --output /absolute/private/evaluation-output
 ```
 
 The command accepts no private input or tuning/holdout options. It preflights the
