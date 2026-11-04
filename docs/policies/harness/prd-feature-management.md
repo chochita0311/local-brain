@@ -9,7 +9,7 @@
 - This document owns the lifecycle, required content, approval gates, and change control rules for PRD and feature artifacts.
 - Use it to understand what PRDs and features are, what they must contain, what may remain open, and what must be clear before approval.
 - It does not own the full step-by-step baton sequence, execution-profile routing, execution return model, or portable link rules.
-- Use `docs/agents/flows/workflow.md` for the ordered flow, pause points, and handoff timing between planning and execution.
+- Use `docs/agents/flows/delivery.md` for the ordered flow, pause points, and handoff timing between planning and execution.
 - Use `docs/policies/harness/execution-profiles.md` for surfaces, lanes, profiles, and evaluator routing.
 - Use `docs/policies/harness/execution-loop-governance.md` for execution return paths.
 - Use `docs/policies/harness/traceability-and-link-hygiene.md` for portable links and source/generated artifact reference rules.

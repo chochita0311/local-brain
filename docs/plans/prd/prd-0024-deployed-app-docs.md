@@ -34,7 +34,7 @@ for present implementation ownership; the old source layout is not a live path.
 | [Sessions Dashboard](../../../src/localbrain/templates/sessions_dashboard.html), [Sessions](../../../src/localbrain/templates/sessions.html), [Session Detail](../../../src/localbrain/templates/session.html), [Local Contexts](../../../src/localbrain/templates/context.html), [Search](../../../src/localbrain/templates/natural-search.html) | Current screen names and user flows. Inspecting the development working tree does not establish that a particular distributed binary has been validated. |
 | [Usage Contract](../../policies/project/data-model/usage-and-cost-records.md) | Usage and estimated-cost limitations and the meaning of Project aggregation. |
 | [Design Constitution](../../policies/design/design-constitution.md), [Design Evaluation](../../policies/design/design-evaluation.md), [Interaction Evaluation](../../policies/experience/interaction-evaluation.md) | Consistency with the existing shell and reading surfaces, plus accessibility, navigation, and responsive review criteria. |
-| [PRD Management](../../policies/harness/prd-feature-management.md), [Agent Workflow](../../agents/flows/workflow.md) | The sequence from draft to human PRD review and approval, then Feature boundary review. |
+| [PRD Management](../../policies/harness/prd-feature-management.md), [Agent Workflow](../../agents/flows/delivery.md) | The sequence from draft to human PRD review and approval, then Feature boundary review. |
 
 ## Product Intent
 
@@ -134,7 +134,7 @@ Omit About and app-versus-data-format version explanations. Keep the fixed path-
 - **Product boundary:** Docs and their in-app links must work in the packaged edition. Avoid addresses confused with API technical documentation and preserve restrictions on development-only features.
 - **Design and execution boundary:** The implemented screen profile is **Frontend Product**. Its surface lanes are **Shared Navigation / Docs Contents and Reader / Narrow Viewports and Keyboard Navigation**. Documentation delivery uses foundation-contract; content authoring uses docs-content. Their child Features own the execution boundaries.
 - **Verification:** Apply Design Evaluation, functional checks, and Interaction Evaluation during implementation. Check entry, contents, article links, Back navigation, opening Settings, long content, narrow layouts, focus, and offline reading in the installed app. Authoring this PRD does not mean those implementation checks have been performed.
-- **Approval:** Do not proceed to Feature decomposition, Spec, implementation, or evaluation while this PRD is `draft`. Follow the human review sequence in [Agent Workflow](../../agents/flows/workflow.md).
+- **Approval:** Do not proceed to Feature decomposition, Spec, implementation, or evaluation while this PRD is `draft`. Follow the human review sequence in [Agent Workflow](../../agents/flows/delivery.md).
 
 ## Acceptance Envelope
 

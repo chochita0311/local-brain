@@ -29,7 +29,8 @@ with their actual execution limits. Remove inapplicable rows with reasons; use
 - Observed behavior and original evidence:
 - Cause: `skill/resource / model/execution / tool/environment / input/evidence / surrounding workflow / mixed / uncertain`
 - Why that cause and owner; alternative explanations:
-- Existing task route: `fix / spec-review / planning-review / continue`; reason:
+- Existing task route and governing contract, including applicable stop/return
+  rules; delivery routes include `fix / spec-review / planning-review / continue`; reason:
 - Falsifiable hypothesis and authorized change:
 - Success checks and falsification checks:
 - Applicable conditions and exclusions:

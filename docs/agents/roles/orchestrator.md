@@ -1,69 +1,75 @@
 # Orchestrator
 
-## Goal
-- Control one bounded execution loop from approved feature to pass, escalation, or return.
-- Keep execution profile, surface lanes, role sequencing, evaluator selection, and stop conditions explicit.
+## Goal And Ownership
 
-## Ownership
-- This document owns the Orchestrator role contract.
-- It does not own the whole workflow sequence.
-- It does not own the operator-facing prompt entry pattern for starting a run.
-- Use `docs/agents/flows/workflow.md` for the sequence model.
-- Use `docs/agents/operations/runner.md` for run-start and run-continuation invocation prompts.
-- Use `docs/policies/harness/execution-profiles.md` for profile selection, surface lanes, and evaluator routing.
-- Use `docs/policies/harness/execution-loop-governance.md` for evidence gaps, failure classification, return paths, and termination.
+Keep one authorized task coherent across planning, bounded work, challenge,
+integration, interruption, return and resume. This is the primary controller's
+responsibility, not a new runtime worker or model binding.
 
-## When To Use
-- A feature has been approved and is ready to enter execution.
-- The team wants repeatable loop control instead of ad hoc agent chaining.
+This document owns the common control role. Apply
+[Workflow Governance](../../policies/harness/workflow-governance.md) for flow selection,
+transitions, authority and resources. Read only the selected flow's contracts
+progressively: its flow owns sequence, its governance owns lifecycle and
+acceptance, and its runner owns invocation. This role does not reproduce those
+contracts, define one universal lifecycle or replace a selected method.
 
 ## Input Contract
-- one approved feature document
-- one active spec document or designated docs-content writing contract when it already exists
-- declared feature type, surface, execution profile, and surface lanes when available
-- current evaluator and fix artifacts when the loop is already running
-- relevant execution governance rules
-- relevant execution-profile rules
 
-## Core Rules
-- Apply the execution-profile policy to choose the smallest fitting profile, declare any surface lanes, and select only the required evaluators.
-- Apply the execution-loop governance policy to active-feature concurrency, run-unit boundaries, heuristic handling, evidence gaps, failure classification, return and review timing, and termination.
+- The objective, decision to inform, full constraints, scope and acceptance.
+- The selected flow and its governing input and approval contracts.
+- Raw evidence access, current released input scope, source and applicable
+  method identity, including required revisions and content fingerprints.
+- Authority, available tools and competent runtime actors, with observed limits.
+- Actual caller/runtime resource limits, planning checkpoints, observed usage,
+  pending commitments and closeout needs under workflow governance.
+- The resolved current-state owner and prior record when resuming, including
+  artifacts required by the selected flow.
 
-## Decision Rules
+## Responsibilities
 
-### Apply Profile And Evaluator Policy
-- Read the approved feature metadata and apply the execution-profile policy without reproducing its profile definitions or evaluator matrix locally.
-- Record the selected profile, surface lanes, evaluator set, and any run-specific deviation in the active run artifact.
-- For `docs-content`, designate the active spec or compact writing contract through [execution-loop governance](../../policies/harness/execution-loop-governance.md#docs-content-writing-contract) before handing off to build or evaluation.
+- Retain intent, requirements, skill selection, architecture, source-of-truth
+  resolution, permissions, persistence, integration and final semantic judgment.
+  Worker returns never approve scope changes, publication or completion.
+- Apply [Competence-First Delegation](../../policies/harness/competence-first-delegation.md)
+  before delegation. Resolve actual role and binding, reasoning and modality,
+  tools, permissions and suitability. Do not repurpose a narrow evidence,
+  command-verification or code-review worker as a research author or general judge.
+- Use bounded packets and explicit editing ownership. Tell editing workers
+  they share the workspace, must preserve others' edits and must return
+  conflicts for integration. Parallelize only independent, reversible,
+  objectively verifiable work whose separation is useful.
+- Keep the main context compact through claims, reasons, material constraints,
+  counterevidence, judgments and raw evidence locators. Compression must not
+  remove facts needed to challenge the conclusion.
+- Preserve the distinction between independent discovery, informed exchange
+  and self-review, and record the actors and input history that actually ran.
+  Follow the selected method or review contract when a dispute warrants
+  separate adjudication.
+- Apply workflow governance's resource checks before assigning or continuing
+  work, account for concurrent commitments, and protect closeout capacity.
+  Reassess planning checkpoints when evidence warrants it; preserve actual
+  limits and consumed resources across resume.
+- Reconcile changed inputs and claim validity on resume. Integrate evidence,
+  choose the next discriminating action or governed return path, and perform
+  the selected governance's closeout checks before claiming completion.
+- For delivery work, apply [Change Impact And Regression Scope](../../policies/harness/execution-loop-governance.md#change-impact-and-regression-scope) to establish the affected and preserved behavior boundary, assign the relevant evaluators, and check coverage and acceptance gaps before closing.
+- Apply the selected flow's control decisions and required outputs. Keep
+  its approval, retry, escalation and termination rules intact; report the
+  resulting route and reason without inventing role-local states.
 
-### Apply Return And Termination Policy
-- Apply the execution-loop governance policy to evaluator results, evidence gaps, in-loop fixes, post-run returns, and terminal states.
-- Report the resulting route and reason; do not invent role-local result or return states.
+## Required Return
 
-### Retry Escalation
-- If the same failure class repeats twice without meaningful progress, escalate instead of continuing the same loop shape blindly.
+Give the supported answer or current result, current position and phase,
+material evidence and opposing claims, claim judgments and separate action
+dispositions, checked scope, independence and capability limits, actual resource
+usage and remaining capacity, revised planning checkpoints, unmet acceptance,
+next action, and waiting, return or closing reason. Include the selected flow's
+required artifacts and control outputs. Update the one resolved owner; session
+output alone does not establish durable persistence.
 
-### Capability-Aware Routing
-- Apply the execution-loop governance policy's optional-capability rule when selecting available tools or skills; conditional accelerators must not become undeclared prerequisites.
-
-## Required Output
-Produce or update:
-
-1. active feature and spec references
-2. selected execution profile
-3. surface lanes and lane order when relevant
-4. selected evaluator set
-5. current loop state
-6. fail classification when the loop blocks
-7. next role to run
-8. termination reason when the loop stops
-9. post-run recommendation for human review when the correct next step is accept, return to spec, or return to planning
-10. evaluator result, evidence coverage, and acceptance impact when an evidence gap exists
-
-## Non-Goals
-- redefining scope
-- code changes
-- evaluator-specific defect analysis
+The role adds no scheduler, runtime installation or automatic external action.
+Flow selection is limited to the selected harness contracts, not a global router
+for every task or skill.
 
 ## Operator Context Continuity
 

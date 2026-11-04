@@ -6,11 +6,80 @@
 - Make return semantics explicit so teams can distinguish in-run fixes from post-run returns to spec or planning.
 
 ## Ownership
-- This document owns execution-loop rules and return semantics.
-- Use `docs/agents/flows/workflow.md` for sequence examples.
+- This document owns delivery execution-loop rules, control decisions and return semantics.
+- [Workflow Governance](workflow-governance.md) owns shared selection, transitions, authority and resource controls; it does not replace delivery approval, retry or acceptance gates.
+- Use `docs/agents/flows/delivery.md` for sequence examples.
 - Use `docs/policies/harness/prd-feature-management.md` for planning-layer rules and approval criteria.
 - Use `docs/policies/harness/execution-profiles.md` for profile selection, surface lanes, and evaluator routing.
 - Use `docs/policies/harness/traceability-and-link-hygiene.md` for portable reference and source-of-truth path rules.
+
+## Delivery Control Contract
+
+The [Orchestrator](../../agents/roles/orchestrator.md) applies this contract when an
+approved feature is ready to enter execution. It controls one bounded execution
+loop from approved feature to pass, escalation or return, keeping execution
+profile, surface lanes, role sequencing, evaluator selection and stop conditions
+explicit for repeatable loop control. The [Delivery Flow](../../agents/flows/delivery.md)
+owns sequence, and the [Delivery Runner](../../agents/operations/delivery-runner.md) owns
+run-start and run-continuation prompts. Profile policy owns profile selection,
+surface lanes and evaluator routing; this policy owns evidence gaps, failure
+classification, return paths and termination.
+
+### Delivery Inputs
+
+- one approved feature document
+- one active spec document or designated docs-content writing contract when it already exists
+- declared feature type, surface, execution profile, and surface lanes when available
+- current evaluator and fix artifacts when the loop is already running
+- relevant execution governance rules
+- relevant execution-profile rules
+
+### Control Rules
+
+- Apply the execution-profile policy to choose the smallest fitting profile, declare any surface lanes, and select only the required evaluators.
+- Apply [Change Impact And Regression Scope](#change-impact-and-regression-scope) at delivery entry, dependency changes and closeout; hand the affected and preserved behavior boundary to build and evaluation roles.
+- Apply the execution-loop governance policy to active-feature concurrency, run-unit boundaries, heuristic handling, evidence gaps, failure classification, return and review timing, and termination.
+
+### Control Decisions
+
+#### Apply Profile And Evaluator Policy
+- Read the approved feature metadata and apply the execution-profile policy without reproducing its profile definitions or evaluator matrix locally.
+- Record the selected profile, surface lanes, evaluator set, and any run-specific deviation in the active run artifact.
+- For `docs-content`, designate the active spec or compact writing contract through [the writing-contract rule](#docs-content-writing-contract) before handing off to build or evaluation.
+
+#### Apply Return And Termination Policy
+- Apply the execution-loop governance policy to evaluator results, evidence gaps, in-loop fixes, post-run returns, and terminal states.
+- Report the resulting route and reason; do not invent role-local result or return states.
+- Before a high-risk code completion or parity judgment, apply [Independent Code Challenge](#independent-code-challenge) and record its evidence and acceptance gaps in the existing run/evaluation artifacts.
+
+#### Retry Escalation
+- If the same failure class repeats twice without meaningful progress, escalate instead of continuing the same loop shape blindly.
+
+#### Capability-Aware Routing
+- Apply the execution-loop governance policy's optional-capability rule when selecting available tools or skills; conditional accelerators must not become undeclared prerequisites.
+
+### Required Control Output
+
+Produce or update:
+
+1. active feature and spec references
+2. selected execution profile
+3. surface lanes and lane order when relevant
+4. selected evaluator set
+5. current loop state
+6. fail classification when the loop blocks; for a resource block, record its reason separately and do not invent a defect classification
+7. next role to run
+8. termination reason when the loop stops
+9. post-run recommendation for human review when the correct next step is accept, return to spec, or return to planning
+10. evaluator result, evidence coverage, and acceptance impact when an evidence gap exists
+
+### Control Non-Goals
+
+The delivery control role does not own:
+
+- redefining scope
+- code changes
+- evaluator-specific defect analysis
 
 ## Execution Artifacts
 - `docs/plans/run/` owns active run records.
@@ -35,7 +104,7 @@
 - Every execution artifact must reference the active feature ID, active spec ID, run ID, execution profile, and relevant attempt.
 - If a blocker belongs to planning or spec, route upward instead of normalizing it as an implementation defect.
 - Treat one active run as an automated execution unit.
-- Human review normally happens after the run reports its result, unless the run is technically blocked and cannot continue.
+- Human review normally happens after the run reports its result, unless a [technical block](#technical-block-exception) or [resource block](#resource-block-exception) prevents required continuation. Report either block before the human owner chooses its next route.
 - Scope, spec, or planning returns should be recorded as post-run routing decisions, not hidden in-run redirects.
 
 ## Evaluation Result And Evidence Coverage
@@ -50,6 +119,21 @@
 - An evaluator must not describe an unobserved rendered, runtime, interaction, migration, or integration state as verified merely because source inspection or a narrower automated check passed.
 - Before terminating a run, the Orchestrator must inspect evidence gaps and their acceptance impact; keep the evaluator result unchanged when an evidence gap requires more collection or blocks acceptance.
 
+## Independent Code Challenge
+
+This policy owns risk routing inside the approved-feature implementation loop. Apply the active task's detailed semantic review contract; an optional refactor or PR-review skill remains responsible for its own domain gates. This is not a global code-review router or a replacement for the selected evaluator matrix.
+
+- Before a high-risk completion or parity judgment, assess independent omission-review need without waiting for another user prompt. Triggers include large structural/control-flow changes, framework/dependency migrations, behavior removal, auth/security, data integrity/transactions, concurrency, and multiple consumers. When an authorized competent fresh reviewer is available and the work fits actual resource limits under [shared resource governance](workflow-governance.md#resource-governance), obtain the challenge; reassess a planning allocation before treating it as a barrier. Keep routine low-risk work proportional and record the risk decision.
+- Follow [Competence-First Delegation](competence-first-delegation.md) for admission, named bindings, and unavailable-worker behavior. A missing required independent challenge leaves useful primary analysis plus an explicit acceptance gap; do not substitute a narrow worker or describe self-review as independent. Keep the primary's requirement, scope, architecture, source/authority, security, persistence, integration, and final-acceptance decisions with the primary.
+- Record actual hard limits and their sources/scopes separately from risk-appropriate review allocations and reassessment checkpoints under [shared resource governance](workflow-governance.md#resource-governance). Keep stop/return criteria, observed usage, spent attempts, pending commitments, remaining capacity and closeout reserve in the existing run/evaluation records. Carry stale/interrupted attempts and unresolved concerns across resume; changed inputs do not reset the count. The primary may revise its planning allocation within existing authority and actual caps, recording new information or expected information gain, rationale, usage and commitments; a critic may dispute adequacy. Do not silently extend a hard limit, repeat unchanged work until spotless, or treat exhaustion as acceptance. A worker return or planning checkpoint is not whole-task review sufficiency. Actual limits stop only their affected work; continue other feasible authorized evidence work and report remaining acceptance gaps. These resource controls do not replace implementation attempts, retry escalation, strict parity and independent-review gates, required coverage, or the return model below.
+- Freeze baseline and candidate separately as full commits or immutable bundles with complete path/content manifests. Resolve a requested current branch to its actual immutable revision and recheck the reference at close. Do not force commits, invent a head, or add dirty state to a frozen PR review. Record dependency/configuration/environment state and guidance provenance, revision, and content fingerprint for each side. Candidate guidance changes do not authorize exclusions or weaker gates; reconcile changed inputs and authority before relying on affected evidence.
+- Give initial discovery the full task constraints, raw frozen code/diff, surrounding code, relevant contracts, callers/terminal consumers, tests, existing validation, and review-instruction provenance/revision/fingerprint/limits. Exclude author reasoning, favored conclusions, expected findings, and prior candidate lists. Preserve that initial return before an informed dispute stage. Record actual actor/history/tool/permission exposure and unavailable runtime fields; separate context, method, source-lineage, and validation-data independence. Role/model labels alone establish neither independence nor an OS sandbox.
+- Keep a code omission challenger, including an available `review_challenger`, non-editing and non-executing: no reviewed-code/build/test execution, dependency installation, runtime mutation, publication, acceptance decision, or delegation. Return bounded validation requests to an authorized capable validator or the primary. Record inspected scope, relevant callers/terminal consumers, coverage, provenance, independence, and validation gaps.
+- Adjudicate candidates under the active contract using trigger, reachability, baseline/candidate behavior, causal location/delta, impact, supporting/counterevidence, severity, and confidence. Distinguish new regressions, pre-existing defects, authorized deltas, and unproven concerns. Validate fixture/oracle/environment before accepting a differential failure; deduplicate without losing distinct causal paths. Agreement and finding counts do not decide truth.
+- Record claim status (`supported`, `refuted`, `unresolved`) separately from action (`fixed`, `accepted intentional delta`, `retained`, `deferred`), with evidence locators, observation/state identities, reasons, and limits. Significant disputed/high-impact claims or self-adjudication conflicts may require a separate competent informed adjudicator or objective discriminating validation. Retain arguments and unresolved limits when rejecting or deferring a critic; adjudication grants no new scope, execution, publication, or merge authority.
+- After repairs, inspect baseline -> current whole scope and previous reviewed candidate -> current delta. Renew affected witnesses after code, caller/terminal-consumer, contract, dependency/configuration/environment, guidance, or assumption changes. Keep repair confirmation distinct from fresh omission discovery; carry unresolved statuses and actions even if no new candidate appears. Explicitly retract/correct a contradicted earlier safety or parity claim.
+- Further substantive review needs new evidence, a question/path, changed input or repair, or a concrete unresolved concern. End with a scoped conclusion or explicit partial result and next bounded check/resume condition. Build/test/wiring/startup/runtime evidence supports only its checked scope; missing relevant coverage, required independence, or material objections cannot become an unqualified parity or readiness claim. Route remaining acceptance gaps through the existing evidence, return, and termination rules.
+
 ## Docs-Content Writing Contract
 
 - A `docs-content` run may use a compact writing contract in place of a separate spec document. This is an alternate form of the active spec, not permission to build or evaluate without an execution contract.
@@ -61,11 +145,11 @@
 The normal operating structure is:
 
 1. Run from one approved feature.
-2. Complete the automated execution loop or stop on a technical blocker.
+2. Complete the automated execution loop or stop under the technical or resource block exception.
 3. Report the result to the human owner.
 4. Let the human owner decide whether to accept, return to spec, return to planning, or unblock locally.
-5. Correct the owning layer.
-6. Start a new run from the corrected point.
+5. Correct the owning layer or resolve the local block; a resource unblock requires verified permissible capacity and authority.
+6. Start a new run from the corrected layer after a post-run return to spec or planning, or from the verified unblock point after a resource block. For a resource block, recheck the approved feature and active spec, and carry cumulative task resource usage and commitments into the new run without resetting them. After a technical-only local unblock, the same run may retry as a new attempt after the required human routing decision if the approved feature and active execution contract remain valid.
 
 Use this model instead of ambiguous phrases such as "go back", "resolve", or "fix" without classification.
 
@@ -100,13 +184,20 @@ Use this model instead of ambiguous phrases such as "go back", "resolve", or "fi
   - execution reveals a missing mode, ownership decision, or dependency order that should have been resolved before spec
 
 ### Technical Block Exception
-- A run may stop early only when it is technically blocked and cannot continue safely.
+- A run may stop early only when it is technically blocked and cannot continue safely, or under the separate [Resource Block Exception](#resource-block-exception).
 - Record the run as `blocked`.
 - Report the blocker to the human owner.
 - Only after that report should the human owner decide whether the next step is local unblock, return to spec, or return to planning.
 
+### Resource Block Exception
+- Use this exception only when an actual user or environment hard limit prevents required continuation after permitted useful work, or a whole-task deadline requires closeout while required work or acceptance remains incomplete. A planning checkpoint alone never qualifies. A resource-specific cap stops only its affected work; continue unrelated feasible authorized work before concluding that the run is blocked.
+- Stop the affected work and preserve usable results. Apply [shared resource accounting and closeout](workflow-governance.md#dispatch-reserve-and-accounting): record the actual limit's source, scope, units and current bound, cumulative task usage, pending commitments, remaining capacity and closeout reserve. Collect or stop pending workers as authorized, and preserve pending work/artifacts with their owners and resolution conditions.
+- Record the run as `blocked` with the resource reason and the required work or acceptance still incomplete. Keep existing evaluator `Result` values and observed coverage facts unchanged; record any incomplete `Evidence Coverage`, unverified claims and their acceptance impact separately. Do not invent an evaluator result for unperformed checks. Resource exhaustion establishes neither evaluator `FAIL`, a spec/planning defect nor acceptance. Retain any independently established defect or evaluator failure on its own evidence.
+- Report the block to the human owner. Only after that report does the existing human decision choose local unblock or a genuine return to spec or planning; do not invent a layer defect to explain resource scarcity. Existing approval, escalation and acceptance gates remain in force.
+- Resume only after permissible capacity and authority have been verified under that decision. Recheck the approved feature and active spec, preserve the blocked run and its evidence, and start a new run from the corrected or verified unblock point under the execution return model. Link the predecessor run and carry cumulative task resource usage and pending commitments across runs; a new run does not reset a task-wide cap. Record any authorized actual-limit change separately from earlier limits and usage.
+
 ## Practical Decision Rule
-Ask these questions in order:
+Apply the technical and resource block exceptions independently of defect routing; a resource shortage alone does not identify a broken layer. For a defect, ask these questions in order:
 
 1. Is the approved feature boundary still correct?
 2. Is the active spec still correct?
@@ -167,7 +258,7 @@ Do not start executable spec work when:
 ## Traceability Rules
 - Use one run identifier such as `run-YYYYMMDD-01` for each active execution pass.
 - Use one active spec per feature loop: a spec document, or the designated [docs-content writing contract](#docs-content-writing-contract).
-- A run may include multiple attempts when execution loops locally or is retried after a technical blocker.
+- A run may include multiple attempts when execution loops locally or is retried after a technical blocker. A resource-blocked run resumes through a new linked run under the [Resource Block Exception](#resource-block-exception), preserving cumulative task accounting.
 - Record return-to-spec or return-to-planning as post-run human decisions rather than as silent in-run redirects.
 - Use evaluator reports that name:
   - run ID
@@ -183,6 +274,39 @@ Do not start executable spec work when:
 - Use fix logs that also reference the active run ID.
 - Use fix logs that reference the active attempt when the same run has multiple passes.
 - Use heuristic backlog entries for non-blocking suggestion accumulation.
+
+## Change Impact And Regression Scope
+
+For delivery changes, establish a proportionate impact boundary before build and
+refresh it when new dependencies are found. Follow actual calls, data, storage,
+rendering and execution paths to shared owners and affected consumers, including
+paths absent from the initial regression list. Record the intended behavior
+change and the existing approved contracts that must remain true.
+
+- The Builder completes causally necessary producer, consumer, fixture, generated
+  artifact and owner-document updates within the approved boundary and lane.
+  Another file or module alone does not require a new approval; unresolved
+  product meaning, ownership, acceptance or lane authority follows the existing
+  spec/planning return rules. File adjacency alone does not justify extra work.
+- Keep the footprint and checks in the existing spec, build handoff or evaluation
+  record: changed behavior, shared owner, affected consumers, preserved contracts,
+  evidence and exclusions. Select representative positive, empty, unavailable,
+  failure or recovery conditions when they distinguish those contracts. Scale
+  checks to actual propagation and risk; do not require a whole-application
+  viewport/state/host cross-product for every fix.
+- Before completion, review substantive candidate changes against the intended
+  result and necessary dependencies, distinguishing pre-existing or concurrent
+  edits. Investigate unexplained changes and regressions instead of absorbing
+  unrelated cleanup or reverting another actor's work.
+- The Orchestrator assigns applicable contract, design and functional checks and
+  verifies their coverage and acceptance impact at closeout. Evaluators verify
+  changed behavior and representative preserved consumers, recording unobserved
+  paths explicitly. A source check or isolated process does not establish that
+  active clients loaded the same code, assets or persisted contract; verify the
+  relevant delivery boundary or retain that gap under the existing coverage rules.
+
+These controls apply to implementation fixes that preserve a contract as well as
+contract changes. They add no workflow state, artifact type or approval gate.
 
 ## Post-Contract Regression Check
 - When a run changes a source-of-truth contract, generated-data contract, identity model, route contract, schema, payload, command contract, or integration boundary, the run should check for stale assumptions in:
@@ -206,3 +330,4 @@ Do not start executable spec work when:
   - `blocked`
   - `returned-to-spec`
   - `returned-to-planning`
+- `blocked` includes the technical and resource block exceptions. Record the cause separately from evaluator results and evidence coverage; resource blocking neither adds a terminal state nor establishes acceptance or a layer defect. Resumption follows the applicable exception and execution return model.

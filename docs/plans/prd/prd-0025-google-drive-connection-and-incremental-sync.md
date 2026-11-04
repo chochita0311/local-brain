@@ -57,7 +57,7 @@ for present implementation ownership; the old source layout is not a live path.
 | [Current Search Contract](../../policies/project/natural-language-search.md), [Source Admission](../../../src/localbrain/natural_search/source.py) | 검색은 현재 동기화와 별개다. 다운로드 위치가 자동 검색 대상이 되는 것은 아니며 이번에 검색 허용 규칙을 바꾸지 않는다. |
 | [In-App Documentation](../../policies/project/app-documentation.md) | 설치자용 인증·연결 안내는 기존 Settings guide의 확장으로 계획하고 Google Drive 탭에서 연결한다. 앱 제공자의 OAuth 운영 안내와 사용자 이용 안내를 구별한다. 이번 PRD 작성이 실제 앱 가이드 구현을 뜻하지 않는다. |
 | Google 공식 문서, `2026-10-28` 확인 | 아래 OAuth·폴더·변경·삭제 제약의 근거다. 실제 계정·폴더에 대한 통신·권한·동기화 검증을 수행했다는 뜻은 아니다. |
-| [PRD Management](../../policies/harness/prd-feature-management.md), [Workflow](../../agents/flows/workflow.md) | draft를 사람과 검토한 뒤 PRD 승인, 이후 Feature 경계 검토로 진행한다. 후보 목록은 실행 허가가 아니다. |
+| [PRD Management](../../policies/harness/prd-feature-management.md), [Workflow](../../agents/flows/delivery.md) | draft를 사람과 검토한 뒤 PRD 승인, 이후 Feature 경계 검토로 진행한다. 후보 목록은 실행 허가가 아니다. |
 
 ## Product Intent
 

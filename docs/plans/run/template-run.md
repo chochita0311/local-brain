@@ -42,6 +42,21 @@ For `docs-content`, replace both spec-file examples with the designated writing 
 - Relevant policies:
 - Optional skills or tools expected:
 
+## Resources When Relevant
+
+Use the existing run for applicable facts under
+[shared resource governance](../../policies/harness/workflow-governance.md#resource-governance).
+Do not invent numeric limits to fill fields; keep unobserved values unknown.
+
+- Actual hard limits: source, units, scope, original/current bound and observability/enforcement:
+- Authorized actual-limit changes, reason and authority; preserve consumed resources:
+- Planning checkpoints/allocations and revisions, rationale and new information or expected information gain:
+- Observed usage, stale/interrupted attempts when applicable, pending commitments, remaining capacity and closeout reserve:
+- Worker stop/return boundaries, reassessment and stop/resume conditions; feasible unaffected work after a scoped limit:
+- Actual hard-limit overrun or resource-block reason, affected work and unmet acceptance, separate from evaluator Result and Evidence Coverage:
+- Resource-blocked predecessor/follow-up run and post-report human decision, when applicable:
+- Verified resumption capacity/authority and feature/spec validity; cumulative task usage and commitments carried into the new run:
+
 ## Optional Harness Experience
 
 - When Harness Improvement is selected and configured, the

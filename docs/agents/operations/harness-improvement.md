@@ -68,7 +68,7 @@ investigation prompt is optional, not a form the user must fill to export.
 
 1. Confirm that the capability was selected. Resolve the consumer, environment,
    private audience and existing storage authority. Reuse an existing configured
-   owner and its records; otherwise use the consumer's `docs/evidence/` under the
+   owner and its records; otherwise use the repository's `docs/evidence/` under the
    [local layout policy](../../policies/harness/harness-improvement.md#consumer-evidence-layout).
    Authorized adoption configures this default without a separate destination
    question. Use an alternative owner when existing rules or an explicit choice
@@ -85,7 +85,7 @@ investigation prompt is optional, not a form the user must fill to export.
    only as needed. Local records and receipts are consumer outputs, excluded
    from the shared-file manifest and protected during refresh.
 4. During adoption, expose the conditional operation pointer and standard
-   `docs/evidence/STORE.md` locator in the consumer's entrance instructions.
+   `docs/evidence/STORE.md` locator in the repository's entrance instructions.
    Keep actual binding contents and identifying or external private locators
    in the local store or approved private discovery surface, out of public docs
    and the import manifest. Later sessions follow the configured binding.
@@ -101,13 +101,14 @@ interrupted agent can leave a gap; retain that distinction in the result.
 
 ## Ordinary Stage Work
 
-The workflow/runner or direct stage performer invokes this procedure for each
-actual stage/attempt. The coordinator owns the resulting record and index.
+The selected flow/runner, current task coordinator or direct stage performer
+invokes this procedure for each actual stage/attempt. The coordinator owns the
+resulting record and index.
 
 1. **Find the current stage.** Resolve the real target and role, available
-   run/attempt identity and private binding. Before a run exists, use the
-   planning artifact/session and stage identity. Find the existing target
-   pointer on continuation; duplicate wrapper entry is the same stage.
+   run/attempt identity and private binding. When no run exists, use the
+   planning artifact or current task/session and stage identity. Find the
+   existing target pointer on continuation; duplicate wrapper entry is the same stage.
    If the pointer is missing, use a bounded lookup of identifiable saved stage
    evidence to recover it; do not create another identity for that stage.
    With a ready binding, reuse the existing stage or save a new active stage,
@@ -149,8 +150,9 @@ actual stage/attempt. The coordinator owns the resulting record and index.
    to update its knowledge and work independently. Link original evidence/tasks;
    a hypothesis needs no lesson, and a completed stage need not create a record.
    Save the Improvement Record, then its index; avoid duplicate support.
-6. **Return through the existing workflow.** Keep normal bug/spec/planning routes
-   and human approvals. Surface qualified common candidates at the existing
+6. **Return through the current task or selected flow.** Keep its governing
+   return routes and human approvals; delivery retains normal bug/spec/planning
+   routes. Surface qualified common candidates at the existing
    closing review, grouping design/interaction candidates with their owner
    review. An actual comparison and a shared export each retain their own
    authority and evidence requirements; neither starts from ordinary success.
@@ -221,7 +223,8 @@ directory is not a substitute for the configured owner.
 ## Procedure
 
 1. **Resolve and route.** Identify the task boundary and actual component owner.
-   Apply the policy's diagnosis and existing bug/spec/planning return routes.
+   Apply the policy's diagnosis and the current task or selected flow's return
+   routes, including delivery's bug/spec/planning routes when selected.
    Keep the task's acceptance criteria fixed.
 2. **Capture the baseline.** Read the minimum original inputs, outputs and
    relevant events. Distinguish current source, installed content, declared
@@ -260,7 +263,8 @@ directory is not a substitute for the configured owner.
    overhead and unknown measurements. Keep baseline, apply locally, propose
    promotion, hold or discard. Update record knowledge only when supported; otherwise
    state that no durable lesson was established. Route any domain-task
-   acceptance back to its existing run/spec owner.
+   acceptance back to its existing task or selected-flow owner (the run/spec
+   owner for delivery).
 8. **Prepare a public candidate when in scope.** Follow the reconstruction and
    review steps in [Export Common Experience](#export-common-experience), using
    the [common record template](../templates/harness-improvement-record.md) when a public case is
@@ -296,14 +300,16 @@ This direction is consumer to common source, independent of Git ignore rules.
    any publishable common-source write. Keep credentials, identifying details, original
    private paths/IDs/hashes and revealing context private. Resolve stable public
    identity and expected revision/hash across the public evidence layer;
-   resolve the [subject-owned location](../../policies/harness/improvement-record-contract.md#public-record-placement)
+   resolve the [current owner location](../../policies/harness/improvement-record-contract.md#public-record-placement)
    and match subjects/problem/predicates and
    independent events. Hold privately if meaning or public fitness is unresolved.
    Validate the format and approval state; same-revision changed bytes or a
    concurrent source update require reconciliation, not a blind overwrite.
 4. **Write the common result.** Write the normalized record to the resolved
-   `evidence/agents/<component>/` or `evidence/skills/<component>/` source location,
-   incrementing content revision for an update. Preserve original observations,
+   `evidence/<domain>/<component>/` source location, using one of the four owner
+   domains defined by [Public Record Placement](../../policies/harness/improvement-record-contract.md#public-record-placement).
+   Increment content revision for changed record content; a path-only move with
+   identical bytes retains it. Preserve original observations,
    contrary evidence and history. Reconcile the common catalog/index
    after the record; a move also removes its old entry and copy after references
    are resolved. Generic commonization may retain grounded remaining work and
@@ -325,26 +331,45 @@ This direction is consumer to common source, independent of Git ignore rules.
 ## Import Improvement Records
 
 Use [record admission and local use](../../policies/harness/improvement-record-contract.md#import-and-local-use)
-with the adoption guide's complete capability and mapping v8. An installed
-record is a source snapshot, not a local task or silently adopted instruction.
+with the complete capability. For authorized import/refresh administration,
+use the **SOURCE-ONLY** Harness Adoption Guide and current export mapping (import/refresh administration only)
+in the actual selected shared-source snapshot. This administrative reference is
+not an ordinary runtime dependency or an additional selected payload file.
+The installed manifest describes its accepted mapping baseline, not the current
+source mapping. An installed record is a source snapshot, not a local task or
+silently adopted instruction.
 
-1. Resolve exact record IDs across evidence domains and purpose: reference
-   or work-candidate. Resolve
-   an older selection by its stable identity and actual content before rendering;
-   reconcile ambiguity without recreating source aliases. Do not select all work by default.
+1. Resolve exact record IDs across the four current owner domains in
+   [Public Record Placement](../../policies/harness/improvement-record-contract.md#public-record-placement)
+   and purpose: reference or work-candidate. Resolve an older selection by its
+   stable identity and actual content before rendering;
+   missing or ambiguous identity blocks the dependent write. Reconcile it without
+   recreating source aliases. Do not select all work by default.
 2. Admit only supported format/schema, unique public identity/revision, approved
-   public fitness and attributable committed source/hash. Compare record revision
-   and current installed baseline; stop unknown-version, same-revision/different-
+   public fitness and attributable committed source/hash, checking exact raw
+   source bytes before rendering. Compare record revision and current installed
+   baseline; stop unknown-version, same-revision/different-
    hash, stale-revision-without-rollback or managed-drift conflicts. Preserve local
    ownership and invalid-manifest recovery rules before dependent writes.
-3. Render only selected records and their common catalog rows, retaining
-   repository-relative source locators, source/rendered provenance and safe
-   references to omitted evidence. Normalize an older manifest's package-root
+   The same ID/revision/raw-source hash means unchanged record content after a
+   path-only move; continue through the mapping and retirement checks in step 3.
+   A higher revision is only an update candidate.
+3. Render only selected records under `docs/evidence/<domain>/<component>/`,
+   retaining the source domain, and their common catalog rows at
+   `docs/evidence/README.md`. Retain repository-relative source locators,
+   source/rendered provenance and safe references to omitted evidence. Normalize an older manifest's package-root
    locators without changing their effective baseline paths or detached local
-   baselines. Complete checks before
-   the final manifest write. Reconcile superseded installed content and inbound
-   references, then retire old managed targets when covered by the authorized
-   refresh. Preserve local ownership or unresolved drift; do not recreate aliases.
+   baselines. Historical `evidence/agents/` source locators and
+   `docs/evidence/agents/` target locators remain accepted provenance until
+   controlled refresh succeeds. Preserve every entry's source,
+   target, baseline source revision, mapping version, source/rendered hashes and
+   ownership until that accepted managed update. Reconcile superseded installed content and inbound
+   references and destination collisions; conflicting targets block dependent
+   writes. Retire old managed targets only after explicit retirement review under
+   the authorized refresh. Preserve local ownership or unresolved drift; do not recreate aliases.
+   Only after the accepted managed update and content/link/conflict checks,
+   advance its source/target and baseline fields together. Save the installed
+   manifest as the final successful write.
 4. At the authorized private owner, retain the receipt: selected ID/revision,
    source commit/hash and rendered baseline reference, purpose, local applicability
    decision and any actual task/evaluation. If unavailable, report session-only
@@ -367,7 +392,9 @@ knowledge or promotion decisions; do not narrate every bookkeeping action. Keep 
 safe stage/improvement reference in existing artifacts only when their audience may
 see it. Private recording may proceed without putting a link in a public PRD,
 run or evaluation. Do not copy an experiment's effect table into several owners.
-The existing design/interaction review and human acceptance sequence remains.
+The current task or selected flow's human acceptance sequence remains. For
+delivery, this includes its existing design/interaction review and human
+acceptance sequence.
 
 For improvement maintenance, report the selected work and why it was eligible,
 actual results and closure evidence, unmet conditions or remaining work, and

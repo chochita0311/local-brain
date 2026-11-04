@@ -3,7 +3,7 @@
   "source": {
     "repository": "ai-assets",
     "package_root": ".",
-    "revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb"
+    "revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e"
   },
   "selection": {
     "repository_surfaces": [
@@ -12,398 +12,409 @@
       "infra",
       "docs"
     ],
-    "excluded_capabilities": []
+    "excluded_capabilities": [
+      "research"
+    ]
   },
   "mapping": {
-    "version": 8
+    "version": 10
   },
   "files": [
     {
-      "source": "agents/flows/workflow.md",
-      "target": "docs/agents/flows/workflow.md",
+      "source": "harness/flows/delivery.md",
+      "target": "docs/agents/flows/delivery.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
-      "source_sha256": "de56abd5562ee9379ad271b5fad36e7dd9ad2b4342197bda10a9c69109eb0660",
-      "rendered_sha256": "d859d1b1562d9e7334de4557dfa7709d7adcb2f1b77a23e61fdddc6e708097ec"
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
+      "source_sha256": "0e1d1824a1892ba834929f5bdaad445c26546b9453e6719e041fd261e063616b",
+      "rendered_sha256": "24f369398f50b2cd33d7033e087859dbf1168d450900e4471c8f978f017d488b"
     },
     {
-      "source": "agents/operations/harness-improvement.md",
+      "source": "harness/operations/delivery-runner.md",
+      "target": "docs/agents/operations/delivery-runner.md",
+      "ownership": "managed",
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
+      "source_sha256": "6bdb22afc9bb60a0c95c568378036504d7ce7359f0a399dd27fab0e3fb4e3792",
+      "rendered_sha256": "635bb3c046ef79a81c9c6834a67db61e34afcf6ab2a5b372a0384d754f2864bb"
+    },
+    {
+      "source": "harness/operations/harness-improvement.md",
       "target": "docs/agents/operations/harness-improvement.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
-      "source_sha256": "3a5af75778f0472493087a41351ddf80a4fecef02c6d5df0f2e9c5e21a306d71",
-      "rendered_sha256": "1a4cc0732b7644d5930b2e1445a7fb505bcba269d9230027f975b5eca1ac286f"
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
+      "source_sha256": "3e731bf4ce20da89cd44c470046686802cd62683d960b60d565dd372f4d926c8",
+      "rendered_sha256": "edf7139646bc2d3cb4ddbbe9d7df72d24915f10ae28b0ad4110a2dcfe64e5a4e"
     },
     {
-      "source": "agents/operations/runner.md",
-      "target": "docs/agents/operations/runner.md",
-      "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
-      "source_sha256": "c7d087b5b7ae2196f32a4902629b6073b96131abb5cade8435c3422a1201a12a",
-      "rendered_sha256": "4e08d2b60e1e6681a419a28da52dc41e9871c1aab668ff2996504500a297655f"
-    },
-    {
-      "source": "agents/profiles/README.md",
+      "source": "harness/profiles/README.md",
       "target": "docs/agents/profiles/README.md",
       "ownership": "local",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
-      "baseline_mapping_version": 8,
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
       "source_sha256": "fb4820e32091ea443e4e7911f68f93489d65a606193a613e5da77878ed902ecc",
       "rendered_sha256": "b167fdbef67f467eb6aaf1a9d2171841fc110471f826c87f1bb6522fed36e8e4"
     },
     {
-      "source": "agents/profiles/backend-product.md",
+      "source": "harness/profiles/backend-product.md",
       "target": "docs/agents/profiles/backend-product.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
       "source_sha256": "3b0368f776e9cbeb0881fed3bb6847488ed06502fafc1baec7815dda50ee3089",
       "rendered_sha256": "607f0ad0198537349940dd6f9bad64d7a5bff78502267610b000e2ffcefd7e9d"
     },
     {
-      "source": "agents/profiles/docs-content.md",
+      "source": "harness/profiles/docs-content.md",
       "target": "docs/agents/profiles/docs-content.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
-      "source_sha256": "ec7f047fc756ebc604dfbbd206b46e686a06d16a1061a9b0393c166dc49d2349",
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
+      "source_sha256": "601dfa5559752608f0bdf1f13ab9dd6b66b8c7b48fc31382375ffa93fa6a2e21",
       "rendered_sha256": "d1f407325484342a52086f17c6b521ed7573a779c57de248d8bb0faa7c1c8adb"
     },
     {
-      "source": "agents/profiles/foundation-contract.md",
+      "source": "harness/profiles/foundation-contract.md",
       "target": "docs/agents/profiles/foundation-contract.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
       "source_sha256": "c2ca93643b2490c980d9dbf69f9acd32277c6e56f312e6d7d60f45c58a58cb1a",
       "rendered_sha256": "c2ca93643b2490c980d9dbf69f9acd32277c6e56f312e6d7d60f45c58a58cb1a"
     },
     {
-      "source": "agents/profiles/frontend-product.md",
+      "source": "harness/profiles/frontend-product.md",
       "target": "docs/agents/profiles/frontend-product.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
       "source_sha256": "264713d612a0b7e4c75080eef779ca5bfae5fad7a7aed974f85dc8c7c34b33d4",
       "rendered_sha256": "264713d612a0b7e4c75080eef779ca5bfae5fad7a7aed974f85dc8c7c34b33d4"
     },
     {
-      "source": "agents/profiles/fullstack-product.md",
+      "source": "harness/profiles/fullstack-product.md",
       "target": "docs/agents/profiles/fullstack-product.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
       "source_sha256": "73e0c50a7cc3636ad8affe6d191268fba88deac88d0fc2f6143e5e5d9ff8199d",
       "rendered_sha256": "73e0c50a7cc3636ad8affe6d191268fba88deac88d0fc2f6143e5e5d9ff8199d"
     },
     {
-      "source": "agents/profiles/infra-devtool.md",
+      "source": "harness/profiles/infra-devtool.md",
       "target": "docs/agents/profiles/infra-devtool.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
       "source_sha256": "136702b57aab429a009d9c8d53e2da79e467c61046a085467a3fb27570ade101",
       "rendered_sha256": "fd9f8917c77ffc4fa452053e0a4754e7c3e88170cacf376f912ef27475ea9ba0"
     },
     {
-      "source": "agents/roles/builder.md",
+      "source": "harness/roles/builder.md",
       "target": "docs/agents/roles/builder.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
-      "source_sha256": "c2dd8c2ed73ad6ebd6585f19ea9076b447193cd6c5af981c5ba1212494133b0f",
-      "rendered_sha256": "6ea3cca377050df3206f4f8521067deb90aad4360c5a1633362af81b83dccc39"
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
+      "source_sha256": "700cdee5936586cb98aae9108074d7152911c0cb04f8acfcfa6589e72d4d2fd8",
+      "rendered_sha256": "a391ba0c23db502d35558e2c4270afe26b85c7ddd53e6619453df82509404d16"
     },
     {
-      "source": "agents/roles/contract-evaluator.md",
+      "source": "harness/roles/contract-evaluator.md",
       "target": "docs/agents/roles/contract-evaluator.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
-      "source_sha256": "b5ef0daba0976919a3a399153ea6698661f75a5a57627f77f9c72333b5132f54",
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
+      "source_sha256": "5a9c04f1469090ea468573adfc2924a60d64f443bbc84226f5d47b6d296a5972",
       "rendered_sha256": "dc6b009f72c56c8b7803647088823ad5d9d3b6a002aa8a2f4347fae3b399b5aa"
     },
     {
-      "source": "agents/roles/design-evaluator.md",
+      "source": "harness/roles/design-evaluator.md",
       "target": "docs/agents/roles/design-evaluator.md",
       "ownership": "local",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
-      "baseline_mapping_version": 8,
-      "source_sha256": "837b96ead352738005fb6396152190d26d72203c16e6306af33b95e8d294099d",
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
+      "source_sha256": "4a3b1f14aecc180f6ef7e0533e6f2f0d22aa985a102b07a72c71aff589bc6fb6",
       "rendered_sha256": "5b78420a4b90eecf6d5be57d63b2060123a8c33d4922dc61725b7478d097a159"
     },
     {
-      "source": "agents/roles/feature-planner.md",
+      "source": "harness/roles/feature-planner.md",
       "target": "docs/agents/roles/feature-planner.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
-      "source_sha256": "c6b51a6cff1f23546594d863de403df538dc321281b9c12a29046a0b2cf1e7f3",
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
+      "source_sha256": "404a073071f04d4e8f6f67ffa866d6e1a573c1b1a85320a5fe8cbdb70dc47fa6",
       "rendered_sha256": "aa8c6dfc0b8a77d1e9a16082972c5b4fabb9ca7a0a8ed204897b2ebbfaaffd1e"
     },
     {
-      "source": "agents/roles/fix-agent.md",
+      "source": "harness/roles/fix-agent.md",
       "target": "docs/agents/roles/fix-agent.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
-      "source_sha256": "23dd41a6f0adee8e41028fbcf98744fd0dff1f0afebb10a4ade3b3381b66f08b",
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
+      "source_sha256": "dc9090e4a778db0fad2a930c5f804a5253d199b9faf5762389abaa10ee2fbef4",
       "rendered_sha256": "31ad00070ca991af1bc0547ec5805e27e7e442b6d58c0a225060388629aac081"
     },
     {
-      "source": "agents/roles/functional-evaluator.md",
+      "source": "harness/roles/functional-evaluator.md",
       "target": "docs/agents/roles/functional-evaluator.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
-      "source_sha256": "75917cf4eeca11d727e02f46e63573423d0b092c3e9e40deea9132e4c5f3f7df",
-      "rendered_sha256": "31e6b27417e1ecde33ad84e3886c90de8b8ba360c36896950016580c6d68341e"
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
+      "source_sha256": "12ba3d29eedfd1012c6a0bf695da02457cf426df6d36013a5d0bffacc733f97d",
+      "rendered_sha256": "65452ccb56231c5040e27cc499e0e591306399c2a799cf61d3ffc06011c26b82"
     },
     {
-      "source": "agents/roles/orchestrator.md",
+      "source": "harness/roles/orchestrator.md",
       "target": "docs/agents/roles/orchestrator.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
-      "source_sha256": "4e01c7b2b34370cd1263ab2f6a4dcf02ed05860298060a1b2f50bc67126fe2e0",
-      "rendered_sha256": "8552f52649cbb8549e5cee26db88b9bcf4b5be095004f4992e4767933e8273d9"
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
+      "source_sha256": "6bd03e5722c8b5f64c15ee714dcb5e10d28d5b289e173c0594d1e107c351dfd4",
+      "rendered_sha256": "7482185eeed385d3b49043658877a5c52690f963e6d88414d33f06d657df46af"
     },
     {
-      "source": "agents/roles/prd-normalizer.md",
+      "source": "harness/roles/prd-normalizer.md",
       "target": "docs/agents/roles/prd-normalizer.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
-      "source_sha256": "bbb3685b4b61cf3c4ebe9ba9f11d21e48a82af7789c56989087712907d3f5a80",
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
+      "source_sha256": "ae65924776f40fa1159cf10c128547f7847501fe864fcad1c18dc6070be8545d",
       "rendered_sha256": "2cc93868483b9d5d532b5837035c526e1dd3dca807edcfbcd2238e008926fde5"
     },
     {
-      "source": "agents/roles/spec-agent.md",
+      "source": "harness/roles/spec-agent.md",
       "target": "docs/agents/roles/spec-agent.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
-      "source_sha256": "bbf62349300a96da7523def9212dd56ebeb9c6d092e9ac9a3328d4db3e6194da",
-      "rendered_sha256": "bbf62349300a96da7523def9212dd56ebeb9c6d092e9ac9a3328d4db3e6194da"
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
+      "source_sha256": "8f2f7e9f9bea54000cbecfd0e07cc9f2e5ed0289b81923be8dfe7062ff777e33",
+      "rendered_sha256": "8327ff2f385fdcd921f320c42667b73c86a149cd811a5476edb0fb70968bcc5d"
     },
     {
-      "source": "agents/roles/ux-heuristic-evaluator.md",
+      "source": "harness/roles/ux-heuristic-evaluator.md",
       "target": "docs/agents/roles/ux-heuristic-evaluator.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
-      "source_sha256": "12187d7ead4145e61de6da17e439749dd5e495305d485111f2ff32314905194c",
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
+      "source_sha256": "476f795fe2c273017fd59e4c16e30b9498fdfc89daa570dcf6aeac49baf04caf",
       "rendered_sha256": "b81dfb63d5bd0dac023cfdf64f83bc8443b220cd19731665f332a4ed81733592"
     },
     {
-      "source": "agents/schemas/improvement-record.schema.json",
+      "source": "harness/schemas/improvement-record.schema.json",
       "target": "docs/agents/schemas/improvement-record.schema.json",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
       "source_sha256": "d640593e0bcb3b1c153d754575f95ad4c40c72f39c4f42f011c7e027a1eb94bf",
       "rendered_sha256": "d640593e0bcb3b1c153d754575f95ad4c40c72f39c4f42f011c7e027a1eb94bf"
     },
     {
-      "source": "agents/templates/harness-experiment.md",
+      "source": "harness/templates/harness-experiment.md",
       "target": "docs/agents/templates/harness-experiment.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
-      "source_sha256": "9b87b5dacb3582d1fd5f7f18c483a2bc24ac130e13a69939ced3708af68d93df",
-      "rendered_sha256": "4f0ac63e604f61bbf98fbe9383abc155ae47967d29286c9bbf3e25509bd96319"
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
+      "source_sha256": "1a4e1218c5812693cff2f99f6683d2da3c9fc372cb457fa138277a3f1b665c5e",
+      "rendered_sha256": "8351f3266dc70ab06090c758085bc977fb207623fa11aaa4bed8feb35c9a551e"
     },
     {
-      "source": "agents/templates/harness-improvement-record.md",
+      "source": "harness/templates/harness-improvement-record.md",
       "target": "docs/agents/templates/harness-improvement-record.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
-      "source_sha256": "e6f697dc51829a9cfa6906c2071d00fd583049d37dc2d40deb92424b9fbb7afa",
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
+      "source_sha256": "3fed3c29b7a4e5902d9e987a60c586eff6031072f06e56aa6243348d26770e18",
       "rendered_sha256": "29458b159999325d9bd8787127780f0487fef8824fb5722315452c37cee7e566"
     },
     {
-      "source": "agents/templates/harness-local-store.md",
+      "source": "harness/templates/harness-local-store.md",
       "target": "docs/agents/templates/harness-local-store.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
-      "source_sha256": "e70b625dde7b9781e1ac9ddc61c41844da37761cf62a59e3d70be0c889262ad9",
-      "rendered_sha256": "11d937959f60c46f4f24ac50ddcb8c7805ed97b216a6d560c69c9d31d1a35a61"
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
+      "source_sha256": "bcb304a66671cb5ad558d998c4fa66a938224eb3223d12e7cf2a0e32608e2f87",
+      "rendered_sha256": "80a3cd21d722ff4717313701f184f33d5db708ccea983c167538c89132d5c66c"
     },
     {
-      "source": "agents/templates/harness-stage-record.md",
+      "source": "harness/templates/harness-stage-record.md",
       "target": "docs/agents/templates/harness-stage-record.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
-      "source_sha256": "8422e559371155e090bae7b4bcc3af9e97e4d480ba5becdbdc7e52f95627086a",
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
+      "source_sha256": "b891d1270182669aff860f422d9502b0c4aaaef8aac803d6249ccd3a5a0e2c2a",
       "rendered_sha256": "687eb2d98b2218817a8ddafa2ac4c5761a6546b63bece5a85cb71bd83235f745"
     },
     {
-      "source": "agents/templates/operator-briefing.md",
+      "source": "harness/templates/operator-briefing.md",
       "target": "docs/agents/templates/operator-briefing.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
       "source_sha256": "51f8752e0c106cd2cdc3f4d73e7dfd23f29f036035b2d6df6697b937caa248f5",
       "rendered_sha256": "51f8752e0c106cd2cdc3f4d73e7dfd23f29f036035b2d6df6697b937caa248f5"
     },
     {
-      "source": "agents/templates/evaluation.md",
+      "source": "harness/templates/evaluation.md",
       "target": "docs/plans/evaluation/template-evaluation.md",
       "ownership": "local",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
-      "baseline_mapping_version": 8,
-      "source_sha256": "0aa8e6a3ec04e69eef38dba3b08dcb368aee26d176287ca655540562bf327d15",
-      "rendered_sha256": "262ccec509d2ddcf0b0acecf18c56f4b32d36d482254b05c8122431457f3be4d"
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
+      "source_sha256": "611abafaf668ef571b125d6d54881880ba6719df959e3a7f50e8f7b01ce44a43",
+      "rendered_sha256": "da2c4db2268cd18b160037497433c1b274fb9ab8d4a0a063395afe65c09d8aa1"
     },
     {
-      "source": "agents/templates/feature.md",
+      "source": "harness/templates/feature.md",
       "target": "docs/plans/feature/template-feature.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
       "source_sha256": "0bace722f683611d8a4b2a93b4f032b49179b3c0358dcf8c2a8f10efdc9ae911",
       "rendered_sha256": "0bace722f683611d8a4b2a93b4f032b49179b3c0358dcf8c2a8f10efdc9ae911"
     },
     {
-      "source": "agents/templates/fix-log.md",
+      "source": "harness/templates/fix-log.md",
       "target": "docs/plans/fix/template-fix-log.md",
       "ownership": "local",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
-      "baseline_mapping_version": 8,
-      "source_sha256": "96eee9f95924dc1c6d2fedcd2d47778b71f1825d0a16a11003a8b14f6b8a1e49",
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
+      "source_sha256": "5612257ff9ef2bd468bc1496c5b3d70413ebc97b238eb59d9f586a27f48889b1",
       "rendered_sha256": "1b72267b47bf2afc816d779f7df8086630405ed23af47580077e2e7852bea12d"
     },
     {
-      "source": "agents/templates/heuristic-backlog.md",
+      "source": "harness/templates/heuristic-backlog.md",
       "target": "docs/plans/heuristic/template-heuristic-backlog.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
       "source_sha256": "d96f21eb6538d42b3cb9ebe6b08239f7b970888275ecee27ac1e7e53f42eaa6c",
       "rendered_sha256": "d96f21eb6538d42b3cb9ebe6b08239f7b970888275ecee27ac1e7e53f42eaa6c"
     },
     {
-      "source": "agents/templates/prd.md",
+      "source": "harness/templates/prd.md",
       "target": "docs/plans/prd/template-prd.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
       "source_sha256": "b89f73de8961384bec5646655b85f7ca6b8544598de9d7dde8b452862dfb976f",
       "rendered_sha256": "b89f73de8961384bec5646655b85f7ca6b8544598de9d7dde8b452862dfb976f"
     },
     {
-      "source": "agents/templates/run.md",
+      "source": "harness/templates/run.md",
       "target": "docs/plans/run/template-run.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
-      "source_sha256": "148dba7cb5193677b866e6bf1987cb9c86edf9525d442358acee50ae7cdb54bb",
-      "rendered_sha256": "1e8b63fcc90166705af1a01d014b7e3bda631116c7b1eaf6afca7239f1eb2b24"
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
+      "source_sha256": "079753e6738b649f1f3341c9bf3e8f2de7b999ba2736878b6c67609c266cbf20",
+      "rendered_sha256": "92951534ddd56ce73780b79f2364e293ca7ea487dcebebd5e986de412307a93a"
     },
     {
-      "source": "agents/templates/spec.md",
+      "source": "harness/templates/spec.md",
       "target": "docs/plans/spec/template-spec.md",
       "ownership": "local",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
-      "baseline_mapping_version": 8,
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
       "source_sha256": "3e8e6bdacfe5c610f7cf3e49c275145e334a9996c4cd15cd644dbf8f1b67a3c7",
       "rendered_sha256": "3e8e6bdacfe5c610f7cf3e49c275145e334a9996c4cd15cd644dbf8f1b67a3c7"
     },
     {
-      "source": "agents/policies/review/design-evaluation.md",
+      "source": "policies/review/design-evaluation.md",
       "target": "docs/policies/design/design-evaluation.md",
       "ownership": "local",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
-      "baseline_mapping_version": 8,
-      "source_sha256": "c8652b61d4366a615a74ec669e03c8ada8178590bdc030ae2ea6ce77017eed26",
-      "rendered_sha256": "fbadb4dd0d9b6c5f21f9e5ea3d6dcefb81e27ccddc703c2ddf92c79e325da73b"
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
+      "source_sha256": "d92bae8dc81b1d57507e66c77eb56c40718c31da12976a80c876c9e2d253e3aa",
+      "rendered_sha256": "9998eeb9760af2ee89e93814f8b495e53c43d63d51054f2415c415d027315d10"
     },
     {
-      "source": "agents/policies/review/interaction-evaluation.md",
+      "source": "policies/review/interaction-evaluation.md",
       "target": "docs/policies/experience/interaction-evaluation.md",
       "ownership": "local",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
-      "baseline_mapping_version": 8,
-      "source_sha256": "4902a049a862d80974d5be4e1717e814c125cc116574550c81edb4f3a7aa6e50",
-      "rendered_sha256": "4579c668081e6c938e121b3127c6d18876591612cb23faec6eaaf6090871a142"
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
+      "source_sha256": "ea936f4844073807d5a2152419608da0a783c8ab95ef5144c5f6f2f977e862c8",
+      "rendered_sha256": "b5ff4936d868e0966b982b249ae35cec73b774c3ae73e1990a753ae97ce43cf9"
     },
     {
-      "source": "agents/policies/harness/competence-first-delegation.md",
+      "source": "policies/competence-first-delegation.md",
       "target": "docs/policies/harness/competence-first-delegation.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
       "source_sha256": "eb03c24448962627e40333882ba7f900bcfb306c30fa4e512227da026b18921a",
       "rendered_sha256": "eb03c24448962627e40333882ba7f900bcfb306c30fa4e512227da026b18921a"
     },
     {
-      "source": "agents/policies/harness/execution-loop-governance.md",
+      "source": "harness/policies/execution-loop-governance.md",
       "target": "docs/policies/harness/execution-loop-governance.md",
       "ownership": "local",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
-      "baseline_mapping_version": 8,
-      "source_sha256": "94746f4dc3cae848f840f109bcdec4074f96ebbb9dabd6c77ffa1403f72f5467",
-      "rendered_sha256": "ff32e4a7ba75fd8518b174870669d9ffc116cd485e598687ab70eb736fe29b1e"
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
+      "source_sha256": "ef7831920f523adbc5d5164dc6a275633fd09522d75d2928040aa0d45b5abb4d",
+      "rendered_sha256": "01e8aefdd2b8e3b073469bbcb9d55500e90270de36d1a0c07da5db9f4b289be2"
     },
     {
-      "source": "agents/policies/harness/execution-profiles.md",
+      "source": "harness/policies/execution-profiles.md",
       "target": "docs/policies/harness/execution-profiles.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
       "source_sha256": "7639784f7257c2070091a7c707bed06e435fd9aa3936df3a73f6846cd3a06f67",
       "rendered_sha256": "747091d0122f7cfb2216a3c34db7f282f65e3aa7d1709ec2980cdb75fe532b54"
     },
     {
-      "source": "agents/policies/harness/harness-improvement.md",
+      "source": "harness/policies/harness-improvement.md",
       "target": "docs/policies/harness/harness-improvement.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
-      "source_sha256": "615c015ff7e3c3f07c899d2631dc84832427c799ea19681c618be1e4a510a65c",
-      "rendered_sha256": "615c015ff7e3c3f07c899d2631dc84832427c799ea19681c618be1e4a510a65c"
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
+      "source_sha256": "183fbbd5343db2416742dc3f06b5152981382bd0c095a6879c36d90515d17c5f",
+      "rendered_sha256": "b2934ea9d8860a48968297950de2dc2b6ca641417989445f9edcb4ab4af530c7"
     },
     {
-      "source": "agents/policies/harness/improvement-record-contract.md",
+      "source": "harness/policies/improvement-record-contract.md",
       "target": "docs/policies/harness/improvement-record-contract.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
-      "source_sha256": "db98376d8187126edd8b3908714ab64e27645095b445e82a67fc066d77e9411c",
-      "rendered_sha256": "482923834d99ff9db772ea32c68c69c73b4ffe1911ee503840ac61f5ebcd1f92"
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
+      "source_sha256": "f6d79ff796501035bea74b6287bd8506cc8c9dec07803aed9d1bd3795f67684e",
+      "rendered_sha256": "b968761a3ae019138675895561b65106afb3367b2c8a63067764bfa7a7a34bf2"
     },
     {
-      "source": "agents/policies/harness/operator-briefing-and-review-receipts.md",
+      "source": "harness/policies/operator-briefing-and-review-receipts.md",
       "target": "docs/policies/harness/operator-briefing-and-review-receipts.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
-      "source_sha256": "23a91d61e1647f47ab15a341e1fe4251447c5b8ec145bf14d50c3ff934d01204",
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
+      "source_sha256": "22117a79b8b7b1d025eba5804925b21e8138728f44a8c3e1f4e5170050212ddd",
       "rendered_sha256": "b708545cd7dd5b48c6c3f154fdf872cae1aa7fffc88aaa7d924f359b300c09e8"
     },
     {
-      "source": "agents/policies/harness/prd-feature-management.md",
+      "source": "harness/policies/prd-feature-management.md",
       "target": "docs/policies/harness/prd-feature-management.md",
       "ownership": "managed",
-      "baseline_source_revision": "a16698813773ea74c310bb6bb5f1493e1b6addeb",
-      "baseline_mapping_version": 8,
-      "source_sha256": "57c451069fdccd5e972b65ac98b74f112008a1f530d691db645810c1eea30533",
-      "rendered_sha256": "6538434272e956c13ffe4e14eef8ba9e61393067835b588e2952057abc6fdc0b"
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
+      "source_sha256": "0b2081d4c780d8edf7ecd9754f904ac83f8b01188cc0d52bd3e8edb7ca942543",
+      "rendered_sha256": "1a16cf05a09c515644290c35079d9b87e5430fcef521b17928bcc3084eb8df3e"
     },
     {
-      "source": "agents/policies/harness/traceability-and-link-hygiene.md",
+      "source": "harness/policies/traceability-and-link-hygiene.md",
       "target": "docs/policies/harness/traceability-and-link-hygiene.md",
       "ownership": "local",
-      "baseline_source_revision": "dc15bf9ad9aae2eaa6c819117a28e807cfbdb755",
-      "baseline_mapping_version": 8,
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
       "source_sha256": "16007eab2e8286f20e3252ea3bda370dea3bb30f1aef1a83bf2889b8e7b8dd7d",
       "rendered_sha256": "216c1609f6036ae697c7496d1fc6a2a55e7dba22025e510238e4ae36d39764ed"
+    },
+    {
+      "source": "harness/policies/workflow-governance.md",
+      "target": "docs/policies/harness/workflow-governance.md",
+      "ownership": "managed",
+      "baseline_source_revision": "77b66679ed0ed6d3bfc887c938892513079d4a7e",
+      "baseline_mapping_version": 10,
+      "source_sha256": "99fc9c12b2342f2c019e226c3667d8639d83f8996deff9e476a2db850461daf9",
+      "rendered_sha256": "45a5534a46bb07d657c8c2d54e19754b0e75decb6d83fda358faa787c683a6b2"
     }
   ]
 }

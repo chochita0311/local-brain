@@ -1,18 +1,19 @@
-# Agent Workflow
+# Delivery Flow
 
 ## Purpose
 - Define the baton flow for bounded, repeatable product work.
 - Keep creative scope decisions separate from implementation loops.
 
 ## Ownership
-- This document owns sequence.
+- This document owns delivery sequence.
+- [Workflow Governance](../../policies/harness/workflow-governance.md) owns shared selection, transitions, authority and resources.
 - Use it to understand the order of operations, stop points, and handoff moments between planning and execution.
 - It does not own the structural contract for PRDs or features.
 - It does not own the operator-facing run-start prompts.
 - Use `docs/policies/harness/prd-feature-management.md` for required document content, approval criteria, traceability rules, allowed ambiguity, and change control.
 - Use `docs/policies/harness/execution-loop-governance.md` for fail classification, execution routing, heuristic handling, and execution-artifact ownership.
 - Use `docs/policies/harness/execution-profiles.md` for profile selection, surface lanes, and evaluator routing.
-- Use `docs/agents/operations/runner.md` when you need to actually start or continue one run through prompts.
+- Use `docs/agents/operations/delivery-runner.md` when you need to actually start or continue one run through prompts.
 
 ## Workflow Assembly
 - Workflows are composable, not universal.
@@ -65,10 +66,10 @@
 17. `Fix Agent`
    - Fix only the approved feature defects surfaced by evaluators.
 18. Re-evaluate
-   - Repeat the needed evaluator and fix steps until pass or until the work must return to planning or spec review.
+   - Repeat the needed evaluator and fix steps until pass, a governed technical or [resource block](../../policies/harness/execution-loop-governance.md#resource-block-exception), or a required return to planning or spec review.
 19. Post-run human review
-   - After the automated run reports its result, the human owner decides whether to accept, return to spec, or return to planning.
-   - Start a new run from the corrected layer instead of treating that return as an in-progress interruption to the earlier run.
+   - After the automated run reports its result, the human owner decides whether to accept, unblock locally, return to spec, or return to planning.
+   - Start a new run from the corrected layer or verified resource-unblock point instead of treating that return as an in-progress interruption to the earlier run; the resource exception requires feature/spec rechecks and cumulative task accounting.
 
 ## Operator Briefing Hooks
 

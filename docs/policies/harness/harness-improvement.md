@@ -29,11 +29,15 @@ semantics, and the boundary between private experience and public records.
 The [Improvement Record contract](improvement-record-contract.md) owns their
 common format, identity and import/export admission across all asset types.
 Skill-specific diagnosis stays in the owning skill.
-[Execution governance](execution-loop-governance.md) owns task
-acceptance and return timing; this policy does not change those criteria.
+Task acceptance and return timing remain with the current task's governing
+contract and, when a harness flow is selected, that flow's governance. For a
+selected harness flow, apply [Workflow Governance](workflow-governance.md) to
+selection, transitions, authority and resources. For delivery execution,
+[Execution governance](execution-loop-governance.md) owns acceptance and return
+timing. This policy changes neither those criteria nor skill/task authority;
+selecting this capability alone does not require a harness flow or delivery.
 
-Keep reusable skills independent of this optional capability. The consuming
-harness owns mapping available skill outputs and observations into the common
+Keep reusable skills independent of this optional capability. This harness owns mapping available skill outputs and observations into the common
 record lifecycle; skill packages need no knowledge of its schema, storage layout
 or import/export procedures. A standalone skill invocation does not select or
 configure this capability. When the capability is selected and configured, its
@@ -46,12 +50,12 @@ per-edit effects.
 | Artifact | Owner and persistence |
 |---|---|
 | Shared procedure and templates | Shared harness source; imported copies follow the adoption contract |
-| Private binding, experience index, stage records, original evidence and private-to-public links | Consumer-owned `docs/evidence/` by default, or an existing configured private owner; original task artifacts retain their own owners |
+| Private binding, experience index, stage records, original evidence and private-to-public links | Repository-owned `docs/evidence/` by default, or an existing configured private owner; original task artifacts retain their own owners |
 | Private improvement record | Configured private owner; owns reusable knowledge and improvement work under the common format, linking original observations |
-| Public experience or unresolved reusable improvement | One canonical Improvement Record at its subject owner under `evidence/agents/` or `evidence/skills/`; `evidence/README.md` discovers the collection |
+| Public experience or unresolved reusable improvement | One canonical Improvement Record at its current responsible owner under `evidence/<domain>/<component>/`, following [Public Record Placement](improvement-record-contract.md#public-record-placement); `evidence/README.md` discovers the collection |
 | Adopted policy, skill behavior, or design/interaction criterion | Its existing policy, skill package, or review-asset owner |
 
-Use the consumer's `docs/evidence/` as the default local evidence layer beside
+Use the repository's `docs/evidence/` as the default local evidence layer beside
 `docs/agents/` and `docs/plans/`. Private here describes the intended audience
 and publication boundary, not a requirement to store files outside the repo.
 An authorized, ignored consumer-local store is valid even in a public repo;
@@ -86,7 +90,7 @@ the new default does not relocate existing history.
 | `docs/evidence/stages/` | Local observations for actual stages and attempts |
 | `docs/evidence/improvements/` | Local reusable knowledge and improvement work, created when warranted |
 | `docs/evidence/experiments/` | Local comparisons once an authorized trial actually starts, including incomplete or interrupted comparisons |
-| `docs/evidence/agents/`, `docs/evidence/skills/` and `docs/evidence/README.md` | Explicitly selected public source records and their catalog, managed by the import contract |
+| `docs/evidence/harness/`, `docs/evidence/agents/`, `docs/evidence/policies/`, `docs/evidence/skills/` and `docs/evidence/README.md` | Explicitly selected public source records and their catalog, preserving the source's domain under [Public Record Placement](improvement-record-contract.md#public-record-placement) and managed by the import contract |
 
 Local records are consumer outputs. Never add them to the harness import
 manifest, replace them from a template on refresh, or copy them to another
@@ -151,12 +155,14 @@ required task evidence still follows its normal acceptance rules.
 
 ## Ordinary Stage Lifecycle
 
-Apply this lifecycle to each role actually performed: PRD normalization,
-feature planning, orchestration, spec writing, build, evaluation, fix and
-reevaluation, including planning-only work and controlled direct continuations.
-Skipped roles produce no execution claims. Use a stage and attempt identity
-linked to the real planning artifact or session before a run exists; attach a
-run ID only after that run exists.
+Apply this lifecycle to each role or stage actually performed in the current
+task or selected flow. For delivery, this includes PRD normalization, feature
+planning, orchestration, spec writing, build, evaluation, fix and reevaluation,
+including planning-only work and controlled direct continuations. Research and
+improvement-only work use their actual stages and existing task/session identity;
+they require no delivery artifacts or separate runtime actors. Skipped roles
+produce no execution claims. Use a stage and attempt identity linked to the real
+planning artifact, task or session; attach a run ID only after that run exists.
 
 1. **Enter:** resolve the active target, role and private binding. With a ready
    binding, find and reuse the existing stage or save a new active stage before
@@ -190,14 +196,16 @@ run ID only after that run exists.
    candidates at the existing review boundary without implying export or
    shared-rule adoption from stage completion.
 
-The stage performer supplies evidence; the active planning or run coordinator
-owns entry/closing writes, target pointers and any improvement-index update.
+The stage performer supplies evidence; the current task's coordinator (the
+active planning or run coordinator for delivery) owns entry/closing writes,
+target pointers and any improvement-index update.
 One primary agent may perform both.
 When evidence arrives later, append it without inventing an earlier observation.
 On resumption, fill a missing close only from recoverable evidence and mark the
 gap. Repeated entry through a role, flow and runner must reuse one stage record,
-not create duplicate observations. Human review and the runner's existing
-design/interaction candidate and acceptance sequence retain their timing.
+not create duplicate observations. Human review and the current task or selected
+flow's acceptance sequence retain their timing; for delivery, this includes the
+runner's existing design/interaction candidate and acceptance sequence.
 
 ## Evidence Of Application
 
@@ -254,7 +262,9 @@ input/evidence, and surrounding workflow causes. Allow mixed or uncertain
 causes and choose a bounded check that distinguishes them. A failure does not
 by itself justify another instruction.
 
-Preserve the existing execution routes:
+Preserve the current task or selected flow's diagnosis and return routes. For
+delivery execution, retain these routes and its separately governed
+[resource-block exception](execution-loop-governance.md#resource-block-exception):
 
 - When the approved feature and active spec remain valid and only the
   implementation is wrong, stay in the loop for targeted fixes and the needed
@@ -350,7 +360,8 @@ it establishes neither an independent forward-test nor a controlled comparison.
 An experiment can finish correctly while its candidate is rejected. Static
 validation or resource execution does not establish agent behavior. Compare
 original failure recurrence and controls before claiming stability; unavailable
-required evidence retains its acceptance impact under the feature/spec/profile.
+required evidence retains its acceptance impact under the current task's
+governing contract, including the feature/spec/profile for delivery.
 
 ## Improvement Records
 
@@ -407,7 +418,7 @@ actual Result/Coverage and per-edit effects, or `not assessed` without compariso
 Close only satisfied work or a reasoned no-change/withdrawal/supersession. Keep
 unmet discovery/runtime/stability/distribution checks open; retain the original
 outcome, counterevidence and resolution evidence. The shared record's work state
-and a consumer's task state remain distinct, as do rule adoption, publication,
+and a repository's task state remain distinct, as do rule adoption, publication,
 refresh and observed use. Uncommitted edits are not Git resolution history.
 
 ### Reconciliation
@@ -523,19 +534,19 @@ authorized private owner until the destination is resolved.
 
 | Reusable result | Destination relative to the canonical `ai-assets` root |
 |---|---|
-| Reviewed public experience, reference case or reusable pending improvement | The subject-owned `evidence/agents/<component>/<record>.md` or `evidence/skills/<component>/<record>.md` and its row in `evidence/README.md`, following [Public Record Placement](improvement-record-contract.md#public-record-placement); the record owns its stable ID, content revision and independent work/knowledge/evidence/adoption states |
-| Shared harness governance | The existing owner under `agents/policies/harness/`; flow, role, operation, profile and template changes stay with their respective owners under `agents/` |
+| Reviewed public experience, reference case or reusable pending improvement | The current owner's `evidence/<domain>/<component>/<record>.md` and its row in `evidence/README.md`, following the four-domain [Public Record Placement](improvement-record-contract.md#public-record-placement); the record owns its stable ID, content revision and independent work/knowledge/evidence/adoption states |
+| Shared harness governance | The existing owner under `harness/policies/`; flow, role, operation, profile and template changes stay with their respective owners under `harness/` |
 | Skill behavior or resource change | The owning package under `skills/<skill-name>/`, following its quality and distribution contract |
-| Reusable visual evaluation criterion | `agents/policies/review/design-evaluation.md` |
-| Reusable interaction/UX evaluation criterion | `agents/policies/review/interaction-evaluation.md` |
+| Reusable visual evaluation criterion | `policies/review/design-evaluation.md` |
+| Reusable interaction/UX evaluation criterion | `policies/review/interaction-evaluation.md` |
 | Project-specific experience or insufficient generalization | Private owner; `local` or `hold`, with no common-source write |
 
 For design/UI or interaction/UX commonization, reconcile accepted reusable
 checks and cautions into the relevant **Reusable Evaluation Notes** section of
 the existing design or interaction evaluation policy. Update a matching entry
 before adding a new one. Supporting improvement questions, comparisons and
-outcomes may live under `evidence/agents/design-evaluation/` or
-`evidence/agents/interaction-evaluation/`; those records do not replace the
+outcomes may live under `evidence/policies/design-evaluation/` or
+`evidence/policies/interaction-evaluation/`; those records do not replace the
 evaluation criteria or duplicate their rule authority. A case-only export
 retains reference experience without editing those normative sections. Actual
 project evaluation reports remain with their existing task/evidence owners.
@@ -571,11 +582,24 @@ Record measured elapsed time, tool/task calls, retries, interventions and cost
 when available, including the cost of recording and reflection. Use `unknown`
 with a reason for unmeasured quantities; do not infer savings.
 
-Stop when the declared scope is complete, a budget is reached, evidence cannot
-be obtained, or remaining work is optional polish. Escalate the same failure
-class after two attempts without meaningful progress under the existing
-orchestrator rule. Report limits and the next discriminating check; do not
-invent improvement to close the loop.
+Use the current task's governing stop and return rules when the declared scope
+is complete, a budget is reached, evidence cannot be obtained, or remaining work
+is optional polish. For a selected harness flow, apply Workflow Governance's
+resource rules: a planning checkpoint calls for reassessment, an actual cap
+stops only affected work, and unrelated feasible authorized work continues.
+For delivery, escalate the same failure class after two attempts without
+meaningful progress under its existing orchestrator rule. Other tasks retain
+their governing escalation and return rules without requiring an orchestrator.
+Report limits and the next discriminating check; do not invent improvement to
+close the loop.
+
+Keep a comparison's fixed success/falsification checks and declared trial/stop
+conditions with its original contract; do not revise them retroactively after
+seeing outputs. Prospective task-planning revisions within existing authority
+and actual caps retain earlier criteria, actual outcomes and failed bound
+checks, trial identities, consumed resources and comparability limits. Record
+any changed comparison conditions or new allocation separately; they neither
+erase an overrun nor reset usage or turn an earlier failed check into a pass.
 
 The capability is opt-in. Existing consumers and past runs need no migration,
 new evaluator, automatically generated harness edits, or empty experiment record.

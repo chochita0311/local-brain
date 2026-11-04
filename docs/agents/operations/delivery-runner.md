@@ -1,4 +1,4 @@
-# Runner
+# Delivery Runner
 
 ## Contents
 
@@ -22,12 +22,13 @@
 - Keep execution startup and continuation consistent without requiring repo-local automation scripts.
 
 ## Ownership
-- This document owns invocation.
+- This document owns delivery invocation.
+- [Workflow Governance](../../policies/harness/workflow-governance.md) owns shared selection, transitions, authority and resources.
 - Use it when you need the operator-facing entry pattern for one approved feature run.
 - It does not own the overall sequence model.
 - It does not own the Orchestrator role contract itself.
-- Use `docs/agents/flows/workflow.md` for the sequence model.
-- Use `docs/agents/roles/orchestrator.md` for loop-control responsibilities and routing logic.
+- Use `docs/agents/flows/delivery.md` for the sequence model.
+- Use `docs/agents/roles/orchestrator.md` for common control and `docs/policies/harness/execution-loop-governance.md#delivery-control-contract` for delivery control inputs, decisions and required outputs.
 - Use `docs/policies/harness/execution-profiles.md` for profile and lane routing rules.
 - Use `docs/policies/harness/execution-loop-governance.md` for run-unit boundaries, active-feature concurrency, return timing, and post-run review.
 
@@ -49,6 +50,7 @@
 - relevant golden sources
 - relevant project policies and contracts
 - current implementation context
+- actual hard limits with source, units, scope and observability; planning checkpoints, observed usage, commitments and closeout needs when relevant
 
 ## Run Artifact
 - Record one active run document under `docs/plans/run/`.
@@ -87,11 +89,12 @@ For `docs-content`, apply the [writing-contract route](../../policies/harness/ex
 - Keep the role prompt anchored to approved docs.
 - Do not restate the original request as the primary source once the feature is approved.
 - Evaluator outputs must record `Result` and `Evidence Coverage` separately, name unverified claims, and state whether each gap blocks acceptance under the owning feature, spec, or profile.
-- If a role reports `spec gap` or `planning gap`, record it as a result for the run report unless a technical blocker prevents further continuation.
-- After post-run human review sends work upward and that layer is corrected, start a new run from the corrected layer rather than continuing as if the earlier attempt remained valid.
+- If a role reports `spec gap` or `planning gap`, record it as a result for the run report unless a governed technical or [resource block](../../policies/harness/execution-loop-governance.md#resource-block-exception) prevents required continuation. A resource block does not create either gap or change evaluator `Result`; report the resource reason, coverage and unmet acceptance separately.
+- After post-run human review sends work upward and that layer is corrected, start a new run from the corrected layer rather than continuing as if the earlier attempt remained valid. After a resource block, follow the same new-run model from a verified permissible unblock point: recheck feature/spec validity, link the blocked run, and carry cumulative task usage and commitments without resetting them.
 - After the run exists, prefer continuing from the run document plus active spec and latest reports instead of re-invoking only from the feature path.
 - Direct role invocation without `Orchestrator` is an exception path for tightly controlled continuation work, not the default operating pattern.
 - Use optional skills or MCP tools when available and relevant; each role remains operable through its base contract when they are unavailable.
+- Apply shared resource governance before dispatch or continuation. Reaching a planning checkpoint or worker return boundary calls for reassessment; preserve actual hard limits, usage and commitments. Record justified planning revisions without changing delivery approval or acceptance gates.
 
 ## Default Closing Sequence
 - When all related runs for the active feature or PRD increment are complete, do not jump straight to acceptance.
@@ -124,7 +127,7 @@ source-owner route. Capability absence requires no migration and the existing
 closing sequence, design/interaction decisions and human acceptance remain.
 
 ## Prompt Frame
-Use this base frame for every execution-role prompt in a repository. For `Orchestrator` and initial `Spec Agent` prompts, set `Active spec` to `none yet` when no contract has been designated. For `docs-content`, use the writing contract’s real ID and repository-relative file or section anchor once designated; do not create a spec file just to fill a prompt.
+Use this base frame for every execution-role prompt in this repository. For `Orchestrator` and initial `Spec Agent` prompts, set `Active spec` to `none yet` when no contract has been designated. For `docs-content`, use the writing contract’s real ID and repository-relative file or section anchor once designated; do not create a spec file just to fill a prompt.
 
 ```text
 Run ID:
@@ -145,10 +148,16 @@ Execution profile:
 Surface lane:
 - lane-name or none
 
+Resources:
+- actual hard limits: source, units, scope, observability and enforcement, or none known
+- planning checkpoints/allocations and rationale; observed usage and commitments
+- closeout reserve, remaining capacity, and justified revisions
+
 Task:
 - perform only this role
 - do not redefine scope
-- classify blockers as implementation bug, spec gap, or planning gap
+- classify actual defects as implementation bug, spec gap, or planning gap
+- handle technical and resource blocks under docs/policies/harness/execution-loop-governance.md; a block alone does not establish a defect
 ```
 
 ## Role Prompts
@@ -159,6 +168,11 @@ Run the execution loop for the approved feature below.
 
 Role contract:
 - docs/agents/roles/orchestrator.md
+- docs/policies/harness/workflow-governance.md
+
+Selected flow and control contract:
+- docs/agents/flows/delivery.md
+- docs/policies/harness/execution-loop-governance.md#delivery-control-contract
 
 Run ID:
 - run-YYYYMMDD-##
@@ -175,8 +189,10 @@ Task:
 3. Confirm surface lanes and lane order when relevant.
 4. Confirm the evaluator set.
 5. Confirm the next role to run.
-6. Classify any immediate blocker as implementation bug, spec gap, or planning gap.
-7. Do not redefine scope.
+6. Classify any established defect as implementation bug, spec gap, or planning gap. Handle technical and resource blocks under the execution governance contract without inventing a defect.
+7. Apply delivery control outputs, retry escalation, evidence gates and post-run return rules.
+8. Check actual resource limits and closeout capacity; reassess planning checkpoints under shared governance.
+9. Do not redefine scope.
 ```
 
 ### Spec Agent
@@ -248,7 +264,8 @@ Inputs:
 
 Task:
 Evaluate only the approved contract surfaces.
-Classify blockers as implementation bug, spec gap, or planning gap.
+Classify actual defects as implementation bug, spec gap, or planning gap.
+Handle technical and resource blocks under docs/policies/harness/execution-loop-governance.md; a block alone does not establish a defect.
 Write findings to:
 - docs/plans/evaluation/eval-####-contract-slug.md
 ```
@@ -383,6 +400,14 @@ Task:
 ```
 
 ### Continue Existing Run
+Use this while the current run remains active. After a technical-only local
+unblock, it may also retry as a new attempt in the same run under the
+[execution return model](../../policies/harness/execution-loop-governance.md#execution-return-model)
+after the required human routing decision if the approved feature and active
+execution contract remain valid. Follow the
+[resource resumption rule](../../policies/harness/execution-loop-governance.md#resource-block-exception)
+for a resource-blocked run, which requires a new linked run.
+
 ```text
 continue docs/plans/feature/feat-0001-example-feature.md from fix
 
@@ -404,7 +429,9 @@ Latest reports:
 - docs/plans/evaluation/eval-0001-functional-example-feature.md
 
 Task:
-- continue the same run as Fix Agent
+- confirm this run can continue under its actual resource limits
+- for a technical-only block, confirm local unblock under the required human routing decision and that the approved feature and active execution contract remain valid; record the retry as a new attempt
+- continue the same run as Fix Agent only while active or after that governed technical-only unblock; a resource-blocked run requires a new linked run
 - fix only reported defects
 - keep the same approved feature boundary
 - keep the same execution profile and surface lane unless the Orchestrator changes routing
@@ -418,11 +445,15 @@ Run ID:
 - run-YYYYMMDD-01
 
 Task:
-- resume from the active run record
-- use the latest spec and latest evaluator or fix artifacts already linked there
-- run Orchestrator first if the next role is not already explicit
+- inspect the current run state and any actual resource block before choosing work
+- resume an active run from its record and latest linked spec/evaluator/fix artifacts
+- for a resource-blocked run, reuse its valid block report and human routing decision; report and resolve missing routing before resumption
+- for resource resumption, after the required decision and verified permissible capacity/authority, recheck feature/spec validity and start a new linked run
+- in that new run, carry cumulative task usage and pending commitments; do not reset them
+- run Orchestrator first for resource resumption or if the next role is not already explicit
 ```
 
 ## Continuation Rule
 - Continue the loop from the latest approved feature, active spec, and latest evaluator or fix artifacts.
+- A resource-blocked run requires the governed report, human routing decision and verified permissible capacity/authority before a new linked run starts; preserve cumulative task usage and commitments and recheck feature/spec validity. An agent planning checkpoint never creates this block, and a scoped cap permits unrelated feasible work.
 - Do not restart from the raw request unless the work has been explicitly returned to planning.

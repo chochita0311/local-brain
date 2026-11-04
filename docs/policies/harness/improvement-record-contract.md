@@ -28,9 +28,9 @@ The [operation](../../agents/operations/harness-improvement.md) performs the lif
 | Artifact | Canonical responsibility |
 |---|---|
 | Private stage, comparison and original artifacts | Original observations, comparisons and actual outputs at the authorized private evidence owner |
-| Private improvement record | Reusable conclusions, improvement work and exchange identity at the consumer's local owner, by default `docs/evidence/improvements/` under the [store policy](harness-improvement.md#consumer-evidence-layout); link original evidence instead of copying it |
-| Public improvement record | One canonical file under `evidence/agents/<component>/` or `evidence/skills/<component>/` in ai-assets, following the placement rules below; owns generalized experience, reusable pending work, evidence limits and its revision history |
-| Public catalog/private index | Discovery of the same logical record collection, with no independent work state or separate format; `evidence/README.md` lists public records across subject domains |
+| Private improvement record | Reusable conclusions, improvement work and exchange identity at the repository's local owner, by default `docs/evidence/improvements/` under the [store policy](harness-improvement.md#consumer-evidence-layout); link original evidence instead of copying it |
+| Public improvement record | One canonical file under `evidence/<domain>/<component>/` in ai-assets, following [Public Record Placement](#public-record-placement); owns generalized experience, reusable pending work, evidence limits and its revision history |
+| Public catalog/private index | Discovery of the same logical record collection, with no independent work state or separate format; `evidence/README.md` lists public records across owner domains |
 | Feature/spec/run/evaluation | Actual execution and acceptance at the existing task owner, linked when they exist |
 | Adopted instruction or resource | Its policy, role, flow, operation, profile, template, skill or design/interaction owner; a record is not a second rule authority |
 
@@ -44,23 +44,33 @@ required. Unknown facts stay unknown with reasons.
 ## Public Record Placement
 
 Use the repository-level `evidence/` layer, separate from reusable asset
-packages and adopted instructions. Choose the subject domain and component
-from the improvement subject and responsible asset owner, not the role that
-performed the observation. A folder identifies
-the question's owner; it does not establish a cause or a measured effect.
+packages and adopted instructions. Choose the current responsible asset layer
+and component for the improvement question. The observing role, originating
+flow, historical `subjects[].kind` or literal subject key does not determine
+its folder. A folder identifies the question's current owner; it does not
+establish a cause or a measured effect.
 
-| Subject owner | Public record path relative to ai-assets |
+The four owner domains are `harness`, `agents`, `policies` and `skills`.
+`<domain>` in current public record paths refers only to this set, with ownership as
+follows:
+
+| Current responsible asset owner | Public record path relative to ai-assets |
 |---|---|
-| Harness role, flow, operation, policy, profile, template, adapter or review asset | `evidence/agents/<component>/<record>.md` |
-| Skill, skill resource or shared skill-maintenance concern | `evidence/skills/<component>/<record>.md` |
+| Portable harness role, flow, operation, workflow policy, profile or template | `evidence/harness/<component>/<record>.md` |
+| Runtime adapter, shared instruction bundle or prompt preset | `evidence/agents/<component>/<record>.md` |
+| Shared baseline, delegation policy or review/evaluation criterion | `evidence/policies/<component>/<record>.md` |
+| Skill package, skill resource or shared skill-maintenance concern | `evidence/skills/<component>/<record>.md` |
 
-Use a descriptive component name: for example `fix-agent`, `workflow`,
-`design-evaluation`, `interaction-evaluation` or `harness-improvement` under
-`evidence/agents/`, and `refine-skill` or `gh-review-pr` under `evidence/skills/`.
+Use a descriptive component name: for example `fix-agent`, `delivery` or
+`harness-improvement` under `evidence/harness/`, `codex` under `evidence/agents/`,
+`design-evaluation` or `interaction-evaluation` under `evidence/policies/`, and
+`refine-skill` or `gh-review-pr` under `evidence/skills/`.
 `harness-improvement` is the subject when improving the collection/comparison/
 exchange procedure itself; it is not a container for every asset's records.
-Keep the full logical subject keys in metadata. Qualify an ambiguous component
-name by its owning kind rather than combining unrelated owners.
+Keep the full logical subject keys in metadata, including historical keys,
+kinds, source revisions and content fingerprints when placement changes.
+Qualify an ambiguous component name by its owning kind rather than combining
+unrelated owners.
 
 For one question spanning assets, choose its primary responsible owner or a
 named shared concern, retain every relevant subject and explain that ownership
@@ -71,7 +81,7 @@ several component folders and counting it as new evidence. Resolve unclear
 ownership before placing a new public record.
 
 The common catalog (public catalog not selected; its records are unavailable in this installation) discovers this collection
-across `agents/` and `skills/` subject domains. Query the collection across
+across all four owner domains. Query the actual collection across these
 domains when matching IDs, subjects, questions or contrary evidence. IDs are
 unique throughout `evidence/`. A missing catalog row is not proof that a record
 is absent: inspect the actual files before adding or admitting an ID.
@@ -80,13 +90,16 @@ Do not create separate domain catalogs or follow-up lists. The evidence layer
 is repository maintenance material, not an installable skill or harness role;
 selecting a record does not install its subject asset.
 
-Create component directories only when a record needs them. There is no
-intermediate `records/` directory, required empty component tree or legacy alias.
+Create domain and component directories only when a record needs them. Do not
+mirror whole source trees. There is no intermediate `records/` directory,
+required empty owner/component tree or legacy alias.
 For an authorized move, preserve the stable ID and meaningful content, reconcile
 links and the common catalog, and remove the old copy. A path-only move with
 identical bytes retains content revision; changed links or history increment it
 under the ordinary content-change rule. Record source/rendered paths and hashes
-in exchange provenance; a relocated file is not a new observation.
+in exchange provenance; a relocated file is not a new observation. Installed
+copies retain their accepted locators and provenance until controlled refresh
+succeeds under [Import And Local Use](#import-and-local-use).
 
 ## Record Format
 
@@ -176,7 +189,8 @@ meaning preservation, public fitness, evidence truth or runtime improvement.
    at the authorized private staging owner. No legacy-history backfill is needed.
    Resolve the actual common checkout, affected asset owners and current public
    record across the evidence layer before writing. Resolve its placement under
-   the subject owner. If unavailable, keep the candidate private/session-only.
+   the current responsible owner using [Public Record Placement](#public-record-placement).
+   If unavailable, keep the candidate private/session-only.
 2. **Reconstruct the public projection.** Assign a separate public ID for a
    private origin, or use its already-linked public ID. Keep that association,
    private identities, private-source paths/hashes/traces and confidential context only
@@ -227,24 +241,40 @@ Admission and write order:
 1. Resolve source and destination, exact selection and purpose. Require an
    attributable committed source for an accepted installed manifest; dirty
    candidates can be reviewed/prepared but must not be attributed to HEAD.
-2. Check format version, metadata/body, unique IDs/locations across the evidence layer,
+2. Check format version, metadata/body, unique IDs/locations across all four owner domains,
    public audience and approved public fitness. Verify record ID/revision, source commit and
    exact source bytes/hash before rendering. Preserve unsupported input for
    diagnosis and stop the dependent record installation on a failed check.
-3. Compare the recorded baseline: same ID/revision/source hash is unchanged;
-   same ID/revision with a different source hash conflicts; an older revision
+3. Resolve an older selected path by the record's stable ID in the actual
+   collection; missing or ambiguous identity blocks the dependent write. An old
+   `evidence/agents/` locator remains valid historical provenance, not a current
+   placement rule or an alias to install. Preserve each accepted source/target,
+   baseline source revision, mapping version, source/rendered hashes and ownership
+   until a controlled refresh is accepted. Compare the recorded baseline:
+   same ID/revision/source hash means unchanged record content even when the
+   location changes; a relocation still requires the mapping and retirement
+   checks in steps 4 and 5.
+   The same ID/revision with a different source hash conflicts; an older revision
    is stale and needs an explicit rollback decision; a later revision is an
    update candidate, not overwrite permission. Also check current installed
    rendered bytes against the manifest. Preserve `local` entries and report
    managed drift under the adoption guide's existing ownership rules.
-4. Render selected records and exactly their common catalog rows into the
-   consumer mapping. Track both source and rendered hashes; link rewriting does not
+4. Render selected records into `docs/evidence/<domain>/<component>/<record>.md`,
+   retaining each record's source domain from
+   [Public Record Placement](#public-record-placement), and exactly their common
+   catalog rows into `docs/evidence/README.md`.
+   Track both source and rendered hashes; link rewriting does not
    change logical record identity or revision. Preserve source asset identity
    values as provenance, not as local runtime paths. Unselected related record
    IDs remain plain text with unavailable-evidence limits. Omitted links to
    uninstalled assets become labeled logical references; never auto-expand the
    selection or leave broken navigation.
-5. Complete content/link/conflict checks before saving the installed manifest
+5. Reconcile a relocated managed record's old content and inbound references,
+   resolve destination collisions and ownership, and explicitly review retirement
+   before removing its old target. Preserve local copies and unresolved drift;
+   a source move alone authorizes no deletion. Complete content/link/conflict
+   checks before advancing the accepted entry's source/target and complete
+   baseline provenance/hashes together, then save the installed manifest
    as the final local import-state write. This does not authorize a Git commit.
    Record the local receipt privately: public ID/revision, source commit/source hash, installed path and
    rendered baseline reference, selected purpose, applicability/exclusions,
@@ -281,9 +311,15 @@ Record failures and costs of the procedure rather than assuming recursion helped
 
 ## Version Changes And Consolidation
 
-- Record schema v1, record content revision, harness mapping v8 and import
-  manifest schema 1 are distinct. The manifest carries exact selection and
-  source/rendered provenance; the private receipt carries purpose and feedback.
+- Record schema v1, record content revision, the current harness mapping version
+  and import manifest schema 1 are distinct. For authorized import/refresh
+  administration, resolve the current mapping from the **SOURCE-ONLY**
+  Harness Adoption Guide and current export mapping (import/refresh administration only) in the actual
+  selected shared-source snapshot. This administrative reference is not an
+  ordinary runtime dependency or an additional selected payload file. The
+  installed manifest describes its accepted mapping baseline, not the current
+  source mapping. The manifest carries exact selection and source/rendered
+  provenance; the private receipt carries purpose and feedback.
 - Each reusable improvement has one current record owner, including its knowledge
   and work. Resolve older scattered notes by meaning: identify the question,
   evidence, predicates, acceptance and unresolved work; match the current record

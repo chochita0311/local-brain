@@ -2,7 +2,7 @@
 
 Use the [setup operation](../operations/harness-improvement.md#configure-local-experience)
 and [private-store policy](../../policies/harness/harness-improvement.md#activation-and-private-store).
-This is a blank portable scaffold. Complete it at the consumer's local
+This is a blank portable scaffold. Complete it at the repository's local
 `docs/evidence/STORE.md` by default, or reuse an existing configured equivalent.
 Establish the policy's local exclusions before private writes. Keep the filled
 store out of shared source, managed import targets and the import manifest.
@@ -43,8 +43,10 @@ Map these roles to existing owners, or use these paths relative to the local
 
 Use [Improvement Record v1](../../policies/harness/improvement-record-contract.md)
 for reusable asset-level work and experience. Original observations/tasks remain
-at their owners. Selected shared references at `agents/`, `skills/` and `README.md`
-under this layer retain import ownership; local records do not overwrite them.
+at their owners. Selected shared references at `harness/`, `agents/`, `policies/`,
+`skills/` and `README.md` under this layer retain import ownership, following
+the source domains in [Public Record Placement](../../policies/harness/improvement-record-contract.md#public-record-placement);
+local records do not overwrite them.
 Missing or conflicting local ownership leaves session-only observations until
 setup is resolved. Refresh preserves this store and its local records.
 

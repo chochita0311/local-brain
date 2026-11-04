@@ -34,7 +34,7 @@
 - [Product Model](../../policies/project/product.md): product entities, organization, and user-facing behavior
 - [Project Architecture](../../policies/project/architecture.md): current runtime and frontend boundary
 - [Privacy And Data Handling](../../policies/project/privacy-and-data.md): local-data and tracked-evidence constraints
-- [Agent Workflow](../../agents/flows/workflow.md): PRD approval and downstream execution gates
+- [Agent Workflow](../../agents/flows/delivery.md): PRD approval and downstream execution gates
 - [PRD And Feature Management](../../policies/harness/prd-feature-management.md): artifact ownership, status, and change control
 
 ### Current Implementation References

@@ -47,3 +47,49 @@ and browser evaluation were not run because this refresh changed only import
 state and documentation. Source freshness was checked against the committed
 local checkout; remote `ai-assets` freshness and runtime behavior were not
 evaluated.
+
+### 2026-11-04 — Mapping v10 And Reviewed Impact/UI Rules
+
+Accepted committed local `ai-assets` revision
+`77b66679ed0ed6d3bfc887c938892513079d4a7e`, advancing from mapping v8 to v10.
+The selected payload now has 44 entries: 35 managed and nine local-owned. The
+common [Workflow Governance](../../policies/harness/workflow-governance.md)
+dependency is included. Delivery flow and runner files replace the former
+workflow/runner names; current references and four navigable links across three
+existing PRDs were reconciled. Those PRDs' wording, IDs and approval/status
+history remain unchanged.
+
+All nine local entries received an explicitly reviewed controlled rebase onto
+the new committed source and rendering, while retaining local ownership and all
+27 identified local mutations. This preserves stronger LocalBrain design and
+interaction requirements, design-source duties, linked Run navigation, artifact
+status and legacy-history rules, resolved-blocker closeout, and the requirement
+that prerequisite foundations have passed. The prior manifest, verified
+historical renderings, local bytes and rebase decisions remain in the private
+import receipt; local hashes do not claim equivalence to shared renderings.
+
+The imported rules connect actual change propagation and preserved consumer
+contracts to Orchestrator, Builder and evaluator responsibilities. The selected
+design/interaction review assets and evaluation handoff now also cover
+initialization, pending/readiness, failure and recovery phases, including whether
+observations suffice to support a temporal UI claim. This installs review
+requirements; it does not establish future compliance or an improvement's
+effectiveness. The product-owned UI sampler follow-up was not changed by this
+import.
+
+Existing surface selection, design and interaction assets, and the complete
+eight-file Harness Improvement core are retained. Research remains omitted and
+is explicitly excluded; no public records/catalog were selected. Private store
+discovery, exclusions and existing evidence/history are preserved. Earlier
+product/UI edits and unrelated planning changes retain their entry bytes.
+
+The delegated import and primary integration checks passed for all source and
+rendered hashes, managed installed bytes, local-meaning preservation, selection,
+retired-path reconciliation, links and anchors, unrelated-file/private-history
+preservation, repository privacy and whitespace. The installed manifest was
+replaced only after payload and candidate checks passed. The reviewed shared
+source received a local checkpoint commit for committed-source provenance; no
+push or LocalBrain commit occurred. Application tests and browser evaluation
+were not run for this documentation-only import. Freshness was checked against
+the committed local source checkout; remote freshness and application runtime
+behavior were not evaluated.

@@ -4,8 +4,9 @@ This directory contains LocalBrain's installed agent workflow package. The repos
 
 ## Start Here
 
-- Use [workflow.md](flows/workflow.md) for the role sequence, approval stops, and handoff model.
-- Use [runner.md](operations/runner.md) to start or continue one bounded execution Run.
+- Use [Workflow Governance](../policies/harness/workflow-governance.md) and the [Orchestrator](roles/orchestrator.md) for flow selection, shared authority, transitions, and resource controls.
+- Use [Delivery Flow](flows/delivery.md) for the delivery role sequence, approval stops, and handoff model.
+- Use [Delivery Runner](operations/delivery-runner.md) to start or continue one bounded execution Run.
 - Use [Execution Profiles](profiles/README.md) to select the smallest profile that matches the approved work.
 - Use [PRD And Feature Management](../policies/harness/prd-feature-management.md) for planning approval and traceability rules.
 - Use [Execution Loop Governance](../policies/harness/execution-loop-governance.md) for failure routing and artifact ownership.
@@ -24,7 +25,7 @@ Planning roles:
 
 Execution roles:
 
-- [Orchestrator](roles/orchestrator.md): select profile, lanes, and evaluators and route one execution loop
+- [Orchestrator](roles/orchestrator.md): select the flow, preserve shared authority and resource boundaries, and apply delivery control for one execution loop
 - [Spec Agent](roles/spec-agent.md): convert one approved feature into an implementation-facing spec
 - [Builder](roles/builder.md): implement one approved spec without expanding scope
 - [Contract Evaluator](roles/contract-evaluator.md): evaluate schemas, APIs, ownership, and integration boundaries
@@ -92,6 +93,6 @@ The optional [Operator Briefing Template](templates/operator-briefing.md) is a u
 - Refresh `managed` files only after their current bytes match the recorded rendered baseline. Reconcile unexplained changes before replacing them.
 - Preserve `local` files and their detachment baselines. The accepted source and rendered SHA-256 baselines describe the shared source and its rendered output, respectively. The accepted rendering is recorded separately from retained LocalBrain specializations; its hash does not claim that a local file's current bytes equal that rendering. Reattaching or rebasing a local entry requires an explicit ownership decision.
 - Local specializations retain design-constitution and creative-source inputs, execution-artifact lifecycle rules, completed-foundation prerequisites, linked Run references, navigation wording, and the existing mandatory evaluation conditions.
-- The installed selection includes design, interaction evaluation, and Harness Improvement. Its stage hooks use the private binding described above. Public Improvement Records are a separate explicit selection.
+- The installed selection includes delivery, design, interaction evaluation, and the complete eight-file Harness Improvement capability. Research remains excluded. Its stage hooks use the private binding described above. Public Improvement Records and their catalog are not selected; they require a separate explicit selection.
 - Apply source-layout link rewrites before comparison, keep omitted optional references as conditional plain text, and localize consuming-repository prose to the installed repository. Validate links and hashes before replacing the manifest as the final successful step.
 - Personal runtime instructions, worker bindings, and skill installation follow their separate adoption procedures.

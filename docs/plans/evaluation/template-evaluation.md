@@ -47,6 +47,29 @@ For `docs-content`, replace the Spec example with the designated writing contrac
 - Schemas, payloads, generated artifacts, commands, routes, config, or policy docs checked:
 - Stale-assumption check:
 
+## Code Review Evidence
+- Use when the [independent code challenge gate](../../policies/harness/execution-loop-governance.md#independent-code-challenge) is assessed; omit for unrelated evaluation.
+- Risk, challenge decision, and acceptance impact:
+- Frozen baseline and candidate identities (full commits or bundle/manifests); requested moving-reference recheck:
+- Each side's dependency/configuration/environment state and guidance source, revision, content fingerprint:
+- Raw packet, observation time, evidence locators, and actual access limits:
+- Actual hard limits: source, units, scope, original/current bound, observability/enforcement, authorized changes:
+- Review planning allocation/checkpoints; revisions, new information or expected information gain and rationale:
+- Observed usage, spent attempts including stale/interrupted attempts, pending commitments, remaining capacity and closeout reserve:
+- Worker stop/return boundaries, reassessment and stop/resume conditions; unaffected feasible work after a scoped limit:
+- Review stage: `initial discovery` | `informed dispute` | `repair confirmation` | `self-review`:
+- Actual reviewer/history/instruction/tool/permission exposure; unobserved runtime fields:
+- Context, method, source-lineage, and validation-data independence/limits:
+- Inspected paths, callers/terminal consumers, witnesses/method/results, and unaudited reasons:
+- Initial return, bounded validation requests/results, fixture/oracle checks, and adjudication evidence:
+- Candidate trigger, reachability, baseline/candidate behavior, causal delta/location, impact, support/counterevidence, severity/confidence:
+- Candidate category: `new regression` | `pre-existing defect` | `authorized intentional delta` | `unproven concern`:
+- Claim status: `supported` | `refuted` | `unresolved`; action: `fixed` | `accepted intentional delta` | `retained` | `deferred`; reason and remaining limit:
+- Significant dispute/self-adjudication conflict and informed adjudicator or discriminating validation, when needed:
+- Baseline -> current whole-scope and previous candidate -> current delta checks; changed inputs and invalidated/renewed witnesses:
+- Carried unresolved claims/actions, corrected or retracted prior claims, and remaining acceptance gaps:
+- Apply [shared resource governance](../../policies/harness/workflow-governance.md#resource-governance): planning revisions do not reset usage or waive strict parity, independence, coverage or unresolved-objection gates. Keep any actual hard-limit stop/overrun separate from Result and Evidence Coverage.
+
 ## Findings
 - For each finding, record:
   - severity
@@ -56,7 +79,8 @@ For `docs-content`, replace the Spec example with the designated writing contrac
   - fix hint
 
 ## Regression Notes
-- Name any regression surfaces checked and their status.
+- Name the affected shared owners/consumers and relevant preserved contracts checked, including causal paths discovered beyond the initial list; record their status, evidence and exclusions.
+- For temporal UI claims, name the observed phases and sampling limits. Missing or insufficient observations remain an evidence gap; a successful assertion alone does not establish phase coverage.
 
 ## Route
 - Next action:
