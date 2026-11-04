@@ -11,8 +11,8 @@
       event.preventDefault(); window.__TAURI__.core.invoke('open_external', {url: url.href}).catch(error => message(String(error), true));
     }
   });
-  let state, restoreFocus, selectedTab = 'general';
-  let generalSaving = false, generalLoading = false, loadVersion = 0;
+  let state, searchStatus, readIssue, restoreFocus, selectedTab = 'general';
+  let generalSaving = false, generalLoading = false, searchLoading = false, loadVersion = 0, modelVersion = 0, modelActions = 0;
   let generalSave = Promise.resolve();
   let onboarding = document.body.dataset.onboarding === 'true', onboardingStep = 0, activeActions = 0;
   const onboardingSteps = ['welcome', 'sessions', 'context', 'search'];
@@ -28,8 +28,8 @@
   let picking = false;
   let pendingRemoval = null, removalNeedsReview = false;
   const message = (text, error = false) => {
-    $('[data-settings-message]').textContent = text;
-    $('[data-settings-message]').dataset.error = String(error);
+    $('[data-settings-message]').textContent = [...new Set([readIssue?.text, text].filter(Boolean))].join(' ');
+    $('[data-settings-message]').dataset.error = String(error || Boolean(readIssue?.error));
     if (text && dialog.open) $('.settings-body').scrollTop = 0;
   };
   async function api(url, options = {}) {
@@ -48,13 +48,15 @@
     const button = element('button', text, 'secondary-button'); button.type = 'button';
     button.addEventListener('click', () => execute(handler, button)); return button;
   }
-  async function execute(handler, button) {
+  async function execute(handler, button, {modelAction = false} = {}) {
     if (button) {button.disabled = true; button.setAttribute('aria-busy', 'true');}
-    activeActions++; renderOnboardingControls();
+    if (modelAction) modelActions++;
+    activeActions++; renderOnboardingControls(); renderModel();
     try { await handler(); } catch (error) { message(error.message, true); }
     finally {
       if (button) {button.disabled = false; button.removeAttribute('aria-busy');}
-      activeActions--; renderOnboardingControls();
+      if (modelAction) modelActions--;
+      activeActions--; renderOnboardingControls(); renderModel();
     }
   }
   async function pick(directory = true) {
@@ -99,13 +101,13 @@
     $('[data-source-add]').hidden = editing;
     $('[data-source-submit]').textContent = source?.registered ? '저장' : source ? '다시 등록' : '추가';
     sourceForm.setAttribute('aria-busy', String(sourceSaving));
-    $('fieldset', sourceForm).disabled = sourceSaving || picking;
+    $('fieldset', sourceForm).disabled = sourceSaving || picking || generalLoading || !state?.session_sources;
     selects.filter(select => sourceForm.contains(select.root)).forEach(select => select.refresh());
     $$('[data-settings-tab]').forEach(button => {button.disabled = sourceSaving || contextSaving || picking;});
     for (const selector of ['[data-source-add]', '[data-source-cancel]', '[data-source-submit]']) {
       $(selector).disabled = activeActions > 0 || generalLoading || !state?.session_sources;
     }
-    $$('[data-source-id], [data-source-remove], [data-profile-control]').forEach(button => {button.disabled = sourceSaving || generalLoading || button.dataset.profileDisabled === 'true';});
+    $$('[data-source-id], [data-source-remove], [data-profile-control]').forEach(button => {button.disabled = sourceSaving || generalLoading || !state?.session_sources || button.dataset.profileDisabled === 'true';});
   }
   function showSourceOverview() {
     const key = sourceForm.elements.source_id.value;
@@ -242,7 +244,8 @@
       select.close(); select.refresh();
       select.trigger.disabled = disabled || $('input', select.root).disabled;
     });
-    renderOnboardingControls();
+    $('[data-settings-loading]').hidden = !generalLoading;
+    renderOnboardingControls(); renderModel();
   }
   const orderPane = $('.settings-body'), orderAnimations = new WeakMap();
   let orderDrag = null;
@@ -530,13 +533,15 @@
       const controls = profileControls(source, row);
       row.append(controls.grip, controls.color, identity, actions, controls.palette); $('[data-source-list]').append(row);
     });
-    if (!state.session_sources?.sources.length) {
+    if (!state.session_sources) {
+      $('[data-source-list]').append(element('p', '프로필을 불러오지 못했습니다. 다시 불러오기를 눌러 주세요.'));
+    } else if (!state.session_sources.sources.length) {
       const empty = element('div', '', 'settings-source-empty');
       empty.append(element('strong', '연결한 프로필이 없습니다'), element('p', 'Codex 또는 Claude Code 프로필을 추가하세요.'));
       $('[data-source-list]').append(empty);
     }
     $('[data-source-candidates]').replaceChildren();
-    const candidates = state.candidates.filter(candidate => !(state.session_sources?.sources || []).some(source => source.provider_kind === candidate.provider_kind && source.root_path.replace(/\/+$/, '') === candidate.root.replace(/\/+$/, '')));
+    const candidates = state.session_sources ? state.candidates.filter(candidate => !state.session_sources.sources.some(source => source.provider_kind === candidate.provider_kind && source.root_path.replace(/\/+$/, '') === candidate.root.replace(/\/+$/, ''))) : [];
     $('[data-source-discovery]').hidden = candidates.length === 0;
     candidates.forEach(candidate => {
       const choice = action('', () => editSource(candidate)); choice.classList.add('settings-source-candidate');
@@ -546,15 +551,27 @@
     if (!sourceForm.hidden) updateSourcePaths();
     renderContexts();
     animateOrderRows(previousOrderPositions);
-    renderModel(state.model);
-    message(state.errors.concat(state.session_sources?.diagnostics.map(item => item.message) || []).join(' '), state.errors.length > 0);
+    message('');
   }
-  function renderModel(model) {
+  function renderModel(next) {
+    if (next && state) {state.model = next; modelVersion++;}
+    const model = state?.model, busy = generalLoading || modelActions > 0;
+    $$('[data-model-action], [data-generation-action]').forEach(button => {button.disabled = busy || !model;});
+    $('[data-search-state]').textContent = searchStatus
+      ? (searchStatus.state === 'disabled' ? '현재 꺼져 있습니다.' : `${searchStatus.title} · ${searchStatus.description}`)
+      : searchLoading ? '검색 상태를 확인하고 있습니다.' : '검색 상태를 확인하지 못했습니다. 다시 불러오기를 눌러 주세요.';
+    $('[data-model-action="disable"]').disabled = busy || !model || !searchStatus || searchStatus.state === 'disabled';
+    if (!model) {
+      const text = generalLoading ? '모델 상태를 확인하고 있습니다.' : '모델 상태를 확인하지 못했습니다. 다시 불러오기를 눌러 주세요.';
+      $('[data-model-status]').textContent = text;
+      $$('[data-generation-status]').forEach(node => {node.textContent = text;});
+      return;
+    }
     const names = {ready: '모델과 검색 준비 완료', 'index-failed': '모델 설치 완료 · 검색 인덱스 준비 실패. AI 검색 준비를 다시 시도해 주세요.', idle: '설치 전', downloading: '다운로드 중 · 네트워크 상태에 따라 몇 분 걸릴 수 있습니다', verifying: '다운로드한 파일 검증 중', installed: '모델 설치 완료', preparing: '모델 설치 완료 · 검색 준비 중', canceled: '중단됨 · 다운로드 재개 가능', failed: '설치 실패 · 연결과 저장공간을 확인한 후 재시도해 주세요'};
     $('[data-model-status]').textContent = model.runtime_missing.length ? '모델 실행 환경 없음 · local-models가 포함된 환경이 필요합니다.' : (model.installed && model.phase === 'idle' ? '모델 설치됨' : names[model.phase]);
-    $('[data-model-action="install"]').disabled = model.running || model.runtime_missing.length > 0;
+    $('[data-model-action="install"]').disabled = busy || model.running || model.runtime_missing.length > 0;
     $('[data-model-action="install"]').textContent = model.installed ? '다시 다운로드' : model.phase === 'canceled' || model.phase === 'failed' ? '다운로드 재개' : '모델 다운로드';
-    $('[data-model-action="prepare"]').disabled = !model.installed || model.running || model.phase === 'preparing';
+    $('[data-model-action="prepare"]').disabled = busy || !searchStatus || !model.installed || model.runtime_missing.length > 0 || model.running || model.phase === 'preparing';
     $('[data-model-action="cancel"]').hidden = !(model.running && model.active_key === 'embedding') && model.phase !== 'preparing';
     for (const item of model.generation_models || []) {
       const missing = model.generation_runtime_missing || model.runtime_missing;
@@ -563,25 +580,31 @@
       const phases = {downloading: '모델 다운로드 중', verifying: '공용 캐시 파일 검증 중', installed: '앱 연결 완료', canceled: '중단됨 · 다시 시도할 수 있습니다', failed: '설치 실패 · 연결과 저장공간을 확인한 후 재시도해 주세요'};
       card.querySelector('[data-generation-status]').textContent = missing.length ? '모델 실행 환경이 필요합니다.' : phases[item.phase] || (item.registered ? '앱에 연결됨 · 사용할 때 파일을 검증합니다' : item.cached ? '공용 캐시에서 발견됨 · 다운로드 없이 연결할 수 있습니다' : '설치 전');
       const install = card.querySelector('[data-generation-action="install"]');
-      install.disabled = model.running || missing.length > 0;
+      install.disabled = busy || model.running || missing.length > 0;
       install.textContent = item.registered ? '설치 확인' : item.cached ? '공용 캐시 연결' : ['canceled', 'failed'].includes(item.phase) ? '다운로드 재개' : '모델 다운로드';
       card.querySelector('[data-generation-action="cancel"]').hidden = !item.running;
     }
   }
   async function load() {
     const version = ++loadVersion;
-    generalLoading = true; renderGeneral();
+    const modelRead = ++modelVersion;
+    generalLoading = true; searchLoading = true; searchStatus = null; renderGeneral();
     try {
       await generalSave;
-      const next = await api('/api/settings');
       if (version !== loadVersion) return;
-      state = next; generalLoading = false; render();
+      void readSearchStatus(version, modelRead);
+      const loaded = await api('/api/settings');
+      if (version !== loadVersion) return;
+      const confirmedModel = state?.model;
+      state = loaded;
+      if (modelRead !== modelVersion) state.model = confirmedModel;
+      readIssue = {text: state.errors.concat(state.session_sources?.diagnostics.map(item => item.message) || []).join(' '), error: state.errors.length > 0};
+      generalLoading = false; render();
     } catch (error) {
-      if (version === loadVersion) {
-        generalLoading = false;
-        if (state) state.preferences = null;
-        renderGeneral();
-      }
+      if (version !== loadVersion) return;
+      generalLoading = false; state = null; searchStatus = null;
+      readIssue = {text: error.message, error: true};
+      renderGeneral();
       throw error;
     }
   }
@@ -598,12 +621,14 @@
     $$('[data-settings-panel]').forEach(panel => {panel.hidden = panel.dataset.settingsPanel !== name;});
     $$('[data-settings-tab]').forEach(button => {if (button.dataset.settingsTab === name) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current');});
     $('.settings-body').scrollTop = 0;
+    renderOnboardingControls();
     if (name === 'storage') execute(loadStorage);
     document.dispatchEvent(new CustomEvent('localbrain:settings-tab', {detail: name}));
   }
   function renderOnboardingControls() {
     renderSourceControls(); renderContextControls();
     dialog.classList.toggle('settings-dialog--onboarding', onboarding);
+    $('[data-settings-loading]').classList.toggle('sr-only', onboarding);
     $('[data-onboarding-progress]').hidden = !onboarding;
     $('[data-onboarding-footer]').hidden = !onboarding;
     $('.settings-nav').hidden = onboarding;
@@ -612,7 +637,8 @@
     close.textContent = onboarding ? '나중에 설정' : '닫기';
     close.setAttribute('aria-label', onboarding ? '나중에 설정하고 시작' : '설정 닫기');
     close.disabled = contextSaving || picking || (onboarding && (activeActions > 0 || generalLoading));
-    $('[data-onboarding-retry]').hidden = !onboarding || generalLoading || Boolean(state?.preferences);
+    $('[data-onboarding-retry]').hidden = generalLoading || !(readIssue?.text || (selectedTab === 'search' && state && (!state.model || (!searchStatus && !searchLoading))));
+    $('[data-onboarding-retry]').disabled = activeActions > 0 || generalLoading;
     if (!onboarding) return;
     const busy = activeActions > 0 || generalLoading;
     const back = $('[data-onboarding-back]');
@@ -661,7 +687,8 @@
     restoreFocus = document.activeElement;
     if (!dialog.open) dialog.showModal();
     if (onboarding) await showOnboardingStep(); else tab(name);
-    message('설정을 불러오는 중…'); await execute(load);
+    document.querySelector('[data-settings-startup]')?.remove();
+    message(''); await execute(load);
   }
   $$('[data-settings-tab]').forEach(button => button.addEventListener('click', () => tab(button.dataset.settingsTab)));
   document.querySelectorAll('[data-settings-open]').forEach(button => button.addEventListener('click', () => open(button.dataset.settingsOpen || 'general')));
@@ -804,7 +831,7 @@
     $('[data-context-heading]').textContent = editing ? 'Local Context 추가' : 'Local Context';
     $('[data-context-overview]').hidden = editing;
     $('[data-context-add]').hidden = editing;
-    const busy = contextSaving || generalLoading || picking;
+    const busy = contextSaving || generalLoading || picking || !state;
     contextForm.setAttribute('aria-busy', String(contextSaving));
     $('fieldset', contextForm).disabled = busy;
     for (const selector of ['[data-context-add]', '[data-context-cancel]', '[data-context-submit]', '[data-notes-add]']) {
@@ -940,13 +967,14 @@
       if (pending.inSettings) message('등록을 해제했습니다.'); else location.assign('/context');
     } else $('[data-context-remove-confirm]', contextRemovalDialog).focus();
   });
-  $$('[data-model-action]').forEach(button => button.addEventListener('click', () => execute(async () => {renderModel(await post('/api/settings/model/' + button.dataset.modelAction, {})); message('요청을 적용했습니다. 진행 상태를 확인해 주세요.');}, button)));
+  $$('[data-model-action]').forEach(button => button.addEventListener('click', () => execute(async () => {renderModel(await post('/api/settings/model/' + button.dataset.modelAction, {})); void refreshModels(); message('요청을 적용했습니다. 진행 상태를 확인해 주세요.');}, button, {modelAction: true})));
   $$('[data-generation-action]').forEach(button => button.addEventListener('click', () => execute(async () => {
     const key = button.closest('[data-generation-model]').dataset.generationModel;
     renderModel(await post('/api/settings/model/' + key + '/' + button.dataset.generationAction, {}));
+    void refreshModels();
     document.dispatchEvent(new CustomEvent('localbrain:models-changed'));
     message('요청을 적용했습니다. 모델 진행 상태를 확인해 주세요.');
-  }, button)));
+  }, button, {modelAction: true})));
   const bytes = value => `${(value / 1024 ** 3).toFixed(2)} GB`;
   async function loadStorage() {
     const data = await api('/api/settings/storage'); const root = $('[data-storage-summary]'); root.replaceChildren();
@@ -1002,15 +1030,27 @@
     if (onboardingStep === onboardingSteps.length - 1) await finishOnboarding();
     else {onboardingStep++; await showOnboardingStep(true);}
   }, event.currentTarget));
+  async function readSearchStatus(version, modelRead) {
+    if (version !== loadVersion || modelRead !== modelVersion) return;
+    searchLoading = true;
+    renderModel(); renderOnboardingControls();
+    const next = await api('/api/natural-search/status').catch(() => null);
+    if (version !== loadVersion || modelRead !== modelVersion) return;
+    searchLoading = false; searchStatus = next;
+    renderModel(); renderOnboardingControls();
+  }
+  async function refreshModels() {
+    const version = loadVersion;
+    const modelRead = ++modelVersion;
+    const searchRead = readSearchStatus(version, modelRead);
+    const model = await api('/api/settings').then(data => data.model, () => null);
+    if (version !== loadVersion || modelRead !== modelVersion || generalLoading || !state) return;
+    state.model = model;
+    renderModel(); renderOnboardingControls();
+    await searchRead;
+  }
   async function pollModel() {
-    if (dialog.open && selectedTab === 'search') {
-      try {
-        const data = await api('/api/settings'); renderModel(data.model);
-        const search = await api('/api/natural-search/status');
-        $('[data-search-state]').textContent = search.state === 'disabled' ? '현재 꺼져 있습니다.' : `${search.title} · ${search.description}`;
-        $('[data-model-action="disable"]').disabled = search.state === 'disabled';
-      } catch (_) { /* explicit requests retain errors */ }
-    }
+    if (dialog.open && selectedTab === 'search' && !generalLoading && state) await refreshModels();
     setTimeout(pollModel, 3000);
   }
   pollModel();

@@ -887,12 +887,13 @@ h1 { margin: var(--space-none); font-family: var(--type-display-font); font-size
   /* Keep offscreen accessibility labels inside this scroller's bounds. */
   position: relative;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   max-height: 420px;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
 }
-.pinned-session-list-content { padding-right: var(--space-section); }
+.pinned-session-list-content { min-width: 0; padding-right: var(--space-section); }
 .pinned-session-group + .pinned-session-group {
   margin-top: var(--space-row-block);
   padding-top: var(--space-row-block);
@@ -2509,7 +2510,7 @@ select:not([multiple]) {
   .subsession-question-count { grid-column: 2; }
   .subsession-event-count { grid-column: 2; }
   .subsession-list time { grid-column: 2; justify-self: start; }
-  .secondary-column { grid-template-columns: 1fr; }
+  .secondary-column { grid-template-columns: minmax(0, 1fr); }
   .detail-strip { grid-template-columns: repeat(2, 1fr); }
   .detail-strip.session-detail-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .detail-strip.session-detail-strip > div { padding-inline: var(--space-row-block); }

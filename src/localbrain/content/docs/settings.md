@@ -1,5 +1,13 @@
 Settings manages application preferences, connected sources, search, synchronization, and storage. Open it with the gear (`설정`) or **⌘,**.
 
+Saved choices appear while Settings checks their current state. Controls that need the
+read result stay unavailable until it finishes. A read error remains visible when
+you change sections; after resolving the reported problem, choose **Reload**
+(`다시 불러오기`). An unreadable profile list does not mean that profiles were removed.
+
+If first-use setup cannot open, its preparation screen also offers **Reload**.
+This reloads the current setup page; it does not register sources or finish setup.
+
 ## At a glance
 
 | Section | What it controls | How changes apply |
@@ -47,6 +55,10 @@ Source order uses the same row-handle interaction. Canceling or leaving the edit
 ## Search model
 
 Keyword search works without a model. After a successful embedding-model download, AI search preparation starts automatically. The [Search guide](/help/search) explains setup, download requirements, and preparation states.
+
+Model actions remain unavailable until their required model and search states are
+known. If the status check fails, use **Reload** or allow the next status check to
+recover before starting an action.
 
 Public originals stay in the shared Hugging Face Hub cache (normally `~/.cache/huggingface/hub`, respecting the configured Hugging Face cache). App registration metadata stays in LocalBrain data; inference/kernel caches stay in LocalBrain cache. Connecting a complete cached model avoids another download. Status discovery checks local presence; the worker verifies integrity before use. App cache cleanup preserves shared originals.
 

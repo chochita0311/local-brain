@@ -1,5 +1,5 @@
 <dialog class="settings-dialog" id="settings-dialog" aria-labelledby="settings-title">
-  <header class="settings-header"><h2 id="settings-title">설정</h2><button class="secondary-button" type="button" data-settings-close aria-label="설정 닫기">닫기</button></header>
+  <header class="settings-header"><h2 id="settings-title">설정</h2><p class="settings-loading" data-settings-loading role="status" hidden>설정 확인 중…</p><button class="secondary-button" type="button" data-settings-close aria-label="설정 닫기">닫기</button></header>
   <div class="settings-layout">
     <nav class="settings-nav" aria-label="설정 항목">
       <button type="button" data-settings-tab="general" aria-current="page">일반</button>
@@ -30,8 +30,9 @@
           <div class="settings-field">
             <label id="settings-startup-label" for="settings-startup">시작 화면</label>
             <div class="settings-select" data-settings-select>
-              <input type="hidden" name="startup_screen">
-              <button id="settings-startup" class="settings-select-trigger" type="button" role="combobox" aria-labelledby="settings-startup-label" aria-expanded="false" aria-haspopup="listbox" aria-controls="settings-startup-options" disabled><span data-select-value>Sessions</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></button>
+              {% set startup = preferences.startup_screen | default('sessions') %}
+              <input type="hidden" name="startup_screen" value="{{ startup }}">
+              <button id="settings-startup" class="settings-select-trigger" type="button" role="combobox" aria-labelledby="settings-startup-label" aria-expanded="false" aria-haspopup="listbox" aria-controls="settings-startup-options" disabled><span data-select-value>{{ {'sessions': 'Sessions', 'sessions-dashboard': 'Sessions Dashboard', 'context': 'Local Context'}.get(startup, startup) }}</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></button>
               <div id="settings-startup-options" class="settings-select-menu" role="listbox" aria-labelledby="settings-startup-label" hidden>
                 <div id="settings-startup-dashboard" role="option" data-value="sessions-dashboard" aria-selected="false">Sessions Dashboard</div>
                 <div id="settings-startup-sessions" role="option" data-value="sessions" aria-selected="false">Sessions</div>
@@ -42,8 +43,8 @@
           <div class="settings-field">
             <label id="settings-timezone-label" for="settings-timezone">시간대</label>
             <div class="settings-select" data-settings-select>
-              <input type="hidden" name="timezone">
-              <button id="settings-timezone" class="settings-select-trigger" type="button" role="combobox" aria-labelledby="settings-timezone-label" aria-describedby="settings-timezone-help" aria-expanded="false" aria-haspopup="listbox" aria-controls="settings-timezone-options" disabled><span data-select-value>Asia/Seoul</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></button>
+              <input type="hidden" name="timezone" value="{{ preferences.timezone }}">
+              <button id="settings-timezone" class="settings-select-trigger" type="button" role="combobox" aria-labelledby="settings-timezone-label" aria-describedby="settings-timezone-help" aria-expanded="false" aria-haspopup="listbox" aria-controls="settings-timezone-options" disabled><span data-select-value>{{ preferences.timezone }}</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></button>
               <div id="settings-timezone-options" class="settings-select-menu" role="listbox" aria-labelledby="settings-timezone-label" hidden>
                 <div id="settings-timezone-utc" role="option" data-value="UTC" aria-selected="false">UTC</div>
                 <div id="settings-timezone-seoul" role="option" data-value="Asia/Seoul" aria-selected="false">Asia/Seoul</div>
@@ -115,17 +116,17 @@
         <h3>검색 모델</h3><p>키워드 검색은 바로 사용할 수 있습니다.<br>{% if context_search_available | default(false) %}의미 검색과 Context Search에 사용할 로컬 모델을 관리합니다.{% else %}의미 검색에 사용할 로컬 모델을 관리합니다.{% endif %}</p>
         <div class="settings-model">
           <div class="settings-model-title"><strong>Qwen3-Embedding-0.6B</strong><span>약 1.21GB</span></div>
-          <p data-model-status role="status"></p>
-          <div class="settings-actions"><button class="primary-button" type="button" data-model-action="install">모델 다운로드</button><button class="secondary-button" type="button" data-model-action="prepare">AI 검색 준비</button><button class="secondary-button" type="button" data-model-action="cancel" hidden>진행 중단</button></div>
+          <p data-model-status role="status">모델 상태를 확인하고 있습니다.</p>
+          <div class="settings-actions"><button class="primary-button" type="button" data-model-action="install" disabled>모델 다운로드</button><button class="secondary-button" type="button" data-model-action="prepare" disabled>AI 검색 준비</button><button class="secondary-button" type="button" data-model-action="cancel" disabled hidden>진행 중단</button></div>
           <p class="settings-caption">다운로드에는 인터넷 연결이 필요합니다. 검색 내용과 문서는 외부로 전송하지 않습니다.</p>
         </div>
-        <div class="settings-section"><h4>AI 검색</h4><p data-search-state></p><button class="secondary-button" type="button" data-model-action="disable">AI 검색 끄기</button></div>
+        <div class="settings-section"><h4>AI 검색</h4><p data-search-state>검색 상태를 확인하고 있습니다.</p><button class="secondary-button" type="button" data-model-action="disable" disabled>AI 검색 끄기</button></div>
         {% if context_search_available | default(false) %}<div class="settings-section"><h4>Context Search 답변 모델</h4><p>폴더에서 필요한 자료를 찾아 답합니다. 임베딩 모델 없이 사용할 수 있습니다.</p>
           {% for key, name, size in [('4b', 'Qwen3-4B', '약 8GB'), ('8b', 'Qwen3-8B', '약 16GB')] %}
           <div class="settings-model" data-generation-model="{{ key }}">
             <div class="settings-model-title"><strong>{{ name }}</strong><span>{{ size }}</span></div>
             <p data-generation-status role="status">모델 확인 중</p>
-            <div class="settings-actions"><button class="secondary-button" type="button" data-generation-action="install">모델 다운로드</button><button class="secondary-button" type="button" data-generation-action="cancel" hidden>진행 중단</button></div>
+            <div class="settings-actions"><button class="secondary-button" type="button" data-generation-action="install" disabled>모델 다운로드</button><button class="secondary-button" type="button" data-generation-action="cancel" disabled hidden>진행 중단</button></div>
           </div>
           {% endfor %}
           <p class="settings-caption">8B는 더 많은 메모리가 필요합니다. Context Search 화면에서 모델을 선택하세요.</p>
@@ -136,12 +137,14 @@
         <h3>동기화</h3>
         <form data-sync-form class="settings-form">
           {% for kind, label in [('session', '세션'), ('context', 'Local Context')] %}
+          {% set sync_enabled = preferences[kind ~ '_sync_enabled'] | default(true) %}
+          {% set sync_minutes = preferences[kind ~ '_sync_minutes'] | default(10 if kind == 'session' else 30) %}
           <fieldset class="settings-sync-group">
             <legend>{{ label }}</legend>
             <div class="settings-field">
               <div class="settings-select" data-settings-select data-select-suffix="분">
-                <input type="hidden" name="{{ kind }}_sync_choice" data-sync-kind="{{ kind }}">
-                <button id="settings-{{ kind }}-sync" class="settings-select-trigger" type="button" role="combobox" aria-label="{{ label }} 동기화" aria-expanded="false" aria-haspopup="listbox" aria-controls="settings-{{ kind }}-sync-options" disabled><span data-select-value>—</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></button>
+                <input type="hidden" name="{{ kind }}_sync_choice" data-sync-kind="{{ kind }}" value="{{ sync_minutes if sync_enabled else 'off' }}">
+                <button id="settings-{{ kind }}-sync" class="settings-select-trigger" type="button" role="combobox" aria-label="{{ label }} 동기화" aria-expanded="false" aria-haspopup="listbox" aria-controls="settings-{{ kind }}-sync-options" disabled><span data-select-value>{{ (sync_minutes | string) ~ '분' if sync_enabled else '끄기' }}</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></button>
                 <div id="settings-{{ kind }}-sync-options" class="settings-select-menu" role="listbox" aria-label="{{ label }} 동기화" hidden>
                   {% for minutes in [10, 20, 30, 60] %}
                   <div id="settings-{{ kind }}-sync-{{ minutes }}" role="option" data-value="{{ minutes }}" aria-selected="false">{{ minutes }}분</div>

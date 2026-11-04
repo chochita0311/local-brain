@@ -18,6 +18,12 @@ The Task Runner starts a local maintenance process. Existing Workstream resource
 - Every terminal path triggers synchronization for the selected native Claude or Codex source. Native message usage is normalized through the ordinary source producer; the Runner stream never creates a second Usage Record.
 - Common Run state includes `queued`, `running`, `completed`, `partial`, `failed`, `cancelled`, and `interrupted`; `cancelling` is the transient stop request.
 - The Run Console polls live status and output, exposes artifacts, and supports cancellation without blocking FastAPI requests.
+- Empty output uses the same status-specific presentation in the initial page
+  and polling response: prepared means not started, queued means preparing,
+  running/cancelling means no output yet, and terminal or unknown states mean no
+  output to display. Missing output never implies that a completed job is starting
+  again. A later empty read preserves output already displayed in that page;
+  placeholder changes apply only while the page has not received real output.
 
 `LOCALBRAIN_CLAUDE_BIN` and `LOCALBRAIN_CODEX_BIN` may select their respective executable. `LOCALBRAIN_RUN_ID` is provided to the child process for Run attribution.
 

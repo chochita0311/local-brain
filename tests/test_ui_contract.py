@@ -167,7 +167,7 @@ class UiContractTests(unittest.TestCase):
             self.assertNotIn(retired, script)
         self.assertNotIn('.settings-project', styles)
         for field in ("startup_screen", "timezone"):
-            self.assertIn(f'<input type="hidden" name="{field}">', template)
+            self.assertRegex(template, rf'<input\b[^>]*type="hidden"[^>]*name="{field}"[^>]*>')
             self.assertNotIn(f'<select name="{field}"', template)
         timezone_menu = template.split('id="settings-timezone-options"', 1)[1].split('</div>', 3)
         self.assertEqual(re.findall(r'data-value="([^"]+)"', ''.join(timezone_menu[:3])), ["UTC", "Asia/Seoul"])

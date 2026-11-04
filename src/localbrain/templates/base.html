@@ -108,6 +108,18 @@
         </main>
       </div>
     </div>
+    {% if setup_requested %}
+    <div class="settings-startup" data-settings-startup>
+      <section class="settings-dialog settings-dialog--onboarding" aria-labelledby="settings-startup-title">
+        <header class="settings-header"><h2 id="settings-startup-title">LocalBrain 시작하기</h2></header>
+        <div class="settings-body">
+          <p role="status">시작 설정을 준비하고 있습니다.<br>화면이 열리지 않으면 다시 불러와 주세요.</p>
+          <a class="secondary-button" href="{{ request.url if request is defined else '/onboarding' }}">다시 불러오기</a>
+          <noscript><p>시작 설정을 사용하려면 JavaScript를 켠 뒤 다시 불러와 주세요.</p></noscript>
+        </div>
+      </section>
+    </div>
+    {% endif %}
     {% include "_settings.html" %}
     <div class="toast-region" data-toast-region aria-live="polite" aria-atomic="true"></div>
     {% block scripts %}{% endblock %}

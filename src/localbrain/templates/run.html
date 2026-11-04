@@ -21,7 +21,7 @@
 
   <section class="run-console-section" data-run-console data-run-id="{{ run.id }}" data-run-status="{{ run.status }}">
     <div class="run-console-toolbar"><div><span class="status-dot {{ run.status }}"></span><strong>Claude output</strong></div><span data-run-updated>{{ run.updated_at }}</span></div>
-    <pre class="run-console-output" data-run-output>{{ output or 'Claude 실행을 준비하고 있습니다.' }}</pre>
+    <pre class="run-console-output" data-run-output data-output-empty="{{ 'false' if output else 'true' }}">{{ output or output_placeholder }}</pre>
     <div class="run-error" data-run-error role="alert" {% if not run.error %}hidden{% endif %}>{{ run.error or '' }}</div>
   </section>
 

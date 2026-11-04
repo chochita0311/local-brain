@@ -442,6 +442,49 @@ uv run python -m unittest discover -s tests -v
 
 For parser, schema, ingestion, retrieval, or Task Runner changes, add focused tests for the changed contract. For user-facing changes, start the server and verify affected routes and states in a browser.
 
+For initial settings, setup recovery, long pinned paths and empty Run output, run
+the synthetic browser regressions with Node 22+ and Chrome:
+
+```bash
+node scripts/qa-ui-states-browser.mjs
+```
+
+The command starts its own loopback backend with isolated settings, source files,
+database and browser profile outside the repository. It does not use the running
+app's data, collect personal sources, download models or execute agents. The
+fixture is [tests/ui_state_fixture.py](../../../tests/ui_state_fixture.py); it is
+not a production route. Set `LOCALBRAIN_CHROME_PATH` or `LOCALBRAIN_QA_PYTHON` only
+when Chrome or the repository virtualenv Python is elsewhere.
+
+The checks sample preference labels and content position before and after a held
+read, real synthetic registry corruption and retry, model-read failure and polling
+recovery, pending save/reopen, focus containment, setup asset failure/reload,
+wizard draft/reduced motion, four viewport widths and Run output transitions.
+Waiting only for the final screenshot misses these initial-state defects. The
+test uses controlled delays and failures; its timing is not a universal animation
+threshold or a claim about all application screens or the packaged native host.
+The report retains the actual first-load, warm-reopen and shortcut frame samples.
+Held-read checks require observed pending and ready phases; every anchor
+comparison requires multiple samples. An empty or single sample cannot establish
+stability. These are rendered DOM observations, not compositor-paint measurements.
+Here, warm reopen means reopening Settings in the same page with retained client
+state while the network cache remains disabled. Cache-enabled page revisits in
+the broader audit matrix remain a separate condition. Selective-delay checks
+also hold search readiness independently of settings and storage independently
+of model cancellation; unrelated reads must not gate confirmed actions.
+The same cases distinguish pending search from failure, an acknowledged synthetic
+model action from its background refresh, and a failed model poll from a pending
+search response. Model-action responses are intercepted; no model job is started.
+
+By default it removes its temporary evidence after reporting the result. To
+inspect screenshots and the JSON report, pass an explicit output parent outside
+the repository. The script creates a new task-owned child directory, removes its
+backend and browser state on exit, and retains only the report/captures there.
+Review those artifacts locally and remove that child when the investigation ends.
+For broader visual/state coverage, follow the
+[initial-state audit plan](../../plans/design/initial-state-and-transition-audit-plan.md)
+and record the checked routes, fixtures, host, input mechanism and remaining gaps.
+
 Do not claim full verification when a required local source, macOS permission, Claude CLI, or external connector is unavailable.
 
 ## Documentation Updates

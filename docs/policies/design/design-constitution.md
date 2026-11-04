@@ -736,6 +736,11 @@ and preserves the active numeric filter.
   horizontal scrollable row. Changing categories starts the new pane at its top;
   controls and text size retain the shared geometry. Leaving or reclicking the Session-source category discards its unsaved editor and returns to its list; wizard Back retains its draft.
   Save/error feedback is brought into view in the scrolling pane.
+- Settings reads use a quiet header status that does not displace the content.
+  Initial preference labels reflect the server-resolved values and stay disabled
+  until their revision is ready. Unreadable registration and confirmed empty
+  registration are distinct; read failures persist across category changes with
+  retry. Model actions follow their own confirmed readiness.
 - The About category uses a quiet identity row: existing LocalBrain mark, product
   name and application version. Keep the shared settings shell and type roles;
   omit operational paragraphs and reference-only licensing/build claims.
@@ -750,6 +755,10 @@ and preserves the active numeric filter.
   initialization. Optional skip and Set up later remain visible; failed writes
   retain the current step. At the shared narrow breakpoint, forms become one
   column and the footer can wrap without horizontal overflow.
+- Before setup JavaScript initializes, the same settings frame provides a
+  server-rendered preparation surface and an ordinary current-URL reload link
+  above the inert main surface. Only the initialized modal handoff removes this
+  preparation surface; asset failure must leave recovery usable.
 
 ### Empty, Loading, Error, And Working States
 

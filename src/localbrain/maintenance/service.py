@@ -41,6 +41,17 @@ def read_run_output(run) -> str:
     return ""
 
 
+def run_output_placeholder(status: str) -> str:
+    """Describe missing output without implying a terminal Run will start again."""
+    if status == "prepared":
+        return "아직 실행하지 않았습니다."
+    if status == "queued":
+        return "Claude 실행을 준비하고 있습니다."
+    if status in {"running", "cancelling"}:
+        return "아직 표시할 실행 출력이 없습니다."
+    return "표시할 실행 출력이 없습니다."
+
+
 def reconcile_interrupted_runs() -> int:
     with transaction() as connection:
         now = utc_now()

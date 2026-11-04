@@ -73,6 +73,11 @@ behavior are recorded separately in Feature and Run evidence.
   with an explicit setup request; the request is removed from the displayed URL.
   Ordinary web pages do not force the wizard; the explicit route works in both
   editions. Invalid preferences retain the normal settings recovery route.
+- Before client initialization, a server-rendered preparation surface uses the
+  settings frame above the inert background. Its ordinary reload link preserves
+  the current URL and explicit setup request, so failed or disabled JavaScript
+  leaves a usable recovery path. Remove this surface only after the modal owns
+  its first step. Reloading does not complete setup or register a source.
 - Welcome, Session sources, Local Context and Search are sequential steps with
   four small progress dots below a fixed Previous/Next/Skip footer. Dots identify
   the current step without bypassing save/skip actions. A quiet header and shared
@@ -109,6 +114,13 @@ behavior are recorded separately in Feature and Run evidence.
   category closes its editor and discards unsaved inputs; general choices use autosave and
   stored-value recovery below. Errors scroll into view; general saves stay quiet.
   Geometry and typography follow the [Design Constitution](../design/design-constitution.md#dialogs-and-drawers).
+- General and synchronization controls initially show the server-resolved
+  preferences, while remaining disabled until their revision is loaded. A quiet
+  header status reports the read without moving the content pane. Read failures
+  remain visible across category changes with an explicit reload action; an
+  unreadable profile registry is not an empty registration. Model actions remain
+  unavailable until their own required model/search state has been confirmed,
+  including after a failed refresh; successful readback restores eligible actions.
 - Startup is a dropdown ordered Sessions Dashboard, Sessions, Local Context,
   matching the sidebar. Ordering does not change the default/saved Sessions choice.
   Its menu opens directly below the displayed control, with matching width and

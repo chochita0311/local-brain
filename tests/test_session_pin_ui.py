@@ -405,10 +405,8 @@ class SessionPinUiTests(unittest.TestCase):
 
         list_rule = styles.split(".pinned-session-list {", 1)[1].split("}", 1)[0]
         self.assertNotIn("padding", list_rule)
-        self.assertIn(
-            ".pinned-session-list-content { padding-right: var(--space-section); }",
-            styles,
-        )
+        content_rule = styles.split(".pinned-session-list-content {", 1)[1].split("}", 1)[0]
+        self.assertIn("padding-right: var(--space-section);", content_rule)
         self.assertIn(
             ".pinned-session-list-content { padding-right: var(--space-none); }",
             styles,

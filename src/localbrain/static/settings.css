@@ -4,6 +4,10 @@
 .settings-dialog::backdrop { background: var(--surface-scrim); }
 .settings-header { display: flex; flex: none; align-items: center; justify-content: space-between; gap: var(--space-control-gap); padding: var(--space-control-gap) var(--space-card); border-bottom: var(--border-width-control) solid var(--border-default); }
 .settings-header h2 { margin: 0; font-size: var(--type-section-size); }
+.settings-loading { flex: 1; min-width: 0; margin: 0; color: var(--text-secondary); font-size: var(--type-label-size); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.settings-startup { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: var(--surface-scrim); }
+.settings-startup .settings-dialog { display: flex; flex-direction: column; }
+.settings-startup > .settings-dialog > .settings-body { display: grid; flex: 1; align-content: center; justify-items: start; }
 .settings-layout { display: grid; flex: 1; min-height: 0; grid-template-columns: var(--settings-nav-width) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
 .settings-nav { display: flex; flex-direction: column; min-height: 0; gap: var(--space-compact); padding: var(--space-control-gap); overflow-y: auto; overscroll-behavior: contain; background: var(--surface-subtle); }
 .settings-nav button { text-align: left; border: 0; border-radius: var(--radius-control); padding: var(--space-control-block) var(--space-control-inline); color: var(--text-secondary); background: transparent; cursor: pointer; }

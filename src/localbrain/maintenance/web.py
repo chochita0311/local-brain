@@ -8,6 +8,7 @@ from localbrain.maintenance.service import (
     cancel_run,
     get_run,
     read_run_output,
+    run_output_placeholder,
 )
 from localbrain.persistence.value_registry import display_value_label
 from localbrain.app.templating import templates
@@ -31,6 +32,7 @@ def show_run(request: Request, run_id: str):
             "active_page": "workstreams",
             "run": run,
             "output": output,
+            "output_placeholder": run_output_placeholder(run["status"]),
             "candidate_counts": candidate_counts,
         },
     )
@@ -43,6 +45,7 @@ def api_run_status(run_id: str):
             raise HTTPException(status_code=404, detail="Run not found")
         data = dict(run)
         data["output"] = read_run_output(run)
+        data["output_placeholder"] = run_output_placeholder(data["status"])
         data["status_label"] = display_value_label(
             "maintenance.status", data["status"]
         )

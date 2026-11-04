@@ -1506,7 +1506,12 @@ if (runConsole) {
         mcpCalls.classList.toggle("missing", Boolean(current.mcp_budget_exceeded));
       }
       updated.textContent = formatLocalTime(current.updated_at);
-      if (current.output) output.textContent = current.output;
+      if (current.output) {
+        output.textContent = current.output;
+        output.dataset.outputEmpty = 'false';
+      } else if (output.dataset.outputEmpty === 'true') {
+        output.textContent = current.output_placeholder || '표시할 실행 출력이 없습니다.';
+      }
       if (current.error) {
         errorPanel.textContent = current.error;
         errorPanel.hidden = false;
