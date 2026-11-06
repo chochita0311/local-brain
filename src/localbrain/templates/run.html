@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% block title %}{{ run.id }} · LocalBrain{% endblock %}
-{% block page_location %}Task Run{% endblock %}
 {% block content %}
   <a class="back-link" href="/workstreams/{{ run.workstream_id }}">{{ run.workstream_name }}로 돌아가기</a>
   <section class="page-heading run-page-heading">

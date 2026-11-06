@@ -308,7 +308,7 @@ class SessionWorkflowMapStaticContractTests(unittest.TestCase):
         for marker in (
             "buildWorkflowLayout",
             "workflowPath",
-            "window.history.pushState",
+            "workflowHistory.pushState",
             'window.addEventListener("popstate"',
             'window.addEventListener("resize"',
             "if (!workflowWheelOwnsZoom(event) || isNarrow()) return;",

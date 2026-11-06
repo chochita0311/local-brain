@@ -591,7 +591,11 @@ def _render_link_open(renderer, tokens, idx, options, env) -> str:
         return '<span class="markdown-reference markdown-reference-missing" data-reference-state="missing">'
 
     if decoded in env.get("trusted_session_routes", ()) or decoded in env.get("app_doc_routes", ()):
-        token.attrSet("href", decoded)
+        language = env.get("app_doc_language")
+        destination = decoded
+        if decoded in env.get("app_doc_routes", ()) and language and parsed.path.startswith("/help"):
+            destination += "?lang=" + language
+        token.attrSet("href", destination)
         token.attrSet("class", "markdown-reference markdown-reference-internal")
         token.attrSet("data-reference-state", "resolved")
         close_tags.append("a")
@@ -842,6 +846,7 @@ def render_markdown(
     reference_context: Optional[MarkdownReferenceContext] = None,
     trusted_session_routes: Optional[set[str]] = None,
     app_doc_routes: Optional[set[str]] = None,
+    app_doc_language: Optional[str] = None,
     _embed_depth: int = 0,
     _embed_stack: Tuple[int, ...] = (),
 ) -> MarkdownRenderResult:
@@ -875,6 +880,7 @@ def render_markdown(
             if isinstance(route, str) and _APP_DOC_ROUTE_PATTERN.fullmatch(route)
         ),
         "anchor_source": render_source,
+        "app_doc_language": app_doc_language if app_doc_language in {"ko", "en"} else None,
         "embed_depth": _embed_depth,
         "embed_stack": embed_stack,
     }

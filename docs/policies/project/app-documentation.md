@@ -2,14 +2,15 @@
 
 ## Purpose And Scope
 
-In-app Docs are six bundled English guides for people using the distributed
+In-app Docs are six bundled Korean and English guides for people using the distributed
 LocalBrain app. This policy defines their content ownership, page boundaries,
 reader behavior and delivery contract.
 
-- English user guidance for the distributed app lives in `src/localbrain/content/docs/`. These Markdown bodies are the canonical content; do not copy the repository's policy or planning tree into the app.
+- Korean-default and switchable English user guidance for the distributed app lives in `src/localbrain/content/docs/`. These Markdown bodies are the canonical content; do not copy the repository's policy or planning tree into the app.
 - The root [README](../../../README.md) owns the public product overview, installation entry and short first-use path. It directs users to in-app Docs rather than accumulating screen contracts, development progress or build internals. The [Documentation Map](../../README.md) routes maintainers to internal owners; the [test distribution guide](standalone-test-app-guide.md) owns artifact-specific first-launch requirements and release verification limits.
 - `src/localbrain/app/docs.py` owns the fixed page registry, titles, descriptions and corresponding content filenames. User input never selects a filesystem path.
 - The six pages cover Getting Started, Settings, Sessions Dashboard, Sessions, Local Contexts and Search. They explain the distributed app as ordinary downloaded, installed software. Development-only functionality, unfinished-feature lists, personal-environment details and internal execution evidence remain outside the guide.
+- The initial source-build trial lets Getting Started briefly point to the README's agent-assisted installation entry and explain pull → rebuild → replace for updates. Toolchain/build commands stay with the installation/developer guides. After installation, ordinary use and offline Docs do not depend on the checkout or that external link; this entry does not expose the development web edition as the trial app.
 - Settings owns option meaning, registration and Storage procedures, including backup, restore and cache cleanup. Search owns model preparation, download requirements and readiness. Sessions, Local Contexts and Dashboard own visibility/coverage checks; Getting Started owns installation, quitting and updates. Other pages link to the owning explanation rather than repeating a separate Troubleshooting page.
 - Preserve actual user-facing conditions and limits when generalizing prose, especially same-installation/computer/schema restore eligibility, explicit replacement and restart, recovery behavior, backup exclusions and original/model preservation. Neutral wording does not expand platform support.
 - Search guidance distinguishes automatic preparation after a successful model download from manual preparation/retry for an installed model. It identifies eligible primary work Sessions and directs readers to the parent Session for subsessions, preserving existing registration/readability and search exclusions.
@@ -22,7 +23,7 @@ reader behavior and delivery contract.
 - A Docs link appears immediately above Settings in the shared sidebar footer. Both remain reachable in the compact layout. Docs use the existing app shell, reading tokens, local assets and current-page semantics.
 - The reader has no per-guide Settings action or release-version badge. Shared app Settings remains available. The Settings guide omits About, app-versus-data-format version explanations and fixed path-label rules as part of its content boundary. Sessions explains home-directory path labels beside its conversation metadata, preserving the distinction between display, saved locations and historical Project attribution.
 - First-use setup does not automatically cover a Docs page. Its Welcome step links to Getting Started; following that link does not complete onboarding or register a source. The existing explicit setup request and normal app startup retain their behavior.
-- Body text is marked as English. Guidance uses existing UI names and quotes Korean control labels where that helps users find the current control; Docs do not translate the rest of the app.
+- Body text is marked with its selected Korean or English language. Guidance uses existing UI names and quotes Korean control labels where that helps users find the current control; Docs do not translate the rest of the app.
 - Unknown guide names return 404. A registered guide whose packaged content cannot be read returns a bounded unavailable state, without a source path or private fallback.
 
 ## Rendering And Link Authority
@@ -48,4 +49,21 @@ reader behavior and delivery contract.
 
 ## Implementation Ownership
 
-- `app/docs.py`, package `content/docs/`, `templates/app-docs.html` and `static/app-docs.css`: fixed user-guide registry, canonical English content and in-app reader. [In-App Documentation](app-documentation.md) owns the product routes, shared Markdown link exception, package delivery and content boundary.
+- `app/docs.py`, package `content/docs/`, `templates/app-docs.html` and `static/app-docs.css`: fixed user-guide registry, canonical Korean/English content and in-app reader. [In-App Documentation](app-documentation.md) owns the product routes, shared Markdown link exception, package delivery and content boundary.
+
+## Language Contract
+
+Bare Docs entries default to Korean. `?lang=ko` or `?lang=en` selects one of two
+fixed package locations; unsupported values fall back to Korean. English bodies
+remain directly under `content/docs/`; Korean bodies live under its `ko/` folder.
+The shared app header provides chronological Back under the [navigation contract](navigation-and-history.md). Docs keep their current article h1 and use Contents/목차 for the rail heading. The reader exposes one shared Docs language dropdown in that contents header,
+separate from the article heading/body. It displays the current language and
+reveals Korean/English options; Escape closes it and returns focus, and an outside
+click dismisses it. Native disclosure links remain usable without its script.
+This option applies only to the Docs reader. It translates the fixed registry and
+error copy, keeps the same topic on
+language switches, and retains language in contents, adjacent and authored guide
+links. Browser history records those ordinary links. No persisted language setting
+or source registration is created. The shared renderer adds the selected language
+only to admitted first-party guide links; its existing source-authored link rules
+and exact product route admission remain unchanged.

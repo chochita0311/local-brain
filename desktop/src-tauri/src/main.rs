@@ -240,20 +240,28 @@ fn main() {
         .setup(|app| {
             let handle = app.handle().clone();
             let navigation = handle.clone();
-            WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
-                .title("LocalBrain")
-                .inner_size(1280.0, 850.0)
-                .min_inner_size(640.0, 480.0)
-                .on_navigation(move |url| {
-                    if url.scheme() == "tauri" {
-                        return true;
-                    }
-                    if url.scheme() == "http" && url.host_str() == Some("127.0.0.1") {
-                        return url.port() == *navigation.state::<Backend>().port.lock().unwrap();
-                    }
-                    false
-                })
-                .build()?;
+            let window =
+                WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
+                    .title("LocalBrain")
+                    .inner_size(1280.0, 850.0)
+                    .min_inner_size(640.0, 480.0)
+                    .on_navigation(move |url| {
+                        if url.scheme() == "tauri" {
+                            return true;
+                        }
+                        if url.scheme() == "http" && url.host_str() == Some("127.0.0.1") {
+                            return url.port()
+                                == *navigation.state::<Backend>().port.lock().unwrap();
+                        }
+                        false
+                    });
+            #[cfg(target_os = "macos")]
+            let window = window
+                .title_bar_style(tauri::TitleBarStyle::Overlay)
+                .hidden_title(true)
+                .traffic_light_position(tauri::LogicalPosition::new(16.0, 29.0))
+                .initialization_script(include_str!("../../ui/window-shell.js"));
+            window.build()?;
             use tauri::menu::{Menu, MenuItem, PredefinedMenuItem, Submenu};
             let settings = MenuItem::with_id(app, "settings", "설정…", true, Some("CmdOrCtrl+,"))?;
             let application = Submenu::with_items(

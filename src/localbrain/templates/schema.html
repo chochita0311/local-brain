@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% block title %}Schema · LocalBrain{% endblock %}
-{% block page_location %}Schema{% endblock %}
 {% block content %}
   {% set view = schema_view %}
   <section class="schema-explorer-page" data-schema-explorer aria-busy="false" data-mermaid-adapter-url="{{ url_for('static', path='/mermaid-adapter.js') }}?v={{ asset_version | default('dev') }}">

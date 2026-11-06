@@ -92,7 +92,8 @@ behavior are recorded separately in Feature and Run evidence.
   and the current step. Back retains drafts. Skip does not register a draft.
   Empty sources and model-free search are valid; no step navigation downloads
   or prepares a model. The existing explicit model actions retain that authority.
-- Welcome links to the bundled English Getting Started guide. Docs pages do not
+- Welcome links to bundled Getting Started in the selected Docs language,
+  defaulting to Korean. Docs pages do not
   auto-open onboarding over their content; reading the guide does not complete
   setup or register sources. Explicit setup requests and ordinary startup keep
   the existing completion behavior. [In-App Documentation](app-documentation.md)
@@ -392,9 +393,12 @@ their existing explicit authority. Picking does not persist a path independently
   Insights, Session workflow and Schema cannot be enabled by user settings or
   direct HTTP access. The normal development web edition keeps its other routes.
   Optional routes, settings and lifetime services are installed only when their
-  package is selected in application assembly. The default delivery
-  set is shared by both editions; [feature availability](../../plans/project/feature-availability.md)
-  owns temporary suspension and resumption decisions. Exclusion preserves stored
+  package is selected in application assembly. Desktop first excludes all optional
+  product packages, including their reference hooks, startup cache work and task
+  runners; its [trial capabilities](trial-capabilities.md) remain the public
+  boundary. The web edition retains the selected optional set.
+  [Feature availability](../../plans/project/feature-availability.md) owns common
+  temporary suspension and resumption decisions. Exclusion preserves stored
   data and model files and is not a user preference.
 - The desktop server binds loopback on an available port, authenticates its
   window with a per-launch secret and rejects cross-origin mutations. Native
@@ -500,3 +504,23 @@ their existing explicit authority. Picking does not persist a path independently
 - `search/keyword.py`, `models/setup.py`, `app/storage/recovery.py`: model-free eligible
   FTS retrieval, explicit cancellable public-model installation, private backup,
   restart-only restore and bounded owned-cache cleanup.
+
+## Shared Back Navigation
+
+The [navigation owner](navigation-and-history.md) defines chronological native-history Back across app screens, the50-point bound and local view restoration. Startup authentication and route admission remain owned here and unchanged.
+
+
+## Window Toolbar
+
+The macOS host integrates shared Back/Forward/search into its
+titlebar, retaining OS window controls and official drag/double-click handling.
+Ordinary browser/unsupported-host execution keeps the page toolbar. One DOM and
+the current search/history state owners serve both; no duplicate native search
+or history store is introduced. Startup/recovery retain a draggable top region.
+[App Navigation And History](navigation-and-history.md#shared-window-toolbar) owns
+placement, per-window compact sidebar, shortcuts and isolation. The sidebar
+toggle sits beside the brand; collapse keeps all available menu icons, home, Docs
+and Settings reachable. Control-anchored hover/focus hints use separate keycaps
+and dismiss on Escape without following pointer movement. Google SVGs/license
+are bundled for offline use. Windows native
+execution remains unverified; browser rendering is not its substitute.

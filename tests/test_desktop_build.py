@@ -18,6 +18,95 @@ spec.loader.exec_module(build)
 
 
 class PortableSysconfigTests(unittest.TestCase):
+    def test_build_publication_keeps_complete_old_output_on_failure(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder); output = root / 'output'; output.mkdir()
+            staging = root / 'staging'; staging.mkdir()
+            names = ('LocalBrain-apple-silicon', 'LocalBrain-apple-silicon.zip', 'LocalBrain-apple-silicon.sha256')
+            for location, value in ((output, 'old'), (staging, 'new')):
+                app = location / names[0]; app.mkdir()
+                (app / build.BUILD_OUTPUT_MARKER).write_text('owned')
+                (app / 'app').write_text(value)
+                for name in names[1:]: (location / name).write_text(value)
+            replace = build.os.replace
+            def fail_archive(source, target):
+                if source == staging / names[1]: raise OSError('synthetic publication failure')
+                return replace(source, target)
+            with patch.object(build.os, 'replace', side_effect=fail_archive):
+                with self.assertRaisesRegex(OSError, 'synthetic publication failure'):
+                    build.publish_build(staging, output)
+            self.assertEqual((output / names[0] / 'app').read_text(), 'old')
+            for name in names[1:]: self.assertEqual((output / name).read_text(), 'old')
+            self.assertFalse(list(output.glob('.localbrain-previous-*')))
+            build.publish_build(staging, output)
+            self.assertEqual((output / names[0] / 'app').read_text(), 'new')
+            for name in names[1:]: self.assertEqual((output / name).read_text(), 'new')
+
+    def test_build_publication_retains_backup_if_rollback_cannot_finish(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder); output = root / 'output'; output.mkdir()
+            staging = root / 'staging'; staging.mkdir()
+            names = ('LocalBrain-apple-silicon', 'LocalBrain-apple-silicon.zip', 'LocalBrain-apple-silicon.sha256')
+            for location, value in ((output, 'old'), (staging, 'new')):
+                app = location / names[0]; app.mkdir()
+                (app / build.BUILD_OUTPUT_MARKER).write_text('owned')
+                (app / 'app').write_text(value)
+                for name in names[1:]: (location / name).write_text(value)
+            replace = build.os.replace
+            def fail(source, target):
+                if source == staging / names[1] or (source == output / names[0] and target == staging / names[0]):
+                    raise OSError('synthetic recovery failure')
+                return replace(source, target)
+            with patch.object(build.os, 'replace', side_effect=fail):
+                with self.assertRaisesRegex(RuntimeError, 'previous files retained'):
+                    build.publish_build(staging, output)
+            backups = list(output.glob('.localbrain-previous-*'))
+            self.assertEqual(len(backups), 1)
+            self.assertEqual((backups[0] / names[0] / 'app').read_text(), 'old')
+            for name in names[1:]: self.assertEqual((backups[0] / name).read_text(), 'old')
+
+    def test_build_publication_recovers_after_rename_then_interrupt(self):
+        for phase in ('old', 'new'):
+            with self.subTest(phase=phase), tempfile.TemporaryDirectory() as folder:
+                root = Path(folder); output = root / 'output'; output.mkdir()
+                staging = root / 'staging'; staging.mkdir()
+                names = ('LocalBrain-apple-silicon', 'LocalBrain-apple-silicon.zip', 'LocalBrain-apple-silicon.sha256')
+                for location, value in ((output, 'old'), (staging, 'new')):
+                    app = location / names[0]; app.mkdir()
+                    (app / build.BUILD_OUTPUT_MARKER).write_text('owned')
+                    (app / 'app').write_text(value)
+                    for name in names[1:]: (location / name).write_text(value)
+                replace = build.os.replace
+                interrupted = False
+                def interrupt(source, target):
+                    nonlocal interrupted
+                    result = replace(source, target)
+                    trigger = (output if phase == 'old' else staging) / names[0]
+                    if source == trigger and not interrupted:
+                        interrupted = True
+                        raise KeyboardInterrupt()
+                    return result
+                with patch.object(build.os, 'replace', side_effect=interrupt):
+                    with self.assertRaises(KeyboardInterrupt):
+                        build.publish_build(staging, output)
+                self.assertEqual((output / names[0] / 'app').read_text(), 'old')
+                for name in names[1:]: self.assertEqual((output / name).read_text(), 'old')
+                self.assertFalse(list(output.glob('.localbrain-previous-*')))
+
+    def test_build_identity_tracks_content_without_runtime_or_generated_files(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            source = root / 'src/localbrain'; source.mkdir(parents=True)
+            app = source / '__init__.py'; app.write_text('version = "synthetic"')
+            ui = root / 'desktop/ui'; ui.mkdir(parents=True)
+            (ui / 'index.html').write_text('<p>App</p>')
+            before = build.source_identity(root)
+            (root / 'runtime.db').write_bytes(b'private synthetic runtime')
+            (ui / 'app-styles.css').write_text('generated copy')
+            self.assertEqual(build.source_identity(root), before)
+            app.write_text('version = "changed"')
+            self.assertNotEqual(build.source_identity(root)['input_sha256'], before['input_sha256'])
+
     def setUp(self):
         self.builder = "/synthetic/builder"
         self.prefix = self.builder + "/python"

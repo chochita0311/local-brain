@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% from "_context_tree.html" import render_context_tree %}
 {% block title %}Local Contexts · LocalBrain{% endblock %}
-{% block page_location %}Local Contexts{% endblock %}
 {% block content %}
   <section class="page-heading context-page-heading">
     <div>
@@ -74,7 +73,7 @@
         {% if selected_source %}<span class="source-status {{ selected_source.status }}">{{ value_label("context-root.status", selected_source.status) }}</span>{% endif %}
       </div>
       <div class="context-explorer-body" data-context-split>
-        <aside class="source-tree-pane" id="context-source-tree">
+        <aside class="source-tree-pane" data-navigation-scroll="context-tree" id="context-source-tree">
           <div class="pane-heading"><span>Source tree</span><strong>{{ selected_source.document_count if selected_source else 0 }}</strong></div>
           {% if tree and selected_source %}
             {{ render_context_tree(tree, selected_source.id, selected_document.id if selected_document else none) }}
@@ -103,7 +102,7 @@
           data-keyboard-step="16"
         ></div>
 
-        <article class="context-preview-pane" id="context-markdown-preview" data-context-preview data-context-document-id="{{ selected_document.id if selected_document else '' }}" aria-busy="false">
+        <article class="context-preview-pane" id="context-markdown-preview" data-context-preview data-navigation-scroll="context-preview" data-context-document-id="{{ selected_document.id if selected_document else '' }}" aria-busy="false">
           {% if selected_document %}
             <header class="context-preview-heading">
               <div><span>{{ selected_document.content_type }}</span><h2>{{ selected_document.title }}</h2><p>{{ selected_document.relative_path }}</p></div>

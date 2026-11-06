@@ -68,6 +68,8 @@ Every global and subject Schema ERD requests the locally bundled official ELK la
 
 Successfully rendered diagrams start at their existing `100%` width and expose bounded `10%–300%` local presentation controls. `Ctrl`/`Cmd` plus wheel, including browser-normalized trackpad pinch, zooms around the pointer; an unmodified wheel remains ordinary scroll input. Reset restores `100%`, and width fit only reduces diagrams that exceed the current viewport. Zoom changes the rendered wrapper and local scroll position only: it never reruns Mermaid, alters presentation data, enters URL state, or persists user data.
 
+Shared Back, bounded entry identity and scroll restoration follow [App Navigation And History](navigation-and-history.md); feature URL, selection, preview and fallback semantics remain owned here.
+
 ## Privacy And Packaging
 
 Only schema identifiers and approved semantic text enter the manifest. Runtime rows, configured or source paths, source names, document/session content, private or runtime URLs, credentials, Run artifacts, and machine state are prohibited. Repository-relative owner paths and source hashes are allowed provenance. Reviewed public documentation citations in repository-owned semantic text are also allowed; the schema-presentation test pins their exact URLs. This exception does not admit imported URLs or fetch anything during generation, loading, or page rendering.

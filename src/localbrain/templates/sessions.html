@@ -52,7 +52,6 @@
   </div>
 {%- endmacro %}
 {% block title %}{{ inventory_page_title }} · LocalBrain{% endblock %}
-{% block page_location %}Sessions{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ url_for('static', path='/session-chart.css') }}?v={{ asset_version | default('dev') }}-15">
 {% endblock %}
@@ -85,7 +84,7 @@
         {% elif sync_outcome == 'partial' %}일부 Session 소스에 확인이 필요합니다.
         {% else %}Session 소스를 동기화하지 못했습니다.{% endif %}
       </strong>
-      <span>{% if session_display == 'chart' %}<a href="/sources">Sources</a>에서 각 수집 결과와 보존 여부를 확인하세요.{% else %}아래 수집 소스 상태에서 각 결과와 보존 여부를 확인하세요.{% endif %}</span>
+      <span>{% if session_display == 'chart' %}{% if desktop_edition %}<button type="button" class="text-button" data-settings-open="sessions">설정의 세션 소스</button>{% else %}<a href="/sources">Sources</a>{% endif %}에서 각 수집 결과와 보존 여부를 확인하세요.{% else %}아래 수집 소스 상태에서 각 결과와 보존 여부를 확인하세요.{% endif %}</span>
     {% endif %}
   </div>
   {% if session_pin_error and session_pin_error != 'storage-unavailable' %}
@@ -250,7 +249,7 @@
           </section>
 
           <section class="side-section source-status-section">
-            <div class="side-heading"><h2>수집 소스</h2><a href="/sources">관리</a></div>
+            <div class="side-heading"><h2>수집 소스</h2>{% if desktop_edition %}<button type="button" class="text-button" data-settings-open="sessions">관리</button>{% else %}<a href="/sources">관리</a>{% endif %}</div>
             {% for source in sources if source.provider_kind in ['claude', 'codex'] %}
               <div class="source-status-row source-health-{{ source.last_scan_status or 'unknown' }}">
                 <span class="source-name"><i class="source-indicator" {{ profile_attrs(source.id) }}></i><span data-profile-label="{{ source.id }}">{{ source.name }}</span></span>

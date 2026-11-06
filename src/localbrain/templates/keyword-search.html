@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 {% block title %}검색 · LocalBrain{% endblock %}
-{% block page_location %}Search{% endblock %}
 {% block content %}
 <section class="page-heading search-heading"><div><p class="eyebrow">SEARCH</p><h1>로컬 기록 검색</h1><p class="heading-copy">등록한 세션과 Local Context에서 입력한 단어를 모두 포함하는 원문을 찾습니다.</p></div></section>
 <nav class="search-mode-nav" aria-label="검색 방식"><a href="/natural-search?{{ {'q':natural_query,'mode':'keyword'}|urlencode }}" aria-current="page">키워드 검색</a><a href="/natural-search?{{ {'q':natural_query,'mode':'ai'}|urlencode }}">AI 검색</a></nav>

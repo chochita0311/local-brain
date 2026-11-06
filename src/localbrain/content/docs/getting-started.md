@@ -2,7 +2,11 @@ LocalBrain organizes AI coding conversations and project documents so you can br
 
 ## Install and launch
 
-Download and install LocalBrain, then launch the application.
+For the initial trial, get the repository and ask your coding agent to build and
+install LocalBrain using the [README installation entry](https://github.com/chochita0311/local-brain#install-from-source-with-an-agent).
+Then launch the built application. If you receive a finished app instead, install
+and launch that app. Build-tool instructions stay in the repository; ordinary use
+of the installed app needs no source checkout or manually started development server.
 
 ## Set up your sources
 
@@ -23,11 +27,37 @@ After registering a Session source, open [Sessions](/sessions) and choose **Sync
 
 Open a Session to read its conversation, or open [Local Contexts](/context) to select a document. Use the shared search field to find a remembered phrase. Source registration is explicit: finding or choosing a folder alone does not connect it.
 
+## Move between screens
+
+Toggle the sidebar beside the LocalBrain brand. Collapsing keeps the menu icons
+reachable. On the Mac app, Back, Forward and search share the window titlebar;
+in a browser they stay in the page toolbar. **←** retraces visits across Sessions,
+details, documents, Search and Docs, retaining filters, selection and reading
+position. **→** returns along that same history after Back; a new visit discards
+the forward branch. The sidebar toggle keeps its state across visits in the current
+window. Hover or keyboard-focus an available navigation icon for its name and separate
+shortcut keys; Escape dismisses the hint. Search has no extra hover help. Disabled
+Back/Forward retain their name/key hint and show a not-allowed cursor.
+
+| Action | Mac | Other desktop browsers |
+| --- | --- | --- |
+| Back / Forward | `⌘[` / `⌘]` | `Alt+←` / `Alt+→` |
+| Toggle sidebar | `⌘⇧S` | `Ctrl+Shift+S` |
+| Focus search | `⌘K` | `Ctrl+K` |
+
+It keeps the current window's latest **50 points including the current screen**
+(up to 49 backward steps) and is unavailable at the first retained point. Reloads
+and background updates add no point. Fully quitting starts a new history next launch.
+
 ## Close and update the application
 
 Closing the window leaves the application running. Open its application icon to show the window again. Choose **Quit** or press **⌘Q** to exit completely and stop synchronization and downloads.
 
 Before updating, quit LocalBrain completely, install the updated application, and reopen it. Replacing or removing the application does not delete saved data or settings. [Settings](/help/settings) explains backup and restore.
+
+For a source-built installation, update the repository and ask your agent to
+rebuild and replace the app while preserving saved data and settings. Pulling
+source alone does not update the installed application.
 
 ## Explore the guides
 

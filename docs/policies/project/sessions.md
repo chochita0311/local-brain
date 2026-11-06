@@ -165,7 +165,8 @@ the [Chart presentation contract](../design/surfaces/sessions-chart.md).
 
 Camera, selection ID,
 vertical scale and List page use scope-specific version-four sessionStorage, which
-also carries visibility as a navigation fallback. The dedicated
+also carries visibility as a navigation fallback. Per-entry camera/selection
+restoration must not replace this scope-owned visibility fallback. The dedicated
 `session_chart_preferences` table owns durable visibility per logical source and
 workspace scope; empty workspace scope means all workspaces. It has no cascading
 FK and stores only sorted hidden-folder keys and update time. DB state, including

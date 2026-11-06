@@ -393,6 +393,10 @@ Components consume semantic roles only. Color, type, spacing, radius, elevation,
   /* Shell and component geometry */
   --shell-sidebar-width: 220px;
   --shell-sidebar-width-compact: 188px;
+  --shell-sidebar-width-collapsed: 64px;
+  --icon-size-navigation: 20px;
+  --tooltip-max-width: 320px;
+  --layer-tooltip: 80;
   --shell-header-height: 58px;
   --shell-header-min-height-narrow: 54px;
   --shell-sticky-offset: 80px;
@@ -466,6 +470,30 @@ geometry, interaction and source-filter presentation.
 - At 700px and below, the shell becomes a single block. Navigation becomes a horizontally scrollable top region and the workspace header remains sticky below it.
 - The sidebar is sticky and viewport-height on desktop. The document owns page scrolling; the main workspace does not create a competing page-level scroll container.
 - The workspace header is sticky, 58px on desktop, and at least 54px on narrow viewports.
+- Its left slot provides icon-only Back and Forward controls with accessible names and shortcut tooltips. Direction controls keep their stable enabled/disabled slots; global search and its keyboard hint remain at right. On the macOS host this shared bar integrates into the overlay titlebar with native traffic-light space; it does not also occupy an in-content row. Browsers keep the page toolbar. The sidebar toggle sits beside the brand, outside the home link. Collapse is per-window state that retains a compact icon rail and an expand control, with all available destinations, active state and accessible names intact. The body owns the page h1. Repeating section-location labels are omitted. Back follows the [app navigation contract](../project/navigation-and-history.md). Docs contents use Contents/목차 beside their scoped language option.
+
+The sidebar footer contains Docs and Settings; omit decorative online/privacy slogans.
+
+Shared navigation uses locally bundled Google Material Symbols Outlined, with
+consistent20px glyphs and existing desktop/touch hit-area tokens. Docs uses a book
+icon. Icons are decorative beside accessible destination names; numbers do not
+stand in for menu meaning.
+
+Shell hover help anchors to the control, never cursor coordinates. Present action
+text and individual shortcut keycaps separately, without parentheses. Use one
+shared tooltip with delayed pointer entry, keyboard focus, Escape dismissal,
+hoverable content/gap, viewport containment and no competing native title. It
+never takes focus or changes layout. Modal ownership, resize, blur and navigation
+dismiss it. Scroll dismisses pointer help; Tab-induced menu scrolling reanchors
+keyboard help, while explicit wheel/key movement dismisses it. Composition keys
+remain input-owned. The tooltip stays invisible during measurement; show it only
+after stylesheet readiness and valid control-relative coordinates. Use the layout
+viewport so scrollbars cannot squeeze an edge hint or change its wrapping. Its color, border, radius and elevation reuse shell tokens.
+
+Shared-shell hint refinement: omit redundant help on the search field and Search
+submit/link; keep the visible search shortcut badge. Disabled Back/Forward use a
+not-allowed cursor while retaining the same short action/keycap hover help.
+Omit no-screen explanation text; disabled directions remain non-actionable.
 
 ### Navigation Model
 

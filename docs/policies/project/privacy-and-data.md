@@ -62,11 +62,15 @@ and all derived text spans, provenance locators and vectors in
 or queries. Model inference uses verified local assets offline; page visits
 cannot download them. No automatic query history or feedback archive is written,
 and packaged `serve` disables access logging so query URLs are not copied into
-server logs. Browser history can retain submitted URLs. Private benchmark
+server logs. Browser history can retain submitted URLs. The bounded [app navigation state](navigation-and-history.md) additionally keeps up to50 recent URLs, numeric scroll positions and view selections in window-scoped sessionStorage; it copies no conversation/document bodies and creates no DB or server-log archive. Private benchmark
 queries, judgments and raw results must remain in caller-owned private output
 outside Git; tracked fixtures and reports contain authored synthetic
 material. See [Natural-Language Search](natural-language-search.md) for current
 eligibility checks and stale-evidence refusal.
+
+Shared toolbar sidebar visibility stores only a collapsed/expanded token in
+per-window sessionStorage. It creates no DB/global setting, content snapshot,
+external request or telemetry; the current window/session owns its lifecycle.
 
 `session-sources.toml` stores a numeric source PK, display label, provider kind,
 local root/Home paths, color, order and registration enablement. It contains no credential, account identity,

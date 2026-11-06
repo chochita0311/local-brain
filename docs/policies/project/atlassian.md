@@ -127,6 +127,8 @@ source scan, Refresh, or maintenance action, and Setup never accepts selection
 state. Both full-detail families remain executable without JavaScript; only
 the link/document family owns local editing.
 
+Shared Back, bounded entry identity and scroll restoration follow [App Navigation And History](navigation-and-history.md); feature URL, selection, preview and fallback semantics remain owned here.
+
 ### Static Locator Admission
 
 Static URL recognition and product admission are separate authorities. One

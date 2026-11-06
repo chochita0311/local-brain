@@ -346,7 +346,7 @@ class UiContractTests(unittest.TestCase):
         )
         positions = []
         for number, label, href, active_page in destinations:
-            marker = ">{}</span><span>{}</span>".format(number, label)
+            marker = 'href="{}"'.format(href)
             positions.append(self.base.index(marker))
             self.assertIn('href="{}"'.format(href), self.base)
             self.assertIn("active_page == '{}'".format(active_page), self.base)
@@ -362,11 +362,11 @@ class UiContractTests(unittest.TestCase):
                     asset_version="synthetic",
                 )
                 current = re.findall(
-                    r'<a class="lnb-item active" href="([^"]+)" aria-current="page">',
+                    r'<a class="lnb-item active" href="([^"]+)" aria-current="page"[^>]*>',
                     html,
                 )
                 self.assertEqual(current, [href])
-                self.assertIn("<span>{}</span>".format(label), html)
+                self.assertIn('<span class="nav-label">{}</span>'.format(label), html)
 
         narrow_navigation = self.styles[
             self.styles.index("@media (max-width: 700px)") :
@@ -605,7 +605,7 @@ class UiContractTests(unittest.TestCase):
             "boundResultList?.removeEventListener",
             "restoreSyncContinuity(continuity);",
             "syncModal({ focus: false });",
-            'window.history.replaceState(historySnapshot(), "", canonicalPath || window.location.href);',
+            'atlassianHistory.replaceState(historySnapshot(), "", canonicalPath || window.location.href);',
             "pendingSyncAnnouncement",
             "if (syncModalOwnerActive())",
             "const renderSyncRefreshWarning = () =>",
@@ -649,8 +649,8 @@ class UiContractTests(unittest.TestCase):
             self.assertIn(rule, self.styles)
 
     def test_schema_extends_the_shell_and_explorer_family_without_custom_system(self):
-        sources_position = self.base.index(">07</span><span>Sources</span>")
-        schema_position = self.base.index(">08</span><span>Schema</span>")
+        sources_position = self.base.index('href="/sources"')
+        schema_position = self.base.index('href="/schema"')
         self.assertLess(sources_position, schema_position)
         self.assertIn("active_page == 'schema'", self.base)
         self.assertIn('href="/schema"', self.base)
@@ -688,7 +688,7 @@ class UiContractTests(unittest.TestCase):
             "AbortController",
             "new DOMParser()",
             "outgoing.replaceWith(adopted)",
-            "window.history.pushState",
+            "viewHistory.pushState",
             'window.addEventListener("popstate"',
             "schemaFocusTarget",
             'destination.searchParams.has("table")',
@@ -877,7 +877,7 @@ class UiContractTests(unittest.TestCase):
             'headers: { "X-Requested-With": "LocalBrain-Usage-Dashboard" }',
             "new DOMParser()",
             "outgoingDashboard.replaceWith(adoptedDashboard)",
-            "window.history.pushState",
+            "viewHistory.pushState",
             'window.addEventListener("popstate"',
             "AbortController",
             "restoreUsageScroll(scrollY)",
@@ -919,7 +919,7 @@ class UiContractTests(unittest.TestCase):
             'treePane.addEventListener("click"',
             "new DOMParser()",
             "currentPreview.replaceWith(adoptedPreview)",
-            "window.history.pushState",
+            "viewHistory.pushState",
             'window.addEventListener("popstate"',
             "AbortController",
             'link.setAttribute("aria-current", "page")',
@@ -1020,7 +1020,7 @@ class UiContractTests(unittest.TestCase):
             'headers: { "X-Requested-With": "LocalBrain-Document-Reader" }',
             "new DOMParser()",
             "currentContent.replaceWith(adoptedContent)",
-            "window.history.pushState",
+            "viewHistory.pushState",
             'window.addEventListener("popstate"',
             "AbortController",
             "selectedLink.focus({ preventScroll: true })",
@@ -1056,7 +1056,7 @@ class UiContractTests(unittest.TestCase):
 
         for behavior in (
             'inventorySwitch.addEventListener("click"',
-            "window.history.pushState",
+            "viewHistory.pushState",
             'window.addEventListener("popstate"',
             "panel.hidden = panel.dataset.inventoryPanel !== selectedInventory",
         ):
@@ -1767,7 +1767,7 @@ class UiContractTests(unittest.TestCase):
             "requestGeneration",
             '"X-LocalBrain-Partial": "atlassian-selection-preview"',
             "Preview identity mismatch",
-            "window.history.pushState",
+            "atlassianHistory.pushState",
             "persistHistoryPosition",
             "bindResultListScroll();",
             "boundResultList?.removeEventListener",

@@ -15,6 +15,8 @@ from contextlib import contextmanager, closing
 from datetime import datetime, timezone
 from pathlib import Path
 
+from .accounting import location_status
+
 
 from localbrain.foundation.config import settings, cache_directory
 from localbrain.foundation.operations import operation_lock
@@ -82,29 +84,15 @@ def _files(config):
     return sorted(result)
 
 
-def _size(root):
-    size = 0
-    if root.is_symlink() or not root.exists():
-        return size
-    for parent, dirs, files in os.walk(root, followlinks=False):
-        dirs[:] = [name for name in dirs if not (Path(parent) / name).is_symlink()]
-        for name in files:
-            try:
-                info = (Path(parent) / name).lstat()
-                if stat.S_ISREG(info.st_mode):
-                    size += info.st_size
-            except OSError:
-                continue
-    return size
-
-
 def storage_status(config=settings):
     from localbrain.foundation.paths import hub_cache_root
     root = config.data_dir
-    return {"data": str(root), "data_bytes": _size(root),
-            "cache": str(cache_directory(config)), "cache_bytes": _size(cache_directory(config)),
-            "models": str(hub_cache_root()), "models_bytes": _size(hub_cache_root()),
-            "free_bytes": shutil.disk_usage(root).free,
+    paths = {"data": root, "cache": cache_directory(config), "models": hub_cache_root()}
+    locations = {key: location_status(path) for key, path in paths.items()}
+    return {**{key: str(path) for key, path in paths.items()},
+            **{key + "_bytes": item["bytes"] for key, item in locations.items()},
+            "locations": locations,
+            "free_bytes": locations["data"]["volume"]["free_bytes"],
             "restore_pending": (root / "restore-pending.zip").is_file(),
             "recovery": str(root / "recovery")}
 

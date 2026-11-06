@@ -12,8 +12,10 @@ This directory separates current project contracts from project plans and approv
 
 ## User Guides
 
-The distributed app's English user guides live in `src/localbrain/content/docs/`
-and are read through **Docs** in the app. They own ordinary screen usage and
+The distributed app's Korean-default and switchable English user guides live in
+`src/localbrain/content/docs/` and are read through **Docs** in the app. Korean
+bodies live under [`ko/`](../src/localbrain/content/docs/ko/); the guide links below
+point to their English counterparts. They own ordinary screen usage and
 settings procedures; [In-App Documentation](policies/project/app-documentation.md)
 owns their content and delivery rules.
 
@@ -61,7 +63,7 @@ Durable rules and current contracts live under `docs/policies/`.
   the durable tables. The Plans Index links its PRD and Feature chain.
 
 - [Desktop App And Common Local Settings](policies/project/desktop-app-and-settings.md): settings, source identity/lifecycle, synchronization and recovery contracts
-- [In-App Documentation](policies/project/app-documentation.md): bundled English user-guide ownership, /help routes, reader and shared Markdown link authority, packaging and privacy
+- [In-App Documentation](policies/project/app-documentation.md): bundled Korean/English user-guide ownership, /help routes, reader and shared Markdown link authority, packaging and privacy
 - [macOS Test Distribution Guide](policies/project/standalone-test-app-guide.md): artifact-specific first launch, manual replacement, environment evidence and recipient-validation limits
 
 ## Feature Contracts And Development Operations

@@ -1,3 +1,5 @@
+const viewHistory = window.LocalBrainNavigation || window.history;
+
 function formatLocalTime(value) {
   if (!value || value === "대기 중" || value === "-") return value;
   const date = new Date(value);
@@ -52,6 +54,7 @@ const usageDashboardStatus = document.querySelector("[data-usage-dashboard-statu
 
 if (usageDashboardStatus) {
   let usageDashboardRequest = null;
+  window.addEventListener("pagehide", () => usageDashboardRequest?.abort());
 
   const currentUsageDashboard = () => document.querySelector("[data-usage-dashboard]");
   const usageScrollFallbackKey = "localbrain:usage-dashboard-scroll";
@@ -82,6 +85,7 @@ if (usageDashboardStatus) {
       focusDateField = null,
     } = {},
   ) => {
+    window.LocalBrainNavigation?.pending();
     usageDashboardRequest?.abort();
     const controller = new AbortController();
     usageDashboardRequest = controller;
@@ -109,7 +113,7 @@ if (usageDashboardStatus) {
       formatLocalTimes(adoptedDashboard);
 
       if (pushHistory) {
-        window.history.pushState(
+        viewHistory.pushState(
           { usageDashboard: true, usageScrollY: scrollY },
           "",
           destination.href,
@@ -139,6 +143,7 @@ if (usageDashboardStatus) {
       if (usageDashboardRequest === controller) {
         usageDashboardRequest = null;
         currentUsageDashboard()?.setAttribute("aria-busy", "false");
+        window.LocalBrainNavigation?.settled();
       }
     }
   };
@@ -162,7 +167,7 @@ if (usageDashboardStatus) {
     if (destination.href === window.location.href) return;
 
     const scrollY = window.scrollY;
-    window.history.replaceState(
+    viewHistory.replaceState(
       { ...window.history.state, usageDashboard: true, usageScrollY: scrollY },
       "",
     );
@@ -193,7 +198,7 @@ if (usageDashboardStatus) {
     if (destination.href === window.location.href) return;
 
     const scrollY = window.scrollY;
-    window.history.replaceState(
+    viewHistory.replaceState(
       { ...window.history.state, usageDashboard: true, usageScrollY: scrollY },
       "",
     );
@@ -297,7 +302,7 @@ if (inventorySwitch) {
 
     const destination = selectedInventory === "projects" ? "/projects" : "/sessions";
     document.title = `${selectedInventory === "projects" ? "Projects" : "Sessions"} · LocalBrain`;
-    if (pushHistory) window.history.pushState({ inventory: selectedInventory }, "", destination);
+    if (pushHistory) viewHistory.pushState({ inventory: selectedInventory }, "", destination);
     inventoryStatus.textContent = `${selectedInventory === "projects" ? "Projects" : "Sessions"} 보기를 표시했습니다.`;
   };
 
@@ -319,7 +324,11 @@ if (inventorySwitch) {
     selectInventory(selectedInventory, { pushHistory: true });
   });
 
-  window.addEventListener("popstate", () => selectInventory(inventoryFromPath()));
+  window.addEventListener("popstate", () => {
+    if (!["/sessions", "/projects"].includes(location.pathname)) {location.reload(); return;}
+    selectInventory(inventoryFromPath());
+    window.LocalBrainNavigation?.settled();
+  });
   window.addEventListener("resize", syncInventoryIndicator);
   syncInventoryIndicator();
   document.fonts?.ready.then(syncInventoryIndicator);
@@ -812,6 +821,7 @@ if (contextExplorer) {
   const previewStatus = contextExplorer.querySelector("[data-context-preview-status]");
   const sourceId = contextExplorer.dataset.contextSourceId;
   let previewRequest = null;
+  window.addEventListener("pagehide", () => previewRequest?.abort());
 
   document.addEventListener("click", (event) => {
     const link = event.target.closest("[data-context-folder-source-link]");
@@ -1044,6 +1054,7 @@ if (contextExplorer) {
     destination,
     { pushHistory = false, focusSelection = false } = {},
   ) => {
+    window.LocalBrainNavigation?.pending();
     previewRequest?.abort();
     const controller = new AbortController();
     previewRequest = controller;
@@ -1071,7 +1082,7 @@ if (contextExplorer) {
       if (focusSelection && selectedLink) selectedLink.focus({ preventScroll: true });
 
       if (pushHistory) {
-        window.history.pushState({ contextDocument: true }, "", destination.href);
+        viewHistory.pushState({ contextDocument: true }, "", destination.href);
       }
       scrollPreviewFragment(destination);
 
@@ -1086,6 +1097,7 @@ if (contextExplorer) {
       if (previewRequest === controller) {
         previewRequest = null;
         contextExplorer.querySelector("[data-context-preview]")?.setAttribute("aria-busy", "false");
+        window.LocalBrainNavigation?.settled();
       }
     }
   };
@@ -1138,7 +1150,7 @@ if (contextExplorer) {
     if (destinationKey(destination) === destinationKey(window.location.href)) {
       selectDocumentLink(destination, targetLink);
       if (destination.href !== window.location.href) {
-        window.history.pushState({ contextDocument: true }, "", destination.href);
+        viewHistory.pushState({ contextDocument: true }, "", destination.href);
       }
       scrollPreviewFragment(destination);
       return;
@@ -1167,6 +1179,7 @@ if (documentReader) {
   const returnLink = documentReader.querySelector("[data-document-reader-return]");
   const readerStatus = documentReader.querySelector("[data-document-reader-status]");
   let readerRequest = null;
+  window.addEventListener("pagehide", () => readerRequest?.abort());
 
   if (treePane) {
     const documentLinks = () => [
@@ -1240,6 +1253,7 @@ if (documentReader) {
       destination,
       { pushHistory = false, focusSelection = false } = {},
     ) => {
+      window.LocalBrainNavigation?.pending();
       readerRequest?.abort();
       const controller = new AbortController();
       readerRequest = controller;
@@ -1269,7 +1283,7 @@ if (documentReader) {
         if (focusSelection && selectedLink) selectedLink.focus({ preventScroll: true });
 
         if (pushHistory) {
-          window.history.pushState({ documentReader: true }, "", destination.href);
+          viewHistory.pushState({ documentReader: true }, "", destination.href);
         }
         document.title = parsed.title;
         scrollReaderDestination(destination);
@@ -1286,6 +1300,7 @@ if (documentReader) {
           readerRequest = null;
           documentReader.querySelector("[data-document-reader-content]")
             ?.setAttribute("aria-busy", "false");
+          window.LocalBrainNavigation?.settled();
         }
       }
     };
@@ -1335,7 +1350,7 @@ if (documentReader) {
       if (documentId(destination) === documentId(window.location.href)) {
         selectDocumentLink(destination, targetLink);
         if (destination.href !== window.location.href) {
-          window.history.pushState({ documentReader: true }, "", destination.href);
+          viewHistory.pushState({ documentReader: true }, "", destination.href);
         }
         scrollReaderDestination(destination);
         return;

@@ -2,6 +2,7 @@
 
 from html.parser import HTMLParser
 from pathlib import Path
+from urllib.parse import urlsplit, parse_qs
 import tempfile
 from types import SimpleNamespace
 import unittest
@@ -48,7 +49,7 @@ class AppDocsTests(unittest.TestCase):
         self.home_endpoint = next(route.endpoint for route in self.app.routes if route.path == "/help")
         self.endpoint = next(route.endpoint for route in self.app.routes if route.path == "/help/{slug}")
 
-    def page(self, slug="", query=b""):
+    def page(self, slug="", query=b"lang=en"):
         request = Request({
             "type": "http", "scheme": "http", "method": "GET",
             "server": ("127.0.0.1", 18789), "client": ("127.0.0.1", 1),
@@ -70,7 +71,7 @@ class AppDocsTests(unittest.TestCase):
                 html = response.body.decode()
                 self.assertIn('lang="en"', html)
                 self.assertIn('<h1 id="guide-title">' + guide.title, html)
-                self.assertIn('href="' + guide.href + '" aria-current="page"', html)
+                self.assertIn('href="' + guide.href + '?lang=en" aria-current="page"', html)
                 self.assertNotIn('href="/help/troubleshooting"', html)
                 self.assertNotIn('>Open settings</button>', html)
                 self.assertNotIn('For LocalBrain v', html)
@@ -85,28 +86,61 @@ class AppDocsTests(unittest.TestCase):
                         base, separator, fragment = href.partition("#")
                         if base.startswith("https://"):
                             self.assertIn(base, {
+                                "https://github.com/chochita0311/local-brain",
                                 "https://docs.cloud.google.com/sdk/docs/install-sdk",
                                 "https://docs.cloud.google.com/sdk/docs/authenticate",
                             })
                             continue
-                        self.assertIn(base, app_docs.APP_DOC_ROUTES | {"/"})
+                        self.assertIn(urlsplit(base).path, app_docs.APP_DOC_ROUTES | {"/"})
+                        if urlsplit(base).path.startswith("/help"):
+                            self.assertIn(parse_qs(urlsplit(base).query)["lang"][0], {"ko", "en"})
                         if separator:
                             target = Anchors()
-                            target.feed(self.page(base.removeprefix("/help/")).body.decode())
+                            target.feed(self.page(urlsplit(base).path.removeprefix("/help/")).body.decode())
                             self.assertIn(fragment, target.ids)
                 self.assertNotIn(str(app_docs.CONTENT_ROOT), html)
+
+    def test_korean_is_default_and_language_is_a_fixed_content_choice(self):
+        for query in (b"", b"lang=ko", b"lang=../settings", b"lang=fr"):
+            for guide in app_docs.GUIDES:
+                with self.subTest(query=query, guide=guide.slug):
+                    response = self.page(guide.slug, query)
+                    self.assertEqual(response.status_code, 200)
+                    html = response.body.decode()
+                    self.assertIn('class="app-docs" lang="ko"', html)
+                    self.assertIn(guide.href + '?lang=en', html)
+                    self.assertIn(guide.href + '?lang=ko', html)
+                    self.assertNotIn('data-reference-state="missing"', html)
+                    self.assertNotIn('data-reference-state="no-source"', html)
+                    parsed = Anchors(); parsed.feed(html)
+                    for href in parsed.links:
+                        if href.startswith("#"):
+                            self.assertIn(href[1:], parsed.ids)
+                        elif urlsplit(href).path.startswith("/help"):
+                            self.assertIn(parse_qs(urlsplit(href).query)["lang"][0], {"ko", "en"})
+        korean = app_docs.CONTENT_ROOT / "ko"
+        self.assertEqual({p.name for p in korean.glob("*.md")}, {g.filename for g in app_docs.GUIDES})
+
+    def test_guide_language_does_not_expand_markdown_link_authority(self):
+        source = "[Guide](/help/search) [API](/api/settings) [Bad](/help/search?lang=../../secret)"
+        html = str(render_markdown(source, app_doc_routes={"/help/search", "/api/settings", "/help/search?lang=../../secret"}, app_doc_language="en").html)
+        self.assertIn('href="/help/search?lang=en"', html)
+        self.assertNotIn('href="/api/settings"', html)
+        self.assertNotIn('href="/help/search?lang=../../secret"', html)
+        plain = str(render_markdown(source, app_doc_language="en").html)
+        self.assertNotIn('href="/help/search', plain)
 
     def test_docs_remains_readable_before_setup_without_completing_it(self):
         response = self.page()
         html = response.body.decode()
         self.assertNotIn('data-onboarding="true"', html)
         self.assertNotIn('class="app-shell" inert', html)
-        self.assertLess(html.index('href="/help"'), html.index("data-settings-open"))
+        self.assertLess(html.index('href="/help?lang=en"'), html.index("data-settings-open"))
         self.assertIn("Read the getting started guide", html)
         self.assertFalse(self.preferences.onboarding_completed)
 
     def test_home_query_cannot_select_another_guide(self):
-        response = self.page(query=b"slug=settings")
+        response = self.page(query=b"slug=settings&lang=en")
         self.assertIn('<h1 id="guide-title">Getting started', response.body.decode())
 
     def test_unknown_name_cannot_select_or_read_a_file(self):

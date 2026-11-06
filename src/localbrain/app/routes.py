@@ -2,17 +2,19 @@
 from fastapi.responses import HTMLResponse
 import localbrain.app.web as app_web
 import localbrain.usage.web as usage_web
-import localbrain.insights.web as insights_web
 import localbrain.sessions.web as sessions_web
 import localbrain.local_context.web as local_context_web
 import localbrain.sources.web as sources_web
-import localbrain.persistence.web as persistence_web
-import localbrain.resources.web as resources_web
 import localbrain.natural_search.web as natural_search_web
+from localbrain.app.edition import DESKTOP
 
 
 def install_routes(app):
     selected = app.state.feature_packages
+    if not DESKTOP:
+        import localbrain.insights.web as insights_web
+        import localbrain.persistence.web as persistence_web
+        import localbrain.resources.web as resources_web
     if 'auto_work' in selected:
         import localbrain.auto_work.web as auto_work_web
     if 'workstreams' in selected:
@@ -32,11 +34,12 @@ def install_routes(app):
         app.post('/auto-work/refresh')(auto_work_web.auto_work_refresh)
     app.get('/', response_class=HTMLResponse)(app_web.dashboard)
     app.get('/sessions-dashboard', response_class=HTMLResponse)(usage_web.sessions_dashboard)
-    app.get('/sessions-dashboard/insights', response_class=HTMLResponse)(insights_web.session_insights)
-    app.post('/sessions-dashboard/insights/runs', response_class=HTMLResponse)(insights_web.create_insight_run)
-    app.post('/sessions-dashboard/insights/runs/{run_id}/cancel')(insights_web.stop_insight_run)
-    app.get('/sessions-dashboard/insights/runs/{run_id}/download')(insights_web.download_insight_report)
-    app.get('/api/insight-runs/{run_id}')(insights_web.insight_run_status)
+    if not DESKTOP:
+        app.get('/sessions-dashboard/insights', response_class=HTMLResponse)(insights_web.session_insights)
+        app.post('/sessions-dashboard/insights/runs', response_class=HTMLResponse)(insights_web.create_insight_run)
+        app.post('/sessions-dashboard/insights/runs/{run_id}/cancel')(insights_web.stop_insight_run)
+        app.get('/sessions-dashboard/insights/runs/{run_id}/download')(insights_web.download_insight_report)
+        app.get('/api/insight-runs/{run_id}')(insights_web.insight_run_status)
     if 'workstreams' in selected:
         app.get('/workstreams', response_class=HTMLResponse)(workstreams_web.workstreams_page)
         app.get('/workstreams/{workstream_id}', response_class=HTMLResponse)(workstreams_web.show_workstream)
@@ -69,9 +72,10 @@ def install_routes(app):
     app.post('/sessions/sync')(sources_web.sync_sessions_page)
     app.post('/sessions/{session_id}/pin')(sessions_web.pin_session_page)
     app.post('/sessions/{session_id}/unpin')(sessions_web.unpin_session_page)
-    app.get('/sources', response_class=HTMLResponse)(sources_web.sources_page)
-    app.post('/sources/scan')(sources_web.scan_sources_page)
-    app.get('/schema', response_class=HTMLResponse)(persistence_web.schema_page)
+    if not DESKTOP:
+        app.get('/sources', response_class=HTMLResponse)(sources_web.sources_page)
+        app.post('/sources/scan')(sources_web.scan_sources_page)
+        app.get('/schema', response_class=HTMLResponse)(persistence_web.schema_page)
     app.get('/sessions/{session_id}/chart-activity')(sessions_web.show_session_chart_activity)
     app.get('/sessions/{session_id}', response_class=HTMLResponse)(sessions_web.show_session)
     if 'workflow' in selected:
@@ -80,13 +84,16 @@ def install_routes(app):
     app.get('/sessions/{session_id}/subsessions/{file_name}', response_class=HTMLResponse)(sessions_web.show_subsession)
     app.get('/sessions/{session_id}/subagents/{file_name}', include_in_schema=False)(sessions_web.redirect_legacy_subagent_route)
     app.get('/documents/{document_id}', response_class=HTMLResponse)(local_context_web.show_document)
-    app.get('/local-resources/{resource_id}', response_class=HTMLResponse)(resources_web.show_local_resource)
+    if not DESKTOP:
+        app.get('/local-resources/{resource_id}', response_class=HTMLResponse)(resources_web.show_local_resource)
     app.get('/natural-search', response_class=HTMLResponse)(natural_search_web.natural_search_page)
     app.get('/api/natural-search/status')(natural_search_web.natural_search_status)
     app.post('/natural-search/prepare')(natural_search_web.natural_search_prepare)
     app.post('/natural-search/cancel')(natural_search_web.natural_search_cancel)
     app.get('/natural-search/evidence/{rowid}', response_class=HTMLResponse)(natural_search_web.natural_search_evidence)
-    if 'atlassian' in selected:
+    if DESKTOP:
+        app.get('/search', response_class=HTMLResponse, deprecated=True)(app_web.desktop_legacy_search)
+    elif 'atlassian' in selected:
         app.get('/search', response_class=HTMLResponse, deprecated=True)(search_web.search_page)
     if 'workstreams' in selected:
         app.post('/api/workstreams')(workstreams_web.api_create_workstream)
@@ -111,7 +118,8 @@ def install_routes(app):
     if selected & {"atlassian", "workstreams"}:
         app.get('/api/runs/{run_id}')(maintenance_web.api_run_status)
         app.post('/api/runs/{run_id}/cancel')(maintenance_web.api_cancel_run)
-    app.post('/api/scan')(sources_web.scan_sources)
+    if not DESKTOP:
+        app.post('/api/scan')(sources_web.scan_sources)
     app.post('/api/sessions/sync')(sources_web.sync_session_sources)
     app.get('/api/sessions/sync/status')(sources_web.session_sync_status)
     app.post('/api/sessions/sync/stream')(sources_web.stream_session_sources)

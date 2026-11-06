@@ -72,13 +72,19 @@ Only connected sources are read while the application is running. **Quit** stops
 
 ## Storage
 
-Storage displays application data and cache locations and their sizes.
+Storage shows each configured location and its logical regular-file size in **GiB**
+(1024³ bytes), which can differ from allocated disk space. A missing location is
+empty; unreadable and partially counted locations are labeled separately. Free
+space belongs to each location's actual volume; shared-volume figures appear once.
+The shared public model cache can include other models and applications.
+The app executable, source checkout, Python/Node/Rust tools and build caches are
+outside this summary; source builds need their own additional disk space.
 
 | Stored material | Purpose |
 | --- | --- |
 | Application data | Imported records and application settings. |
 | Cache | Generated data that can be rebuilt. |
-| Model files | Downloaded models kept in a separate model cache. |
+| Shared public model cache | Downloaded weights, including files used by other models and tools. |
 
 Original Session and document files remain at their registered source locations.
 
@@ -98,4 +104,4 @@ A pre-restore copy is kept in the data directory's `recovery` folder, and the ap
 
 ### Clear caches
 
-**Clear cache** removes inactive search caches and expired analysis caches created by LocalBrain. Original material and downloaded model files are preserved. The search cache can be rebuilt when AI search is enabled.
+**Clear cache** removes inactive search caches created by LocalBrain. Original material and downloaded model files are preserved. The search cache can be rebuilt when AI search is enabled.

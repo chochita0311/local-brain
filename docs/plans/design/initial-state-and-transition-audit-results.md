@@ -4,7 +4,8 @@
 
 - First audit: `2026-11-01`; repair verification: `2026-11-02`; QA closeout: `2026-11-04`.
 - Current status: **F1–F6 source fixes and scoped regressions complete**.
-  전체 상태·native acceptance의 통과 판정은 아니다. 기존 배포 앱은 재빌드하지 않았다.
+  전체 상태·native acceptance의 통과 판정은 아니다. 이 audit/QA 단계에서는 기존 배포 앱을
+  재빌드하지 않았다. 별도의 [11월 5일 재빌드 checkpoint](../research/early-access-distribution-readiness.md#local-rebuild-checkpoint--2026-11-05)가 이후 앱 갱신과 동봉 backend/격리 WKWebView 기동 확인을 소유한다. 실제 Tauri/전체 matrix 수용을 닫지는 않는다.
 - Parent: [Initial State And Transition Audit Plan](initial-state-and-transition-audit-plan.md).
 - Authority: 첫 조사는 계획 작성 뒤 사용자의 `진행` 요청에 따라 수행했으며 당시에는
   제품 코드·평가 정책·배포물을 수정하지 않았다. 후속 `리뷰대로 정리` 요청의 F1–F6
@@ -396,3 +397,14 @@ Search로 이동하면 확인된 모델의 취소도 잠겼다. 설정 응답은
 - 다음 poll 회차를 예약하는 기존 제어는 검색 응답 종료도 기다린다. 이번 수정은
   시작된 읽기 응답의 개별 반영과 확인된 모델 명령의 조작 가능성을 검증한 범위다.
   끝나지 않는 검색 요청에서 poll 스케줄 자체를 분리하는 변경은 수행하지 않았다.
+
+## Later Mac Trial Integration — 2026-11-05
+
+[Mac delivery evaluation](../evaluation/eval-0155-early-access-macos-delivery.md)
+records the subsequent bilingual Docs/Storage/hidden-route changes and current
+native rebuild. Existing UI regression70 and new desktop69 browser checks pass.
+The short-settings oracle was corrected after the same 15px scrollbar/client-width
+mismatch was reproduced in both frozen baseline and candidate; dialog bounds and
+absence of horizontal overflow remain checked. Actual Tauri window/owned backend
+start/Quit now have synthetic evidence, distinct from full physical UI acceptance.
+The earlier transition/paint and recipient evidence limits above are not replaced.

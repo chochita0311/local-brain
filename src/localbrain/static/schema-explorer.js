@@ -1,3 +1,4 @@
+const viewHistory = typeof window !== "undefined" ? window.LocalBrainNavigation || window.history : null;
 let schemaRequest = null;
 
 const currentExplorer = () => document.querySelector("[data-schema-explorer]");
@@ -225,6 +226,7 @@ async function loadSchema(destination, { pushHistory = false, scroll = true } = 
   schemaRequest?.abort();
   const controller = new AbortController();
   schemaRequest = controller;
+  window.LocalBrainNavigation?.pending();
   const outgoing = currentExplorer();
   outgoing?.setAttribute("aria-busy", "true");
 
@@ -240,13 +242,15 @@ async function loadSchema(destination, { pushHistory = false, scroll = true } = 
     const incoming = parsed.querySelector("[data-schema-explorer]");
     if (!incoming || !outgoing) throw new Error("Schema 영역을 찾을 수 없습니다.");
 
+    if (schemaRequest !== controller || controller.signal.aborted) return;
     const adopted = document.importNode(incoming, true);
     outgoing.replaceWith(adopted);
     document.title = parsed.title || document.title;
     if (pushHistory) {
-      window.history.pushState({ schemaExplorer: true }, "", destination.href);
+      viewHistory.pushState({ schemaExplorer: true }, "", destination.href);
     }
     await renderSchemaDiagrams(adopted);
+    if (schemaRequest !== controller || currentExplorer() !== adopted) return;
     focusSchemaDestination(adopted, schemaFocusTarget(destination), { scroll });
     announceSchemaState(adopted);
   } catch (error) {
@@ -256,11 +260,13 @@ async function loadSchema(destination, { pushHistory = false, scroll = true } = 
     if (schemaRequest === controller) {
       schemaRequest = null;
       currentExplorer()?.setAttribute("aria-busy", "false");
+      window.LocalBrainNavigation?.settled();
     }
   }
 }
 
 if (typeof document !== "undefined") {
+  window.addEventListener("pagehide", () => schemaRequest?.abort());
   document.addEventListener("click", (event) => {
     const link = event.target.closest("[data-schema-link]");
     if (
@@ -295,12 +301,16 @@ if (typeof document !== "undefined") {
 
   const initialExplorer = currentExplorer();
   if (initialExplorer) {
-    window.history.replaceState({ ...window.history.state, schemaExplorer: true }, "");
+    viewHistory.replaceState({ ...window.history.state, schemaExplorer: true }, "");
+    window.LocalBrainNavigation?.pending();
     renderSchemaDiagrams(initialExplorer).then(() => {
+      if (currentExplorer() !== initialExplorer || schemaRequest) return;
       const destination = new URL(window.location.href);
       if (destination.search) {
         focusSchemaDestination(initialExplorer, schemaFocusTarget(destination), { scroll: false });
       }
+    }).finally(() => {
+      if (currentExplorer() === initialExplorer && !schemaRequest) window.LocalBrainNavigation?.settled();
     });
   }
 }

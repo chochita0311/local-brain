@@ -1,31 +1,47 @@
 {% extends "base.html" %}
-{% block title %}{{ guide.title if guide else 'Guide not found' }} · Docs · LocalBrain{% endblock %}
-{% block page_location %}Docs{% endblock %}
-{% block styles %}<link rel="stylesheet" href="{{ url_for('static', path='/app-docs.css') }}?v={{ asset_version }}">{% endblock %}
+{% block title %}{{ guide.title if guide else ('Guide not found' if doc_language == 'en' else '설명서를 찾을 수 없음') }} · Docs · LocalBrain{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', path='/app-docs.css') }}?v={{ asset_version }}">
+<script src="{{ url_for('static', path='/app-docs.js') }}?v={{ asset_version }}" defer></script>
+{% endblock %}
 {% block content %}
-  <div class="app-docs" lang="en">
+  <div class="app-docs" lang="{{ doc_language }}">
     <aside class="app-docs-contents">
-      <p class="eyebrow">LOCALBRAIN DOCS</p>
-      <nav aria-label="Documentation contents">
+      <div class="app-docs-tools">
+        <p class="eyebrow">{{ 'Contents' if doc_language == 'en' else '목차' }}</p>
+        <details class="app-docs-language" data-docs-language>
+          <summary aria-label="{{ 'Documentation language: English' if doc_language == 'en' else '설명서 언어: 한국어' }}">
+            <svg class="app-docs-language-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/></svg>
+            <span>{{ 'English' if doc_language == 'en' else '한국어' }}</span>
+            <svg class="app-docs-language-caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
+          </summary>
+          <nav class="app-docs-language-options" aria-label="{{ 'Documentation language' if doc_language == 'en' else '설명서 언어' }}">
+            {% for code, label in [('ko', '한국어'), ('en', 'English')] %}
+            <a href="{{ guide.href if guide else '/help' }}?lang={{ code }}" lang="{{ code }}" hreflang="{{ code }}"{% if doc_language == code %} aria-current="true"{% endif %}>{{ label }}</a>
+            {% endfor %}
+          </nav>
+        </details>
+      </div>
+      <nav class="app-docs-topics" aria-label="{{ 'Documentation contents' if doc_language == 'en' else '설명서 목차' }}">
         {% for item in guides %}
-          <a class="app-docs-topic{% if guide == item %} active{% endif %}" href="{{ item.href }}"{% if guide == item %} aria-current="page"{% endif %}>{{ item.title }}</a>
+          <a class="app-docs-topic{% if guide == item %} active{% endif %}" href="{{ guide_href(item) }}"{% if guide == item %} aria-current="page"{% endif %}>{{ item.title }}</a>
         {% endfor %}
       </nav>
     </aside>
     <article class="app-docs-article" aria-labelledby="guide-title">
       <header class="app-docs-heading">
         <div>
-          <h1 id="guide-title">{{ guide.title if guide else 'Guide not found' }}</h1>
+          <h1 id="guide-title">{{ guide.title if guide else ('Guide not found' if doc_language == 'en' else '설명서를 찾을 수 없음') }}</h1>
           {% if guide %}<p class="heading-copy">{{ guide.description }}</p>{% endif %}
         </div>
       </header>
       {% if guide_error %}
-        <div class="empty-state" role="status"><p>{{ guide_error }}</p><a href="/help">Back to Getting started</a></div>
+        <div class="empty-state" role="status"><p>{{ guide_error }}</p><a href="/help?lang={{ doc_language }}">{{ 'Back to Getting started' if doc_language == 'en' else '시작하기로 돌아가기' }}</a></div>
       {% else %}
         <div class="markdown-body app-docs-body" data-markdown-body>{{ body.html }}</div>
-        <nav class="app-docs-pagination" aria-label="Adjacent guides">
-          {% if previous_guide %}<a href="{{ previous_guide.href }}"><span>Previous</span>{{ previous_guide.title }}</a>{% endif %}
-          {% if next_guide %}<a class="app-docs-next" href="{{ next_guide.href }}"><span>Next</span>{{ next_guide.title }}</a>{% endif %}
+        <nav class="app-docs-pagination" aria-label="{{ 'Adjacent guides' if doc_language == 'en' else '이전·다음 설명서' }}">
+          {% if previous_guide %}<a href="{{ guide_href(previous_guide) }}"><span>{{ 'Previous' if doc_language == 'en' else '이전' }}</span>{{ previous_guide.title }}</a>{% endif %}
+          {% if next_guide %}<a class="app-docs-next" href="{{ guide_href(next_guide) }}"><span>{{ 'Next' if doc_language == 'en' else '다음' }}</span>{{ next_guide.title }}</a>{% endif %}
         </nav>
       {% endif %}
     </article>

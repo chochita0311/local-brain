@@ -81,14 +81,14 @@ class NaturalSearchWebTests(unittest.TestCase):
 
     def test_header_uses_one_native_form_for_search_and_enter(self):
         status, body, _ = self.call('/natural-search?' + urlencode({'q': '앱 & 문서'}))
-        header = body.split('<header class="workspace-header">', 1)[1].split('</header>', 1)[0]
+        header = body.split('<header class="workspace-header"', 1)[1].split('>', 1)[1].split('</header>', 1)[0]
         self.assertEqual(status, 200)
         self.assertEqual(header.count('type="search"'), 1)
         self.assertIn('id="global-search" class="global-search" action="/natural-search" method="get"', header)
         self.assertIn('placeholder="세션, 질문, 문서 통합 검색"', header)
         self.assertIn('value="앱 &amp; 문서"', header)
         self.assertIn('<label class="sr-only" for="global-query">검색</label>', header)
-        self.assertIn('type="submit" form="global-search">Search</button>', header)
+        self.assertRegex(header, r'type="submit" form="global-search"[^>]*>Search</button>')
         self.assertNotIn('global-natural-query', header)
         self.assertNotIn('키워드 검색', header)
 

@@ -5,6 +5,12 @@ evidence limits, manual replacement, and recipient validation. Ordinary usage
 starts in **Docs → Getting Started** inside the app; **Docs → Settings** owns
 source registration, synchronization, backup, restore and cache procedures.
 
+The initial trial installation uses a repository checkout and a coding agent
+to build/install locally. Start with
+[Agent-Assisted Local Build](https://github.com/chochita0311/local-brain/blob/master/docs/policies/project/installation-and-storage.md#agent-assisted-local-build).
+The ZIP procedure below remains the alternative for a finished test artifact;
+its recipient requirements differ from a source builder's tool prerequisites.
+
 ## Requirements And Verified Scope
 
 - Use an **Apple Silicon Mac**. The build targets **arm64** and declares **macOS 14**

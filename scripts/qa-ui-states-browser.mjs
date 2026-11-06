@@ -287,7 +287,7 @@ try {
   }
   await send('Emulation.setDeviceMetricsOverride',{width:701,height:400,deviceScaleFactor:1,mobile:false});
   await navigate('/settings'); await wait('!document.querySelector("#settings-startup").disabled');
-  assert(await evaluate('(()=>{const d=document.querySelector("#settings-dialog").getBoundingClientRect();return d.top>=0&&d.bottom<=innerHeight&&document.documentElement.scrollWidth===701;})()'),'short settings frame remains contained');
+  assert(await evaluate('(()=>{const d=document.querySelector("#settings-dialog").getBoundingClientRect();return d.top>=0&&d.bottom<=innerHeight&&innerWidth===701&&document.documentElement.scrollWidth===document.documentElement.clientWidth;})()'),'short settings frame remains contained');
   assert(await evaluate('(()=>{const b=document.querySelector(".settings-body");b.scrollTop=b.scrollHeight;return b.clientHeight>0&&document.querySelector("#settings-timezone-help").getBoundingClientRect().bottom<=b.getBoundingClientRect().bottom;})()'),'short settings body reaches final help text');
   await navigate('/runs/qa-completed');
   assert(await evaluate('document.querySelector("[data-run-output]").textContent==="표시할 실행 출력이 없습니다."'),'completed Run has neutral missing-output text');

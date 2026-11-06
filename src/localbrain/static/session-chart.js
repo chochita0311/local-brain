@@ -138,6 +138,8 @@
         projectPreference = preference ? validProjectKeys(preference.hiddenProjects) : null;
       } catch (_) { /* Legacy choices are optional migration input. */ }
     }
+    const savedProjectVisibility = saved ? validProjectKeys(saved.hiddenProjects) : null;
+    saved = window.LocalBrainNavigation?.getView("sessionChart") || saved;
     if (saved && byId.has(saved.selected)) selected = byId.get(saved.selected);
     if (saved && Number.isFinite(saved.scale) && saved.scale > 0) scale = Math.min(saved.scale, MAX_SCALE);
     if (saved && Number.isFinite(saved.rowScale) && saved.rowScale > 0) rowScale = Math.min(1, saved.rowScale);
@@ -151,6 +153,11 @@
     }
     function save() {
       if (!width) return;
+      window.LocalBrainNavigation?.setView('sessionChart', {
+        centerTime: origin + (boundedCameraX(cameraX) + width / 2) / scale,
+        scale, y: cameraY, rowScale, selected: selected ? selected.id : null,
+        page: Number(root.dataset.listPage),
+      });
       try {
         sessionStorage.setItem(storageKey, JSON.stringify({
           centerTime: origin + (boundedCameraX(cameraX) + width / 2) / scale,
@@ -308,7 +315,7 @@
         const times = project.items.filter(item => Number.isFinite(item.time));
         project.first = times.length ? times.reduce((first, item) => Math.min(first, item.first), Infinity) : NaN;
       }
-      if (projectPreference === null && saved) projectPreference = validProjectKeys(saved.hiddenProjects);
+      if (projectPreference === null) projectPreference = savedProjectVisibility;
       const savedProjects = projectPreference || [];
       if (savedProjects.length) {
         const keys = new Set(projects.map(project => project.key));

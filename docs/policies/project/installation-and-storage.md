@@ -2,9 +2,16 @@
 
 ## Supported Installation
 
-LocalBrain offers an Apple Silicon standalone test app and a Python/web installation.
-The `.app` bundles Tauri, Python and optional-search execution libraries; recipients
-unzip and launch it without installing development tools. Public model weights
+The initial trial installation is **Git checkout → coding agent → local native
+build and installation → app launch**. Use [Agent-Assisted Local Build](#agent-assisted-local-build)
+below. This source installer needs build tools. The current native build is
+Apple Silicon macOS only; planned Windows x86_64 support remains unimplemented
+and unverified until its port and actual Windows checks are complete.
+
+LocalBrain also offers an Apple Silicon standalone test artifact and a Python/web
+installation. The `.app` bundles Tauri, Python and optional-search execution
+libraries; someone receiving a finished `.app` can unzip and launch it without
+installing development tools. Public model weights
 remain an explicit optional download. Use the [test app guide](standalone-test-app-guide.md)
 for first launch, ad-hoc signing, supported-environment evidence and manual updates.
 The [settings contract](desktop-app-and-settings.md) owns the shared preferences,
@@ -24,7 +31,50 @@ lockfile additionally freezes exact dependency versions. Dependency upgrades
 must repeat the standalone wheel startup/page checks before widening those
 constraints, since an unconstrained newer framework can break template calls.
 
-### A New Mac With No Development Tools
+### Agent-Assisted Local Build
+
+Clone the repository or update an existing checkout, open that folder in your
+coding agent, and use the request in the [README](../../../README.md#install-from-source-with-an-agent).
+The agent follows the repository's existing native build commands rather than
+starting the broader development web edition as the installed trial app.
+
+| Stage | Expected action and result |
+| --- | --- |
+| Check the checkout | Identify the intended source revision and local changes. Preserve unrelated edits when updating; report dirty source as such. A pull does not replace or update a frozen app. |
+| Prepare tools | On Apple Silicon macOS, check Git, uv/Python 3.11, Xcode Command Line Tools, Rust/Cargo and Node/npm. Cargo must be available in the build shell. Install missing prerequisites as needed; an OS installer or permission prompt may need user participation. |
+| Build | Use [Build The macOS App](developer-guide.md#build-the-macos-app) and its frozen dependencies. Build the native app, including Python and optional-search execution libraries, without downloading model weights or collecting personal sources. |
+| Install and launch | Fully quit an existing LocalBrain before replacing it. Open the generated `LocalBrain.app`; the existing output can run from its build folder or be placed in Applications. Record the actual app location and verify that the native app, rather than a separately running development server, launched. |
+| Check first use | Open Docs/settings, connect sources explicitly, synchronize and open a Session, and try model-free keyword search. Model download/index preparation stays an explicit optional action. Keep successful build, native launch and a usable first task as separate results. |
+| Report | Give the source revision/dirty state, OS/architecture, app version/location, actual build/installation/launch results and anything unverified. BUILD-INFO records the source commit, dirty state and a SHA256 fingerprint of explicit app/build inputs; it rejects inputs changed during packaging. Report actual native launch separately. |
+
+Build environments, dependency downloads and outputs need space in addition to
+the running app's storage. The checkout's `.venv`, `desktop/node_modules`, Cargo
+target and `dist` are build/install inputs or outputs, not the user's database,
+settings or search index. Keep private runtime state under its
+[storage owners](#storage-ownership-and-configuration). Shared public model
+weights also remain separate; building optional-search libraries is not permission
+to download a model. Settings storage totals do not include all build-tool caches.
+
+For updates, quit the app and any separate backend using the same data, preserve
+local changes while updating to the chosen source revision, then repeat the
+build and app replacement. Retain the database, settings, originals and public
+model cache. Reopen and check the same installation's sources and records.
+Neither `git pull` nor a development-server reload replaces the frozen backend.
+
+The current builder uses ad-hoc signing and does not submit the app to Apple.
+Paid Developer Program enrollment and notarization are not prerequisites for
+this local-build trial. This does not establish the normal-security acceptance
+of a future downloadable public binary; its
+[separate release goal](../../plans/prd/prd-0021-macos-standalone-test-app-and-local-settings.md#public-distribution-goal--2026-10-20)
+and the test artifact's launch/evidence limits remain in force.
+
+For Windows, keep the [expected paths and later checks](../../plans/research/early-access-distribution-readiness.md#windows-expected-paths-and-storage--not-implemented-or-verified)
+as preparation guidance. An agent's presence does not make the current Mac-only
+builder or Unix-dependent runtime work on Windows. Report that boundary rather
+than silently offering the development web server or a speculative installer as
+a completed Windows app.
+
+### Alternative Prebuilt App And Python/Web Installation
 
 Use the supplied `.app` ZIP for the standalone test edition. The following steps
 install the alternative Python/web edition and its broader development features.
@@ -494,3 +544,16 @@ their procedures belong to the [Settings guide](../../../src/localbrain/content/
 Native packaging and its verification limits belong to the
 [test distribution guide](standalone-test-app-guide.md). General export remains
 separate future work.
+
+## Storage Measurement
+
+Settings measures configured data, private cache and shared Hub roots separately.
+It reports logical regular-file bytes (GiB), deduplicates hardlinks within each
+location and skips nested symlinks. A selected root symlink still refers to its
+configured directory. Missing roots are empty, permission/read failures are
+unavailable or partial, and capacity is resolved per actual filesystem (nearest
+existing parent for future directories). Repeated volume free space is displayed
+once. Shared Hub totals include other tools/models. App binaries, checkout,
+toolchains and build/dependency caches are outside these three totals. Reading
+storage never migrates or removes material. Backup/restore and cache cleanup keep
+their existing eligibility and preservation rules.

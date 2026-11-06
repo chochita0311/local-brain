@@ -28,6 +28,8 @@ def main():
         "HUGGINGFACE_HUB_CACHE": str(root / "hub/cache"),
         "HF_HUB_OFFLINE": "1", "TRANSFORMERS_OFFLINE": "1",
     })
+    if len(sys.argv) > 2 and sys.argv[2] == "desktop":
+        os.environ.update(LOCALBRAIN_EDITION="desktop", LOCALBRAIN_DESKTOP_TOKEN="synthetic-qa-token")
     sys.dont_write_bytecode = True
     sys.path.insert(0, str(repository / "src"))
     from localbrain.foundation.preferences import toml_text
@@ -68,10 +70,55 @@ def main():
                         VALUES (?,1,'organize_resources',?,'2026-11-01T00:00:00Z',?)""",
                         ("qa-" + status, status, str(root / "missing-result")))
                 connection.commit()
+            if (len(sys.argv) > 2 and sys.argv[2] == "desktop") or (len(sys.argv) > 3 and sys.argv[3] == "navigation"):
+                from localbrain.local_context.service import add_context_root
+                from localbrain.ingest.scanner import scan_context_root
+                from localbrain.persistence.db import transaction
+                document_root = root / "context"
+                document_root.mkdir()
+                (document_root / "example.md").write_text("# Synthetic linked document\nTrial reader evidence.")
+                with transaction() as connection:
+                    context_id = add_context_root(connection, str(document_root))
+                    scan_context_root(connection, context_id, force=True)
+                    document_id = connection.execute("SELECT id FROM context_documents").fetchone()[0]
+                    connection.execute("INSERT INTO workstream_links(workstream_id,entity_type,entity_id) VALUES (1,'document',?)", (str(document_id),))
+            if len(sys.argv) > 3 and sys.argv[3] == "navigation":
+                from localbrain.ingest.scanner import scan_session_sources
+                for name in ("example.md", "second.md", "third.md"):
+                    (document_root / name).write_text("# Synthetic " + name + "\n\n" + "\n\n".join("Paragraph %d: synthetic navigation evidence with enough text to scroll." % i for i in range(120)))
+                with transaction() as connection:
+                    scan_context_root(connection, context_id, force=True)
+                records = [{"type": "session_meta", "timestamp": "2026-11-01T00:00:00Z", "payload": {"id": "synthetic-ui-qa", "cwd": str(workspace)}}]
+                records += [{"type": "event_msg", "timestamp": "2026-11-01T00:01:00Z", "payload": {"type": "user_message", "message": "Synthetic message %d: " % i + ("navigation evidence " * 20)}} for i in range(45)]
+                path.write_text("\n".join(json.dumps(value) for value in records) + "\n")
+                scan_session_sources(force=True)
+                with connect() as connection:
+                    for i in range(2, 36):
+                        connection.execute("""INSERT INTO sessions(id,source_id,workspace_id,external_id,source_path,title,cwd_raw,started_at,last_event_at)
+                          VALUES (?,1,1,?,?,?,?,'2026-11-01T00:00:00Z','2026-11-01T00:00:00Z')""", (i, "synthetic-navigation-"+str(i), str(source/("retained-"+str(i)+".jsonl")), "Synthetic navigation Session "+str(i), str(workspace)))
+                    other_workspace = root / "second-project"
+                    other_workspace.mkdir()
+                    other_id = connection.execute("INSERT INTO workspaces(canonical_path,display_name,exists_now) VALUES (?,'Second synthetic Project',1)", (str(other_workspace),)).lastrowid
+                    connection.execute("UPDATE sessions SET workspace_id=?,cwd_raw=? WHERE id=35", (other_id, str(other_workspace)))
+                    connection.commit()
+                if len(sys.argv) > 2 and sys.argv[2] == "web":
+                    from localbrain.atlassian.catalog import create_or_reuse_atlassian_stub
+                    with connect() as connection:
+                        external_source = connection.execute("INSERT INTO external_source_instances(instance_key,provider_kind,service,display_name) VALUES ('toolbar-qa-jira','mcp_gateway','jira','Synthetic Jira')").lastrowid
+                        create_or_reuse_atlassian_stub(connection, source_instance_id=external_source, url="https://jira.example.test/browse/QA-1", title="Synthetic toolbar issue", coverage="indexed", observed_at="2026-11-01T00:00:00Z")
+                        connection.commit()
             yield
 
     app = create_app()
     app.router.lifespan_context = synthetic_lifespan
+
+    @app.middleware("http")
+    async def delayed_history(request, call_next):
+        import asyncio
+        if request.url.path == "/help" and request.query_params.get("navigation_delay") == "1":
+            while (root / "hold-navigation").exists():
+                await asyncio.sleep(0.03)
+        return await call_next(request)
 
     @app.get("/__qa__/fixture")
     def marker():

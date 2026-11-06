@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% block title %}Atlassian refresh · LocalBrain{% endblock %}
-{% block page_location %}Atlassian refresh{% endblock %}
 {% block content %}
   <div class="atlassian-refresh-page" data-atlassian-refresh data-call-budget="{{ preview.call_budget }}" data-executor-ready="{{ 'true' if external_executor_ready else 'false' }}">
     <a class="back-link" href="{{ return_to }}">원래 컨텍스트로 돌아가기</a>

@@ -96,7 +96,8 @@ class OnboardingTests(unittest.TestCase):
         self.assertIn("if (!confirmed?.saved.onboarding_completed) throw error", finish)
         self.assertLess(finish.index("state.preferences = confirmed"), finish.index("onboarding = false"))
         self.assertIn("document.querySelector('.app-shell').inert = false", finish)
-        self.assertIn("location.replace('/' + state.preferences.effective.startup_screen)", finish)
+        self.assertIn("window.LocalBrainNavigation.replaceLocation(destination)", finish)
+        self.assertIn("else location.replace(destination)", finish)
 
 
 if __name__ == "__main__":

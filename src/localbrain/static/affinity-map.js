@@ -3,6 +3,7 @@
   'use strict';
   if (window.__localbrainAffinity) return;
   window.__localbrainAffinity = true;
+  const viewHistory = window.LocalBrainNavigation || history;
   const NS = 'http://www.w3.org/2000/svg';
   let graph = null, controller = null, generation = 0, nativeOnly = false;
   const root = () => document.querySelector('[data-affinity-root]');
@@ -44,7 +45,7 @@
 
   function save() {
     if (!root()) return;
-    history.replaceState({...history.state, affinity: {scope: graph?.scope,
+    viewHistory.replaceState({...history.state, affinity: {scope: graph?.scope,
       transform: graph ? {...graph.transform} : null, allEdges: graph?.allEdges === true,
       viewport: graph?.viewport,
       listOpen: root().querySelector('[data-affinity-list]')?.open,
@@ -364,6 +365,7 @@
     const footerTop = listPage ? root().querySelector('[data-affinity-pagination]')?.getBoundingClientRect().top : null;
     controller?.abort(); controller = new AbortController();
     if (!pop) save();
+    window.LocalBrainNavigation?.pending();
     root().setAttribute('aria-busy', 'true');
     root().querySelector('[data-affinity-navigation-status]').textContent = '지도를 불러오고 있습니다.';
     try {
@@ -374,7 +376,7 @@
       if (!next) throw new Error('Invalid view');
       if (ticket !== generation) return;
       root().replaceWith(next);
-      if (!pop) history.pushState({}, '', target.href);
+      if (!pop) viewHistory.pushState({}, '', target.href);
       render(saved || prior);
       if (pop) scrollTo({top: saved?.scrollY || 0, behavior: 'instant'});
       else if (listPage) {
@@ -399,7 +401,7 @@
       const status = root().querySelector('[data-affinity-navigation-status]');
       status.classList.remove('sr-only'); status.classList.add('affinity-render-status');
       status.textContent = '화면을 불러오지 못했습니다. 링크를 다시 누르면 기본 페이지로 엽니다.';
-    } finally {if (ticket === generation) root()?.removeAttribute('aria-busy');}
+    } finally {if (ticket === generation) {root()?.removeAttribute('aria-busy'); window.LocalBrainNavigation?.settled();}}
   }
 
   document.addEventListener('click', e => {
@@ -415,7 +417,7 @@
     target.search = new URLSearchParams(new FormData(e.target)); navigate(target, {search: true});
   });
   window.addEventListener('popstate', e => {if (root()) navigate(new URL(location.href), {pop: true, saved: e.state?.affinity});});
-  window.addEventListener('pagehide', save);
+  window.addEventListener('pagehide', () => {controller?.abort(); save();});
   window.addEventListener('pageshow', e => {if (e.persisted && graph) graph.apply();});
   render(history.state?.affinity); save();
 })();

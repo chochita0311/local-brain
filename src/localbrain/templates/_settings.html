@@ -21,7 +21,7 @@
         <h3 tabindex="-1">LocalBrain에 오신 것을 환영합니다</h3>
         <p>흩어진 세션과 문서를 연결하고,<br>하던 작업을 이어가세요.</p>
         <p class="onboarding-note">사용할 위치를 차례로 선택합니다.<br>필요한 항목만 연결하고, 나머지는 나중에 설정하세요.</p>
-        <p><a href="/help" lang="en">Read the getting started guide</a></p>
+        <p><a href="/help?lang={{ doc_language | default('ko') }}" lang="{{ doc_language | default('ko') }}">{{ 'Read the getting started guide' if doc_language | default('ko') == 'en' else '시작하기 설명서 읽기' }}</a></p>
         <small>데이터와 설정은 이 Mac에 보관됩니다.</small>
       </section>
       <section data-settings-panel="general">
@@ -158,12 +158,13 @@
         </form>
       </section>
       <section data-settings-panel="storage" hidden>
-        <h3>저장공간</h3><div data-storage-summary></div>
+        <h3>저장공간</h3><div data-storage-summary aria-live="polite"></div>
+        <button type="button" class="text-button" data-storage-reload>저장공간 다시 확인</button>
         <div class="settings-section"><h4>백업</h4><p>DB와 앱 설정을 보관합니다. 원본 세션·문서·모델은 포함하지 않습니다. 개인 자료가 담긴 백업은 이 Mac에서만 복원할 수 있습니다.</p><button class="secondary-button" type="button" data-backup>백업 파일 저장</button></div>
         <details class="settings-section settings-disclosure"><summary>백업에서 복원</summary>
           <form data-restore-form class="settings-form"><label>LocalBrain 백업 ZIP<input type="file" name="archive" accept=".zip" required></label><label class="settings-check"><input type="checkbox" name="confirm" required><span>다음 실행에서 현재 데이터와 설정을 백업 상태로 교체합니다.</span></label><div class="settings-actions"><button type="submit" class="secondary-button">복원 예약</button></div><small>앱과 별도로 실행한 웹 서버를 모두 종료한 후 다시 실행해 주세요. 복원 전 사본은 로컬 recovery 폴더에 남깁니다.</small></form>
         </details>
-        <div class="settings-section"><h4>캐시</h4><p>사용하지 않는 검색 캐시와 만료된 분석 캐시를 정리합니다. 원본과 공개 모델 파일은 보존하며, 검색 캐시는 AI 검색을 켤 때 다시 만듭니다.</p><button class="secondary-button" type="button" data-cache-clear>캐시 정리</button></div>
+        <div class="settings-section"><h4>캐시</h4><p>사용하지 않는 검색 캐시{% if auto_work_package_available %}와 만료된 분석 캐시{% endif %}를 정리합니다. 원본과 공개 모델 파일은 보존하며, 검색 캐시는 AI 검색을 켤 때 다시 만듭니다.</p><button class="secondary-button" type="button" data-cache-clear>캐시 정리</button></div>
       </section>
       <section data-settings-panel="about" hidden>
         <div class="settings-about-identity">

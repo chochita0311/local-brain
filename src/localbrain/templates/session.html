@@ -6,7 +6,6 @@
 {% set session_return_to = (request.url.path ~ (('?' ~ request.url.query) if request.url.query else '')) if request is defined else '/sessions/' ~ session.id %}
 {% set session_pin_error = request.query_params.get('pin_error') if request is defined else none %}
 {% block title %}{{ session.title }} · LocalBrain{% endblock %}
-{% block page_location %}Session detail{% endblock %}
 {% block content %}
   <nav class="detail-backlinks" aria-label="Session 상세 탐색">
     {% if search_return %}<a class="back-link" href="{{ search_return }}">검색 결과로 돌아가기</a>{% endif %}

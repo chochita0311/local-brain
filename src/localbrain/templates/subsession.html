@@ -2,7 +2,6 @@
 {% from "_conversation.html" import conversation_message %}
 {% from "_source_cue.html" import source_cue, profile_attrs with context %}
 {% block title %}{{ value_label("session.role", "subsession") }} · {{ session.title }} · LocalBrain{% endblock %}
-{% block page_location %}Subsession detail{% endblock %}
 {% block content %}
   <nav class="detail-backlinks" aria-label="Subsession 상세 탐색"><a class="back-link" href="{{ parent_url | default('/sessions/' ~ session.id) }}">상위 Session으로 돌아가기</a><a class="back-link" href="{{ session_list_url | default('/sessions') }}">Sessions 목록</a></nav>
   <section class="session-heading"><div class="session-source large" {{ profile_attrs(session.source_id) }}><span aria-hidden="true">{{ source_cue(session.provider_kind, session.source_name) }}</span><span class="sr-only"><span data-profile-label="{{ session.source_id }}">{{ session.source_name }}</span> {{ value_label("session.role", "subsession") }}</span></div><div class="session-heading-copy"><p class="eyebrow">{{ value_label("session.role", "subsession") | upper }} · LAZY VIEW</p><h1>{{ subsession.title }}</h1><p class="heading-copy path-copy">{{ file_name }}</p></div></section>

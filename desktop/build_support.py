@@ -1,19 +1,92 @@
 """Build-only helpers for portable Python metadata and private-path checks."""
 
 import gzip
+import hashlib
 import importlib
 import marshal
+import os
 from pathlib import Path
 import pprint
 import re
 import shlex
+import shutil
+import subprocess
 import sys
 import sysconfig
+import tempfile
 import types
 import zipfile
 
 
 RUNTIME_PREFIX = "@LOCALBRAIN_RUNTIME_PREFIX@"
+BUILD_OUTPUT_MARKER = '.localbrain-build-output'
+
+
+def publish_build(staging, output):
+    """Publish a verified app/archive/checksum, restoring prior files on failure."""
+    names = ('LocalBrain-apple-silicon', 'LocalBrain-apple-silicon.zip', 'LocalBrain-apple-silicon.sha256')
+    previous = output / names[0]
+    if previous.is_symlink() or (previous.exists() and not (previous / BUILD_OUTPUT_MARKER).is_file()):
+        raise ValueError('Refusing to replace an unowned build directory')
+    for name in names[1:]:
+        target = output / name
+        if target.is_symlink() or (target.exists() and not target.is_file()):
+            raise ValueError('Refusing to replace a non-file build output')
+    if (staging / names[0]).is_symlink() or not (staging / names[0] / BUILD_OUTPUT_MARKER).is_file():
+        raise ValueError('A complete owned candidate build is required')
+    if any((staging / name).is_symlink() or not (staging / name).is_file() for name in names[1:]):
+        raise ValueError('A complete candidate archive and checksum are required')
+    backup = Path(tempfile.mkdtemp(prefix='.localbrain-previous-', dir=output))
+    try:
+        for name in names:
+            if (output / name).exists():
+                os.replace(output / name, backup / name)
+        for name in names:
+            os.replace(staging / name, output / name)
+    except BaseException:
+        try:
+            # Reconcile actual paths: interruption can follow a successful rename
+            # before Python gets a chance to record that it happened.
+            for name in names:
+                if not (staging / name).exists() and (output / name).exists():
+                    os.replace(output / name, staging / name)
+            for name in names:
+                if (backup / name).exists():
+                    os.replace(backup / name, output / name)
+        except BaseException as error:
+            raise RuntimeError('Build publication recovery required; previous files retained at ' + str(backup)) from error
+        shutil.rmtree(backup)
+        raise
+    shutil.rmtree(backup)
+
+
+def source_identity(root):
+    """Fingerprint explicit build inputs without inspecting private runtime roots."""
+    root = Path(root)
+    paths = set()
+    for directory in ('src/localbrain', 'desktop/src-tauri/src', 'desktop/src-tauri/icons', 'desktop/ui'):
+        paths.update(path for path in (root / directory).rglob('*')
+                     if path.is_file() and not path.is_symlink()
+                     and '__pycache__' not in path.parts and path.suffix != '.pyc'
+                     and path != root / 'desktop/ui/app-styles.css')
+    paths.update(root / name for name in (
+        'pyproject.toml', 'uv.lock', 'desktop/backend-entry.py', 'desktop/backend.spec', 'desktop/build_support.py',
+        'desktop/package.json', 'desktop/package-lock.json', 'desktop/src-tauri/Cargo.toml',
+        'desktop/src-tauri/Cargo.lock', 'desktop/src-tauri/build.rs',
+        'desktop/src-tauri/tauri.conf.json', 'desktop/src-tauri/Info.plist', 'scripts/build-desktop.py',
+        'docs/policies/project/standalone-test-app-guide.md',
+    ) if (root / name).is_file())
+    digest = hashlib.sha256()
+    for path in sorted(paths):
+        content = path.read_bytes()
+        digest.update(path.relative_to(root).as_posix().encode() + b'\0')
+        digest.update(len(content).to_bytes(8, 'big'))
+        digest.update(content)
+    commit = subprocess.run(['git', '-C', str(root), 'rev-parse', 'HEAD'], capture_output=True, text=True)
+    status = subprocess.run(['git', '-C', str(root), 'status', '--porcelain'], capture_output=True, text=True)
+    return {'commit': commit.stdout.strip() if commit.returncode == 0 else 'unavailable',
+            'dirty': bool(status.stdout) if status.returncode == 0 else None,
+            'input_sha256': digest.hexdigest(), 'input_files': len(paths)}
 
 
 def rust_build_environment(environment, private_roots):

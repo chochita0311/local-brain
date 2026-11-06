@@ -1,5 +1,7 @@
 # Session Workflow
 
+Shared Back, bounded entry identity and scroll restoration follow [App Navigation And History](navigation-and-history.md); feature URL, selection, preview and fallback semantics remain owned here.
+
 This contract owns Session Episode identity, deterministic Focus projection, user assertions and the Workflow route. It preserves the distinction between observations, candidates and user-confirmed corrections; Workstream organization remains separately owned.
 
 ## Workflow Episode And Direction

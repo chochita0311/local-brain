@@ -8,3 +8,6 @@ src/localbrain/static/vendor/mermaid/mermaid.esm.min.js
 # LocalBrain app icons generated from the existing public SVG favicon.
 desktop/src-tauri/icons/icon.png
 desktop/src-tauri/icons/icon.icns
+
+# Reviewed public Google Material Symbols paths, bundled for offline navigation.
+src/localbrain/static/icons/material-symbols.svg

@@ -136,6 +136,8 @@ owns invocation and replay operation. Frozen experiment/evaluation records retai
 their original processing/replay evidence; neither an exhaustive run nor a valid
 report admits production work semantics, organization changes or a new extractor.
 
+Shared Back, bounded entry identity and scroll restoration follow [App Navigation And History](navigation-and-history.md); feature URL, selection, preview and fallback semantics remain owned here.
+
 ## Observation-Only Work Inspection
 
 ### Auto Work Inspection Read Model

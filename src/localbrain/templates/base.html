@@ -1,12 +1,16 @@
+{% from '_shell-icons.html' import icon with context %}
 <!doctype html>
 <html lang="ko"{% if active_page == 'auto-work' %} class="auto-work-root"{% endif %}>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="{{ url_for('static', path='/shell.js') }}?v={{ asset_version }}"></script>
     <title>{% block title %}LocalBrain{% endblock %}</title>
     <link rel="icon" href="{{ url_for('static', path='/favicon.svg') }}?v={{ asset_version | default('dev') }}" type="image/svg+xml">
     <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}?v={{ asset_version | default('dev') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='/settings.css') }}?v={{ asset_version }}">
+    <script src="{{ url_for('static', path='/navigation.js') }}?v={{ asset_version }}" defer></script>
+    <script src="{{ url_for('static', path='/tooltips.js') }}?v={{ asset_version }}" defer></script>
     <script src="{{ url_for('static', path='/profiles.js') }}?v={{ asset_version }}" defer></script>
     <script src="{{ url_for('static', path='/settings.js') }}?v={{ asset_version }}" defer></script>
     {% if google_drive_available | default(false) %}<script src="{{ url_for('static', path='/google-drive.js') }}?v={{ asset_version }}" defer></script>{% endif %}
@@ -18,48 +22,53 @@
   <body data-timezone="{{ preferences.timezone }}"{% if setup_requested %} data-onboarding="true"{% endif %}>
     <a class="skip-link" href="#main-content"{% if setup_requested %} inert{% endif %}>본문으로 건너뛰기</a>
     <div class="app-shell"{% if setup_requested %} inert{% endif %}>
-      <aside class="lnb">
-        <a class="brand" href="/">
+      <aside class="lnb" id="app-sidebar">
+        <div class="sidebar-brand-row">
+        <a class="brand" href="/" aria-label="LocalBrain 홈" data-shell-tooltip="홈" data-tooltip-compact data-tooltip-side="right">
           <span class="brand-mark" aria-hidden="true">LB</span>
           <span class="brand-copy"><strong>LocalBrain</strong><small>Developer memory</small></span>
         </a>
+        <button type="button" class="shell-icon-button sidebar-toggle" data-sidebar-toggle disabled aria-label="사이드바 접기" aria-controls="app-sidebar" aria-expanded="true" data-shell-tooltip="사이드바 접기" data-tooltip-side="right">
+          {{ icon('left_panel_close', 'sidebar-collapse-icon') }}{{ icon('left_panel_open', 'sidebar-expand-icon') }}
+        </button>
+        </div>
 
         <nav class="lnb-nav" aria-label="주요 탐색">
           <div class="nav-group">
             <span class="nav-group-label">Overview</span>
             {% if not desktop_edition %}
-            <a class="lnb-item {% if active_page == 'dashboard' %}active{% endif %}" href="/" {% if active_page == 'dashboard' %}aria-current="page"{% endif %}>
-              <span class="nav-symbol" aria-hidden="true">01</span><span>Dashboard</span>
+            <a class="lnb-item {% if active_page == 'dashboard' %}active{% endif %}" href="/" {% if active_page == 'dashboard' %}aria-current="page"{% endif %} aria-label="Dashboard" data-shell-tooltip="Dashboard" data-tooltip-compact data-tooltip-side="right">
+              {{ icon('space_dashboard', 'nav-symbol') }}<span class="nav-label">Dashboard</span>
             </a>
             {% endif %}
-            <a class="lnb-item {% if active_page == 'sessions-dashboard' %}active{% endif %}" href="/sessions-dashboard" {% if active_page == 'sessions-dashboard' %}aria-current="page"{% endif %}>
-              <span class="nav-symbol" aria-hidden="true">02</span><span>Sessions Dashboard</span>
+            <a class="lnb-item {% if active_page == 'sessions-dashboard' %}active{% endif %}" href="/sessions-dashboard" {% if active_page == 'sessions-dashboard' %}aria-current="page"{% endif %} aria-label="Sessions Dashboard" data-shell-tooltip="Sessions Dashboard" data-tooltip-compact data-tooltip-side="right">
+              {{ icon('monitoring', 'nav-symbol') }}<span class="nav-label">Sessions Dashboard</span>
             </a>
-            {% if context_search_available | default(false) %}<a class="lnb-item {% if active_page == 'context-search' %}active{% endif %}" href="/context-search" {% if active_page == 'context-search' %}aria-current="page"{% endif %}>
-              <span class="nav-symbol" aria-hidden="true">CS</span><span>Context Search</span>
+            {% if context_search_available | default(false) %}<a class="lnb-item {% if active_page == 'context-search' %}active{% endif %}" href="/context-search" {% if active_page == 'context-search' %}aria-current="page"{% endif %} aria-label="Context Search" data-shell-tooltip="Context Search" data-tooltip-compact data-tooltip-side="right">
+              {{ icon('manage_search', 'nav-symbol') }}<span class="nav-label">Context Search</span>
             </a>{% endif %}
           </div>
           <div class="nav-group">
             <span class="nav-group-label">Workspace</span>
             {% if auto_work_available and auto_work_package_available | default(true) %}
-            <a class="lnb-item {% if active_page == 'auto-work' %}active{% endif %}" href="/auto-work" {% if active_page == 'auto-work' %}aria-current="page"{% endif %}>
-              <span class="nav-symbol" aria-hidden="true">AW</span><span>자동 작업</span>
+            <a class="lnb-item {% if active_page == 'auto-work' %}active{% endif %}" href="/auto-work" {% if active_page == 'auto-work' %}aria-current="page"{% endif %} aria-label="자동 작업" data-shell-tooltip="자동 작업" data-tooltip-compact data-tooltip-side="right">
+              {{ icon('smart_toy', 'nav-symbol') }}<span class="nav-label">자동 작업</span>
             </a>
             {% endif %}
             {% if not desktop_edition and workstreams_available | default(true) %}
-            <a class="lnb-item {% if active_page == 'workstreams' %}active{% endif %}" href="/workstreams" {% if active_page == 'workstreams' %}aria-current="page"{% endif %}>
-              <span class="nav-symbol" aria-hidden="true">03</span><span>Workstreams</span>
+            <a class="lnb-item {% if active_page == 'workstreams' %}active{% endif %}" href="/workstreams" {% if active_page == 'workstreams' %}aria-current="page"{% endif %} aria-label="Workstreams" data-shell-tooltip="Workstreams" data-tooltip-compact data-tooltip-side="right">
+              {{ icon('account_tree', 'nav-symbol') }}<span class="nav-label">Workstreams</span>
             </a>
             {% endif %}
-            <a class="lnb-item {% if active_page == 'sessions' %}active{% endif %}" href="/sessions" {% if active_page == 'sessions' %}aria-current="page"{% endif %}>
-              <span class="nav-symbol" aria-hidden="true">04</span><span>Sessions</span>
+            <a class="lnb-item {% if active_page == 'sessions' %}active{% endif %}" href="/sessions" {% if active_page == 'sessions' %}aria-current="page"{% endif %} aria-label="Sessions" data-shell-tooltip="Sessions" data-tooltip-compact data-tooltip-side="right">
+              {{ icon('chat_bubble', 'nav-symbol') }}<span class="nav-label">Sessions</span>
             </a>
-            <a class="lnb-item {% if active_page == 'context' %}active{% endif %}" href="/context" {% if active_page == 'context' %}aria-current="page"{% endif %}>
-              <span class="nav-symbol" aria-hidden="true">05</span><span>Local Contexts</span>
+            <a class="lnb-item {% if active_page == 'context' %}active{% endif %}" href="/context" {% if active_page == 'context' %}aria-current="page"{% endif %} aria-label="Local Contexts" data-shell-tooltip="Local Contexts" data-tooltip-compact data-tooltip-side="right">
+              {{ icon('folder_open', 'nav-symbol') }}<span class="nav-label">Local Contexts</span>
             </a>
             {% if not desktop_edition and atlassian_available | default(true) %}
-            <a class="lnb-item {% if active_page == 'atlassian' %}active{% endif %}" href="/atlassian" {% if active_page == 'atlassian' %}aria-current="page"{% endif %}>
-              <span class="nav-symbol" aria-hidden="true">06</span><span>Atlassian</span>
+            <a class="lnb-item {% if active_page == 'atlassian' %}active{% endif %}" href="/atlassian" {% if active_page == 'atlassian' %}aria-current="page"{% endif %} aria-label="Atlassian" data-shell-tooltip="Atlassian" data-tooltip-compact data-tooltip-side="right">
+              {{ icon('link', 'nav-symbol') }}<span class="nav-label">Atlassian</span>
             </a>
             {% endif %}
           </div>
@@ -67,13 +76,13 @@
           <div class="nav-group">
             <span class="nav-group-label">System</span>
             {% if not desktop_edition %}
-            <a class="lnb-item {% if active_page == 'sources' %}active{% endif %}" href="/sources" {% if active_page == 'sources' %}aria-current="page"{% endif %}>
-              <span class="nav-symbol" aria-hidden="true">07</span><span>Sources</span>
+            <a class="lnb-item {% if active_page == 'sources' %}active{% endif %}" href="/sources" {% if active_page == 'sources' %}aria-current="page"{% endif %} aria-label="Sources" data-shell-tooltip="Sources" data-tooltip-compact data-tooltip-side="right">
+              {{ icon('database', 'nav-symbol') }}<span class="nav-label">Sources</span>
             </a>
             {% endif %}
             {% if not desktop_edition %}
-            <a class="lnb-item {% if active_page == 'schema' %}active{% endif %}" href="/schema" {% if active_page == 'schema' %}aria-current="page"{% endif %}>
-              <span class="nav-symbol" aria-hidden="true">08</span><span>Schema</span>
+            <a class="lnb-item {% if active_page == 'schema' %}active{% endif %}" href="/schema" {% if active_page == 'schema' %}aria-current="page"{% endif %} aria-label="Schema" data-shell-tooltip="Schema" data-tooltip-compact data-tooltip-side="right">
+              {{ icon('schema', 'nav-symbol') }}<span class="nav-label">Schema</span>
             </a>
             {% endif %}
           </div>
@@ -81,16 +90,25 @@
         </nav>
 
         <div class="lnb-footer">
-          <a class="lnb-item{% if active_page == 'docs' %} active{% endif %}" href="/help"{% if active_page == 'docs' %} aria-current="page"{% endif %}><span class="nav-symbol" aria-hidden="true">?</span><span>Docs</span></a>
-          <button type="button" class="secondary-button settings-gear" data-settings-open><span aria-hidden="true">⚙</span>설정</button>
-          <span class="local-status"><span class="status-dot" aria-hidden="true"></span>Local index online</span>
-          <small>Private on this Mac</small>
+          <a class="lnb-item{% if active_page == 'docs' %} active{% endif %}" href="/help{% if doc_language is defined %}?lang={{ doc_language }}{% endif %}"{% if active_page == 'docs' %} aria-current="page"{% endif %} aria-label="Docs" data-shell-tooltip="Docs" data-tooltip-compact data-tooltip-side="right">{{ icon('menu_book', 'nav-symbol') }}<span class="nav-label">Docs</span></a>
+          <button type="button" class="lnb-item settings-gear" data-settings-open aria-label="설정" data-shell-tooltip="설정" data-tooltip-side="right">{{ icon('settings', 'nav-symbol') }}<span class="nav-label">설정</span></button>
         </div>
       </aside>
 
       <div class="workspace-shell">
-        <header class="workspace-header">
-          <span class="page-location">{% block page_location %}LocalBrain{% endblock %}</span>
+        <header class="workspace-header" data-tauri-drag-region="deep">
+          <div class="workspace-navigation">
+            <span class="shell-control" data-tauri-drag-region="false">
+            <button type="button" class="shell-icon-button app-back" data-app-back disabled aria-label="뒤로" data-shell-tooltip="뒤로" data-tooltip-when-disabled>
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m10 4-6 6 6 6M4 10h12"/></svg>
+            </button>
+            </span>
+            <span class="shell-control" data-tauri-drag-region="false">
+            <button type="button" class="shell-icon-button" data-app-forward disabled aria-label="앞으로" data-shell-tooltip="앞으로" data-tooltip-when-disabled>
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m10 4 6 6-6 6M16 10H4"/></svg>
+            </button>
+            </span>
+          </div>
           {% if active_page == 'atlassian' %}
             <span class="global-search-reserve" aria-hidden="true"></span>
             <a class="search-link" href="/natural-search">Search</a>
@@ -99,6 +117,7 @@
               <input type="hidden" name="mode" value="{{ search_mode | default('keyword') }}">
               <label class="sr-only" for="global-query">검색</label>
               <input id="global-query" name="q" type="search" maxlength="300" placeholder="세션, 질문, 문서 통합 검색" value="{{ natural_query | default(query | default('')) }}">
+              <kbd class="search-shortcut" aria-hidden="true" data-search-shortcut hidden></kbd>
             </form>
             <button class="search-link {% if active_page in ['natural-search', 'search'] %}active{% endif %}" type="submit" form="global-search">Search</button>
           {% endif %}

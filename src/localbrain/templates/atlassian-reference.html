@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% block title %}{{ reference.display_title or reference.reference_identity }} · Atlassian · LocalBrain{% endblock %}
-{% block page_location %}Atlassian 구조 참조{% endblock %}
 {% block content %}
   {% set reference_url = reference.canonical_url or reference.canonical_safe_locator %}
   {% set group_label = reference.container_label or '소속 미확인' %}

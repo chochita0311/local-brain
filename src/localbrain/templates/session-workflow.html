@@ -2,7 +2,6 @@
 {% from "_source_cue.html" import source_cue, profile_attrs with context %}
 {% from "_workflow_correction.html" import assertion_summary, correction_action %}
 {% block title %}{% if workflow.status == 'ready' %}{{ workflow.selected_episode.title }} · 작업 흐름{% else %}작업 흐름{% endif %} · LocalBrain{% endblock %}
-{% block page_location %}Session workflow{% endblock %}
 {% block content %}
   <section class="workflow-page" data-workflow-map data-workflow-status="{{ workflow.status }}"{% if workflow.status == 'ready' %} data-selected-episode-key="{{ workflow.selected_episode.episode_key }}" aria-busy="false"{% endif %}>
     {% if workflow.status == 'ready' %}

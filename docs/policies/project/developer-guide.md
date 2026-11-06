@@ -175,7 +175,10 @@ or provide a native macOS executable.
 ### Build The macOS App
 
 Build on an Apple Silicon Mac with Xcode Command Line Tools, Rust stable and
-Node. Recipients do not need these build tools.
+Node. The initial [agent-assisted source installer](installation-and-storage.md#agent-assisted-local-build)
+needs these tools as well as Git and uv/Python 3.11. Someone running a finished
+`.app` does not need the build tools. Windows source builds still require the
+planned runtime port and actual target validation.
 
 Cargo must be available in the build shell's PATH. After a rustup installation,
 open its configured shell or run `source "$HOME/.cargo/env"` before building;
@@ -213,6 +216,19 @@ Sync and reconnection until the running application is updated; force does not
 bypass this check. See [the storage contract](data-model/source-registry-and-scans.md#source_files)
 for legacy-token conversion and [Architecture](session-ingestion.md#ingestion-module-ownership)
 for module ownership.
+
+### Build Provenance
+
+`BUILD-INFO.md` includes the Git commit, dirty state, build time and a SHA256
+fingerprint of explicit application/build inputs. Packaging checks the same input
+fingerprint and commit at completion; changed inputs require a rebuild. Runtime
+data, toolchain/dependency caches and generated staging copies are not fingerprint
+inputs. The recorded versions and target remain separate from runtime/browser or
+recipient verification. A dirty build must not be described as the clean commit.
+
+The builder verifies the candidate app, archive and checksum in an owned staging
+directory before publishing them. Existing owned outputs are backed up during
+publication and restored if replacement fails; an unowned destination is refused.
 
 ## Dependency Certificate Troubleshooting
 

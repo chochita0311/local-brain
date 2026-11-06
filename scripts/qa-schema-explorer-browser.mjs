@@ -302,7 +302,8 @@ async function main() {
     `Table heading did not settle at the nearest reachable offset: ${JSON.stringify(interaction)}`,
   );
 
-  await evaluate("history.back()");
+  assert(await evaluate("!document.querySelector('[data-app-back]').disabled && history.state.schemaExplorer === true"), "Schema shared Back must preserve feature history state");
+  await evaluate("document.querySelector('[data-app-back]').click()");
   await waitFor(
     "location.search === '?area=usage-and-cost-records' && !document.querySelector('#schema-table-title')",
     "Back navigation did not restore area state",
@@ -331,7 +332,7 @@ async function main() {
     "Rapid selection did not preserve the latest destination",
   );
   const rapidState = await state();
-  assert(rapidState.currentArea === "Maintenance execution", "Stale request won rapid selection");
+  assert(rapidState.currentArea === "Run execution", "Stale request won rapid selection");
   assert(rapidState.focusTarget === "area", "Rapid area selection focused the wrong heading");
 
   await cdp.send("Network.setCacheDisabled", { cacheDisabled: false });
@@ -344,7 +345,7 @@ async function main() {
     "Warm-cache revisit left Schema markup inert",
   );
   const warmCacheState = await state();
-  assert(warmCacheState.tableCount === 2, "Warm-cache revisit lost area content");
+  assert(warmCacheState.tableCount === 3, "Warm-cache revisit lost area content");
   await cdp.send("Network.setCacheDisabled", { cacheDisabled: true });
 
   await cdp.send("Network.setBlockedURLs", { urls: ["*mermaid-adapter.js*"] });

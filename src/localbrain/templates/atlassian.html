@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% block title %}{{ page_title | default('Atlassian · LocalBrain') }}{% endblock %}
-{% block page_location %}Atlassian{% endblock %}
 {% macro content_label(selected_view) -%}
   {{- '링크' if selected_view == 'jira' else ('문서' if selected_view == 'wiki' else '링크/문서') -}}
 {%- endmacro %}

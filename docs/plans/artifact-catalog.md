@@ -6,7 +6,7 @@ Edit the owning artifact, then run `uv run python scripts/build-plan-artifact-ca
 
 Status and relation values are preserved from each owner artifact. `—` means the field is not declared or does not apply; historical Spec `passed` and Run `complete` values are legacy aliases preserved under [Execution Artifact Status](../policies/harness/execution-loop-governance.md#execution-artifact-status).
 
-## PRDs (26)
+## PRDs (27)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -36,8 +36,9 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [PRD-0024: Deployed App Docs](prd/prd-0024-deployed-app-docs.md) | `in-loop` | — |
 | [PRD-0025: Google Drive Connection And Incremental Sync](prd/prd-0025-google-drive-connection-and-incremental-sync.md) | `approved` | — |
 | [PRD-0026: Context Search And Grounded Local Answers](prd/prd-0026-context-search-grounded-local-answers.md) | `approved` | — |
+| [PRD-0027: Early-Access Distribution And Bilingual App Docs](prd/prd-0027-early-access-distribution-and-bilingual-docs.md) | `in-loop` | — |
 
-## Features (154)
+## Features (162)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -195,8 +196,16 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [FEAT-0152: Selectable Generation Model Setup](feature/feat-0152-context-search-model-setup.md) | `passed` | PRD026 |
 | [FEAT-0153: Transient Context Search Conversation](feature/feat-0153-context-search-conversation.md) | `passed` | PRD026 |
 | [FEAT-0154: Retained Session History](feature/feat-0154-retained-session-history.md) | `passed` | PRD-0021 |
+| [FEAT-0155: Platform Paths And Capabilities](feature/feat-0155-platform-paths-and-capabilities.md) | `passed` | PRD-0027 |
+| [FEAT-0156: Available Trial Entry Points](feature/feat-0156-available-trial-entry-points.md) | `passed` | PRD-0027 |
+| [FEAT-0157: Bilingual App Docs](feature/feat-0157-bilingual-app-docs.md) | `passed` | PRD-0027 |
+| [FEAT-0158: Platform Storage Accounting](feature/feat-0158-platform-storage-accounting.md) | `passed` | PRD-0027 |
+| [FEAT-0159: Agent-Assisted macOS Trial Build And Install](feature/feat-0159-identifiable-macos-trial-build.md) | `passed` | PRD-0027 |
+| [FEAT-0160: Windows x64 Local AI Trial](feature/feat-0160-windows-x64-local-ai-trial.md) | `draft` | PRD-0027 |
+| [FEAT-0161: App Navigation History](feature/feat-0161-app-navigation-history.md) | `approved` | PRD-0027 |
+| [FEAT-0162: Shared Window Toolbar](feature/feat-0162-shared-window-toolbar.md) | `passed` | PRD-0027 |
 
-## Specs (163)
+## Specs (170)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -363,8 +372,15 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [SPEC-0152: Selectable Generation Model Setup](spec/spec-0152-context-search-model-setup.md) | `approved` | FEAT-0152 |
 | [SPEC-0153: Transient Context Search Conversation](spec/spec-0153-context-search-conversation.md) | `approved` | FEAT-0153 |
 | [SPEC-0154: Retained Session History](spec/spec-0154-retained-session-history.md) | `approved` | FEAT-0154 |
+| [SPEC-0155: Trial Platform Contract](spec/spec-0155-platform-paths-and-capabilities.md) | `approved` | FEAT-0155 |
+| [SPEC-0156: Available Trial Entry Points](spec/spec-0156-available-trial-entry-points.md) | `approved` | FEAT-0156 |
+| [SPEC-0157: Bilingual App Docs](spec/spec-0157-bilingual-app-docs.md) | `approved` | FEAT-0157 |
+| [SPEC-0158: Platform Storage Accounting](spec/spec-0158-platform-storage-accounting.md) | `approved` | FEAT-0158 |
+| [SPEC-0159: Identifiable macOS Trial Build](spec/spec-0159-identifiable-macos-trial-build.md) | `approved` | FEAT-0159 |
+| [SPEC-0161: App Navigation History](spec/spec-0161-app-navigation-history.md) | `approved` | FEAT-0161 |
+| [SPEC-0162: Shared Window Toolbar](spec/spec-0162-shared-window-toolbar.md) | `approved` | FEAT-0162 |
 
-## Runs (230)
+## Runs (238)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -598,8 +614,16 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [RUN-228: Session Dashboard Cost And History](run/run-20261031-228-session-dashboard-cost-and-history.md) | `passed` | FEAT-0020 |
 | [RUN-229: Retained Session History](run/run-20261031-229-retained-session-history.md) | `passed` | FEAT-0154 |
 | [RUN-20261101-230: Feature Availability And Documentation Boundary](run/run-20261101-230-feature-availability-and-doc-boundary.md) | `passed` | `run-20261101-230` |
+| [Run 231: Platform Paths And Capabilities](run/run-20261105-231-platform-paths-and-capabilities.md) | `passed` | FEAT-0155 |
+| [Run232: Available Trial Entry Points](run/run-20261105-232-available-trial-entry-points.md) | `passed` | FEAT-0156 |
+| [Run233: Bilingual App Docs](run/run-20261105-233-bilingual-app-docs.md) | `passed` | FEAT-0157 |
+| [Run234: Platform Storage Accounting](run/run-20261105-234-platform-storage-accounting.md) | `passed` | FEAT-0158 |
+| [Run235: Identifiable macOS Trial Build](run/run-20261105-235-identifiable-macos-trial-build.md) | `passed` | FEAT-0159 |
+| [Run236: Shared Docs Language Option](run/run-20261106-236-docs-language-option.md) | `passed` | FEAT-0157 |
+| [Run237: App Navigation History](run/run-20261106-237-app-navigation-history.md) | `passed` | FEAT-0161 |
+| [Run238: Shared Window Toolbar](run/run-20261106-238-shared-window-toolbar.md) | `passed` | FEAT-0162 |
 
-## Evaluations And Schema Audits (471)
+## Evaluations And Schema Audits (472)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -1074,6 +1098,7 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [EVAL-0153: Transient Context Search](evaluation/eval-0153-context-search-conversation.md) | `complete` | FEAT-0153 |
 | [EVAL-0153: Native Integration And Public Candidate Closeout](evaluation/eval-0153-native-publication-closeout.md) | — | Context Search, with Drive and the pending Learning/schema integration. |
 | [Retained Session History Evaluation](evaluation/eval-0154-retained-session-history.md) | `complete` | FEAT-0154 |
+| [EVAL-0155: Early-Access macOS Delivery](evaluation/eval-0155-early-access-macos-delivery.md) | `complete` | Run235 |
 
 ## Fix Logs (26)
 

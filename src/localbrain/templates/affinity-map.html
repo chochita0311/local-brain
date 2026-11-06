@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% block title %}흐름 지도 · LocalBrain{% endblock %}
-{% block page_location %}자동 작업 / 흐름 지도{% endblock %}
 {% block content %}
 <div class="affinity" data-affinity-root data-state="{{ mapview.state }}">
   <nav class="affinity-tabs" aria-label="자동 작업 보기"><a href="/auto-work" aria-current="page">전체 이력 지도</a><a href="/auto-work?mode=sample">이전 표본 · 규칙 기반</a></nav>

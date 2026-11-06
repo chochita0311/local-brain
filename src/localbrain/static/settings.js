@@ -975,19 +975,51 @@
     document.dispatchEvent(new CustomEvent('localbrain:models-changed'));
     message('요청을 적용했습니다. 모델 진행 상태를 확인해 주세요.');
   }, button, {modelAction: true})));
-  const bytes = value => `${(value / 1024 ** 3).toFixed(2)} GB`;
+  const bytes = value => Number.isFinite(value) ? `${(value / 1024 ** 3).toFixed(2)} GiB` : '확인 불가';
+  let storageReadVersion = 0;
   async function loadStorage() {
-    const data = await api('/api/settings/storage'); const root = $('[data-storage-summary]'); root.replaceChildren();
+    const version = ++storageReadVersion;
+    const root = $('[data-storage-summary]');
+    const reload = $('[data-storage-reload]');
+    reload.disabled = true;
+    root.setAttribute('aria-busy', 'true');
+    let pending = root.querySelector('[data-storage-pending]');
+    if (!pending) {pending = element('p', '저장공간을 확인하고 있습니다.', 'settings-caption'); pending.dataset.storagePending = ''; root.append(pending);}
+    let data;
+    try {data = await api('/api/settings/storage');}
+    catch (error) {
+      if (version === storageReadVersion) {
+        pending.remove();
+        let issue = root.querySelector('[data-storage-error]');
+        if (!issue) {issue = element('p', '', 'settings-caption'); issue.dataset.storageError = ''; issue.setAttribute('role', 'alert'); root.append(issue);}
+        issue.textContent = '저장공간을 확인하지 못했습니다. 다시 확인해 주세요. ' + error.message;
+      }
+      return;
+    } finally {
+      if (version === storageReadVersion) {root.setAttribute('aria-busy', 'false'); reload.disabled = false;}
+    }
+    if (version !== storageReadVersion) return;
+    root.replaceChildren();
     const group = element('div', '', 'settings-group');
+    const volumes = new Map();
     for (const [name, key] of [['데이터·설정', 'data'], ['앱 캐시', 'cache'], ['공유 공개 모델 캐시', 'models']]) {
+      const location = data.locations[key];
       const row = element('div', '', 'settings-group-row');
       const identity = element('div', '', 'settings-group-identity');
       identity.append(element('strong', name), element('p', data.display_paths[key], 'settings-location'));
-      row.append(identity, element('span', bytes(data[key + '_bytes']), 'settings-size')); group.append(row);
+      if (key === 'models') identity.append(element('p', '다른 앱과 모델이 사용하는 파일도 포함합니다.', 'settings-caption'));
+      const notice = {missing: '아직 생성되지 않은 위치입니다.', partial: '읽지 못한 파일이 있어 일부만 집계했습니다.', unavailable: '이 위치의 크기를 확인하지 못했습니다.'}[location.state];
+      if (notice) identity.append(element('p', notice, 'settings-caption'));
+      row.append(identity, element('span', bytes(location.bytes), 'settings-size')); group.append(row);
+      const volumeKey = location.volume.id ?? key;
+      if (!volumes.has(volumeKey)) volumes.set(volumeKey, {names: [], ...location.volume});
+      volumes.get(volumeKey).names.push(name);
     }
-    root.append(group, element('p', '사용 가능한 공간 ' + bytes(data.free_bytes), 'settings-caption'));
+    root.append(group, element('p', 'GiB 기준 · 일반 파일의 논리적 크기이며 실제 디스크 점유량과 다를 수 있습니다.', 'settings-caption'));
+    for (const volume of volumes.values()) root.append(element('p', volume.names.join(' · ') + ' 위치의 사용 가능한 공간: ' + bytes(volume.free_bytes), 'settings-caption'));
     if (data.restore_pending) root.append(element('p', '복원 예약됨 · 앱과 웹 서버를 모두 종료한 후 다시 실행해 주세요.', 'settings-caption'));
   }
+  $('[data-storage-reload]').addEventListener('click', () => execute(loadStorage));
   $('[data-backup]').addEventListener('click', event => execute(async () => {
     if (window.__TAURI__) {
       const path = await window.__TAURI__.core.invoke('choose_backup_path');
@@ -1016,7 +1048,9 @@
     document.querySelector('.app-shell').inert = false;
     document.querySelector('.skip-link').inert = false;
     dialog.close();
-    location.replace('/' + state.preferences.effective.startup_screen);
+    const destination = '/' + state.preferences.effective.startup_screen;
+    if (window.LocalBrainNavigation) window.LocalBrainNavigation.replaceLocation(destination);
+    else location.replace(destination);
   }
   $('[data-onboarding-back]').addEventListener('click', event => execute(async () => {onboardingStep--; await showOnboardingStep(true);}, event.currentTarget));
   $('[data-onboarding-retry]').addEventListener('click', event => execute(load, event.currentTarget));
@@ -1056,7 +1090,7 @@
   pollModel();
   if (onboarding) {
     const url = new URL(location.href); url.searchParams.delete('setup');
-    history.replaceState(history.state, '', url);
+    (window.LocalBrainNavigation || history).replaceState(history.state, '', url);
     open();
   } else if (location.pathname === '/settings') open();
 })();

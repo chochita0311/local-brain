@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% block title %}{{ item.remote_key or item.display_title }} · Atlassian · LocalBrain{% endblock %}
-{% block page_location %}Atlassian {{ '링크' if item.service == 'jira' else '문서' }}{% endblock %}
 {% block content %}
   {% set content_kind = '링크' if item.service == 'jira' else '문서' %}
   {% set container_kind = item.container_kind or ('space' if item.space_name else 'unclassified') %}

@@ -1057,7 +1057,7 @@ The subsequent source-scope review makes the following bounded corrections:
   [Insights Run](../../policies/project/personal-insights.md#personal-improvement-analysis-runs).
   The latter preserves exact home precedence, unique matching Source selection,
   frozen identity and pre-launch revalidation/refusal rules.
-- The [README](../../../README.md#install-the-macos-test-app) labels the ad-hoc,
+- The [README](../../../README.md#prebuilt-macos-test-app-alternative) labels the ad-hoc,
   non-notarized macOS test artifact; the
   [Developer Guide](../../policies/project/developer-guide.md#prerequisites) states
   the current source/web platform boundary. The

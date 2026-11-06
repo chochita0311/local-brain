@@ -1,3 +1,4 @@
+const atlassianHistory = window.LocalBrainNavigation || window.history;
 const atlassianRegistration = document.querySelector("[data-atlassian-registration]");
 
 const clearAddFieldError = (input) => {
@@ -42,6 +43,7 @@ if (atlassianRegistration) {
     const controller = new AbortController();
     const generation = ++previewGeneration;
     previewRequest = controller;
+    window.LocalBrainNavigation?.pending();
     setPreview("URL을 로컬에서 확인하는 중입니다.");
     try {
       const params = new URLSearchParams({ url: value });
@@ -900,7 +902,7 @@ if (atlassianExplorer) {
       historyPositionFrame = null;
       if (!window.history.state?.atlassianExplorer) return;
       if (selectionKeyFromUrl(window.location.href) !== selectedKey()) return;
-      window.history.replaceState(historySnapshot(), "");
+      atlassianHistory.replaceState(historySnapshot(), "");
     });
   };
 
@@ -1049,7 +1051,7 @@ if (atlassianExplorer) {
     updateRows(selectedKey(), selectedState());
     restoreSyncContinuity(continuity);
     syncModal({ focus: false });
-    window.history.replaceState(historySnapshot(), "", canonicalPath || window.location.href);
+    atlassianHistory.replaceState(historySnapshot(), "", canonicalPath || window.location.href);
     explorerBaseKey = baseDestinationKey(window.location.href);
   };
 
@@ -1099,7 +1101,7 @@ if (atlassianExplorer) {
     const listScroll = resultList()?.scrollTop || 0;
     const pageScroll = window.scrollY;
     if (pushHistory) {
-      window.history.replaceState(
+      atlassianHistory.replaceState(
         historySnapshot({ focusEntryKey: restoreFocusKey || expectedKey || previousKey }),
         "",
       );
@@ -1109,6 +1111,7 @@ if (atlassianExplorer) {
     const controller = new AbortController();
     const generation = ++requestGeneration;
     previewRequest = controller;
+    window.LocalBrainNavigation?.pending();
     currentPreview()?.setAttribute("aria-busy", "true");
     announceLoading();
 
@@ -1147,7 +1150,7 @@ if (atlassianExplorer) {
       }
 
       if (pushHistory) {
-        window.history.pushState(
+        atlassianHistory.pushState(
           historySnapshot({
             selectionKey: expectedKey,
             itemId: expectedKind === "item" ? expectedId : "",
@@ -1187,6 +1190,7 @@ if (atlassianExplorer) {
       if (previewRequest === controller) {
         previewRequest = null;
         currentPreview()?.setAttribute("aria-busy", "false");
+        window.LocalBrainNavigation?.settled();
       }
     }
   };
@@ -1279,6 +1283,7 @@ if (atlassianExplorer) {
     }
   });
 
+  window.addEventListener("pagehide", () => previewRequest?.abort());
   window.addEventListener("popstate", (event) => {
     if (historyPositionFrame !== null) {
       window.cancelAnimationFrame(historyPositionFrame);
@@ -1411,7 +1416,7 @@ if (atlassianExplorer) {
   });
 
   atlassianExplorer.classList.add("atlassian-explorer-enhanced");
-  window.history.replaceState(historySnapshot(), "");
+  atlassianHistory.replaceState(historySnapshot(), "");
   bindResultListScroll();
   window.addEventListener("scroll", persistHistoryPosition, { passive: true });
   updateRows(selectedKey(), selectedState());

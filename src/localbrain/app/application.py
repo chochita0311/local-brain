@@ -5,11 +5,11 @@ from fastapi.staticfiles import StaticFiles
 from localbrain import __version__
 from localbrain.foundation.config import settings
 from localbrain.foundation.paths import package_root
-from .edition import install_boundary
+from .edition import DESKTOP, install_boundary
 from .lifecycle import lifespan
 from .templating import templates
 from .reference_integrations import install_reference_integrations
-from .features import DEFAULT_FEATURE_PACKAGES, KNOWN_FEATURE_PACKAGES
+from .features import DEFAULT_FEATURE_PACKAGES, available_feature_packages
 
 
 def create_app(*, feature_packages=DEFAULT_FEATURE_PACKAGES):
@@ -18,12 +18,9 @@ def create_app(*, feature_packages=DEFAULT_FEATURE_PACKAGES):
     This is an internal assembly boundary, not a user preference or an import
     fallback. Production entrypoints use the explicit current delivery set.
     """
-    feature_packages = frozenset(feature_packages)
-    if not feature_packages <= KNOWN_FEATURE_PACKAGES:
-        raise ValueError("Unknown application feature package")
+    feature_packages = available_feature_packages(feature_packages, desktop=DESKTOP)
     from .settings import install_settings_routes
     from .docs import install_routes as install_app_docs_routes
-    from localbrain.learning.web import install_routes as install_learning_routes
     from .routes import install_routes
 
     app = FastAPI(title="LocalBrain", version=__version__, lifespan=lifespan)
@@ -59,7 +56,9 @@ def create_app(*, feature_packages=DEFAULT_FEATURE_PACKAGES):
     if "context_search" in feature_packages:
         from localbrain.context_search.web import install_routes as install_context_search_routes
         install_context_search_routes(app, templates)
-    install_learning_routes(app, templates)
+    if not DESKTOP:
+        from localbrain.learning.web import install_routes as install_learning_routes
+        install_learning_routes(app, templates)
     install_app_docs_routes(app, templates)
     install_routes(app)
     return app

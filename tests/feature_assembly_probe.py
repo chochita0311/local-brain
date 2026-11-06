@@ -7,6 +7,7 @@ import hashlib
 import importlib.abc
 import io
 import json
+import os
 import re
 import sqlite3
 import sys
@@ -18,6 +19,8 @@ from unittest.mock import patch
 def main():
     default_delivery = sys.argv[1] == "defaults"
     omitted = {"context_search", "google_drive"} if default_delivery else set(json.loads(sys.argv[1]))
+    if os.environ.get("LOCALBRAIN_EDITION") == "desktop":
+        omitted |= {"atlassian", "workstreams", "workflow", "auto_work", "context_search", "google_drive"}
     blocked = {"localbrain." + name for name in omitted}
     if {"atlassian", "workstreams"} <= omitted:
         blocked.add("localbrain.maintenance")
@@ -113,6 +116,12 @@ def main():
 
     packages = {"atlassian", "workstreams", "workflow", "auto_work", "context_search", "google_drive"}
     app = create_app() if default_delivery else create_app(feature_packages=packages - omitted)
+
+    if os.environ.get("LOCALBRAIN_EDITION") == "desktop":
+        assert not app.state.feature_packages
+        assert app.state.task_runner is app.state.maintain_feature_cache is None
+        assert getattr(app.state, "document_memberships", None) is None
+        assert getattr(app.state, "session_workflow_available", None) is None
 
     async def request(url, method="GET", body=b"", content_type="application/x-www-form-urlencoded"):
         parsed = urlsplit(url)
@@ -210,6 +219,16 @@ def main():
                             assert 'href="' + href + '"' not in body, feature
                 report["responses"][url] = {"status": status, "headers": headers,
                     "body_sha256": hashlib.sha256(body.encode()).hexdigest()}
+            if DESKTOP:
+                for url in ("/sources", "/schema", "/workstreams", "/sessions/1/workflow",
+                            "/atlassian", "/auto-work", "/sessions-dashboard/insights"):
+                    assert (await request(url))[0] == 404, url
+                status, _, headers = await request("/search?q=synthetic+text")
+                assert status == 303 and ("location", "/natural-search?q=synthetic+text&mode=keyword") in headers
+                for url in ("/sessions", "/sessions?display=chart", "/documents/1"):
+                    status, body, _ = await request(url)
+                    assert status == 200, (url, status)
+                    assert 'href="/sources"' not in body and 'href="/workstreams/' not in body
             for action in ("prepare", "cancel"):
                 method = "request_prepare" if action == "prepare" else "cancel"
                 with patch.object(app.state.natural_search, method) as operation:

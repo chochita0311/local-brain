@@ -1,3 +1,4 @@
+const workflowHistory = typeof window !== "undefined" ? window.LocalBrainNavigation || window.history : null;
 const WORKFLOW_ZOOM_MIN = 0.55;
 const WORKFLOW_ZOOM_MAX = 1.8;
 const WORKFLOW_ZOOM_BUTTON_FACTOR = 1.2;
@@ -643,7 +644,7 @@ export function setupWorkflowMap(root) {
     showEpisodeTrace();
     if (pushHistory) {
       const destination = new URL(episode.workflow_destination, window.location.href);
-      window.history.pushState(
+      workflowHistory.pushState(
         { ...window.history.state, workflowFocus: episodeKey },
         "",
         destination.pathname,
@@ -1020,7 +1021,7 @@ export function setupWorkflowMap(root) {
     setControlsAvailable(controls, !isNarrow());
     updateScaleControls();
     showEpisodeTrace();
-    window.history.replaceState(
+    workflowHistory.replaceState(
       { ...window.history.state, workflowFocus: selectedKey },
       "",
     );
