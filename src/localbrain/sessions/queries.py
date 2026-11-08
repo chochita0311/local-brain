@@ -173,7 +173,7 @@ def session_chart_inventory(
         params.append(workspace_id)
     rows = connection.execute(
         """
-        SELECT sessions.id, sessions.source_id, sessions.title, sessions.started_at,
+        SELECT sessions.id, sessions.source_id, COALESCE(sessions.display_title, sessions.title) AS title, sessions.started_at,
                sessions.last_event_at, sessions.cwd_raw, sessions.git_branch,
                 sources.provider_kind,
                sources.name AS source_name
@@ -184,6 +184,7 @@ def session_chart_inventory(
         tuple(params),
     ).fetchall()
     items = []
+    undated = []
     home = str(Path.home())
     for row in rows:
         item = dict(row)
@@ -205,18 +206,31 @@ def session_chart_inventory(
         ]
         time_source = "metadata"
         if not times:
-            # Only undated metadata needs an Event fallback; never read bodies.
-            times = [
-                parsed for event in connection.execute(
-                    "SELECT occurred_at FROM activity_events WHERE session_id = ?",
-                    (row["id"],),
-                ) if (parsed := parse_timestamp(event["occurred_at"])) is not None
-            ]
-            time_source = "event"
+            undated.append(item)
         item["first_observed_at"] = min(times).isoformat() if times else None
         item["observed_at"] = max(times).isoformat() if times else None
         item["time_source"] = time_source if times else None
         items.append(item)
+    # Parse Event timestamps with the same rules as metadata, not SQL text MIN/MAX.
+    # Only undated Sessions enter this bounded read; no Event bodies are loaded.
+    bounds = {}
+    for offset in range(0, len(undated), 500):
+        identifiers = [item["id"] for item in undated[offset:offset + 500]]
+        placeholders = ",".join("?" for _ in identifiers)
+        for event in connection.execute(
+            f"SELECT session_id, occurred_at FROM activity_events WHERE session_id IN ({placeholders})",
+            identifiers,
+        ):
+            parsed = parse_timestamp(event["occurred_at"])
+            if parsed is None:
+                continue
+            identifier = event["session_id"]
+            first, last = bounds.get(identifier, (parsed, parsed))
+            bounds[identifier] = min(first, parsed), max(last, parsed)
+    for item in undated:
+        if item["id"] in bounds:
+            first, last = bounds[item["id"]]
+            item.update(first_observed_at=first.isoformat(), observed_at=last.isoformat(), time_source="event")
     return items
 
 
@@ -263,11 +277,6 @@ def project_activity(
 ):
     source_condition = "AND sources.id = ?" if source_id else ""
     params = (source_id,) if source_id else ()
-    workspace_condition = (
-        "session_activity.workspace_id IS NOT NULL"
-        if source_id
-        else "session_activity.workspace_id IS NOT NULL OR workspaces.git_root IS NOT NULL"
-    )
     return connection.execute(
         """
         WITH session_activity AS (
@@ -297,13 +306,11 @@ def project_activity(
                session_activity.last_activity_at,
                COALESCE(session_activity.source_count, 0) AS source_count
         FROM workspaces
-        LEFT JOIN session_activity
+        JOIN session_activity
           ON session_activity.workspace_id = workspaces.id
-        WHERE {workspace_condition}
         ORDER BY session_activity.last_activity_at DESC, workspaces.display_name
         """.format(
             source_condition=source_condition,
-            workspace_condition=workspace_condition,
         ),
         params,
     ).fetchall()

@@ -22,6 +22,8 @@ from localbrain.persistence.migrations.resources import (
 )
 from localbrain.persistence.migrations.session_revisions import prepare_session_revision_migration
 from localbrain.persistence.migrations.sessions import (
+    _ensure_session_display_title_backup,
+    _session_display_title_current,
     _ensure_maintenance_session_contract_backup,
     _maintenance_session_contract_exists,
     _migrate_skill_observation_contract,
@@ -43,6 +45,8 @@ from localbrain.persistence.storage import maintain_migration_backups
 
 def initialize_database(connection: sqlite3.Connection, config) -> None:
     with connection:
+        if _table_sql(connection, "sessions") and not _session_display_title_current(connection):
+            _ensure_session_display_title_backup(connection, config.database_path)
         if shared_resource_migration_required(connection):
             ensure_shared_resource_backup(connection, config.database_path)
         prepare_session_revision_migration(connection, config.database_path)

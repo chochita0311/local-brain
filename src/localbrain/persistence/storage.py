@@ -9,6 +9,7 @@ from localbrain.persistence.migrations import contracts
 
 
 MIGRATION_BACKUP_SUFFIXES = (
+    "-pre-session-display-title-v1.bak",
     "-pre-shared-resources-v1.bak",
     "-pre-session-revision-v1.bak",
     "-pre-usage-attribution-check-v1.bak",

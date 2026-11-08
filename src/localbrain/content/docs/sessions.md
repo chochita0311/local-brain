@@ -1,5 +1,22 @@
 Sessions lets you revisit imported Codex and Claude Code conversations. Use the list for reading and the chart for a view of recorded activity over time.
 
+## Edit a title
+
+Click a word to place the caret there without selecting the whole title. A field
+outline and background identify the editable area; keyboard activation starts at
+the end of the title.
+
+Click a title in List or primary Session detail to edit it in place. Press Enter
+or move focus away to save; Escape cancels. Clear the field to restore the
+original title. A title can have up to 500 characters on one line. A failed save
+keeps your draft and shows a Save button for retry. Without JavaScript, open the
+title and use Save explicitly.
+
+The override appears in the list, detail, pins and Chart and survives Sync. The
+original conversation and its source title remain intact. Subsession titles
+are read-only. Overrides are stored locally in the database; keep a database
+backup to preserve them.
+
 ## Find and read a conversation
 
 1. Open [Sessions](/sessions), choose **All** or a source profile, and narrow the working path if needed.
@@ -8,6 +25,11 @@ Sessions lets you revisit imported Codex and Claude Code conversations. Use the 
 4. Follow a **Subsessions** entry to read a child conversation, then use the parent or inventory return link to go back.
 
 The conversation view shows messages. Original event counts also include tool activity that the reading view hides, so they need not match the message count. A missing current working folder does not by itself erase an imported conversation.
+
+Projects shows only paths with a primary work Session in the selected source scope.
+Working-folder availability is checked during synchronization. If you delete and
+restore a folder at the same path, synchronize and reload to update its status;
+the existing conversations and pins remain attached to the same workspace.
 
 Collected conversations also remain available when their native Session files disappear. You can keep reading, pin or unpin them, and view their recorded usage. Original availability is shown separately from the working folder: **Original present** (`원본 있음`), **Original missing** (`원본 없음`), or **Original unverified** (`원본 확인 불가`). Unverified means inspection could not establish presence or absence; a present file can still have a separate collection error. Detail shows the last presence check and a reason when available.
 

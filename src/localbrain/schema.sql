@@ -113,6 +113,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     cwd_raw TEXT,
     git_branch TEXT,
     title TEXT NOT NULL,
+    display_title TEXT,
     started_at TEXT,
     ended_at TEXT,
     last_event_at TEXT,

@@ -72,6 +72,7 @@ def install_routes(app):
     app.post('/sessions/sync')(sources_web.sync_sessions_page)
     app.post('/sessions/{session_id}/pin')(sessions_web.pin_session_page)
     app.post('/sessions/{session_id}/unpin')(sessions_web.unpin_session_page)
+    app.post('/sessions/{session_id}/title')(sessions_web.save_session_title)
     if not DESKTOP:
         app.get('/sources', response_class=HTMLResponse)(sources_web.sources_page)
         app.post('/sources/scan')(sources_web.scan_sources_page)

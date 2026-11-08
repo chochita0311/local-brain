@@ -32,7 +32,7 @@ class SchemaPresentationBuildTests(unittest.TestCase):
         self.assertEqual(len(manifest["subjects"]), 11)
         self.assertEqual(len(manifest["tables"]), 53)
         self.assertEqual(
-            sum(len(table["columns"]) for table in manifest["tables"]), 559
+            sum(len(table["columns"]) for table in manifest["tables"]), 560
         )
         self.assertEqual(
             sum(len(table["indexes"]) for table in manifest["tables"]), 51

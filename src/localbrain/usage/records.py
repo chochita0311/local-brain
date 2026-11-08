@@ -924,7 +924,7 @@ def _snapshot_calculator_version(
 
 
 def _attribution_snapshot(
-    connection: sqlite3.Connection, workspace_id: Optional[int]
+    connection: sqlite3.Connection, workspace_id: Optional[int], workspace_rows=None
 ) -> dict:
     attributed_at = utc_now()
     if workspace_id is None:
@@ -937,13 +937,18 @@ def _attribution_snapshot(
             "attribution_basis": "unassigned",
             "attributed_at": attributed_at,
         }
-    workspace = connection.execute(
-        """
-        SELECT id, display_name, canonical_path, git_root
-        FROM workspaces WHERE id = ?
-        """,
-        (workspace_id,),
-    ).fetchone()
+    if workspace_rows is None or workspace_id not in workspace_rows:
+        workspace = connection.execute(
+            """
+            SELECT id, display_name, canonical_path, git_root
+            FROM workspaces WHERE id = ?
+            """,
+            (workspace_id,),
+        ).fetchone()
+        if workspace_rows is not None:
+            workspace_rows[workspace_id] = workspace
+    else:
+        workspace = workspace_rows[workspace_id]
     if not workspace:
         return {
             "workspace_id_snapshot": None,
@@ -1018,6 +1023,9 @@ def store_usage_records(
     connection.execute("SAVEPOINT usage_record_reconcile")
     try:
         upsert_values = []
+        # Workspace metadata is stable within this store call; observation times
+        # still belong to each new record, and later Session stores recheck it.
+        workspace_rows = {}
         for record in records:
             record_id = stored_record_id(record)
             existing = existing_by_id.get(record_id)
@@ -1065,7 +1073,7 @@ def store_usage_records(
                     )
                 }
             else:
-                attribution = _attribution_snapshot(connection, workspace_id)
+                attribution = _attribution_snapshot(connection, workspace_id, workspace_rows)
             calculated_at = (
                 existing["calculated_at"]
                 if existing

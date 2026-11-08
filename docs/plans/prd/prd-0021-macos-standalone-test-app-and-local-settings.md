@@ -69,6 +69,34 @@ to linked file evidence and appears separately from Project path availability.
 this bounded follow-up. It does not change native/public distribution gates,
 Local Context deletion, raw-source backup or external-write authorization.
 
+## Session Titles And Collection Efficiency — 2026-11-07
+
+The owner explicitly authorized both discussed follow-ups: a nullable user-owned
+`display_title` immediately after `title`, edited in place and cleared back to
+the source title; and result-preserving Session/Local Context synchronization
+and search-index efficiency improvements. Source titles, retained identities,
+pins, references, frozen Usage facts, collection admission and atomic index
+publication remain authoritative. Learning, Workstreams, Auto Work and Workflow
+product optimization, unrelated screen-query changes, external services and
+native rebuild/replacement are excluded. The owner confirmed the earlier
+working-folder availability correction in the running app.
+
+These bounded additions are approved by the current implementation request;
+the parent PRD's separate release/recipient constraints remain unchanged.
+[FEAT-0163](../feature/feat-0163-session-display-titles.md) and
+[FEAT-0164](../feature/feat-0164-sync-and-index-efficiency.md) own implementation
+acceptance. No material product question remains open for these boundaries.
+
+## Browse Query Efficiency And Title Caret — 2026-11-07
+
+The owner's next explicit request approves result-preserving keyword, Session
+Chart, Usage Dashboard and Atlassian detail query improvements, plus pointer
+caret placement and editing affordance for Session titles. This supersedes the
+preceding addendum's exclusion of these specific screen-query changes.
+[FEAT-0165](../feature/feat-0165-reading-query-efficiency-and-title-caret.md)
+owns that bounded follow-up. Local Context is explanation-only; parked products,
+native delivery gates, schema and external-write authority remain unchanged.
+
 ## Request Summary
 
 개발자의 기존 로컬 환경에서 실행하던 LocalBrain을 다른 사용자도 자신의 Mac에서 빠르게 시험할 수 있는 **독립 실행 테스트 앱**으로 만든다. 전달 형태는 `LocalBrain.app` 하나를 담은 ZIP을 기준안으로 삼고, 압축을 푼 앱을 더블클릭해 실행한다. 별도 설치 프로그램·Applications 복사·App Store 등록을 필수 절차로 만들지 않는다. 사용자별 세션·문서 경로와 일반 설정은 로컬에 저장하고, 하단 설정 진입점과 분류형 설정 대화상자, 첫 실행 안내, 선택형 검색 모델 설치를 제공한다.

@@ -721,6 +721,12 @@ h1 { margin: var(--space-none); font-family: var(--type-display-font); font-size
 .session-row:hover,
 .session-row:focus-within { background: var(--surface-subtle); }
 .session-row-link {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  color: var(--text-primary);
+}
+.session-row-content {
   min-width: 0;
   display: grid;
   grid-template-columns: 38px minmax(0, 1fr);
@@ -731,6 +737,49 @@ h1 { margin: var(--space-none); font-family: var(--type-display-font); font-size
   color: var(--text-primary);
 }
 .session-row-link:hover { background: transparent; }
+.session-row-link:focus-visible { outline-offset: calc(-1 * var(--border-width-focus)); }
+.session-row-content { pointer-events: none; }
+.session-row .session-title-editor { position: relative; z-index: 2; pointer-events: auto; }
+.session-title-editor { position: relative; isolation: isolate; min-width: 0; max-width: 100%; }
+.session-title-editor.is-enhanced:hover::before,
+.session-title-editor.is-enhanced[open]::before {
+  content: "";
+  position: absolute;
+  inset: calc(-1 * var(--space-compact));
+  z-index: -1;
+  pointer-events: none;
+  border-radius: var(--radius-control);
+  background: var(--surface-default);
+  box-shadow: var(--elevation-outline), var(--elevation-card);
+}
+.session-title-editor.is-enhanced[open]::before { box-shadow: var(--elevation-outline), var(--elevation-raised); }
+.session-title-editor summary { display: block; min-height: 0; margin: calc(-1 * var(--space-compact)); padding: var(--space-compact); cursor: text; list-style: none; }
+.session-title-editor summary::-webkit-details-marker { display: none; }
+.session-title-editor summary:focus-visible { outline: var(--border-width-focus) solid var(--focus-ring); }
+.session-title-editor form { margin: 0; }
+.session-title-editor.is-enhanced[open] > summary { display: none; }
+.session-title-editor.is-enhanced:not(.has-error) .session-title-save { display: none; }
+.session-title-editor.is-enhanced .session-title-input { min-height: 0; }
+.session-title-editor[open] h3 { overflow: visible; }
+.session-title-input {
+  display: block;
+  width: calc(100% + var(--space-compact) + var(--space-compact));
+  min-width: 0;
+  min-height: 0;
+  margin: calc(-1 * var(--space-compact));
+  padding: var(--space-compact);
+  border: 0;
+  border-radius: inherit;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  line-height: inherit;
+  outline: none;
+}
+.session-title-input:focus { box-shadow: var(--elevation-focus); }
+.session-title-input:disabled { opacity: 1; cursor: progress; }
+.session-title-feedback { display: block; white-space: normal; color: var(--text-warning); font-size: var(--type-caption-size); }
+.session-title-feedback[hidden] { display: none; }
 .session-source {
   display: grid;
   place-items: center;
@@ -755,6 +804,8 @@ h1 { margin: var(--space-none); font-family: var(--type-display-font); font-size
 .path-line { overflow: hidden; margin: var(--space-compact) var(--space-none); color: var(--text-secondary); text-overflow: ellipsis; white-space: nowrap; font-family: var(--type-mono-font); font-size: var(--type-caption-size); }
 .session-meta { display: flex; flex-wrap: wrap; gap: var(--space-compact) var(--space-row-block); color: var(--text-tertiary); font-size: var(--type-caption-size); }
 .session-utility-layer {
+  z-index: 2;
+  pointer-events: none;
   min-width: 0;
   min-height: 112px;
   display: grid;
@@ -763,6 +814,7 @@ h1 { margin: var(--space-none); font-family: var(--type-display-font); font-size
   gap: var(--space-control-gap);
   padding: var(--space-card);
 }
+.session-utility-layer :is(button, a, input, summary) { pointer-events: auto; }
 .session-utility-upper {
   min-width: 0;
   display: grid;
@@ -846,6 +898,7 @@ h1 { margin: var(--space-none); font-family: var(--type-display-font); font-size
 .session-row:focus-within .subsession-trigger { background: var(--surface-subtle); }
 .subsession-dropdown {
   position: absolute;
+  pointer-events: auto;
   z-index: 15;
   top: calc(100% - var(--space-control-gap));
   right: var(--space-card);
@@ -1382,8 +1435,8 @@ a.search-result:hover { background: var(--surface-subtle); }
 .usage-history-heading h2 { margin: var(--space-none); font-size: var(--type-section-size); }
 .usage-history-heading p:last-child { margin: var(--space-compact) var(--space-none) var(--space-none); color: var(--text-secondary); font-size: var(--type-micro-size); }
 .usage-metric-control { flex: 0 0 auto; }
-.usage-history-scroll { max-width: 100%; overflow-x: auto; padding: var(--space-compact) var(--space-panel) var(--space-card); }
-.usage-history-chart { min-width: max(100%, calc(var(--usage-history-columns) * var(--chart-history-column-min-width))); height: var(--chart-history-height); display: grid; grid-template-columns: repeat(var(--usage-history-columns), minmax(var(--chart-history-column-min-width), 1fr)); align-items: stretch; gap: var(--space-compact); }
+.usage-history-scroll { max-width: 100%; overflow-x: auto; padding: var(--space-compact) var(--space-none) var(--space-card); }
+.usage-history-chart { min-width: 100%; width: max-content; padding-inline: var(--space-panel); height: var(--chart-history-height); display: grid; grid-template-columns: repeat(var(--usage-history-columns), minmax(var(--chart-history-column-min-width), 1fr)); align-items: stretch; gap: var(--space-compact); }
 .usage-history-column { min-width: 0; display: grid; grid-template-rows: var(--chart-history-value-height) minmax(0, 1fr) var(--chart-history-label-height); align-items: end; gap: var(--space-compact); text-align: center; }
 .usage-history-value { overflow: hidden; color: var(--text-tertiary); text-overflow: ellipsis; white-space: nowrap; font-family: var(--type-mono-font); font-size: var(--type-micro-size); }
 .usage-history-track { position: relative; height: 100%; overflow: hidden; background: var(--surface-disabled); border-radius: var(--radius-control); }
@@ -2514,7 +2567,7 @@ select:not([multiple]) {
   .segmented-control a { flex: 1; }
   .session-source-control a { flex: 0 0 auto; }
   .session-row { grid-template-columns: 1fr; }
-  .session-row-link {
+  .session-row-content {
     grid-template-columns: 34px minmax(0, 1fr);
     gap: var(--space-row-block);
     min-height: auto;

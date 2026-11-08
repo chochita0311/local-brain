@@ -71,6 +71,11 @@ environment still exists.
 
 ## Query And Results
 
+Keyword FTS reads each candidate Session's owner through one-to-one joins in
+the matching query. The same registered-root identity and private-runtime guards
+still run before the result limit; root-mismatched or excluded hits never consume
+allowed result slots. Snippets, scores, ordering and evidence URLs are unchanged.
+
 - A fresh query starts with all eligible parents. No current project, recent-N subset or old screen filter is inherited. Candidate and page limits are explicit retrieval/presentation limits, not corpus admission limits.
 - Keep original query. An explicit request for Sessions or documents restricts kind. An unambiguous `오늘`, `어제`, `이번주`, `지난주`, `이번달`, `지난달` uses calendar boundaries in the configured local timezone. Session time is last recorded activity, with end/start fallback; document time is source modification time. Show the actual interval and field meaning. Conflicting/negated time or kind interpretations keep the broad range with a notice. Each condition is independent: ambiguous topic exclusion does not erase a clear kind/calendar filter. Quoted phrases and unsupported approximate/range expressions cannot silently become calendar restrictions.
 - Quoted literal exclusion with an explicit exclusion operator can filter that literal. Unquoted topic exclusion whose meaning cannot be reliably grounded stays a visible unresolved condition; never replace topic negation with a single-word ban. Uncertain `만들던` does not imply a date/project/completion state.
@@ -98,6 +103,13 @@ Model download and resume require an explicit settings action. The app bundles t
 ## Implemented Data Flow
 
 ### Preparation Flow
+
+Preparation retains vector keys from an interrupted staging generation and
+checks membership locally. Compatible prior vectors are read in bounded batches
+of at most 256 inputs rather than queried separately for each fragment. Vector
+blobs are loaded only for the current batch; fragment occurrences and ordering,
+encoding batch boundaries, validation, fingerprints, cancellation and atomic
+publication remain unchanged. An unchanged corpus still skips preparation.
 
 ```mermaid
 flowchart TD

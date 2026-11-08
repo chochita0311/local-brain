@@ -8,7 +8,7 @@ from localbrain.persistence.migrations.resources import (
     shared_resource_contract_current,
 )
 from localbrain.persistence.migrations.session_revisions import session_revision_contract_current
-from localbrain.persistence.migrations.sessions import _maintenance_session_contract_exists
+from localbrain.persistence.migrations.sessions import _maintenance_session_contract_exists, _session_display_title_current
 from localbrain.persistence.migrations.sources import _source_provider_identity_contract_exists
 from localbrain.persistence.migrations.usage import (
     USAGE_RECORDS_TABLE,
@@ -25,6 +25,7 @@ def migration_contracts_current(connection: sqlite3.Connection) -> bool:
         and not _external_resource_url_unique_exists(connection)
         and _maintenance_workstream_fk_exists(connection)
         and _maintenance_session_contract_exists(connection)
+        and _session_display_title_current(connection)
         and usage_table == USAGE_RECORDS_TABLE
         and _usage_attribution_check_exists(connection, usage_table)
         and session_revision_contract_current(connection)

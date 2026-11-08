@@ -38,7 +38,7 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [PRD-0026: Context Search And Grounded Local Answers](prd/prd-0026-context-search-grounded-local-answers.md) | `approved` | — |
 | [PRD-0027: Early-Access Distribution And Bilingual App Docs](prd/prd-0027-early-access-distribution-and-bilingual-docs.md) | `in-loop` | — |
 
-## Features (162)
+## Features (165)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -204,8 +204,11 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [FEAT-0160: Windows x64 Local AI Trial](feature/feat-0160-windows-x64-local-ai-trial.md) | `draft` | PRD-0027 |
 | [FEAT-0161: App Navigation History](feature/feat-0161-app-navigation-history.md) | `approved` | PRD-0027 |
 | [FEAT-0162: Shared Window Toolbar](feature/feat-0162-shared-window-toolbar.md) | `passed` | PRD-0027 |
+| [FEAT-0163: Session Display Titles](feature/feat-0163-session-display-titles.md) | `passed` | PRD-0021 |
+| [FEAT-0164: Sync And Index Efficiency](feature/feat-0164-sync-and-index-efficiency.md) | `passed` | PRD-0021 |
+| [FEAT-0165: Reading Query Efficiency And Title Caret](feature/feat-0165-reading-query-efficiency-and-title-caret.md) | `passed` | PRD-0021 |
 
-## Specs (170)
+## Specs (173)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -379,8 +382,11 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [SPEC-0159: Identifiable macOS Trial Build](spec/spec-0159-identifiable-macos-trial-build.md) | `approved` | FEAT-0159 |
 | [SPEC-0161: App Navigation History](spec/spec-0161-app-navigation-history.md) | `approved` | FEAT-0161 |
 | [SPEC-0162: Shared Window Toolbar](spec/spec-0162-shared-window-toolbar.md) | `approved` | FEAT-0162 |
+| [SPEC-0163: Session Display Titles](spec/spec-0163-session-display-titles.md) | `approved` | FEAT-0163 |
+| [SPEC-0164: Sync And Index Efficiency](spec/spec-0164-sync-and-index-efficiency.md) | `approved` | FEAT-0164 |
+| [SPEC-0165: Reading Query Efficiency And Title Caret](spec/spec-0165-reading-query-efficiency-and-title-caret.md) | `approved` | FEAT-0165 |
 
-## Runs (238)
+## Runs (241)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -622,8 +628,11 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [Run236: Shared Docs Language Option](run/run-20261106-236-docs-language-option.md) | `passed` | FEAT-0157 |
 | [Run237: App Navigation History](run/run-20261106-237-app-navigation-history.md) | `passed` | FEAT-0161 |
 | [Run238: Shared Window Toolbar](run/run-20261106-238-shared-window-toolbar.md) | `passed` | FEAT-0162 |
+| [RUN-239: Sync And Index Efficiency](run/run-20261107-239-sync-and-index-efficiency.md) | `passed` | FEAT-0164 |
+| [RUN-240: Session Display Titles](run/run-20261107-240-session-display-titles.md) | `passed` | FEAT-0163 |
+| [RUN-241: Reading Query Efficiency And Title Caret](run/run-20261107-241-reading-query-efficiency-and-title-caret.md) | `passed` | FEAT-0165 |
 
-## Evaluations And Schema Audits (472)
+## Evaluations And Schema Audits (474)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -1099,6 +1108,8 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [EVAL-0153: Native Integration And Public Candidate Closeout](evaluation/eval-0153-native-publication-closeout.md) | — | Context Search, with Drive and the pending Learning/schema integration. |
 | [Retained Session History Evaluation](evaluation/eval-0154-retained-session-history.md) | `complete` | FEAT-0154 |
 | [EVAL-0155: Early-Access macOS Delivery](evaluation/eval-0155-early-access-macos-delivery.md) | `complete` | Run235 |
+| [Session Titles And Collection Efficiency Evaluation](evaluation/eval-0156-session-titles-and-collection-efficiency.md) | `complete` | FEAT-0163, FEAT-0164 |
+| [Reading Query Efficiency And Title Caret Evaluation](evaluation/eval-0157-reading-query-efficiency-and-title-caret.md) | `complete` | FEAT-0165 |
 
 ## Fix Logs (26)
 

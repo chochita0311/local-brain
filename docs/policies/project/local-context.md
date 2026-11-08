@@ -9,12 +9,26 @@ The `context_roots` registry owns folders, individual files, and Apple Notes sou
 - Folder registration scans supported content recursively.
 - Overlapping parent and child folder roots are rejected to keep document ownership unambiguous.
 - Hidden and generated directories such as `.git`, `node_modules`, `dist`, and `build` are excluded.
+- Folder collection prunes excluded directories before descending, retains the
+  sorted case-sensitive `*.md` path set, does not follow directory symlinks,
+  and preserves cancellation and per-source failure/deletion boundaries.
 - Removing a source disables browsing and search and clears its derived Atlassian URL sightings without deleting original local files or stable Atlassian Items.
 - Re-adding a previously removed path restores and refreshes that source.
 - Individual text files are registered independently from folder roots.
 - PDF text is currently indexed only when macOS Spotlight exposes readable content.
 - Unsupported files remain registered with an `unreadable` state and do not create preview documents.
 - Apple Notes indexing records account, folder, title, plaintext, and modification time after macOS grants Automation access.
+
+## Document Reading
+
+For a Document in an enabled folder source, reference preparation currently
+loads the same registered root's document identities and bodies in one scoped
+bulk read, including documents without a link from the opened Document. This
+builds the name/path lookup used by links, target anchors and note embeds; it
+does not discover roots or walk linked files. Ordinary links do not recursively
+open every destination. Nested embeds use the existing bounded-depth/cycle
+rules in [Markdown Rendering](markdown-rendering.md). This describes reading,
+independently from scheduled folder collection.
 
 ## Implementation Ownership
 

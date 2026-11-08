@@ -7,6 +7,7 @@ import sqlite3
 import time
 from contextlib import closing, contextmanager
 from dataclasses import asdict
+from itertools import islice
 
 from localbrain.foundation.config import cache_directory
 from localbrain.foundation.files import private_database, private_directory
@@ -176,6 +177,9 @@ def prepare(config, encoder, profile, *, stopped=lambda: False, progress=None, f
                 stage.unlink()
                 report()
                 return stats
+            # Interrupted builds retain vectors. Keep their keys in memory, not
+            # the vector blobs, and consult the prior generation in bounded batches.
+            known_vectors = {row[0] for row in connection.execute("SELECT input_hash FROM vectors")}
             pending = {}
             last_flush = 0
 
@@ -197,6 +201,7 @@ def prepare(config, encoder, profile, *, stopped=lambda: False, progress=None, f
                         connection.execute("INSERT OR IGNORE INTO vectors VALUES (?,?)",
                                            (key, (value / norm).astype("<f4").tobytes()))
                     stats["encoded"] += len(pending)
+                    known_vectors.update(pending)
                     pending.clear()
                 connection.commit()
                 last_flush = stats["fragments"]
@@ -214,28 +219,35 @@ def prepare(config, encoder, profile, *, stopped=lambda: False, progress=None, f
                                       "SELECT * FROM fragments WHERE parent_key=? ORDER BY ordinal", (source.key,)))
                 else:
                     molecules = molecularize(source, tokenizer, profile)
-                for molecule in molecules:
-                    key = molecule["input_hash"]
-                    cached = connection.execute("SELECT 1 FROM vectors WHERE input_hash=?", (key,)).fetchone()
-                    if cached or key in pending:
-                        stats["reused"] += 1
-                    else:
-                        value = prior.execute("SELECT value FROM vectors WHERE input_hash=?", (key,)).fetchone() if prior else None
-                        if value:
-                            connection.execute("INSERT INTO vectors VALUES (?,?)", (key, value[0]))
+                molecules = iter(molecules)
+                while batch := list(islice(molecules, min(256, max(1, encoder.batch_size)))):
+                    keys = {item["input_hash"] for item in batch} - known_vectors - pending.keys()
+                    previous = {}
+                    if prior and keys:
+                        placeholders = ",".join("?" for _ in keys)
+                        previous = dict(prior.execute(
+                            f"SELECT input_hash,value FROM vectors WHERE input_hash IN ({placeholders})", tuple(keys)
+                        ))
+                    for molecule in batch:
+                        key = molecule["input_hash"]
+                        if key in known_vectors or key in pending:
+                            stats["reused"] += 1
+                        elif key in previous:
+                            connection.execute("INSERT INTO vectors VALUES (?,?)", (key, previous[key]))
+                            known_vectors.add(key)
                             stats["reused"] += 1
                         else:
                             pending[key] = molecule["input"]
-                    cursor = connection.execute("""INSERT INTO fragments
-                        (parent_key,ordinal,input_hash,body_hash,text,context,locator) VALUES (?,?,?,?,?,?,?)""",
-                        (source.key, molecule["ordinal"], key, molecule["body_hash"], molecule["text"],
-                         molecule["context"], json.dumps(molecule["locator"])))
-                    words = lexical_tokens(source.title + "\n" + molecule["text"])
-                    connection.execute("INSERT INTO terms(rowid,tokens) VALUES (?,?)", (cursor.lastrowid, " ".join(words)))
-                    stats["fragments"] += 1
-                    stats["context_limited"] += int(molecule["locator"]["context_limited"])
-                    if stats["fragments"] - last_flush >= encoder.batch_size:
-                        flush()
+                        cursor = connection.execute("""INSERT INTO fragments
+                            (parent_key,ordinal,input_hash,body_hash,text,context,locator) VALUES (?,?,?,?,?,?,?)""",
+                            (source.key, molecule["ordinal"], key, molecule["body_hash"], molecule["text"],
+                             molecule["context"], json.dumps(molecule["locator"])))
+                        words = lexical_tokens(source.title + "\n" + molecule["text"])
+                        connection.execute("INSERT INTO terms(rowid,tokens) VALUES (?,?)", (cursor.lastrowid, " ".join(words)))
+                        stats["fragments"] += 1
+                        stats["context_limited"] += int(molecule["locator"]["context_limited"])
+                        if stats["fragments"] - last_flush >= encoder.batch_size:
+                            flush()
                 stats["parents"] += 1
                 flush()
             flush()

@@ -2,7 +2,7 @@ import sqlite3
 from collections import defaultdict
 from datetime import date, datetime, timedelta, timezone
 from decimal import ROUND_HALF_UP, Decimal
-from heapq import merge
+from operator import itemgetter
 from typing import DefaultDict, Dict, Iterable, List, Optional, Tuple
 from urllib.parse import urlencode
 from zoneinfo import ZoneInfo
@@ -255,11 +255,10 @@ def _usage_rows(
     start_utc: Optional[datetime] = None,
     end_utc: Optional[datetime] = None,
     visible_only: bool = False,
-    unusual_only: bool = False,
     stream: bool = False,
+    include_unusual: bool = False,
 ) -> Iterable[sqlite3.Row]:
     eligible_where, params = _eligible_usage_where(source)
-    time_filter = ""
     raw_window = (
         (
             (start_utc.date() - timedelta(days=1)).isoformat(),
@@ -268,36 +267,30 @@ def _usage_rows(
         if start_utc is not None and end_utc is not None
         else None
     )
-    if unusual_only:
-        time_filter = """
-            AND (
+    unusual_time = """(
                 usage_records.occurred_at IS NULL
                 OR strftime('%s', usage_records.occurred_at) IS NULL
                 OR usage_records.occurred_at != trim(usage_records.occurred_at)
                 OR date(substr(usage_records.occurred_at, 1, 10), '+0 days')
                    != substr(usage_records.occurred_at, 1, 10)
-            )
-        """
-        if raw_window is not None:
-            # The ordinary window query already includes unusual timestamps
-            # whose raw values fall inside it.
-            time_filter += """
-                AND (
-                    usage_records.occurred_at IS NULL
-                    OR usage_records.occurred_at < ?
-                    OR usage_records.occurred_at >= ?
-                )
-            """
-            params.extend(raw_window)
+            )"""
+    if raw_window is not None and include_unusual:
+        # Disjoint indexed ranges retain exceptional values outside the window.
+        windows = [
+            ("usage_records.occurred_at IS NULL", ()),
+            (f"usage_records.occurred_at < ? AND {unusual_time}", raw_window[:1]),
+            (f"usage_records.occurred_at >= ? AND {unusual_time}", raw_window[1:]),
+        ]
+        # Open the ordinary cursor first, as before, to retain its read
+        # snapshot while exceptional candidates are queried.
+        windows.insert(0, ("usage_records.occurred_at >= ? AND usage_records.occurred_at < ?", raw_window))
     elif raw_window is not None:
         # Raw source timestamps can carry an ISO offset. The indexed window
         # includes its neighboring source dates; _rows_in_range applies the
         # exact UTC boundaries after parsing each candidate.
-        time_filter = (
-            "AND usage_records.occurred_at >= ? "
-            "AND usage_records.occurred_at < ?"
-        )
-        params.extend(raw_window)
+        windows = [("usage_records.occurred_at >= ? AND usage_records.occurred_at < ?", raw_window)]
+    else:
+        windows = [("1", ())]
     if visible_only:
         columns = """
             usage_records.id, usage_records.occurred_at,
@@ -328,25 +321,47 @@ def _usage_rows(
             LEFT JOIN workspaces AS current_workspace
               ON current_workspace.id = usage_records.workspace_id_snapshot
         """
-    cursor = connection.execute(
-        """
+    selection = """
         SELECT {columns}
         FROM usage_records
         JOIN sources ON sources.id = usage_records.source_id
         JOIN sessions ON sessions.id = usage_records.session_id
         {auxiliary_joins}
         WHERE {eligible_where}
-        {time_filter}
-        ORDER BY usage_records.occurred_at, usage_records.id
+        AND {{time_filter}}
         """.format(
             columns=columns,
             auxiliary_joins=auxiliary_joins,
             eligible_where=eligible_where,
-            time_filter=time_filter,
-        ),
-        tuple(params),
-    )
-    return cursor if stream else cursor.fetchall()
+        )
+    cursors = []
+    try:
+        for condition, window_params in windows:
+            cursors.append(connection.execute(
+                selection.format(time_filter=condition) + " ORDER BY usage_records.occurred_at, usage_records.id",
+                (*params, *window_params),
+            ))
+    except BaseException:
+        for cursor in cursors:
+            cursor.close()
+        raise
+    if raw_window is not None and include_unusual:
+        ordinary, null_time, earlier, later = cursors
+        cursors = [null_time, earlier, ordinary, later]
+
+    def read_rows():
+        try:
+            # These partitions are already in lexical time/ID order; neither
+            # Python heap merging nor a compound SQL merge is needed per row.
+            for cursor in cursors:
+                while batch := cursor.fetchmany(512):
+                    yield from batch
+        finally:
+            for cursor in cursors:
+                cursor.close()
+
+    rows = read_rows()
+    return rows if stream else list(rows)
 
 
 def _has_eligible_usage(connection: sqlite3.Connection, source: str) -> bool:
@@ -582,17 +597,6 @@ def _freshness(connection: sqlite3.Connection, source: str) -> dict:
     }
 
 
-def _breakdown_identity(row: sqlite3.Row, mode: str) -> Tuple[str, str]:
-    if mode == "source":
-        return str(row["source_id"]), row["source_name"]
-    if mode == "model":
-        identity = row["model_name"] or row["raw_model"]
-        return identity or "unknown-model", identity or "Unknown model"
-    if row["project_key"]:
-        return row["project_key"], row["project_name_snapshot"] or "Attributed project"
-    return "unassigned", "프로젝트 미지정"
-
-
 def _breakdown_from_groups(
     grouped: Dict[str, dict],
     compatible_total: Decimal,
@@ -713,22 +717,34 @@ def _dashboard_projection(
     capability_states: DefaultDict[str, int] = defaultdict(int)
     attribution_bases: DefaultDict[str, int] = defaultdict(int)
     buckets: Dict[date, Decimal] = defaultdict(Decimal)
+    bucket_starts: Dict[date, date] = {}
     grouped: Dict[str, dict] = {}
     compatible_total = Decimal("0")
     has_compatible_total = False
     metric = scope["metric"]
     mode = scope["breakdown"]
     view = scope["view"]
+    read_values = None
 
     for row, occurred_at in rows:
+        if read_values is None:
+            fields = ("session_id", "source_id", "raw_model", "model_name", "total_tokens",
+                      "estimated_cost_usd", "calculation_state", "project_key", "project_name_snapshot",
+                      "provider_kind", "source_name", "session_class", "session_role", "current_workspace_id")
+            # Resolve column positions once. Row's named lookup scans its keys;
+            # numeric access avoids repeating that work for every metric/group.
+            columns = list(row.keys())
+            positions = (columns.index(name) for name in fields) if isinstance(row, sqlite3.Row) else fields
+            read_values = itemgetter(*positions)
+        (session_id, source_id, raw_model, model_name, token_value, raw_cost,
+         calculation_state, project_key, project_name, provider_kind, source_name,
+         session_class, session_role, current_workspace_id) = read_values(row)
         usage_record_count += 1
         local_day = occurred_at.astimezone(zone).date()
         active_days.add(local_day)
-        token_value = row["total_tokens"]
         cost_value = (
-            Decimal(row["estimated_cost_usd"])
-            if row["calculation_state"] == "priced"
-            and row["estimated_cost_usd"] is not None
+            Decimal(raw_cost)
+            if calculation_state == "priced" and raw_cost is not None
             else None
         )
         if token_value is not None:
@@ -737,25 +753,36 @@ def _dashboard_projection(
         if cost_value is not None:
             estimated_cost += cost_value
             priced_record_count += 1
-        is_primary = row["session_class"] == "work" and row["session_role"] == "primary"
+        is_primary = session_class == "work" and session_role == "primary"
         if is_primary:
-            primary_sessions.add(row["session_id"])
+            primary_sessions.add(session_id)
         if include_details:
-            states[row["calculation_state"]] += 1
+            states[calculation_state] += 1
             aggregation_scopes[row["aggregation_scope"]] += 1
             capability_states[row["capability_state"]] += 1
             attribution_bases[row["attribution_basis"]] += 1
 
         bucket_value = token_value if metric == "tokens" else cost_value
         if bucket_value is not None:
-            buckets[_bucket_start(local_day, view)] += Decimal(bucket_value)
+            bucket = bucket_starts.get(local_day)
+            if bucket is None:
+                bucket = _bucket_start(local_day, view)
+                bucket_starts[local_day] = bucket
+            buckets[bucket] += Decimal(bucket_value)
 
         # Overall usage and history include Maintenance. Project composition and
         # its share denominator include only work Sessions, including subsessions.
-        if mode == "project" and row["session_class"] != "work":
+        if mode == "project" and session_class != "work":
             continue
 
-        key, label = _breakdown_identity(row, mode)
+        if mode == "source":
+            key, label = str(source_id), source_name
+        elif mode == "model":
+            identity = model_name or raw_model
+            key, label = identity or "unknown-model", identity or "Unknown model"
+        else:
+            key = project_key or "unassigned"
+            label = (project_name or "Attributed project") if project_key else "프로젝트 미지정"
         group = grouped.get(key)
         if group is None:
             group = {
@@ -769,9 +796,9 @@ def _dashboard_projection(
                 "raw_models": set(),
                 "primary_session_ids": set(),
                 "last_activity_at": occurred_at,
-                "current_workspace_id": row["current_workspace_id"],
-                "source_id": row["source_id"] if mode == "source" else None,
-                "provider_kind": row["provider_kind"] if mode == "source" else None,
+                "current_workspace_id": current_workspace_id,
+                "source_id": source_id if mode == "source" else None,
+                "provider_kind": provider_kind if mode == "source" else None,
             }
             grouped[key] = group
         group["usage_record_count"] += 1
@@ -784,10 +811,10 @@ def _dashboard_projection(
         if bucket_value is not None:
             compatible_total += Decimal(bucket_value)
             has_compatible_total = True
-        if row["raw_model"]:
-            group["raw_models"].add(row["raw_model"])
+        if raw_model:
+            group["raw_models"].add(raw_model)
         if is_primary:
-            group["primary_session_ids"].add(row["session_id"])
+            group["primary_session_ids"].add(session_id)
         if occurred_at > group["last_activity_at"]:
             group["last_activity_at"] = occurred_at
 
@@ -992,25 +1019,10 @@ def usage_dashboard_data(
         today=scope_today,
     )
     if visible_only:
-        candidate_rows = merge(
-            _usage_rows(
-                connection,
-                scope["source"],
-                start_utc=scope["start_utc"],
-                end_utc=scope["end_utc"],
-                visible_only=True,
-                stream=True,
-            ),
-            _usage_rows(
-                connection,
-                scope["source"],
-                start_utc=scope["start_utc"],
-                end_utc=scope["end_utc"],
-                visible_only=True,
-                unusual_only=True,
-                stream=True,
-            ),
-            key=lambda row: (row["occurred_at"] or "", row["id"]),
+        candidate_rows = _usage_rows(
+            connection, scope["source"], start_utc=scope["start_utc"],
+            end_utc=scope["end_utc"], visible_only=True, stream=True,
+            include_unusual=True,
         )
         untimed_count = 0
 

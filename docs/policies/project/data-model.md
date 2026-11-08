@@ -12,8 +12,8 @@ This is the durable human entry point for LocalBrain's effective SQLite model. I
 - Physical foreign keys: `66`
 - Effective explicitly named indexes: `51`
 - Focused subject areas: `11`
-- `schema.sql` SHA-256: `6db7fc2edf220d6502599893990276b7cfd6d11ce581d794b0dd7573c4a3f617`
-- Migration sources SHA-256: `4b6149d33dcbc7d6df4720a3486ad39473d15180ba1e8647c729764f0ed7c6b5`
+- `schema.sql` SHA-256: `552c13cfb620e3fe3304235888011152b8f93d07c842e3232765e1868ac9acc7`
+- Migration sources SHA-256: `3899e24eed8520a0ddbba36f2cb684dd87ecbf7d11a1816e008e38b56c1b3657`
 
 SQLite primary-key and uniqueness autoindexes and FTS5 shadow tables are implementation internals and are not counted as primary objects or explicitly named indexes. Validation applies `schema.sql` only to an in-memory database; no user database or runtime row is read.
 
@@ -257,6 +257,11 @@ erDiagram
 The owning subject document records the precise deletion effect and recovery boundary for each table. `skill_observations` can outlive a deleted normalized Session. `session_reference_evidence` survives removal of a referenced Document or optional Atlassian Item, but cascades when its own Session is deleted. Backup preserves exact historical observations when the original source or previous document-admission context is unavailable. “Rebuildable” never means cleanup is pre-approved.
 
 ## Fresh Schema And Compatible Ownership
+
+`sessions.display_title` is a user-curated exception within retained Session
+observations: native sources cannot reconstruct an override, so it requires a
+database backup. The [Session title contract](sessions.md#user-owned-titles) owns
+its independent write boundary and backup-backed physical-order upgrade.
 
 - `schema.sql` creates all 52 ordinary tables, `search_index`, all physical constraints, and 43 explicit indexes for a new database. Its idempotent application also creates the reviewed learning revisions, attempts and visibility, retained skill-observation ledger, Session pin, scoped Chart visibility preference, Session reference scan/evidence, append-only Workflow assertion ledger, external-source capability, external-sync, independent personal-insight Run, Atlassian source-memory and optional Site-binding, local-classification, bounded Item evidence, and stable structure-reference identity/URL/evidence tables on older databases without rewriting existing objects.
 - `persistence/migrations/resources.py` preserves a verified private recovery copy, backfills shared URL/path identities and bindings, and atomically rebuilds Session evidence and external body/note ownership. It retains legacy metadata IDs and observations; feature/index deletion no longer cascades Session evidence.

@@ -13,7 +13,7 @@ DESKTOP = bool(getattr(sys, "frozen", False)) or os.environ.get("LOCALBRAIN_EDIT
 _ALLOWED = re.compile(
     r"^/(?:$|static/.*|desktop/(?:start|shutdown)|settings|onboarding|"
     r"help(?:/(?:settings|sessions-dashboard|sessions|local-contexts|search))?|"
-    r"sessions-dashboard|projects|sessions(?:/\d+(?:/(?:pin|unpin|chart-activity)|/(?:subsessions|subagents)/[^/]+)?|/chart/project-visibility|/sync)?|"
+    r"sessions-dashboard|projects|sessions(?:/\d+(?:/(?:pin|unpin|title|chart-activity)|/(?:subsessions|subagents)/[^/]+)?|/chart/project-visibility|/sync)?|"
     r"context(?:/.*)?|context-search|documents/\d+|natural-search(?:/.*)?|search|"
     r"api/(?:health|settings(?:/.*)?|sessions(?:/.*)?|session-chart(?:/.*)?|"
     r"context-(?:roots|files|sources)(?:/.*)?|context-search/(?:status|answer|unload)|natural-search/status))$"

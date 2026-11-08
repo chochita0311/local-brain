@@ -40,24 +40,19 @@ def dashboard_stats(
             "SELECT COUNT(*) AS count FROM workspaces"
         ).fetchone()["count"],
     }
-    if source_id:
-        result["missing_workspaces"] = connection.execute(
-            """
-            SELECT COUNT(*) AS count
-            FROM workspaces
-            WHERE exists_now = 0
-              AND EXISTS (
-                  SELECT 1 FROM sessions
-                  WHERE sessions.workspace_id = workspaces.id
-                    AND sessions.session_class = 'work'
-                    AND sessions.session_role = 'primary'
-            """ + source_condition + ")",
-            source_params,
-        ).fetchone()["count"]
-    else:
-        result["missing_workspaces"] = connection.execute(
-            "SELECT COUNT(*) AS count FROM workspaces WHERE exists_now = 0"
-        ).fetchone()["count"]
+    result["missing_workspaces"] = connection.execute(
+        """
+        SELECT COUNT(*) AS count
+        FROM workspaces
+        WHERE exists_now = 0
+          AND EXISTS (
+              SELECT 1 FROM sessions
+              WHERE sessions.workspace_id = workspaces.id
+                AND sessions.session_class = 'work'
+                AND sessions.session_role = 'primary'
+        """ + source_condition + ")",
+        source_params,
+    ).fetchone()["count"]
     result["recent_sessions"] = connection.execute(
         """
         SELECT COUNT(*) AS count FROM sessions

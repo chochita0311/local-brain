@@ -73,6 +73,9 @@ owns update and change-record duties.
 | 2026-10-27 | v61 | Bundled English Docs reuse the native shell and Markdown reading roles. Docs sits immediately above Settings; both utilities remain reachable in compact navigation. One current-topic contents rail enters document flow at 920px, with bounded prose and local table overflow. The shared 16px prose role supports reading without creating a separate visual system. |
 | 2026-10-31 | v62 | Added independent Session-original PRESENT/MISSING/UNKNOWN labels: neutral present/unverified and warning absent, preserving retained reading and pin actions separately from Project-path and parsing states. |
 | 2026-11-02 | v63 | Settings reads retain server-resolved labels and stable content anchors, distinguish unreadable registration from empty, and gate model actions by confirmed readiness. First-use preparation uses the existing settings frame with a server-rendered reload path above the inert background until the modal is initialized. |
+| 2026-11-07 | v64 | Docs uses the locally bundled Material Symbols circled question mark while retaining the existing navigation size, accessible name and footer position. |
+| 2026-11-07 | v65 | Session title overrides edit in place with the current heading style, separate card navigation, stable normal/editing geometry, keyboard/IME support and draft-preserving save errors. |
+| 2026-11-07 | v66 | Title editing keeps the pointer's text position instead of selecting the whole title, and exposes matching hover/edit field bounds with native outline and restrained elevation while retaining row geometry. |
 
 ## Documentation Ownership Alignment — 2026-10-31
 

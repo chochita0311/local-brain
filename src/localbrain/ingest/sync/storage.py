@@ -1,6 +1,7 @@
 """Shared source, file, workspace and search persistence operations."""
 
 import sqlite3
+import stat
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
@@ -139,16 +140,56 @@ def _record_source_file(
     )
 
 
-def _find_git_root(path: Path) -> Optional[Path]:
-    if not path.exists():
+def _path_exists_or_raise(path: Path) -> bool:
+    """Distinguish confirmed absence from an unsuccessful filesystem check."""
+    try:
+        path.stat()
+    except (FileNotFoundError, NotADirectoryError):
+        return False
+    return True
+
+
+def _find_git_root(path: Path, *, raise_on_error: bool = False) -> Optional[Path]:
+    exists = _path_exists_or_raise if raise_on_error else Path.exists
+    if not exists(path):
         return None
-    current = path if path.is_dir() else path.parent
+    is_directory = stat.S_ISDIR(path.stat().st_mode) if raise_on_error else path.is_dir()
+    current = path if is_directory else path.parent
     for candidate in [current] + list(current.parents):
-        if (candidate / ".git").exists():
+        if exists(candidate / ".git"):
             return candidate.resolve()
         if candidate == Path.home():
             break
     return None
+
+
+def _refresh_workspace_presence(connection: sqlite3.Connection, source_id: int) -> None:
+    """Refresh known paths independently of native transcript freshness."""
+    rows = connection.execute(
+        """
+        SELECT id, canonical_path, exists_now, git_root FROM workspaces
+        WHERE EXISTS (
+            SELECT 1 FROM sessions
+            WHERE sessions.workspace_id = workspaces.id AND sessions.source_id = ?
+        )
+        """,
+        (source_id,),
+    ).fetchall()
+    for row in rows:
+        path = Path(row["canonical_path"])
+        try:
+            # Path.exists() suppresses inspection errors on newer Python.
+            exists_now = int(_path_exists_or_raise(path))
+            git_root = _find_git_root(path, raise_on_error=True) if exists_now else None
+        except (OSError, ValueError):
+            # An unreadable path cannot establish a change in availability.
+            continue
+        git_root = str(git_root) if git_root else None
+        if exists_now != row["exists_now"] or git_root != row["git_root"]:
+            connection.execute(
+                "UPDATE workspaces SET exists_now = ?, git_root = ?, updated_at = ? WHERE id = ?",
+                (exists_now, git_root, utc_now(), row["id"]),
+            )
 
 
 def _upsert_workspace(

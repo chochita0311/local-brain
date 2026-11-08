@@ -278,10 +278,12 @@ def _run_compatible_migrations(
             )
 
         connection.execute(
-            "UPDATE checkpoints SET updated_at = COALESCE(updated_at, created_at)"
+            "UPDATE checkpoints SET updated_at = COALESCE(updated_at, created_at) "
+            "WHERE updated_at IS NULL"
         )
         connection.execute(
-            "UPDATE maintenance_runs SET updated_at = COALESCE(updated_at, created_at)"
+            "UPDATE maintenance_runs SET updated_at = COALESCE(updated_at, created_at) "
+            "WHERE updated_at IS NULL"
         )
         if usage_attributed_at_added:
             connection.execute(

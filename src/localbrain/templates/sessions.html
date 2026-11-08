@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% from "_session_source_presence.html" import original_presence with context %}
 {% from "_session_pin.html" import session_pin_control with context %}
+{% from "_session_title.html" import session_title %}
 {% from "_source_cue.html" import source_cue, profile_attrs with context %}
 {% set inventory_mode = selected_inventory | default('sessions') %}
 {% set session_display = selected_display | default('list') %}
@@ -24,7 +25,7 @@
       <span class="sr-only"><span data-profile-label="{{ pinned_session.source_id }}">{{ pinned_session.source_name }}</span></span>
     </span>
     <span class="pinned-session-copy">
-      <strong>{{ pinned_session.title }}</strong>
+      <strong data-session-title-label="{{ pinned_session.id }}">{{ pinned_session.display_title or pinned_session.title }}</strong>
       {{ original_presence(pinned_session) }}
       {% if pinned_session.git_branch %}<span class="pinned-session-branch" title="{{ pinned_session.git_branch }}">{{ pinned_session.git_branch }}</span>{% endif %}
       <small><time datetime="{{ pinned_session.last_event_at or pinned_session.started_at }}" data-local-time>{{ pinned_session.last_event_at or pinned_session.started_at or '-' }}</time></small>
@@ -128,20 +129,21 @@
             <div class="session-list">
               {% for session in sessions %}
                 <div class="session-row">
-                  <a class="session-row-link" href="{{ session_detail_url(session.id) }}">
+                  <a class="session-row-link" href="{{ session_detail_url(session.id) }}" aria-label="세션 열기: {{ session.display_title or session.title }}" title="{{ session.workspace_path or session.cwd_raw or '작업 경로 없음' }}" data-session-title-link="{{ session.id }}"></a>
+                  <div class="session-row-content">
                     <div class="session-source" {{ profile_attrs(session.source_id) }}>
                       <span aria-hidden="true">{{ source_cue(session.provider_kind, session.source_name) }}</span>
                       <span class="sr-only"><span data-profile-label="{{ session.source_id }}">{{ session.source_name }}</span> · {{ value_label("session.role", session.session_role) }}</span>
                     </div>
                     <div class="session-main">
                       <div class="session-title-line">
-                        <h3>{{ session.title }}</h3>
+                        {{ session_title(session, session_return_to) }}
                         {% if session.exists_now == 0 %}<span class="missing-label">경로 없음</span>{% endif %}
                       </div>
                       <p class="path-line" title="{{ session.workspace_path or session.cwd_raw or '작업 경로 없음' }}">{{ (session.workspace_path or session.cwd_raw or '작업 경로 없음') | project_path }}</p>
                       {% if session.git_branch or session.source_presence_state != 'PRESENT' %}<div class="session-meta">{% if session.git_branch %}<span>{{ session.git_branch }}</span>{% endif %}{{ original_presence(session) }}</div>{% endif %}
                     </div>
-                  </a>
+                  </div>
                   <div class="session-utility-layer">
                     <div class="session-utility-upper">
                       <span>질문 {{ session.user_message_count }}</span>
@@ -152,7 +154,7 @@
                     {% if session.subsessions %}
                       <div class="subsession-menu" data-subsession-menu>
                         <button class="subsession-trigger" type="button" aria-expanded="false" aria-controls="subsessions-{{ session.id }}" data-subsession-trigger>
-                          <span class="sr-only">{{ session.title }}의 Subsessions {{ session.subsessions | length }}개 보기</span>
+                          <span class="sr-only"><span data-session-title-label="{{ session.id }}">{{ session.display_title or session.title }}</span>의 Subsessions {{ session.subsessions | length }}개 보기</span>
                           <span aria-hidden="true">{{ session.subsessions | length }} ▾</span>
                         </button>
                         <div class="subsession-dropdown" id="subsessions-{{ session.id }}" data-subsession-dropdown hidden>
@@ -160,7 +162,7 @@
                           <div class="subsession-dropdown-list">
                             {% for child in session.subsessions %}
                               <a href="{{ session_detail_url(child.id) }}" data-subsession-link>
-                                <strong>{{ child.title }}</strong>
+                                <strong>{{ child.display_title or child.title }}</strong>
                                 {{ original_presence(child) }}
                                 <span><span data-profile-label="{{ child.source_id }}">{{ child.source_name }}</span> · 질문 {{ child.user_message_count }} · 이벤트 {{ child.event_count }}</span>
                                 <time datetime="{{ child.last_event_at or child.started_at }}" data-local-time>{{ child.last_event_at or child.started_at or '-' }}</time>

@@ -1,10 +1,13 @@
 """Context readers and persistence within the caller transaction."""
 
+import errno
 import hashlib
 import json
 import mimetypes
+import os
 import sqlite3
 import subprocess
+import sys
 import time
 from datetime import datetime, timezone
 from html.parser import HTMLParser
@@ -383,6 +386,40 @@ def _scan_apple_notes(
     return imported, 0, 0
 
 
+def _context_paths(root: Path):
+    """Match the existing Markdown set without entering excluded directories."""
+    directories = [root]
+    while directories:
+        control._check_scan_cancelled()
+        directory = directories.pop()
+        try:
+            with os.scandir(directory) as entries:
+                children = list(entries)
+        except OSError as error:
+            # rglob suppresses scan OSErrors since Python 3.13; older supported
+            # versions suppress permission errors. Keep cancellation outside
+            # this filesystem-only handler.
+            if sys.version_info < (3, 13) and not isinstance(error, PermissionError):
+                raise
+            continue
+        for entry in children:
+            control._check_scan_cancelled()
+            if entry.name.startswith(".") or entry.name in IGNORED_CONTEXT_DIRECTORIES:
+                continue
+            path = directory / entry.name
+            if entry.name.endswith(".md"):
+                yield path
+            try:
+                is_directory = entry.is_dir(follow_symlinks=False)
+            except OSError as error:
+                if (sys.version_info < (3, 13) and not isinstance(error, PermissionError)
+                        and error.errno not in {errno.ENOENT, errno.ENOTDIR, errno.EBADF, errno.ELOOP}):
+                    raise
+                continue
+            if is_directory:
+                directories.append(path)
+
+
 def _scan_context_documents(
     connection: sqlite3.Connection,
     force: bool = False,
@@ -453,13 +490,7 @@ def _scan_context_documents(
             )
             continue
 
-        paths = []
-        for path in root.rglob("*.md"):
-            control._check_scan_cancelled()
-            if not any(part.startswith(".") or part in IGNORED_CONTEXT_DIRECTORIES
-                       for part in path.relative_to(root).parts):
-                paths.append(path)
-        paths.sort()
+        paths = sorted(_context_paths(root))
         valid_paths = {str(path) for path in paths}
         existing = connection.execute(
             "SELECT id, path FROM context_documents WHERE context_root_id = ?",

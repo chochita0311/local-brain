@@ -83,6 +83,7 @@ _PINNED_SESSION_SELECT = """
             sessions.id,
             sessions.source_id,
             sessions.title,
+            sessions.display_title,
             sessions.last_event_at,
             sessions.started_at,
             sessions.cwd_raw,

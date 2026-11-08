@@ -1,0 +1,12 @@
+{% macro session_title(session, return_to, heading='h3') -%}
+  {% set effective_title = session.display_title or session.title %}
+  <details class="session-title-editor" id="session-title-{{ session.id }}" data-session-title-editor="{{ session.id }}">
+    <summary aria-label="제목 편집: {{ effective_title }}"><{{ heading }} data-session-title-label="{{ session.id }}" title="{{ effective_title }}">{{ effective_title }}</{{ heading }}></summary>
+    <form action="/sessions/{{ session.id }}/title" method="post" data-session-title-form>
+      <input type="hidden" name="return_to" value="{{ return_to }}">
+      <{{ heading }}><input class="session-title-input" name="display_title" value="{{ effective_title }}" placeholder="{{ session.title }}" aria-label="세션 제목" maxlength="500" autocomplete="off" data-saved-title="{{ effective_title }}"></{{ heading }}>
+      <button class="text-button session-title-save" type="submit">저장</button>
+      <span class="session-title-feedback" role="alert" hidden></span>
+    </form>
+  </details>
+{%- endmacro %}

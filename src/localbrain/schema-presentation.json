@@ -9,7 +9,7 @@
       {
         "path": "src/localbrain/schema.sql",
         "role": "fresh-schema-truth",
-        "sha256": "6db7fc2edf220d6502599893990276b7cfd6d11ce581d794b0dd7573c4a3f617"
+        "sha256": "552c13cfb620e3fe3304235888011152b8f93d07c842e3232765e1868ac9acc7"
       },
       {
         "path": "src/localbrain/persistence/db.py",
@@ -19,7 +19,7 @@
       {
         "path": "src/localbrain/persistence/bootstrap.py",
         "role": "compatible-structure-truth",
-        "sha256": "bb72b029a9b27025fd9e9399f7c8ed1e05dad8e99f15b3e03f58b3bbbc7b404b"
+        "sha256": "62cc0ed45a6908e071afb3a8d15ff2b7d5cf5852c1fabe8d4ae43f12f5f8f55a"
       },
       {
         "path": "src/localbrain/persistence/migrations/__init__.py",
@@ -34,12 +34,12 @@
       {
         "path": "src/localbrain/persistence/migrations/compatible.py",
         "role": "compatible-structure-truth",
-        "sha256": "098890c9aef24444e1080fce3ca505600da9a9d808190db16dc0d8b00d6a275c"
+        "sha256": "115ea1e849f7e64cb0f8b90625f30d1eacd6d271ee8a184bd6a4020d738ef8f3"
       },
       {
         "path": "src/localbrain/persistence/migrations/contracts.py",
         "role": "compatible-structure-truth",
-        "sha256": "443deb3b2c55aa750fdec8822f385fcda4e748cf051e2e784ed81c75f4534593"
+        "sha256": "49132f034d78b733c313e4e7604e0f44d8adc7fadf6c6f635e1052f74bc92e58"
       },
       {
         "path": "src/localbrain/persistence/migrations/indexes.py",
@@ -69,7 +69,7 @@
       {
         "path": "src/localbrain/persistence/migrations/sessions.py",
         "role": "compatible-structure-truth",
-        "sha256": "b9b5bd778fef4634b5c43afe4fc081a8b03a6ca63bbe8ab472378c2f00eee01b"
+        "sha256": "5a048f291b1114932edd15c04194b7f54a34bdb1a2fed264db666f93c50c60da"
       },
       {
         "path": "src/localbrain/persistence/migrations/sources.py",
@@ -89,7 +89,7 @@
       {
         "path": "docs/policies/project/data-model.md",
         "role": "semantic-truth",
-        "sha256": "2da702c796cdb53738866a2c07442307dd4aaafcc5f83b2b65f21751f9048afa"
+        "sha256": "346c9ebf18b04b20ed8463a629bd4c45394970d4e65346f02982b9a22fc991de"
       },
       {
         "path": "docs/policies/project/data-model/source-registry-and-scans.md",
@@ -99,7 +99,7 @@
       {
         "path": "docs/policies/project/data-model/workspace-and-session-activity.md",
         "role": "semantic-truth",
-        "sha256": "55ef806a9ccf5151bb8f461f40207d71a7b23b11b5831a1fed8b68a219b46a17"
+        "sha256": "02e0c690ad5947143f71ec8b005e0512e736ce80abb16a0c0a0a2d4c6c33d133"
       },
       {
         "path": "docs/policies/project/data-model/usage-and-cost-records.md",
@@ -1965,7 +1965,7 @@
           "name": "id",
           "not_null": false,
           "primary_key_position": 1,
-          "semantic_contract": "`INTEGER PRIMARY KEY`; stable local project identity.",
+          "semantic_contract": "`INTEGER PRIMARY KEY`; stable local workspace/path identity; visible Project eligibility is separate.",
           "type": "INTEGER"
         },
         {
@@ -1981,7 +1981,7 @@
           "name": "display_name",
           "not_null": true,
           "primary_key_position": 0,
-          "semantic_contract": "`TEXT NOT NULL`; current user-facing project label.",
+          "semantic_contract": "`TEXT NOT NULL`; current user-facing workspace/path label.",
           "type": "TEXT"
         },
         {
@@ -1997,7 +1997,7 @@
           "name": "exists_now",
           "not_null": true,
           "primary_key_position": 0,
-          "semantic_contract": "`INTEGER NOT NULL DEFAULT 0`; current filesystem existence signal.",
+          "semantic_contract": "`INTEGER NOT NULL DEFAULT 0`; filesystem existence at the latest successful workspace check. Session synchronization rechecks known paths independently of transcript freshness; browse requests read this observation.",
           "type": "INTEGER"
         },
         {
@@ -2005,7 +2005,7 @@
           "name": "last_activity_at",
           "not_null": false,
           "primary_key_position": 0,
-          "semantic_contract": "nullable `TEXT`; latest attributed Session activity.",
+          "semantic_contract": "nullable `TEXT`; latest stored activity marker supplied by Session activity or an imported file-based Document modification time, not evidence that the path was opened.",
           "type": "TEXT"
         },
         {
@@ -2048,11 +2048,11 @@
         "consumers": "inventory/detail queries, retrieval, Workstream resource pickers and links, Runner context, activity attribution, and Usage Record attribution/browse joins.",
         "deletion_effect": "physical optional parent of `sessions` and `context_documents`, both `SET NULL`. It is an application target for `project` polymorphic links and `usage_records.workspace_id_snapshot`; those are not cascaded by SQLite.",
         "documented_constraints": "uniqueness of `canonical_path`. Explicit indexes: none.",
-        "lifecycle_contract": "mixed source identity and curated references. Discovery can rebuild path metadata, but Workstream/Thread links and Usage Record snapshot browsing use its stable ID, so delete-and-recreate is not equivalent to update-in-place.",
-        "producers": "`ingest/sync/storage.py` upserts path, display name, Git root, existence, and activity; `persistence/migrations/` removes the obsolete `git_branch` column during compatible migration.",
-        "purpose_and_authority": "current canonical project/workspace identity discovered from Session working directories; the containing Git repository root is current discovery, not historical branch state.",
+        "lifecycle_contract": "mixed source identity and curated references. Session or file-based Document discovery can rebuild path metadata, but Workstream/Thread links and Usage Record snapshot browsing use its stable ID, so delete-and-recreate is not equivalent to update-in-place.",
+        "producers": "`ingest/sync/session_store.py` supplies Session working directories and observed activity; `ingest/sync/contexts.py` supplies imported file-based Document parent folders and modification times. Shared `ingest/sync/storage.py` upserts path, display name, Git root, existence, and the latest supplied activity marker; `persistence/migrations/` removes the obsolete `git_branch` column during compatible migration.",
+        "purpose_and_authority": "shared canonical path registry discovered from Session working directories and file-based Local Context document folders; the containing Git repository root is current discovery, not historical branch state. Registry membership does not establish that the user opened the path. Sessions Projects separately admits only selected-source paths with eligible primary work Sessions.",
         "rebuildability": "conditional-stable-id",
-        "recovery_path": "rescan Sessions to rediscover paths. Preserve or restore the database to retain stable link targets and historical current-row resolution.",
+        "recovery_path": "rescan available Sessions or enabled file-based Local Context sources to rediscover their respective paths. Preserve or restore the database to retain stable link targets and historical current-row resolution.",
         "schema_ownership": "fresh definition in `schema.sql`; compatible migration in `persistence/migrations/` drops legacy `git_branch`. No explicit named index."
       },
       "subject_id": "workspace-and-session-activity"
@@ -2120,7 +2120,15 @@
           "name": "title",
           "not_null": true,
           "primary_key_position": 0,
-          "semantic_contract": "`TEXT NOT NULL`; normalized display title.",
+          "semantic_contract": "`TEXT NOT NULL`; normalized source-owned title.",
+          "type": "TEXT"
+        },
+        {
+          "default_sql": null,
+          "name": "display_title",
+          "not_null": false,
+          "primary_key_position": 0,
+          "semantic_contract": "nullable `TEXT`, physically immediately after `title`; user-owned title override. Primary work Sessions accept a trimmed single line up to 500 characters; empty input stores SQL `NULL`. Presentation uses `COALESCE(display_title, title)`; ingestion preserves the override.",
           "type": "TEXT"
         },
         {
@@ -2381,7 +2389,7 @@
         "producers": "`ingest/sync/session_store.py` plus Claude/Codex parsers create Sessions and Usage Records; parent reconciliation updates self-references and propagates maintenance policy to Claude or Codex children. `maintenance/service.py` synchronizes the selected native source after terminal and recovered Runs. `source_files` versions Session projection freshness independently, allowing classification/parser changes to rebuild Sessions, Activity Events and search. A Session parser-version change rebuilds available projections on the next explicit Sync. Neither operation replaces Usage solely because the Session contract changed. `persistence/migrations/` owns the classification/Run-link constraint repair. `insights/usage.py` separately creates insight accounting parents and canonical Usage Records from observed ephemeral CLI usage.",
         "purpose_and_authority": "one normalized Claude or Codex Session/subsession per stable local source and native external identity. Source key owns provenance and statistical separation, while the Source registry provider kind owns parser and normalization behavior. An in-app Task Runner Run is represented by the selected runner's persisted native primary Session, linked to the Run ledger rather than duplicated by LocalBrain.",
         "rebuildability": "retained-source-observation",
-        "recovery_path": "rescan the authoritative native source file and reconcile parents. Restoring only a Task Runner stream cannot rebuild a Session or Usage Record; restore the selected runner's native Claude or Codex JSONL and the Run ledger together. The insight accounting exception is recoverable from the independent Run ledger plus retained usage summaries or CLI usage events. A full database rebuild cannot restore retained history whose originals are gone, user-curated links, exact operational history, or confirmed review state without backup.",
+        "recovery_path": "rescan the authoritative native source file and reconcile parents to rebuild imported projections. Native files cannot recreate user-owned `display_title` overrides; retain the database backup for those values. Restoring only a Task Runner stream cannot rebuild a Session or Usage Record; restore the selected runner's native Claude or Codex JSONL and the Run ledger together. The insight accounting exception is recoverable from the independent Run ledger plus retained usage summaries or CLI usage events. A full database rebuild cannot restore retained history whose originals are gone, user-curated links, exact operational history, or confirmed review state without backup.",
         "schema_ownership": "fresh definition and `idx_sessions_last_event`, `idx_sessions_workspace` in `schema.sql`; compatible columns, backup-backed classification/Run-link table repair, and runtime-only `idx_sessions_class`, `idx_sessions_role`, `idx_sessions_parent` in `persistence/migrations/`. Before that structural repair, startup preserves `localbrain.db-pre-maintenance-session-contract-v1.bak` and validates it with SQLite `quick_check`. An older additive layout may have the same approved columns in a different physical order; migration validates every name/type/null/default/key contract, copies values by canonical column name, and converges only the physical order."
       },
       "subject_id": "workspace-and-session-activity"

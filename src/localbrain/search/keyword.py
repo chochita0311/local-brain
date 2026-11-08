@@ -29,20 +29,26 @@ def keyword_search(connection, query, *, scope="all", limit=80, config=settings)
     if not clauses:
         return []
     rows = connection.execute("""
-        SELECT entity_type, entity_id, source_kind, title, path,
+        SELECT entity_type, entity_id, source_kind, search_index.title, path,
                snippet(search_index, 4, '[[', ']]', ' ... ', 26) AS excerpt,
-               bm25(search_index) AS score
-        FROM search_index WHERE search_index MATCH ? AND (""" + " OR ".join(clauses) + ") ORDER BY score", params)
+               bm25(search_index) AS score,
+               owner.id AS owner_source_id, owner.root_path AS owner_root
+        FROM search_index
+        LEFT JOIN sessions AS owner_session
+          ON entity_type='session' AND owner_session.id=entity_id
+        LEFT JOIN sources AS owner ON owner.id=owner_session.source_id
+        WHERE search_index MATCH ? AND (""" + " OR ".join(clauses) + ") ORDER BY score", params)
     results = []
     for row in rows:
         item = dict(row)
+        owner_id = item.pop("owner_source_id")
+        owner_root = item.pop("owner_root")
         if item["entity_type"] == "document" and not str(item["path"]).startswith("apple-notes://") and _private_derived(item["path"], config):
             continue
         if item["entity_type"] == "session":
-            owner = connection.execute("SELECT o.root_path,o.id FROM sessions s JOIN sources o ON o.id=s.source_id WHERE s.id=?", (item["entity_id"],)).fetchone()
-            if not owner or roots.get(owner["id"]) != owner["root_path"]:
+            if owner_id is None or roots.get(owner_id) != owner_root:
                 continue
-            item["source_id"] = owner["id"]
+            item["source_id"] = owner_id
         item["url"] = ("/sessions/" if item["entity_type"] == "session" else "/documents/") + str(item["entity_id"])
         item["anchor"] = "natural-result-{}-{}".format(item["entity_type"], item["entity_id"])
         return_to = "/natural-search?" + urlencode({"q": query, "mode": "keyword"}) + "#" + item["anchor"]

@@ -129,6 +129,26 @@ inspect it again and import it once Event, Usage, or admitted skill observation 
 
 ### Session Synchronization
 
+Imported `title` remains source-owned; `sessions.display_title` is user-owned
+and is preserved by normal/forced sync, source reappearance and projection
+repairs. A title-override schema upgrade does not stale native source files.
+After revision admission and file-lifecycle reconciliation, each source scan
+loads its tracked file metadata once for dirty detection and processing. Fresh
+filesystem observations and per-source transactions remain authoritative.
+Usage attribution reuses workspace metadata only within one record-store call;
+each new record keeps its own observation time, later calls recheck metadata,
+and previously frozen attribution/price facts remain unchanged. Compatibility
+backfills target only NULL `updated_at` values in checkpoints and maintenance
+runs; already populated values are not matched for UPDATE.
+
+Each admitted source scan rechecks the current existence and Git root of its
+known Session workspaces even when every native file is unchanged or missing.
+Deleting and restoring a working folder therefore updates its availability on
+the next synchronization without reparsing its conversation. The check preserves
+workspace identity, recorded working paths and branches, pins, and frozen Usage
+attribution. An inspection error retains the prior workspace observation; GET
+requests read the stored observation without scanning the filesystem.
+
 Every repair/force path below requires successful
 [Session revision admission](data-model/source-registry-and-scans.md#source_files).
 A higher stored revision is refused before projection or lifecycle writes;

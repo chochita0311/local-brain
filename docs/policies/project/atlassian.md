@@ -88,6 +88,12 @@ type derives from service.
 
 ### URL State, Selection, And Detail
 
+Item detail narrows the joined Item/body read to its requested stable ID before
+projecting it. Inventory reads retain their complete existing population and
+ordering; detail keeps the same local state, classification choices, evidence,
+memberships, remote-memory fields and missing-ID result. This read makes no
+external request or local relationship change.
+
 The Explorer has one URL-backed state contract:
 
 | Transition | Preserve | Reset or normalize |

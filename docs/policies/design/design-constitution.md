@@ -475,8 +475,8 @@ geometry, interaction and source-filter presentation.
 The sidebar footer contains Docs and Settings; omit decorative online/privacy slogans.
 
 Shared navigation uses locally bundled Google Material Symbols Outlined, with
-consistent20px glyphs and existing desktop/touch hit-area tokens. Docs uses a book
-icon. Icons are decorative beside accessible destination names; numbers do not
+consistent20px glyphs and existing desktop/touch hit-area tokens. Docs uses a
+circled question-mark icon. Icons are decorative beside accessible destination names; numbers do not
 stand in for menu meaning.
 
 Shell hover help anchors to the control, never cursor coordinates. Present action
@@ -817,6 +817,16 @@ and preserves the active numeric filter.
   resources, Suggestions, and Runs follow in that order of responsibility.
 
 ### Browse And Inventory
+
+- Session title overrides use the existing heading typography and baseline.
+  Pointer activation keeps a collapsed caret at the clicked text position;
+  keyboard activation starts at the end. Hover and editing expose a local field
+  through existing surface, outline and elevation roles, with matching padded
+  hit bounds and stable surrounding geometry.
+  Clicking the title edits in place, independently of card navigation, pin and
+  Subsession controls. Normal and editing states keep row geometry; pending,
+  cancellation, clear-to-source and failure/retry states have truthful feedback.
+  Source provenance and inventory filter/page/scroll context remain visible.
 
 - Headings, filters, counts, rows or cards, and bounded empty states form one
   scan path.

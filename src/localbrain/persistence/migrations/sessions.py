@@ -3,6 +3,7 @@
 import re
 import sqlite3
 from pathlib import Path
+from localbrain.persistence.migrations.session_revisions import _ddl_tokens
 from localbrain.persistence.migrations.support import (
     SCHEMA_PATH,
     _column_names,
@@ -15,6 +16,23 @@ from localbrain.persistence.migrations.support import (
 MAINTENANCE_SESSION_CONTRACT_BACKUP_SUFFIX = (
     "-pre-maintenance-session-contract-v1.bak"
 )
+SESSION_DISPLAY_TITLE_BACKUP_SUFFIX = "-pre-session-display-title-v1.bak"
+
+
+def _session_display_title_current(connection: sqlite3.Connection) -> bool:
+    columns = [tuple(row) for row in connection.execute("PRAGMA table_info(sessions)")]
+    names = [row[1] for row in columns]
+    return bool(
+        "title" in names and "display_title" in names
+        and names.index("display_title") == names.index("title") + 1
+        and columns[names.index("display_title")][2:] == ("TEXT", 0, None, 0)
+    )
+
+
+def _ensure_session_display_title_backup(connection: sqlite3.Connection, database_path: Path) -> Path:
+    return _ensure_migration_backup(
+        connection, database_path.with_name(database_path.name + SESSION_DISPLAY_TITLE_BACKUP_SUFFIX)
+    )
 
 
 SESSION_CLASS_CHECK_PATTERN = re.compile(
@@ -165,8 +183,46 @@ def _canonical_sessions_sql() -> str:
         reference.close()
 
 
+def _session_clauses(sql: str) -> list:
+    """Read top-level clauses, keeping literals and nested checks intact."""
+    tokens = _ddl_tokens(sql)
+    start = tokens.index(("symbol", "(")) + 1
+    depth, clauses, clause = 1, [], []
+    for index, token in enumerate(tokens[start:], start):
+        if token == ("symbol", "("):
+            depth += 1
+        elif token == ("symbol", ")"):
+            depth -= 1
+        if depth == 0:
+            clauses.append(tuple(clause))
+            if any(item != ("symbol", ";") for item in tokens[index + 1:]):
+                raise RuntimeError("Session migration found unsupported table options")
+            return clauses
+        if depth == 1 and token == ("symbol", ","):
+            clauses.append(tuple(clause))
+            clause = []
+        else:
+            clause.append(token)
+    raise RuntimeError("Session migration found an incomplete table definition")
+
+
+def _validate_session_constraints(connection: sqlite3.Connection, canonical_sql: str) -> None:
+    # Only the documented older classification/Run-link constraints may be
+    # absent. A title upgrade must not silently drop a user's unknown rule.
+    allowed = set(_session_clauses(canonical_sql))
+    for pattern in (SESSION_CLASS_CHECK_PATTERN, INDEX_POLICY_CHECK_PATTERN):
+        allowed.update(_session_clauses(pattern.sub("", canonical_sql)))
+    allowed.add(tuple(_ddl_tokens("maintenance_run_id TEXT")))
+    clauses = _session_clauses(_table_sql(connection, "sessions"))
+    required_identity = tuple(_ddl_tokens("UNIQUE(source_id, external_id)"))
+    if not set(clauses).issubset(allowed) or required_identity not in clauses:
+        raise RuntimeError("Session migration found unexpected Session constraints")
+
+
 def _repair_maintenance_session_contract(connection: sqlite3.Connection) -> bool:
-    if _maintenance_session_contract_exists(connection):
+    # One canonical rebuild also positions the optional, user-owned title. An
+    # ALTER ADD would append it, and a later source reparse cannot recreate it.
+    if _maintenance_session_contract_exists(connection) and _session_display_title_current(connection):
         return False
     if not _table_sql(connection, "sessions"):
         return False
@@ -177,10 +233,14 @@ def _repair_maintenance_session_contract(connection: sqlite3.Connection) -> bool
     expected_info = _expected_session_columns()
     source_contract = {row[1]: row[2:] for row in source_info}
     expected_contract = {row[1]: row[2:] for row in expected_info}
-    if source_contract != expected_contract or len(source_info) != len(expected_info):
+    if "display_title" not in source_contract:
+        expected_contract.pop("display_title")
+    if source_contract != expected_contract:
         raise RuntimeError(
             "Maintenance Session migration found an unexpected Session table shape"
         )
+    canonical_sql = _canonical_sessions_sql()
+    _validate_session_constraints(connection, canonical_sql)
 
     invalid_class_count = connection.execute(
         "SELECT COUNT(*) FROM sessions "
@@ -224,7 +284,12 @@ def _repair_maintenance_session_contract(connection: sqlite3.Connection) -> bool
             )
         )
 
-    columns = [row[1] for row in expected_info]
+    if connection.execute("SELECT 1 FROM sqlite_master WHERE type='trigger' AND tbl_name='sessions'").fetchone():
+        raise RuntimeError("Session migration found an unexpected trigger")
+    indexes = [row[0] for row in connection.execute(
+        "SELECT sql FROM sqlite_master WHERE type='index' AND tbl_name='sessions' AND sql IS NOT NULL"
+    )]
+    columns = [row[1] for row in expected_info if row[1] in source_contract]
     column_list = ", ".join(_quote_identifier(column) for column in columns)
     before_rows = [
         tuple(row)
@@ -232,7 +297,6 @@ def _repair_maintenance_session_contract(connection: sqlite3.Connection) -> bool
             "SELECT {} FROM sessions ORDER BY id".format(column_list)
         )
     ]
-    canonical_sql = _canonical_sessions_sql()
     legacy_table = "sessions__maintenance_contract_legacy"
     if _table_sql(connection, legacy_table):
         raise RuntimeError("Maintenance Session migration target already exists")
@@ -272,6 +336,10 @@ def _repair_maintenance_session_contract(connection: sqlite3.Connection) -> bool
         connection.execute(
             "DROP TABLE {}".format(_quote_identifier(legacy_table))
         )
+        for index_sql in indexes:
+            connection.execute(index_sql)
+        if connection.execute("PRAGMA foreign_key_check").fetchone():
+            raise RuntimeError("Session migration foreign key check failed")
         connection.commit()
     except Exception:
         connection.rollback()

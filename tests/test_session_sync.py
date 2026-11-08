@@ -1,4 +1,5 @@
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -19,9 +20,43 @@ from localbrain.sources.web import (
     sync_sessions_page,
 )
 from localbrain.sessions.queries import session_detail, session_subsessions
+from localbrain.ingest.contracts import CODEX_SESSION_REVISION, CODEX_USAGE_CONTRACT_VERSION
 
 
 class SessionSyncTests(unittest.TestCase):
+    def test_unchanged_files_share_metadata_read_and_forced_sync_keeps_title_override(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            settings = self._settings(Path(temporary))
+            for n in range(32):
+                self._write_codex_session(settings.codex_root / f"{n}.jsonl", f"batch-{n}", f"Synthetic task {n}")
+            with patch.object(db, "settings", settings), patch.object(scanner, "settings", settings):
+                scanner.scan_session_sources()
+                with db.transaction() as connection:
+                    source_id = connection.execute("SELECT id FROM sources WHERE root_path=?", (str(settings.codex_root),)).fetchone()[0]
+                    ident = connection.execute("SELECT id FROM sessions WHERE external_id='batch-0'").fetchone()[0]
+                    connection.execute("UPDATE sessions SET display_title='User title' WHERE id=?", (ident,))
+                    before = {table: self._table_rows(connection, table) for table in ("sessions", "activity_events", "usage_records")}
+                    statements = []
+                    connection.set_trace_callback(statements.append)
+                    result = session_sync._scan_session_source(
+                        connection, source_id, "Codex", settings.codex_root,
+                        Mock(side_effect=AssertionError("unchanged file reparsed")),
+                        CODEX_USAGE_CONTRACT_VERSION, provider_kind="codex",
+                        session_contract_version=CODEX_SESSION_REVISION,
+                    )
+                    self.assertEqual(result, (0, 32, 0))
+                    self.assertEqual({table: self._table_rows(connection, table) for table in before}, before)
+                    metadata_reads = [sql for sql in statements if sql.lstrip().upper().startswith("SELECT")
+                                      and "FROM source_files WHERE source_id" in " ".join(sql.split())
+                                      and "size_bytes" in sql and "mtime_ns" in sql]
+                    self.assertEqual(len(metadata_reads), 1)
+                    session_sync._scan_session_source(
+                        connection, source_id, "Codex", settings.codex_root,
+                        scanner.parse_codex_session, CODEX_USAGE_CONTRACT_VERSION,
+                        force=True, provider_kind="codex", session_contract_version=CODEX_SESSION_REVISION,
+                    )
+                    self.assertEqual(connection.execute("SELECT display_title FROM sessions WHERE id=?", (ident,)).fetchone()[0], "User title")
+
     @staticmethod
     def _table_rows(connection, table: str):
         return [
@@ -193,6 +228,85 @@ root = "{company}"
             + "\n",
             encoding="utf-8",
         )
+
+    def test_unchanged_sync_refreshes_deleted_and_restored_working_folder(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            settings = self._settings(root)
+            project = root / "project"
+            project.mkdir()
+            path = root / "codex" / "session.jsonl"
+            self._write_codex_session(path, "folder-lifecycle", "Keep this conversation")
+            path.write_text(path.read_text().replace("/tmp/project", str(project)))
+            with patch.object(db, "settings", settings), patch.object(scanner, "settings", settings):
+                scanner.scan_session_sources()
+                with db.transaction() as connection:
+                    session = connection.execute("SELECT * FROM sessions").fetchone()
+                    workspace_id = session["workspace_id"]
+                    connection.execute(
+                        "INSERT INTO session_pins(session_id, pinned_at) VALUES (?, '2026-11-01')",
+                        (session["id"],),
+                    )
+                    retained = {table: self._table_rows(connection, table) for table in
+                                ("sessions", "activity_events", "usage_records", "session_pins", "search_index")}
+                for exists_now in (False, True):
+                    if exists_now:
+                        project.mkdir()
+                        (project / ".git").mkdir()
+                    else:
+                        project.rmdir()
+                    with patch.object(scanner, "parse_codex_session", side_effect=AssertionError("unchanged transcript reparsed")):
+                        report = scanner.scan_session_sources()
+                    self.assertEqual(report["summary"]["imported"], 0)
+                    self.assertEqual(report["summary"]["unchanged"], 1)
+                    with db.connect() as connection:
+                        workspace = connection.execute(
+                            "SELECT * FROM workspaces WHERE id = ?", (workspace_id,)
+                        ).fetchone()
+                        self.assertEqual(workspace["exists_now"], int(exists_now))
+                        self.assertEqual(workspace["git_root"], str(project.resolve()) if exists_now else None)
+                        for table, rows in retained.items():
+                            self.assertEqual(self._table_rows(connection, table), rows, table)
+                with db.connect() as connection:
+                    before = self._table_rows(connection, "workspaces")
+                scanner.scan_session_sources()
+                with db.connect() as connection:
+                    self.assertEqual(self._table_rows(connection, "workspaces"), before)
+
+    def test_unchanged_sync_keeps_workspace_observation_when_inspection_is_denied(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            settings = self._settings(root)
+            project = root / "project"
+            project.mkdir()
+            (project / ".git").mkdir()
+            path = root / "codex" / "session.jsonl"
+            self._write_codex_session(path, "folder-permission", "Keep this conversation")
+            path.write_text(path.read_text().replace("/tmp/project", str(project)))
+            with patch.object(db, "settings", settings), patch.object(scanner, "settings", settings):
+                scanner.scan_session_sources()
+                with db.connect() as connection:
+                    before = {table: self._table_rows(connection, table) for table in
+                              ("workspaces", "sessions", "activity_events", "usage_records", "search_index")}
+                stat_path = os.stat
+                for denied_path, error_type in (
+                    (path, error) for path in (project, project / ".git")
+                    for error in (PermissionError, ValueError)
+                ):
+                    def denied(path, *args, **kwargs):
+                        if not isinstance(path, int) and Path(path) == denied_path:
+                            if error_type is ValueError:
+                                raise ValueError("synthetic invalid path")
+                            raise PermissionError(13, "synthetic denied")
+                        return stat_path(path, *args, **kwargs)
+                    with self.subTest(path=denied_path.name, error=error_type.__name__), patch("os.stat", denied), patch.object(
+                        scanner, "parse_codex_session", side_effect=AssertionError("unchanged transcript reparsed")
+                    ):
+                        report = scanner.scan_session_sources()
+                    self.assertEqual(report["summary"]["unchanged"], 1)
+                    with db.connect() as connection:
+                        for table, rows in before.items():
+                            self.assertEqual(self._table_rows(connection, table), rows, table)
 
     def test_session_scan_report_dispatches_all_three_configured_sources(self):
         with tempfile.TemporaryDirectory() as temporary:

@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 {% from "_conversation.html" import conversation_message %}
 {% from "_session_pin.html" import session_pin_control with context %}
+{% from "_session_title.html" import session_title %}
 {% from "_source_cue.html" import source_cue, profile_attrs with context %}
 {% from "_session_source_presence.html" import original_presence with context %}
 {% set session_return_to = (request.url.path ~ (('?' ~ request.url.query) if request.url.query else '')) if request is defined else '/sessions/' ~ session.id %}
 {% set session_pin_error = request.query_params.get('pin_error') if request is defined else none %}
-{% block title %}{{ session.title }} · LocalBrain{% endblock %}
+{% block title %}{{ session.display_title or session.title }} · LocalBrain{% endblock %}
 {% block content %}
   <nav class="detail-backlinks" aria-label="Session 상세 탐색">
     {% if search_return %}<a class="back-link" href="{{ search_return }}">검색 결과로 돌아가기</a>{% endif %}
@@ -25,7 +26,11 @@
     <div class="session-source large" {{ profile_attrs(session.source_id) }}><span aria-hidden="true">{{ source_cue(session.provider_kind, session.source_name) }}</span><span class="sr-only"><span data-profile-label="{{ session.source_id }}">{{ session.source_name }}</span> · {{ value_label("session.role", session.session_role) }}</span></div>
     <div class="session-heading-copy">
       {% if parent %}<p class="eyebrow">{{ value_label("session.role", "subsession") | upper }}</p>{% endif %}
-      <h1>{{ session.title }}</h1>
+      {% if session.id and session.session_role == 'primary' and session.session_class == 'work' %}
+        {{ session_title(session, session_return_to, 'h1') }}
+      {% else %}
+        <h1>{{ session.display_title or session.title }}</h1>
+      {% endif %}
       <p class="heading-copy path-copy">{{ (session.workspace_path or session.cwd_raw or session.source_path) | project_path }}</p>
       <div class="session-meta session-original-info">
         {{ original_presence(session, show_present=true) }}
@@ -62,7 +67,7 @@
       </section>
 
       {% if parent %}
-        <section class="scope-notice parent-session-notice"><span>상위 Session · <span data-profile-label="{{ parent.source_id }}">{{ parent.source_name }}</span></span><a href="{{ parent_url | default('/sessions/' ~ parent.id) }}">{{ parent.title }}</a></section>
+        <section class="scope-notice parent-session-notice"><span>상위 Session · <span data-profile-label="{{ parent.source_id }}">{{ parent.source_name }}</span></span><a href="{{ parent_url | default('/sessions/' ~ parent.id) }}">{{ parent.display_title or parent.title }}</a></section>
       {% endif %}
 
       {% if subsessions %}
@@ -72,7 +77,7 @@
             {% for subsession in subsessions %}
               <a href="{{ subsession.url }}">
                 <span class="session-source" {{ profile_attrs(subsession.source_id) }}><span aria-hidden="true">{{ source_cue(subsession.provider_kind, subsession.source_name) }}</span><span class="sr-only"><span data-profile-label="{{ subsession.source_id }}">{{ subsession.source_name }}</span> · {{ value_label("session.role", "subsession") }}</span></span>
-                <div><strong>{{ subsession.title }}</strong><small>{{ subsession.external_id }}</small>{{ original_presence(subsession) }}</div>
+                <div><strong>{{ subsession.display_title or subsession.title }}</strong><small>{{ subsession.external_id }}</small>{{ original_presence(subsession) }}</div>
                 <span class="subsession-question-count">질문 {{ subsession.user_message_count }}</span>
                 <span class="subsession-event-count">이벤트 {{ subsession.event_count }}</span>
                 <time datetime="{{ subsession.last_event_at }}" data-local-time>{{ subsession.last_event_at or '-' }}</time>

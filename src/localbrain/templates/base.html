@@ -16,6 +16,7 @@
     {% if google_drive_available | default(false) %}<script src="{{ url_for('static', path='/google-drive.js') }}?v={{ asset_version }}" defer></script>{% endif %}
     {% block styles %}{% endblock %}
     <script src="{{ url_for('static', path='/app.js') }}?v={{ asset_version | default('dev') }}" defer></script>
+    {% if active_page == 'sessions' %}<script src="{{ url_for('static', path='/session-titles.js') }}?v={{ asset_version | default('dev') }}" defer></script>{% endif %}
   </head>
   {% set preferences = local_preferences() %}
   {% set setup_requested = (request is defined and request.query_params.get('setup') == '1') or (desktop_edition and active_page not in ['settings', 'docs'] and not preferences.onboarding_completed) %}
@@ -90,7 +91,7 @@
         </nav>
 
         <div class="lnb-footer">
-          <a class="lnb-item{% if active_page == 'docs' %} active{% endif %}" href="/help{% if doc_language is defined %}?lang={{ doc_language }}{% endif %}"{% if active_page == 'docs' %} aria-current="page"{% endif %} aria-label="Docs" data-shell-tooltip="Docs" data-tooltip-compact data-tooltip-side="right">{{ icon('menu_book', 'nav-symbol') }}<span class="nav-label">Docs</span></a>
+          <a class="lnb-item{% if active_page == 'docs' %} active{% endif %}" href="/help{% if doc_language is defined %}?lang={{ doc_language }}{% endif %}"{% if active_page == 'docs' %} aria-current="page"{% endif %} aria-label="Docs" data-shell-tooltip="Docs" data-tooltip-compact data-tooltip-side="right">{{ icon('help', 'nav-symbol') }}<span class="nav-label">Docs</span></a>
           <button type="button" class="lnb-item settings-gear" data-settings-open aria-label="설정" data-shell-tooltip="설정" data-tooltip-side="right">{{ icon('settings', 'nav-symbol') }}<span class="nav-label">설정</span></button>
         </div>
       </aside>

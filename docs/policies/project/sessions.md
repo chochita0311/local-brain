@@ -10,6 +10,34 @@ This contract owns Session identity, inventory, pins, Chart data and conversatio
 - Current Session browsing exposes only direct children of a primary Session. Deeper hierarchy remains preserved but is not flattened into user-facing lists.
 - Work Subsessions remain outside global Search, Session-derived statistics, Workstream organization candidates, and Workstream Claude maintenance evidence. Their stored source and events remain available through approved parent-owned browsing; provider-internal metadata-only children are excluded from that browsing surface.
 
+## User-Owned Titles
+
+`title` retains the normalized native title. A primary work Session may have a
+nullable `display_title` override; Session lists, detail/parent labels, pins and
+Chart show the override when set, otherwise the source title. This does not
+change source text, search indexing, timestamps, ordering or source provenance.
+Subsession and maintenance titles have no user-edit action.
+
+Click a list or primary-detail title to edit it in place. Pointer activation
+places a collapsed caret at the clicked text position rather than selecting the
+title. Keyboard activation starts at the end.
+Hover and editing use a padded, outlined local field with restrained elevation;
+its hit area matches the visible field while preserving row geometry. Enter or
+leaving the field saves; Escape cancels; IME composition Enter does not submit. Empty input
+stores SQL NULL and restores the current source title. Overrides are trimmed,
+single-line, and at most 500 characters. Pending saves prevent competing edits;
+failed saves retain the draft with retry. Without JavaScript, the title disclosure
+opens a local form with an explicit Save action. The editor remains separate
+from card navigation, pin and Subsession controls and preserves inventory scope.
+
+Synchronization, reappearance and forced reprocessing preserve this user-owned
+field. Native originals cannot recreate it after a database loss. Existing DBs
+are backed up as `localbrain.db-pre-session-display-title-v1.bak` before the
+canonical table rebuild positions this nullable column immediately after
+`title`; IDs, values, indexes and dependent references are retained. Unexpected
+column contracts or triggers are refused. Repeated startup does not rebuild a
+current table; migration-backup retention follows the existing storage policy.
+
 ## Retained History And Original Availability
 
 Sessions retain collected conversations, Usage, pins and relationships when their
@@ -109,6 +137,12 @@ Chart controls do not change Session Workflow Focus or Auto Work.
 source transactions and scheduling. This section owns the inventory and
 Chart read projections that consume those normalized records.
 
+Projects includes only working paths with at least one primary work Session in
+the selected source scope. A retained Git root, Local Context document, maintenance
+Session or child Session alone does not make a path eligible. Exclusion from this
+view does not delete the workspace or its historical references. The missing-path
+headline count uses the same primary-work Session eligibility and source scope.
+
 Sessions browsing derives its ordered peer source controls from the same registry
 and uses the numeric source ID, never provider kind, as GET and query identity.
 `all` plus each source-specific view share one primary-work/primary-role
@@ -132,7 +166,9 @@ the Session-only sync redirect retain Chart state. The full Chart projection
 selects primary work metadata without pagination, age cutoff or body/source-file
 reads. `parse_timestamp` normalizes valid `started_at`/`last_event_at` to UTC;
 the latest valid value anchors the point. Only metadata-undated rows need an
-Event-time fallback query. The Chart never calls activity-segment construction.
+Event-time fallback. Those Session IDs are read in bounded batches of 500;
+timestamps retain the same Python parsing and UTC min/max rules, without body
+reads or a lexicographic SQL minimum. The Chart never calls activity-segment construction.
 
 `GET /sessions/{id}/chart-activity` admits only an existing primary work Session
 and returns ordered timestamp occurrences, total/undated Event counts and labeled

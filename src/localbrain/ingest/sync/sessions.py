@@ -99,6 +99,7 @@ def _scan_session_source(
     source_id = storage._upsert_source(
         connection, source_id, effective_provider_kind, name, root
     )
+    storage._refresh_workspace_presence(connection, source_id)
     imported = skipped = failed = 0
     usage_cache = UsagePersistenceCache()
     if reference_lookup_cache is None:
@@ -172,20 +173,25 @@ def _scan_session_source(
     session_store._remove_stale_sessions(
         connection, source_id, [*paths, *retained_prior_paths, *retained_missing_paths]
     )
+    tracked_files = {
+        row["path"]: row
+        for row in connection.execute(
+            """
+            SELECT session_id, path, size_bytes, mtime_ns, status,
+                   session_contract_version, usage_contract_version,
+                   reference_contract_version
+            FROM source_files
+            WHERE source_id = ?
+            """,
+            (source_id,),
+        ).fetchall()
+    }
     forced_reference_paths = set()
     if not source_contract_repair_required:
         dirty_session_ids = set()
         has_unmapped_path = False
         for path in paths:
-            row = connection.execute(
-                """
-                SELECT session_id, size_bytes, mtime_ns, status,
-                       reference_contract_version
-                FROM source_files
-                WHERE source_id = ? AND path = ?
-                """,
-                (source_id, str(path)),
-            ).fetchone()
+            row = tracked_files.get(str(path))
             if not row or row["session_id"] is None:
                 has_unmapped_path = True
                 continue
@@ -246,19 +252,6 @@ def _scan_session_source(
     empty_candidates = []
     reference_sessions_to_finalize = set()
     failed_reference_sessions = {}
-    tracked_files = {
-        row["path"]: row
-        for row in connection.execute(
-            """
-            SELECT session_id, path, size_bytes, mtime_ns, status,
-                   session_contract_version, usage_contract_version,
-                   reference_contract_version
-            FROM source_files
-            WHERE source_id = ?
-            """,
-            (source_id,),
-        ).fetchall()
-    }
     progress_interval = max(1, (len(paths) + 19) // 20)
 
     def report_file_progress(processed_files: int) -> None:

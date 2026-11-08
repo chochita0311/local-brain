@@ -43,6 +43,44 @@ from localbrain.sessions.reading import conversation_event_views
 from localbrain.sessions.subagents import list_subagents, load_subagent
 from localbrain.sources.profiles import canonical_source_id, profile_map
 from localbrain.app.templating import templates
+from localbrain.sessions.titles import SessionTitleError, set_display_title
+
+
+def _save_session_title(session_id: int, value: str) -> dict:
+    try:
+        with transaction(immediate=True) as connection:
+            return set_display_title(connection, session_id, value)
+    except SessionTitleError as error:
+        status = 404 if error.code == "session-not-found" else 400
+        raise HTTPException(status_code=status, detail=error.code) from error
+    except sqlite3.Error as error:
+        raise HTTPException(status_code=503, detail="제목을 저장하지 못했습니다. 다시 시도해 주세요.") from error
+
+
+async def save_session_title(request: Request, session_id: int):
+    origin = request.headers.get("origin")
+    if (request.url.hostname not in {"localhost", "127.0.0.1", "::1"}
+            or request.headers.get("sec-fetch-site", "").lower() == "cross-site"
+            or (origin and origin != f"{request.url.scheme}://{request.url.netloc}")):
+        raise HTTPException(status_code=400, detail="Same-origin submission required")
+    if request.headers.get("content-type", "").split(";", 1)[0].strip().lower() != "application/x-www-form-urlencoded":
+        raise HTTPException(status_code=415, detail="Form submission required")
+    body = bytearray()
+    async for chunk in request.stream():
+        if len(body) + len(chunk) > 16384:
+            raise HTTPException(status_code=413, detail="Title submission is too large")
+        body.extend(chunk)
+    try:
+        form = parse_qs(body.decode("utf-8"), keep_blank_values=True, max_num_fields=4)
+        if len(form.get("display_title", [])) != 1 or set(form) - {"display_title", "return_to"}:
+            raise ValueError("Invalid title payload")
+    except (ValueError, UnicodeError) as error:
+        raise HTTPException(status_code=400, detail="Invalid title submission") from error
+    saved = await run_in_threadpool(_save_session_title, session_id, form["display_title"][0])
+    if "application/json" in request.headers.get("accept", ""):
+        return JSONResponse(saved, headers={"Cache-Control": "no-store"})
+    destination = _session_pin_destination(form.get("return_to", ["/sessions"])[0], session_id)
+    return RedirectResponse(destination.split("#", 1)[0] + f"#session-title-{session_id}", status_code=303)
 
 
 def sessions_page(
@@ -420,6 +458,7 @@ def show_session(
             "source_name": child["source_name"],
             "external_id": child["external_id"],
             "title": child["title"],
+            "display_title": child["display_title"],
             "user_message_count": child["user_message_count"],
             "event_count": child["event_count"],
             "last_event_at": child["last_event_at"],

@@ -1243,7 +1243,7 @@ class UiContractTests(unittest.TestCase):
         self.assertNotIn("database-note", html)
 
     def test_static_assets_use_a_runtime_cache_version(self):
-        self.assertEqual(self.base.count("asset_version | default('dev')"), 3)
+        self.assertEqual(self.base.count("asset_version | default('dev')"), 4)
 
     def test_sessions_template_tolerates_a_pre_restart_route_context(self):
         environment = template_environment()

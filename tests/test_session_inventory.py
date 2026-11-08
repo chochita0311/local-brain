@@ -191,6 +191,79 @@ class SessionInventoryTests(unittest.TestCase):
         self.assertEqual([source["id"] for source in sources], [1, 2])
         self.assertTrue(all("enabled" not in source.keys() for source in sources))
 
+    def test_source_counts_scale_without_multiplying_independent_records(self):
+        self.connection.executemany(
+            """INSERT INTO source_files(source_id, path, size_bytes, mtime_ns, last_scanned_at, status)
+               VALUES (1, ?, 1, 1, '2026-11-01', ?)""",
+            [("/tmp/file-{}".format(i), "error" if i < 3 else "ok") for i in range(200)],
+        )
+        self.connection.executemany(
+            """INSERT INTO sessions(source_id, external_id, source_path, title)
+               VALUES (1, ?, ?, 'Work')""",
+            [("scale-{}".format(i), "/tmp/scale-{}".format(i)) for i in range(200)],
+        )
+        self.connection.execute(
+            "INSERT INTO sources(provider_kind, name, root_path) VALUES ('context', 'Empty', '/tmp/empty')"
+        )
+        for enabled in (0, 1):
+            self.connection.execute(
+                "INSERT INTO context_roots(id, path, label, enabled) VALUES (?, ?, 'Root', ?)",
+                (enabled + 1, "/tmp/root-{}".format(enabled), enabled),
+            )
+        self.connection.executemany(
+            """INSERT INTO context_documents(source_id, context_root_id, path, relative_path,
+                   title, body, size_bytes, mtime_ns, content_hash)
+               VALUES (1, ?, ?, 'doc.md', 'Document', 'Body', 1, 1, 'hash')""",
+            [(root_id, "/tmp/document-{}".format(i)) for i, root_id in enumerate((None, 1, 2))],
+        )
+        steps = 0
+
+        def bound_query_work():
+            nonlocal steps
+            steps += 1
+            return int(steps > 100)
+
+        # A generous SQLite work budget catches the file × Session × Document join
+        # without relying on wall-clock speed or the query's implementation shape.
+        self.connection.set_progress_handler(bound_query_work, 1000)
+        try:
+            rows = {row["id"]: row for row in source_inventory(self.connection)}
+        finally:
+            self.connection.set_progress_handler(None, 0)
+        self.assertEqual(rows[1]["file_count"], 200)
+        self.assertEqual(rows[1]["error_count"], 3)
+        self.assertEqual(rows[1]["session_count"], 224)
+        self.assertEqual(rows[1]["document_count"], 2)
+        self.assertEqual(
+            [rows[3][key] for key in ("file_count", "error_count", "session_count", "document_count")],
+            [0, 0, 0, 0],
+        )
+
+    def test_project_grouping_excludes_paths_without_primary_work_sessions(self):
+        empty_workspace = self.connection.execute(
+            """INSERT INTO workspaces(canonical_path, display_name, git_root, exists_now)
+               VALUES ('/tmp/unused', 'Unused Git path', '/tmp/unused', 0)"""
+        ).lastrowid
+        self.connection.execute(
+            """INSERT INTO sessions(source_id, workspace_id, external_id, source_path, title, session_class)
+               VALUES (1, ?, 'unused-maintenance', '/tmp/unused-maintenance', 'Maintenance', 'maintenance')""",
+            (empty_workspace,),
+        )
+        self.connection.execute(
+            """INSERT INTO context_documents(source_id, workspace_id, path, relative_path,
+                   title, body, size_bytes, mtime_ns, content_hash)
+               VALUES (1, ?, '/tmp/unused/doc.md', 'doc.md', 'Document', 'Body', 1, 1, 'hash')""",
+            (empty_workspace,),
+        )
+        for source_id in (None, "1", "2"):
+            projects = project_activity(self.connection, source_id)
+            self.assertEqual({row["id"] for row in projects}, {1, 2})
+            self.assertTrue(all(row["session_count"] > 0 for row in projects))
+            self.assertEqual(dashboard_stats(self.connection, source_id)["missing_workspaces"], 1)
+        self.assertIsNotNone(self.connection.execute(
+            "SELECT 1 FROM workspaces WHERE id = ?", (empty_workspace,)
+        ).fetchone())
+
     def test_registry_scopes_counts_and_projects_use_one_primary_work_denominator(self):
         company_source_id = self.connection.execute(
             """

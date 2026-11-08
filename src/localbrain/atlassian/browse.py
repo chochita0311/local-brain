@@ -522,7 +522,7 @@ def project_atlassian_item_container(item: dict) -> dict:
     return item
 
 
-def _item_rows(connection: sqlite3.Connection) -> list[dict]:
+def _item_rows(connection: sqlite3.Connection, external_resource_id: Optional[int] = None) -> list[dict]:
     rows = connection.execute(
         """
         SELECT atlassian_items.external_resource_id AS id,
@@ -583,10 +583,14 @@ def _item_rows(connection: sqlite3.Connection) -> list[dict]:
         LEFT JOIN external_resource_notes
           ON external_resource_notes.external_resource_id =
              atlassian_items.external_resource_id
+        {item_filter}
         ORDER BY CASE atlassian_items.attention WHEN 'pinned' THEN 0 ELSE 1 END,
                  atlassian_items.updated_at DESC,
                  atlassian_items.external_resource_id DESC
-        """
+        """.format(item_filter=(
+            "WHERE atlassian_items.external_resource_id = ?" if external_resource_id is not None else ""
+        )),
+        (external_resource_id,) if external_resource_id is not None else (),
     ).fetchall()
     items = []
     for row in rows:
@@ -2312,10 +2316,13 @@ def atlassian_structure_reference_detail(
 def atlassian_item_detail(
     connection: sqlite3.Connection, external_resource_id: int
 ) -> Optional[dict]:
+    # The former in-memory lookup returned missing for any out-of-range ID.
+    if isinstance(external_resource_id, int) and not -(2**63) <= external_resource_id < 2**63:
+        return None
     item = next(
         (
             value
-            for value in _item_rows(connection)
+            for value in _item_rows(connection, external_resource_id=external_resource_id)
             if value["id"] == external_resource_id
         ),
         None,
