@@ -18,7 +18,7 @@ def dashboard(request: Request):
 
 
 def desktop_legacy_search(q: str = Query(default="", max_length=300)):
-    return RedirectResponse("/natural-search?" + urlencode({"q": q, "mode": "keyword"}), status_code=303)
+    return RedirectResponse("/natural-search?" + urlencode({"q": q}), status_code=303)
 
 
 def health():

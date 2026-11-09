@@ -11,6 +11,7 @@ from itertools import islice
 
 from localbrain.foundation.config import cache_directory
 from localbrain.foundation.files import private_database, private_directory
+from localbrain.foundation.operations import operation_lock
 from localbrain.foundation.private_json import atomic_json, read_json
 from .molecules import Profile, molecularize
 from .source import digest, read_sources
@@ -33,10 +34,10 @@ def folder(config):
     return cache_directory(config) / "natural-search"
 
 
-def read_settings(config):
+def _read_settings(config):
     path = config.data_dir / "natural-search.json"
     if not path.exists():
-        return False, Profile()
+        return {"version": 1, "enabled": False, "profile": asdict(Profile())}, Profile()
     value = read_json(path)
     if not isinstance(value, dict) or value.get("version") != 1 or not isinstance(value.get("enabled"), bool):
         raise ValueError("INVALID_SEARCH_SETTINGS")
@@ -44,13 +45,37 @@ def read_settings(config):
         profile = Profile(**value["profile"])
     except (KeyError, TypeError, ValueError):
         raise ValueError("INVALID_SEARCH_SETTINGS") from None
+    return value, profile
+
+
+def read_settings(config):
+    value, profile = _read_settings(config)
     return value["enabled"], profile
 
 
+def search_settings(config):
+    value, profile = _read_settings(config)
+    return {"cutoff": profile.cutoff, "default_cutoff": Profile().cutoff,
+            "revision": digest(value), "error": None}
+
+
+def update_cutoff(config, cutoff, revision):
+    if type(cutoff) not in (int, float) or not 0 <= cutoff <= 1:
+        raise ValueError("INVALID_SEARCH_CUTOFF")
+    with operation_lock(config, "search-settings"):
+        value, _ = _read_settings(config)
+        if not isinstance(revision, str) or revision != digest(value):
+            raise ValueError("SEARCH_SETTINGS_CHANGED")
+        value["profile"]["cutoff"] = cutoff
+        atomic_json(config.data_dir / "natural-search.json", value)
+        return search_settings(config)
+
+
 def save_settings(config, profile=None, enabled=True):
-    private_directory(config.data_dir)
-    atomic_json(config.data_dir / "natural-search.json",
-                {"version": 1, "enabled": enabled, "profile": asdict(profile or Profile())})
+    with operation_lock(config, "search-settings"):
+        private_directory(config.data_dir)
+        atomic_json(config.data_dir / "natural-search.json",
+                    {"version": 1, "enabled": enabled, "profile": asdict(profile or Profile())})
 
 
 def lexical_tokens(text):

@@ -4,6 +4,7 @@ import threading
 
 from localbrain.models.installation import model_root, runtime_missing
 from localbrain.foundation.private_json import read_json
+from localbrain.foundation.operations import operation_lock
 from .index import folder, prepare, read_settings, save_settings, writer_active
 from .model import SearchEncoder
 from .retrieval import Retriever, database_stamp
@@ -41,9 +42,10 @@ class SearchService:
             self._retriever.close()
 
     def request_prepare(self):
-        enabled, profile = read_settings(self.config)
-        if not enabled:
-            save_settings(self.config, profile)
+        with operation_lock(self.config, "search-settings"):
+            enabled, profile = read_settings(self.config)
+            if not enabled:
+                save_settings(self.config, profile)
         if not self._running:
             self._requested = True
             self._error = None
@@ -53,6 +55,13 @@ class SearchService:
     def cancel(self):
         self._requested = False
         self._cancel.set()
+
+    def model_changed(self):
+        """Reload assets from their new registration; model/index identity is unchanged."""
+        with self._model_lock:
+            self._profile_contract = None
+        self._last_stamp = None
+        self._wake.set()
 
     def _assets_present(self):
         return (model_root("embedding", self.config.data_dir) / "model.json").is_file() and not runtime_missing()

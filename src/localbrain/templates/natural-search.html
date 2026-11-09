@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% block title %}자연어 검색 · LocalBrain{% endblock %}
 {% block content %}
+  {% set has_query = natural_query|trim %}
+  <div data-search-engine="ai" data-search-results="{{ 'true' if has_query else 'false' }}">
+  {% if not has_query %}
   <section class="page-heading search-heading">
     <div>
       <p class="eyebrow">SEARCH</p>
@@ -9,25 +12,28 @@
     </div>
   </section>
 
-  <nav class="search-mode-nav" aria-label="검색 방식"><a href="/natural-search?{{ {'q':natural_query,'mode':'keyword'}|urlencode }}">키워드 검색</a><a aria-current="page" href="/natural-search?{{ {'q':natural_query,'mode':'ai'}|urlencode }}">AI 검색</a></nav>
   <form class="page-search natural-search-form" action="/natural-search" method="get">
-    <input type="hidden" name="mode" value="ai">
     <label for="natural-page-query"><span class="sr-only">찾고 싶은 내용</span>
       <input id="natural-page-query" name="q" type="search" maxlength="300" value="{{ natural_query }}" placeholder="만들던 앱 관련 세션을 보여줘">
     </label>
     <button class="primary-button" type="submit">검색</button>
   </form>
+  {% else %}
+    <h1 class="sr-only">{{ natural_query }} 검색 결과</h1>
+  {% endif %}
 
-  <section class="natural-search-status" data-natural-search-status data-state="{{ search_status.state }}" aria-label="검색 준비 상태">
+  <section class="natural-search-status" data-natural-search-status data-state="{{ search_status.state }}" aria-label="검색 준비 상태" {% if has_query and search_status.state == 'ready' %}hidden{% endif %}>
     <div aria-live="polite" aria-atomic="true">
       <strong data-search-status-title>{{ search_status.title }}</strong>
       <p data-search-status-copy>{{ search_status.description }}</p>
-      <p class="result-count" data-search-status-count>{% if search_status.eligible_parents %}원문 {{ search_status.parents }} / {{ search_status.eligible_parents }}개 준비{% if search_status.state == 'preparing' %} · 본문 구간 {{ search_status.fragments|default(0) }}개 처리{% endif %}{% endif %}</p>
+      {% if not has_query %}<p class="result-count" data-search-status-count>{% if search_status.eligible_parents %}원문 {{ search_status.parents }} / {{ search_status.eligible_parents }}개 준비{% if search_status.state == 'preparing' %} · 본문 구간 {{ search_status.fragments|default(0) }}개 처리{% endif %}{% endif %}</p>{% endif %}
     </div>
+    {% if not has_query %}
     <details data-search-coverage {% if search_status.state in ['disabled', 'model-missing'] %}hidden{% endif %}>
       <summary>검색 범위 상세</summary>
       <p data-search-coverage-copy>검색 허용 범위 밖 세션 {{ search_status.excluded_sessions|default(0) }}개 · 본문 없는 원문 {{ (search_status.empty_sessions|default(0)) + (search_status.empty_documents|default(0)) }}개 · 앱 저장 영역의 문서 {{ search_status.excluded_runtime_documents|default(0) }}개 제외. 읽을 수 없는 Local Context 등록 경로 {{ search_status.unreadable_context_roots|default(0) }}개.</p>
     </details>
+    {% endif %}
     <div data-search-install {% if search_status.state not in ['disabled', 'model-missing'] %}hidden{% endif %}>
       <p>AI 검색에는 로컬 검색 모델이 필요합니다. 키워드 검색은 바로 사용할 수 있습니다.</p><button class="secondary-button" type="button" data-settings-open="search">모델 설치 · 검색 설정</button>
     </div>
@@ -40,10 +46,10 @@
         <input type="hidden" name="q" value="{{ natural_query }}">
         <button class="secondary-button" type="submit">준비 중단</button>
       </form>
-      <a class="back-link" href="/natural-search?{{ {'q': natural_query, 'mode': 'ai'}|urlencode }}" data-search-repeat hidden>같은 검색 다시 실행</a>
     </div>
     <noscript><p>진행 상태를 확인하려면 이 페이지를 새로고침해 주세요.</p></noscript>
   </section>
+  <a class="back-link" href="/natural-search?{{ {'q': natural_query}|urlencode }}" data-search-repeat hidden>같은 검색 다시 실행</a>
 
   {% if query_error %}<p class="empty-state" role="alert">{{ query_error }}</p>{% endif %}
   {% if search_response %}
@@ -89,6 +95,7 @@
       </nav>
     {% endif %}
   {% endif %}
+  </div>
 {% endblock %}
 {% block scripts %}
   <script src="{{ url_for('static', path='/natural-search.js') }}?v={{ asset_version|default('dev') }}" defer></script>

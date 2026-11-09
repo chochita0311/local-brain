@@ -852,13 +852,19 @@ Session and Subsession metadata, copy feedback and conversation role/completion 
 - The Search family uses one shared-header query with the existing global
   placeholder and no visible mode labels. A visually hidden label preserves
   accessibility. Enter and the adjacent Search action submit the same query to
-  the shared `/natural-search` route. Keyword search is the default; AI search
-  is an explicit mode under the [search contract](../project/natural-language-search.md#product-surface).
-  The header adds no mode controls. The input and action remain reachable at
+  the shared `/natural-search` route. Current activation and model availability
+  select AI or model-free keyword retrieval under the
+  [search contract](../project/natural-language-search.md#product-surface).
+  Neither header nor results adds mode controls. The input and action remain reachable at
   narrow widths. Existing Atlassian header scope is preserved.
 - AI-search results represent original Sessions or Local Context documents,
-  with source cues and up to three linked evidence excerpts. Preparation, coverage
-  and recovery stay next to the search form. Status updates preserve query,
+  with source cues and up to three linked evidence excerpts. After a query, show
+  result counts and results or their empty/error state beneath the shared header;
+  keep the introduction, extra search form and preparation/coverage details on
+  the queryless landing page. Healthy readiness notices and model-install
+  promotion do not precede results. Preparation, partial coverage and failure
+  notices retain relevant recovery actions; completion offers an explicit rerun
+  without restoring the readiness banner. Status updates preserve query,
   focus and results. Evidence readers show original-text provenance and a query
   return link; scores never appear as answer probabilities. Molecules do not
   create a user-visible document taxonomy.

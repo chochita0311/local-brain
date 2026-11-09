@@ -9,8 +9,9 @@ preparation, recovery and evidence navigation. Code and schema remain
 implementation truth; ordinary setup and readiness guidance belongs to the
 [Search guide](../../../src/localbrain/content/docs/search.md).
 
-The shared-header search entry has explicit keyword and AI modes. Keyword mode is
-the model-free default. AI mode uses a prepared local embedding model. The
+The shared-header search entry chooses its engine from current settings, with no
+keyword/AI selector. An installed, enabled AI search uses the local embedding
+engine; disabled search or missing model/runtime uses model-free keywords. The
 original keyword-search route `/search` is deprecated and retained for existing
 URLs; its FTS data and legacy query behavior remain available for compatibility.
 
@@ -81,7 +82,7 @@ allowed result slots. Snippets, scores, ordering and evidence URLs are unchanged
 - Quoted literal exclusion with an explicit exclusion operator can filter that literal. Unquoted topic exclusion whose meaning cannot be reliably grounded stays a visible unresolved condition; never replace topic negation with a single-word ban. Uncertain `만들던` does not imply a date/project/completion state.
 - Comparison baselines: lexical-only, Qwen-only and hybrid. Korean lexical preparation uses normalized Unicode Hangul n-grams plus exact Latin identifiers, separately from original FTS. Parameterize FTS queries and escape query syntax.
 - The default `hybrid` mode uses `semantic-dual-view-v3`. Keep the full original query and, when retrieval-request framing can be removed conservatively, add its topic/action text as a second view. Quoted or negative wording and interpretation notices keep a single original view. No synonym dictionary, private topic rules or generated expansion. Both views use the same existing English instruction and one foreground encoding batch. UI input, condition interpretation and return links always use the original query. `dense` remains an original-query cosine baseline; lexical-only remains BM25.
-- Admit a fragment when either view's cosine reaches the shared internal cutoff 0.45; rank by the equal mean of the available view cosines. The original view's admitted evidence remains eligible. API `score` is the strongest view cosine for the selected evidence, while `rank_score` is the mean used for ordering; neither is a probability. A single view makes these equal. Exact single Latin identifiers keep lexical admission below cutoff with their explicit reason and raw cosine. Apply current scope and revision eligibility before the 500-fragment lexical cap. Repeated wording adds no lexical ranking bonus. Model instruction, document vectors and index compatibility are unchanged; no re-embedding, new model, settings UI or automatic personal calibration.
+- Admit a fragment when either view's cosine reaches the saved semantic cutoff (default 0.45); rank by the equal mean of the available view cosines. The original view's admitted evidence remains eligible. API `score` is the strongest view cosine for the selected evidence, while `rank_score` is the mean used for ordering; neither is a probability. A single view makes these equal. Exact single Latin identifiers keep lexical admission below cutoff with their explicit reason and raw cosine. Apply current scope and revision eligibility before the 500-fragment lexical cap. Repeated wording adds no lexical ranking bonus. Model instruction, document vectors and index compatibility are unchanged; cutoff changes need no re-embedding or new model and perform no automatic personal calibration. Only minimum relevance is exposed in Settings.
 - Parent result uses its strongest evidence by ranking score, with up to three distinct supporting spans. Repeated overlaps do not add unlimited parent score. Stable ties use parent kind/ID. Rank and count all eligible parents, but fetch original excerpt text only for the displayed page. Pagination preserves query and interpreted scope; page size is never a corpus restriction.
 - Resolve current source eligibility and revision before delivering evidence. Deleted, disabled or changed evidence is not returned as current; partial/stale coverage is explicit and schedules refresh. Failure to load a model/index is not an empty result. No remote fallback. Query failures retain the input and appear independently of index preparation state; model input overflow requests a shorter query.
 - Sessions link to an actual message anchor; documents link to a dedicated evidence view containing the exact original span and a link to the document reader. Search return URL is local, bounded and restricted to this search route. Browser back retains query and scroll.
@@ -144,14 +145,17 @@ observes the changed normalized source snapshot.
 
 ```mermaid
 flowchart TD
-    Input[Shared header input or natural-search page] --> Conditions[Preserve query; interpret explicit conditions]
+    Input[Shared header input or natural-search page] --> Engine{Enabled AI and model available?}
+    Engine -->|Yes| Conditions[Preserve query; interpret explicit conditions]
+    Engine -->|No| Keywords[Eligible local FTS5 token-AND search]
+    Keywords --> Evidence
     Conditions --> Current[Recheck normalized source eligibility and revision]
     Current --> Views[Original query plus conservative topic/action view when applicable]
     Views --> Embed[Offline Qwen embedding in one batch]
     Current --> Lexical[Exact identifier lexical lookup when applicable]
     Cache[Complete private index] --> Dot[Exact vector similarity]
     Embed --> Dot
-    Dot --> Cutoff[Either view cosine at least 0.45]
+    Dot --> Cutoff[Either view cosine meets saved cutoff; default 0.45]
     Lexical --> Exact[Explicit exact-identifier admission]
     Cutoff --> Order[Order by mean view cosine]
     Exact --> Order
@@ -170,14 +174,28 @@ candidates and display, not which sources may be indexed.
 
 ## Product Surface
 
-The shared header has one search input in the global-search position, preserving the `세션, 질문, 문서 통합 검색` placeholder and the current query. Its label is available to assistive technology without visible search-mode copy. Enter and the header's Search submit button use the same native GET form targeting `/natural-search`; IME composition remains guarded. Keep Atlassian's current local-query exception and its header Search link to `/natural-search`. At narrow widths preserve keyboard reachability and containment. Use existing semantic tokens and search-result families; no fragment management UI or threshold control.
+The shared header has one search input in the global-search position, preserving the `세션, 질문, 문서 통합 검색` placeholder and the current query. Its label is available to assistive technology without visible search-mode copy. Enter and the header's Search submit button use the same native GET form targeting `/natural-search`; IME composition remains guarded. Keep Atlassian's current local-query exception and its header Search link to `/natural-search`. At narrow widths preserve keyboard reachability and containment. Use existing semantic tokens and search-result families; there is no fragment management UI.
 
-The deprecated `/search` route remains directly reachable with its existing filters and query contract, and is marked deprecated in the route schema. The shared `/natural-search` entry offers keyword mode and an explicit AI mode. Keyword mode reuses the legacy FTS5 token-AND expression with the same registered local-source admission as AI mode; it is not substring LIKE. Missing-model/disabled/failure states link to local model settings and preserve the query when changing modes. An empty AI result never silently switches modes. The legacy `/search` redirects to this keyword entry in the desktop edition; its development-web compatibility route keeps existing behavior. Return links preserve mode, query, page and the result anchor.
+The deprecated `/search` route remains directly reachable with its existing filters and query contract, and is marked deprecated in the route schema. The shared `/natural-search` entry automatically uses AI unless its status is disabled or model-missing. Keyword retrieval reuses the legacy FTS5 token-AND expression with the same registered local-source admission as AI; it is not substring LIKE. Missing-model/disabled states link to local model settings. AI preparation, partial coverage, failures and empty results stay in the AI surface with their status/recovery actions; they never silently select keyword retrieval. The legacy `/search` redirects to the automatic entry in the desktop edition; its development-web compatibility route keeps existing behavior. Historical `mode=ai`/`mode=keyword` URLs remain accepted but cannot override current settings. New forms and return links omit mode while preserving query, page and the result anchor.
 
-The natural-search page owns explicit first preparation/retry, truthful coverage, applied conditions, ranked parent results and source evidence navigation. Status polling cannot reset query, focus or scroll. Never put model internals or debug traces into normal result copy.
+The natural-search landing page, without a nonblank query, owns the introduction, page search form and truthful preparation/coverage details. After a query, the shared header is the search input and the main content starts with applied conditions and ranked parent results, or an honest empty/error state. Do not repeat the landing introduction, page search form, healthy readiness notice, preparation counts, coverage disclosure or model-install promotion above results. Preparation, partial coverage, no-data and failure notices with their recovery actions remain visible when they affect search. When preparation finishes, hide its notice and offer an explicit same-query rerun outside it; polling does not silently replace results. Query failures remain visible even if the index reports ready. Status polling cannot reset query, focus or scroll. Source evidence navigation remains adjacent to results. Never put model internals or debug traces into normal result copy.
 
-Search performs no automatic query collection or personal training and has no
-threshold settings screen.
+Search performs no automatic query collection or personal training. Settings →
+Search model exposes **Minimum relevance** (`최소 관련도`), the semantic cosine
+cutoff in `profile.cutoff`: finite numbers from 0 through 1, default 0.45, with
+default restoration. It is not an accuracy probability. Lower values admit more
+semantic evidence; higher values require greater similarity. Existing bounded
+exact-identifier support remains independent of that cutoff. Saving changes only
+cutoff, preserving activation, index profile and unknown top-level settings.
+Concurrent changes reject stale revisions; save/read failures remain local and
+recoverable. The next query reads the saved value without reencoding or rebuilding
+the index. Other profile fields have no new UI.
+
+Readiness polling preserves the query, focus and scroll while the engine stays
+the same. A capability change can replace the search surface using the current
+draft query after model settings closes or typing/composition finishes; it does
+not interrupt an open settings dialog or a focused query input. Empty results or
+AI query/preparation failures are not capability changes.
 
 ## Evaluation Criteria And Evidence Limits
 
@@ -197,8 +215,8 @@ threshold settings screen.
   condition interpretation, parent-ranked retrieval and Sync refresh worker.
   `natural_search/web.py` owns loopback handlers; `app/routes.py` registers them
   and `app/lifecycle.py` owns startup/shutdown. Templates and `natural-search.js`
-  own the shared header and evidence navigation. Keyword search is the default;
-  AI search is explicit. The legacy `/search` URL redirects to keyword mode in
+  own the shared header and evidence navigation. Current activation and model
+  availability choose the engine. The legacy `/search` URL redirects to this entry in
   the desktop edition and remains compatible in development web. [Natural-Language Search](natural-language-search.md)
   owns the detailed source, score, input-budget, refresh and recovery contracts.
   Laya and Qwen Reranker are development comparisons, not runtime dependencies.

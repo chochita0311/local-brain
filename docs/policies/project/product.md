@@ -151,7 +151,7 @@ search, first-run setup, categorized settings and bundled Docs. Its menu, HTTP a
 boundaries exclude Dashboard/learning, Workstreams, Auto Work, Atlassian, Insights,
 Session workflow and Schema. The broader navigation below describes development
 web. Both editions use the [common local settings contract](desktop-app-and-settings.md),
-model-free keyword search with explicit AI mode, and completion-based 10-minute
+automatic AI search when installed/enabled, model-free keywords otherwise, and completion-based 10-minute
 Session synchronization. The gear and ⌘, open the shared settings dialog.
 
 Session inventory, pins, Chart and detail follow [Sessions](sessions.md).

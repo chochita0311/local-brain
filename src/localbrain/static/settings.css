@@ -42,7 +42,6 @@
 .settings-path input { flex: 1; min-width: var(--settings-min-control) !important; }
 .settings-message:empty { display: none; }.settings-message { padding: var(--space-card); background: var(--surface-info); border-radius: var(--radius-control); }.settings-message[data-error='true'] { background: var(--surface-danger); }
 .settings-gear { width: 100%; margin-bottom: var(--space-card); text-align: left; }.settings-gear span { margin-right: var(--space-control-gap); }
-.search-mode-nav { display: flex; gap: var(--space-card); margin-bottom: var(--space-card); }.search-mode-nav a { padding: var(--space-control-block) var(--space-control-inline); border-radius: var(--radius-control); }.search-mode-nav [aria-current] { background: var(--surface-muted); color: var(--text-primary); }
 /* Shared controls and grouped information keep every settings category consistent. */
 .settings-sync-group { min-width: 0; margin: 0; padding: 0; border: 0; }
 .settings-sync-group + .settings-sync-group { margin-top: var(--space-control-gap); }
@@ -226,3 +225,52 @@
 [data-settings-panel="google-drive"] .drive-publisher { border-top: var(--border-width-control) solid var(--border-default); padding-block: var(--space-card); }
 [data-settings-panel="google-drive"] .settings-source-heading { flex-wrap: wrap; margin-top: var(--space-card); }
 [data-settings-panel="google-drive"] select { max-width: 100%; min-height: var(--settings-control-height); }
+
+/* Preview P01: search controls and state share their owning region. */
+.settings-search-revised .settings-search-intro { margin-bottom: var(--space-section); }
+.settings-search-summary { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-card); padding-block: var(--space-card); border-block: var(--border-width-control) solid var(--border-subtle); }
+.settings-search-identity { min-width: 0; flex: 1; }
+.settings-search-identity h4 { margin: 0; font-size: var(--type-body-size); }
+.settings-search-revised .settings-search-identity p { margin: var(--space-compact) 0 0; }
+.settings-search-summary [data-search-state][data-state="ready"] { color: var(--text-success); }
+.settings-search-summary [data-search-state][data-state="unavailable"], .settings-search-summary [data-search-state][data-state="failed"] { color: var(--text-danger); }
+.settings-search-summary .settings-actions { margin: 0; }
+.settings-search-summary .settings-actions [hidden] { display: none; }
+.settings-search-revised > .settings-model { margin: 0; padding: var(--space-card) 0; background: transparent; border: 0; border-radius: 0; }
+.settings-search-model-row { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-card); }
+.settings-search-model-row .settings-actions { margin: 0; }
+.settings-search-revised .settings-model-title { gap: var(--space-compact) var(--space-control-gap); overflow-wrap: anywhere; }
+.settings-search-revised .settings-model-title strong { font-size: var(--type-body-small-size); font-weight: var(--type-medium); }
+.settings-search-revised .settings-model-title span { font-size: var(--type-body-small-size); }
+.settings-search-revised .settings-caption { font-size: var(--type-body-small-size); }
+.settings-search-revised > .settings-disclosure { margin-top: var(--space-card); }
+@media(max-width: 700px) {
+  .settings-search-summary { align-items: flex-start; flex-direction: column; }
+  .settings-search-model-row { align-items: flex-start; flex-direction: column; }
+  .settings-search-summary .settings-actions { max-width: 100%; }
+}
+
+/* R3: explanatory text belongs to readiness; location uses the existing Home field shape. */
+.settings-search-revised .settings-search-summary { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--space-control-gap) var(--space-card); }
+.settings-search-summary > .settings-search-explanation { grid-column: 1 / -1; margin: 0; font-size: var(--type-body-small-size); line-height: var(--type-line-body); }
+.settings-model .settings-model-folder { display: grid; gap: var(--space-control-gap); margin: var(--space-card) 0 0; padding: 0; border: 0; }
+.settings-model-folder > label { font-size: var(--type-body-small-size); font-weight: var(--type-medium); }
+.settings-model-folder .settings-path { flex-wrap: nowrap; }
+.settings-model-folder .settings-path > input { flex: 1; width: 100%; min-width: 0 !important; height: var(--settings-control-height); padding: var(--space-compact) var(--space-control-gap); font: var(--type-body-small-size)/var(--type-line-body) var(--type-mono-font); border: var(--border-width-control) solid var(--border-default); border-radius: var(--radius-control); color: var(--text-primary); background: var(--surface-default); }
+.settings-model-folder .settings-path > button { flex: none; }
+.settings-folder-editor { display: grid; gap: var(--space-control-gap); margin: 0; }
+.settings-folder-editor[hidden] { display: none; }
+.settings-folder-editor p { margin: 0; font-size: var(--type-body-small-size); }
+.settings-folder-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-control-gap); }
+.settings-folder-actions [hidden] { display: none; }
+[data-folder-result][data-state="missing"], [data-folder-result][data-state="unreadable"] { color: var(--text-warning); }
+[data-folder-result][data-state="valid"] { color: var(--text-success); }
+[data-folder-result][data-state="invalid"] { color: var(--text-danger); }
+.settings-search-cutoff { grid-column: 1 / -1; display: grid; gap: var(--space-compact); min-width: 0; }
+.settings-cutoff-controls { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-control-gap); }
+.settings-cutoff-controls label { font-size: var(--type-body-small-size); font-weight: var(--type-medium); }
+.settings-cutoff-controls input { width: 7ch; height: var(--settings-control-height); padding: var(--space-compact) var(--space-control-gap); border: var(--border-width-control) solid var(--border-default); border-radius: var(--radius-control); color: var(--text-primary); background: var(--surface-default); font: inherit; font-size: var(--type-body-small-size); }
+.settings-cutoff-controls button[aria-disabled="true"] { opacity: var(--state-disabled-opacity); cursor: default; }
+.settings-search-cutoff p { margin: 0; font-size: var(--type-body-small-size); }
+[data-cutoff-status]:empty { display: none; }
+[data-cutoff-status][data-error="true"] { color: var(--text-danger); }

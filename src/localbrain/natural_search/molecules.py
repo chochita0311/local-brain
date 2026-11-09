@@ -20,7 +20,7 @@ class Profile:
     def __post_init__(self):
         if self.target not in (256, 512, 768) or self.dimension not in (512, 1024):
             raise ValueError("INVALID_SEARCH_PROFILE")
-        if self.overlap not in (0, 64) or not 0 <= self.cutoff <= 1:
+        if self.overlap not in (0, 64) or type(self.cutoff) not in (int, float) or not 0 <= self.cutoff <= 1:
             raise ValueError("INVALID_SEARCH_PROFILE")
 
     def index_contract(self):

@@ -15,7 +15,7 @@ This reloads the current setup page; it does not register sources or finish setu
 | General (`일반`) | Startup screen and time zone | Selection saves automatically; timing is described below. |
 | Session Sources (`세션 소스`) | Codex and Claude Code profiles and record locations | Add or save a profile explicitly. |
 | Local Context | Selected folders, files, and optional Apple Notes | Add a source explicitly. |
-| Search Model (`검색 모델`) | Optional local AI search | Download, prepare, cancel, or disable explicitly. |
+| Search Model (`검색 모델`) | Optional local AI search | Run model and folder actions explicitly; completing minimum-relevance input saves it automatically. |
 | Synchronization (`동기화`) | Independent Session and document schedules | Selection saves automatically. |
 | Storage (`저장공간`) | Locations, size, backup, restore, and cache cleanup | Start each operation explicitly. |
 
@@ -48,6 +48,8 @@ Canceling or leaving this category discards an unsaved editor; Back in first-use
 
 Use **Add** to select a folder or file, then confirm registration. Apple Notes is optional and may request macOS permission. Folder collection reads supported Markdown documents; individual text, Markdown, and supported PDFs can also be connected. See [Local Contexts](/help/local-contexts) for reading and format limits.
 
+**Connect Apple Notes** is below the folder/file form in **Add**. Once connected, **Apple Notes · Notes.app** appears in the main source list and Add hides the Notes connection area. Unregistering it restores that area.
+
 Source order uses the same row-handle interaction. Canceling or leaving the editor discards its draft; setup Back preserves it.
 
 **Unregister** requires confirmation. It stops collection and removes the source from search and browsing, clearing its search entries. LocalBrain keeps its saved source details and imported documents so you can register it again. Original files and Apple Notes stay unchanged.
@@ -57,10 +59,19 @@ Source order uses the same row-handle interaction. Canceling or leaving the edit
 Keyword search works without a model. After a successful embedding-model download, AI search preparation starts automatically. The [Search guide](/help/search) explains setup, download requirements, and preparation states.
 
 Model actions remain unavailable until their required model and search states are
-known. If the status check fails, use **Reload** or allow the next status check to
-recover before starting an action.
+known. If search status cannot be checked, choose **Check again** (`다시 확인`). If all settings could not be loaded, use **Reload** (`다시 불러오기`) or allow the next status check to recover before starting an action.
 
-Public originals stay in the shared Hugging Face Hub cache (normally `~/.cache/huggingface/hub`, respecting the configured Hugging Face cache). App registration metadata stays in LocalBrain data; inference/kernel caches stay in LocalBrain cache. Connecting a complete cached model avoids another download. Status discovery checks local presence; the worker verifies integrity before use. App cache cleanup preserves shared originals.
+Set **Minimum relevance** (`최소 관련도`) to a number from 0 to 1. Completing the input saves it automatically; **Restore default** (`기본값 복원`) returns to 0.45. A save failure offers **Save again** (`다시 저장`) beside the input. Concurrent changes require checking the current settings before retrying. Saved values apply to the next search; see the [Search guide](/help/search) for their meaning.
+
+### Model storage and downloads
+
+Below the installation state, enter a **Storage folder** (`저장 폴더`) or choose **Browse** (`찾아보기`). After **Check folder** (`폴더 확인`), connect an existing model with **Use this folder** (`이 폴더 사용`), or explicitly choose **Download to this folder** (`이 폴더에 다운로드`) when it is missing. The previous location stays active until verification/download succeeds. Existing files are never moved or deleted. This changes only embedding model files, leaving app data, registration metadata and private search indexes in their existing locations.
+
+Public originals default to the shared Hugging Face Hub cache (normally `~/.cache/huggingface/hub`, respecting the configured Hugging Face cache). An explicitly selected embedding folder takes precedence for that model. App registration metadata stays in LocalBrain data; inference/kernel caches stay in LocalBrain cache. Connecting a complete cached model avoids another download. Status discovery checks local presence; connection and the worker verify integrity before use. App cache cleanup preserves shared originals.
+
+Storage also shows a separately selected model folder when it is outside the default shared cache. After interruption, selecting the same folder again can reuse downloaded file pieces.
+
+See [Search download guidance](/help/search) for resuming downloads, internet requirements, and privacy.
 
 ## Synchronization
 

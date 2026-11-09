@@ -86,8 +86,18 @@ def _files(config):
 
 def storage_status(config=settings):
     from localbrain.foundation.paths import hub_cache_root
+    from localbrain.models.storage import folder_status
+    from localbrain.models.installation import model_root
     root = config.data_dir
     paths = {"data": root, "cache": cache_directory(config), "models": hub_cache_root()}
+    registration = model_root('embedding', config.data_dir) / 'model.json'
+    selected = folder_status(config)['path'] if registration.is_file() else None
+    if selected:
+        selected = Path(selected)
+        if selected in paths['models'].parents:
+            paths['models'] = selected
+        elif selected != paths['models'] and paths['models'] not in selected.parents:
+            paths['embedding_models'] = selected
     locations = {key: location_status(path) for key, path in paths.items()}
     return {**{key: str(path) for key, path in paths.items()},
             **{key + "_bytes": item["bytes"] for key, item in locations.items()},

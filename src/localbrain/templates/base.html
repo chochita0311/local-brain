@@ -115,7 +115,6 @@
             <a class="search-link" href="/natural-search">Search</a>
           {% else %}
             <form id="global-search" class="global-search" action="/natural-search" method="get">
-              <input type="hidden" name="mode" value="{{ search_mode | default('keyword') }}">
               <label class="sr-only" for="global-query">검색</label>
               <input id="global-query" name="q" type="search" maxlength="300" placeholder="세션, 질문, 문서 통합 검색" value="{{ natural_query | default(query | default('')) }}">
               <kbd class="search-shortcut" aria-hidden="true" data-search-shortcut hidden></kbd>

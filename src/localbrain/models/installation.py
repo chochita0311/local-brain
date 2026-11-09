@@ -21,6 +21,7 @@ from localbrain.foundation.validation import ExperimentError, require
 
 from localbrain.models.catalog import (
     EMBEDDING_SCHEMA,
+    EMBEDDING_REGISTRATION_SCHEMAS,
     EMBEDDING_ID,
     EMBEDDING_REVISION,
     EMBEDDING_FINGERPRINT,
@@ -98,13 +99,28 @@ def embedding_inventory(snapshot, repository):
     return files
 
 
-def install_embedding(root, *, local_only=False, progress=None):
+def registration_revision(root):
+    path = Path(root) / "model.json"
+    return hashlib.sha256(path.read_bytes() if path.exists() else b"").hexdigest()
+
+
+def install_embedding(root, *, local_only=False, progress=None, cache_root=None, expected_revision=None):
     os.environ.update(HF_HUB_DISABLE_TELEMETRY="1", DO_NOT_TRACK="1",
                       HF_HUB_DISABLE_IMPLICIT_TOKEN="1", HF_HUB_DISABLE_XET="1")
     with embedding_installation(root) as root:
-        if (root / "model.json").exists():
+        if expected_revision is not None:
+            require(registration_revision(root) == expected_revision, "MODEL_REGISTRATION_CHANGED")
+        if (root / "model.json").exists() and cache_root is None:
             return verified_assets(root / "model.json")
-        cache, repository = hub_cache_root(), hub_repository(EMBEDDING_ID)
+        previous = read_json(root / 'model.json') if (root / 'model.json').exists() else {}
+        if (root / 'model.json').exists():
+            require(isinstance(previous, dict) and isinstance(previous.get('schema'), str)
+                    and previous['schema'] in EMBEDDING_REGISTRATION_SCHEMAS
+                    and previous.get('model_id') == EMBEDDING_ID
+                    and previous.get('resolved_revision') == EMBEDDING_REVISION
+                    and previous.get('fingerprint') == EMBEDDING_FINGERPRINT, 'MODEL_IDENTITY_CHANGED')
+        cache = Path(cache_root or hub_cache_root()).expanduser().resolve()
+        repository = hub_repository(EMBEDDING_ID, cache)
         snapshot = repository / "snapshots" / EMBEDDING_REVISION
         for path in repository.rglob("*"):
             require(repository in path.resolve().parents, "INVALID_MODEL")
@@ -117,14 +133,19 @@ def install_embedding(root, *, local_only=False, progress=None):
                             cache_dir=cache, allow_patterns=list(EMBEDDING_ASSETS),
                             endpoint="https://huggingface.co", token=False, max_workers=3)).resolve()
         relative = (repository / "snapshots" / EMBEDDING_REVISION).relative_to(cache).as_posix()
-        expected, repository = hub_snapshot(EMBEDDING_ID, EMBEDDING_REVISION, relative)
+        expected, repository = hub_snapshot(EMBEDDING_ID, EMBEDDING_REVISION, relative, cache)
         require(snapshot == expected, "INVALID_MODEL")
         if progress:
             progress("verifying")
         files = embedding_inventory(snapshot, repository)
-        atomic_json(root / "model.json", {"schema": EMBEDDING_SCHEMA, "model_id": EMBEDDING_ID,
+        manifest = {**previous, "schema": EMBEDDING_SCHEMA, "model_id": EMBEDDING_ID,
                     "requested_revision": EMBEDDING_REVISION, "resolved_revision": EMBEDDING_REVISION,
-                    "fingerprint": EMBEDDING_FINGERPRINT, "snapshot": relative, "files": files})
+                    "fingerprint": EMBEDDING_FINGERPRINT, "snapshot": relative, "files": files}
+        if cache_root is not None:
+            manifest["cache_root"] = str(cache)
+        if expected_revision is not None:
+            require(registration_revision(root) == expected_revision, "MODEL_REGISTRATION_CHANGED")
+        atomic_json(root / "model.json", manifest)
         return snapshot, {"model_id": EMBEDDING_ID, "resolved_revision": EMBEDDING_REVISION,
                           "fingerprint": EMBEDDING_FINGERPRINT}
 

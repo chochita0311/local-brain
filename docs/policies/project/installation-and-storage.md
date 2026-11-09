@@ -423,6 +423,41 @@ App-local legacy weights and unfinished installations are preserved for separate
 explicit handling. Only selected models get registrations. Moving registration
 files does not download weights, change model identity or require re-embedding.
 
+Settings' embedding-model folder selection stores an absolute canonical
+`cache_root` in that model's `model.json`, alongside the existing Hub-relative
+snapshot. This explicit registration root takes precedence for that model's
+installation, verification and offline inference. Registrations without the field
+retain the existing `HF_HUB_CACHE` → `HUGGINGFACE_HUB_CACHE` → `HF_HOME/hub` →
+`XDG_CACHE_HOME/huggingface/hub` → `~/.cache/huggingface/hub` precedence. Legacy
+app-local registrations remain readable and are not moved. Generation models and
+other tools retain their own existing roots; selecting an embedding folder never
+changes a process-wide Hugging Face cache variable.
+
+Folder checking reads the pinned revision and complete asset hashes without
+registering or downloading. Connecting revalidates those assets under the
+existing model installation lock, compares the captured registration revision,
+and atomically publishes the new registration only after verification. Missing or
+partial assets require explicit download to the chosen root. That worker carries
+the target and expected revision, keeps the old registration until success, and
+preserves partial public files for retry at the same location. After interruption
+or app restart, choosing that location again can reuse those pieces. No source
+file is moved or deleted. The private data/cache roots and their ancestors or
+descendants, the installed package and Git worktrees are ineligible destinations.
+Existing registrations retain their model identity and unrelated metadata fields;
+folder selection refuses an unsupported registration schema or identity instead
+of upgrading a model or rewriting an unknown format.
+A location change reloads the search
+encoder while retaining the pinned model/index contract; an enabled search can
+reuse unchanged vectors and a disabled search stays disabled when connecting an
+already downloaded model. Successful explicit model downloads retain their
+existing automatic search-preparation behavior.
+
+Natural search excludes both the default Hub cache and the active selected
+embedding cache from source admission. Storage measures a separate selected root
+alongside the shared default when they are disjoint, and avoids duplicating nested
+root measurements. Public assets remain outside app backup/cache cleanup; backup
+includes their registration pointer, and restore does not copy or download them.
+
 ### Upgrade An Existing Storage Layout
 
 Stop the server and development jobs first. Preview the moves, then apply:
@@ -547,13 +582,16 @@ separate future work.
 
 ## Storage Measurement
 
-Settings measures configured data, private cache and shared Hub roots separately.
+Settings measures configured data, private cache and shared Hub roots separately,
+adding a selected embedding-model root when it is disjoint from the shared Hub.
+Nested model roots are counted through the containing configured root, without a
+second total.
 It reports logical regular-file bytes (GiB), deduplicates hardlinks within each
 location and skips nested symlinks. A selected root symlink still refers to its
 configured directory. Missing roots are empty, permission/read failures are
 unavailable or partial, and capacity is resolved per actual filesystem (nearest
 existing parent for future directories). Repeated volume free space is displayed
 once. Shared Hub totals include other tools/models. App binaries, checkout,
-toolchains and build/dependency caches are outside these three totals. Reading
+toolchains and build/dependency caches are outside these storage totals. Reading
 storage never migrates or removes material. Backup/restore and cache cleanup keep
 their existing eligibility and preservation rules.

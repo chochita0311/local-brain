@@ -9,8 +9,8 @@ import sys
 from pathlib import Path
 
 from localbrain.foundation.validation import require
-from localbrain.models.cache import hub_snapshot
-from localbrain.models.catalog import EMBEDDING_ID, EMBEDDING_REVISION, EMBEDDING_FINGERPRINT
+from localbrain.models.cache import hub_snapshot, registration_cache_root
+from localbrain.models.catalog import EMBEDDING_ID, EMBEDDING_REVISION, EMBEDDING_FINGERPRINT, EMBEDDING_REGISTRATION_SCHEMAS
 
 
 def offline_environment():
@@ -46,8 +46,7 @@ def verified_assets(manifest_path):
     path = Path(manifest_path)
     require(path.is_absolute() and path.is_file() and not path.is_symlink(), "INVALID_MODEL")
     value = json.loads(path.read_text(encoding="utf-8"))
-    require(value.get("schema") in {"foundry.semantic-model/v1", "foundry.semantic-model/v2",
-                                   "localbrain.semantic-model/v1"}, "INVALID_MODEL")
+    require(value.get("schema") in EMBEDDING_REGISTRATION_SCHEMAS, "INVALID_MODEL")
     shared = value["schema"] != "foundry.semantic-model/v1"
     if shared:
         # Preserve the embedding identity while changing only its storage root.
@@ -55,7 +54,8 @@ def verified_assets(manifest_path):
                 and value.get("resolved_revision") == EMBEDDING_REVISION
                 and value.get("fingerprint") == EMBEDDING_FINGERPRINT,
                 "INVALID_MODEL")
-        snapshot, root = hub_snapshot(value["model_id"], value["resolved_revision"], value["snapshot"])
+        snapshot, root = hub_snapshot(value["model_id"], value["resolved_revision"], value["snapshot"],
+                                      registration_cache_root(value))
         inventory = value.get("files")
         require(isinstance(inventory, list) and inventory, "INVALID_MODEL")
         names = [entry.get("path") for entry in inventory if isinstance(entry, dict)]

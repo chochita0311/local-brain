@@ -7,7 +7,7 @@ MESSAGES = {
     "model-missing": ("검색 모델 설치가 필요합니다", "로컬 모델 실행 환경과 Qwen 검색 모델을 설치한 뒤 다시 준비해 주세요. 기존 키워드 검색은 사용할 수 있습니다."),
     "preparing": ("검색 자료를 준비하고 있습니다", "완료된 자료가 있으면 검색할 수 있습니다. 준비 중에도 검색어를 바꿀 수 있습니다."),
     "partial": ("일부 자료를 갱신하고 있습니다", "현재 원문을 확인한 결과만 표시합니다. 갱신이 끝나면 같은 검색을 다시 실행해 주세요."),
-    "failed": ("검색 준비를 마치지 못했습니다", "다시 준비하면 완료된 작업을 재사용합니다. 기존 키워드 검색은 계속 사용할 수 있습니다."),
+    "failed": ("검색 준비를 마치지 못했습니다", "다시 준비하면 완료된 작업을 재사용합니다. 설정에서 검색 상태를 확인하고 다시 시도해 주세요."),
     "ready": ("자연어 검색 준비 완료", "전체 작업 세션과 등록된 Local Context에서 관련 원문을 찾습니다."),
     "no-data": ("검색할 자료가 없습니다", "Sessions 또는 Local Context에서 자료를 동기화한 뒤 다시 검색해 주세요."),
 }
@@ -41,10 +41,10 @@ def safe_return(value):
         return "/natural-search"
     if len(query) > 300 or not 1 <= page <= 1000000:
         return "/natural-search"
-    mode = fields.get("mode", ["ai"])[-1]
-    if mode not in {"keyword", "ai"}:
+    mode = fields.get("mode", ["auto"])[-1]
+    if mode not in {"auto", "keyword", "ai"}:
         return "/natural-search"
-    result = "/natural-search?" + urlencode({"q": query, "page": page, "mode": mode})
+    result = "/natural-search?" + urlencode({"q": query, "page": page})
     if parsed.fragment.startswith("natural-result-") and all(c.isalnum() or c == "-" for c in parsed.fragment):
         result += "#" + parsed.fragment
     return result

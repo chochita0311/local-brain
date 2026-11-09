@@ -25,17 +25,19 @@ def _natural_search_status(request):
 
 def natural_search_page(request: Request, q: str = Query(default="", max_length=300),
                         page: int = Query(default=1, ge=1, le=1000000),
-                        mode: str = Query(default="keyword", pattern="^(keyword|ai)$")):
+                        mode: str = Query(default="auto", pattern="^(auto|keyword|ai)$")):
     _auto_work_local_request(request)
-    if mode == "keyword":
+    # Historical mode links remain valid; current settings own the search engine.
+    status = _natural_search_status(request)
+    if status["state"] in {"disabled", "model-missing"}:
         from localbrain.search.keyword import keyword_search
         with connect() as connection:
             results = keyword_search(connection, q) if q.strip() else []
         return templates.TemplateResponse(request, "keyword-search.html", {
             "request": request, "active_page": "natural-search", "natural_query": q,
-            "results": results, "search_status": _natural_search_status(request), "search_mode": "keyword",
+            "results": results, "search_status": status,
         })
-    status, result, query_error = _natural_search_status(request), None, None
+    result, query_error = None, None
     if q.strip() and status["state"] not in {"disabled", "model-missing", "no-data"}:
         try:
             result = request.app.state.natural_search.search(q, page=page)
@@ -44,13 +46,15 @@ def natural_search_page(request: Request, q: str = Query(default="", max_length=
         except (ValueError, OSError, sqlite3.Error, RuntimeError) as error:
             if str(error) == "SEARCH_INPUT_TOO_LONG":
                 query_error = "검색어를 더 짧게 입력해 주세요. 이 표현은 검색 모델의 입력 한도를 넘었습니다."
+            elif str(error) == "SEARCH_INDEX_UNAVAILABLE" and status["state"] == "ready":
+                query_error = "검색할 자료를 불러오지 못했습니다. 잠시 후 다시 검색해 주세요."
             elif str(error) != "SEARCH_INDEX_UNAVAILABLE":
                 query_error = "검색을 완료하지 못했습니다. 잠시 후 다시 검색해 주세요."
     return templates.TemplateResponse(request, "natural-search.html", {
         "request": request, "active_page": "natural-search", "natural_query": q,
-        "search_status": status, "search_response": result, "query_error": query_error, "search_mode": "ai",
-        "previous_url": "/natural-search?" + urlencode({"q": q, "mode": "ai", "page": max(1, page - 1)}),
-        "next_url": "/natural-search?" + urlencode({"q": q, "mode": "ai", "page": page + 1}),
+        "search_status": status, "search_response": result, "query_error": query_error,
+        "previous_url": "/natural-search?" + urlencode({"q": q, "page": max(1, page - 1)}),
+        "next_url": "/natural-search?" + urlencode({"q": q, "page": page + 1}),
     })
 
 
@@ -75,7 +79,7 @@ async def _natural_search_action(request, *, cancel=False):
             request.app.state.natural_search.request_prepare()
         except (OSError, ValueError) as error:
             raise HTTPException(503, "검색 설정을 저장하지 못했습니다.") from error
-    return RedirectResponse("/natural-search?" + urlencode({"q": query, "mode": "ai"}), status_code=303)
+    return RedirectResponse("/natural-search?" + urlencode({"q": query}), status_code=303)
 
 
 async def natural_search_prepare(request: Request):

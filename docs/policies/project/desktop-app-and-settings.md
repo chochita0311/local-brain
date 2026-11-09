@@ -138,13 +138,28 @@ behavior are recorded separately in Feature and Run evidence.
   source tool and Context kind reuse the below-trigger selector and keyboard
   behavior. Existing source identity locks the tool in Edit.
 - Context and storage use compact grouped information rows, consistent headings,
-  path type and secondary metadata. Model download/status stays in one quiet
-  group; preparation requires an installed model, cancellation appears during
-  downloading/preparation, and an already disabled AI search cannot be disabled
-  again. Model storage details and backup restoration use disclosures. All model
+  path type and secondary metadata. Search readiness, index update/enable, disable,
+  cancellation and status retry share one group. A short automatic-update sentence
+  stays below readiness. The embedding model's install state/download action and
+  always-visible folder input follow it; there are no inline guide links or final
+  model-block divider. Full model storage/download conditions live in the Settings
+  and Search Docs. Preparation requires an installed model, cancellation appears
+  during downloading/preparation, and an already disabled AI search cannot be disabled
+  again. Backup restoration retains its disclosure. All model
   actions and backup/restore/cache operations retain explicit invocation and
   existing consequences; collapsed restore still requires its ZIP and replacement
   confirmation. Browsing settings never downloads a model.
+- The search model folder uses the existing native/browser directory picker or
+  direct input. Checking is read-only. An existing complete pinned model can be
+  connected only after integrity verification; use rechecks integrity and the
+  registration revision. A missing/partial model offers an explicit download.
+  The previous registration remains active until successful verification and
+  atomic registration publication. Failure, stale registration and interruption
+  preserve it and all original files. No automatic move/delete is performed.
+  The selection changes only public embedding assets; app data, registration
+  metadata, private index/cache and other tools' environment settings retain their
+  owners. [Installation And Local Storage](installation-and-storage.md#model-registration-information)
+  owns path priority, legacy behavior and registration persistence.
 - There is no project-display dropdown, display-root list or root-add action.
   Sessions, Chart, Dashboard, Context and read-only settings path labels use the
   common home formatter. Path editing/selection retains the actual registered
@@ -372,13 +387,19 @@ their existing explicit authority. Picking does not persist a path independently
 
 ## Search Availability Contract
 
-- The shared search entry exposes explicit keyword and AI modes. Keyword mode
-  reuses the legacy FTS5 token AND query; it does not require model installation.
-- Both modes admit only eligible work Sessions and enabled/readable registered
+- The shared search entry has one query with no engine selector. An installed,
+  enabled AI search is used automatically; disabled search or missing model/runtime
+  uses the legacy FTS5 token AND query without a model.
+- Both engines admit only eligible work Sessions and enabled/readable registered
   Context, excluding runtime/private derived folders and unregistered sources.
-- AI mode distinguishes disabled, missing assets/runtime, preparing, ready,
-  partial and failed. A visible keyword action preserves the query. Zero AI
-  results never silently select another mode. Downloads require a user action.
+- AI readiness distinguishes preparing, ready, partial, failed and no data.
+  Preparation/failure/empty-result states preserve the AI surface and query;
+  they do not silently select keywords. Downloads require a user action.
+- Search model settings include minimum semantic relevance from 0 through 1,
+  default 0.45, autosaved on completed input with default restoration. Cutoff-only
+  writes preserve activation and the rest of the search profile, reject stale
+  revisions and apply to the next query without rebuilding indexed material.
+  See the [search contract](natural-language-search.md#product-surface).
 - Source-health writes alone must not trigger full embedding generation. Existing
   input hashes, contract compatibility and incremental reuse remain authoritative.
 

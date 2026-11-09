@@ -14,7 +14,7 @@ The first-use window follows **Welcome → Sessions → Documents → Search**.
 
 1. Connect a Codex or Claude Code profile to browse its conversations. [Settings](/help/settings) explains the agent Home and Session folder fields.
 2. Connect a document folder, an individual file, or optional Apple Notes to use [Local Contexts](/help/local-contexts).
-3. Start with keyword search. Installing an [AI search model](/help/search) is optional.
+3. Installing an [AI search model](/help/search) is optional. Search uses it automatically when installed and enabled, and uses keywords otherwise.
 4. Finish with **Start** or the final **Skip**, or choose **Set up later** to configure sources later.
 
 In the Session and Document steps, **Next** saves pending input, **Back** keeps it, and **Skip** leaves the current draft unregistered. If you quit before finishing setup, it opens again next time; already saved sources remain.

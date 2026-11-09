@@ -109,15 +109,52 @@
         <div class="settings-section" data-context-notes><h4>Apple Notes</h4><p>연결할 때 macOS 접근 권한을 요청할 수 있습니다.</p><button class="secondary-button" type="button" data-notes-add>Apple Notes 연결</button></div>
         </div>
       </section>
-      <section data-settings-panel="search" hidden>
-        <h3>검색 모델</h3><p>키워드 검색은 바로 사용할 수 있습니다.<br>{% if context_search_available | default(false) %}의미 검색과 Context Search에 사용할 로컬 모델을 관리합니다.{% else %}의미 검색에 사용할 로컬 모델을 관리합니다.{% endif %}</p>
-        <div class="settings-model">
-          <div class="settings-model-title"><strong>Qwen3-Embedding-0.6B</strong><span>약 1.21GB</span></div>
-          <p data-model-status role="status">모델 상태를 확인하고 있습니다.</p>
-          <div class="settings-actions"><button class="primary-button" type="button" data-model-action="install" disabled>모델 다운로드</button><button class="secondary-button" type="button" data-model-action="prepare" disabled>AI 검색 준비</button><button class="secondary-button" type="button" data-model-action="cancel" disabled hidden>진행 중단</button></div>
-          <p class="settings-caption">다운로드에는 인터넷 연결이 필요합니다. 검색 내용과 문서는 외부로 전송하지 않습니다.</p>
+      <section data-settings-panel="search" class="settings-search-revised" hidden>
+        <h3>검색 모델</h3>
+        <p class="settings-search-intro">키워드 검색은 모델 없이 사용할 수 있습니다.</p>
+        <div class="settings-search-summary">
+          <div class="settings-search-identity"><h4>AI 검색</h4><p data-search-state role="status">확인 중…</p></div>
+          <div class="settings-actions">
+            <button class="secondary-button" type="button" data-model-action="prepare" disabled>AI 검색 켜기</button>
+            <button class="secondary-button" type="button" data-model-action="disable" disabled>끄기</button>
+            <button class="secondary-button" type="button" data-model-action="cancel" disabled hidden>진행 중단</button>
+            <button class="secondary-button" type="button" data-search-retry hidden>다시 확인</button>
+          </div>
+          <p class="settings-search-explanation" data-search-explanation>AI 검색을 켜두면 앱 실행 중 수집 자료의 변경을 자동 반영합니다.</p>
+          <form class="settings-search-cutoff" data-search-cutoff-form>
+            <div class="settings-cutoff-controls">
+              <label for="search-cutoff">최소 관련도</label>
+              <input id="search-cutoff" name="cutoff" type="number" min="0" max="1" step="any" inputmode="decimal" required disabled aria-describedby="search-cutoff-help search-cutoff-status">
+              <button class="text-button" type="button" data-cutoff-reset disabled>기본값 복원</button>
+              <button class="text-button" type="submit" data-cutoff-retry hidden>다시 저장</button>
+            </div>
+            <p id="search-cutoff-help">낮추면 더 폭넓게, 높이면 더 엄격하게 찾습니다.</p>
+            <p id="search-cutoff-status" data-cutoff-status role="status"></p>
+          </form>
         </div>
-        <div class="settings-section"><h4>AI 검색</h4><p data-search-state>검색 상태를 확인하고 있습니다.</p><button class="secondary-button" type="button" data-model-action="disable" disabled>AI 검색 끄기</button></div>
+        <div class="settings-model">
+          <div class="settings-search-model-row">
+            <div class="settings-search-identity">
+              <div class="settings-model-title"><strong>Qwen3-Embedding-0.6B</strong><span>약 1.21GB</span></div>
+              <p data-model-status role="status">모델 확인 중…</p>
+            </div>
+            <div class="settings-actions"><button class="primary-button" type="button" data-model-action="install" disabled>모델 다운로드</button></div>
+          </div>
+
+          <div class="settings-field settings-model-folder" data-model-folder>
+            <label for="model-folder-input">저장 폴더</label>
+            <div class="settings-path"><input id="model-folder-input" name="model_folder" disabled aria-label="모델 파일 저장 폴더" aria-describedby="model-folder-result model-folder-consequence"><button class="secondary-button" type="button" data-folder-pick disabled>찾아보기</button></div>
+            <output data-folder-current hidden></output>
+            <div class="settings-folder-editor" data-folder-editor hidden>
+              <p id="model-folder-result" role="status" data-folder-result></p>
+              <p id="model-folder-consequence">기존 모델 파일은 자동으로 이동하거나 삭제하지 않습니다. 새 폴더의 모델 확인 또는 다운로드를 마친 뒤 연결합니다.</p>
+              <button type="button" class="text-button" data-folder-reset>추천 위치 사용</button>
+              <div class="settings-folder-actions"><button type="button" class="secondary-button" data-folder-cancel>취소</button><button type="button" class="secondary-button" data-folder-check>폴더 확인</button><button type="button" class="primary-button" data-folder-apply disabled>이 폴더 사용</button><button type="button" class="primary-button" data-folder-download hidden>이 폴더에 다운로드</button></div>
+            </div>
+          </div>
+          <p class="settings-caption" data-download-help>다운로드에는 인터넷 연결이 필요합니다. 검색 내용과 문서는 외부로 전송하지 않습니다.</p>
+        </div>
+
         {% if context_search_available | default(false) %}<div class="settings-section"><h4>Context Search 답변 모델</h4><p>폴더에서 필요한 자료를 찾아 답합니다. 임베딩 모델 없이 사용할 수 있습니다.</p>
           {% for key, name, size in [('4b', 'Qwen3-4B', '약 8GB'), ('8b', 'Qwen3-8B', '약 16GB')] %}
           <div class="settings-model" data-generation-model="{{ key }}">
@@ -128,7 +165,6 @@
           {% endfor %}
           <p class="settings-caption">8B는 더 많은 메모리가 필요합니다. Context Search 화면에서 모델을 선택하세요.</p>
         </div>{% endif %}
-        <details class="settings-disclosure"><summary>모델 보관과 다운로드</summary><p>공개 모델 원본은 공용 Hugging Face 캐시(기본 ~/.cache/huggingface/hub)에 둡니다. 이미 받은 원본은 다시 받지 않고 연결합니다. 앱 등록 정보는 LocalBrain 데이터 폴더에, 실행 캐시는 LocalBrain 캐시 폴더에 따로 둡니다. 중단한 다운로드는 재개할 수 있으며, 앱 캐시를 정리해도 공용 원본은 보존합니다. 모델 다운로드에만 인터넷이 필요하며 질문과 문서는 외부 AI로 전송하지 않습니다.</p></details>
       </section>
       <section data-settings-panel="sync" hidden>
         <h3>동기화</h3>

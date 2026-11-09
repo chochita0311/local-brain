@@ -33,6 +33,15 @@ async def payload(request):
 
 
 def install_settings_routes(app, templates):
+    def cutoff_settings():
+        from localbrain.natural_search.index import search_settings
+        from localbrain.natural_search.molecules import Profile
+        try:
+            return search_settings(settings)
+        except (ValueError, OSError):
+            return {"cutoff": None, "default_cutoff": Profile().cutoff, "revision": None,
+                    "error": "검색 관련도 설정을 읽지 못했습니다. 다시 확인해 주세요."}
+
     def model_status(request):
         model = request.app.state.model_setup.status()
         if "context_search" not in request.app.state.feature_packages:
@@ -83,7 +92,29 @@ def install_settings_routes(app, templates):
                 "candidates": detected, "errors": errors, "desktop": DESKTOP,
                 "sync": request.app.state.session_sync.status(),
                 "context_sync": request.app.state.context_sync.status(),
-                "model": model_status(request)}
+                "model": model_status(request), "search_settings": cutoff_settings()}
+
+    @app.get("/api/settings/search")
+    def get_search_settings():
+        return JSONResponse(cutoff_settings(), headers={"Cache-Control": "no-store"})
+
+    @app.post("/api/settings/search")
+    async def search_settings_update(request: Request):
+        from starlette.concurrency import run_in_threadpool
+        from localbrain.natural_search.index import update_cutoff
+        value = await payload(request)
+        if set(value) != {"cutoff", "revision"}:
+            raise HTTPException(422, "검색 관련도 요청을 확인해 주세요.")
+        try:
+            return await run_in_threadpool(update_cutoff, settings, value["cutoff"], value["revision"])
+        except ValueError as error:
+            if str(error) == "INVALID_SEARCH_CUTOFF":
+                raise HTTPException(422, "최소 관련도는 0부터 1 사이의 숫자로 입력해 주세요.") from None
+            if str(error) == "SEARCH_SETTINGS_CHANGED":
+                raise HTTPException(409, "검색 설정이 변경되었습니다. 다시 확인한 뒤 저장해 주세요.") from None
+            raise HTTPException(409, "검색 관련도 설정을 읽지 못했습니다. 다시 확인해 주세요.") from None
+        except OSError:
+            raise HTTPException(503, "검색 관련도를 저장하지 못했습니다. 다시 시도해 주세요.") from None
 
     @app.patch("/api/settings/preferences")
     async def preferences_update(request: Request):
@@ -135,6 +166,22 @@ def install_settings_routes(app, templates):
                 request.app.state.natural_search.cancel()
         else:
             raise HTTPException(404)
+        return model_status(request)
+
+    @app.post('/api/settings/model-folder/{action}')
+    async def model_folder_action(action: str, request: Request):
+        from starlette.concurrency import run_in_threadpool
+        if action not in {'check', 'apply', 'download'}:
+            raise HTTPException(404)
+        value = await payload(request)
+        if set(value) != ({'path'} if action == 'check' else {'path', 'revision'}):
+            raise HTTPException(422, '모델 폴더 요청을 확인해 주세요.')
+        service = request.app.state.model_setup
+        if action == 'check':
+            return await run_in_threadpool(service.check_folder, value['path'])
+        if action == 'apply':
+            return await run_in_threadpool(service.use_folder, value['path'], value['revision'])
+        await run_in_threadpool(service.start, cache_root=value['path'], revision=value['revision'])
         return model_status(request)
 
     @app.post('/api/settings/model/{key}/{action}')

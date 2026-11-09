@@ -11,7 +11,8 @@ documents, search, and usage history.
 - **Connect documents.** Read folders, individual files, and Apple Notes in
   Local Contexts while keeping the originals in place.
 - **Search past work.** Find Sessions and documents with keywords, or enable
-  optional local AI search to search by meaning.
+  optional local AI search to search by meaning. Installed, enabled AI search is
+  used automatically; its minimum relevance is adjustable in Settings.
 - **Understand usage.** Compare tokens, estimated costs, and activity by source,
   model, project, and period in Sessions Dashboard.
 
@@ -63,7 +64,8 @@ for macOS security prompts and installation requirements.
 2. Open **Sessions** and select **Sync** (`동기화`) to collect your conversations,
    or open **Local Contexts** to read connected documents.
 3. Use the shared search field to find a remembered phrase. Keyword search needs
-   no model; AI search is an optional download in **Settings → Search Model**.
+   no model; AI search is an optional download in **Settings → Search Model** and
+   is used automatically when enabled.
 
 Open Settings with the gear or **⌘,** to manage sources, synchronization, and
 backups. Closing the window leaves LocalBrain running; use **⌘Q** to quit.

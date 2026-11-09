@@ -1,6 +1,7 @@
 """Public pinned model identities and optional feature requirements."""
 
 EMBEDDING_SCHEMA = "localbrain.semantic-model/v1"
+EMBEDDING_REGISTRATION_SCHEMAS = frozenset({EMBEDDING_SCHEMA, "foundry.semantic-model/v1", "foundry.semantic-model/v2"})
 EMBEDDING_ID = "Qwen/Qwen3-Embedding-0.6B"
 EMBEDDING_REVISION = "b22da495047858cce924d27d76261e96be6febc0"
 EMBEDDING_FINGERPRINT = "855cb5f83b4cbd18bbe1b00ba82945989abeb1acc3530455fb4886e456f5911f"

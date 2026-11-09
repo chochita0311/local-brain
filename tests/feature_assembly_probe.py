@@ -224,7 +224,7 @@ def main():
                             "/atlassian", "/auto-work", "/sessions-dashboard/insights"):
                     assert (await request(url))[0] == 404, url
                 status, _, headers = await request("/search?q=synthetic+text")
-                assert status == 303 and ("location", "/natural-search?q=synthetic+text&mode=keyword") in headers
+                assert status == 303 and ("location", "/natural-search?q=synthetic+text") in headers
                 for url in ("/sessions", "/sessions?display=chart", "/documents/1"):
                     status, body, _ = await request(url)
                     assert status == 200, (url, status)

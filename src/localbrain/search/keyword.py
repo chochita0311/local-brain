@@ -3,6 +3,7 @@
 from urllib.parse import urlencode
 
 from localbrain.foundation.config import settings
+from localbrain.models.storage import folder_status
 from localbrain.natural_search.source import _private_derived
 from localbrain.search.lexical import _fts_expression
 from localbrain.sources.settings import registered_session_roots
@@ -28,6 +29,8 @@ def keyword_search(connection, query, *, scope="all", limit=80, config=settings)
             WHERE d.id=entity_id AND r.enabled=1 AND r.readable=1))""")
     if not clauses:
         return []
+    # An unreadable optional model registration must not prevent keyword search.
+    model_cache = folder_status(config)["path"] if scope in {"all", "documents"} else None
     rows = connection.execute("""
         SELECT entity_type, entity_id, source_kind, search_index.title, path,
                snippet(search_index, 4, '[[', ']]', ' ... ', 26) AS excerpt,
@@ -43,7 +46,7 @@ def keyword_search(connection, query, *, scope="all", limit=80, config=settings)
         item = dict(row)
         owner_id = item.pop("owner_source_id")
         owner_root = item.pop("owner_root")
-        if item["entity_type"] == "document" and not str(item["path"]).startswith("apple-notes://") and _private_derived(item["path"], config):
+        if item["entity_type"] == "document" and not str(item["path"]).startswith("apple-notes://") and _private_derived(item["path"], config, model_cache):
             continue
         if item["entity_type"] == "session":
             if owner_id is None or roots.get(owner_id) != owner_root:

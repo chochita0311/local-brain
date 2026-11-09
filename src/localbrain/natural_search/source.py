@@ -47,17 +47,21 @@ class Source:
         return {key: value for key, value in self.__dict__.items() if key != "blocks"}
 
 
-def _private_derived(path, config):
+def _private_derived(path, config, model_cache=None):
     candidate = Path(path).expanduser().resolve()
     roots = [config.data_dir, cache_directory(config), development_directory(config)]
     from localbrain.foundation.paths import hub_cache_root
     roots.append(hub_cache_root())
+    if model_cache is not None:
+        roots.append(model_cache)
     return any(candidate == Path(root).resolve() or Path(root).resolve() in candidate.parents for root in roots)
 
 
 def read_sources(config, keys=None):
     """A consistent snapshot. `keys` narrows current-result validation, never indexing."""
     from localbrain.sources.settings import registered_session_roots
+    from localbrain.models.storage import embedding_cache_root
+    model_cache = embedding_cache_root(config)
     registered = registered_session_roots(config)
     selected = set(keys) if keys is not None else None
     values = []
@@ -95,7 +99,7 @@ def read_sources(config, keys=None):
             key = "document:" + str(row["id"])
             if selected is not None and key not in selected:
                 continue
-            if _private_derived(row["path"], config):
+            if _private_derived(row["path"], config, model_cache):
                 excluded_runtime_documents += 1
                 continue
             if not row["body"]:

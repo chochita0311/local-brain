@@ -26,6 +26,10 @@
   let contextSaving = false, pendingContextRemoval = null;
   let sourceSaving = false, sourceInitialValues;
   let picking = false;
+  const folderInput = $('#model-folder-input');
+  let folderBusy = false, folderEditing = false, checkedFolder = null, folderError = '';
+  const cutoffInput = $('#search-cutoff');
+  let cutoffBusy = false, cutoffEditing = false, cutoffError = '', cutoffNotice = '', cutoffVersion = 0;
   let pendingRemoval = null, removalNeedsReview = false;
   const message = (text, error = false) => {
     $('[data-settings-message]').textContent = [...new Set([readIssue?.text, text].filter(Boolean))].join(' ');
@@ -35,7 +39,10 @@
   async function api(url, options = {}) {
     const response = await fetch(url, options);
     const data = await response.json();
-    if (!response.ok) throw new Error(data.detail || '요청을 완료하지 못했습니다.');
+    if (!response.ok) {
+      const error = new Error(data.detail || '요청을 완료하지 못했습니다.');
+      error.status = response.status; throw error;
+    }
     return data;
   }
   const post = (url, value, method = 'POST') => api(url, {method, headers: {'Content-Type': 'application/json'}, body: JSON.stringify(value)});
@@ -555,23 +562,37 @@
   }
   function renderModel(next) {
     if (next && state) {state.model = next; modelVersion++;}
-    const model = state?.model, busy = generalLoading || modelActions > 0;
+    const model = state?.model, busy = generalLoading || modelActions > 0 || folderBusy || cutoffBusy || Boolean(model?.folder_busy);
+    renderCutoff();
+    renderFolder(model, busy);
     $$('[data-model-action], [data-generation-action]').forEach(button => {button.disabled = busy || !model;});
+    const searchNames = {ready: '준비 완료', disabled: '꺼짐', preparing: '준비 중'};
     $('[data-search-state]').textContent = searchStatus
-      ? (searchStatus.state === 'disabled' ? '현재 꺼져 있습니다.' : `${searchStatus.title} · ${searchStatus.description}`)
-      : searchLoading ? '검색 상태를 확인하고 있습니다.' : '검색 상태를 확인하지 못했습니다. 다시 불러오기를 눌러 주세요.';
-    $('[data-model-action="disable"]').disabled = busy || !model || !searchStatus || searchStatus.state === 'disabled';
+      ? (searchNames[searchStatus.state] || [searchStatus.title, searchStatus.description].filter(Boolean).join(' · '))
+      : searchLoading ? '확인 중…' : '검색 상태를 확인하지 못했습니다.';
+    $('[data-search-state]').dataset.state = searchStatus?.state || (searchLoading ? 'loading' : 'unavailable');
+    const prepare = $('[data-model-action="prepare"]');
+    prepare.textContent = !searchStatus || searchStatus.state === 'disabled' ? 'AI 검색 켜기' : searchStatus.state === 'failed' ? '다시 준비' : '색인 업데이트';
+    prepare.hidden = Boolean(model && !model.installed) || searchStatus?.state === 'preparing';
+    $('[data-model-action="disable"]').hidden = !searchStatus || searchStatus.state === 'disabled';
+    $('[data-search-retry]').hidden = generalLoading || !(state && (!model || (!searchStatus && !searchLoading) || state.search_settings?.error));
+    $('[data-search-retry]').disabled = busy;
+    $('[data-download-help]').hidden = Boolean(model?.installed);
+    const install = $('[data-model-action="install"]');
+    install.classList.toggle('primary-button', !model?.installed);
+    install.classList.toggle('secondary-button', Boolean(model?.installed));
+    $('[data-model-action="disable"]').disabled = busy || !model || !searchStatus || searchStatus.state === 'disabled' || Boolean(state?.search_settings?.error);
     if (!model) {
       const text = generalLoading ? '모델 상태를 확인하고 있습니다.' : '모델 상태를 확인하지 못했습니다. 다시 불러오기를 눌러 주세요.';
       $('[data-model-status]').textContent = text;
       $$('[data-generation-status]').forEach(node => {node.textContent = text;});
       return;
     }
-    const names = {ready: '모델과 검색 준비 완료', 'index-failed': '모델 설치 완료 · 검색 인덱스 준비 실패. AI 검색 준비를 다시 시도해 주세요.', idle: '설치 전', downloading: '다운로드 중 · 네트워크 상태에 따라 몇 분 걸릴 수 있습니다', verifying: '다운로드한 파일 검증 중', installed: '모델 설치 완료', preparing: '모델 설치 완료 · 검색 준비 중', canceled: '중단됨 · 다운로드 재개 가능', failed: '설치 실패 · 연결과 저장공간을 확인한 후 재시도해 주세요'};
-    $('[data-model-status]').textContent = model.runtime_missing.length ? '모델 실행 환경 없음 · local-models가 포함된 환경이 필요합니다.' : (model.installed && model.phase === 'idle' ? '모델 설치됨' : names[model.phase]);
+    const names = {ready: '설치됨', 'index-failed': '모델 설치 완료 · 검색 준비 실패. 다시 준비해 주세요.', idle: '설치 전', downloading: '다운로드 중 · 네트워크 상태에 따라 몇 분 걸릴 수 있습니다', verifying: '다운로드한 파일 검증 중', installed: '모델 설치 완료', preparing: '모델 설치 완료 · 검색 준비 중', canceled: '중단됨 · 다운로드 재개 가능', failed: '설치 실패 · 연결과 저장공간을 확인한 후 재시도해 주세요'};
+    $('[data-model-status]').textContent = model.runtime_missing.length ? '모델 실행 환경 없음 · local-models가 포함된 환경이 필요합니다.' : (model.installed && model.phase === 'idle' ? '설치됨' : names[model.phase]);
     $('[data-model-action="install"]').disabled = busy || model.running || model.runtime_missing.length > 0;
     $('[data-model-action="install"]').textContent = model.installed ? '다시 다운로드' : model.phase === 'canceled' || model.phase === 'failed' ? '다운로드 재개' : '모델 다운로드';
-    $('[data-model-action="prepare"]').disabled = busy || !searchStatus || !model.installed || model.runtime_missing.length > 0 || model.running || model.phase === 'preparing';
+    $('[data-model-action="prepare"]').disabled = busy || !searchStatus || !model.installed || model.runtime_missing.length > 0 || model.running || model.phase === 'preparing' || Boolean(state.search_settings?.error);
     $('[data-model-action="cancel"]').hidden = !(model.running && model.active_key === 'embedding') && model.phase !== 'preparing';
     for (const item of model.generation_models || []) {
       const missing = model.generation_runtime_missing || model.runtime_missing;
@@ -588,6 +609,7 @@
   async function load() {
     const version = ++loadVersion;
     const modelRead = ++modelVersion;
+    const cutoffRead = cutoffVersion;
     generalLoading = true; searchLoading = true; searchStatus = null; renderGeneral();
     try {
       await generalSave;
@@ -596,8 +618,10 @@
       const loaded = await api('/api/settings');
       if (version !== loadVersion) return;
       const confirmedModel = state?.model;
+      const confirmedCutoff = state?.search_settings;
       state = loaded;
       if (modelRead !== modelVersion) state.model = confirmedModel;
+      if (cutoffRead !== cutoffVersion || cutoffBusy) state.search_settings = confirmedCutoff;
       readIssue = {text: state.errors.concat(state.session_sources?.diagnostics.map(item => item.message) || []).join(' '), error: state.errors.length > 0};
       generalLoading = false; render();
     } catch (error) {
@@ -637,7 +661,7 @@
     close.textContent = onboarding ? '나중에 설정' : '닫기';
     close.setAttribute('aria-label', onboarding ? '나중에 설정하고 시작' : '설정 닫기');
     close.disabled = contextSaving || picking || (onboarding && (activeActions > 0 || generalLoading));
-    $('[data-onboarding-retry]').hidden = generalLoading || !(readIssue?.text || (selectedTab === 'search' && state && (!state.model || (!searchStatus && !searchLoading))));
+    $('[data-onboarding-retry]').hidden = generalLoading || !readIssue?.text;
     $('[data-onboarding-retry]').disabled = activeActions > 0 || generalLoading;
     if (!onboarding) return;
     const busy = activeActions > 0 || generalLoading;
@@ -1002,7 +1026,9 @@
     root.replaceChildren();
     const group = element('div', '', 'settings-group');
     const volumes = new Map();
-    for (const [name, key] of [['데이터·설정', 'data'], ['앱 캐시', 'cache'], ['공유 공개 모델 캐시', 'models']]) {
+    const storageLocations = [['데이터·설정', 'data'], ['앱 캐시', 'cache'], ['공유 공개 모델 캐시', 'models']];
+    if (data.locations.embedding_models) storageLocations.push(['검색 모델 저장 폴더', 'embedding_models']);
+    for (const [name, key] of storageLocations) {
       const location = data.locations[key];
       const row = element('div', '', 'settings-group-row');
       const identity = element('div', '', 'settings-group-identity');
@@ -1054,6 +1080,7 @@
   }
   $('[data-onboarding-back]').addEventListener('click', event => execute(async () => {onboardingStep--; await showOnboardingStep(true);}, event.currentTarget));
   $('[data-onboarding-retry]').addEventListener('click', event => execute(load, event.currentTarget));
+  $('[data-search-retry]').addEventListener('click', event => execute(refreshModels, event.currentTarget));
   $('[data-onboarding-skip]').addEventListener('click', event => execute(async () => {
     if (onboardingStep === onboardingSteps.length - 1) await finishOnboarding();
     else {onboardingStep++; await showOnboardingStep(true);}
@@ -1076,15 +1103,168 @@
   async function refreshModels() {
     const version = loadVersion;
     const modelRead = ++modelVersion;
+    const cutoffRead = cutoffVersion;
     const searchRead = readSearchStatus(version, modelRead);
-    const model = await api('/api/settings').then(data => data.model, () => null);
+    const loaded = await api('/api/settings').catch(() => null);
     if (version !== loadVersion || modelRead !== modelVersion || generalLoading || !state) return;
-    state.model = model;
+    state.model = loaded?.model || null;
+    if (cutoffRead === cutoffVersion && !cutoffBusy && loaded) state.search_settings = loaded.search_settings;
     renderModel(); renderOnboardingControls();
     await searchRead;
   }
+
+  function renderCutoff() {
+    const config = state?.search_settings;
+    const available = Boolean(config?.revision && !config.error && Number.isFinite(config.cutoff));
+    if (available && !cutoffEditing && !cutoffBusy) cutoffInput.value = config.cutoff;
+    cutoffInput.disabled = generalLoading || cutoffBusy || !available;
+    for (const selector of ['[data-cutoff-reset]', '[data-cutoff-retry]']) {
+      $(selector).disabled = generalLoading || !available;
+      $(selector).setAttribute('aria-disabled', String(cutoffBusy));
+    }
+    $('[data-cutoff-retry]').hidden = !cutoffError || !available;
+    $('[data-search-cutoff-form]').setAttribute('aria-busy', String(cutoffBusy));
+    const status = $('[data-cutoff-status]');
+    status.textContent = cutoffError || config?.error || cutoffNotice;
+    status.dataset.error = String(Boolean(cutoffError || config?.error));
+  }
+  async function saveCutoff() {
+    if (cutoffBusy || cutoffInput.disabled) return;
+    if (!cutoffInput.checkValidity() || !Number.isFinite(Number(cutoffInput.value))) {
+      cutoffError = '최소 관련도는 0부터 1 사이의 숫자로 입력해 주세요.';
+      renderCutoff(); cutoffInput.reportValidity(); return;
+    }
+    const cutoff = Number(cutoffInput.value), config = state.search_settings;
+    if (cutoff === config.cutoff) {cutoffEditing = false; cutoffError = ''; renderCutoff(); return;}
+    const restoreInputFocus = document.activeElement === cutoffInput;
+    await execute(async () => {
+      cutoffBusy = true; cutoffVersion++; cutoffError = ''; cutoffNotice = '저장 중…'; renderModel();
+      try {
+        state.search_settings = await post('/api/settings/search', {cutoff, revision: config.revision});
+        cutoffEditing = false; cutoffNotice = '저장했습니다. 다음 검색부터 적용됩니다.';
+      } catch (error) {
+        const confirmed = await api('/api/settings/search').catch(() => null);
+        if (confirmed?.revision && !confirmed.error) state.search_settings = confirmed;
+        if (confirmed?.revision && confirmed.cutoff === cutoff && !confirmed.error) {
+          cutoffEditing = false; cutoffNotice = '저장했습니다. 다음 검색부터 적용됩니다.';
+        } else {
+          cutoffError = error.status >= 400 && error.status < 500
+            ? error.message : '검색 관련도를 저장하지 못했습니다. 다시 시도해 주세요.';
+          if (error.status === 409 && confirmed?.revision) cutoffError += ` 현재 저장된 값: ${confirmed.cutoff}.`;
+          cutoffEditing = true; cutoffNotice = '';
+        }
+      } finally {cutoffBusy = false; cutoffVersion++;}
+    });
+    if (restoreInputFocus && dialog.open && selectedTab === 'search' && !cutoffInput.disabled) cutoffInput.focus({preventScroll: true});
+  }
+  cutoffInput.addEventListener('focus', () => {cutoffEditing = true;});
+  cutoffInput.addEventListener('input', () => {cutoffEditing = true;});
+  cutoffInput.addEventListener('blur', () => {
+    if (!cutoffBusy && !cutoffError) {cutoffEditing = false; renderCutoff();}
+  });
+  cutoffInput.addEventListener('change', () => saveCutoff());
+  $('[data-search-cutoff-form]').addEventListener('submit', event => {event.preventDefault(); saveCutoff();});
+  $('[data-cutoff-reset]').addEventListener('pointerdown', event => {event.preventDefault();});
+  $('[data-cutoff-reset]').addEventListener('click', () => {
+    if (cutoffBusy || cutoffInput.disabled) return;
+    cutoffInput.value = state.search_settings.default_cutoff;
+    cutoffEditing = true; saveCutoff();
+  });
+  dialog.addEventListener('close', () => {
+    if (!cutoffBusy) {cutoffEditing = false; cutoffError = ''; cutoffNotice = '';}
+  });
+
+  function renderFolder(model = state?.model, busy = generalLoading || modelActions > 0 || folderBusy) {
+    const folder = model?.folder, result = $('[data-folder-result]');
+    if (folder?.path) {
+      $('[data-folder-current]').textContent = folder.display_path;
+      if (folderEditing && !model.running && (checkedFolder?.path === folder.path
+          || folderInput.value.trim() === folder.path || folderInput.value.trim() === folder.display_path)) {
+        folderEditing = false; checkedFolder = null;
+      }
+      if (!folderEditing) folderInput.value = folder.display_path;
+    }
+    if (checkedFolder && folder?.revision !== checkedFolder.revision) {
+      checkedFolder = null;
+      result.textContent = '모델 설정이 변경되었습니다. 폴더를 다시 확인해 주세요.';
+    }
+    const locked = busy || picking || Boolean(model?.running || model?.folder_busy) || !folder?.revision;
+    folderInput.disabled = locked;
+    $$('[data-model-folder] button').forEach(button => {button.disabled = locked;});
+    $('[data-folder-editor]').hidden = !folderEditing && !folder?.error && !folderError;
+    $('[data-folder-apply]').hidden = checkedFolder?.state === 'missing';
+    $('[data-folder-apply]').disabled = locked || checkedFolder?.state !== 'valid';
+    $('[data-folder-download]').hidden = checkedFolder?.state !== 'missing';
+    $('[data-folder-download]').disabled = locked || Boolean(model?.runtime_missing.length);
+    if (folder?.error) {result.textContent = folder.error; result.dataset.state = 'unreadable';}
+    if (folderError) {result.textContent = folderError; result.dataset.state = 'unreadable';}
+    if (checkedFolder?.downloading && !model.running && ['failed', 'canceled'].includes(model.phase)) {
+      result.textContent = '다운로드를 완료하지 못했습니다. 기존 위치를 유지합니다. 이 폴더에 다시 다운로드할 수 있습니다.';
+    }
+  }
+  function refreshFolder() {
+    checkedFolder = null; folderError = '';
+    folderEditing = folderInput.value.trim() !== $('[data-folder-current]').textContent;
+    $('[data-folder-result]').textContent = '새 폴더의 모델 파일을 확인해 주세요.';
+    delete $('[data-folder-result]').dataset.state;
+    renderFolder();
+  }
+  async function folderAction(handler, button) {
+    await execute(async () => {
+      folderBusy = true; folderError = ''; renderModel();
+      try {await handler();}
+      catch (error) {
+        checkedFolder = null;
+        folderError = error.status >= 400 && error.status < 500
+          ? error.message : '모델 폴더 작업을 확인하지 못했습니다. 다시 확인해 주세요.';
+      } finally {folderBusy = false;}
+    }, button, {modelAction: true});
+    if (dialog.open && selectedTab === 'search') {
+      const target = $('[data-folder-editor]').hidden || button?.matches('[data-folder-pick]') ? folderInput : button;
+      target?.focus({preventScroll: true});
+    }
+  }
+  folderInput.addEventListener('input', refreshFolder);
+  $('[data-folder-pick]').addEventListener('click', event => folderAction(async () => {
+    const chosen = await pick(true);
+    if (chosen) {folderInput.value = chosen; refreshFolder();}
+  }, event.currentTarget));
+  $('[data-folder-reset]').addEventListener('click', () => {
+    folderInput.value = state.model.folder.recommended_path; refreshFolder(); folderInput.focus();
+  });
+  function cancelFolder() {
+    folderInput.value = $('[data-folder-current]').textContent; refreshFolder(); folderInput.focus();
+  }
+  $('[data-folder-cancel]').addEventListener('click', cancelFolder);
+  $('[data-folder-check]').addEventListener('click', event => folderAction(async () => {
+    const input = folderInput.value.trim();
+    $('[data-folder-result]').textContent = '모델 파일을 확인하는 중…';
+    const checked = await post('/api/settings/model-folder/check', {path: input});
+    if (folderInput.value.trim() !== input) return;
+    checkedFolder = {...checked, input};
+    $('[data-folder-result]').dataset.state = checked.state;
+    $('[data-folder-result]').textContent = ({valid:'모델 파일을 확인했습니다. 이 폴더를 사용할 수 있습니다.',missing:'이 폴더에 모델 파일이 없습니다. 다운로드와 파일 확인을 마치기 전까지 기존 위치를 유지합니다.',unreadable:'폴더를 읽을 수 없습니다. 접근 권한을 확인해 주세요.',invalid:'모델 파일이 일치하지 않습니다. 다른 폴더를 선택해 주세요.'})[checked.state] || '폴더를 확인하지 못했습니다. 다시 시도해 주세요.';
+  }, event.currentTarget));
+  async function changeModelFolder(action) {
+    const checked = checkedFolder;
+    if (!checked || folderInput.value.trim() !== checked.input) return;
+    if (action === 'download') checked.downloading = true;
+    try {renderModel(await post('/api/settings/model-folder/' + action, {path: checked.path, revision: checked.revision}));}
+    catch (error) {
+      await refreshModels();
+      if (state?.model?.folder?.path !== checked.path) throw error;
+    }
+    if (action === 'download' && state.model.running) $('[data-folder-result]').textContent = '새 폴더에 모델을 다운로드하고 있습니다. 완료 전까지 기존 위치를 유지합니다.';
+    else {folderEditing = false; checkedFolder = null; renderModel();}
+  }
+  $('[data-folder-apply]').addEventListener('click', event => folderAction(() => changeModelFolder('apply'), event.currentTarget));
+  $('[data-folder-download]').addEventListener('click', event => folderAction(() => changeModelFolder('download'), event.currentTarget));
+  $('[data-model-folder]').addEventListener('keydown', event => {
+    if (event.key === 'Escape' && folderEditing && !folderBusy) {event.preventDefault();event.stopPropagation();cancelFolder();}
+  });
+
   async function pollModel() {
-    if (dialog.open && selectedTab === 'search' && !generalLoading && state) await refreshModels();
+    if (dialog.open && selectedTab === 'search' && !generalLoading && !folderBusy && !cutoffBusy && state) await refreshModels();
     setTimeout(pollModel, 3000);
   }
   pollModel();

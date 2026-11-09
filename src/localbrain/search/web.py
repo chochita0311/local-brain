@@ -34,7 +34,7 @@ def search_page(
 ):
     """Deprecated keyword-search entry point retained for existing URLs."""
     if DESKTOP:
-        return RedirectResponse("/natural-search?" + urlencode({"q": q, "mode": "keyword"}), status_code=303)
+        return RedirectResponse("/natural-search?" + urlencode({"q": q}), status_code=303)
     selected_source = (
         source if source in {"all", "sessions", "documents", "atlassian"} else "all"
     )

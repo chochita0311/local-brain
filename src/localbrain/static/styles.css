@@ -1289,7 +1289,8 @@ a.search-result:hover { background: var(--surface-subtle); }
 .result-excerpt { min-width: 0; display: -webkit-box; overflow: hidden; margin: var(--space-control-gap) var(--space-none) var(--space-none); overflow-wrap: anywhere; color: var(--text-secondary); -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
 .natural-search-form label { min-width: 0; }
 .natural-search-status { max-width: var(--content-search-max); margin-bottom: var(--space-section); padding: var(--space-card); background: var(--surface-subtle); border-left: var(--border-width-focus) solid var(--border-info); }
-.natural-search-status[data-state="failed"] { border-left-color: var(--border-danger); }
+.natural-search-status[hidden], [data-search-repeat][hidden] { display: none; }
+.natural-search-status[data-state="failed"], .natural-search-status[data-state="unavailable"] { border-left-color: var(--border-danger); }
 .natural-search-status[data-state="partial"], .natural-search-status[data-state="model-missing"] { border-left-color: var(--border-warning); }
 .natural-search-status[data-state="ready"] { border-left-color: var(--border-success); }
 .natural-search-status[data-state="disabled"], .natural-search-status[data-state="no-data"] { border-left-color: var(--border-subtle); }

@@ -23,7 +23,7 @@ def install_storage_routes(app):
         from localbrain.foundation.paths import home_relative_path
         status = storage_status()
         status["display_paths"] = {key: home_relative_path(status[key])
-                                   for key in ("data", "cache", "models")}
+                                   for key in status['locations']}
         return status
 
     @app.post("/api/settings/backup")
