@@ -136,7 +136,7 @@ class AppDocsTests(unittest.TestCase):
         self.assertNotIn('data-onboarding="true"', html)
         self.assertNotIn('class="app-shell" inert', html)
         self.assertLess(html.index('href="/help?lang=en"'), html.index("data-settings-open"))
-        self.assertIn("Read the getting started guide", html)
+        self.assertIn('class="app-docs" lang="en"', html)
         self.assertFalse(self.preferences.onboarding_completed)
 
     def test_home_query_cannot_select_another_guide(self):

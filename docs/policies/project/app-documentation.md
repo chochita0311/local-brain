@@ -22,7 +22,7 @@ reader behavior and delivery contract.
 - The existing FastAPI `/docs` API-reference route is unchanged. Product Docs are a separate destination.
 - A Docs link appears immediately above Settings in the shared sidebar footer. Both remain reachable in the compact layout. Docs use the existing app shell, reading tokens, local assets and current-page semantics.
 - The reader has no per-guide Settings action or release-version badge. Shared app Settings remains available. The Settings guide omits About, app-versus-data-format version explanations and fixed path-label rules as part of its content boundary. Sessions explains home-directory path labels beside its conversation metadata, preserving the distinction between display, saved locations and historical Project attribution.
-- First-use setup does not automatically cover a Docs page. Its Welcome step links to Getting Started; following that link does not complete onboarding or register a source. The existing explicit setup request and normal app startup retain their behavior.
+- First-use setup does not automatically cover a Docs page. Docs remain available from the shared sidebar; reading a guide does not complete onboarding or register a source. The existing explicit setup request and normal app startup retain their behavior.
 - Body text is marked with its selected Korean or English language. Guidance uses existing UI names and quotes Korean control labels where that helps users find the current control; Docs do not translate the rest of the app.
 - Unknown guide names return 404. A registered guide whose packaged content cannot be read returns a bounded unavailable state, without a source path or private fallback.
 

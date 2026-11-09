@@ -155,7 +155,6 @@
 .onboarding-welcome .brand-mark { width: calc(var(--control-min-height-touch) * 2); height: calc(var(--control-min-height-touch) * 2); border-radius: var(--radius-dialog); font-size: var(--type-page-size); font-weight: var(--type-medium); }
 .settings-dialog--onboarding .onboarding-welcome > h3 { margin: 0; }
 .settings-dialog--onboarding .onboarding-welcome > p { margin: 0; line-height: var(--type-line-body); }
-.onboarding-welcome .onboarding-note, .onboarding-welcome small { font-size: var(--type-body-small-size); color: var(--text-secondary); }
 .onboarding-footer { display: flex; flex: none; flex-direction: column; gap: var(--space-section); padding: var(--space-card) var(--space-page-inline) var(--space-section); background: var(--surface-overlay); }
 .onboarding-navigation { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: var(--space-control-gap); }
 .onboarding-navigation > [data-onboarding-back][data-first-step] { visibility: hidden; }

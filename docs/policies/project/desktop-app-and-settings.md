@@ -92,8 +92,8 @@ behavior are recorded separately in Feature and Run evidence.
   and the current step. Back retains drafts. Skip does not register a draft.
   Empty sources and model-free search are valid; no step navigation downloads
   or prepares a model. The existing explicit model actions retain that authority.
-- Welcome links to bundled Getting Started in the selected Docs language,
-  defaulting to Korean. Docs pages do not
+- Welcome presents the brand mark, greeting and a short product-purpose statement.
+  Bundled Getting Started remains available from the sidebar Docs entry. Docs pages do not
   auto-open onboarding over their content; reading the guide does not complete
   setup or register sources. Explicit setup requests and ordinary startup keep
   the existing completion behavior. [In-App Documentation](app-documentation.md)
