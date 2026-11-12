@@ -497,10 +497,10 @@ Omit no-screen explanation text; disabled directions remain non-actionable.
 
 ### Navigation Model
 
-The persistent navigation has three groups and nine stable destinations:
+The persistent navigation has three groups. Available destinations follow the edition and feature admission rules:
 
 - **Overview:** Dashboard, Sessions Dashboard
-- **Workspace:** 자동 작업, Workstreams, Sessions, Atlassian, Local Contexts
+- **Workspace:** 자동 작업, Workstreams, Terminal (macOS web only), Sessions, Atlassian, Local Contexts
 - **System:** Sources, Schema
 
 Active navigation uses text, surface, and an accent indicator. Narrow navigation preserves every destination, supports horizontal scrolling, and keeps the active item visible.
@@ -600,6 +600,11 @@ Every persisted or user-visible derived state has one semantic family and a text
 | Atlassian URL-derived structure reference | `available` | success | current local Session or Local Context evidence remains visible beside the stable URL-derived provenance cue |
 | Atlassian URL-derived structure reference | `unavailable` | warning | retained reference remains visible while its current local evidence source cannot be read |
 | Atlassian URL-derived structure reference | `archived` | neutral | direct history remains inspectable after all owning evidence has disappeared; default inventory and Search exclude it |
+| Terminal process | `running` / `exited` | neutral | live shell and retained exited screen remain distinct; × ends and removes its owned process |
+| Terminal service | `running` / `stopped` | neutral | service controls are distinct from ending a terminal |
+| Terminal service | `unknown` / `incompatible` | warning | preserve the last screen; require a confirmed connection or explicit stop/restart |
+| Terminal view | read-only / disconnected | neutral / warning | name ownership or connection state; offer explicit takeover or reconnect |
+| Terminal tab | background | neutral | omitted from the workspace, retained in the management list with reopen/end actions |
 
 ### Derived And Transient UI States
 
@@ -951,6 +956,30 @@ Session and Subsession metadata, copy feedback and conversation role/completion 
   an internal schema/API/diagnostic term and may remain in historical artifacts,
   but it is not ordinary task copy.
 
+### Terminal Workspace
+
+- On macOS web, Settings has a Terminal pane using the existing path, label,
+  input and Save control family. It holds default folder/shell and one short
+  future-instance hint. New and Split open directly without a per-launch form;
+  splits inherit the clicked pane. Keep the Settings shell/native exclusions.
+- Management puts Background beside View and End Terminals for visible tabs;
+  hidden tabs offer Open and End Terminals. Name visible/background state.
+  All-background empty state leads to the retained-work list. These actions
+  preserve the existing distinction between view removal and process termination.
+
+- Terminal extends the technical console family with one live canvas beneath compact tabs. Its menu sits immediately above Sessions on macOS web; native editions do not show or load it.
+- The live terminal's font alias uses the bundled, URL-only D2Coding faces, with
+  the shared mono role for uncovered characters. Keep the13px default and2:1
+  Hangul/Latin cell metrics without changing shell/UI typography. Disable coding
+  ligatures. Wait for both faces before opening/measuring panes; a missing file
+  exposes one contextual reload action rather than silently accepting fallback.
+- Each tab has a distinct select and × action. Each pane has a title, short state, split menu and ×. Tabs allow up to four panes: the first split chooses side-by-side or stacked panes, and three/four use a balanced2×2 grid. At the shared 700px breakpoint show one selected pane with a pane switcher, preserving the underlying processes and layout.
+- Tab menu background action removes the view while retaining execution. The management dialog lists visible/background tabs and their terminals, with reopen/end actions and separately named service controls. Browser navigation never implies termination. Destructive confirmations name the affected scope.
+- A terminal owns input while focused. Shift+Escape moves focus to its pane menu without consuming ordinary Escape in a TUI. Other windows observe until explicit takeover. Reconnect restores supported screen state; unavailable connections and truncated history remain contextual and legible.
+- Reuse shell spacing, type, border, focus and dialog roles. Terminal-specific semantic aliases own the canvas height (`clamp(24rem, calc(100dvh - 16rem), 56rem)`), empty-state minimum height (12rem), dialog width (36rem), tab label bound (15rem), menu minimum width (11rem), compact title/status bounds (8rem/6rem), and code-surface foreground/background. The live grid and terminal's own scrollback own overflow; the document retains normal page scroll.
+- Keep primary UI to actions and current state. Setup, failures, ownership and termination consequences appear only in their relevant region; detailed lifecycle and CLI usage belong in Docs.
+- An unclean manager loss warns that previous work may remain; an empty new list must not imply confirmed termination. Failed termination stays visible and retryable. Composition input retains ownership before the Shift+Escape menu shortcut is considered.
+
 ### Execution
 
 - Configuration, queued/running state, output, artifacts, and terminal result
@@ -1032,7 +1061,7 @@ Any durable change to visual DNA, primitive families, semantic roles, shell geom
 | Detail and read | Lesson, Session, Subsession, Document, local Resource | prioritizes readable body width, source metadata, deep links and long technical content; lesson response precedes feedback, with explicit explanation-first access and self-assessment; code/command lessons keep essential conditions and numbered source visible beside reasoning, stack at the shared compact breakpoint, contain long lines locally, and use document flow for tall content; unsaved draft and saved response states stay distinct |
 | Workstream workspace | Workstream detail | preserves Workstream → Thread → evidence hierarchy and separates confirmed organization from Suggestions |
 | Explorer | Auto Work full-history affinity, Atlassian, Local Contexts, Schema, Session Workflow Focus | preserves source, subject, or Episode selection; hierarchy/tree/table/time orientation; progressive preview or Trace; unreadable, missing, honestly unassigned, unconnected, partial, and diagram-unavailable states; affinity remains undirected observation rather than persisted work identity, Workflow Focus keeps artifacts subordinate to Episodes on fixed lanes, and Atlassian keeps top service scopes outside its domain-first hierarchy |
-| Run and console | maintenance Run | represents the complete Run lifecycle, cancellation, output, artifacts, and terminal result |
+| Run and console | maintenance Run, Terminal | represents the complete Run lifecycle, cancellation, output, artifacts, and terminal result |
 
 New routes fit one of these families or justify a constitution change. A new feature does not create a new visual family merely because its data is new.
 

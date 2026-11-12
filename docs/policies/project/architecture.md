@@ -14,6 +14,7 @@ Product terminology and organization rules are defined in [Product Model](produc
 - Search: existing SQLite FTS5 plus optional local Qwen semantic ordering and lexical exact-identifier admission
 - Frontend: server-rendered Jinja2 with small JSON API interactions
 - External integration boundary: optional feature-specific adapters and approved authorization contracts
+- Optional macOS web terminal: xterm browser, independent Node/node-pty manager and Python control bridge; [Terminal](terminal.md) owns lifecycle and memory limits
 - Desktop packaging: Tauri 2 and a PyInstaller Python 3.11 bundle, Apple Silicon
 
 The standalone test edition admits Sessions, Sessions Dashboard, Local Context,
@@ -83,6 +84,7 @@ localbrain/
 ├── ingest/                          # provider parsing, evidence and source synchronization
 ├── sources/                         # source registry/settings and sync services
 ├── sessions/                        # activity, queries, reading, pins, references, web
+├── terminal/                        # macOS web-only PTYs, manager, setup/control and bridge
 ├── local_context/                   # document sources, queries, references, web
 ├── usage/                           # records, pricing, aggregation, web
 ├── resources/                       # resource identity/store and related-resource reads

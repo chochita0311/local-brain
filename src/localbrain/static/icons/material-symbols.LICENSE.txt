@@ -2,7 +2,7 @@ Google Material Symbols Outlined
 Source: https://github.com/google/material-design-icons
 Revision: 10ecc14790612ca8fd164e3f4ffe9c16fc50d5b7
 LocalBrain modification: selected unchanged paths combined into an SVG symbol sprite.
-Icons: space_dashboard, monitoring, manage_search, smart_toy, account_tree, chat_bubble, folder_open, link, database, schema, menu_book, settings, left_panel_close, left_panel_open
+Icons: terminal, space_dashboard, monitoring, manage_search, smart_toy, account_tree, chat_bubble, folder_open, link, database, schema, menu_book, settings, left_panel_close, left_panel_open
 
 
                                  Apache License

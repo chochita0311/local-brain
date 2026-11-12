@@ -64,6 +64,26 @@ assets and records LocalBrain's installation metadata. `uv run --no-sync localbr
 `uv run --no-sync localbrain models status` inspect readiness without reading sources or
 downloading/running models.
 
+## Optional Web Terminal
+
+On macOS, install Node.js 20+ and npm, then use `uv run lb terminal service install`
+or the explicit setup action in Terminal. Setup never opens a shell. The
+[Terminal contract](terminal.md) owns service/PTY lifecycle, update shutdown and
+resource bounds; web Docs owns ordinary usage. The app edition excludes it.
+
+Build/check the local browser bundle with `npm run build:terminal` and
+`npm run check:terminal` after `npm ci`. The pinned optional engine lock lives
+under `src/localbrain/terminal/runtime/`, independently of the browser build lock.
+The browser build selects the published CommonJS entry before producing ESM;
+check mode also probes the compiled terminal's DECRQM response. This avoids a
+re-minification defect in the pinned published ESM without altering vendor code.
+Runtime setup selects node-pty's native helper using Node's own architecture.
+No global npm packages or user shell rc changes are needed. For synthetic
+real-PTY tests, point `LOCALBRAIN_TERMINAL_TEST_ENGINE` at a prepared isolated
+engine directory, then run `tests/test_terminal.py`; the fixture isolates HOME,
+uses a short private temporary socket path and cleans up its own jobs. Ordinary
+HTTP/CLI tests require the default dev dependency group and do not start a shell.
+
 ## Development Web Workflows
 
 The development web server exposes the wider project workflows below. The
@@ -378,7 +398,7 @@ changes. The implementation practices below remain owned by this guide.
 
 - LocalBrain pins Mermaid `11.16.0` and the official `@mermaid-js/layout-elk` `0.2.2` loader as project dependencies and esbuild `0.28.1` as its build-only bundler in the repository-owned `package.json` and `package-lock.json`.
 - The packages come from the public npm distributions named `mermaid`, `@mermaid-js/layout-elk`, `elkjs`, and `esbuild`. Mermaid, the layout loader, and esbuild are MIT-licensed; the transitive `elkjs` `0.9.3` engine is EPL-2.0. Reviewed copies of all four licenses are emitted with the browser asset and the lockfile retains exact integrity metadata.
-- Node.js `20` or later and npm are required only when installing or updating browser build inputs. The Python application, installed `localbrain` command, and web runtime do not invoke Node, npm, a CDN, or an external renderer.
+- For Mermaid rendering, Node.js `20` or later and npm are required only when installing or updating its browser build inputs. This rendering path does not invoke Node, npm, a CDN, or an external renderer from the Python application, installed `localbrain` command, or web runtime. The [optional web terminal](#optional-web-terminal) has a separate Node runtime and explicit npm setup.
 - Install the exact lockfile graph and generate the reviewed output set with:
 
 ```bash
@@ -436,7 +456,7 @@ node scripts/qa-schema-explorer-browser.mjs http://127.0.0.1:8000 /tmp/localbrai
 ```
 
 - The harness uses a temporary Chrome profile and writes synthetic schema-only screenshots to the requested output directory. Set `LOCALBRAIN_CHROME_PATH` only when Chrome is installed outside the normal macOS application path.
-- Browser runtime still requires neither Node nor npm. Node is used here only by the repository verification harness and by the existing Mermaid build/check workflow.
+- Schema Explorer's browser rendering requires neither Node nor npm. Node is used in this verification workflow only by the repository harness and the Mermaid build/check commands.
 
 ## Verification
 

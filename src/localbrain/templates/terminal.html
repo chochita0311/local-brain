@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Terminal · LocalBrain{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', path='/vendor/xterm/xterm.css') }}?v={{ asset_version }}">
+<link rel="stylesheet" href="{{ url_for('static', path='/terminal.css') }}?v={{ asset_version }}">
+{% endblock %}
+{% block content %}
+<section class="terminal-page" data-terminal-page aria-busy="true">
+  <header class="page-heading terminal-heading">
+    <h1>Terminal</h1>
+    <div class="terminal-actions">
+      <button class="secondary-button" type="button" data-settings-open="terminal" aria-label="터미널 설정">설정</button>
+      <button class="secondary-button" type="button" data-terminal-manage>실행 중 <span data-terminal-count>—</span></button>
+      <button class="primary-button" type="button" data-terminal-new disabled>새 터미널</button>
+    </div>
+  </header>
+  <div class="terminal-feedback" role="status" data-terminal-error hidden></div>
+  <button class="secondary-button terminal-font-retry" type="button" data-terminal-font-retry hidden>글꼴 다시 불러오기</button>
+  <div class="terminal-toolbar">
+    <div class="terminal-tabs" role="tablist" aria-label="터미널 탭" data-terminal-tabs></div>
+    <select class="terminal-pane-select" aria-label="표시할 터미널" data-terminal-pane-select hidden></select>
+    <details class="terminal-menu" data-terminal-tab-menu hidden>
+      <summary aria-label="탭 메뉴">⋯</summary>
+      <div class="terminal-menu-items">
+        <button type="button" data-terminal-background>백그라운드로 보내기</button>
+        <button type="button" data-terminal-rename>이름 변경</button>
+      </div>
+    </details>
+  </div>
+  <div class="terminal-empty panel" data-terminal-empty hidden>
+    <span data-terminal-empty-text>터미널 없음</span>
+    <button class="secondary-button" type="button" data-terminal-empty-action>새 터미널</button>
+  </div>
+  <div class="terminal-workspace" data-terminal-workspace></div>
+  <dialog class="terminal-dialog terminal-manager" data-terminal-manage-dialog aria-labelledby="terminal-manage-title">
+    <header><h2 id="terminal-manage-title">터미널 관리</h2><button type="button" class="shell-icon-button" data-terminal-dialog-close aria-label="닫기">×</button></header>
+    <p class="terminal-feedback" role="status" data-terminal-manage-error hidden></p>
+    <div class="terminal-managed-list" data-terminal-managed-list></div>
+    <section class="terminal-service">
+      <div><h3>백그라운드 서비스</h3><span data-terminal-service-state>확인 중</span></div>
+      <div class="terminal-actions">
+        <button type="button" class="secondary-button" data-terminal-service="start" disabled>시작</button>
+        <button type="button" class="secondary-button" data-terminal-service="stop" disabled>중지</button>
+        <button type="button" class="secondary-button" data-terminal-service="restart" disabled>재시작</button>
+      </div>
+    </section>
+    <footer><button type="button" class="secondary-button" data-terminal-stop-all>전체 터미널 종료</button></footer>
+  </dialog>
+  <noscript><p>터미널을 사용하려면 JavaScript를 켜 주세요.</p></noscript>
+</section>
+{% endblock %}
+{% block scripts %}
+<script type="module" src="{{ url_for('static', path='/terminal.js') }}?v={{ asset_version }}"></script>
+{% endblock %}

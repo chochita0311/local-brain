@@ -61,6 +61,11 @@
               {{ icon('account_tree', 'nav-symbol') }}<span class="nav-label">Workstreams</span>
             </a>
             {% endif %}
+            {% if terminal_available | default(false) %}
+            <a class="lnb-item {% if active_page == 'terminal' %}active{% endif %}" href="/terminal" {% if active_page == 'terminal' %}aria-current="page"{% endif %} aria-label="Terminal" data-shell-tooltip="Terminal" data-tooltip-compact data-tooltip-side="right">
+              {{ icon('terminal', 'nav-symbol') }}<span class="nav-label">Terminal</span>
+            </a>
+            {% endif %}
             <a class="lnb-item {% if active_page == 'sessions' %}active{% endif %}" href="/sessions" {% if active_page == 'sessions' %}aria-current="page"{% endif %} aria-label="Sessions" data-shell-tooltip="Sessions" data-tooltip-compact data-tooltip-side="right">
               {{ icon('chat_bubble', 'nav-symbol') }}<span class="nav-label">Sessions</span>
             </a>

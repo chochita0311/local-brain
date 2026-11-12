@@ -63,6 +63,7 @@
 
     document.addEventListener('keydown', event => {
       if (event.defaultPrevented || event.isComposing || event.keyCode === 229) return;
+      if (event.target instanceof Element && event.target.closest('[data-terminal-input]')) return;
       const key = event.key.toLowerCase();
       const modifier = mac ? event.metaKey && !event.ctrlKey : event.ctrlKey && !event.metaKey;
       let command;

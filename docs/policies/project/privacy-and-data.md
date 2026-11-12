@@ -97,6 +97,16 @@ The [installation/storage contract](installation-and-storage.md) owns configurab
 roots and the explicit upgrade command. Migration preserves source content,
 the main DB and saved Runs; it never publishes them.
 
+### Web Terminal
+
+The optional macOS web [Terminal](terminal.md) keeps shell output, VT screens,
+tab metadata and layout in bounded manager memory. Neither input/output nor an
+environment/credential dump is persisted, indexed, attached to Sessions or sent
+to a connector. Private cache files contain only optional engine setup, owner-only
+IPC/lock and process identity. Service stop/reboot drops the screen state; backups
+exclude it. User-run shell commands retain their ordinary filesystem/network
+behavior and shell history rules. The manager itself does not record transcripts.
+
 ### Maintenance And Personal Insight Evidence
 
 An in-app Task Runner stream remains a private Run artifact used for the Run Console and result parsing. It must not be re-imported as a Session, Usage Record, Local Context document, Activity Event, or search row. The selected Claude or Codex runner's persisted native JSONL is the sole Session and Usage source for that execution; maintenance policy keeps its content and resolved child content out of ordinary activity and search consumers while their direct real-model Usage Records remain eligible for cost totals.

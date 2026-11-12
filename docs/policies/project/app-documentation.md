@@ -2,8 +2,8 @@
 
 ## Purpose And Scope
 
-In-app Docs are six bundled Korean and English guides for people using the distributed
-LocalBrain app. This policy defines their content ownership, page boundaries,
+In-app Docs have six common bundled Korean and English guides for people using
+LocalBrain, plus a conditional Terminal guide in the macOS web edition. This policy defines their content ownership, page boundaries,
 reader behavior and delivery contract.
 
 - Korean-default and switchable English user guidance for the distributed app lives in `src/localbrain/content/docs/`. These Markdown bodies are the canonical content; do not copy the repository's policy or planning tree into the app.
@@ -15,6 +15,12 @@ reader behavior and delivery contract.
 - Preserve actual user-facing conditions and limits when generalizing prose, especially same-installation/computer/schema restore eligibility, explicit replacement and restart, recovery behavior, backup exclusions and original/model preservation. Neutral wording does not expand platform support.
 - Search guidance distinguishes automatic preparation after a successful model download from manual preparation/retry for an installed model. It identifies eligible primary work Sessions and directs readers to the parent Session for subsessions, preserving existing registration/readability and search exclusions.
 - Local Context source-removal guidance explains confirmation, stopped collection, exclusion from search/browsing, search-entry cleanup and retention of source details, imported documents and originals/Notes. Cleanup details for excluded integrations remain in internal behavior contracts rather than public app guidance. Session source removal retains its separate browsing and imported-record contract.
+
+The conditional `/help/terminal` guide owns web terminal setup, tabs/panes,
+background/end behavior, service lifecycle and `lb terminal` commands. It is
+admitted only with the terminal feature and is omitted from native app navigation,
+routes and collected package data. The six common guides retain their distributed
+app scope; the conditional guide does not advertise web functionality in the app.
 
 ## Routes And Reading
 

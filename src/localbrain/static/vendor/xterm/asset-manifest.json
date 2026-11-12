@@ -1,0 +1,23 @@
+{
+  "schema": "localbrain.terminal-assets.v1",
+  "dependencies": {
+    "xterm": "6.0.0",
+    "fit": "0.11.0",
+    "unicode11": "0.9.0",
+    "d2coding": "1.4.0"
+  },
+  "mainFields": [
+    "main"
+  ],
+  "outputs": {
+    "terminal.esm.js": "9f95fc72cd8f315d41a844d594f1f7a9f03d287dc7bab3b63edaa183e0c43a03",
+    "xterm.css": "854a7c0fb70e8b1a083c16797ab827299fb18744f5ad34f227b48337e33293c6",
+    "xterm-LICENSE.txt": "b569f629d00f2626a8100df2a1798210535621e42164dfd426a6fe5aac7b0ccd",
+    "fit-LICENSE.txt": "e256f01188af527e4d06d21d06fbf785ae9c50d4b328bf03cbe0ba7f0aa4228f",
+    "unicode11-LICENSE.txt": "e256f01188af527e4d06d21d06fbf785ae9c50d4b328bf03cbe0ba7f0aa4228f",
+    "fonts/D2Coding-Regular.woff2": "0fa3ea3b5990782e8e0c124ff6918c64ad057bc87365565405531e010cfdfbaa",
+    "fonts/D2Coding-Bold.woff2": "b79b36b1e53e10da5cfc4142c080c755ccb6ae0d359ab4a6335e50184047479a",
+    "fonts/D2Coding-OFL.txt": "1807e8dec4d65f474cbf9be39f5e2254ecb81702babc320749e272ea66ffcc69",
+    "fonts/provenance.json": "89be1506da58e9460c53496e1da718297f49c4e4329b6773ea6aa4408c43b511"
+  }
+}

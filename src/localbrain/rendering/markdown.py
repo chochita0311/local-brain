@@ -125,7 +125,7 @@ _SINGLE_LINE_MATH_RULE = math_inline_dollar(
 )
 _MAX_EMBED_DEPTH = 3
 _APP_DOC_ROUTE_PATTERN = re.compile(
-    r"/(?:help(?:/[a-z-]+)?|sessions-dashboard|sessions|projects|context|context-search|natural-search|settings)"
+    r"/(?:help(?:/[a-z-]+)?|sessions-dashboard|sessions|projects|context|context-search|natural-search|terminal|settings)"
 )
 _MATHML_NAMESPACE = "http://www.w3.org/1998/Math/MathML"
 _MATHML_ELEMENTS = {

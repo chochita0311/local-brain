@@ -31,6 +31,7 @@ def _profile_context(request):
         "atlassian_available": feature_available("atlassian"),
         "context_search_available": feature_available("context_search"),
         "google_drive_available": feature_available("google_drive"),
+        "terminal_available": feature_available("terminal"),
     }
 
 templates = Jinja2Templates(directory=PACKAGE_ROOT / "templates", context_processors=[_profile_context])

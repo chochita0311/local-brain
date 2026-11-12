@@ -8,6 +8,15 @@ in [Run230](../run/run-20261101-230-feature-availability-and-doc-boundary.md);
 they are not current product-guide entries. The default assembly is selected in
 `src/localbrain/app/features.py`, shared by the desktop app and development web.
 
+## Web Terminal Admission — 2026-11-10
+
+Terminal is admitted only in the macOS web edition by
+[FEAT-0166](../feature/feat-0166-web-terminal-work-area.md). Native app assembly,
+CLI registration, startup and packaged Python/runtime/browser assets exclude it.
+Its in-app guide is conditional on the same feature admission. Linux/Windows
+web, external iTerm2 launch and attaching an already running terminal are outside
+this first delivery. Other suspended-feature decisions below remain unchanged.
+
 ## Suspended Delivery — 2026-11-01
 
 The owner requested that these features be hidden while deciding whether to

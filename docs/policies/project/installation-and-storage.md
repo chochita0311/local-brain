@@ -111,6 +111,34 @@ If the executable is not on `PATH`, run `uv tool update-shell`, then open a new
 terminal. For a managed-network certificate error, add `--system-certs` to the
 failed uv install command. Never disable certificate verification.
 
+### Optional macOS Web Terminal
+
+`lb` and `localbrain` invoke the same entrypoint. The macOS web edition adds
+[Terminal](terminal.md); the native app does not collect its runtime or assets.
+Node.js 20+ and npm are needed only for this feature. Explicit
+`lb terminal service install` installs pinned engine packages into
+`<private-cache>/terminal-<scope>/engine`; ordinary startup, list/status and page
+visits neither download nor start it. Browser assets and the unmodified, licensed
+D2Coding webfonts ship locally in the wheel; fonts require no OS install or
+internet access at use time. They load only on the Terminal route and are excluded
+with other Terminal assets from native packaging.
+The scope derives from the configured data directory, preventing another local
+installation from taking ownership. Keep custom cache paths short enough for the
+macOS 104-byte Unix socket path limit; requests report an overlong path.
+
+A transient launchd job in the logged-in user's GUI domain keeps work alive
+across web/backend disconnect; KeepAlive is disabled and no login agent is
+installed. Stop the service before changing its configured data/cache paths.
+Before updating source or replacing a web wheel, run `lb terminal service stop` (or its
+UI control); it ends all managed work before stopping. After updating, reinstall
+components if required, restart the web server to load the updated bridge and
+refresh the browser, then start the service or open a new terminal. Service restart is
+an explicit stop/start and never replays commands. A running old manager is not
+silently replaced by a new backend. Terminal cache state is outside backups and
+recognized automatic cache cleanup; stop it before manually removing its exact
+private cache. Screens/layouts are memory-only and cannot be recovered after
+service stop or reboot. Full details belong to the terminal owner above.
+
 ### Install A Distribution Wheel
 
 Download the supplied public wheel, then replace the example path below with

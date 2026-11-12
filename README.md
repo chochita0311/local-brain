@@ -16,6 +16,28 @@ documents, search, and usage history.
 - **Understand usage.** Compare tokens, estimated costs, and activity by source,
   model, project, and period in Sessions Dashboard.
 
+## Terminal in the macOS web edition
+
+The web edition also runs your existing shell inside LocalBrain. Open **Terminal**
+above Sessions. With Node.js 20+ and npm available, install the optional terminal
+components once, then create tabs with up to four panes. Tab menu **Send to background** keeps work
+running; pane/tab **×** ends its work. **Running** manages background work and the
+separate service. This feature is excluded from the desktop app.
+Set the default folder/shell in **Settings → Terminal**; New opens immediately,
+and Split inherits its pane. Running offers distinct Background, Open and End
+Terminals actions for retained work.
+
+`lb terminal list` shows terminals; `lb terminal service status` shows the
+manager. Before updating the web installation, use `lb terminal service stop`,
+update, refresh components with `lb terminal service install` when the dependency
+lock changes, then restart the web server and refresh the browser before starting
+the service or opening a new terminal. Service restart ends work and starts empty; an ordinary
+web-server restart preserves it. See the conditional Terminal guide in web Docs
+or the [terminal contract](docs/policies/project/terminal.md).
+The web terminal bundles its Hangul/basic-Powerline font; no system font install
+or iTerm2 settings import is required. Live-manager reconnect restores its
+versioned xterm screen/control state within the documented resource bounds.
+
 ## Install from source with an agent
 
 For the initial trial, clone this repository, or update your existing checkout,
@@ -75,7 +97,7 @@ AI search processes your material locally.
 
 ## User guides
 
-Open **Docs** in the app to read these six guides offline. Korean is the default; choose **English** to switch the current guide.
+Open **Docs** in the app to read these six guides offline. The macOS web edition adds a Terminal guide when that feature is available. Korean is the default; choose **English** to switch the current guide.
 
 | Guide | Covers |
 | --- | --- |

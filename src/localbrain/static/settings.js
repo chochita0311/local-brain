@@ -19,6 +19,8 @@
   const generalForm = $('[data-general-form]');
   const syncForm = $('[data-sync-form]');
   const preferenceForms = [generalForm, syncForm];
+  const terminalForm = $('[data-terminal-settings-form]');
+  let terminalPreferences = null, terminalLoading = false, terminalSaving = false, terminalRead = 0;
   const sourceForm = $('[data-source-form]');
   const sourceRemovalDialog = document.querySelector('#source-remove-dialog');
   const contextForm = $('[data-context-form]');
@@ -110,7 +112,7 @@
     sourceForm.setAttribute('aria-busy', String(sourceSaving));
     $('fieldset', sourceForm).disabled = sourceSaving || picking || generalLoading || !state?.session_sources;
     selects.filter(select => sourceForm.contains(select.root)).forEach(select => select.refresh());
-    $$('[data-settings-tab]').forEach(button => {button.disabled = sourceSaving || contextSaving || picking;});
+    $$('[data-settings-tab]').forEach(button => {button.disabled = sourceSaving || contextSaving || picking || terminalSaving;});
     for (const selector of ['[data-source-add]', '[data-source-cancel]', '[data-source-submit]']) {
       $(selector).disabled = activeActions > 0 || generalLoading || !state?.session_sources;
     }
@@ -246,7 +248,7 @@
       }
     }
     preferenceForms.forEach(form => form.setAttribute('aria-busy', String(generalSaving || generalLoading)));
-    const disabled = !preferences || generalSaving || generalLoading;
+    const disabled = !preferences || generalSaving || generalLoading || terminalSaving;
     selects.filter(select => preferenceForms.some(form => form.contains(select.root))).forEach(select => {
       select.close(); select.refresh();
       select.trigger.disabled = disabled || $('input', select.root).disabled;
@@ -632,6 +634,67 @@
       throw error;
     }
   }
+  function terminalMessage(text = '', error = false) {
+    const node = $('[data-terminal-settings-message]');
+    node.textContent = text; node.hidden = !text; node.dataset.error = String(error);
+  }
+  function renderTerminalSettings() {
+    if (!terminalForm) return;
+    const busy = terminalLoading || terminalSaving || generalLoading || generalSaving || picking;
+    terminalForm.setAttribute('aria-busy', String(busy));
+    $$('input, button', terminalForm).forEach(node => {
+      node.disabled = busy || (!terminalPreferences && !node.matches('[data-terminal-settings-reload]'));
+    });
+  }
+  async function loadTerminalSettings() {
+    const version = ++terminalRead;
+    terminalLoading = true; renderTerminalSettings(); terminalMessage();
+    try {
+      await generalSave;
+      const loaded = await api('/api/terminal/settings');
+      if (version !== terminalRead) return;
+      terminalPreferences = loaded;
+      terminalForm.elements.cwd.value = loaded.cwd;
+      terminalForm.elements.shell.value = loaded.shell;
+      terminalForm.elements.shell.placeholder = loaded.default_shell;
+      $('[data-terminal-settings-reload]').hidden = true;
+    } catch (error) {
+      if (version !== terminalRead) return;
+      terminalPreferences = null; terminalMessage(error.message, true);
+      $('[data-terminal-settings-reload]').hidden = false;
+    } finally {
+      if (version === terminalRead) {terminalLoading = false; renderTerminalSettings();}
+    }
+  }
+  if (terminalForm) {
+    terminalForm.addEventListener('submit', event => {
+      event.preventDefault();
+      if (!terminalPreferences || terminalSaving || terminalLoading || generalLoading || generalSaving || picking) return;
+      const values = {cwd: terminalForm.elements.cwd.value, shell: terminalForm.elements.shell.value};
+      terminalSaving = true; terminalMessage(); renderGeneral();
+      const preceding = generalSave;
+      generalSave = (async () => {
+        try {
+          await preceding;
+          const saved = await post('/api/terminal/settings', {...values, revision: terminalPreferences.revision});
+          terminalPreferences = saved;
+          if (state) state.preferences = saved.preferences;
+          terminalForm.elements.cwd.value = saved.cwd;
+          terminalForm.elements.shell.value = saved.shell;
+          $('[data-terminal-settings-reload]').hidden = true;
+          terminalMessage('저장했습니다.');
+        } catch (error) {
+          terminalMessage(error.message, true);
+          $('[data-terminal-settings-reload]').hidden = false;
+        } finally {terminalSaving = false; renderGeneral();}
+      })();
+    });
+    $('[data-terminal-settings-reload]').addEventListener('click', loadTerminalSettings);
+    $('[data-terminal-settings-pick]').addEventListener('click', event => execute(async () => {
+      const path = await pick(true);
+      if (path) terminalForm.elements.cwd.value = path;
+    }, event.currentTarget));
+  }
   function tab(name) {
     if (picking) return;
     finishOrderDrag();
@@ -647,10 +710,12 @@
     $('.settings-body').scrollTop = 0;
     renderOnboardingControls();
     if (name === 'storage') execute(loadStorage);
+    if (name === 'terminal' && terminalForm) void loadTerminalSettings();
     document.dispatchEvent(new CustomEvent('localbrain:settings-tab', {detail: name}));
   }
   function renderOnboardingControls() {
     renderSourceControls(); renderContextControls();
+    renderTerminalSettings();
     dialog.classList.toggle('settings-dialog--onboarding', onboarding);
     $('[data-settings-loading]').classList.toggle('sr-only', onboarding);
     $('[data-onboarding-progress]').hidden = !onboarding;
@@ -660,7 +725,7 @@
     const close = $('[data-settings-close]');
     close.textContent = onboarding ? '나중에 설정' : '닫기';
     close.setAttribute('aria-label', onboarding ? '나중에 설정하고 시작' : '설정 닫기');
-    close.disabled = contextSaving || picking || (onboarding && (activeActions > 0 || generalLoading));
+    close.disabled = contextSaving || picking || terminalSaving || (onboarding && (activeActions > 0 || generalLoading));
     $('[data-onboarding-retry]').hidden = generalLoading || !readIssue?.text;
     $('[data-onboarding-retry]').disabled = activeActions > 0 || generalLoading;
     if (!onboarding) return;
@@ -720,7 +785,7 @@
     if (onboarding) execute(finishOnboarding, event.currentTarget); else dialog.close();
   });
   dialog.addEventListener('cancel', event => {
-    if (contextSaving || picking) {event.preventDefault(); return;}
+    if (contextSaving || picking || terminalSaving) {event.preventDefault(); return;}
     if (onboarding) {event.preventDefault(); if (!activeActions) execute(finishOnboarding);}
   });
   dialog.addEventListener('close', () => {finishOrderDrag(); closePalette(); sourceRemovalDialog.close(); contextRemovalDialog.close(); restoreFocus?.focus();});
@@ -728,7 +793,7 @@
   window.addEventListener('localbrain-settings', () => open());
   preferenceForms.forEach(form => form.addEventListener('submit', event => event.preventDefault()));
   function saveGeneral(changes, focus = document.activeElement) {
-    if (!state?.preferences || generalSaving || generalLoading) return;
+    if (!state?.preferences || generalSaving || generalLoading || terminalSaving) return;
     if (Object.entries(changes).every(([key, value]) => state.preferences.saved[key] === value)) return;
     // A local write owns one revision; briefly lock choices instead of racing saves.
     generalSaving = true; renderGeneral(); message('');

@@ -11,3 +11,7 @@ desktop/src-tauri/icons/icon.icns
 
 # Reviewed public Google Material Symbols paths, bundled for offline navigation.
 src/localbrain/static/icons/material-symbols.svg
+
+# Unmodified public NAVER D2Coding webfonts, pinned with OFL/provenance beside them.
+src/localbrain/static/vendor/xterm/fonts/D2Coding-Regular.woff2
+src/localbrain/static/vendor/xterm/fonts/D2Coding-Bold.woff2

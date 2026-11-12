@@ -27,6 +27,7 @@ owns their content and delivery rules.
 | [Sessions Dashboard](../src/localbrain/content/docs/sessions-dashboard.md) | Usage, cost estimates and coverage |
 | [Local Contexts](../src/localbrain/content/docs/local-contexts.md) | Document sources, reading and format limits |
 | [Search](../src/localbrain/content/docs/search.md) | Keyword/meaning search, models and readiness |
+| [Terminal](../src/localbrain/content/docs/terminal.md) | Conditional macOS web guide: tabs, panes, background work and service commands |
 
 The [macOS test distribution guide](policies/project/standalone-test-app-guide.md)
 owns artifact-specific first-launch requirements and distribution verification
@@ -40,6 +41,7 @@ Durable rules and current contracts live under `docs/policies/`.
 - [Product Model](policies/project/product.md): product purpose, scope, terminology, source roles, and user-facing organization rules
 - [Project Architecture](policies/project/architecture.md): stack, runtime boundaries, source adapters, storage model, and current capability ownership
 - [macOS Installation And Local Storage](policies/project/installation-and-storage.md): installed wheel/archive setup, optional models, configurable private storage, updates, migration and cleanup
+- [Web Terminal](policies/project/terminal.md): macOS web-only terminal, process ownership, background lifecycle, optional engine and CLI
 - [Local Natural Language Search](policies/project/natural-language-search.md): eligible sources, molecularization, model roles, query interpretation, ranking, refresh and evidence navigation
 - [Source Claims And Work State](policies/project/source-claims-and-work-state.md): pure supplied-claim state projection and inferred provenance; not an admitted source extractor or map producer
 - [Data Model](policies/project/data-model.md): complete effective SQLite map, global and subject ERDs, table/column catalogs, relationships, lifecycle, recovery, and delta maintenance ownership

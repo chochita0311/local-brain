@@ -3,7 +3,7 @@
   "build": {
     "command": "npm run build:mermaid",
     "node": ">=20",
-    "packageLockSha256": "9bc68c551ac2f09c3e03cdc525e797f7f6d7bed1f02acb8b09bb59d554b8b51e"
+    "packageLockSha256": "9b503e1746f2035b9e9238a0695b82096ab7ab4a556fe67853fe8daa33b69bed"
   },
   "dependencies": {
     "esbuild": {

@@ -1,0 +1,29 @@
+{
+  "commit": "b0dc372e28d7abdba7f3cba854855ceffbd490a8",
+  "files": [
+    {
+      "path": "OFL.txt",
+      "url": "https://raw.githubusercontent.com/naver/d2-coding-font/b0dc372e28d7abdba7f3cba854855ceffbd490a8/OFL.txt",
+      "sha256": "1807e8dec4d65f474cbf9be39f5e2254ecb81702babc320749e272ea66ffcc69",
+      "bytes": 4511
+    },
+    {
+      "path": "site/README.md",
+      "url": "https://raw.githubusercontent.com/naver/d2-coding-font/b0dc372e28d7abdba7f3cba854855ceffbd490a8/site/README.md",
+      "sha256": "701b4ac4483c3558440c74e19a970a97823336a5c50bd2eae27fb8dce0769e31",
+      "bytes": 2486
+    },
+    {
+      "path": "site/fonts/D2Coding-Regular.woff2",
+      "url": "https://raw.githubusercontent.com/naver/d2-coding-font/b0dc372e28d7abdba7f3cba854855ceffbd490a8/site/fonts/D2Coding-Regular.woff2",
+      "sha256": "0fa3ea3b5990782e8e0c124ff6918c64ad057bc87365565405531e010cfdfbaa",
+      "bytes": 1490832
+    },
+    {
+      "path": "site/fonts/D2Coding-Bold.woff2",
+      "url": "https://raw.githubusercontent.com/naver/d2-coding-font/b0dc372e28d7abdba7f3cba854855ceffbd490a8/site/fonts/D2Coding-Bold.woff2",
+      "sha256": "b79b36b1e53e10da5cfc4142c080c755ccb6ae0d359ab4a6335e50184047479a",
+      "bytes": 1584992
+    }
+  ]
+}

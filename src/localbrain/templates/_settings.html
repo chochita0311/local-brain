@@ -7,6 +7,7 @@
       <button type="button" data-settings-tab="context">Local Context</button>
       <button type="button" data-settings-tab="search">검색 모델</button>
       <button type="button" data-settings-tab="sync">동기화</button>
+      {% if terminal_available | default(false) %}<button type="button" data-settings-tab="terminal">Terminal</button>{% endif %}
       {% if google_drive_available | default(false) %}<button type="button" data-settings-tab="google-drive">Google Drive</button>{% endif %}
       <button type="button" data-settings-tab="storage">저장공간</button>
       <button type="button" data-settings-tab="about">앱 정보</button>
@@ -51,6 +52,18 @@
           </div>
         </form>
       </section>
+      {% if terminal_available | default(false) %}
+      <section data-settings-panel="terminal" hidden>
+        <h3>Terminal</h3>
+        <form data-terminal-settings-form class="settings-form">
+          <div class="settings-field"><label for="terminal-default-cwd">기본 작업 폴더</label><div class="settings-path"><input id="terminal-default-cwd" name="cwd" maxlength="4096" placeholder="~" autocomplete="off" spellcheck="false" disabled><button class="secondary-button" type="button" data-terminal-settings-pick disabled>찾아보기</button></div></div>
+          <label>기본 셸<input name="shell" maxlength="4096" placeholder="/bin/zsh" autocomplete="off" spellcheck="false" disabled></label>
+          <small>새 터미널부터 적용됩니다.</small>
+          <p class="settings-message" data-terminal-settings-message role="status" hidden></p>
+          <div class="settings-actions"><button class="secondary-button" type="button" data-terminal-settings-reload hidden>다시 불러오기</button><button class="primary-button" type="submit" disabled>저장</button></div>
+        </form>
+      </section>
+      {% endif %}
       <section data-settings-panel="sessions" hidden>
         <div class="settings-source-heading">
           <h3 data-source-heading>세션 소스</h3>

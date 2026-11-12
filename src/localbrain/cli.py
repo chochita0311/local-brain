@@ -9,6 +9,13 @@ import sys
 def main(argv=None):
     from localbrain.app.features import DEFAULT_FEATURE_PACKAGES
     argv = sys.argv[1:] if argv is None else argv
+    if argv and argv[0] == "terminal":
+        from localbrain.app.edition import DESKTOP
+        if DESKTOP or sys.platform != "darwin":
+            print("Terminal is available in the macOS web edition.", file=sys.stderr)
+            return 2
+        from localbrain.terminal.cli import main as terminal_main
+        return terminal_main(argv[1:])
     if argv and argv[0] == "learning":
         from localbrain.learning.cli import main as learning_main
         return learning_main(argv[1:])
@@ -25,6 +32,9 @@ def main(argv=None):
     serve_parser.add_argument("--host", choices=("127.0.0.1", "::1"), default="127.0.0.1")
     serve_parser.add_argument("--port", type=int, default=8000)
     subparsers.add_parser("doctor", help="Report installation and optional local-model readiness")
+    from localbrain.app.edition import DESKTOP
+    if not DESKTOP and sys.platform == "darwin":
+        subparsers.add_parser("terminal", help="Manage terminals and their background service (lb terminal --help)")
     if "auto_work" in DEFAULT_FEATURE_PACKAGES:
         subparsers.add_parser("simulate", help="Explicitly prepare or inspect the full-history map")
     subparsers.add_parser("search", help="Prepare or query the local natural-language index")

@@ -11,7 +11,7 @@ portable_hooks = write_sysconfig_hook(workpath)
 metadata = []
 for distribution in ('torch', 'transformers', 'huggingface-hub', 'sentence-transformers', 'tokenizers', 'safetensors', 'numpy', 'scikit-learn', 'tqdm', 'regex', 'requests', 'packaging', 'filelock', 'pyyaml', 'truststore'):
     metadata += copy_metadata(distribution)
-datas = collect_data_files('localbrain', excludes=['**/google-oauth-client.json']) + collect_data_files('latex2mathml') + metadata
+datas = collect_data_files('localbrain', excludes=['**/google-oauth-client.json', '**/terminal/**', '**/terminal.*', '**/vendor/xterm/**']) + collect_data_files('latex2mathml') + metadata
 # Google CLI stays installed on each user PC; no Client or credentials are bundled.
 
 hidden = ['uvicorn.logging', 'uvicorn.loops.auto', 'uvicorn.protocols.http.auto',
@@ -23,7 +23,7 @@ hidden += collect_submodules('backports.zstd')
 a = Analysis([str(project / 'desktop' / 'backend-entry.py')], pathex=[str(project / 'src')],
              binaries=[], datas=datas, hiddenimports=hidden,
              hookspath=[portable_hooks],
-             excludes=['tkinter', 'matplotlib', 'IPython', 'pytest', 'tensorboard', 'tensorflow', 'keras', 'jax'], noarchive=False)
+             excludes=['tkinter', 'matplotlib', 'IPython', 'pytest', 'tensorboard', 'tensorflow', 'keras', 'jax', 'localbrain.terminal'], noarchive=False)
 pyz = PYZ(a.pure)
 exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name='localbrain-backend', debug=False,
           bootloader_ignore_signals=False, strip=False, upx=False, console=True, target_arch='arm64',

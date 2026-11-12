@@ -50,6 +50,9 @@ def create_app(*, feature_packages=DEFAULT_FEATURE_PACKAGES):
     app.state.external_read_executor = None
     app.mount("/static", StaticFiles(directory=package_root() / "static"), name="static")
     install_settings_routes(app, templates)
+    if "terminal" in feature_packages:
+        from localbrain.terminal.web import install_routes as install_terminal_routes
+        install_terminal_routes(app, templates, settings)
     if "google_drive" in feature_packages:
         from localbrain.google_drive.web import install_routes as install_google_drive_routes
         install_google_drive_routes(app)

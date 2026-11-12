@@ -76,6 +76,10 @@ owns update and change-record duties.
 | 2026-11-07 | v64 | Docs uses the locally bundled Material Symbols circled question mark while retaining the existing navigation size, accessible name and footer position. |
 | 2026-11-07 | v65 | Session title overrides edit in place with the current heading style, separate card navigation, stable normal/editing geometry, keyboard/IME support and draft-preserving save errors. |
 | 2026-11-07 | v66 | Title editing keeps the pointer's text position instead of selecting the whole title, and exposes matching hover/edit field bounds with native outline and restrained elevation while retaining row geometry. |
+| 2026-11-10 | v67 | Adds macOS web Terminal above Sessions within the console family: compact tabs, up to four panes, narrow pane switching, explicit background/end and service management, input ownership and keyboard escape, with bounded code-canvas aliases. Native editions retain their existing navigation. |
+| 2026-11-11 | v68 | Terminal defaults move into the existing Settings family; New/Split launch directly. Management exposes distinct background/open/end controls and retained-work recovery without changing the console geometry or native exclusion. |
+| 2026-11-11 | v69 | Terminal glyph rendering prefers installed D2Coding/Noto Sans Mono CJK KR before the shared mono fallback, preserving UI typography and geometry. Input congestion/cancellation remains contextual feedback. No font download or profile import. |
+| 2026-11-12 | v70 | Terminal includes pinned unmodified D2Coding webfonts behind a URL-only alias, preserving13px and existing shell typography. Wait for font loading, disable coding ligatures, and expose a concise reload action only on failure. No OS font prerequisite or profile import. |
 
 ## Documentation Ownership Alignment — 2026-10-31
 

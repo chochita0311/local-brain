@@ -66,6 +66,14 @@ behavior are recorded separately in Feature and Run evidence.
   latest per-file scan state. There is no dedicated overall sync-history table.
   Data-directory relocation is excluded.
 
+The macOS web-only [Terminal](terminal.md) owns an optional `[terminal]` section
+in the same settings.toml for default cwd/shell. It shares the common revision,
+lock and atomic writer while remaining outside the common preference value set.
+General saves preserve this section; Terminal saves preserve common and unknown
+values. Its conditional Settings pane/API need no running terminal engine, and
+saving defaults never restarts existing work. Native editions retain no Terminal
+pane or execution endpoint and preserve the unknown section on common saves.
+
 ## First-Use Setup
 
 - Incomplete desktop onboarding opens the shared settings dialog as a wizard

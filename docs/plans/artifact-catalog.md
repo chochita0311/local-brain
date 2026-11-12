@@ -6,7 +6,7 @@ Edit the owning artifact, then run `uv run python scripts/build-plan-artifact-ca
 
 Status and relation values are preserved from each owner artifact. `—` means the field is not declared or does not apply; historical Spec `passed` and Run `complete` values are legacy aliases preserved under [Execution Artifact Status](../policies/harness/execution-loop-governance.md#execution-artifact-status).
 
-## PRDs (27)
+## PRDs (28)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -37,8 +37,9 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [PRD-0025: Google Drive Connection And Incremental Sync](prd/prd-0025-google-drive-connection-and-incremental-sync.md) | `approved` | — |
 | [PRD-0026: Context Search And Grounded Local Answers](prd/prd-0026-context-search-grounded-local-answers.md) | `approved` | — |
 | [PRD-0027: Early-Access Distribution And Bilingual App Docs](prd/prd-0027-early-access-distribution-and-bilingual-docs.md) | `in-loop` | — |
+| [PRD-0028: Web Terminal Work Area](prd/prd-0028-web-terminal-work-area.md) | `approved` | — |
 
-## Features (165)
+## Features (166)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -207,8 +208,9 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [FEAT-0163: Session Display Titles](feature/feat-0163-session-display-titles.md) | `passed` | PRD-0021 |
 | [FEAT-0164: Sync And Index Efficiency](feature/feat-0164-sync-and-index-efficiency.md) | `passed` | PRD-0021 |
 | [FEAT-0165: Reading Query Efficiency And Title Caret](feature/feat-0165-reading-query-efficiency-and-title-caret.md) | `passed` | PRD-0021 |
+| [FEAT-0166: Web Terminal Work Area](feature/feat-0166-web-terminal-work-area.md) | `passed` | PRD-0028 |
 
-## Specs (173)
+## Specs (174)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -385,8 +387,9 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [SPEC-0163: Session Display Titles](spec/spec-0163-session-display-titles.md) | `approved` | FEAT-0163 |
 | [SPEC-0164: Sync And Index Efficiency](spec/spec-0164-sync-and-index-efficiency.md) | `approved` | FEAT-0164 |
 | [SPEC-0165: Reading Query Efficiency And Title Caret](spec/spec-0165-reading-query-efficiency-and-title-caret.md) | `approved` | FEAT-0165 |
+| [SPEC-0166: Web Terminal Work Area](spec/spec-0166-web-terminal-work-area.md) | `approved` | FEAT-0166 |
 
-## Runs (241)
+## Runs (246)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -631,8 +634,13 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [RUN-239: Sync And Index Efficiency](run/run-20261107-239-sync-and-index-efficiency.md) | `passed` | FEAT-0164 |
 | [RUN-240: Session Display Titles](run/run-20261107-240-session-display-titles.md) | `passed` | FEAT-0163 |
 | [RUN-241: Reading Query Efficiency And Title Caret](run/run-20261107-241-reading-query-efficiency-and-title-caret.md) | `passed` | FEAT-0165 |
+| [RUN-242: Web Terminal Work Area](run/run-20261110-242-web-terminal-work-area.md) | `blocked` | FEAT-0166 |
+| [RUN-243: Terminal Defaults And Quick Launch](run/run-20261111-243-terminal-defaults-and-quick-launch.md) | `passed` | FEAT-0166 |
+| [RUN-244: Terminal Korean And Embedded Terminal Audit](run/run-20261111-244-terminal-korean-and-embedded-audit.md) | `returned-to-spec` | FEAT-0166 |
+| [RUN-245: Terminal Checkpoint And Bundled Font](run/run-20261111-245-terminal-checkpoint-and-font.md) | `passed` | FEAT-0166 |
+| [RUN-246: Terminal Final Audit](run/run-20261112-246-terminal-final-audit.md) | `passed` | FEAT-0166 |
 
-## Evaluations And Schema Audits (474)
+## Evaluations And Schema Audits (479)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -1110,6 +1118,11 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [EVAL-0155: Early-Access macOS Delivery](evaluation/eval-0155-early-access-macos-delivery.md) | `complete` | Run235 |
 | [Session Titles And Collection Efficiency Evaluation](evaluation/eval-0156-session-titles-and-collection-efficiency.md) | `complete` | FEAT-0163, FEAT-0164 |
 | [Reading Query Efficiency And Title Caret Evaluation](evaluation/eval-0157-reading-query-efficiency-and-title-caret.md) | `complete` | FEAT-0165 |
+| [EVAL-0158: Web Terminal Work Area](evaluation/eval-0158-web-terminal-work-area.md) | `complete` | FEAT-0166 |
+| [EVAL-0159: Terminal Defaults And Quick Launch](evaluation/eval-0159-terminal-defaults-and-quick-launch.md) | `complete` | FEAT-0166 |
+| [EVAL-0160: Terminal Korean And Embedded Terminal Audit](evaluation/eval-0160-terminal-korean-and-embedded-audit.md) | `complete` | FEAT-0166 |
+| [EVAL-0161: Terminal Checkpoint And Bundled Font](evaluation/eval-0161-terminal-checkpoint-and-font.md) | `complete` | FEAT-0166 |
+| [EVAL-0162: Terminal Final Audit](evaluation/eval-0162-terminal-final-audit.md) | `complete` | FEAT-0166 |
 
 ## Fix Logs (26)
 

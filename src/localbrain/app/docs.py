@@ -36,8 +36,10 @@ GUIDES = (
     Guide("search", "Search", "Find keywords or search by meaning with an optional local model."),
 )
 GUIDES_BY_SLUG = {guide.slug: guide for guide in GUIDES}
+TERMINAL_GUIDE = Guide("terminal", "Terminal", "Run shells in tabs and panes, or keep them in the background.")
 APP_DOC_ROUTES = frozenset(guide.href for guide in GUIDES) | {
     "/settings", "/sessions-dashboard", "/sessions", "/projects", "/context", "/natural-search",
+    "/terminal", "/help/terminal",
 }
 
 KOREAN_GUIDES = (
@@ -59,6 +61,10 @@ def install_routes(app, templates):
             replace(guide, title=title, description=description)
             for guide, (title, description) in zip(GUIDES, KOREAN_GUIDES)
         )
+        terminal_available = "terminal" in getattr(app.state, "feature_packages", ())
+        if terminal_available:
+            guides += (TERMINAL_GUIDE if language == "en" else replace(
+                TERMINAL_GUIDE, title="터미널", description="탭·분할에서 셸을 실행하고 백그라운드 작업을 관리하세요."),)
         guide = next((item for item in guides if item.slug == slug), None)
         english = language == "en"
         def href(item):
@@ -83,7 +89,8 @@ def install_routes(app, templates):
                          else "설명서를 불러오지 못했습니다. 다른 항목을 선택하거나 다시 시도해 주세요.")
                 status = 503
             else:
-                body = render_markdown(source, app_doc_routes=APP_DOC_ROUTES, app_doc_language=language)
+                routes = APP_DOC_ROUTES if terminal_available else APP_DOC_ROUTES - {"/terminal", "/help/terminal"}
+                body = render_markdown(source, app_doc_routes=routes, app_doc_language=language)
                 if not str(body.html).strip():
                     error = ("This guide is unavailable. Choose another topic." if english
                              else "설명서 내용이 없습니다. 다른 항목을 선택해 주세요.")

@@ -1,9 +1,11 @@
 """Bundled guide routes and their opt-in link authority use no personal data."""
 
 from html.parser import HTMLParser
+from html import unescape
 from pathlib import Path
 from urllib.parse import urlsplit, parse_qs
 import tempfile
+import re
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -62,7 +64,7 @@ class AppDocsTests(unittest.TestCase):
     def test_every_bundled_guide_has_live_internal_and_fragment_links(self):
         self.assertEqual(
             {p.name for p in app_docs.CONTENT_ROOT.glob("*.md")},
-            {guide.filename for guide in app_docs.GUIDES},
+            {guide.filename for guide in (*app_docs.GUIDES, app_docs.TERMINAL_GUIDE)},
         )
         for guide in app_docs.GUIDES:
             with self.subTest(guide=guide.slug):
@@ -100,6 +102,18 @@ class AppDocsTests(unittest.TestCase):
                             self.assertIn(fragment, target.ids)
                 self.assertNotIn(str(app_docs.CONTENT_ROOT), html)
 
+    def test_terminal_guide_follows_feature_admission_in_both_languages(self):
+        self.assertEqual(self.page("terminal").status_code, 404)
+        self.assertNotIn('/help/terminal?', self.page().body.decode())
+        self.app.state.feature_packages = {"terminal"}
+        for language in (b"lang=ko", b"lang=en"):
+            with self.subTest(language=language):
+                response = self.page("terminal", language)
+                self.assertEqual(response.status_code, 200)
+                text = unescape(re.sub(r"<[^>]*>", "", response.body.decode()))
+                self.assertIn("lb terminal service status", text)
+                self.assertIn('/help/terminal?', self.page(query=language).body.decode())
+
     def test_korean_is_default_and_language_is_a_fixed_content_choice(self):
         for query in (b"", b"lang=ko", b"lang=../settings", b"lang=fr"):
             for guide in app_docs.GUIDES:
@@ -119,7 +133,8 @@ class AppDocsTests(unittest.TestCase):
                         elif urlsplit(href).path.startswith("/help"):
                             self.assertIn(parse_qs(urlsplit(href).query)["lang"][0], {"ko", "en"})
         korean = app_docs.CONTENT_ROOT / "ko"
-        self.assertEqual({p.name for p in korean.glob("*.md")}, {g.filename for g in app_docs.GUIDES})
+        self.assertEqual({p.name for p in korean.glob("*.md")},
+                         {g.filename for g in (*app_docs.GUIDES, app_docs.TERMINAL_GUIDE)})
 
     def test_guide_language_does_not_expand_markdown_link_authority(self):
         source = "[Guide](/help/search) [API](/api/settings) [Bad](/help/search?lang=../../secret)"
