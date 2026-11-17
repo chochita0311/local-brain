@@ -3,7 +3,7 @@ import argparse
 import json
 import sys
 
-from .runtime import TerminalError, TerminalService
+from .core import TerminalError, TerminalService
 
 
 def main(argv=None, *, config=None, factory=TerminalService):

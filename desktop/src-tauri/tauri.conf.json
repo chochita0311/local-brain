@@ -37,7 +37,8 @@
       "app"
     ],
     "resources": {
-      "../backend/": "backend/"
+      "../backend/": "backend/",
+      "../terminal/runtime/": "terminal/runtime/"
     },
     "category": "DeveloperTool",
     "shortDescription": "Private local sessions and context",

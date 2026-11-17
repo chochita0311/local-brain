@@ -20,7 +20,7 @@
   </head>
   {% set preferences = local_preferences() %}
   {% set setup_requested = (request is defined and request.query_params.get('setup') == '1') or (desktop_edition and active_page not in ['settings', 'docs'] and not preferences.onboarding_completed) %}
-  <body data-timezone="{{ preferences.timezone }}"{% if setup_requested %} data-onboarding="true"{% endif %}>
+  <body{% if active_page == 'terminal' %} class="terminal-route"{% endif %} data-timezone="{{ preferences.timezone }}"{% if setup_requested %} data-onboarding="true"{% endif %}>
     <a class="skip-link" href="#main-content"{% if setup_requested %} inert{% endif %}>본문으로 건너뛰기</a>
     <div class="app-shell"{% if setup_requested %} inert{% endif %}>
       <aside class="lnb" id="app-sidebar">
@@ -127,7 +127,7 @@
             <button class="search-link {% if active_page in ['natural-search', 'search'] %}active{% endif %}" type="submit" form="global-search">Search</button>
           {% endif %}
         </header>
-        <main class="app-main" id="main-content" tabindex="-1">
+        <main class="app-main{% if active_page == 'terminal' %} terminal-main{% endif %}" id="main-content" tabindex="-1">
           {% block content %}{% endblock %}
         </main>
       </div>

@@ -16,27 +16,47 @@ documents, search, and usage history.
 - **Understand usage.** Compare tokens, estimated costs, and activity by source,
   model, project, and period in Sessions Dashboard.
 
-## Terminal in the macOS web edition
+## Terminal on macOS
 
-The web edition also runs your existing shell inside LocalBrain. Open **Terminal**
-above Sessions. With Node.js 20+ and npm available, install the optional terminal
-components once, then create tabs with up to four panes. Tab menu **Send to background** keeps work
-running; pane/tab **×** ends its work. **Running** manages background work and the
-separate service. This feature is excluded from the desktop app.
-Set the default folder/shell in **Settings → Terminal**; New opens immediately,
-and Split inherits its pane. Running offers distinct Background, Open and End
-Terminals actions for retained work.
+The app and development web share the Terminal workspace above Sessions. The
+Apple Silicon app includes Node, PTY and Rust execution components; recipients
+need no separate Node/npm installation. The top **+** prepares these components
+offline and opens a terminal tab. Visiting the page starts no shell.
 
-`lb terminal list` shows terminals; `lb terminal service status` shows the
-manager. Before updating the web installation, use `lb terminal service stop`,
-update, refresh components with `lb terminal service install` when the dependency
-lock changes, then restart the web server and refresh the browser before starting
-the service or opening a new terminal. Service restart ends work and starts empty; an ordinary
-web-server restart preserves it. See the conditional Terminal guide in web Docs
-or the [terminal contract](docs/policies/project/terminal.md).
-The web terminal bundles its Hangul/basic-Powerline font; no system font install
-or iTerm2 settings import is required. Live-manager reconnect restores its
-versioned xterm screen/control state within the documented resource bounds.
+Named **Workspaces** sit above cross-workspace task status beside the main sidebar.
+The rail's **+** creates an empty workspace with an optional default folder; the
+top **+** creates a tab in the selected workspace. A workspace can contain tabs
+and panes from different folders and remains after its last terminal closes.
+Each tab groups up to four panes. **Send to background** retains work in the
+inline **Background** list; its tab names and foreground task rows return to the
+same processes, while pane/tab **×** ends only its named scope. The rail footer
+opens Settings and Management.
+
+Set the global folder and shell in **Settings → Terminal**. New tabs use the
+workspace's optional folder default, falling back to that global folder, and the
+latest configured shell. Split inherits the clicked pane's folder and shell.
+Folder overrides are available in the tab and pane menus. New host-created zsh
+terminals receive private startup integration without editing user rc files or
+aliases. Existing shells, raw CLI launches, other shells and unsupported
+configurations can retain unknown command state; explicit supported signals
+drive the prompt/program marks.
+
+Closing the window, quitting the app or restarting the development web server
+preserves the independent terminal service. Mac sleep can suspend computation;
+on wake/reopen, LocalBrain checks and reconnects surviving work. System shutdown,
+service stop and explicit restart end continuity; commands are never replayed.
+Before replacing the app or runtime, explicitly stop affected terminal work.
+An incompatible old service disables New and offers **Update terminal service**;
+this confirms its exact scope before stopping/restarting it.
+
+`lb terminal list` and `lb terminal service status` inspect the same service.
+After first preparation, `<terminal-cache>/localbrain-terminal` also manages it
+without the app, Python or a source checkout. The local D2Coding13px font and
+versioned xterm screen restoration are shared. See the conditional Terminal
+Docs guide or the [terminal contract](docs/policies/project/terminal.md).
+For checkout development, build the public payload with
+`python scripts/build-terminal-runtime.py` after installing the build tools.
+Rust owns terminal control; other application features still use Python.
 
 ## Install from source with an agent
 
@@ -64,9 +84,11 @@ The source installer needs build tools; running the finished app needs no Python
 installation, checkout or manually started development server. Public model
 weights remain an explicit optional download in Settings.
 
-To update, quit LocalBrain completely, update the source while preserving local
-changes, and ask the agent to rebuild and replace the app. Pulling source alone
-does not update an existing app. Keep your data and settings in place.
+Before updating an app used for Terminal work, finish that work and explicitly
+stop its service in Management, confirming the affected scope. Then quit
+LocalBrain completely, update the source while preserving local changes, and ask
+the agent to rebuild and replace the app. Pulling source alone does not update an
+existing app. Keep your data and settings in place.
 
 ### Prebuilt macOS test app alternative
 
@@ -97,7 +119,7 @@ AI search processes your material locally.
 
 ## User guides
 
-Open **Docs** in the app to read these six guides offline. The macOS web edition adds a Terminal guide when that feature is available. Korean is the default; choose **English** to switch the current guide.
+Open **Docs** in the app to read the shared guides offline. Terminal adds its guide when that feature is available. Korean is the default; choose **English** to switch the current guide.
 
 | Guide | Covers |
 | --- | --- |

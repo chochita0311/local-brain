@@ -12,12 +12,12 @@ DEFAULT_FEATURE_PACKAGES = KNOWN_FEATURE_PACKAGES - {"context_search", "google_d
 def available_feature_packages(selected, *, desktop):
     """Validate assembly input before applying the distributed desktop boundary.
 
-    Desktop has no optional product packages. Excluding them here also excludes
-    their callbacks and startup work; route middleware alone cannot do that.
+    Desktop admits terminal only. Other optional callbacks and startup work stay
+    excluded; route middleware alone cannot provide that assembly boundary.
     """
     selected = frozenset(selected)
     if not selected <= KNOWN_FEATURE_PACKAGES:
         raise ValueError("Unknown application feature package")
     if desktop:
-        return frozenset()
+        return selected & {"terminal"} if sys.platform == "darwin" else frozenset()
     return selected if sys.platform == "darwin" else selected - {"terminal"}

@@ -1122,7 +1122,7 @@
     const blob = await response.blob(); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = 'LocalBrain-backup.zip'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 60000); message('백업 파일을 저장했습니다.');
   }, event.currentTarget));
   $('[data-restore-form]').addEventListener('submit', event => {event.preventDefault(); const file = event.currentTarget.elements.archive.files[0]; execute(async () => {await api('/api/settings/restore', {method: 'POST', headers: {'Content-Type': 'application/zip', 'X-LocalBrain-Confirm': 'replace-after-restart'}, body: file}); await loadStorage(); message('복원을 예약했습니다. 앱과 웹 서버를 모두 종료한 후 다시 실행해 주세요.');}, event.submitter);});
-  $('[data-cache-clear]').addEventListener('click', event => execute(async () => {const result = await post('/api/settings/cache/clear', {}); await loadStorage(); message(bytes(result.removed_bytes) + ' 캐시를 정리했습니다.');}, event.currentTarget));
+  $('[data-cache-clear]').addEventListener('click', event => execute(async () => {const result = await post('/api/settings/cache/clear', {}); await loadStorage(); message(bytes(result.removed_bytes) + ' 캐시를 정리했습니다.' + (result.protected?.length ? ' 사용 중이거나 상태를 확인할 수 없는 터미널 구성요소는 보존했습니다.' : ''));}, event.currentTarget));
   async function finishOnboarding() {
     const current = await api('/api/settings');
     if (!current.preferences) throw new Error(current.errors.join(' '));

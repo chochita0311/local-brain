@@ -7,6 +7,12 @@ use Contents/목차 beside their existing scoped language option. Explicit Sessi
 list/parent/search-return links remain distinct destinations. `navigation.js` owns
 per-window app history; feature controllers keep URL, selection and render rules.
 
+Every sidebar destination uses the same compact48px desktop header and32px
+search field. Narrow inputs retain40px touch targets, with a growing web header
+or padding-free native48px titlebar. Native content/sidebar offsets follow this
+shared height. This density applies equally to Sessions, Sessions Dashboard and
+Terminal and changes no search/history/shortcut behavior or page scroll contract.
+
 ## Traversal Contract
 
 Back follows actual chronological app visits across modules, including supported

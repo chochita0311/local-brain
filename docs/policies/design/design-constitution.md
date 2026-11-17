@@ -500,7 +500,7 @@ Omit no-screen explanation text; disabled directions remain non-actionable.
 The persistent navigation has three groups. Available destinations follow the edition and feature admission rules:
 
 - **Overview:** Dashboard, Sessions Dashboard
-- **Workspace:** 자동 작업, Workstreams, Terminal (macOS web only), Sessions, Atlassian, Local Contexts
+- **Workspace:** 자동 작업, Workstreams, Terminal (supported macOS app/development web), Sessions, Atlassian, Local Contexts
 - **System:** Sources, Schema
 
 Active navigation uses text, surface, and an accent indicator. Narrow navigation preserves every destination, supports horizontal scrolling, and keeps the active item visible.
@@ -600,7 +600,7 @@ Every persisted or user-visible derived state has one semantic family and a text
 | Atlassian URL-derived structure reference | `available` | success | current local Session or Local Context evidence remains visible beside the stable URL-derived provenance cue |
 | Atlassian URL-derived structure reference | `unavailable` | warning | retained reference remains visible while its current local evidence source cannot be read |
 | Atlassian URL-derived structure reference | `archived` | neutral | direct history remains inspectable after all owning evidence has disappeared; default inventory and Search exclude it |
-| Terminal process | `running` / `exited` | neutral | live shell and retained exited screen remain distinct; × ends and removes its owned process |
+| Terminal process | `running` / `exited` | neutral | confirmed shell exit removes its GUI view; cleanup/input faults remain inspectable; × ends and removes its owned process |
 | Terminal service | `running` / `stopped` | neutral | service controls are distinct from ending a terminal |
 | Terminal service | `unknown` / `incompatible` | warning | preserve the last screen; require a confirmed connection or explicit stop/restart |
 | Terminal view | read-only / disconnected | neutral / warning | name ownership or connection state; offer explicit takeover or reconnect |
@@ -815,6 +815,12 @@ and preserves the active numeric filter.
 
 - Navigation and header remain visually stable across route changes; only the
   active location and contextual actions change.
+- All sidebar destinations, including Sessions, Sessions Dashboard and Terminal,
+  share the48px desktop header and32px search control with label typography.
+  Narrow inputs keep40px touch targets; web headers may grow to contain them.
+  Native fixed titlebars retain their48px frame with no block padding, keeping
+  touch controls inside and content/sidebar offsets aligned. Search scope,
+  shortcuts and ordinary page content/scroll remain unchanged.
 
 ### Workstream Hierarchy
 
@@ -958,25 +964,30 @@ Session and Subsession metadata, copy feedback and conversation role/completion 
 
 ### Terminal Workspace
 
-- On macOS web, Settings has a Terminal pane using the existing path, label,
+- On supported macOS app/development web, Settings has a Terminal pane using the existing path, label,
   input and Save control family. It holds default folder/shell and one short
   future-instance hint. New and Split open directly without a per-launch form;
-  splits inherit the clicked pane. Keep the Settings shell/native exclusions.
+  splits inherit the clicked pane. Keep the Settings shell and other feature exclusions.
 - Management puts Background beside View and End Terminals for visible tabs;
   hidden tabs offer Open and End Terminals. Name visible/background state.
   All-background empty state leads to the retained-work list. These actions
   preserve the existing distinction between view removal and process termination.
 
-- Terminal extends the technical console family with one live canvas beneath compact tabs. Its menu sits immediately above Sessions on macOS web; native editions do not show or load it.
+- Terminal extends the technical console family with an edge-to-edge workspace directly beside shared app navigation: named workspaces in the upper rail, foreground task status across groups below, background recovery/settings/management in its footer, compact top tabs and pane-header split actions, live canvas and small bottom status bar. A workspace has an optional default folder and may retain different-root tabs/panes or remain empty. Rail + creates a workspace; its ⋯ edits or removes an empty group. Retain the shared app header and an accessible logical heading; remove the large page-heading/action row. This viewport-contained Terminal exception does not change other reading routes. Its menu sits immediately above Sessions in the supported macOS app and development web.
 - The live terminal's font alias uses the bundled, URL-only D2Coding faces, with
   the shared mono role for uncovered characters. Keep the13px default and2:1
   Hangul/Latin cell metrics without changing shell/UI typography. Disable coding
   ligatures. Wait for both faces before opening/measuring panes; a missing file
   exposes one contextual reload action rather than silently accepting fallback.
-- Each tab has a distinct select and × action. Each pane has a title, short state, split menu and ×. Tabs allow up to four panes: the first split chooses side-by-side or stacked panes, and three/four use a balanced2×2 grid. At the shared 700px breakpoint show one selected pane with a pane switcher, preserving the underlying processes and layout.
-- Tab menu background action removes the view while retaining execution. The management dialog lists visible/background tabs and their terminals, with reopen/end actions and separately named service controls. Browser navigation never implies termination. Destructive confirmations name the affected scope.
+- Each tab groups terminals and has distinct select and × actions; its toolbar + creates a tab. Right/down split icon controls belong in each pane header, beside its title, short state, folder-choice menu and ×, and inherit that clicked pane's cwd/shell. Tabs allow up to four panes: the first split chooses side-by-side or stacked panes, and three/four use a balanced2×2 grid. At the shared 700px breakpoint show one selected pane with a pane switcher, preserving the underlying processes and layout.
+- Tab background removes its strip entry and foreground task rows while retaining execution; the footer's expandable inline Background list restores/ends it and marks reported hidden completion/error; do not require a separate modal. The list owns bounded scrolling while its disclosure and utilities stay reachable. Explicit Hide reveals it; polling preserves manual collapse. Task rows expose ⋯ actions with explicit whole-tab background versus single-terminal End scope. Menus must escape rail clipping and preserve focus across refresh. Individual pane/tab × and task End are direct; service/bulk termination confirms its scope. Confirmed shell exit retires the GUI view regardless of exit code, while cleanup/input errors remain inspectable. Browser navigation never implies termination.
+- Active tab text edits inline using the Sessions editor's save/cancel/composition/failure conventions; inactive clicks select. Mouse drag, Alt+Shift+Left/Right and menu actions reorder within a workspace without changing running work. A separate tab-menu action moves membership between workspaces through a same-panel list with current check and back control; do not layer a native select over it. Terminal action rows use shared label type and compact block padding for32px desktop/40px narrow controls. Anchor the panel below its trigger when possible, flip above only for space, and bound/scroll long lists within the viewport. Preserve keyboard navigation, Escape/back, outside dismissal and focused destinations across polling. Choose-folder actions create a tab or split without changing group identity. Reuse shared focus/input/menu tokens.
 - A terminal owns input while focused. Shift+Escape moves focus to its pane menu without consuming ordinary Escape in a TUI. Other windows observe until explicit takeover. Reconnect restores supported screen state; unavailable connections and truncated history remain contextual and legible.
-- Reuse shell spacing, type, border, focus and dialog roles. Terminal-specific semantic aliases own the canvas height (`clamp(24rem, calc(100dvh - 16rem), 56rem)`), empty-state minimum height (12rem), dialog width (36rem), tab label bound (15rem), menu minimum width (11rem), compact title/status bounds (8rem/6rem), and code-surface foreground/background. The live grid and terminal's own scrollback own overflow; the document retains normal page scroll.
+- Reuse shell spacing, type, border, focus, icon and dialog roles. Terminal aliases own rail width (13rem), dialog width (36rem), tab label bound (12rem), menu minimum width (11rem), and code-surface foreground/background. Terminal shares the48px desktop header and32px search control with every other route. Its group/task controls remain32px with single-line nonredundant context; preserve40px touch controls at700px and below. The canvas fills the remaining height without a fixed cap. Its rail lists, tab strip and terminal scrollback own overflow; other routes retain their content density and page scroll. The Terminal rail collapses separately from global navigation, starts collapsed at1100px and below, and uses a closeable overlay at that width. Show one panel toggle per state: collapse in the open rail or reopen in the toolbar. Preserve narrow pane selection at700px.
+- Primary Terminal indicators share one20px slot: hidden ◇ and current selection ✓ take precedence; otherwise small filled ● requires a live reported command/program execution and same-outer-diameter hollow ◦ requires all represented panes to be live and report prompt. A group uses running if any pane reports it, prompt only if all do, otherwise an unpainted reserved slot. Unknown metadata must not fabricate idle or running, and no default question mark is shown. These marks do not assert agent thinking. Keep selection underlines/frames and neutral remembered borders in inactive windows. The tab title control retains its12rem width/ellipsis and actual × target through status updates.
+- Pass through a program-reported leading braille title glyph in a separate mono slot beside the name. Preserve manual tab names, exact reported frame changes and removal. A group represents its focused reporting pane, otherwise its first reporting pane. Update glyphs in place without disrupting title editing, drag or menu focus. A live CLI process, shell execution, output or silence does not establish agent activity. This adds no native Dock menu or inferred agent-thinking/needs-input state.
+- Shell command state is explicit in the status bar/descriptions, with completion/error/termination as separate badges when relevant. Hidden rows retain ◇ plus reported program and result indications. Use color with shape/text, preserve focus across refresh, and clear completion attention only after actual painted input focus in an active window; selection, hiding, headers or menus alone do not acknowledge it. [Terminal policy](../project/terminal.md#folder-workspace-and-status) owns metadata, lifecycle and priority.
+- On the dark pane header, use the shared light code blue/green/amber counterparts for activity/completion/error symbols; light-UI error red is insufficient there. The same glyph and accessible state name retain meaning across the two surface tones.
 - Keep primary UI to actions and current state. Setup, failures, ownership and termination consequences appear only in their relevant region; detailed lifecycle and CLI usage belong in Docs.
 - An unclean manager loss warns that previous work may remain; an empty new list must not imply confirmed termination. Failed termination stays visible and retryable. Composition input retains ownership before the Shift+Escape menu shortcut is considered.
 

@@ -6,7 +6,7 @@ Edit the owning artifact, then run `uv run python scripts/build-plan-artifact-ca
 
 Status and relation values are preserved from each owner artifact. `—` means the field is not declared or does not apply; historical Spec `passed` and Run `complete` values are legacy aliases preserved under [Execution Artifact Status](../policies/harness/execution-loop-governance.md#execution-artifact-status).
 
-## PRDs (28)
+## PRDs (30)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -38,8 +38,10 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [PRD-0026: Context Search And Grounded Local Answers](prd/prd-0026-context-search-grounded-local-answers.md) | `approved` | — |
 | [PRD-0027: Early-Access Distribution And Bilingual App Docs](prd/prd-0027-early-access-distribution-and-bilingual-docs.md) | `in-loop` | — |
 | [PRD-0028: Web Terminal Work Area](prd/prd-0028-web-terminal-work-area.md) | `approved` | — |
+| [PRD-0029: Rust Core And Responsive GUI](prd/prd-0029-rust-core-and-responsive-gui.md) | `approved` | — |
+| [PRD-0030: macOS Terminal Work Area](prd/prd-0030-macos-terminal-work-area.md) | `approved` | — |
 
-## Features (166)
+## Features (177)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -209,8 +211,19 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [FEAT-0164: Sync And Index Efficiency](feature/feat-0164-sync-and-index-efficiency.md) | `passed` | PRD-0021 |
 | [FEAT-0165: Reading Query Efficiency And Title Caret](feature/feat-0165-reading-query-efficiency-and-title-caret.md) | `passed` | PRD-0021 |
 | [FEAT-0166: Web Terminal Work Area](feature/feat-0166-web-terminal-work-area.md) | `passed` | PRD-0028 |
+| [FEAT-0167: Rust Core And Host Contract](feature/feat-0167-rust-core-and-host-contract.md) | `passed` | PRD-0029 |
+| [FEAT-0168: App-Independent Terminal Runtime Contract](feature/feat-0168-app-independent-terminal-runtime-contract.md) | `passed` | PRD-0030 |
+| [FEAT-0169: Folder Terminal Workspace](feature/feat-0169-terminal-workspace.md) | `passed` | PRD-0030 |
+| [FEAT-0170: Shared Rust Terminal Runtime](feature/feat-0170-rust-terminal-runtime.md) | `passed` | PRD-0029 |
+| [FEAT-0171: Native Terminal Integration](feature/feat-0171-native-terminal-integration.md) | `passed` | PRD-0030 |
+| [FEAT-0172: Terminal Everyday Interactions](feature/feat-0172-terminal-everyday-interactions.md) | `passed` | PRD-0030 |
+| [FEAT-0173: Persistent Terminal Workspaces And Shell Status](feature/feat-0173-persistent-terminal-workspaces.md) | `passed` | PRD0030 |
+| [FEAT-0174: Shared Compact Search Header](feature/feat-0174-shared-compact-search-header.md) | `passed` | PRD0027 |
+| [FEAT-0175: Terminal Action Hierarchy](feature/feat-0175-terminal-action-hierarchy.md) | `passed` | PRD0030 |
+| [FEAT-0176: Terminal Status Indicators](feature/feat-0176-terminal-status-indicators.md) | `passed` | PRD0030 |
+| [FEAT-0177: Terminal Activity And Background Rail](feature/feat-0177-terminal-activity-and-background-rail.md) | `in-loop` | PRD0030 |
 
-## Specs (174)
+## Specs (185)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -388,8 +401,19 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [SPEC-0164: Sync And Index Efficiency](spec/spec-0164-sync-and-index-efficiency.md) | `approved` | FEAT-0164 |
 | [SPEC-0165: Reading Query Efficiency And Title Caret](spec/spec-0165-reading-query-efficiency-and-title-caret.md) | `approved` | FEAT-0165 |
 | [SPEC-0166: Web Terminal Work Area](spec/spec-0166-web-terminal-work-area.md) | `approved` | FEAT-0166 |
+| [SPEC-0167: Rust Core And Host Contract](spec/spec-0167-rust-core-and-host-contract.md) | `approved` | FEAT-0167 |
+| [SPEC-0168: App-Independent Terminal Runtime Contract](spec/spec-0168-app-independent-terminal-runtime-contract.md) | `approved` | FEAT-0168 |
+| [SPEC-0169: Folder Terminal Workspace](spec/spec-0169-terminal-workspace.md) | `approved` | FEAT-0169 |
+| [SPEC-0170: Shared Rust Terminal Runtime](spec/spec-0170-rust-terminal-runtime.md) | `approved` | FEAT-0170 |
+| [SPEC-0171: Native Terminal Integration](spec/spec-0171-native-terminal-integration.md) | `approved` | FEAT-0171 |
+| [SPEC-0172: Terminal Everyday Interactions](spec/spec-0172-terminal-everyday-interactions.md) | `approved` | FEAT0172 |
+| [SPEC-0173: Persistent Terminal Workspaces](spec/spec-0173-persistent-terminal-workspaces.md) | `approved` | FEAT0173 |
+| [SPEC-0174: Shared Compact Search Header](spec/spec-0174-shared-compact-search-header.md) | `approved` | FEAT0174 |
+| [SPEC-0175: Terminal Action Hierarchy](spec/spec-0175-terminal-action-hierarchy.md) | `approved` | FEAT0175 |
+| [SPEC-0176: Terminal Status Indicators](spec/spec-0176-terminal-status-indicators.md) | `approved` | FEAT0176 |
+| [SPEC-0177: Terminal Activity And Background Rail](spec/spec-0177-terminal-activity-and-background-rail.md) | `approved` | FEAT0177 |
 
-## Runs (246)
+## Runs (258)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -639,8 +663,20 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [RUN-244: Terminal Korean And Embedded Terminal Audit](run/run-20261111-244-terminal-korean-and-embedded-audit.md) | `returned-to-spec` | FEAT-0166 |
 | [RUN-245: Terminal Checkpoint And Bundled Font](run/run-20261111-245-terminal-checkpoint-and-font.md) | `passed` | FEAT-0166 |
 | [RUN-246: Terminal Final Audit](run/run-20261112-246-terminal-final-audit.md) | `passed` | FEAT-0166 |
+| [RUN-247: Rust Core And Host Contract](run/run-20261112-247-rust-core-and-host-contract.md) | `passed` | FEAT-0167 |
+| [RUN-248: App-Independent Terminal Runtime Contract](run/run-20261112-248-app-independent-terminal-runtime-contract.md) | `passed` | FEAT-0168 |
+| [Run249: Terminal Workspace Implementation](run/run-20261112-249-terminal-workspace.md) | `passed` | FEAT-0169 |
+| [Run250: Terminal Reopen And Version Recovery](run/run-20261113-250-terminal-reopen-recovery.md) | `passed` | FEAT-0169 |
+| [Run251: Rust Terminal Runtime Implementation](run/run-20261113-251-rust-terminal-runtime.md) | `passed` | FEAT-0170 |
+| [Run252: Native Terminal Integration](run/run-20261113-252-native-terminal-integration.md) | `passed` | FEAT-0171 |
+| [Run253: Terminal Everyday Interactions](run/run-20261113-253-terminal-everyday-interactions.md) | `passed` | FEAT0172 |
+| [Run254: Persistent Terminal Workspaces](run/run-20261113-254-persistent-terminal-workspaces.md) | `passed` | FEAT0173 |
+| [Run255: Shared Compact Search Header](run/run-20261113-255-shared-compact-search-header.md) | `passed` | FEAT0174 |
+| [Run256: Terminal Action Hierarchy](run/run-20261113-256-terminal-action-hierarchy.md) | `passed` | FEAT0175 |
+| [Run257: Terminal Status Indicators](run/run-20261113-257-terminal-status-indicators.md) | `passed` | FEAT0176 |
+| [Run258: Terminal Activity And Background Rail](run/run-20261114-258-terminal-activity-and-background-rail.md) | `active` | FEAT0177 |
 
-## Evaluations And Schema Audits (479)
+## Evaluations And Schema Audits (491)
 
 | Artifact | Status | Parent Or Run |
 | --- | --- | --- |
@@ -1123,6 +1159,18 @@ Status and relation values are preserved from each owner artifact. `—` means t
 | [EVAL-0160: Terminal Korean And Embedded Terminal Audit](evaluation/eval-0160-terminal-korean-and-embedded-audit.md) | `complete` | FEAT-0166 |
 | [EVAL-0161: Terminal Checkpoint And Bundled Font](evaluation/eval-0161-terminal-checkpoint-and-font.md) | `complete` | FEAT-0166 |
 | [EVAL-0162: Terminal Final Audit](evaluation/eval-0162-terminal-final-audit.md) | `complete` | FEAT-0166 |
+| [EVAL-0163: Rust Core And Host Contract](evaluation/eval-0163-rust-core-and-host-contract.md) | `complete` | FEAT-0167 |
+| [EVAL-0164: App-Independent Terminal Runtime Contract](evaluation/eval-0164-app-independent-terminal-runtime-contract.md) | `complete` | FEAT-0168 |
+| [EVAL-0165: Terminal Workspace](evaluation/eval-0165-terminal-workspace.md) | `complete` | FEAT-0169 |
+| [EVAL-0166: Terminal Reopen And Version Recovery](evaluation/eval-0166-terminal-reopen-recovery.md) | `complete` | FEAT-0169 |
+| [EVAL-0167: Shared Rust Terminal Runtime](evaluation/eval-0167-rust-terminal-runtime.md) | `complete` | FEAT-0170 |
+| [EVAL-0168: Native Terminal Integration And Reference Comparison](evaluation/eval-0168-native-terminal-integration.md) | `complete` | FEAT-0171 |
+| [EVAL-0169: Terminal Everyday Interactions](evaluation/eval-0169-terminal-everyday-interactions.md) | `complete` | FEAT0172 |
+| [EVAL-0170: Persistent Terminal Workspaces And Shell Status](evaluation/eval-0170-persistent-terminal-workspaces.md) | `complete` | FEAT0173 |
+| [EVAL-0171: Shared Compact Search Header](evaluation/eval-0171-shared-compact-search-header.md) | `complete` | FEAT0174 |
+| [EVAL-0172: Terminal Action Hierarchy](evaluation/eval-0172-terminal-action-hierarchy.md) | `complete` | FEAT0175 |
+| [EVAL-0173: Terminal Status Indicators](evaluation/eval-0173-terminal-status-indicators.md) | `complete` | FEAT0176 |
+| [EVAL-0174: Terminal Activity And Background Rail](evaluation/eval-0174-terminal-activity-and-background-rail.md) | `draft` | FEAT0177 |
 
 ## Fix Logs (26)
 

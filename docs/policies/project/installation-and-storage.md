@@ -111,33 +111,43 @@ If the executable is not on `PATH`, run `uv tool update-shell`, then open a new
 terminal. For a managed-network certificate error, add `--system-certs` to the
 failed uv install command. Never disable certificate verification.
 
-### Optional macOS Web Terminal
+### Optional macOS Terminal
 
-`lb` and `localbrain` invoke the same entrypoint. The macOS web edition adds
-[Terminal](terminal.md); the native app does not collect its runtime or assets.
-Node.js 20+ and npm are needed only for this feature. Explicit
-`lb terminal service install` installs pinned engine packages into
-`<private-cache>/terminal-<scope>/engine`; ordinary startup, list/status and page
-visits neither download nor start it. Browser assets and the unmodified, licensed
-D2Coding webfonts ship locally in the wheel; fonts require no OS install or
-internet access at use time. They load only on the Terminal route and are excluded
-with other Terminal assets from native packaging.
-The scope derives from the configured data directory, preventing another local
-installation from taking ownership. Keep custom cache paths short enough for the
-macOS 104-byte Unix socket path limit; requests report an overlong path.
+The app and development web share [Terminal](terminal.md). The Apple Silicon app
+includes Node24.15.0, Rust control/helper and pinned PTY/headless packages; users
+need no Node/npm installation. Checkout builders run
+`python scripts/build-terminal-runtime.py` with Cargo and Node/npm available.
+The app builder performs that step automatically. A Python wheel alone does not
+contain a native execution payload: configure a built public bundle with the
+trusted `LOCALBRAIN_TERMINAL_BUNDLE` host environment when using an installed wheel.
 
-A transient launchd job in the logged-in user's GUI domain keeps work alive
-across web/backend disconnect; KeepAlive is disabled and no login agent is
-installed. Stop the service before changing its configured data/cache paths.
-Before updating source or replacing a web wheel, run `lb terminal service stop` (or its
-UI control); it ends all managed work before stopping. After updating, reinstall
-components if required, restart the web server to load the updated bridge and
-refresh the browser, then start the service or open a new terminal. Service restart is
-an explicit stop/start and never replays commands. A running old manager is not
-silently replaced by a new backend. Terminal cache state is outside backups and
-recognized automatic cache cleanup; stop it before manually removing its exact
-private cache. Screens/layouts are memory-only and cannot be recovered after
-service stop or reboot. Full details belong to the terminal owner above.
+New/Start/install explicitly verifies and copies the offline bundle to
+`<private-cache>/terminal-<scope>/payloads/<payloadId>`. Startup/list/status/page
+visits do not copy/download/start it. Browser assets and licensed D2Coding fonts
+ship in both hosts. Keep cache paths below the macOS104-byte socket-path limit.
+The scope uses the resolved data and cache identity; stop the service before
+changing those paths. The independent transient launchd job and cached helper
+survive browser/backend/app Quit and app/checkout removal; no login agent is
+installed. Sleep can suspend computation; wake checks actual liveness.
+
+Before replacing the app/runtime, explicitly stop affected work, then replace,
+reopen and start an empty service when needed. An incompatible service disables
+new work and exposes explicit Update; confirmation binds the generation and exact
+terminal set. Ordinary Quit never substitutes for this update step. A stable
+`<terminal-cache>/localbrain-terminal` launcher supports list/stop/service commands
+without Python or the app after preparation. No PATH or shell rc file is modified.
+Terminal screens/layouts remain bounded memory-only and are outside backups;
+shutdown/reboot/explicit restart never replay commands. Named workspaces and their
+optional default folders survive in `<data>/terminal-workspaces.json`, including
+empty groups. This file joins same-installation backup/restore with schema
+validation; generation-bound membership never restores a process. New zsh launches
+prepare verified private startup shims under `<data>/terminal-shell/` without
+editing user rc files. Their immutable versioned paths remain available to live
+shells independently of the app; these reconstructible scripts are excluded from
+backups. Generic cache cleanup preserves both data locations and
+uses the Rust retirement transaction only for verified, inactive payloads and
+reports protected live/unknown/loss-marked state while clearing eligible other caches.
+
 
 ### Install A Distribution Wheel
 
@@ -358,7 +368,10 @@ contract. Application files can move independently of these user data locations.
 
 General preferences live in `<data>/settings.toml`; Session registration stays in
 `session-sources.toml`, search choices in `natural-search.json`, and Context
-registration in the DB. Rebuildable synchronization health is separate
+registration in the DB. Terminal workspace identity/name/default/membership lives
+in `terminal-workspaces.json`; generated zsh launch shims live in `terminal-shell/`.
+[Terminal](terminal.md#folder-workspace-and-status) owns their validation,
+generation and lifetime contracts. Rebuildable synchronization health is separate
 `session-sync-state.json` and `context-sync-state.json`, so health-only writes do
 not invalidate search input. Their completion clocks and intervals are independent.
 General preferences follow `settings.toml`; missing fields use defaults. Environment

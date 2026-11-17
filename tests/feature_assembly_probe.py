@@ -118,8 +118,10 @@ def main():
     app = create_app() if default_delivery else create_app(feature_packages=packages - omitted)
 
     if os.environ.get("LOCALBRAIN_EDITION") == "desktop":
-        assert not app.state.feature_packages
-        assert app.state.task_runner is app.state.maintain_feature_cache is None
+        terminal_admitted=default_delivery and sys.platform=="darwin"
+        assert app.state.feature_packages==({"terminal"} if terminal_admitted else set())
+        assert app.state.task_runner is None
+        assert (app.state.maintain_feature_cache is not None)==terminal_admitted
         assert getattr(app.state, "document_memberships", None) is None
         assert getattr(app.state, "session_workflow_available", None) is None
 

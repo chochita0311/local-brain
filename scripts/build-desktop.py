@@ -68,6 +68,8 @@ def third_party_notices(destination):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, default=ROOT / 'dist')
+    parser.add_argument('--node-archive', type=Path, help='Previously downloaded official pinned Node release')
+    parser.add_argument('--node-checksums', type=Path, help='Official release SHASUMS256.txt')
     args = parser.parse_args()
     if platform.system() != 'Darwin' or platform.machine() != 'arm64' or sys.version_info[:2] != (3, 11):
         raise SystemExit('Build on Apple Silicon macOS with Python 3.11.')
@@ -79,6 +81,11 @@ def main():
     if not cli.is_file():
         raise SystemExit('Run npm ci --prefix desktop first.')
     owned_remove(backend)
+    import importlib.util
+    runtime_spec = importlib.util.spec_from_file_location('terminal_runtime_builder', ROOT / 'scripts/build-terminal-runtime.py')
+    runtime_builder = importlib.util.module_from_spec(runtime_spec)
+    runtime_spec.loader.exec_module(runtime_builder)
+    runtime_builder.build(ROOT / 'desktop/terminal/runtime', args.node_archive, args.node_checksums)
     with tempfile.TemporaryDirectory(prefix='localbrain-app-build-') as directory, \
             tempfile.TemporaryDirectory(prefix='.localbrain-build-', dir=output) as staging_directory:
         work = Path(directory)
@@ -95,6 +102,10 @@ def main():
             build_env = rust_build_environment(build_env, (Path.home(), ROOT, work))
             run([str(cli), 'build', '--target', 'aarch64-apple-darwin', '--bundles', 'app'], cwd=ROOT / 'desktop', env=build_env)
             built = ROOT / 'desktop/src-tauri/target/aarch64-apple-darwin/release/bundle/macos/LocalBrain.app'
+            # Tauri's signing can change nested Mach-O bytes. Publish their final
+            # hashes, then seal the outer resource envelope without re-signing children.
+            runtime_builder.finalize(built / 'Contents/Resources/terminal/runtime')
+            run(['codesign', '--force', '--sign', '-', str(built)])
             run(['codesign', '--verify', '--deep', '--strict', str(built)])
             # Output directories carry an explicit owner marker; arbitrary destinations are preserved.
             deliverable = staging / 'LocalBrain-apple-silicon'

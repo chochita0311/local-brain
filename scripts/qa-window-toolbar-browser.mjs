@@ -12,7 +12,9 @@ if (destination === repository || destination.startsWith(repository + '/')) thro
 if (typeof WebSocket === 'undefined') throw new Error('Browser QA requires Node with the built-in WebSocket API (Node 22+)');
 await mkdir(destination, {recursive:true});
 const output = await mkdtemp(join(destination, 'localbrain-ui-state-'));
-const runtime = join(output, 'runtime'), profile = join(output, 'chrome-profile');
+// Terminal is now visited with other sidebar routes; keep its macOS IPC path short.
+const runtimeOwner = await mkdtemp('/private/tmp/lbwh-');
+const runtime = join(runtimeOwner, 'rt'), profile = join(output, 'chrome-profile');
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const checks = [], exceptions = [], failedRequests = [];
 let base;
@@ -157,7 +159,7 @@ try {
   };
   assert(await evaluate(`(()=>{const t=document.querySelector('[data-sidebar-toggle]'),b=document.querySelector('.brand');return !b.contains(t)&&t.parentElement===b.parentElement&&t.getBoundingClientRect().left>=b.getBoundingClientRect().right;})()`),'toggle beside brand outside home link');
   assert(await evaluate(`Array.from(document.querySelectorAll('.lnb-item')).every(e=>!!e.querySelector('svg use')&&!/^\d+$/.test(e.querySelector('.nav-symbol')?.textContent||'icon'))`),'Google navigation icons replace numeric marks');
-  assert(await evaluate(`document.querySelector('.lnb a[href="/help"] [data-icon="menu_book"]')!==null`),'Docs uses book icon');
+  assert(await evaluate(`document.querySelector('.lnb a[href="/help"] svg use')!==null`),'Docs retains its navigation icon');
   await move('[data-sidebar-toggle]');await delay(300);
   await wait('!document.querySelector("#shell-tooltip").hidden');
   assert(await evaluate(`JSON.stringify(Array.from(document.querySelectorAll('#shell-tooltip kbd'),e=>e.textContent))===JSON.stringify(['⌘','⇧','S']) && !document.querySelector('#shell-tooltip').textContent.includes('(')`),'tooltip separates action and individual shortcut keys');
@@ -218,7 +220,7 @@ try {
   await send('Input.insertText',{text:'navigation'});
   await key('Enter','Enter',0,13);
   await wait('location.pathname==="/natural-search" && document.readyState==="complete"');await layout();
-  assert(await evaluate('new URL(location.href).searchParams.get("q")==="navigation" && new URL(location.href).searchParams.get("mode")==="keyword"'),'search keeps native GET query and mode');
+  assert(await evaluate('new URL(location.href).searchParams.get("q")==="navigation" && !new URL(location.href).searchParams.has("mode")'),'search keeps the shared query-only GET form');
   assert(await evaluate(`(()=>{const e=new KeyboardEvent('keydown',{key:'Enter',isComposing:true,bubbles:true,cancelable:true});document.querySelector('#global-query').dispatchEvent(e);return e.defaultPrevented;})()`),'composing Enter retains IME guard');
   await navigate('/sessions');await layout();
   const firstUrl=await evaluate('location.pathname+location.search');
@@ -278,6 +280,16 @@ try {
   await key('k','KeyK',4,75);await wait('location.pathname==="/natural-search" && document.readyState==="complete"');
   assert(true,'search shortcut uses explorer Search destination');
 
+  const sidebarRoutes=await evaluate(`[...new Set([...document.querySelectorAll('.lnb a[href]')].map(a=>a.getAttribute('href')).filter(href=>href.startsWith('/')))]`);
+  for(const width of [1440,320]) {
+    await send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:false});
+    for(const route of sidebarRoutes) {
+      await navigate(route);await layout();
+      const m=await evaluate(`(()=>{const h=document.querySelector('.workspace-header').getBoundingClientRect(),q=document.querySelector('#global-query'),r=q?.getBoundingClientRect();return {height:h.height,inputHeight:r?.height,inputInside:!r||(r.top>=h.top&&r.bottom<=h.bottom),overflow:document.documentElement.scrollWidth>innerWidth};})()`);
+      assert((width===1440?m.height===48:m.height>=40)&&m.inputInside&&!m.overflow&&(!m.inputHeight||m.inputHeight===(width===1440?32:40)),'shared compact search/header '+width+' '+route);
+      if(route==='/sessions'||route==='/sessions-dashboard')await capture('shared-search-'+route.slice(1)+'-'+width);
+    }
+  }
   const bootstrap=await readFile(join(repository,'desktop/ui/window-shell.js'),'utf8');
   const dragPath=process.env.LOCALBRAIN_QA_TAURI_DRAG_SCRIPT;
   const drag=dragPath?(await readFile(dragPath,'utf8')).replaceAll('__TEMPLATE_os_name__',"'macos'"):'';
@@ -288,13 +300,14 @@ try {
   for(const width of [1440,920,700,640]) {
     await send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:false});await delay(80);
     const m=await evaluate(`(()=>{const h=document.querySelector('.workspace-header').getBoundingClientRect(),b=document.querySelector('[data-app-back]').getBoundingClientRect(),i=document.querySelector('#global-query').getBoundingClientRect();return {width:innerWidth,left:h.left,top:h.top,height:h.height,reserved:b.left,input:i.left,inputRight:i.right,overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth};})()`);metrics.push(m);
-    assert(m.left===0&&m.top===0&&m.height===58&&m.reserved>=90&&!m.overflow,'native titlebar containment and OS-control inset '+width);
+    assert(m.left===0&&m.top===0&&m.height===48&&m.reserved>=90&&!m.overflow,'native titlebar containment and OS-control inset '+width);
+    assert(await evaluate(`(()=>{const h=document.querySelector('.workspace-header').getBoundingClientRect(),i=document.querySelector('#global-query').getBoundingClientRect();return i.top>=h.top&&i.bottom<=h.bottom;})()`),'native search stays vertically inside compact titlebar '+width);
     await capture('native-toolbar-'+width);
   }
   await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
   await click('[data-sidebar-toggle]');await delay(80);
   const mainTop=await evaluate('document.querySelector("main.app-main").getBoundingClientRect().top');
-  assert(Math.abs(mainTop-58)<1,'native body has no duplicate content-header row');
+  assert(Math.abs(mainTop-48)<1,'native body has no duplicate content-header row');
   await capture('native-collapsed');
   await navigate('/help/settings?lang=en');await layout();
   assert(await evaluate('document.documentElement.classList.contains("sidebar-collapsed") && document.querySelector(".app-docs").lang==="en"'),'native sidebar state and Docs locale survive navigation');
@@ -353,7 +366,7 @@ try {
   await navigate('/sessions?short-window=1');await layout();
   if(!await evaluate('document.documentElement.classList.contains("sidebar-collapsed")'))await click('[data-sidebar-toggle]');
   await layout();
-  assert(await evaluate(`(()=>{const r=document.querySelector('.lnb').getBoundingClientRect(),f=document.querySelector('.lnb-footer').getBoundingClientRect();return r.width===64&&r.y===58&&f.bottom<=innerHeight;})()`),'short native window retains rail and footer');
+  assert(await evaluate(`(()=>{const r=document.querySelector('.lnb').getBoundingClientRect(),f=document.querySelector('.lnb-footer').getBoundingClientRect();return r.width===64&&r.y===48&&f.bottom<=innerHeight;})()`),'short native window retains rail and footer');
   await evaluate('document.querySelector(".brand").focus()');
   const focusSequence=[];
   for(let i=0;i<13;i++){
@@ -380,6 +393,6 @@ try {
 } finally {
   socket?.close();for(const waiter of pending.values())clearTimeout(waiter.timer);
   await stop(chrome,'SIGTERM');await stop(backend,'SIGINT');
-  await rm(profile,{recursive:true,force:true});await rm(runtime,{recursive:true,force:true});
+  await rm(profile,{recursive:true,force:true});await rm(runtimeOwner,{recursive:true,force:true});
   if(!process.argv[2])await rm(output,{recursive:true,force:true});
 }

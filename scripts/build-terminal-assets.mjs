@@ -70,7 +70,10 @@ async function rendererImport(folder, update) {
   const entry = join(root, 'src/localbrain/static/terminal.js');
   const source = await readFile(entry, 'utf8');
   if (!source.includes("from './vendor/xterm/terminal.esm.js")) throw new Error('Renderer import not found');
-  const versioned = source.replace(/'\.\/vendor\/xterm\/terminal\.esm\.js(?:\?v=[^']*)?'/, specifier);
+  let versioned = source.replace(/'\.\/vendor\/xterm\/terminal\.esm\.js(?:\?v=[^']*)?'/, specifier);
+  const stateHash = hash(await readFile(join(root, 'src/localbrain/static/terminal-state.js'))).slice(0, 12);
+  if (!source.includes("from './terminal-state.js")) throw new Error('Terminal state import not found');
+  versioned = versioned.replace(/'\.\/terminal-state\.js(?:\?v=[^']*)?'/, "'./terminal-state.js?v=" + stateHash + "'");
   if (update) await writeFile(entry, versioned);
   else if (versioned !== source) throw new Error('Renderer import version is stale');
   const css = await readFile(join(root, 'src/localbrain/static/terminal.css'), 'utf8');

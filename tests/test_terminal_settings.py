@@ -114,6 +114,20 @@ class TerminalSettingsTests(unittest.TestCase):
         self.assertEqual(first, {"cwd": str(self.project), "shell": "/bin/sh"})
         self.assertEqual(launch_parameters(self.config), {"cwd": str(self.home), "shell": "/bin/sh"})
 
+    def test_explicit_group_folder_replaces_deleted_default_without_skipping_shell_validation(self):
+        self.save()
+        self.project.rmdir()
+        before = self.path.read_bytes()
+        with self.assertRaises(PreferencesError):
+            launch_parameters(self.config)
+        self.assertEqual(launch_parameters(self.config, cwd=str(self.home)), {"cwd": str(self.home), "shell": "/bin/sh"})
+        with self.assertRaises(PreferencesError):
+            launch_parameters(self.config, cwd=str(self.root / "missing"))
+        self.assertEqual(self.path.read_bytes(), before)
+        self.path.write_text('schema_version = 1\n[terminal]\ncwd = "/synthetic/missing"\nshell = "/synthetic/missing-shell"\n')
+        with self.assertRaises(PreferencesError):
+            launch_parameters(self.config, cwd=str(self.home))
+
     def test_malformed_section_is_not_overwritten(self):
         self.path.parent.mkdir()
         self.path.write_text('schema_version = 1\nterminal = "future-format"\n')
@@ -148,6 +162,9 @@ class TerminalSettingsTests(unittest.TestCase):
         self.project.rmdir()
         self.assertEqual(client.get("/api/terminal/settings").status_code, 200)
         self.assertEqual(client.get("/api/terminal/settings?launch=true").status_code, 409)
+        actual = client.get("/api/terminal/settings", params={"launch": "true", "cwd": str(self.home)})
+        self.assertEqual(actual.status_code, 200)
+        self.assertEqual(actual.json(), {"cwd": str(self.home), "shell": "/bin/sh"})
         self.assertFalse(self.config.cache_dir.exists())
 
     def test_settings_routes_absent_without_feature(self):

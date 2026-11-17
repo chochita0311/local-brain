@@ -1,4 +1,4 @@
-"""Private engine setup and service control. Inspection never starts a manager."""
+"""Protocol1 Python parity fixture. Product adapters use terminal.core (Rust)."""
 
 import asyncio
 import contextlib
@@ -19,12 +19,13 @@ from pathlib import Path
 
 from localbrain.foundation.config import cache_directory
 from localbrain.foundation.files import StorageError, private_directory, read_owned_json, validate_runtime_directory
+from .errors import TerminalError
 
 
 PACKAGE = Path(__file__).parent
 MAX_REPLY = 2 * 1024 * 1024
 VERSION = 1
-BUILD_FILES = ("manager.cjs", "ownership.cjs", "checkpoint.cjs", "pty-input.cjs", "colors.cjs", "processes.py", "runtime/package-lock.json")
+BUILD_FILES = ("manager.cjs", "ownership.cjs", "checkpoint.cjs", "pty-input.cjs", "colors.cjs", "status.cjs", "processes.py", "runtime/package-lock.json")
 ENGINE_ENTRIES = ("node-pty/lib/index.js", "@xterm/headless/lib-headless/xterm-headless.js",
                   "@xterm/addon-serialize/lib/addon-serialize.js",
                   "@xterm/addon-unicode11/lib/addon-unicode11.js",
@@ -37,12 +38,6 @@ def _build_fingerprint():
     for name in BUILD_FILES:
         value.update(name.encode() + b"\0" + (PACKAGE / name).read_bytes())
     return value.hexdigest()
-
-
-class TerminalError(RuntimeError):
-    def __init__(self, code, message):
-        super().__init__(message)
-        self.code = code
 
 
 def _decode(raw):

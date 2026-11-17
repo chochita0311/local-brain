@@ -1,1 +1,1 @@
-"""Optional web terminal ownership, independent of imported conversation Sessions."""
+"""Shared macOS terminal hosts, independent of imported conversation Sessions."""

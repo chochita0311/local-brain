@@ -10,7 +10,7 @@
   "scripts": {
     "build:terminal": "node scripts/build-terminal-assets.mjs build",
     "check:terminal": "node scripts/build-terminal-assets.mjs check",
-    "test:terminal": "node --test tests/terminal-checkpoint.test.cjs tests/terminal-input.test.cjs tests/terminal-pty-input.test.cjs tests/terminal-colors.test.cjs",
+    "test:terminal": "node --test tests/terminal-checkpoint.test.cjs tests/terminal-input.test.cjs tests/terminal-pty-input.test.cjs tests/terminal-colors.test.cjs tests/terminal-status.test.cjs",
     "build:mermaid": "node scripts/build-mermaid-assets.mjs build",
     "check:mermaid": "node scripts/build-mermaid-assets.mjs check",
     "test:mermaid": "node scripts/test-mermaid-assets.mjs",

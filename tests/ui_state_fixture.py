@@ -10,6 +10,8 @@ from pathlib import Path
 
 def main():
     root = Path(sys.argv[1]).resolve()
+    terminal_fixture = len(sys.argv) > 3 and sys.argv[3] == "terminal"
+    terminal_bundle = os.environ.get("LOCALBRAIN_TERMINAL_TEST_BUNDLE") if terminal_fixture else None
     repository = Path(__file__).resolve().parents[1]
     if root.exists() or root == repository or repository in root.parents:
         raise SystemExit("A new task-owned runtime directory outside the repository is required")
@@ -28,6 +30,16 @@ def main():
         "HUGGINGFACE_HUB_CACHE": str(root / "hub/cache"),
         "HF_HUB_OFFLINE": "1", "TRANSFORMERS_OFFLINE": "1",
     })
+    if terminal_fixture:
+        home = root / "home"
+        home.mkdir()
+        (root / "demo-a").mkdir()
+        (root / "demo-b").mkdir()
+        (home / ".profile").write_text("PS1='demo> '\nexport PS1\n")
+        (home / ".zshrc").write_text("PROMPT='demo> '\nRPROMPT=''\n")
+        os.environ.update(HOME=str(home), SHELL="/bin/sh", ZDOTDIR=str(home))
+        if terminal_bundle:
+            os.environ["LOCALBRAIN_TERMINAL_BUNDLE"] = str(Path(terminal_bundle).resolve())
     if len(sys.argv) > 2 and sys.argv[2] == "desktop":
         os.environ.update(LOCALBRAIN_EDITION="desktop", LOCALBRAIN_DESKTOP_TOKEN="synthetic-qa-token")
     sys.dont_write_bytecode = True
@@ -40,6 +52,7 @@ def main():
         "schema_version": 1, "onboarding_completed": True, "startup_screen": "context",
         "timezone": "Europe/Paris", "session_sync_enabled": False, "session_sync_minutes": 40,
         "context_sync_enabled": False, "context_sync_minutes": 90,
+        **({"terminal": {"cwd": str(root / "demo-a"), "shell": "/bin/sh"}} if terminal_fixture else {}),
     }))
     (data / "session-sources.toml").write_text(toml_text({"schema_version": 2, "session_sources": [{
         "source_id": 1, "provider_kind": "codex", "display_label": "Synthetic QA",
@@ -111,6 +124,22 @@ def main():
 
     app = create_app()
     app.router.lifespan_context = synthetic_lifespan
+    if terminal_fixture:
+        from localbrain.foundation.config import settings
+        from localbrain.terminal.core import TerminalService
+        terminal = TerminalService(settings, launcher="process")
+        app.state.terminal_factory = lambda: terminal
+        original_lifespan = app.router.lifespan_context
+
+        @asynccontextmanager
+        async def terminal_lifespan(app):
+            try:
+                async with original_lifespan(app):
+                    yield
+            finally:
+                terminal.stop(force=True)
+
+        app.router.lifespan_context = terminal_lifespan
 
     @app.middleware("http")
     async def delayed_history(request, call_next):

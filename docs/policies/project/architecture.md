@@ -14,7 +14,7 @@ Product terminology and organization rules are defined in [Product Model](produc
 - Search: existing SQLite FTS5 plus optional local Qwen semantic ordering and lexical exact-identifier admission
 - Frontend: server-rendered Jinja2 with small JSON API interactions
 - External integration boundary: optional feature-specific adapters and approved authorization contracts
-- Optional macOS web terminal: xterm browser, independent Node/node-pty manager and Python control bridge; [Terminal](terminal.md) owns lifecycle and memory limits
+- Optional macOS app/web terminal: shared Rust control/helper, independent Node/node-pty manager and xterm; Python retains HTTP/WS/CLI transports and the common settings writer. [Terminal](terminal.md) owns lifecycle and memory limits
 - Desktop packaging: Tauri 2 and a PyInstaller Python 3.11 bundle, Apple Silicon
 
 The standalone test edition admits Sessions, Sessions Dashboard, Local Context,
@@ -84,7 +84,7 @@ localbrain/
 ├── ingest/                          # provider parsing, evidence and source synchronization
 ├── sources/                         # source registry/settings and sync services
 ├── sessions/                        # activity, queries, reading, pins, references, web
-├── terminal/                        # macOS web-only PTYs, manager, setup/control and bridge
+├── terminal/                        # macOS app/web host adapters, Node PTY/VT and parity fixture
 ├── local_context/                   # document sources, queries, references, web
 ├── usage/                           # records, pricing, aggregation, web
 ├── resources/                       # resource identity/store and related-resource reads
@@ -309,3 +309,17 @@ External source dispatch and synchronization follow [Atlassian](atlassian.md#ext
 - Historical source paths must remain visible when their current Project relation is missing or changes.
 - The SQLite schema and runtime data must remain portable to a later desktop wrapper.
 - Desktop packaging must not obscure data location, permissions, backup, or shutdown behavior.
+
+## Shared Rust Terminal Runtime
+
+`rust/` is an independent Cargo workspace. `localbrain-core` owns terminal
+settings/path validation, immutable public payload preparation/retirement,
+launchd/process control, bounded manager IPC and stream/lease/ACK state.
+`localbrain-runtime` exposes fixed control/stream/process-snapshot/management and
+payload-lease entrypoints, with no Tauri/HTTP/SQLite/TOML writer in the core.
+Python `terminal/core.py` transports the closed protocol; `terminal/settings.py`
+retains the common writer transaction, and `terminal/web.py` owns authenticated
+HTTP/WS pipes. `terminal/runtime.py` and `processes.py` are protocol1 parity
+fixtures, excluded from native packaging. Other admitted Python features retain
+their owners. [The transition plan](../../plans/refactoring/refactor-0006-rust-core-transition.md)
+tracks remaining migration work; terminal execution is not whole-repository Rust parity.

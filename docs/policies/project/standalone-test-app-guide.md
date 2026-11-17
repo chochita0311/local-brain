@@ -17,7 +17,7 @@ its recipient requirements differ from a source builder's tool prerequisites.
   as its minimum. The declared minimum does not establish execution on every OS
   version. Check the artifact's `BUILD-INFO.md` for its actual build OS, app/ZIP
   sizes and verification results.
-- Recipients need no Python, uv, Homebrew, source checkout or developer account to launch the app.
+- Recipients need no Python, Node/npm, uv, Homebrew, source checkout or developer account to launch the app.
 - Keyword search needs no model. Optional AI search explicitly downloads public
   **Qwen3-Embedding-0.6B** weights, approximately **1.21 GB**, and prepares the local
   index. Indexes and temporary work need additional space according to the source
@@ -25,7 +25,7 @@ its recipient requirements differ from a source builder's tool prerequisites.
   does not guarantee every Apple Silicon memory configuration or large-data
   performance.
 - The packaged app provides Sessions list, Chart, pins, detail and subsessions;
-  Sessions Dashboard; Local Contexts; search; settings; first-use setup; and bundled
+  Sessions Dashboard; Local Contexts; search; Terminal with folder groups/tabs/max4 panes; settings; first-use setup; and bundled
   Docs. It excludes the top-level Dashboard/learning, Workstreams, Auto Work,
   Atlassian, Insights, Session workflow and Schema. Development web keeps its
   other routes; user settings cannot enable those features in the test app.
@@ -102,6 +102,14 @@ synchronization. The app does not start automatically at login. In development
 browser use, closing a tab leaves collection running while the server is alive;
 **Ctrl+C** stops the server and its schedules.
 
+Terminal work belongs to a separate cached service: window close and **⌘Q** keep it
+alive. Sleep can suspend computation; reopen reconnects surviving work. Before
+replacing the `.app`, explicitly stop affected terminals/service in Terminal
+Management and confirm termination, then fully quit, replace and reopen. A known
+older service blocks New and offers an explicit service update. Reboot never
+replays terminal commands. The cache keeps an app-less `localbrain-terminal`
+management launcher after first preparation.
+
 Fully quit LocalBrain before replacing the `.app`, then reopen it. Deleting or
 replacing the application does not automatically remove data or settings. This
 version does not provide live storage-location changes, transfer to another Mac
@@ -119,10 +127,13 @@ and sizes. Keep private backups separate from the program-sharing ZIP.
 ### Same-Installation, Same-Mac Recovery
 
 A backup includes a database snapshot, general settings, source settings, search
-settings and LocalBrain's model-registration metadata. It excludes original
-Session/document files, public model weights, caches, logs and external
-authentication information. Only the listed application state is included;
-other retained feature state and copies require separate backup.
+settings, LocalBrain's model-registration metadata and saved Terminal workspace
+metadata when present. It excludes original Session/document files, public model
+weights, caches, logs and external authentication information. Terminal workspace
+recovery restores metadata, not running terminal processes or screens, and never
+replays commands; generated shell-integration startup files are excluded.
+Only the listed application state is included; other retained feature state and
+copies require separate backup.
 A backup ZIP contains private application data and
 belongs in a private local location, separate from installation files.
 

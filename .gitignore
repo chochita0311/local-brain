@@ -55,3 +55,5 @@ dist/
 
 desktop/ui/app-styles.css
 desktop/node_modules/
+rust/target/
+desktop/terminal/

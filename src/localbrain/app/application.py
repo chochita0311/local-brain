@@ -52,7 +52,17 @@ def create_app(*, feature_packages=DEFAULT_FEATURE_PACKAGES):
     install_settings_routes(app, templates)
     if "terminal" in feature_packages:
         from localbrain.terminal.web import install_routes as install_terminal_routes
+        from localbrain.terminal.storage import maintain_cache as maintain_terminal_cache
         install_terminal_routes(app, templates, settings)
+        previous_cache_owner = app.state.maintain_feature_cache
+
+        def maintain_included_caches(cache_dir):
+            result = previous_cache_owner(cache_dir) if previous_cache_owner else {"removed_bytes": 0}
+            terminal = maintain_terminal_cache(settings)
+            return {**result, "removed_bytes": result["removed_bytes"] + terminal["removed_bytes"],
+                    "protected": terminal["protected"]}
+
+        app.state.maintain_feature_cache = maintain_included_caches
     if "google_drive" in feature_packages:
         from localbrain.google_drive.web import install_routes as install_google_drive_routes
         install_google_drive_routes(app)

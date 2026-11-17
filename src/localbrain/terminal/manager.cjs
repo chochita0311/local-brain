@@ -6,24 +6,30 @@ const path = require('node:path');
 const os = require('node:os');
 const net = require('node:net');
 const crypto = require('node:crypto');
-const {execFile} = require('node:child_process');
+const {execFile, spawn} = require('node:child_process');
 const {sameProcess, ownedProcesses, signalTargets} = require('./ownership.cjs');
 const checkpoint = require('./checkpoint.cjs');
 const {PtyInput} = require('./pty-input.cjs');
 const {installColorReports} = require('./colors.cjs');
+const {shellStatus} = require('./status.cjs');
 const root = process.argv[2];
-const python = process.argv[3];
-const engine = path.join(root, 'engine', 'node_modules');
+const processHelper = process.argv[3];
+// The legacy branch is retained only for the frozen Python parity fixture.
+// Production launches protocol 2 with immutable, app-independent payload paths.
+const payloadRoot = process.argv[4];
+const scopeHash = process.argv[5];
+const engine = path.join(payloadRoot || root, 'engine', 'node_modules');
 const pty = require(path.join(engine, 'node-pty'));
 const {Terminal} = require(path.join(engine, '@xterm/headless'));
 const {SerializeAddon} = require(path.join(engine, '@xterm/addon-serialize'));
 const {Unicode11Addon} = require(path.join(engine, '@xterm/addon-unicode11'));
-const VERSION = 1;
+const VERSION = payloadRoot ? 2 : 1;
 const buildHash = crypto.createHash('sha256');
-for (const name of ['manager.cjs', 'ownership.cjs', 'checkpoint.cjs', 'pty-input.cjs', 'colors.cjs', 'processes.py', 'runtime/package-lock.json']) {
+for (const name of payloadRoot ? [] : ['manager.cjs', 'ownership.cjs', 'checkpoint.cjs', 'pty-input.cjs', 'colors.cjs', 'status.cjs', 'processes.py', 'runtime/package-lock.json']) {
   buildHash.update(name + '\0').update(fs.readFileSync(path.join(__dirname, name)));
 }
-const build = buildHash.digest('hex');
+const build = payloadRoot ? JSON.parse(fs.readFileSync(path.join(payloadRoot, 'manifest.json'), 'utf8')).payloadId : buildHash.digest('hex');
+const identityProtocol = payloadRoot ? {scopeHash, helperProtocol: 1, checkpointVersion: checkpoint.VERSION, unicodeVersion: '11'} : {};
 const MAX_TERMINALS = 32;
 const TAIL_BYTES = 128 * 1024;
 const MAX_FRAME = 2 * 1024 * 1024;
@@ -39,6 +45,30 @@ let shuttingDown = false;
 const isStopping = () => shuttingDown || stopOperations > 0;
 let revision = 0;
 let lastActivity = Date.now();
+let payloadLease = null;
+
+async function holdPayloadLease() {
+  if (!payloadRoot) return;
+  await new Promise((resolve, reject) => {
+    const child = spawn(processHelper, ['payload-lease'], {stdio: ['pipe', 'pipe', 'ignore']});
+    const timer = setTimeout(() => {child.kill(); reject(new Error('Payload lease unavailable'));}, 3000);
+    child.once('error', error => {clearTimeout(timer); reject(error);});
+    child.once('exit', () => {payloadLease = null; clearTimeout(timer); reject(new Error('Payload lease lost'));});
+    let ready = '';
+    child.stdout.on('data', bytes => {
+      ready += bytes.toString();
+      if (ready.length > 6 || (ready.includes('\n') && ready !== 'ready\n')) {
+        child.kill(); reject(new Error('Invalid payload lease')); return;
+      }
+      if (!ready.endsWith('\n')) return;
+      clearTimeout(timer);
+      payloadLease = child;
+      resolve();
+    });
+    // Only the open pipe carries ownership; no terminal content enters it.
+    child.stdin.on('error', () => {});
+  });
+}
 
 class Failure extends Error {
   constructor(code, message) { super(message); this.code = code; }
@@ -61,6 +91,7 @@ function publicTerminal(term) {
     cols: term.cols, rows: term.rows, seq: term.seq, unicodeVersion: '11', checkpointVersion: checkpoint.VERSION,
     closing: Boolean(term.ending || (term.shellExited && term.state !== 'exited')), error: term.stopError || null,
     inputError: term.inputError || null,
+    activity: {...term.status.activity},
     controlled: Boolean(term.lease && term.lease.expires > Date.now())};
 }
 function listing() {
@@ -100,7 +131,7 @@ async function processTable(fresh = false) {
   if (fresh && inspection) await inspection.catch(() => {});
   if (!inspection) {
     inspection = new Promise((resolve, reject) => {
-      execFile(python, ['-S', path.join(__dirname, 'processes.py')],
+      execFile(processHelper, payloadRoot ? ['process-snapshot'] : ['-S', path.join(__dirname, 'processes.py')],
         {encoding: 'utf8', timeout: 3000, maxBuffer: 8 * 1024 * 1024,
           env: {...process.env, LC_ALL: 'C', TZ: 'UTC'}}, (error, output) => {
           if (error) { reject(error); return; }
@@ -205,10 +236,11 @@ async function create(params) {
   const cwdInput = params.cwd === undefined || params.cwd === ''
     ? (inherited && inherited.cwd) || os.homedir() : params.cwd;
   check(typeof cwdInput === 'string' && cwdInput.length <= 4096, 'invalid', '작업 폴더를 확인해 주세요.');
-  const cwd = path.resolve(cwdInput.replace(/^~(?=\/|$)/, os.homedir()));
+  let cwd = path.resolve(cwdInput.replace(/^~(?=\/|$)/, os.homedir()));
   try {
     check(fs.statSync(cwd).isDirectory(), 'invalid', '작업 폴더를 찾을 수 없습니다.');
     fs.accessSync(cwd, fs.constants.X_OK);
+    cwd = fs.realpathSync(cwd);
   } catch (_) { throw new Failure('invalid', '작업 폴더에 접근할 수 없습니다.'); }
   const shell = params.shell === undefined || params.shell === ''
     ? process.env.SHELL || '/bin/zsh' : params.shell;
@@ -236,7 +268,7 @@ async function create(params) {
   catch (_) { screen.dispose(); throw new Failure('spawn_failed', '셸을 시작하지 못했습니다.'); }
   let exited;
   const term = {id, tabId, name, cwd, shell, cols, rows, screen, serializer, pty: child,
-    state: 'running', exitCode: null, seq: 0, snapshotSeq: 0, tail: [], tailBytes: 0,
+    state: 'running', exitCode: null, status: shellStatus(), seq: 0, snapshotSeq: 0, tail: [], tailBytes: 0,
     tailFloor: 0, pendingBytes: 0, parsed: Promise.resolve(), waiters: new Set(),
     lease: null, ending: null, owner: {pid: child.pid, born: null}, members: [], ownershipLost: false,
     exited: new Promise(resolve => { exited = resolve; })};
@@ -244,7 +276,11 @@ async function create(params) {
   if (tab) {
     tab.terminals.push(id);
     tab.direction = params.direction === 'down' ? 'down' : 'right';
-  } else tabs.set(tabId, {id: tabId, name, hidden: false, direction: 'right', terminals: [id]});
+  } else tabs.set(tabId, {id: tabId, name, cwd, hidden: false, direction: 'right', terminals: [id]});
+  screen.parser.registerOscHandler(133, data => {
+    if (term.status.accept(data)) revision++;
+    return true;
+  });
   screen.onTitleChange(title => {
     if (title) { term.name = title.replace(/[\x00-\x1f\x7f]/g, '').slice(0, 120); revision++; }
   });
@@ -358,7 +394,8 @@ async function handle(method, params, socket) {
   }
   switch (method) {
     case 'status':
-      return {running: true, pid: process.pid, generation, version: VERSION, build, stopping: isStopping(),
+      return {running: true, pid: process.pid, generation, version: VERSION, build, ...identityProtocol,
+        ...(payloadRoot ? {leaseHeld: Boolean(payloadLease)} : {}), stopping: isStopping(),
         terminals: terminals.size, rss: process.memoryUsage().rss, uptime: process.uptime()};
     case 'list': return listing();
     case 'create': {
@@ -402,6 +439,8 @@ async function handle(method, params, socket) {
       return listing();
     }
     case 'stop': {
+      check(params.all ? params.id == null : typeof params.id === 'string' && params.id.length > 0,
+        'invalid', '터미널 하나 또는 전체 중 하나만 선택해 주세요.');
       if (params.all) { confirmedScope(params.expected); await stopAll(params.force); }
       else { const term = getTerminal(params.id); await terminate(term, params.force); removeTerminal(term); }
       return listing();
@@ -519,12 +558,12 @@ for (const signal of ['SIGTERM', 'SIGINT']) process.on(signal, async () => {
   catch (_) { shuttingDown = false; }
 });
 server.on('error', () => process.exit(1));
-processTable(true).then(table => {
+holdPayloadLease().then(() => processTable(true)).then(table => {
   const ownProcess = table.find(item => item.pid === process.pid && !item.dead);
   check(ownProcess?.born, 'identity', '서비스 시작 식별 정보를 확인할 수 없습니다.');
   server.listen(socketPath, () => {
     fs.chmodSync(socketPath, 0o600);
-    fs.writeFileSync(identityPath, JSON.stringify({pid: process.pid, born: ownProcess.born, birthFormat: 'utc-lstart-v1', generation, version: VERSION, build}),
+    fs.writeFileSync(identityPath, JSON.stringify({pid: process.pid, born: ownProcess.born, birthFormat: 'utc-lstart-v1', generation, version: VERSION, build, ...identityProtocol}),
       {mode: 0o600, flag: 'wx'});
   });
 }).catch(() => process.exit(1));

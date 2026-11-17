@@ -101,7 +101,9 @@ Original Session and document files remain at their registered source locations.
 
 ### Back up
 
-Choose **Save backup** in **Settings → Storage** to create a backup ZIP. It includes a database snapshot, general settings, source settings, search settings, and model registration metadata. It excludes original Session and document files, model weights, caches, logs, and external authentication information.
+Choose **Save backup** in **Settings → Storage** to create a backup ZIP. It includes a database snapshot, general settings, source settings, search settings, model registration metadata, and saved Terminal workspace metadata when present. It excludes original Session and document files, model weights, caches, logs, and external authentication information.
+
+Terminal workspace recovery restores group metadata; it does not restore running terminal processes or screens or replay commands. Generated shell-integration startup files are excluded.
 
 Backups contain saved application data. Keep backup archives separate from application installation files.
 

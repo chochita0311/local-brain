@@ -12,10 +12,10 @@ from fastapi.responses import JSONResponse, RedirectResponse
 DESKTOP = bool(getattr(sys, "frozen", False)) or os.environ.get("LOCALBRAIN_EDITION") == "desktop"
 _ALLOWED = re.compile(
     r"^/(?:$|static/.*|desktop/(?:start|shutdown)|settings|onboarding|"
-    r"help(?:/(?:settings|sessions-dashboard|sessions|local-contexts|search))?|"
+    r"help(?:/(?:settings|sessions-dashboard|sessions|local-contexts|search|terminal))?|terminal|"
     r"sessions-dashboard|projects|sessions(?:/\d+(?:/(?:pin|unpin|title|chart-activity)|/(?:subsessions|subagents)/[^/]+)?|/chart/project-visibility|/sync)?|"
     r"context(?:/.*)?|context-search|documents/\d+|natural-search(?:/.*)?|search|"
-    r"api/(?:health|settings(?:/.*)?|sessions(?:/.*)?|session-chart(?:/.*)?|"
+    r"api/(?:health|terminal(?:/.*)?|settings(?:/.*)?|sessions(?:/.*)?|session-chart(?:/.*)?|"
     r"context-(?:roots|files|sources)(?:/.*)?|context-search/(?:status|answer|unload)|natural-search/status))$"
 )
 
@@ -27,6 +27,17 @@ def _error_response(detail, status_code):
         media_type="application/json; charset=utf-8",
         headers={"Cache-Control": "no-store, private", "X-Content-Type-Options": "nosniff"},
     )
+
+
+def desktop_authorized(connection, *, start=False):
+    """The same per-launch credential protects HTTP and WebSocket transports."""
+    token = os.environ.get("LOCALBRAIN_DESKTOP_TOKEN", "")
+    supplied = connection.cookies.get("localbrain-desktop", "")
+    if connection.headers.get("authorization", "").startswith("Bearer "):
+        supplied = connection.headers["authorization"][7:]
+    if start:
+        supplied = connection.query_params.get("token", "")
+    return bool(token) and hmac.compare_digest(token.encode("utf-8"), supplied.encode("utf-8"))
 
 
 def install_boundary(app, config):
@@ -47,12 +58,7 @@ def install_boundary(app, config):
             if not _ALLOWED.fullmatch(path) or any(part in path.split("/") for part in ("workflow", "insights", "runs")):
                 return _error_response("이 앱에서 제공하지 않는 기능입니다.", 404)
             token = os.environ.get("LOCALBRAIN_DESKTOP_TOKEN", "")
-            supplied = request.cookies.get("localbrain-desktop", "")
-            if request.headers.get("authorization", "").startswith("Bearer "):
-                supplied = request.headers["authorization"][7:]
-            if path == "/desktop/start":
-                supplied = request.query_params.get("token", "")
-            if not token or not hmac.compare_digest(token, supplied):
+            if not desktop_authorized(request, start=path == "/desktop/start"):
                 return _error_response("앱 창에서 열어 주세요.", 401)
             if path == "/desktop/start":
                 from localbrain.foundation.preferences import effective_preferences, PreferencesError
@@ -71,9 +77,11 @@ def install_boundary(app, config):
                 return response
         response = await call_next(request)
         if DESKTOP:
+            # WebKit does not consistently include ws: in connect-src 'self'.
+            socket_origin = "ws://127.0.0.1:" + str(request.url.port or 80)
             response.headers["Content-Security-Policy"] = (
                 "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
-                "img-src 'self' data:; font-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost; "
+                "img-src 'self' data:; font-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost " + socket_origin + "; "
                 "object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
             )
         response.headers["X-Content-Type-Options"] = "nosniff"

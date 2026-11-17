@@ -66,13 +66,14 @@ behavior are recorded separately in Feature and Run evidence.
   latest per-file scan state. There is no dedicated overall sync-history table.
   Data-directory relocation is excluded.
 
-The macOS web-only [Terminal](terminal.md) owns an optional `[terminal]` section
+The macOS app/development-web [Terminal](terminal.md) owns an optional `[terminal]` section
 in the same settings.toml for default cwd/shell. It shares the common revision,
 lock and atomic writer while remaining outside the common preference value set.
 General saves preserve this section; Terminal saves preserve common and unknown
 values. Its conditional Settings pane/API need no running terminal engine, and
-saving defaults never restarts existing work. Native editions retain no Terminal
-pane or execution endpoint and preserve the unknown section on common saves.
+saving defaults never restarts existing work. Both editions expose the same pane.
+Rust validates terminal values; Python retains the sole shared TOML commit. Native
+HTTP/WebSocket require the per-launch token and exact local-origin boundaries.
 
 ## First-Use Setup
 
@@ -418,13 +419,13 @@ their existing explicit authority. Picking does not persist a path independently
   stops scheduling. The packaged app owns its backend, closes windows without
   quitting, and shuts down the backend on explicit app quit.
 - The packaged edition exposes Sessions, Sessions Dashboard, Context, search,
-  onboarding, settings and bundled Docs. Dashboard/learning, Workstreams, Auto Work, Atlassian,
+  onboarding, settings, Terminal and bundled Docs. Dashboard/learning, Workstreams, Auto Work, Atlassian,
   Insights, Session workflow and Schema cannot be enabled by user settings or
   direct HTTP access. The normal development web edition keeps its other routes.
   Optional routes, settings and lifetime services are installed only when their
-  package is selected in application assembly. Desktop first excludes all optional
-  product packages, including their reference hooks, startup cache work and task
-  runners; its [trial capabilities](trial-capabilities.md) remain the public
+  package is selected in application assembly. Desktop admits Terminal and excludes
+  the other optional product packages, including their reference hooks, startup
+  cache work and task runners; its [trial capabilities](trial-capabilities.md) remain the public
   boundary. The web edition retains the selected optional set.
   [Feature availability](../../plans/project/feature-availability.md) owns common
   temporary suspension and resumption decisions. Exclusion preserves stored
@@ -454,9 +455,11 @@ their existing explicit authority. Picking does not persist a path independently
 
 ## Local Recovery
 
-- Backups contain a consistent SQLite snapshot and app-owned settings/model
-  registration metadata. They exclude external originals, Hub weights, caches,
-  credentials and logs. Restore validates archive paths, ownership/schema and DB
+- Backups contain a consistent SQLite snapshot, app-owned settings/model
+  registration metadata and saved Terminal workspace metadata when present.
+  Terminal workspace restoration does not restore running terminal processes or
+  screens or replay commands; generated shell-integration startup files are excluded.
+  Backups exclude external originals, Hub weights, caches, credentials and logs. Restore validates archive paths, ownership/schema and DB
   integrity and the application schema fingerprint before replacing state under the shared operation lock.
 - Restore is same-Mac recovery, with a recovery copy and rollback on failure.
   A restart reopens restored state. Cache cleanup is explicit, limited to owned

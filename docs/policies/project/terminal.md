@@ -1,32 +1,42 @@
-# Web Terminal
+# Terminal
 
 ## Delivery And Ownership
 
-Terminal is a macOS web feature above Sessions. It is excluded from native app
-assembly, routes, CLI registration, startup and packaged terminal assets. Windows
-and external iTerm2 windows/attachment are outside this delivery.
-`terminal/` owns setup, control, IPC and PTYs; the existing Session, Usage, search
-and source pipelines do not consume terminal output or infer provider identity.
-The canonical user instructions are the conditional bilingual
-[Terminal guide](../../../src/localbrain/content/docs/terminal.md).
+Terminal shares its HTML/CSS/xterm workspace between the macOS app and development
+web above Sessions. The new self-contained payload targets Apple Silicon/macOS14;
+Intel/Windows delivery and external iTerm2 attachment are not established by this
+port. Other optional feature admission is unchanged. Terminal output never enters
+Session, Usage, search or source ingestion. The conditional bilingual
+[Terminal guide](../../../src/localbrain/content/docs/terminal.md) owns user procedures.
 
-Browser xterm6 and fit render only this route. The independent Node20+ manager
-uses node-pty1.1, xterm headless6 and serialize0.14. Python provides CLI/setup,
-launchd control and the FastAPI HTTP/WebSocket bridge. A pinned optional npm lock
-is installed into a private cache only by explicit setup; it is separate from
-web asset build dependencies. Other app features do not require Node/npm at run
-time. No Herdr core, custom emulator, CDN, login agent or terminal window is used.
+`rust/localbrain-core` owns terminal value/path validation, immutable payload
+verification/preparation/retirement, manager IPC/stream state, process inspection
+and service control. `rust/localbrain-runtime` provides fixed host protocol1 and
+app-less management entrypoints, independent of Tauri. Python owns thin CLI/HTTP/WS
+transports, generic TOML parsing and its sole shared settings commit transaction.
+The old Python runtime/process helper remains a parity fixture; product web/CLI
+imports the Rust adapter. Unrelated Python feature families remain in place.
 
-Readiness requires a matching lock marker, present main entry files for every
-required runtime package, and both Darwin spawn helpers. Setup and explicit
-Start prepare both helpers as owner-only executables, permitting later native/
-Rosetta Node selection without another download. Partial module/cache loss returns the setup action;
-this existence check is not a full integrity audit of every dependency file.
+The independent Node24.15.0 arm64 manager uses protocol2, node-pty1.1, xterm
+headless6, serialize0.14 and Unicode11 addon0.9. Browser xterm6/fit and D2Coding
+load only on this route. The builder verifies the official Node archive SHA256,
+installs the pinned public runtime lock without install scripts and signs native
+bytes before creating a closed, content-addressed manifest. Full file hashes are
+checked before preparation/execution and retirement; ordinary polls inspect the
+manifest and exact tree/size/mode shape without repeatedly hashing the Node image.
+Bundled components are copied only on explicit New/Start/install to private
+`<terminal-cache>/payloads/<payloadId>`. Paths and helper execution then survive
+app/checkout removal. No runtime download, user-cache copy, Herdr core, CDN,
+login agent or separate terminal window is used. Native recipients need no Node/npm.
+Legacy protocol1 managers retain inspection and validated stop, while new work
+requires a compatible protocol2 payload. Manager/helper/stream use leases and the
+same control lock protect execution from cache retirement. Unknown/lost owners
+and loss-marked payloads remain protected; generic cleanup may clear other caches.
 
 Both new manager screens and browser views select the pinned Unicode11 addon0.9
 so mixed Hangul/modern emoji use matching cell widths. Each terminal advertises
-its width version; a new browser viewing an older live manager keeps its Unicode6
-rules until the user explicitly updates that service. This does not establish
+its width version; an older incompatible manager remains inspectable/stoppable,
+but viewing/input requires explicit service update to the matching protocol. This does not establish
 complete grapheme/ZWJ or arbitrary application compatibility. The terminal-only
 font alias loads unmodified public D2Coding1.4.0 Regular/Bold WOFF2 from the local
 web package, with its OFL, pinned upstream revision and SHA256 manifest. The two
@@ -68,16 +78,23 @@ missing newly required exports. Runtime lock tarballs use the public registry.
   idle-exit after 60s without terminals or IPC connections. KeepAlive is disabled;
   a private launch configuration exists only during bootstrap and is removed in
   its finally path. No login agent or permanent launch/environment file remains.
+- Closing a view/navigation, hiding the app window or ordinary app Quit preserves execution. Sleep does not request termination, but the OS can suspend computation; wake/reopen revalidates actual liveness and reconnects. System shutdown ends ordinary continuity with no replay. App Quit stops only its own backend/schedules, not the independent terminal manager.
 - Closing a view/navigation preserves execution. Pane/tab × ends its scope;
   tab background hides but retains its layout. Management can reopen or end
   tabs and individual terminals, or end all. Tabs have up to 4 panes; the scope
   retains at most 32 terminal records, including exited screens.
   Two panes can be side-by-side or stacked; three/four use a 2×2 grid. Below
   the shared 700px breakpoint, a selector shows one pane while keeping the others.
+- The GUI retires a confirmed shell exit, regardless of exit code, through the existing generation-bound
+  single-ID stop after the manager has confirmed process cleanup. Normal command
+  completion at a still-live prompt never closes the shell. Input faults and unconfirmed descendant cleanup remain inspectable. Individual
+  pane/tab/task End acts directly without a confirmation dialog; service/bulk
+  stop, restart and update retain their explicit scope confirmation. The runtime
+  still retains exited records for non-GUI consumers until explicitly removed.
 - Service stop blocks new creation, terminates its owned live descendants with
   TERM/HUP, waits3s, then uses KILL if needed with2s confirmation. POSIX session
   membership also catches ordinary background jobs after their shell exits;
-  a short-lived Python inspection helper reads session IDs and process birth/group
+  a short-lived Rust inspection helper reads session IDs and process birth/group
   identity only during control/exit cleanup, with no idle polling process. One
   asynchronous reader is shared by concurrent checks so input remains responsive. Intentionally
   detached work remains stoppable while live ancestry proves ownership;
@@ -86,7 +103,7 @@ missing newly required exports. Runtime lock tarballs use the public registry.
   is no broad killall. Unknown identity/liveness or unconfirmed exit is failure;
   force skips grace while preserving ownership. Create/start/stop/restart/setup
   share a local control lock; generation and exact target snapshots bind destructive
-  confirmations. Changed scope or generation is rejected for renewed confirmation.
+  requests. Changed scope or generation is rejected for renewed confirmation.
 - Restart stops all managed work and starts an empty manager. Commands are never
   replayed. Web backend restart preserves work; updates must explicitly stop the
   old manager, update/install components if needed, restart the web server and
@@ -191,25 +208,217 @@ transcript is introduced to disguise this engine limitation.
 
 Settings → Terminal owns default cwd/shell in the `[terminal]` section of the
 private settings.toml. It uses the common settings revision, lock and atomic
-writer, preserving unrelated/unknown fields; the pane and endpoints are web-only.
+writer, preserving unrelated/unknown fields in both hosts. Native HTTP and WebSocket require the same per-launch credential; WebSocket also requires an exact loopback origin before any helper starts.
 Reads/saves do not install dependencies or start a manager/shell. Save validates
 an accessible absolute/tilde directory and executable shell, with an empty shell
 meaning the backend's default. Deleted/invalid defaults remain readable for
 repair and fail a new launch without silently substituting a folder or booting
-a manager. Defaults apply to new instances only. New Terminal captures validated
-cwd/shell once through `GET /api/terminal/settings?launch=true`, then submits
-explicit paths with one creation identity. An uncertain response retains those
-paths/identity across retries even if defaults change or disappear. Splits supply
-the clicked pane's cwd/shell; explicit API callers supply their own launch values.
+a manager. Defaults apply to new instances only. New Terminal captures the
+configured shell and, without a selected group, the default cwd through
+`GET /api/terminal/settings?launch=true`. Within a workspace it uses its optional
+default cwd, otherwise the global default; choose-folder actions supply the
+explicitly entered folder. The launch read
+accepts an optional `cwd` query override without saving it, validating that actual
+folder with the configured shell. A deleted unrelated saved cwd cannot block a
+valid group/folder override; malformed preferences and invalid shells still fail.
+It submits explicit paths with one creation identity.
+An uncertain response retains those
+paths/identity across retries even if defaults change or disappear. An unresolved
+creation exposes explicit Retry and gates other creations, so discovering its
+first group cannot replace the pending request key. Splits supply
+the clicked pane's cwd/shell; a choose-folder split overrides only cwd. Explicit
+API callers supply their own launch values. Omitted/empty HTTP shell resolves
+the host's `SHELL` or `/bin/zsh` before the integration step below.
 Existing work and service identity are unaffected. Settings saves return common
 preference values together with their matching revision, and Terminal controls
 wait for an in-flight common-settings read/write before accepting another save.
 
-Running exposes separate View/Open, Background and End Terminals actions, with
+Management exposes separate View/Open, Background and End Terminals actions, with
 visible/background state text. Background only hides the tab; the same manager
 continues owning its PTYs. Opening it never creates a replacement shell. Ending
 it uses the existing destructive scope/identity contract. All-background empty
-state opens the management list; the primary New action creates another instance.
+state opens the hidden-tab list; the primary New action creates another instance.
+
+## Folder Workspace And Status
+
+Terminal fills the space directly beside the shared app navigation, retaining the
+shared header and accessible main/heading. Its upper rail contains named
+workspaces; the lower rail lists terminals across workspaces and focuses the
+exact pane. Hidden/background tabs are excluded from this foreground list and
+the tab strip while their execution continues. The footer separates Background,
+Settings and Management; its dedicated list restores the same executions or ends
+their tab. Explicit reported hidden errors/completions mark that footer action.
+The top tab strip belongs to the selected group;
+the toolbar + creates a visible tab grouping terminals. Split controls belong
+to each pane header and target that exact terminal's cwd/shell.
+The bottom bar shows cwd, connection/input readiness and live shell count.
+
+Workspace identity is independent of cwd and process lifetime. Each workspace
+holds tabs, and each tab holds up to four terminals with independent folders.
+The rail + creates an empty named workspace with an optional default folder;
+its ⋯ edits these values or removes an empty workspace from the list. Neither
+operation creates a shell or deletes a directory. Hidden/retained tabs still
+prevent removal. The tab menu opens a new tab in another folder or moves an
+existing tab to another workspace; a pane menu can split in another folder.
+Workspace movement uses a same-panel action list with checked current membership,
+back and keyboard navigation, rather than an OS select or nested popup. Terminal
+menus share32px desktop/40px narrow rows, viewport-bounded scrolling and below-trigger
+placement when space permits; lower triggers may open above without covering
+their trigger. Escape backs out of the workspace list before closing the menu;
+outside click/focus, peer switching and resize dismiss it. Polling retains its
+destination focus; a changed active tab invalidates that menu's action context.
+Normal + uses the workspace default or global default plus configured shell;
+normal Split inherits the clicked pane's current cwd/shell. `cd`, rename,
+membership changes and selection never relaunch work. No Project, Source,
+Workstream or imported Session record is created or reused.
+
+The host stores schema1 workspace IDs, names, defaults and generation-bound tab
+membership in owner-private `<data>/terminal-workspaces.json` (maximum128 groups,
+32 tab references,2MiB input). Empty groups survive exit, app/service restart and
+reboot. Screens/layouts/processes remain memory-only with the existing loss and
+reboot limits; stored metadata never replays work. GET only projects current
+membership. Explicit reconciliation POST adopts unassigned legacy/CLI tabs into
+stable initial folder-named groups and drops stale generation references while
+retaining group identities. Existing jobs continue. Writes use the shared local
+writer lock, a fresh manager snapshot and atomic private publication; corrupt or
+unsafe files are preserved with an error. This metadata joins same-installation
+backup/restore, with schema validation before restoration.
+
+Creation and metadata publication are separate operations. A post-creation
+storage or manager-read failure returns the known terminal identity plus a
+recoverable workspace warning. An uncertain creation retains its key and paths;
+retry cannot silently reassign confirmed membership. Moving an existing tab is
+an explicit generation-checked metadata operation, preserving its IDs and PIDs.
+
+An active tab title edits in place by clicking its text, F2 or the tab/task menu.
+Inactive clicks select; dragging does not open the editor. Enter/focus-out saves,
+Escape cancels, composition Enter does not submit, and a failed save preserves
+the draft. Task ⋯ actions focus the exact pane, background its whole tab (naming
+the number of panes when relevant), rename the tab or end just that terminal.
+Menus remain reachable beyond rail scroll bounds and support keyboard dismissal.
+
+Mouse dragging reorders visible tabs inside their current workspace. Alt+Shift+Left/
+Right and tab-menu move actions provide alternatives. The host stores only
+schema/generation/ordered IDs in owner-private `view-order.json` beside the runtime
+scope, separate from payloads and TOML. Writes validate the observed manager generation,
+exact IDs, matching workspace slots and unchanged background IDs/slots. Last committed
+write wins; manager metadata and this UI cache are not one transaction. A later
+manager change is reconciled by generation/membership on read. Reads append new tabs, drop missing IDs and ignore stale generations;
+unreadable presentation preferences never disable terminal controls. This cache
+shares ordering across web/app origins without restoring jobs or screens.
+No runtime upgrade or shell stop is required to change these view preferences.
+
+The Terminal rail can collapse independently of global navigation preferences.
+At 1100px and below it starts collapsed and opens as an overlay with its own
+close control. Exactly one panel toggle is visible: rail collapse when expanded,
+toolbar reopen when collapsed. Every route shares the48px desktop header and
+32px search control. Terminal group/task controls remain32px, with one-line
+context without duplicate names and the existing40px touch targets at700px and
+below. Other routes retain their content density and ordinary page scroll. At700px and below the existing pane selector shows one pane
+while all processes remain managed. Lists, tabs and terminal scrollback own
+their bounded scroll regions; the Terminal route alone contains document scroll.
+
+`activity: {state, exitCode, completion}` is reported shell metadata, separate
+from PTY `state`/`exitCode`, view visibility, connection and input lease. The
+initial command state is `unknown`. Supported OSC133 A/B mark prompt/input,
+C marks command execution, and D after C marks completion with a 0–255 result
+or null when omitted. D after B is an aborted input line and adds no completion;
+duplicates/out-of-order D and malformed results are ignored. The in-memory
+completion counter persists across the following prompt. The official
+[FinalTerm/iTerm2 protocol](https://iterm2.com/documentation-escape-codes.html#shell-integrationfinalterm)
+defines these signals; any program can emit them, so they are reports, not
+trusted proof of task/agent success. No command text is captured for this feature.
+
+The primary indicator gives hidden ◇ and current selection ✓ precedence.
+For other foreground items, a small filled ● requires a live terminal reporting
+command/program running; a same-outer-diameter hollow ◦ requires every represented
+terminal to be live and report prompt. A grouped tab shows ● when any pane meets
+the running condition, ◦ only when all meet the prompt condition, otherwise an
+empty reserved slot. Unknown, finished-without-prompt and exited metadata do not
+fabricate prompt/running. Exact command/process descriptions and result badges
+remain available. A running agent CLI can be waiting internally; ● does not mean
+the agent is thinking. Program title activity is a separate report below.
+
+All indicators occupy the shared20px navigation slot. The small ring and dot
+share their painted outer diameter; fill distinguishes prompt from execution.
+These report-based criteria apply to old and new terminals, with no first-tab
+rule or question-mark default. Selected tab underlines and pane frames reinforce
+selection; inactive windows retain selected IDs with neutral borders. Tab title
+controls retain their12rem width and truncate names. Live indicator/title/result
+updates preserve buttons and cannot shift the separate close target.
+
+Programs can report a leading braille glyph in their OSC0/2 title. Render that
+exact title prefix separately beside the name, update it from stream metadata,
+and remove it when the reported title removes it. Preserve manually named tabs.
+For a group, represent the focused pane's glyph when present, otherwise the first
+reporting pane in that tab. This is program-supplied title presentation, not a
+LocalBrain agent-thinking/needs-input protocol. A live agent CLI or shell command
+is not proof that the agent is working. Do not synthesize program activity from
+shell execution, output text or silence. Non-prefix braille remains ordinary
+title text. No native Dock integration, OS badge or multiwindow model is added.
+Displayed panes receive stream metadata; inactive/hidden panes also refresh
+through the existing three-second model poll while the document is visible.
+A brief command can finish between polls. Hiding or a background browser page
+does not imply that its last displayed glyph is a fresh liveness guarantee.
+
+Shell command status remains separate in the status bar and descriptions:
+reported running, prompt waiting, completion/result and unknown retain their
+exact metadata meanings. Unseen completion, failure, faults and termination may
+add a separate result/status badge without replacing the view or program mark.
+Unknown state is a description, never a default question-mark icon. Before a
+confirmed shell exit is retired, stop means its result is unknown and error means
+a nonzero exit; this transient result does not prevent retirement. Termination,
+input faults and closing retain precedence. Output silence/text and shell
+liveness never imply prompt, busy, success or a request for user input.
+
+The rail footer's Background disclosure expands an inline list, rather than a
+modal. Hidden tabs stay outside the foreground strip/task list. Its rows retain
+◇, program title glyphs, completion/error badges, useful workspace/count context,
+name-to-restore and a direct whole-tab × with explicit accessible scope. The
+header retains aggregate hidden count/error/new-completion attention. The list
+scrolls within a bounded footer while the disclosure and utilities remain
+reachable. On initial load, retained hidden work is expanded. Explicit Hide or
+the all-background empty-state action reveals/expands the rail; ordinary polling
+preserves manual collapse. This is view-local state, with no new stored setting.
+Restoring returns to the exact tab/input and closes the narrow rail overlay.
+Surviving row focus remains through refresh; final focused-row removal returns
+to the disclosure, and Management retains its modal focus rules.
+
+Actual painted input focus in an active window is still the acknowledgement
+condition; inline navigation, selection, hiding or window activation alone does
+not imply command completion or mark every pane seen. Hidden work can still run.
+
+New zsh terminals created through the web/app host automatically report OSC133
+prompt/running/completion/result and OSC7 cwd. A versioned launcher and startup
+shims live under owner-private `<data>/terminal-shell/zsh-<identity>/`, independent
+of app and runtime payload paths. The selected zsh remains the shell; the launcher
+restores its `SHELL`, chains user `.zshenv/.zprofile/.zshrc/.zlogin` at startup scope,
+tracks effective ZDOTDIR (unset/empty/export), and appends deduplicated precmd/
+preexec hooks without capturing command text. The completion hook captures `$?`
+before other work and emits UTF-8 URL-encoded cwd. User startup files are not
+edited. Generated files are private and hash-verified, never silently overwritten
+when corrupt; an interrupted preparation resumes only matching owned files.
+Preparation occurs on explicit creation, not list/page reads. Existing launchers
+remain usable across app Quit/replacement and are excluded from backup as
+reconstructible files. Existing terminals receive no injected commands or new
+hooks; raw CLI launches and other/unreported shells retain unknown command metadata
+without changing their view marks.
+Real zsh5.9 login, changing ZDOTDIR across startup stages, custom hooks and command
+results have dedicated PTY coverage; unusual global startup configurations are
+not universally certified. Existing compatible OSC133 integration can also report
+status; these signals remain reports rather than trusted proof.
+
+Unseen completion is local to a browser view and manager generation, keyed by
+terminal and completion counter. It clears only after that completion's frame
+is rendered while the document/window are visible/focused and the xterm input
+textarea actually has keyboard focus. The witness follows a full xterm render
+and subsequent animation frame, not just parser/import completion; synchronized
+output withholds it. Pane menu focus, selection, minimization, hidden tabs and reconnect alone
+cannot mark it seen. Seen command failure remains in metadata until superseded;
+the ordinary prompt symbol is restored after attention is seen. No additional
+process polling, transcript, index or persistent read history is used. Within one
+manager generation, older HTTP list metadata cannot replace newer stream sequence
+metadata; a new generation clears prior view attention and group selection state.
 
 The default shell is the existing login/interactive shell and startup files;
 explicit executable and accessible cwd are validated. No shell rc modification.

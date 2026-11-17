@@ -8,14 +8,21 @@ in [Run230](../run/run-20261101-230-feature-availability-and-doc-boundary.md);
 they are not current product-guide entries. The default assembly is selected in
 `src/localbrain/app/features.py`, shared by the desktop app and development web.
 
-## Web Terminal Admission — 2026-11-10
+## macOS Terminal Admission — 2026-11-13
 
-Terminal is admitted only in the macOS web edition by
-[FEAT-0166](../feature/feat-0166-web-terminal-work-area.md). Native app assembly,
-CLI registration, startup and packaged Python/runtime/browser assets exclude it.
-Its in-app guide is conditional on the same feature admission. Linux/Windows
-web, external iTerm2 launch and attaching an already running terminal are outside
-this first delivery. Other suspended-feature decisions below remain unchanged.
+Terminal is admitted in the macOS app and development web. The first immutable
+self-contained payload targets Apple Silicon/macOS14. [FEAT-0170](../feature/feat-0170-rust-terminal-runtime.md)
+owns Rust control and [FEAT-0171](../feature/feat-0171-native-terminal-integration.md)
+owns packaged native access/lifetime; Run251/252 distinguish implementation,
+actual app checks and remaining host limits. Shared Terminal UI, settings,
+browser assets/fonts and its conditional guide are included in native assembly.
+Other optional native packages stay excluded. Linux/Windows delivery, external
+iTerm2 windows and attachment remain outside this terminal increment. The prior
+web-only admission is historical; suspended decisions below are unchanged.
+The shared [FEAT0173](../feature/feat-0173-persistent-terminal-workspaces.md)
+increment adds named persistent/mixed-folder workspaces and automatic status for
+new host-created zsh terminals; it changes no other feature admission or runtime
+payload. Its evidence owner is [Run254](../run/run-20261113-254-persistent-terminal-workspaces.md).
 
 ## Suspended Delivery — 2026-11-01
 

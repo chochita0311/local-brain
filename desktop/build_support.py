@@ -74,8 +74,11 @@ def source_identity(root):
         'desktop/package.json', 'desktop/package-lock.json', 'desktop/src-tauri/Cargo.toml',
         'desktop/src-tauri/Cargo.lock', 'desktop/src-tauri/build.rs',
         'desktop/src-tauri/tauri.conf.json', 'desktop/src-tauri/Info.plist', 'scripts/build-desktop.py',
-        'docs/policies/project/standalone-test-app-guide.md',
+        'docs/policies/project/standalone-test-app-guide.md', 'scripts/build-terminal-runtime.py',
+        'rust/Cargo.toml', 'rust/Cargo.lock', 'rust/localbrain-core/Cargo.toml', 'rust/localbrain-runtime/Cargo.toml',
     ) if (root / name).is_file())
+    for directory in ('rust/localbrain-core/src', 'rust/localbrain-runtime/src'):
+        paths.update(path for path in (root / directory).rglob('*.rs') if path.is_file() and not path.is_symlink())
     digest = hashlib.sha256()
     for path in sorted(paths):
         content = path.read_bytes()

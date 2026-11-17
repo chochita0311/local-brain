@@ -266,7 +266,7 @@
   --icon-size-navigation: 20px;
   --tooltip-max-width: 320px;
   --layer-tooltip: 80;
-  --shell-header-height: 58px;
+  --shell-header-height: 48px;
   --shell-header-min-height-narrow: 54px;
   --shell-sticky-offset: 80px;
   --shell-content-max: 1440px;
@@ -467,7 +467,7 @@ textarea:disabled {
 /* Both hosts use the same controls; only the macOS titlebar changes placement. */
 .native-window-toolbar .app-shell { padding-top: var(--shell-header-height); }
 .native-window-toolbar .lnb { top: var(--shell-header-height); height: calc(100vh - var(--shell-header-height)); }
-.native-window-toolbar .workspace-header { position: fixed; inset: var(--space-none) var(--space-none) auto; height: var(--shell-header-height); min-height: var(--shell-header-height); padding-left: calc(var(--control-min-height) * 3); }
+.native-window-toolbar .workspace-header { position: fixed; inset: var(--space-none) var(--space-none) auto; height: var(--shell-header-height); min-height: var(--shell-header-height); padding-block: var(--space-none); padding-left: calc(var(--control-min-height) * 3); }
 /* Compact mode retains every real menu destination instead of hiding the rail. */
 .sidebar-collapsed .app-shell { display: grid; grid-template-columns: var(--shell-sidebar-width-collapsed) minmax(0, 1fr); }
 .sidebar-collapsed .lnb { display: flex; position: sticky; top: var(--space-none); width: 100%; height: 100vh; padding: var(--space-row-block) var(--space-control-gap) var(--space-card); }
@@ -564,6 +564,7 @@ textarea:disabled {
 }
 .global-search input:focus,
 .page-search input:focus { border-color: var(--focus-ring); box-shadow: var(--elevation-focus); }
+.global-search input { padding-block: var(--space-compact); font-size: var(--type-label-size); }
 .global-search-reserve { min-width: 0; min-height: var(--control-min-height); display: block; }
 .global-search { min-width: 0; }
 

@@ -66,8 +66,12 @@ fn start_backend(app: tauri::AppHandle) -> Result<(), String> {
         }
     };
     let token = uuid::Uuid::new_v4().to_string();
+    let terminal_bundle = path.parent().and_then(std::path::Path::parent)
+        .ok_or("앱 리소스 위치를 찾지 못했습니다.")?.join("terminal/runtime");
     let child = Command::new(path)
         .env("LOCALBRAIN_DESKTOP_TOKEN", &token)
+        .env("LOCALBRAIN_TERMINAL_BUNDLE", &terminal_bundle)
+        .env("LOCALBRAIN_TERMINAL_RUNTIME", terminal_bundle.join("bin/localbrain-runtime"))
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::null())

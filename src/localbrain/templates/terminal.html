@@ -6,32 +6,99 @@
 {% endblock %}
 {% block content %}
 <section class="terminal-page" data-terminal-page aria-busy="true">
-  <header class="page-heading terminal-heading">
-    <h1>Terminal</h1>
-    <div class="terminal-actions">
-      <button class="secondary-button" type="button" data-settings-open="terminal" aria-label="터미널 설정">설정</button>
-      <button class="secondary-button" type="button" data-terminal-manage>실행 중 <span data-terminal-count>—</span></button>
-      <button class="primary-button" type="button" data-terminal-new disabled>새 터미널</button>
-    </div>
-  </header>
-  <div class="terminal-feedback" role="status" data-terminal-error hidden></div>
-  <button class="secondary-button terminal-font-retry" type="button" data-terminal-font-retry hidden>글꼴 다시 불러오기</button>
-  <div class="terminal-toolbar">
-    <div class="terminal-tabs" role="tablist" aria-label="터미널 탭" data-terminal-tabs></div>
-    <select class="terminal-pane-select" aria-label="표시할 터미널" data-terminal-pane-select hidden></select>
-    <details class="terminal-menu" data-terminal-tab-menu hidden>
-      <summary aria-label="탭 메뉴">⋯</summary>
-      <div class="terminal-menu-items">
-        <button type="button" data-terminal-background>백그라운드로 보내기</button>
-        <button type="button" data-terminal-rename>이름 변경</button>
+  <h1 class="sr-only">Terminal</h1>
+  <aside class="terminal-rail" id="terminal-rail" aria-label="터미널 작업 탐색" data-terminal-rail>
+    <section class="terminal-groups-section" aria-labelledby="terminal-groups-title">
+      <header class="terminal-rail-heading">
+        <h2 id="terminal-groups-title">작업 공간</h2>
+        <div class="terminal-rail-heading-actions">
+          <button class="shell-icon-button" type="button" data-terminal-folder-open aria-label="작업공간 추가" title="작업공간 추가" disabled>{{ icon('add') }}</button>
+          <button class="shell-icon-button" type="button" data-terminal-rail-close aria-label="터미널 작업 탐색 접기" title="터미널 작업 탐색 접기">{{ icon('left_panel_close') }}</button>
+        </div>
+      </header>
+      <nav class="terminal-groups" aria-label="폴더별 터미널" data-terminal-groups></nav>
+    </section>
+    <section class="terminal-tasks-section" aria-labelledby="terminal-tasks-title">
+      <header class="terminal-rail-heading"><h2 id="terminal-tasks-title">작업 현황</h2><span class="terminal-rail-count" data-terminal-task-count>—</span></header>
+      <div class="terminal-tasks" data-terminal-tasks></div>
+    </section>
+    <footer class="terminal-rail-footer">
+      <div class="terminal-background">
+        <button class="terminal-rail-action" type="button" data-terminal-hidden-open aria-expanded="false" aria-controls="terminal-background-list">{{ icon('visibility_off') }}<span>백그라운드</span><span data-terminal-hidden-count>0</span><svg class="terminal-background-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m7 4 6 6-6 6"/></svg></button>
+        <div class="terminal-background-list" id="terminal-background-list" data-terminal-hidden-list role="group" aria-label="백그라운드 탭" hidden></div>
       </div>
-    </details>
+      <div class="terminal-rail-utilities">
+        <button class="shell-icon-button" type="button" data-settings-open="terminal" aria-label="터미널 설정" title="터미널 설정">{{ icon('settings') }}</button>
+        <button class="shell-icon-button" type="button" data-terminal-manage aria-label="터미널 및 서비스 관리" title="터미널 및 서비스 관리">{{ icon('tune') }}</button>
+        <span class="terminal-rail-service" data-terminal-rail-service>확인 중</span>
+      </div>
+    </footer>
+  </aside>
+  <div class="terminal-stage">
+    <div class="terminal-toolbar">
+      <button class="shell-icon-button" type="button" data-terminal-rail-toggle aria-label="터미널 작업 탐색 펼치기" aria-controls="terminal-rail" aria-expanded="false" title="작업 공간 · 작업 현황" hidden>{{ icon('left_panel_open') }}</button>
+      <div class="terminal-tabs" role="tablist" aria-label="작업 공간의 터미널 탭" data-terminal-tabs></div>
+      <button class="shell-icon-button" type="button" data-terminal-new aria-label="새 터미널 탭" title="새 터미널 탭" disabled>{{ icon('add') }}</button>
+      <details class="terminal-menu" data-terminal-tab-menu hidden>
+        <summary aria-label="현재 탭 메뉴" title="현재 탭 메뉴" aria-haspopup="menu" aria-expanded="false">{{ icon('more_horiz') }}</summary>
+        <div class="terminal-menu-items" role="menu" aria-label="탭 동작">
+          <div class="terminal-menu-view" data-terminal-tab-actions>
+            <button type="button" data-terminal-folder-tab>다른 폴더에서 새 탭…</button>
+            <button type="button" data-terminal-background>백그라운드로 보내기</button>
+            <button type="button" data-terminal-rename>이름 변경</button>
+            <button type="button" data-terminal-move="left">탭 왼쪽으로 이동</button>
+            <button type="button" data-terminal-move="right">탭 오른쪽으로 이동</button>
+            <button type="button" data-terminal-workspace-move aria-controls="terminal-workspace-destinations" aria-expanded="false"><span>작업공간으로 이동</span><svg class="terminal-menu-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m7 4 6 6-6 6"/></svg></button>
+          </div>
+          <div class="terminal-menu-view" data-terminal-workspace-choices hidden>
+            <button class="terminal-menu-back" type="button" data-terminal-workspace-back aria-label="탭 메뉴로 돌아가기"><svg class="terminal-menu-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m13 4-6 6 6 6"/></svg><span>탭 메뉴</span></button>
+            <div class="terminal-menu-view" id="terminal-workspace-destinations" data-terminal-workspace-destinations role="group" aria-label="탭을 옮길 작업공간"></div>
+          </div>
+        </div>
+      </details>
+    </div>
+    <div class="terminal-notices">
+      <div class="terminal-feedback" role="status" data-terminal-error hidden></div>
+      <button class="secondary-button terminal-font-retry" type="button" data-terminal-font-retry hidden>글꼴 다시 불러오기</button>
+      <button class="secondary-button" type="button" data-terminal-create-retry hidden>터미널 생성 재시도</button>
+      <button class="secondary-button" type="button" data-terminal-update-service hidden>터미널 서비스 업데이트</button>
+    </div>
+    <select class="terminal-pane-select" aria-label="표시할 터미널" data-terminal-pane-select hidden></select>
+    <div class="terminal-empty" data-terminal-empty hidden>
+      {{ icon('terminal', 'terminal-empty-symbol') }}
+      <span data-terminal-empty-text>터미널 없음</span>
+      <button class="secondary-button" type="button" data-terminal-empty-action>새 터미널</button>
+    </div>
+    <div class="terminal-workspace" data-terminal-workspace></div>
+    <footer class="terminal-statusbar" aria-label="현재 터미널 상태">
+      <span class="terminal-status-location" data-terminal-location>이 컴퓨터</span>
+      <span class="terminal-status-command" data-terminal-command></span>
+      <span data-terminal-connection>확인 중</span>
+      <span class="terminal-live-count" title="살아 있는 셸 수">{{ icon('terminal') }}<span data-terminal-count>—</span></span>
+    </footer>
   </div>
-  <div class="terminal-empty panel" data-terminal-empty hidden>
-    <span data-terminal-empty-text>터미널 없음</span>
-    <button class="secondary-button" type="button" data-terminal-empty-action>새 터미널</button>
-  </div>
-  <div class="terminal-workspace" data-terminal-workspace></div>
+  <dialog class="terminal-dialog terminal-folder-dialog" data-terminal-folder-dialog aria-labelledby="terminal-folder-title">
+    <form data-terminal-folder-form>
+      <header><h2 id="terminal-folder-title" data-terminal-folder-title>다른 폴더에서 새 탭</h2><button type="button" class="shell-icon-button" data-terminal-folder-close aria-label="닫기">×</button></header>
+      <label for="terminal-folder-path">폴더 경로</label>
+      <div class="terminal-folder-input"><input id="terminal-folder-path" data-terminal-folder-path placeholder="~/Projects/example" autocomplete="off" required maxlength="4096"><button class="secondary-button" type="button" data-terminal-folder-pick>찾기</button></div>
+      <p class="terminal-folder-hint" data-terminal-folder-hint>현재 작업공간에 터미널을 추가합니다.</p>
+      <p class="terminal-feedback" data-terminal-folder-error role="status" hidden></p>
+      <footer><button class="primary-button" type="submit" data-terminal-folder-submit>터미널 열기</button></footer>
+    </form>
+  </dialog>
+  <dialog class="terminal-dialog terminal-folder-dialog" data-terminal-workspace-dialog aria-labelledby="terminal-workspace-title">
+    <form data-terminal-workspace-form>
+      <header><h2 id="terminal-workspace-title" data-terminal-workspace-title>작업공간 추가</h2><button type="button" class="shell-icon-button" data-terminal-workspace-close aria-label="닫기">×</button></header>
+      <label for="terminal-workspace-name">이름</label>
+      <input id="terminal-workspace-name" data-terminal-workspace-name required maxlength="120" autocomplete="off">
+      <label for="terminal-workspace-cwd">기본 폴더 <span class="hint">선택</span></label>
+      <div class="terminal-folder-input"><input id="terminal-workspace-cwd" data-terminal-workspace-cwd placeholder="터미널 설정의 기본 폴더 사용" autocomplete="off" maxlength="4096"><button class="secondary-button" type="button" data-terminal-workspace-pick>찾기</button></div>
+      <p class="terminal-folder-hint">탭과 분할마다 다른 폴더를 사용할 수 있습니다. 기본 폴더 변경은 다음 새 탭부터 적용됩니다.</p>
+      <p class="terminal-feedback" data-terminal-workspace-error role="status" hidden></p>
+      <footer><button class="secondary-button" type="button" data-terminal-workspace-remove hidden>목록에서 제거</button><button class="primary-button" type="submit" data-terminal-workspace-submit>추가</button></footer>
+    </form>
+  </dialog>
   <dialog class="terminal-dialog terminal-manager" data-terminal-manage-dialog aria-labelledby="terminal-manage-title">
     <header><h2 id="terminal-manage-title">터미널 관리</h2><button type="button" class="shell-icon-button" data-terminal-dialog-close aria-label="닫기">×</button></header>
     <p class="terminal-feedback" role="status" data-terminal-manage-error hidden></p>

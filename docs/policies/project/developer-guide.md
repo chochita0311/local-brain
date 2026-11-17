@@ -64,25 +64,44 @@ assets and records LocalBrain's installation metadata. `uv run --no-sync localbr
 `uv run --no-sync localbrain models status` inspect readiness without reading sources or
 downloading/running models.
 
-## Optional Web Terminal
+## Optional macOS Terminal
 
-On macOS, install Node.js 20+ and npm, then use `uv run lb terminal service install`
-or the explicit setup action in Terminal. Setup never opens a shell. The
-[Terminal contract](terminal.md) owns service/PTY lifecycle, update shutdown and
-resource bounds; web Docs owns ordinary usage. The app edition excludes it.
+On Apple Silicon macOS, build the self-contained public payload with
+`python scripts/build-terminal-runtime.py`; Cargo and Node/npm are build tools,
+not installed-app requirements. The builder pins Node24.15.0 and verifies its
+official SHA256 list, installs the runtime lock with scripts disabled and signs
+native bytes. `scripts/build-desktop.py` performs this step before packaging.
+To reuse a verified official download, pass `--node-archive` and `--node-checksums`.
+The checkout host discovers `desktop/terminal/runtime`; installed web hosts use
+trusted `LOCALBRAIN_TERMINAL_BUNDLE` (and optionally an absolute
+`LOCALBRAIN_TERMINAL_RUNTIME`) environment, never browser-supplied context.
 
-Build/check the local browser bundle with `npm run build:terminal` and
-`npm run check:terminal` after `npm ci`. The pinned optional engine lock lives
-under `src/localbrain/terminal/runtime/`, independently of the browser build lock.
-The browser build selects the published CommonJS entry before producing ESM;
-check mode also probes the compiled terminal's DECRQM response. This avoids a
-re-minification defect in the pinned published ESM without altering vendor code.
-Runtime setup selects node-pty's native helper using Node's own architecture.
-No global npm packages or user shell rc changes are needed. For synthetic
-real-PTY tests, point `LOCALBRAIN_TERMINAL_TEST_ENGINE` at a prepared isolated
-engine directory, then run `tests/test_terminal.py`; the fixture isolates HOME,
-uses a short private temporary socket path and cleans up its own jobs. Ordinary
-HTTP/CLI tests require the default dev dependency group and do not start a shell.
+Rust owns setup/service/settings rules, manager IPC/stream and process inspection;
+Python retains HTTP/WS/CLI transport and the one generic TOML writer. The legacy
+runtime is a frozen parity fixture. The [Terminal contract](terminal.md) owns
+lifetime, bounds, app-less management and safe update/removal.
+
+Use `cargo test --locked --manifest-path rust/Cargo.toml` for core boundaries and
+`LOCALBRAIN_TERMINAL_TEST_BUNDLE=/absolute/public/runtime python -m unittest discover -s tests -p test_terminal_runtime_parity.py -v`
+for isolated real Rust/PTY cases. The same bundle environment drives
+`scripts/qa-terminal-workspace-browser.mjs`. The legacy fixture separately accepts
+`LOCALBRAIN_TERMINAL_TEST_ENGINE` containing both Darwin helpers, as its original
+readiness contract required. Tests isolate HOME/data/cache and clean their jobs.
+
+For a built app, run `python scripts/qa-terminal-native.py /absolute/LocalBrain.app --evidence /absolute/private-evidence`.
+It copies the app, uses synthetic roots and shell HOME, and exercises the actual
+macOS host. An unlocked screen and existing accessibility permission are needed
+for UI/IME checks; the harness never requests grants or unlocks the Mac.
+`--backend-only` covers packaged API, authentication and Quit/app-removal/relaunch
+lifetime and explicitly excludes window/IME evidence. Neither mode proves
+physical Mac sleep or recipient support.
+
+Build/check shared browser assets with `npm run build:terminal` and
+`npm run check:terminal` after `npm ci`; `npm run test:terminal` checks the pinned
+renderer/state/input contracts. Runtime lock and browser lock remain separate.
+The browser builder selects the published CommonJS entry before ESM output and
+checks DECRQM, avoiding a pinned upstream ESM re-minification defect. No user rc,
+global npm package, model download or personal-runtime copy is needed.
 
 ## Development Web Workflows
 
@@ -398,7 +417,7 @@ changes. The implementation practices below remain owned by this guide.
 
 - LocalBrain pins Mermaid `11.16.0` and the official `@mermaid-js/layout-elk` `0.2.2` loader as project dependencies and esbuild `0.28.1` as its build-only bundler in the repository-owned `package.json` and `package-lock.json`.
 - The packages come from the public npm distributions named `mermaid`, `@mermaid-js/layout-elk`, `elkjs`, and `esbuild`. Mermaid, the layout loader, and esbuild are MIT-licensed; the transitive `elkjs` `0.9.3` engine is EPL-2.0. Reviewed copies of all four licenses are emitted with the browser asset and the lockfile retains exact integrity metadata.
-- For Mermaid rendering, Node.js `20` or later and npm are required only when installing or updating its browser build inputs. This rendering path does not invoke Node, npm, a CDN, or an external renderer from the Python application, installed `localbrain` command, or web runtime. The [optional web terminal](#optional-web-terminal) has a separate Node runtime and explicit npm setup.
+- For Mermaid rendering, Node.js `20` or later and npm are required only when installing or updating its browser build inputs. This rendering path does not invoke Node, npm, a CDN, or an external renderer from the Python application, installed `localbrain` command, or web runtime. The [optional macOS terminal](#optional-macos-terminal) has a separate bundled Node runtime and explicit offline preparation.
 - Install the exact lockfile graph and generate the reviewed output set with:
 
 ```bash

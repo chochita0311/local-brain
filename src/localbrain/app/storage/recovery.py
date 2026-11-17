@@ -22,7 +22,7 @@ from localbrain.foundation.config import settings, cache_directory
 from localbrain.foundation.operations import operation_lock
 from localbrain.foundation.preferences import PreferencesError, atomic_private_write, tomllib
 
-FILES = {"localbrain.db", "settings.toml", "session-sources.toml", "natural-search.json"}
+FILES = {"localbrain.db", "settings.toml", "session-sources.toml", "natural-search.json", "terminal-workspaces.json"}
 MAX_BACKUP_BYTES = 10 * 1024 ** 3
 
 
@@ -180,6 +180,12 @@ def validate_backup(archive, target, config=settings):
             for name, versions in (("settings.toml", (1,)), ("session-sources.toml", (1, 2))):
                 if (target / name).exists() and tomllib.loads((target / name).read_text()).get("schema_version") not in versions:
                     raise ValueError()
+            workspaces = target / "terminal-workspaces.json"
+            if workspaces.exists():
+                from localbrain.terminal.workspaces import validate_document
+                if workspaces.stat().st_size > 2 * 1024 * 1024:
+                    raise ValueError()
+                validate_document(json.loads(workspaces.read_text()))
             return hashes
     except (OSError, ValueError, KeyError, zipfile.BadZipFile, sqlite3.Error) as error:
         if isinstance(error, PreferencesError):
@@ -295,6 +301,8 @@ def clear_owned_cache(search, config=settings, *, maintain_feature_cache=None):
             if maintain_feature_cache is not None:
                 result = maintain_feature_cache(cache_directory(config))
                 removed += result["removed_bytes"]
+                if result.get("protected"):
+                    return {"removed_bytes": removed, "protected": result["protected"]}
             return {"removed_bytes": removed}
     finally:
         search.start()

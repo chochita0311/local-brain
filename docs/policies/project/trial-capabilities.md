@@ -2,7 +2,9 @@
 
 The desktop trial provides Sessions, Projects, Sessions Dashboard, explicitly
 registered Local Context, keyword search, optional local embedding search,
-Settings, onboarding and six offline Docs. Workstreams, Workflow, Auto Work,
+Settings, onboarding, six common offline Docs and Terminal with its conditional guide.
+The first self-contained Terminal payload targets Apple Silicon/macOS14 and is
+shared with development web; it starts only on an explicit terminal action. Workstreams, Workflow, Auto Work,
 Atlassian, Insights, Learning, Sources and Schema UI are not desktop capabilities.
 Desktop composition excludes their optional hooks, routes and maintenance; legacy
 organization records remain stored. The development web edition retains its

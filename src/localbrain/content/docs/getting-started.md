@@ -53,7 +53,7 @@ and background updates add no point. Fully quitting starts a new history next la
 
 Closing the window leaves the application running. Open its application icon to show the window again. Choose **Quit** or press **⌘Q** to exit completely and stop synchronization and downloads.
 
-Before updating, quit LocalBrain completely, install the updated application, and reopen it. Replacing or removing the application does not delete saved data or settings. [Settings](/help/settings) explains backup and restore.
+Before updating, if you have used Terminal, finish its work and explicitly stop its service in Terminal's Management controls, confirming the affected scope. Ordinary Quit preserves that service. Then quit LocalBrain completely, install the updated application, and reopen it. Replacing or removing the application does not delete saved data or settings. [Settings](/help/settings) explains backup and restore.
 
 For a source-built installation, update the repository and ask your agent to
 rebuild and replace the app while preserving saved data and settings. Pulling

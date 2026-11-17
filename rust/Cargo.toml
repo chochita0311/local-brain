@@ -1,0 +1,14 @@
+[workspace]
+members = ["localbrain-core", "localbrain-runtime"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+
+[workspace.dependencies]
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = "=1.0.154"
+sha2 = "=0.10.9"
+libc = "=0.2.191"

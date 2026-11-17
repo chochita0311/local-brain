@@ -58,7 +58,7 @@
         <form data-terminal-settings-form class="settings-form">
           <div class="settings-field"><label for="terminal-default-cwd">기본 작업 폴더</label><div class="settings-path"><input id="terminal-default-cwd" name="cwd" maxlength="4096" placeholder="~" autocomplete="off" spellcheck="false" disabled><button class="secondary-button" type="button" data-terminal-settings-pick disabled>찾아보기</button></div></div>
           <label>기본 셸<input name="shell" maxlength="4096" placeholder="/bin/zsh" autocomplete="off" spellcheck="false" disabled></label>
-          <small>새 터미널부터 적용됩니다.</small>
+          <small>기본 폴더는 첫 작업 공간에, 셸은 새 터미널에 적용됩니다. 기존 그룹의 폴더는 유지됩니다.</small>
           <p class="settings-message" data-terminal-settings-message role="status" hidden></p>
           <div class="settings-actions"><button class="secondary-button" type="button" data-terminal-settings-reload hidden>다시 불러오기</button><button class="primary-button" type="submit" disabled>저장</button></div>
         </form>

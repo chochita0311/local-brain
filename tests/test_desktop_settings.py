@@ -380,22 +380,45 @@ class DesktopSettingsTests(unittest.TestCase):
         self.assertEqual(str(saved['raw']['future_date']), '2026-01-01')
 
     def test_backup_restore_and_original_exclusion(self):
+        from localbrain.terminal.workspaces import change_workspaces, read_workspaces
+        state = {"generation":None, "tabs":[], "terminals":[]}
+        room = change_workspaces(self.config, lambda:state, "create", {"name":"Keep this workspace","cwd":""})["id"]
         self.register()
         (self.root / 'sessions' / 'private.jsonl').write_text('original stays outside backup')
         work, archive = create_backup(self.config)
         try:
             with zipfile.ZipFile(archive) as bundle:
                 self.assertNotIn('private.jsonl', bundle.namelist())
+                self.assertIn('terminal-workspaces.json', bundle.namelist())
+                self.assertFalse(any(name.startswith('terminal-shell/') for name in bundle.namelist()))
             staged = self.root / 'staged'; staged.mkdir()
             validate_backup(archive, staged, self.config)
             shutil.copyfile(archive, self.data / 'restore-pending.zip')
             with db.transaction() as connection:
                 connection.execute("UPDATE sources SET name='changed'")
+            change_workspaces(self.config, lambda:state, "update", {"id":room,"name":"Changed","cwd":""})
             with backend_storage_lease(self.config):
                 with db.connect() as connection:
                     self.assertEqual(connection.execute('SELECT name FROM sources').fetchone()[0], 'Personal')
+                self.assertEqual(read_workspaces(self.config, state)['items'][0]['name'], 'Keep this workspace')
             self.assertTrue((self.data / 'recovery' / 'before' / 'localbrain.db').exists())
             self.assertFalse((self.data / 'restore-pending.zip').exists())
+        finally:
+            shutil.rmtree(work)
+
+    def test_invalid_workspace_backup_is_rejected_before_replacing_current_metadata(self):
+        from localbrain.terminal.workspaces import change_workspaces
+        change_workspaces(self.config, lambda:{"generation":None,"tabs":[],"terminals":[]}, "create", {"name":"Keep","cwd":""})
+        path = self.data / 'terminal-workspaces.json'
+        original = path.read_bytes()
+        path.write_text('{"schema":2,"generation":null,"items":[]}')
+        work, archive = create_backup(self.config)
+        try:
+            path.write_bytes(original)
+            staged = self.root / 'staged'; staged.mkdir()
+            with self.assertRaises(PreferencesError):
+                validate_backup(archive, staged, self.config)
+            self.assertEqual(path.read_bytes(), original)
         finally:
             shutil.rmtree(work)
 

@@ -148,7 +148,9 @@ class TerminalCliTests(unittest.TestCase):
 class TerminalWebTests(unittest.TestCase):
     def setUp(self):
         self.app = FastAPI()
-        install_routes(self.app, None, object())
+        self.workspace_temp = tempfile.TemporaryDirectory(prefix="lb-web-workspaces-")
+        self.addCleanup(self.workspace_temp.cleanup)
+        install_routes(self.app, None, SimpleNamespace(data_dir=Path(self.workspace_temp.name) / "data"))
         self.control = FakeControl()
         self.app.state.terminal_factory = lambda: self.control
         self.client = TestClient(self.app, base_url="http://127.0.0.1:8123")
@@ -159,32 +161,55 @@ class TerminalWebTests(unittest.TestCase):
         self.assertFalse(response.json()["running"])
         self.assertEqual(self.control.calls, [])
 
-    def test_rejected_input_ends_stream_before_later_paste_fragments(self):
+    def test_helper_input_failure_closes_transport_and_ends_owned_pipe(self):
         import asyncio
-        calls = []
-        def rpc(method, params):
-            calls.append(method)
-            if method == "claim":
-                return {"lease": "synthetic", "writable": True}
-            if method == "input":
-                raise TerminalError("input_busy", "입력 대기 한도")
-            return {}
-        async def read(*args):
-            await asyncio.Future()
-        self.control.rpc, self.control.read = rpc, read
+        class Input:
+            def __init__(inner, process): inner.process=process;inner.closed=False;inner.transport=inner
+            def write(inner, data):
+                inner.process.frames.put_nowait(json.dumps({"type":"error","code":"input_busy","message":"입력 대기 한도"}).encode()+b"\n")
+            async def drain(inner): pass
+            def close(inner): inner.closed=True;inner.process.done.set()
+            def abort(inner): inner.close()
+            async def wait_closed(inner): pass
+        class Process:
+            def __init__(inner):
+                inner.frames=asyncio.Queue();inner.done=asyncio.Event();inner.stdin=Input(inner);inner.stdout=inner
+                inner.frames.put_nowait(b'{"type":"control","writable":true}\n')
+            async def readline(inner): return await inner.frames.get()
+            async def wait(inner): await inner.done.wait();return 0
+        owned=[]
+        async def stream(*args):
+            process=Process();owned.append(process);return process
+        self.control.stream=stream
         with self.client.websocket_connect(
                 "ws://127.0.0.1:8123/api/terminal/terminals/t-synthetic/stream",
-                headers={"origin": "http://127.0.0.1:8123"}) as connection:
-            self.assertEqual(connection.receive_json()["type"], "control")
-            connection.send_json({"type": "input", "data": "middle-fragment"})
-            connection.send_json({"type": "input", "data": "unsafe-suffix\n"})
-            error = connection.receive_json()
-            self.assertEqual(error["code"], "input_busy")
-            with self.assertRaises(WebSocketDisconnect) as closed:
-                connection.receive_json()
-            self.assertEqual(closed.exception.code, 1013)
-        self.assertEqual(calls.count("input"), 1)
-        self.assertEqual(calls[-1], "release")
+                headers={"origin":"http://127.0.0.1:8123"}) as connection:
+            self.assertEqual(connection.receive_json()["type"],"control")
+            connection.send_json({"type":"input","data":"middle-fragment"})
+            self.assertEqual(connection.receive_json()["code"],"input_busy")
+            with self.assertRaises(WebSocketDisconnect) as closed: connection.receive_json()
+            self.assertEqual(closed.exception.code,1013)
+        self.assertTrue(owned[0].stdin.closed)
+
+    def test_helper_exit75_keeps_partial_input_warning_and_retry_close(self):
+        class Input:
+            def __init__(inner):inner.transport=inner
+            def abort(inner):pass
+            async def wait_closed(inner):pass
+        class Process:
+            stdin=Input()
+            @property
+            def stdout(inner):return inner
+            async def readline(inner):return b""
+            async def wait(inner):return 75
+        async def stream(*args):return Process()
+        self.control.stream=stream
+        with self.client.websocket_connect("ws://127.0.0.1:8123/api/terminal/terminals/t-synthetic/stream",headers={"origin":"http://127.0.0.1:8123"}) as connection:
+            warning=connection.receive_json()
+            self.assertEqual(warning["code"],"input_failed")
+            self.assertIn("Ctrl+C",warning["message"])
+            with self.assertRaises(WebSocketDisconnect) as closed:connection.receive_json()
+            self.assertEqual(closed.exception.code,1013)
 
     def test_mutations_require_exact_origin_and_json(self):
         for headers in ({}, {"origin": "http://outside.invalid"}, {"origin": "http://127.0.0.1:8124"},
@@ -225,15 +250,22 @@ class TerminalWebTests(unittest.TestCase):
         self.assertEqual(response.status_code, 409)
         self.assertEqual(response.json()["error"]["code"], "busy")
 
+    def test_uncertain_private_bridge_reply_retains_retryable_http_status(self):
+        def failed(body):raise TerminalError("protocol","응답을 확인하지 못했습니다.")
+        self.control.create=failed
+        response=self.client.post("/api/terminal/terminals",json={"key":"synthetic-request-0001"},headers={"origin":"http://127.0.0.1:8123"})
+        self.assertEqual(response.status_code,503)
+        self.assertEqual(response.json()["error"]["code"],"protocol")
+
     def test_websocket_passes_declared_width_version_before_acquiring_input(self):
         for suffix, wanted, checkpoint in (("", "6", None), ("?unicode=11", "11", None),
                                           ("?unicode=11&checkpoint=xterm6-v3", "11", "xterm6-v3")):
-            def reject(method, params):
-                self.assertEqual(method, "claim")
-                self.assertEqual(params["unicodeVersion"], wanted)
-                self.assertEqual(params["checkpointVersion"], checkpoint)
-                raise TerminalError("client_update_required", "터미널 화면을 새로고침해 주세요.")
-            self.control.rpc = reject
+            async def reject(terminal_id, unicode, actual_checkpoint):
+                self.assertEqual(terminal_id,"t-synthetic")
+                self.assertEqual(unicode,wanted)
+                self.assertEqual(actual_checkpoint,checkpoint)
+                raise TerminalError("client_update_required","터미널 화면을 새로고침해 주세요.")
+            self.control.stream=reject
             with self.client.websocket_connect(
                     "ws://127.0.0.1:8123/api/terminal/terminals/t-synthetic/stream" + suffix,
                     headers={"origin": "http://127.0.0.1:8123"}) as connection:
@@ -486,6 +518,35 @@ class TerminalProcessTests(unittest.TestCase):
         self.service.rpc("stop", {"id": terminal})
         self.assertEqual(self.service.list()["terminals"], [])
         self.assertTrue(self.service.status()["running"])
+
+    def test_group_root_is_canonical_and_does_not_follow_reported_pane_cwd(self):
+        alias = self.base / "folder-alias"
+        alias.symlink_to(self.home, target_is_directory=True)
+        try:
+            created = self.create(cwd=str(alias))
+        finally:
+            alias.unlink()
+        self.assertEqual(created["tabs"][0]["cwd"], str(self.home.resolve()))
+        term = created["terminal"]
+        self.assertEqual(term["activity"], {"state": "unknown", "exitCode": None, "completion": 0})
+        other = self.base / "other"
+        other.mkdir(exist_ok=True)
+        self.write(term["id"], "printf '\\033]7;file://localhost%s\\007GROUP_%s\\n' " + shlex.quote(str(other)) + " READY\r")
+        self.await_text(term["id"], "GROUP_READY")
+        current = self.service.list()
+        self.assertEqual(current["tabs"][0]["cwd"], str(self.home.resolve()))
+        self.assertEqual(current["terminals"][0]["cwd"], str(other))
+
+    def test_explicit_shell_command_metadata_reaches_list_and_checkpoint_frames(self):
+        created = self.create()
+        term = created["terminal"]["id"]
+        self.write(term, "printf '\\033]133;A\\007\\033]133;B\\007\\033]133;C\\007\\033]133;D;7\\007\\033]133;A\\007STATUS_%s\\n' READY\r")
+        frame = self.await_text(term, "STATUS_READY")
+        expected = {"state": "prompt", "exitCode": 7, "completion": 1}
+        self.assertEqual(frame["terminal"]["activity"], expected)
+        self.assertEqual(self.service.list()["terminals"][0]["activity"], expected)
+        again = self.service.rpc("read", {"id": term, "after": -1})
+        self.assertEqual(again["terminal"]["activity"], expected)
 
     def test_saved_launch_defaults_only_change_future_instances(self):
         from localbrain.terminal.settings import launch_parameters, read_launch_settings, save_launch_settings
