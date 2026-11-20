@@ -1,4 +1,4 @@
-<!-- Generated from src/localbrain/value-registry.json by scripts/build-data-model-value-dictionaries.py. Do not edit. -->
+<!-- Generated from crates/core/resources/value-registry.json by scripts/build-data-model-value-dictionaries.py. Do not edit. -->
 # Derived retrieval index Value Dictionary
 
 Durable table owner: [docs/policies/project/data-model/derived-retrieval-index.md](../derived-retrieval-index.md)
@@ -13,8 +13,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: search projection owner
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/workstreams/retrieval.py`, `src/localbrain/atlassian/catalog.py`, `src/localbrain/atlassian/structure_references.py`
-- Consumers: `src/localbrain/workstreams/retrieval.py`, `src/localbrain/atlassian/browse.py`, `src/localbrain/atlassian/structure_references.py`
+- Producers: `crates/core/src/backend/workstreams/retrieval.rs`, `crates/core/src/backend/atlassian/catalog/mod.rs`, `crates/core/src/backend/atlassian/structure_references.rs`
+- Consumers: `crates/core/src/backend/workstreams/retrieval.rs`, `crates/core/src/backend/atlassian/browse.rs`, `crates/core/src/backend/atlassian/structure_references.rs`
 - Consequence: Selects the source table and result route for a derived row.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.

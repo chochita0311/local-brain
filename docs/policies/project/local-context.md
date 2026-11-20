@@ -32,8 +32,8 @@ independently from scheduled folder collection.
 
 ## Implementation Ownership
 
-- `src/localbrain/local_context/service.py`: Local Context source registration and browsing behavior
+- `crates/core/src/backend/contexts/service.rs`: Local Context source registration and browsing behavior
 
-- `src/localbrain/rendering/markdown.py`: shared safe Markdown and approved Obsidian-style parsing, derived render state, local code and MathML rendering, attachment deferral, and reusable consumer output governed by the [Markdown Rendering Contract](markdown-rendering.md)
+- `crates/core/src/backend/rendering/markdown.rs`: shared safe Markdown and approved Obsidian-style parsing, derived render state, local code and MathML rendering, attachment deferral, and reusable consumer output governed by the [Markdown Rendering Contract](markdown-rendering.md)
 
-- `src/localbrain/local_context/references.py`: one-FOLDERS-root Markdown and wikilink resolution, stable anchor identity, and bounded note-fragment extraction
+- `crates/core/src/backend/rendering/references.rs`: one-FOLDERS-root Markdown and wikilink resolution, stable anchor identity, and bounded note-fragment extraction

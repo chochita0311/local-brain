@@ -8,41 +8,48 @@ Product terminology and organization rules are defined in [Product Model](produc
 
 ## Runtime Shape
 
-- Runtime: local web server with browser UI, or Tauri window with a bundled backend
-- Backend: Python and FastAPI
-- Database: SQLite
-- Search: existing SQLite FTS5 plus optional local Qwen semantic ordering and lexical exact-identifier admission
-- Frontend: server-rendered Jinja2 with small JSON API interactions
-- External integration boundary: optional feature-specific adapters and approved authorization contracts
-- Optional macOS app/web terminal: shared Rust control/helper, independent Node/node-pty manager and xterm; Python retains HTTP/WS/CLI transports and the common settings writer. [Terminal](terminal.md) owns lifecycle and memory limits
-- Desktop packaging: Tauri 2 and a PyInstaller Python 3.11 bundle, Apple Silicon
+- Runtime: local Rust web server with browser UI, or a Tauri window with a bundled Rust backend
+- Backend: Axum HTTP/WebSocket adapters over shared native domain services
+- Database: bundled SQLite, accessed through `rusqlite`
+- Search: SQLite FTS5 plus optional local Qwen semantic ordering and lexical exact-identifier admission
+- Frontend: server-rendered MiniJinja templates with small JSON API interactions and locally packaged browser assets
+- Models: pinned original safetensors, Candle inference and Rust tokenizers; no interpreter or Python execution library
+- External integrations: optional feature adapters and approved authorization contracts
+- Common settings: native TOML syntax, OS time-zone lookup, rules, ordered merge, revisions and private atomic commits under the shared operations lease
+- Optional macOS app/web Terminal: Rust control/helper, independent Node/node-pty manager and xterm; native HTTP/WebSocket/CLI transports. [Terminal](terminal.md) owns lifecycle and memory limits
+- Desktop packaging: Tauri 2 and a native Apple Silicon backend; Python standard-library scripts orchestrate current build/check tools without a Python application or research runtime
 
-The standalone test edition admits Sessions, Sessions Dashboard, Local Context,
-search, settings, onboarding and bundled English Docs. Optional packages must also
-be selected in application assembly before their routes, controls or jobs exist.
-The [delivery availability record](../../plans/project/feature-availability.md)
-owns current suspension decisions for both web and desktop. Its immutable runtime boundary excludes the
-unfinished development surfaces; [Desktop App And Settings](desktop-app-and-settings.md)
-owns lifecycle, local authentication and source/settings contracts.
+The native desktop test edition admits Sessions, Sessions Dashboard, Local Context,
+search, settings, onboarding, Terminal and bundled Korean/English Docs. The
+standalone native web bundle retains the broader development-web edition; a
+standalone binary does not select desktop restrictions. Optional feature packages
+are selected during application assembly before their routes, controls or services
+exist. Insights is a development-web service, admitted only outside the desktop
+edition; it is not a separate optional feature-package name. The
+[delivery availability record](../../plans/project/feature-availability.md) owns
+current suspension decisions. [Desktop App And Settings](desktop-app-and-settings.md)
+owns edition admission, lifecycle, local authentication and source/settings rules.
 
-The [installation/storage contract](installation-and-storage.md) owns independent
-macOS source/tool/wheel setup and optional local-model requirements. Packaged
-`serve`, `doctor`, `models`, `simulate`, `search`, `learning`, and `storage` commands use the same
-configured runtime paths. Public model assets are shared within the local user
-account; LocalBrain owns its model metadata and optional Python dependencies.
-Runtime state is rejected inside repositories, uses owner-only permissions, and
-has bounded migration-copy retirement after successful committed initialization.
-Ordinary startup creates no permanent diagnostic log.
+The native `localbrain` command exposes `serve`, `doctor`, `models`, `simulate`,
+`search`, `learning` and `storage`, using the same configured paths and services
+as HTTP. `lb` provides the same CLI entrypoint. Optional commands retain their
+assembly admission. The [installation/storage contract](installation-and-storage.md)
+owns source builds, native web bundles and optional public-model assets. Finished
+web bundles and apps need no Python environment, checkout or compiler. The
+application owns model registrations; public weights remain separately shared
+within the local user account. Runtime state is rejected inside repositories,
+uses owner-only permissions, and retains bounded migration-copy retirement after
+successful committed initialization. Ordinary startup creates no permanent
+server diagnostic log.
 
-`foundation/config.py` separates durable data and private rebuildable cache.
-`app/storage/layout.py` owns explicit recognized-directory moves and
-destination-conflict refusal.
-It accepts cache ownership checks from included features. `auto_work/storage.py`
-owns simulation/preview cache recognition and expired-result retirement under
-existing writer locks; `foundation/files.py` supplies shared ownership, activity
-and unchanged-tree checks. Packaged readers and simulation use the configured cache root. Saved
-Run reports remain durable data. Shared public weights and the primary DB are
-outside layout migration.
+`backend/config.rs` separates durable data and private rebuildable cache.
+`backend/storage/layout.rs` owns explicit recognized-directory moves and
+conflict refusal, taking cache ownership checks only from included features.
+`backend/auto_work/cache.rs` owns simulation/preview recognition and expired-result
+retirement under the existing writer locks; shared `storage/files.rs` owns
+ownership, activity and unchanged-tree checks. Packaged readers and simulation
+use the configured cache root. Saved Run reports remain durable data. Public
+weights and the primary DB are outside layout migration.
 
 The core development-web collection flow is:
 
@@ -60,68 +67,78 @@ Claude / Codex / user-managed local context / local project and Git metadata
                       Local web application
 ```
 
-External integrations follow separate feature contracts. Optional
+External integrations follow their own contracts. Optional
 [Atlassian reads](atlassian.md#external-access-foundation) use registered provider
-dispatch contracts and an injected host-side read executor. The default
-application leaves that executor unconnected; local URL registration, Browse and
-evidence Sync remain available in development web without remote access.
+dispatch and an injected host-side read executor. The default application leaves
+that executor unconnected; local URL registration, Browse and evidence Sync
+remain available in development web without remote access.
 
 ## Package Ownership
 
-The package root contains the stable `main.py`, `cli.py` and `desktop.py`
-entrypoints plus `__init__.py`. Feature implementations live in packages:
+The root Cargo workspace owns native services and hosts; the Tauri shell has its
+own manifest and lockfile under `apps/desktop/src-tauri/`:
 
 ```text
-localbrain/
-├── main.py, cli.py, desktop.py       # public entrypoints
-├── app/                             # application assembly and shared HTTP support
-│   └── storage/                     # backup/restore and layout operations
-├── foundation/                      # configuration, files, clocks, validation
-├── persistence/                     # connection API, bootstrap and schema metadata
-│   └── migrations/                  # schema history grouped by data owner
-├── models/                          # asset installation, embedding and generation
-├── references/                      # pure URL grammar, normalization and identity
-├── ingest/                          # provider parsing, evidence and source synchronization
-├── sources/                         # source registry/settings and sync services
-├── sessions/                        # activity, queries, reading, pins, references, web
-├── terminal/                        # macOS app/web host adapters, Node PTY/VT and parity fixture
-├── local_context/                   # document sources, queries, references, web
-├── usage/                           # records, pricing, aggregation, web
-├── resources/                       # resource identity/store and related-resource reads
-├── rendering/                       # shared Markdown rendering
-├── search/, natural_search/          # keyword/legacy search and optional AI search
-├── workstreams/, maintenance/        # organization/review and maintenance execution
-├── workflow/, auto_work/             # workflow projections/correction and explicit previews
-├── experiments/                     # context, reconstruction and claims experiments
-├── insights/, learning/              # analysis and reviewed learning
-└── atlassian/                       # catalog, evidence, access, sync, browse and web
+crates/
+├── core/
+│   ├── src/backend/              # domain services, SQLite, sources and projections
+│   ├── src/preferences/          # native TOML/settings transactions and OS adapters
+│   ├── src/{files,payload,process,service,settings,stream}.rs
+│   │                             # shared Terminal/settings primitives
+│   ├── resources/                # schema, presentation, value registry and prices
+│   └── tests/                    # native synthetic contract tests
+├── models/                      # pinned assets, native tokenization and inference
+└── runtime/                     # fixed Terminal helper/control entrypoints
+apps/
+├── api/src/
+│   ├── main.rs, bin/             # localbrain, lb and localbrain-backend binaries
+│   ├── cli/                     # native command adapters
+│   ├── routes/                  # feature HTTP/WebSocket adapters
+│   └── {state,host,templates,boundary,transport}.rs
+├── web/{templates,static,content/docs}/
+│                                # shared templates, browser assets and ko/en guides
+└── desktop/                     # Tauri shell, build support and Terminal payload inputs
+scripts/                         # build/check tooling; no application Python backend
 ```
 
-`app/application.py` builds the application; `app/lifecycle.py` owns startup and
-shutdown wiring. `app/routes.py` explicitly registers the feature handlers in the
-existing route order. Shared templates and request guards belong to
-`app/templating.py` and `app/request_guards.py`. `main.py` is the stable ASGI entrypoint and contains no feature
-queries, input models or handler bodies.
-Input models and handler bodies belong to feature `web.py` modules.
+Paths beginning `backend/` below are relative to
+`crates/core/src/backend/`. `apps/api/src/host.rs` owns the loopback
+server and shutdown wiring; `state.rs` explicitly constructs selected services
+and injected integrations. `routes/mod.rs` registers the delivery routes and
+`boundary.rs` enforces host/edition admission. Feature route modules own request
+shapes, authentication/form adaptation and responses. `templates.rs` owns
+MiniJinja conversion, safe HTML provenance and shared presentation helpers.
+Entrypoints contain no feature queries or model work.
 
-Within a feature, `web.py`/`cli.py` adapt delivery, `service.py` coordinates its
-operations, and `queries.py`/`store.py` own reads/writes where those boundaries
-exist. Pure projections and contracts keep their own modules. Features do not
-need every layer file or a repository class for each SQL query. Feature logic
-must not import application assembly or web handlers. HTTP adapters can consume
-the shared presentation layer. Foundation and model dependency restrictions
-below apply to function-local imports as well as top-level imports.
+Workspace directory names are `core`, `models` and `runtime`. Their Cargo package
+names remain `localbrain-core`, `localbrain-models` and `localbrain-runtime`;
+Rust imports and executable names retain their existing identities. In particular,
+the product library is not named `core`, the standard Rust library namespace.
 
-Read models belong to `sessions/queries.py`,
-`local_context/queries.py`, `sources/queries.py`, `app/dashboard_queries.py`, and
-`search/legacy.py`; pagination lives in `foundation/pagination.py`.
-Session availability SQL is shared by inventory/detail and pins through
-`sessions/source_presence.py`; it performs no filesystem inspection. Resource
-identity lives in `resources/catalog.py` and metadata CRUD in `resources/store.py`, independently of Workstream
-membership and Suggestion acceptance. Durable skill observations remain in
-`sessions/skills.py`; Insights ranking belongs to `insights/skills.py`.
+Within a domain, `service.rs` coordinates operations and `queries.rs`/`store.rs`
+own reads/writes where those boundaries exist. Pure descriptors, projections and
+validators keep their own modules. Features do not need every layer file or a
+repository class for each SQL query. Core feature logic must not depend on
+application assembly, Axum or route handlers. HTTP and CLI adapters consume the
+same core services and presentation values. Keep persistence and domain behavior
+out of templates. These dependency restrictions also apply inside functions.
 
-Session references point to shared resource identities, with Document and bookmark bindings owned under `resources/`. Session URL classification and related-material reading require no Atlassian registration, table or import. Local Context owns document bodies; optional organization/source features own outgoing mappings. `ingest/extensions.py` supplies a scoped observer contract with an empty default, and `app/reference_integrations.py` installs the Atlassian adapter around app requests, background scans and CLI scans. Observers use the caller transaction and make no remote call.
+Read models belong to `backend/sessions/`, `contexts/`, `sources/`, `usage/` and
+`search/`. Session availability SQL is shared by inventory/detail and pins and
+performs no filesystem inspection. Resource identity and metadata CRUD belong
+to `backend/resources/`, independently of Workstream membership and Suggestion
+acceptance. Durable skill observations belong to `sessions/skills.rs`; Insights
+ranking belongs to `insights/skills.rs`.
+
+Session references point to shared resource identities, with Document and
+bookmark bindings under `resources/`. Session URL classification and related
+material need no Atlassian registration, table or feature call. `contexts/` owns
+document bodies; optional organization/source features own outgoing mappings.
+`ingest::IngestionObserver` supplies a scoped observer contract with an empty
+default, and `backend/integrations.rs` composes admitted adapters for HTTP,
+background and CLI scans. Observers use the caller's transaction and make no
+remote call. URL identity and frozen Unicode text rules belong to the shared
+`references/` and `unicode/` owners.
 
 ```mermaid
 flowchart LR
@@ -138,79 +155,79 @@ flowchart LR
     A[Optional Atlassian registration] --> X
 ```
 
-The arrows show dependency/reference direction. Deleting a feature mapping or indexed Document does not delete the shared resource or Session observations. Same-path reindexing restores the document binding. Source bodies and user notes reference shared external metadata rather than the optional Atlassian Item. Migration details and recovery behavior belong to [Work Organization And Resources](data-model/work-organization-and-resources.md).
+The arrows show dependency/reference direction. Deleting a feature mapping or
+indexed Document does not delete the shared resource or Session observations.
+Same-path reindexing restores the document binding. Source bodies and user notes
+reference shared external metadata rather than the optional Atlassian Item.
+[Work Organization And Resources](data-model/work-organization-and-resources.md)
+owns migration and recovery details.
 
-The default application explicitly composes the existing pilot routes, lifecycle
-services, templates and assets. `create_app(feature_packages=...)` is an internal
-composition boundary for verifying an installation without selected packages;
-production entrypoints use the current delivery set. It is not a settings or
-environment feature toggle and does not catch missing imports. Omitting a package
-also omits its routes, reference callbacks, navigation and lifecycle contribution.
-`app/features.py` owns the known package names and explicit default delivery set
-shared by web and CLI composition. Common startup, Settings cache cleanup and CLI storage operations
-receive only included features' cache handlers. Excluded features' old caches
-remain untouched, including malformed files; their presence does not load the
-excluded implementation. CLI command registration and ingestion observers follow
-the same inclusion boundary.
-The retained legacy `/search` combines Atlassian results and belongs to that
-assembly contribution; the normal `/natural-search` keyword and AI modes remain
-independent. `app/forms.py` owns bounded form decoding. Atlassian owns its repeated
-item/topic fields and translates form errors into its existing registration error.
+`Config::with_features` and `FeatureBindings` are internal composition boundaries,
+not Settings or environment feature toggles. Production entrypoints select the
+current delivery set. Omitting a package omits its routes, reference callbacks,
+navigation and lifetime contribution; required missing bindings fail explicitly.
+Common startup, Settings cleanup and CLI storage operations receive only included
+features' cache handlers. Excluded caches, including malformed files, remain
+untouched. Their presence does not construct the excluded service. CLI commands
+and ingestion observers follow the same inclusion boundary. The legacy `/search`
+combines Atlassian results and belongs to that assembly contribution;
+`/natural-search` keyword and AI modes remain independent. Shared bounded form
+transport belongs to the API host; Atlassian retains its repeated item/topic
+fields and existing registration errors.
 
-`maintenance/service.py` owns task/process tracking, ledger recovery, cancellation
-and terminal state helpers; `maintenance/streams.py` owns shared runner output
-decoding. Workstream preparation, commands and pending Suggestions belong to
-`workstreams/runner.py`; approved external reads and atomic Atlassian result
-application belong to `atlassian/runner.py`. Each feature submits its own execution
-coroutine to Maintenance. Maintenance imports neither feature implementation.
-The app connects Maintenance recovery/shutdown only when a Run-producing feature
-is included, and calls those hooks only in the development web edition.
-Feature cache maintenance, optional service construction and route registration
-are also explicit contributions. Existing schema history, Run-to-Workstream FK and
-Run display-name query remain database contracts; code detachment does not drop
-their tables or delete private artifacts.
+`backend/maintenance/` owns generic task/process tracking, recovery, cancellation,
+stream decoding and terminal states without importing Workstream or Atlassian
+implementations. `workstreams/runner.rs` owns preparation, commands and pending
+Suggestions; `atlassian/runner.rs` owns approved external reads and atomic result
+application. Features supply their jobs and callbacks to Maintenance. The host
+installs Maintenance recovery/shutdown only when a Run-producing feature is
+included, and only in development web. `insights/runs.rs` separately owns explicit
+analysis Runs and observed usage, also outside desktop. Optional cache work,
+service construction and route registration remain explicit contributions.
+Existing schema history, Run-to-Workstream FK and display-name queries remain
+database contracts; feature exclusion does not drop tables or delete artifacts.
 
-`persistence/db.py` retains the public connection, initialization and transaction
-entrypoints. `persistence/bootstrap.py` owns the ordered preflight, recovery-copy,
-schema application, data migration and post-commit cleanup sequence.
-`persistence/migrations/` groups Source identity, Session/revision/skill evidence,
-Local Context, Usage, Maintenance, Atlassian and common resource schema history.
-`compatible.py` keeps the existing cross-domain compatibility order explicit;
-`support.py` owns shared schema inspection and the identical legacy backup
-procedure. The shared-resource and Session-revision backup variants retain their
-distinct contracts. `contracts.py` lets backup retirement inspect current schema
-without importing the DB entrypoint or bootstrap. Migrations stay with database
-history even when an optional runtime feature is removed.
-`schema.sql` owns the fresh database schema.
+`backend/db.rs` owns public connection/initialization helpers; the API host owns
+HTTP transaction lifetime and core mutation APIs accept an explicit connection.
+`backend/storage/migrations/` owns ordered preflight, recovery-copy creation,
+fresh DDL, compatible structural/data migrations and post-commit cleanup. Source
+identity, Session/revision/skill evidence, Context, Usage, Maintenance, Atlassian
+and shared-resource history remain with those migrations, including when a
+runtime feature is excluded. Compatibility order stays explicit, with shared
+schema inspection and distinct legacy/resource/revision backup contracts.
+`storage/contracts.rs` supplies current-contract inspection without starting DB
+initialization. `crates/core/resources/schema.sql` owns fresh DDL.
+No new migration registry or execution system is introduced.
 
-`app/storage/recovery.py` owns backup/restore/cache operations and the backend
-storage lease. `app/storage/web.py` owns HTTP registration, uploads, exports and
-responses. Recovery operations do not import FastAPI or the HTTP adapter.
+`backend/storage/recovery.rs` owns backup/restore/cache operations and the storage
+lease; `apps/api/src/routes/settings.rs` owns their HTTP uploads, exports and
+responses. Recovery services have no Axum dependency.
 
-Shared schema/JSON resources, server-rendered `templates/`, browser `static/`,
-`content/docs/` and versioned insight guides live at the package root.
-`foundation.paths.package_root()` resolves those assets independently of a
-consumer's module depth; `package_boundary()` retains the distinct runtime-data
-exclusion boundary for source, installed-wheel and frozen layouts. Package
-initializers do not re-export the former flat module surface.
+Shared schema/JSON resources live in `crates/core/resources/`. Templates,
+static assets and guide bodies live in `apps/web/` and are copied into the native
+web/app bundle. `Config.web_root` selects a trusted checkout or adjacent bundled
+web root; requests never supply it. Insight guides are embedded from
+`backend/insights/resources/`, including historical versions. Installation-root
+exclusion remains distinct from web asset lookup. Native execution never imports
+a retired Python package or a source-checkout module.
 
-- `foundation/`: shared configuration/preferences, operation locks, UTC clocks,
-  value/text fingerprints, validation errors, private JSON/filesystem operations,
-  path labels/cache roots and local agent executable lookup. It imports no product
-  feature, database, model runtime or FastAPI module. `clock.utc_now` returns an ISO
-  string while `clock.now` returns a datetime; the distinct serialization/hash and
-  error contracts remain separate. `persistence/storage.py` retains storage accounting
-  and migration-copy retirement; generic file safety belongs to `foundation/files.py`.
+Shared configuration, file safety, clocks, JSON/TOML/YAML syntax, Unicode rules,
+validation errors and path labels retain focused owners. Pure helpers must not
+import a feature, database, model execution or HTTP host. Common settings use the
+native `preferences/` transaction engine and OS adapters, with content revisions,
+ordered values and private publication. The caller retains the same operations
+lease until completion; common saves read back after release, Terminal saves
+inside it. Recovery and other domain files retain their own writers.
 
-- `models/`: pinned public asset catalog, Hub lookup, installation/verification,
-  cancellable setup worker, shared embedding/generation runtimes and finite answer-code
-  decoding. Its LocalBrain dependencies point only to `foundation/` and other model
-  modules. Search and explicit experiments consume these modules independently.
-  Model runtime libraries load only when the existing execution paths require them;
-  package imports do not load model weights or initiate downloads. Source setup uses
-  `python -m localbrain.models.setup`; the frozen `--install-search-model` flag is
-  unchanged. `foundation/paths.py` owns the package-parent storage exclusion and
-  public Hub root calculation, without depending on model execution.
+`crates/models` depends on native libraries and its own model modules,
+not on core services, SQLite or an HTTP/UI host. It owns the pinned public
+catalog, allowlisted installer, offline verification, lazy embedding/generation
+engines and constrained answer decoding. `backend/models/` supplies app paths,
+folder registration and cancellable setup. Search and explicit experiments
+consume the model crate independently. Imports/status do not load weights or
+download assets. Explicit setup uses native `localbrain models install`; the
+bundled `--install-search-model` worker remains native. Shared public-cache
+selection and private-runtime exclusion do not require model execution.
 
 ## Source Adapters
 
@@ -234,7 +251,7 @@ The complete effective-schema map, physical and application relationships, lifec
 
 The packaged consumer form is owned by [Schema Presentation](schema-presentation.md). Its generator applies fresh DDL and the compatible structural/index path only to SQLite `:memory:`, combines those facts with Data Model semantics, and emits derived JSON. Application consumers load that package data; they do not inspect a user database or repository Markdown.
 
-Bounded database values use `src/localbrain/value-registry.json` as their executable physical/logical/presentation authority. The generated [Value Dictionaries](data-model/value-dictionaries.md) remain the human-readable subject projection; runtime code loads the registry and never parses Markdown.
+Bounded database values use `crates/core/resources/value-registry.json` as their executable physical/logical/presentation authority. The generated [Value Dictionaries](data-model/value-dictionaries.md) remain the human-readable subject projection; runtime code loads the registry and never parses Markdown.
 
 `System > Schema` serves the read-only `/schema` Explorer from that package data. Optional `area` and `table` query values select one of the eleven owner areas and one owned table; invalid state normalizes to the nearest valid overview. Server-rendered links and catalogs remain complete without JavaScript, while the route-scoped module preserves shell continuity, history, focus, strict locally packaged Mermaid rendering, and bounded presentation-only diagram zoom. The route has no SQLite connection, row preview, external asset, SQL, edit, or cleanup action.
 
@@ -310,16 +327,23 @@ External source dispatch and synchronization follow [Atlassian](atlassian.md#ext
 - The SQLite schema and runtime data must remain portable to a later desktop wrapper.
 - Desktop packaging must not obscure data location, permissions, backup, or shutdown behavior.
 
-## Shared Rust Terminal Runtime
+## Shared Rust Runtime
 
-`rust/` is an independent Cargo workspace. `localbrain-core` owns terminal
-settings/path validation, immutable public payload preparation/retirement,
-launchd/process control, bounded manager IPC and stream/lease/ACK state.
-`localbrain-runtime` exposes fixed control/stream/process-snapshot/management and
-payload-lease entrypoints, with no Tauri/HTTP/SQLite/TOML writer in the core.
-Python `terminal/core.py` transports the closed protocol; `terminal/settings.py`
-retains the common writer transaction, and `terminal/web.py` owns authenticated
-HTTP/WS pipes. `terminal/runtime.py` and `processes.py` are protocol1 parity
-fixtures, excluded from native packaging. Other admitted Python features retain
-their owners. [The transition plan](../../plans/refactoring/refactor-0006-rust-core-transition.md)
-tracks remaining migration work; terminal execution is not whole-repository Rust parity.
+The root Cargo workspace contains `localbrain-core`, `localbrain-models`,
+`localbrain-runtime` and `apps/api`; it declares Rust 1.90 as its minimum.
+Core services own native SQLite/domain behavior while remaining independent of
+Axum, MiniJinja host objects and Tauri. The shared settings/Terminal primitives
+retain their focused ownership. `localbrain-runtime` exposes fixed control,
+stream, process-snapshot, management and payload-lease operations for the public
+Terminal payload; native application preferences run in process and require no
+separate common-runtime bridge, syntax callback interpreter or Python fallback.
+
+`localbrain`, `lb` and `localbrain-backend` are native API/CLI binaries built from
+`apps/api`. The last is the Tauri-owned desktop backend. The independent Terminal
+service and its public Node/PTY payload retain their separate lifetime and
+immutable receipts. Build scripts remap private compiler paths, inspect final
+native bytes and verify that no Python runtime or Python-linked backend enters
+the deliverable. Build success, browser behavior, actual native launch and
+recipient support remain separate evidence. The
+[transition plan](../../plans/refactoring/refactor-0006-rust-core-transition.md)
+retains historical sequencing and decisions; current ownership is defined here.

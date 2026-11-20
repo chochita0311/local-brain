@@ -1,0 +1,778 @@
+{
+  "provenance": {
+    "source": "docs/evidence/stages/stage-20261118-python-free-backend-evidence/baseline/src/localbrain/rendering/markdown.py",
+    "sha256": "fa79533ac2641b046f4923771a112d04c551aaab8f81f1d8340035c545789dd5",
+    "python": "3.11.15",
+    "packages": {
+      "markdown-it-py": "3.0.0",
+      "mdit-py-plugins": "0.4.2",
+      "Pygments": "2.20.0",
+      "latex2mathml": "3.81.0",
+      "PyYAML": "6.0.3",
+      "MarkupSafe": "3.0.3"
+    },
+    "scope": "Synthetic exact HTML/state/properties. Code uses no language lexer. Math remains literal inside code; generated MathML is checked separately by native contracts."
+  },
+  "cases": [
+    {
+      "name": "indented_spaces",
+      "source": "    [[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag <b>&\n",
+      "html": "<pre><code>[[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag &lt;b&gt;&amp;\n</code></pre>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "indented_tabs",
+      "source": "\t[[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag <b>&\n",
+      "html": "<pre><code>[[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag &lt;b&gt;&amp;\n</code></pre>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "indented_continuation",
+      "source": "    first\n\n    [[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag <b>&\n",
+      "html": "<pre><code>first\n\n[[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag &lt;b&gt;&amp;\n</code></pre>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "quoted_indented",
+      "source": ">     [[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag <b>&\n",
+      "html": "<blockquote>\n<pre><code>[[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag &lt;b&gt;&amp;\n</code></pre>\n</blockquote>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "listed_indented",
+      "source": "- item\n\n      [[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag <b>&\n",
+      "html": "<ul>\n<li>\n<p>item</p>\n<pre><code>[[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag &lt;b&gt;&amp;\n</code></pre>\n</li>\n</ul>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "quoted_fence",
+      "source": "> ```\n> [[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag <b>&\n> ```\n",
+      "html": "<blockquote>\n<figure class=\"markdown-code-block\"><figcaption class=\"markdown-code-label\">Code</figcaption><pre><code>[[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag &lt;b&gt;&amp;\n</code></pre></figure>\n</blockquote>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "listed_fence",
+      "source": "- item\n\n  ```\n  [[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag <b>&\n  ```\n",
+      "html": "<ul>\n<li>\n<p>item</p>\n<figure class=\"markdown-code-block\"><figcaption class=\"markdown-code-label\">Code</figcaption><pre><code>[[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag &lt;b&gt;&amp;\n</code></pre></figure>\n</li>\n</ul>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "quoted_listed_fence",
+      "source": "> - item\n>\n>   ```\n>   [[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag <b>&\n>   ```\n",
+      "html": "<blockquote>\n<ul>\n<li>\n<p>item</p>\n<figure class=\"markdown-code-block\"><figcaption class=\"markdown-code-label\">Code</figcaption><pre><code>[[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag &lt;b&gt;&amp;\n</code></pre></figure>\n</li>\n</ul>\n</blockquote>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "listed_quoted_fence",
+      "source": "- item\n\n  > ~~~\n  > [[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag <b>&\n  > ~~~\n",
+      "html": "<ul>\n<li>\n<p>item</p>\n<blockquote>\n<figure class=\"markdown-code-block\"><figcaption class=\"markdown-code-label\">Code</figcaption><pre><code>[[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag &lt;b&gt;&amp;\n</code></pre></figure>\n</blockquote>\n</li>\n</ul>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "long_backtick_fence",
+      "source": "````\n```\n[[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag <b>&\n```\n````\n",
+      "html": "<figure class=\"markdown-code-block\"><figcaption class=\"markdown-code-label\">Code</figcaption><pre><code>```\n[[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag &lt;b&gt;&amp;\n```\n</code></pre></figure>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "long_tilde_fence",
+      "source": "~~~~\n~~~\n[[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag <b>&\n```\n~~~~\n",
+      "html": "<figure class=\"markdown-code-block\"><figcaption class=\"markdown-code-label\">Code</figcaption><pre><code>~~~\n[[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag &lt;b&gt;&amp;\n```\n</code></pre></figure>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "unclosed_nested_fence",
+      "source": "> ```\n> [[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag <b>&\n",
+      "html": "<blockquote>\n<figure class=\"markdown-code-block\"><figcaption class=\"markdown-code-label\">Code</figcaption><pre><code>[[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag &lt;b&gt;&amp;\n</code></pre></figure>\n</blockquote>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "inline_single",
+      "source": "`[[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag <b>&`\n",
+      "html": "<p><code>[[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag &lt;b&gt;&amp;</code></p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "inline_multiple",
+      "source": "`` ` [[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag <b>& ` ``\n",
+      "html": "<p><code>` [[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag &lt;b&gt;&amp; `</code></p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "inline_multiline",
+      "source": "`first\n[[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag <b>&`\n",
+      "html": "<p><code>first [[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag &lt;b&gt;&amp;</code></p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "inline_after_unmatched_run",
+      "source": "`` open `[[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag <b>&`\n",
+      "html": "<p>`` open <code>[[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag &lt;b&gt;&amp;</code></p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "inline_in_quote_and_list",
+      "source": "> - `[[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag <b>&`\n",
+      "html": "<blockquote>\n<ul>\n<li><code>[[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag &lt;b&gt;&amp;</code></li>\n</ul>\n</blockquote>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "literal_marker_collision",
+      "source": "    LOCALBRAINMARKER0END LOCALBRAINMARKERX0END [[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag <b>&\n",
+      "html": "<pre><code>LOCALBRAINMARKER0END LOCALBRAINMARKERX0END [[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag &lt;b&gt;&amp;\n</code></pre>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "extensions_after_code",
+      "source": "    [[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag <b>&\n\nAfter [[Guide]] ![[Guide]] ==active== #outside/tag\n",
+      "html": "<pre><code>[[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag &lt;b&gt;&amp;\n</code></pre>\n<p>After <span class=\"markdown-reference markdown-reference-link markdown-reference-no-source\" data-reference-state=\"no-source\">Guide</span> <span class=\"markdown-reference markdown-reference-embed markdown-reference-no-source\" data-reference-state=\"no-source\">Guide</span> <mark>active</mark> <span class=\"markdown-tag\" data-tag=\"outside/tag\">#outside/tag</span></p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "extensions_after_nested_fence",
+      "source": "> ```\n> [[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag <b>&\n> ```\n\nAfter [[Guide]] ![[Guide]] ==active== #outside/tag\n",
+      "html": "<blockquote>\n<figure class=\"markdown-code-block\"><figcaption class=\"markdown-code-label\">Code</figcaption><pre><code>[[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag &lt;b&gt;&amp;\n</code></pre></figure>\n</blockquote>\n<p>After <span class=\"markdown-reference markdown-reference-link markdown-reference-no-source\" data-reference-state=\"no-source\">Guide</span> <span class=\"markdown-reference markdown-reference-embed markdown-reference-no-source\" data-reference-state=\"no-source\">Guide</span> <mark>active</mark> <span class=\"markdown-tag\" data-tag=\"outside/tag\">#outside/tag</span></p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "extensions_after_long_fence",
+      "source": "````\n```\n[[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag <b>&\n```\n````\n\nAfter [[Guide]] ![[Guide]] ==active== #outside/tag\n",
+      "html": "<figure class=\"markdown-code-block\"><figcaption class=\"markdown-code-label\">Code</figcaption><pre><code>```\n[[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag &lt;b&gt;&amp;\n```\n</code></pre></figure>\n<p>After <span class=\"markdown-reference markdown-reference-link markdown-reference-no-source\" data-reference-state=\"no-source\">Guide</span> <span class=\"markdown-reference markdown-reference-embed markdown-reference-no-source\" data-reference-state=\"no-source\">Guide</span> <mark>active</mark> <span class=\"markdown-tag\" data-tag=\"outside/tag\">#outside/tag</span></p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "unmatched_and_escaped_backticks",
+      "source": "`open ==active== [[Guide]] #outside/tag\n\n\\`escaped ==active== [[Guide]] #outside/tag\n",
+      "html": "<p>`open <mark>active</mark> <span class=\"markdown-reference markdown-reference-link markdown-reference-no-source\" data-reference-state=\"no-source\">Guide</span> <span class=\"markdown-tag\" data-tag=\"outside/tag\">#outside/tag</span></p>\n<p>`escaped <mark>active</mark> <span class=\"markdown-reference markdown-reference-link markdown-reference-no-source\" data-reference-state=\"no-source\">Guide</span> <span class=\"markdown-tag\" data-tag=\"outside/tag\">#outside/tag</span></p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "extension_literal_backticks",
+      "source": "==`literal`== [[Guide|`literal`]]\n",
+      "html": "<p><mark>`literal`</mark> <span class=\"markdown-reference markdown-reference-link markdown-reference-no-source\" data-reference-state=\"no-source\">`literal`</span></p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "extensions_before_inline_unicode",
+      "source": "먼저 ==active== [[Guide]] `é [[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag <b>&` 다음 ==after==\n",
+      "html": "<p>먼저 <mark>active</mark> <span class=\"markdown-reference markdown-reference-link markdown-reference-no-source\" data-reference-state=\"no-source\">Guide</span> <code>é [[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag &lt;b&gt;&amp;</code> 다음 <mark>after</mark></p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "extensions_before_indented_crlf",
+      "source": "먼저 ==active== [[Guide]]\r\n\r\n    é [[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag <b>&\r\n\r\nAfter ==after==\r\n",
+      "html": "<p>먼저 <mark>active</mark> <span class=\"markdown-reference markdown-reference-link markdown-reference-no-source\" data-reference-state=\"no-source\">Guide</span></p>\n<pre><code>é [[Guide]] ![[Guide]] ==literal== $x^2$ $$x$$ #local/tag &lt;b&gt;&amp;\n</code></pre>\n<p>After <mark>after</mark></p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "highlight_consumes_code_opener",
+      "source": "==`literal== then ==active== [[Guide]] #outside/tag `\n",
+      "html": "<p><mark>`literal</mark> then <mark>active</mark> <span class=\"markdown-reference markdown-reference-link markdown-reference-no-source\" data-reference-state=\"no-source\">Guide</span> <span class=\"markdown-tag\" data-tag=\"outside/tag\">#outside/tag</span> `</p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "wiki_alias_consumes_code_opener",
+      "source": "[[Guide|`alias]] then ==active== #outside/tag `\n",
+      "html": "<p><span class=\"markdown-reference markdown-reference-link markdown-reference-no-source\" data-reference-state=\"no-source\">`alias</span> then <mark>active</mark> <span class=\"markdown-tag\" data-tag=\"outside/tag\">#outside/tag</span> `</p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "consumed_opener_repairs_following_inline_pair",
+      "source": "==`literal== `[[Guide]]`\n",
+      "html": "<p><mark>`literal</mark> <code>[[Guide]]</code></p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "consumed_opener_exact_longer_run",
+      "source": "==``literal== ``[[Guide]] ` ==literal==``\n",
+      "html": "<p><mark>``literal</mark> <code>[[Guide]] ` ==literal==</code></p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "wiki_alias_repairs_following_pair",
+      "source": "[[Guide|`alias]] `==literal== $x$ #inside/tag ![[Guide]]`\n",
+      "html": "<p><span class=\"markdown-reference markdown-reference-link markdown-reference-no-source\" data-reference-state=\"no-source\">`alias</span> <code>==literal== $x$ #inside/tag ![[Guide]]</code></p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "repeated_consumed_openers_unicode",
+      "source": "앞 ==`one== `[[Guide]]` 중간 ==`two== `==literal==` 뒤 ==active==\n",
+      "html": "<p>앞 <mark>`one</mark> <code>[[Guide]]</code> 중간 <mark>`two</mark> <code>==literal==</code> 뒤 <mark>active</mark></p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "closing_backslash_is_literal",
+      "source": "==`literal== `[[Guide]]\\` ==active==\n",
+      "html": "<p><mark>`literal</mark> <code>[[Guide]]\\</code> <mark>active</mark></p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "escaped_opener_stays_text",
+      "source": "==`literal== \\`[[Guide]]` ==active==\n",
+      "html": "<p><mark>`literal</mark> `<span class=\"markdown-reference markdown-reference-link markdown-reference-no-source\" data-reference-state=\"no-source\">Guide</span>` <mark>active</mark></p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "escaped_first_tick_of_run",
+      "source": "==`literal== \\``[[Guide]]` ==active==\n",
+      "html": "<p><mark>`literal</mark> `<code>[[Guide]]</code> <mark>active</mark></p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "unmatched_after_consumed_opener",
+      "source": "==`literal== `[[Guide]] ==active== #outside/tag\n",
+      "html": "<p><mark>`literal</mark> `<span class=\"markdown-reference markdown-reference-link markdown-reference-no-source\" data-reference-state=\"no-source\">Guide</span> <mark>active</mark> <span class=\"markdown-tag\" data-tag=\"outside/tag\">#outside/tag</span></p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "mismatched_after_consumed_opener",
+      "source": "==`literal== ``[[Guide]]` ==active==\n",
+      "html": "<p><mark>`literal</mark> ``<span class=\"markdown-reference markdown-reference-link markdown-reference-no-source\" data-reference-state=\"no-source\">Guide</span>` <mark>active</mark></p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "consumed_pair_paragraph_boundary",
+      "source": "==`literal== `[[Guide]]\n\n==active== #outside/tag `\n",
+      "html": "<p><mark>`literal</mark> `<span class=\"markdown-reference markdown-reference-link markdown-reference-no-source\" data-reference-state=\"no-source\">Guide</span></p>\n<p><mark>active</mark> <span class=\"markdown-tag\" data-tag=\"outside/tag\">#outside/tag</span> `</p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "consumed_pair_heading_boundary",
+      "source": "==`literal== `[[Guide]]\n# Heading `\n\nAfter ==active==\n",
+      "html": "<p><mark>`literal</mark> `<span class=\"markdown-reference markdown-reference-link markdown-reference-no-source\" data-reference-state=\"no-source\">Guide</span></p>\n<h1 id=\"heading-heading\">Heading `</h1>\n<p>After <mark>active</mark></p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "consumed_pair_tight_list_boundary",
+      "source": "- ==`literal== `[[Guide]]\n- ==active== #outside/tag `\n",
+      "html": "<ul>\n<li><mark>`literal</mark> `<span class=\"markdown-reference markdown-reference-link markdown-reference-no-source\" data-reference-state=\"no-source\">Guide</span></li>\n<li><mark>active</mark> <span class=\"markdown-tag\" data-tag=\"outside/tag\">#outside/tag</span> `</li>\n</ul>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "consumed_pair_tight_list_continuation",
+      "source": "- ==`literal== `[[Guide]]\n  ==literal== ![[Guide]]`\n",
+      "html": "<ul>\n<li><mark>`literal</mark> <code>[[Guide]] ==literal== ![[Guide]]</code></li>\n</ul>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "consumed_pair_quote_continuation",
+      "source": "> ==`literal== `[[Guide]]\n> ==literal== ![[Guide]]`\n",
+      "html": "<blockquote>\n<p><mark>`literal</mark> <code>[[Guide]] ==literal== ![[Guide]]</code></p>\n</blockquote>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "consumed_pair_quote_lazy_continuation",
+      "source": "> ==`literal== `[[Guide]]\n==literal== ![[Guide]]`\n",
+      "html": "<blockquote>\n<p><mark>`literal</mark> <code>[[Guide]] ==literal== ![[Guide]]</code></p>\n</blockquote>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "consumed_pair_inline_tags",
+      "source": "==`literal== `*em* **bold** ~~gone~~ [safe](https://example.test) ![image](https://example.test/x) [[Guide]]`\n",
+      "html": "<p><mark>`literal</mark> <code>*em* **bold** ~~gone~~ [safe](https://example.test) ![image](https://example.test/x) [[Guide]]</code></p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "consumed_pair_quote_paragraph_boundary",
+      "source": "> ==`literal== `[[Guide]]\n>\n> ==active== #outside/tag `\n",
+      "html": "<blockquote>\n<p><mark>`literal</mark> `<span class=\"markdown-reference markdown-reference-link markdown-reference-no-source\" data-reference-state=\"no-source\">Guide</span></p>\n<p><mark>active</mark> <span class=\"markdown-tag\" data-tag=\"outside/tag\">#outside/tag</span> `</p>\n</blockquote>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "consumed_pair_indented_paragraph_continuation",
+      "source": "==`literal== `[[Guide]]\n    ==literal== ![[Guide]]`\n",
+      "html": "<p><mark>`literal</mark> <code>[[Guide]]     ==literal== ![[Guide]]</code></p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "html_shaped_literal_inline_code",
+      "source": "<div>\n`[[Guide]]`\n</div>\n",
+      "html": "<p>&lt;div&gt;<br />\n<code>[[Guide]]</code><br />\n&lt;/div&gt;</p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "html_shaped_emphasis",
+      "source": "<div>\n**bold**\n</div>\n",
+      "html": "<p>&lt;div&gt;<br />\n<strong>bold</strong><br />\n&lt;/div&gt;</p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "html_shaped_fenced_code",
+      "source": "<div>\n```\n[[Guide]] ![[Guide]] ==literal== $x$ #inside/tag <b>&\n```\n</div>\n",
+      "html": "<p>&lt;div&gt;</p>\n<figure class=\"markdown-code-block\"><figcaption class=\"markdown-code-label\">Code</figcaption><pre><code>[[Guide]] ![[Guide]] ==literal== $x$ #inside/tag &lt;b&gt;&amp;\n</code></pre></figure>\n<p>&lt;/div&gt;</p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "html_shaped_indented_code",
+      "source": "<div>\n\n    [[Guide]] ==literal== <b>&\n\n</div>\n",
+      "html": "<p>&lt;div&gt;</p>\n<pre><code>[[Guide]] ==literal== &lt;b&gt;&amp;\n</code></pre>\n<p>&lt;/div&gt;</p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "html_shaped_inline_attributes",
+      "source": "<span title=\"**bold** ==active==\">*inside*</span>\n",
+      "html": "<p>&lt;span title=&quot;<strong>bold</strong> <mark>active</mark>&quot;&gt;<em>inside</em>&lt;/span&gt;</p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "html_shaped_script_is_prose",
+      "source": "<script onclick=\"steal()\">**bold** `[[Guide]]`</script>\n",
+      "html": "<p>&lt;script onclick=&quot;steal()&quot;&gt;<strong>bold</strong> <code>[[Guide]]</code>&lt;/script&gt;</p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "html_shaped_comment_is_prose",
+      "source": "<!-- **bold** `[[Guide]]` -->\n",
+      "html": "<p>&lt;!-- <strong>bold</strong> <code>[[Guide]]</code> --&gt;</p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "html_shaped_custom_tag_paragraphs",
+      "source": "<custom-tag>\n\n**bold**\n\n</custom-tag>\n",
+      "html": "<p>&lt;custom-tag&gt;</p>\n<p><strong>bold</strong></p>\n<p>&lt;/custom-tag&gt;</p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "html_shaped_declaration",
+      "source": "<!DOCTYPE html>\n**bold**\n",
+      "html": "<p>&lt;!DOCTYPE html&gt;<br />\n<strong>bold</strong></p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "html_shaped_cdata",
+      "source": "<![CDATA[**bold**]]>\n",
+      "html": "<p>&lt;![CDATA[<strong>bold</strong>]]&gt;</p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "html_shaped_processing_instruction",
+      "source": "<?xml value=\"**bold**\"?>\n",
+      "html": "<p>&lt;?xml value=&quot;<strong>bold</strong>&quot;?&gt;</p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "html_shaped_punctuation_flanking",
+      "source": "<_inside_> and _before_<after>\n",
+      "html": "<p>&lt;<em>inside</em>&gt; and <em>before</em>&lt;after&gt;</p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "html_shaped_entities",
+      "source": "&lt;div&gt; **bold** &amp; &#60;span&#62; and `&lt;div&gt;`\n",
+      "html": "<p>&lt;div&gt; <strong>bold</strong> &amp; &lt;span&gt; and <code>&amp;lt;div&amp;gt;</code></p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "html_shaped_escaped_less",
+      "source": "\\<span title=\"_value_\"> **bold**\n",
+      "html": "<p>&lt;span title=&quot;<em>value</em>&quot;&gt; <strong>bold</strong></p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "html_shaped_extension_consumed_backtick",
+      "source": "<span title=\"==`literal== `[[Guide]]`\">tail</span>\n",
+      "html": "<p>&lt;span title=&quot;<mark>`literal</mark> <code>[[Guide]]</code>&quot;&gt;tail&lt;/span&gt;</p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "raw_html_in_generic_fence_info_and_code",
+      "source": "```unknown<lang\n<span title=\"**literal**\"> [[Guide]] &\n```\n",
+      "html": "<figure class=\"markdown-code-block\" data-language=\"unknown-lang\"><figcaption class=\"markdown-code-label\">unknown&lt;lang</figcaption><pre><code class=\"language-unknown-lang\">&lt;span title=&#34;**literal**&#34;&gt; [[Guide]] &amp;\n</code></pre></figure>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "code_empty_closed_fence",
+      "source": "```\n```\n",
+      "html": "<figure class=\"markdown-code-block\"><figcaption class=\"markdown-code-label\">Code</figcaption><pre><code></code></pre></figure>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "code_blank_closed_fence",
+      "source": "```\n\n```\n",
+      "html": "<figure class=\"markdown-code-block\"><figcaption class=\"markdown-code-label\">Code</figcaption><pre><code>\n</code></pre></figure>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "code_empty_unclosed_fence",
+      "source": "```\n",
+      "html": "<figure class=\"markdown-code-block\"><figcaption class=\"markdown-code-label\">Code</figcaption><pre><code></code></pre></figure>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "code_blank_unclosed_fence",
+      "source": "```\n\n",
+      "html": "<figure class=\"markdown-code-block\"><figcaption class=\"markdown-code-label\">Code</figcaption><pre><code>\n</code></pre></figure>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "code_indent_literal_fence",
+      "source": "    ```\n    [[Guide]]\n    ```\n",
+      "html": "<pre><code>```\n[[Guide]]\n```\n</code></pre>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "code_quote_tab_fence",
+      "source": "> \t```\n> \t[[Guide]]\n> \t```\n",
+      "html": "<blockquote>\n<figure class=\"markdown-code-block\"><figcaption class=\"markdown-code-label\">Code</figcaption><pre><code>[[Guide]]\n</code></pre></figure>\n</blockquote>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "entity_newlines_are_not_softbreaks",
+      "source": "first &#10; &#x0A; &NewLine; last\nnext\n",
+      "html": "<p>first \n \n \n last<br />\nnext</p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "escaped_entity_newline_is_prose",
+      "source": "\\&#10; first\nnext &#0000010; done\n",
+      "html": "<p>&amp;#10; first<br />\nnext \n done</p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "inline_note_strong",
+      "source": "Inline ^[a **bold** note].\n",
+      "html": "<p>Inline <sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup>.</p>\n<hr class=\"footnotes-sep\" />\n<section class=\"footnotes\">\n<ol class=\"footnotes-list\">\n<li id=\"fn1\" class=\"footnote-item\"><p>a <strong>bold</strong> note <a href=\"#fnref1\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n</ol>\n</section>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "inline_note_empty",
+      "source": "^[]\n",
+      "html": "<p><sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup></p>\n<hr class=\"footnotes-sep\" />\n<section class=\"footnotes\">\n<ol class=\"footnotes-list\">\n<li id=\"fn1\" class=\"footnote-item\"><p> <a href=\"#fnref1\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n</ol>\n</section>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "inline_note_two",
+      "source": "First ^[one] then ^[two].\n",
+      "html": "<p>First <sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup> then <sup class=\"footnote-ref\"><a href=\"#fn2\" id=\"fnref2\">[2]</a></sup>.</p>\n<hr class=\"footnotes-sep\" />\n<section class=\"footnotes\">\n<ol class=\"footnotes-list\">\n<li id=\"fn1\" class=\"footnote-item\"><p>one <a href=\"#fnref1\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n<li id=\"fn2\" class=\"footnote-item\"><p>two <a href=\"#fnref2\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n</ol>\n</section>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "inline_note_mixed_named_repeated",
+      "source": "Named[^n] inline ^[inside] repeated[^n].\n\n[^n]: Named **body**\n",
+      "html": "<p>Named<sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup> inline <sup class=\"footnote-ref\"><a href=\"#fn2\" id=\"fnref2\">[2]</a></sup> repeated<sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1:1\">[1:1]</a></sup>.</p>\n<hr class=\"footnotes-sep\" />\n<section class=\"footnotes\">\n<ol class=\"footnotes-list\">\n<li id=\"fn1\" class=\"footnote-item\"><p>Named <strong>body</strong> <a href=\"#fnref1\" class=\"footnote-backref\">↩︎</a> <a href=\"#fnref1:1\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n<li id=\"fn2\" class=\"footnote-item\"><p>inside <a href=\"#fnref2\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n</ol>\n</section>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "inline_note_around_named_repeated",
+      "source": "Inline ^[before] named[^n] inline ^[after] repeat[^n].\n\n[^n]: Named\n",
+      "html": "<p>Inline <sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup> named<sup class=\"footnote-ref\"><a href=\"#fn2\" id=\"fnref2\">[2]</a></sup> inline <sup class=\"footnote-ref\"><a href=\"#fn3\" id=\"fnref3\">[3]</a></sup> repeat<sup class=\"footnote-ref\"><a href=\"#fn2\" id=\"fnref2:1\">[2:1]</a></sup>.</p>\n<hr class=\"footnotes-sep\" />\n<section class=\"footnotes\">\n<ol class=\"footnotes-list\">\n<li id=\"fn1\" class=\"footnote-item\"><p>before <a href=\"#fnref1\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n<li id=\"fn2\" class=\"footnote-item\"><p>Named <a href=\"#fnref2\" class=\"footnote-backref\">↩︎</a> <a href=\"#fnref2:1\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n<li id=\"fn3\" class=\"footnote-item\"><p>after <a href=\"#fnref3\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n</ol>\n</section>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "inline_note_escaped_and_code",
+      "source": "Escaped \\^[note] and `^[code]` and ^[real].\n",
+      "html": "<p>Escaped ^[note] and <code>^[code]</code> and <sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup>.</p>\n<hr class=\"footnotes-sep\" />\n<section class=\"footnotes\">\n<ol class=\"footnotes-list\">\n<li id=\"fn1\" class=\"footnote-item\"><p>real <a href=\"#fnref1\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n</ol>\n</section>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "inline_note_malformed",
+      "source": "Broken ^[missing close\n",
+      "html": "<p>Broken ^[missing close</p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "inline_note_paragraph_boundary",
+      "source": "Paragraph ^[first\n\nsecond].\n",
+      "html": "<p>Paragraph ^[first</p>\n<p>second].</p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "inline_note_balanced_brackets",
+      "source": "Nested ^[outer [balanced] tail].\n",
+      "html": "<p>Nested <sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup>.</p>\n<hr class=\"footnotes-sep\" />\n<section class=\"footnotes\">\n<ol class=\"footnotes-list\">\n<li id=\"fn1\" class=\"footnote-item\"><p>outer [balanced] tail <a href=\"#fnref1\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n</ol>\n</section>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "inline_note_escaped_bracket",
+      "source": "Escaped ^[before \\] **bold** after].\n",
+      "html": "<p>Escaped <sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup>.</p>\n<hr class=\"footnotes-sep\" />\n<section class=\"footnotes\">\n<ol class=\"footnotes-list\">\n<li id=\"fn1\" class=\"footnote-item\"><p>before ] <strong>bold</strong> after <a href=\"#fnref1\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n</ol>\n</section>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "inline_note_code_bracket",
+      "source": "Code ^[before `] [[Guide]]` after].\n",
+      "html": "<p>Code <sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup>.</p>\n<hr class=\"footnotes-sep\" />\n<section class=\"footnotes\">\n<ol class=\"footnotes-list\">\n<li id=\"fn1\" class=\"footnote-item\"><p>before <code>] [[Guide]]</code> after <a href=\"#fnref1\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n</ol>\n</section>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "inline_note_code_run_bracket",
+      "source": "Run ^[before `` ` ] `` after].\n",
+      "html": "<p>Run <sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup>.</p>\n<hr class=\"footnotes-sep\" />\n<section class=\"footnotes\">\n<ol class=\"footnotes-list\">\n<li id=\"fn1\" class=\"footnote-item\"><p>before <code>` ]</code> after <a href=\"#fnref1\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n</ol>\n</section>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "inline_note_extension_brackets",
+      "source": "Payload ^[==[literal== [[Guide|label]]].\n",
+      "html": "<p>Payload <sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup>.</p>\n<hr class=\"footnotes-sep\" />\n<section class=\"footnotes\">\n<ol class=\"footnotes-list\">\n<li id=\"fn1\" class=\"footnote-item\"><p><mark>[literal</mark> <span class=\"markdown-reference markdown-reference-link markdown-reference-no-source\" data-reference-state=\"no-source\">label</span> <a href=\"#fnref1\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n</ol>\n</section>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "inline_note_heading_prose",
+      "source": "Heading ^[# heading **bold**].\n",
+      "html": "<p>Heading <sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup>.</p>\n<hr class=\"footnotes-sep\" />\n<section class=\"footnotes\">\n<ol class=\"footnotes-list\">\n<li id=\"fn1\" class=\"footnote-item\"><p># heading <strong>bold</strong> <a href=\"#fnref1\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n</ol>\n</section>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "inline_note_list_prose",
+      "source": "List ^[- item **bold**].\n",
+      "html": "<p>List <sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup>.</p>\n<hr class=\"footnotes-sep\" />\n<section class=\"footnotes\">\n<ol class=\"footnotes-list\">\n<li id=\"fn1\" class=\"footnote-item\"><p>- item <strong>bold</strong> <a href=\"#fnref1\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n</ol>\n</section>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "inline_note_quote_prose",
+      "source": "Quote ^[> quoted **bold**].\n",
+      "html": "<p>Quote <sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup>.</p>\n<hr class=\"footnotes-sep\" />\n<section class=\"footnotes\">\n<ol class=\"footnotes-list\">\n<li id=\"fn1\" class=\"footnote-item\"><p>&gt; quoted <strong>bold</strong> <a href=\"#fnref1\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n</ol>\n</section>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "inline_note_fence_is_inline",
+      "source": "Fence ^[```literal```].\n",
+      "html": "<p>Fence <sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup>.</p>\n<hr class=\"footnotes-sep\" />\n<section class=\"footnotes\">\n<ol class=\"footnotes-list\">\n<li id=\"fn1\" class=\"footnote-item\"><p><code>literal</code> <a href=\"#fnref1\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n</ol>\n</section>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "inline_note_multiline_prose",
+      "source": "Flow ^[line\n# heading\n- item].\n",
+      "html": "<p>Flow ^[line</p>\n<h1 id=\"heading-heading\">heading</h1>\n<ul>\n<li>item].</li>\n</ul>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "inline_note_trailing_linebreak",
+      "source": "Trailing ^[line\n].\n",
+      "html": "<p>Trailing <sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup>.</p>\n<hr class=\"footnotes-sep\" />\n<section class=\"footnotes\">\n<ol class=\"footnotes-list\">\n<li id=\"fn1\" class=\"footnote-item\"><p>line<br />\n <a href=\"#fnref1\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n</ol>\n</section>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "inline_note_whitespace",
+      "source": "Whitespace ^[  note  ].\n",
+      "html": "<p>Whitespace <sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup>.</p>\n<hr class=\"footnotes-sep\" />\n<section class=\"footnotes\">\n<ol class=\"footnotes-list\">\n<li id=\"fn1\" class=\"footnote-item\"><p>  note   <a href=\"#fnref1\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n</ol>\n</section>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "inline_note_reference_context",
+      "source": "Link ^[[read][guide]].\n\n[guide]: https://example.test/read\n",
+      "html": "<p>Link <sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup>.</p>\n<hr class=\"footnotes-sep\" />\n<section class=\"footnotes\">\n<ol class=\"footnotes-list\">\n<li id=\"fn1\" class=\"footnote-item\"><p><a href=\"https://example.test/read\" class=\"markdown-reference markdown-reference-external\" data-reference-state=\"external\" data-external-link=\"true\" target=\"_blank\" rel=\"noopener noreferrer external\">read</a> <a href=\"#fnref1\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n</ol>\n</section>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "inline_note_html_is_prose",
+      "source": "HTML ^[<span>**bold**</span>].\n",
+      "html": "<p>HTML <sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup>.</p>\n<hr class=\"footnotes-sep\" />\n<section class=\"footnotes\">\n<ol class=\"footnotes-list\">\n<li id=\"fn1\" class=\"footnote-item\"><p>&lt;span&gt;<strong>bold</strong>&lt;/span&gt; <a href=\"#fnref1\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n</ol>\n</section>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "inline_note_named_collision",
+      "source": "Names[^inline-0] and ^[actual].\n\n[^inline-0]: Named\n",
+      "html": "<p>Names<sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup> and <sup class=\"footnote-ref\"><a href=\"#fn2\" id=\"fnref2\">[2]</a></sup>.</p>\n<hr class=\"footnotes-sep\" />\n<section class=\"footnotes\">\n<ol class=\"footnotes-list\">\n<li id=\"fn1\" class=\"footnote-item\"><p>Named <a href=\"#fnref1\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n<li id=\"fn2\" class=\"footnote-item\"><p>actual <a href=\"#fnref2\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n</ol>\n</section>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "inline_note_fenced_literal",
+      "source": "```\n^[literal] [[Guide]]\n```\n",
+      "html": "<figure class=\"markdown-code-block\"><figcaption class=\"markdown-code-label\">Code</figcaption><pre><code>^[literal] [[Guide]]\n</code></pre></figure>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "inline_note_heading_after_consumed_linebreak",
+      "source": "First ^[line\n].\n\n# After\n",
+      "html": "<p>First <sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup>.</p>\n<h1 id=\"heading-after\">After</h1>\n<hr class=\"footnotes-sep\" />\n<section class=\"footnotes\">\n<ol class=\"footnotes-list\">\n<li id=\"fn1\" class=\"footnote-item\"><p>line<br />\n <a href=\"#fnref1\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n</ol>\n</section>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "legacy_named_inside_inline",
+      "source": "Inline ^[named[^n]].\n\n[^n]: Body\n",
+      "html": "<p>Inline <sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup>.</p>\n<hr class=\"footnotes-sep\" />\n<section class=\"footnotes\">\n<ol class=\"footnotes-list\">\n<li id=\"fn1\" class=\"footnote-item\"><p>named<sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup> <a href=\"#fnref1\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n</ol>\n</section>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "legacy_inline_inside_inline",
+      "source": "Outer ^[a ^[b] c].\n",
+      "html": "<p>Outer <sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup>.</p>\n<hr class=\"footnotes-sep\" />\n<section class=\"footnotes\">\n<ol class=\"footnotes-list\">\n<li id=\"fn1\" class=\"footnote-item\"><p>a <sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup> c <a href=\"#fnref1\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n</ol>\n</section>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "legacy_named_label_case",
+      "source": "Upper[^N] lower[^n].\n\n[^n]: Body\n",
+      "html": "<p>Upper[^N] lower<sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup>.</p>\n<hr class=\"footnotes-sep\" />\n<section class=\"footnotes\">\n<ol class=\"footnotes-list\">\n<li id=\"fn1\" class=\"footnote-item\"><p>Body <a href=\"#fnref1\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n</ol>\n</section>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "legacy_overwritten_named_later_ref",
+      "source": "Inline ^[named[^n]] then[^n].\n\n[^n]: Body\n",
+      "html": "<pre class=\"markdown-render-fallback\">Inline ^[named[^n]] then[^n].\n\n[^n]: Body\n</pre>",
+      "state": "fallback",
+      "properties": []
+    },
+    {
+      "name": "legacy_nested_after_named_with_later_repeat",
+      "source": "Named[^n] inline ^[outer ^[inner]] later[^n].\n\n[^n]: Body\n",
+      "html": "<p>Named<sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup> inline <sup class=\"footnote-ref\"><a href=\"#fn2\" id=\"fnref2\">[2]</a></sup> later<sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1:1\">[1:1]</a></sup>.</p>\n<hr class=\"footnotes-sep\" />\n<section class=\"footnotes\">\n<ol class=\"footnotes-list\">\n<li id=\"fn1\" class=\"footnote-item\"><p>Body <a href=\"#fnref1\" class=\"footnote-backref\">↩︎</a> <a href=\"#fnref1:1\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n<li id=\"fn2\" class=\"footnote-item\"><p>outer <sup class=\"footnote-ref\"><a href=\"#fn2\" id=\"fnref2\">[2]</a></sup> <a href=\"#fnref2\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n</ol>\n</section>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "legacy_nested_two_siblings",
+      "source": "Outer ^[a ^[one] b ^[two] c].\n",
+      "html": "<p>Outer <sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup>.</p>\n<hr class=\"footnotes-sep\" />\n<section class=\"footnotes\">\n<ol class=\"footnotes-list\">\n<li id=\"fn1\" class=\"footnote-item\"><p>a <sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup> b <sup class=\"footnote-ref\"><a href=\"#fn2\" id=\"fnref2\">[2]</a></sup> c <a href=\"#fnref1\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n<li id=\"fn2\" class=\"footnote-item\"><p>two <a href=\"#fnref2\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n</ol>\n</section>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "legacy_heading_after_nested_note_linebreak",
+      "source": "Outside ^[a\n^[b] c].\n\n# After\n",
+      "html": "<p>Outside <sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup>.</p>\n<h1 id=\"heading-after\">After</h1>\n<hr class=\"footnotes-sep\" />\n<section class=\"footnotes\">\n<ol class=\"footnotes-list\">\n<li id=\"fn1\" class=\"footnote-item\"><p>a<br />\n<sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup> c <a href=\"#fnref1\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n</ol>\n</section>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "legacy_nested_shapes_literal_in_code",
+      "source": "`^[a ^[b]]` and `^[named[^n]]`\n\n[^n]: Body\n",
+      "html": "<p><code>^[a ^[b]]</code> and <code>^[named[^n]]</code></p>\n",
+      "state": "ready",
+      "properties": []
+    },
+    {
+      "name": "legacy_named_labels_have_distinct_case",
+      "source": "Upper[^N] lower[^n].\n\n[^N]: Upper body\n\n[^n]: Lower body\n",
+      "html": "<p>Upper<sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup> lower<sup class=\"footnote-ref\"><a href=\"#fn2\" id=\"fnref2\">[2]</a></sup>.</p>\n<hr class=\"footnotes-sep\" />\n<section class=\"footnotes\">\n<ol class=\"footnotes-list\">\n<li id=\"fn1\" class=\"footnote-item\"><p>Upper body <a href=\"#fnref1\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n<li id=\"fn2\" class=\"footnote-item\"><p>Lower body <a href=\"#fnref2\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n</ol>\n</section>\n",
+      "state": "ready",
+      "properties": []
+    }
+  ],
+  "html_links": [
+    {
+      "name": "autolinks_and_email",
+      "source": "<https://example.test/a?x=1&y=2> <person@example.test>\n",
+      "html": "<p><a href=\"https://example.test/a?x=1&amp;y=2\" class=\"markdown-reference markdown-reference-external\" data-reference-state=\"external\" data-external-link=\"true\" target=\"_blank\" rel=\"noopener noreferrer external\">https://example.test/a?x=1&amp;y=2</a> <span class=\"markdown-reference markdown-reference-unsafe\" data-reference-state=\"unsafe\">person@example.test</span></p>\n"
+    },
+    {
+      "name": "autolinks_within_html_shaped_source",
+      "source": "<div>\n<https://example.test/path>\n</div>\n",
+      "html": "<p>&lt;div&gt;<br />\n<a href=\"https://example.test/path\" class=\"markdown-reference markdown-reference-external\" data-reference-state=\"external\" data-external-link=\"true\" target=\"_blank\" rel=\"noopener noreferrer external\">https://example.test/path</a><br />\n&lt;/div&gt;</p>\n"
+    },
+    {
+      "name": "angle_destinations",
+      "source": "[relative](<guide>) [spaces](<foo bar>) [external](<https://example.test/a>)\n",
+      "html": "<p><span class=\"markdown-reference markdown-reference-no-source\" data-reference-state=\"no-source\">relative</span> <span class=\"markdown-reference markdown-reference-no-source\" data-reference-state=\"no-source\">spaces</span> <a href=\"https://example.test/a\" class=\"markdown-reference markdown-reference-external\" data-reference-state=\"external\" data-external-link=\"true\" target=\"_blank\" rel=\"noopener noreferrer external\">external</a></p>\n"
+    },
+    {
+      "name": "multiline_angle_destination",
+      "source": "[relative](\n<div>)\n",
+      "html": "<p><span class=\"markdown-reference markdown-reference-no-source\" data-reference-state=\"no-source\">relative</span></p>\n"
+    },
+    {
+      "name": "reference_angle_destination",
+      "source": "[guide]: <foo bar>\n\n[read][guide]\n",
+      "html": "<p><span class=\"markdown-reference markdown-reference-no-source\" data-reference-state=\"no-source\">read</span></p>\n"
+    },
+    {
+      "name": "inline_unsafe_html_and_links",
+      "source": "<a href=\"javascript:alert(1)\" onclick=\"steal()\">**bold**</a> [bad](javascript:alert(1)) <javascript:alert(1)>\n",
+      "html": "<p>&lt;a href=&quot;javascript:alert(1)&quot; onclick=&quot;steal()&quot;&gt;<strong>bold</strong>&lt;/a&gt; [bad](javascript:alert(1)) &lt;javascript:alert(1)&gt;</p>\n"
+    }
+  ],
+  "math_cases": [
+    {
+      "name": "inline_note_double_math_literal",
+      "source": "Math ^[$$x$$].\n",
+      "html": "<p>Math <sup class=\"footnote-ref\"><a href=\"#fn1\" id=\"fnref1\">[1]</a></sup>.</p>\n<hr class=\"footnotes-sep\" />\n<section class=\"footnotes\">\n<ol class=\"footnotes-list\">\n<li id=\"fn1\" class=\"footnote-item\"><p>$<span class=\"math inline\"><span class=\"markdown-math\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\"><mrow><mi>x</mi></mrow></math></span></span>$ <a href=\"#fnref1\" class=\"footnote-backref\">↩︎</a></p>\n</li>\n</ol>\n</section>\n"
+    }
+  ]
+}

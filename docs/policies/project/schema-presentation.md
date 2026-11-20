@@ -6,12 +6,18 @@ This contract defines the deterministic, package-owned data consumed by LocalBra
 
 ## Source Ownership
 
-- `src/localbrain/schema.sql` owns fresh executable structure.
-- `src/localbrain/persistence/migrations/compatible.py` orders compatible structure and runtime-only indexes, using the domain migration modules. Generation invokes this real structural path against SQLite `:memory:` with data migrations disabled. The source fingerprint covers `db.py`, `bootstrap.py` and every Python file in `persistence/migrations/`, so a domain migration change cannot hide behind an unchanged entrypoint.
+- `crates/core/resources/schema.sql` owns fresh executable structure.
+- Native `db.rs` and `storage/migrations.rs` order preserving compatible structure
+  and runtime-only indexes through their domain modules. Generation initializes
+  a disposable synthetic database with isolated paths, emits DDL only and
+  rehydrates it in SQLite `:memory:`; it never loads user configuration or opens
+  an application database. The source fingerprint covers `db.rs`,
+  `storage/migrations.rs` and every domain migration `.rs` file, so a change
+  cannot hide behind an unchanged entrypoint.
 - `docs/policies/project/data-model.md` and its eleven subject documents own order, subject ownership, lifecycle/recovery semantics, column explanations, application relations, and Mermaid definitions.
 - `scripts/schema_presentation_builder.py` owns transformation and validation only; `scripts/schema_migration_sources.py` provides its shared ordered source manifest and digest.
-- `src/localbrain/schema-presentation.json` is committed derived output and is packaged with LocalBrain.
-- `src/localbrain/persistence/schema_presentation.py` is the only application loader. Consumers must not parse repository Markdown or introspect a runtime database as fallback.
+- `crates/core/resources/schema-presentation.json` is committed derived output and is packaged with LocalBrain.
+- `crates/core/src/backend/schema.rs` is the only application loader. Consumers must not parse repository Markdown or introspect a runtime database as fallback.
 
 ## V1 Shape
 
@@ -44,8 +50,8 @@ The current baseline has eleven subjects, 52 ordinary tables plus one FTS5 objec
 Generation uses subject order, marker table order, SQLite column/key order, and sorted relation/index/JSON keys. It stores no wall-clock time, absolute path, environment, configured source, or row value. Two builds from identical sources must be byte-identical.
 
 ```bash
-uv run python scripts/build-schema-presentation.py build
-uv run python scripts/build-schema-presentation.py check
+python3 scripts/build-schema-presentation.py build
+python3 scripts/build-schema-presentation.py check
 ```
 
 Both modes run the pinned local Mermaid parser first. Build writes the package output. Check regenerates in memory and fails when the output is missing or byte-stale. Missing owners, lifecycle mappings, semantic bullets, columns, counts, relations, diagrams, or source digests fail with a bounded owner/object message.
@@ -60,7 +66,7 @@ The loader never exposes parser internals to a screen and never falls back to do
 
 ## Product Consumer
 
-`localbrain.persistence.explorer` is the bounded read model for `GET /schema`. It normalizes optional `area` and `table` query state against v1, projects only the selected table's related physical and application edges, and supplies ordinary server-rendered links plus approved text and Mermaid definitions. An invalid area returns the global overview; an invalid or cross-area table returns the valid area overview. Raw invalid query values are not reflected.
+`backend::schema` is the bounded read model for `GET /schema`. It normalizes optional `area` and `table` query state against v1, projects only the selected table's related physical and application edges, and supplies ordinary server-rendered links plus approved text and Mermaid definitions. An invalid area returns the global overview; an invalid or cross-area table returns the valid area overview. Raw invalid query values are not reflected.
 
 The route never opens the configured database or reads repository Markdown. Missing or invalid package data produces the loader's intentional unavailable state. JavaScript progressively replaces only the Schema region for history and focus continuity, but it is not a data producer and the complete selected table catalog remains executable HTML without it.
 
@@ -74,7 +80,7 @@ Shared Back, bounded entry identity and scroll restoration follow [App Navigatio
 
 Only schema identifiers and approved semantic text enter the manifest. Runtime rows, configured or source paths, source names, document/session content, private or runtime URLs, credentials, Run artifacts, and machine state are prohibited. Repository-relative owner paths and source hashes are allowed provenance. Reviewed public documentation citations in repository-owned semantic text are also allowed; the schema-presentation test pins their exact URLs. This exception does not admit imported URLs or fetch anything during generation, loading, or page rendering.
 
-The wheel must contain `localbrain/schema-presentation.json` and `localbrain/persistence/schema_presentation.py`. An installed package must load them with the repository, Node, runtime database, and network unavailable.
+The wheel must contain `localbrain/schema-presentation.json` and `crates/core/src/backend/schema.rs`. An installed package must load them with the repository, Node, runtime database, and network unavailable.
 
 ## Change Rule
 
@@ -82,6 +88,6 @@ Update the executable and Data Model owners first, run their parity checks, rebu
 
 ## Implementation Ownership
 
-- `src/localbrain/persistence/explorer.py`: manifest-only Schema query normalization and read model; it never opens the runtime database
+- `crates/core/src/backend/schema.rs`: manifest-only Schema query normalization and read model; it never opens the runtime database
 
-- `src/localbrain/persistence/schema_presentation.py` and `schema-presentation.json`: bounded loader and derived package data for read-only Schema consumers
+- `crates/core/src/backend/schema.rs` and `schema-presentation.json`: bounded loader and derived package data for read-only Schema consumers

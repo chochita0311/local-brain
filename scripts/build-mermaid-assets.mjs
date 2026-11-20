@@ -9,7 +9,7 @@ import { build as bundle } from "esbuild";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const OUTPUT_DIR = resolve(
   process.env.LOCALBRAIN_MERMAID_OUTPUT_DIR
-    || join(ROOT, "src/localbrain/static/vendor/mermaid"),
+    || join(ROOT, "apps/web/static/vendor/mermaid"),
 );
 const OUTPUT_FILES = [
   "asset-manifest.json",

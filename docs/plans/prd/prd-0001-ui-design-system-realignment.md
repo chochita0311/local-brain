@@ -39,11 +39,11 @@
 
 ### Current Implementation References
 
-- [Application routes](../../../src/localbrain/app/routes.py): current route registration and links to the feature handlers that own behavior
-- [Shared shell](../../../src/localbrain/templates/base.html): persistent navigation, header, global search, and content boundary
-- [Screen templates](../../../src/localbrain/templates): current screen structure and user-visible states
-- [Styles](../../../src/localbrain/static/styles.css): current palette, geometry, layout, component, and responsive implementation
-- [Browser interactions](../../../src/localbrain/static/app.js): current forms, destructive actions, Suggestions, scans, and Run controls
+- [Application routes](../../../apps/api/src/routes/mod.rs): current route registration and links to the feature handlers that own behavior
+- [Shared shell](../../../apps/web/templates/base.html): persistent navigation, header, global search, and content boundary
+- [Screen templates](../../../apps/web/templates): current screen structure and user-visible states
+- [Styles](../../../apps/web/static/styles.css): current palette, geometry, layout, component, and responsive implementation
+- [Browser interactions](../../../apps/web/static/app.js): current forms, destructive actions, Suggestions, scans, and Run controls
 
 The implementation audit covers the current route, template, CSS, and browser-interaction source. The completed run set also includes isolated local-server rendering evidence for the primary HTML routes, automated UI contract checks, and functional regression tests. The required browser controller was unavailable during the earlier runs, so their uncollected graphical evidence remained explicit. Live Chrome evidence was later collected for the Local Context explorer, invalidated its initial pass, and drove the completed Fix loop; broader screen-family captures remain a transparent nonblocking follow-up rather than claimed evidence.
 

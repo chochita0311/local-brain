@@ -1,0 +1,2260 @@
+{
+  "source": "Frozen Python3.11 pure _usage_record; no process/files/source registration",
+  "cases": [
+    {
+      "name": "complete",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": 800, \"output_tokens\": 100, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": 200,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": 1100,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "complete",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "available",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "missing-input_tokens",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"cached_input_tokens\": 800, \"output_tokens\": 100, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": null,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": null,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "partial",
+        "capability": {
+          "input_tokens": "missing",
+          "cached_input_tokens": "available",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-input_tokens-None",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": null, \"cached_input_tokens\": 800, \"output_tokens\": 100, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": null,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": null,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "malformed",
+          "cached_input_tokens": "available",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-input_tokens-True",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": true, \"cached_input_tokens\": 800, \"output_tokens\": 100, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": null,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": null,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "malformed",
+          "cached_input_tokens": "available",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-input_tokens-1.0",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1.0, \"cached_input_tokens\": 800, \"output_tokens\": 100, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": null,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": null,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "malformed",
+          "cached_input_tokens": "available",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-input_tokens--1",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": -1, \"cached_input_tokens\": 800, \"output_tokens\": 100, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": null,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": null,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "malformed",
+          "cached_input_tokens": "available",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-input_tokens-9223372036854775808",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 9223372036854775808, \"cached_input_tokens\": 800, \"output_tokens\": 100, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": null,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": null,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "malformed",
+          "cached_input_tokens": "available",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-input_tokens-1180591620717411303424",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1180591620717411303424, \"cached_input_tokens\": 800, \"output_tokens\": 100, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": null,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": null,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "malformed",
+          "cached_input_tokens": "available",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-input_tokens-nan",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": NaN, \"cached_input_tokens\": 800, \"output_tokens\": 100, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": null,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": null,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "malformed",
+          "cached_input_tokens": "available",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-input_tokens-inf",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": Infinity, \"cached_input_tokens\": 800, \"output_tokens\": 100, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": null,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": null,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "malformed",
+          "cached_input_tokens": "available",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "missing-cached_input_tokens",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"output_tokens\": 100, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": null,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": null,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": 1100,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "partial",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "missing",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-cached_input_tokens-None",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": null, \"output_tokens\": 100, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": null,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": null,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": 1100,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "malformed",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-cached_input_tokens-True",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": true, \"output_tokens\": 100, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": null,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": null,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": 1100,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "malformed",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-cached_input_tokens-1.0",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": 1.0, \"output_tokens\": 100, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": null,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": null,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": 1100,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "malformed",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-cached_input_tokens--1",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": -1, \"output_tokens\": 100, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": null,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": null,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": 1100,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "malformed",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-cached_input_tokens-9223372036854775808",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": 9223372036854775808, \"output_tokens\": 100, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": null,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": null,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": 1100,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "malformed",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-cached_input_tokens-1180591620717411303424",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": 1180591620717411303424, \"output_tokens\": 100, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": null,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": null,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": 1100,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "malformed",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-cached_input_tokens-nan",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": NaN, \"output_tokens\": 100, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": null,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": null,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": 1100,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "malformed",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-cached_input_tokens-inf",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": Infinity, \"output_tokens\": 100, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": null,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": null,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": 1100,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "malformed",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "missing-output_tokens",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": 800, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": 200,
+        "output_tokens": null,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": null,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "partial",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "available",
+          "output_tokens": "missing",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-output_tokens-None",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": 800, \"output_tokens\": null, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": 200,
+        "output_tokens": null,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": null,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "available",
+          "output_tokens": "malformed",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-output_tokens-True",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": 800, \"output_tokens\": true, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": 200,
+        "output_tokens": null,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": null,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "available",
+          "output_tokens": "malformed",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-output_tokens-1.0",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": 800, \"output_tokens\": 1.0, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": 200,
+        "output_tokens": null,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": null,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "available",
+          "output_tokens": "malformed",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-output_tokens--1",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": 800, \"output_tokens\": -1, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": 200,
+        "output_tokens": null,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": null,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "available",
+          "output_tokens": "malformed",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-output_tokens-9223372036854775808",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": 800, \"output_tokens\": 9223372036854775808, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": 200,
+        "output_tokens": null,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": null,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "available",
+          "output_tokens": "malformed",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-output_tokens-1180591620717411303424",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": 800, \"output_tokens\": 1180591620717411303424, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": 200,
+        "output_tokens": null,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": null,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "available",
+          "output_tokens": "malformed",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-output_tokens-nan",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": 800, \"output_tokens\": NaN, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": 200,
+        "output_tokens": null,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": null,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "available",
+          "output_tokens": "malformed",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-output_tokens-inf",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": 800, \"output_tokens\": Infinity, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": 200,
+        "output_tokens": null,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": null,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "available",
+          "output_tokens": "malformed",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "missing-reasoning_output_tokens",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": 800, \"output_tokens\": 100}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": 200,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": null,
+        "source_total_tokens": null,
+        "total_tokens": 1100,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "partial",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "available",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "missing",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-reasoning_output_tokens-None",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": 800, \"output_tokens\": 100, \"reasoning_output_tokens\": null}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": 200,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": null,
+        "source_total_tokens": null,
+        "total_tokens": 1100,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "available",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "malformed",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-reasoning_output_tokens-True",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": 800, \"output_tokens\": 100, \"reasoning_output_tokens\": true}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": 200,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": null,
+        "source_total_tokens": null,
+        "total_tokens": 1100,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "available",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "malformed",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-reasoning_output_tokens-1.0",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": 800, \"output_tokens\": 100, \"reasoning_output_tokens\": 1.0}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": 200,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": null,
+        "source_total_tokens": null,
+        "total_tokens": 1100,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "available",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "malformed",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-reasoning_output_tokens--1",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": 800, \"output_tokens\": 100, \"reasoning_output_tokens\": -1}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": 200,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": null,
+        "source_total_tokens": null,
+        "total_tokens": 1100,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "available",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "malformed",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-reasoning_output_tokens-9223372036854775808",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": 800, \"output_tokens\": 100, \"reasoning_output_tokens\": 9223372036854775808}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": 200,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": null,
+        "source_total_tokens": null,
+        "total_tokens": 1100,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "available",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "malformed",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-reasoning_output_tokens-1180591620717411303424",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": 800, \"output_tokens\": 100, \"reasoning_output_tokens\": 1180591620717411303424}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": 200,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": null,
+        "source_total_tokens": null,
+        "total_tokens": 1100,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "available",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "malformed",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-reasoning_output_tokens-nan",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": 800, \"output_tokens\": 100, \"reasoning_output_tokens\": NaN}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": 200,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": null,
+        "source_total_tokens": null,
+        "total_tokens": 1100,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "available",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "malformed",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "malformed-reasoning_output_tokens-inf",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": 800, \"output_tokens\": 100, \"reasoning_output_tokens\": Infinity}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": 200,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": null,
+        "source_total_tokens": null,
+        "total_tokens": 1100,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "available",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "malformed",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "cached-exceeds-input",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": 1001, \"output_tokens\": 100, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": null,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 1001,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": 1100,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "malformed_exceeds_input",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "reasoning-exceeds-output",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": 800, \"output_tokens\": 100, \"reasoning_output_tokens\": 101}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": 200,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": 101,
+        "source_total_tokens": null,
+        "total_tokens": 1100,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "available",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "malformed_exceeds_output",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "sum-overflow",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 9223372036854775807, \"cached_input_tokens\": 0, \"output_tokens\": 100, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": 9223372036854775807,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 0,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": null,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "malformed",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "available",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "zero",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 0, \"cached_input_tokens\": 0, \"output_tokens\": 0, \"reasoning_output_tokens\": 0}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 0,
+        "reasoning_tokens": 0,
+        "source_total_tokens": null,
+        "total_tokens": 0,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "complete",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "available",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "legacy-default-tier",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": 800, \"output_tokens\": 100, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 0,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 0,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": 200,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": 1100,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "complete",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "available",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "retained_run_usage_json",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "standard",
+          "service_tier_source": "unmarked_default_assumption",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-standard-20260903-v1"
+      }
+    },
+    {
+      "name": "observed-model",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": "gpt-6-sol"
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "standard"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": 800, \"output_tokens\": 100, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-sol",
+        "input_tokens": 200,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": 1100,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "complete",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "available",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "observed",
+          "service_tier": "standard",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-sol",
+        "price_snapshot_id": "official-openai-gpt-6-sol-standard-20260922-v1"
+      }
+    },
+    {
+      "name": "tier-None",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": null
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": 800, \"output_tokens\": 100, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": 200,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": 1100,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "complete",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "available",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": null,
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-price-unavailable-20260925-v1"
+      }
+    },
+    {
+      "name": "tier-",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": ""
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": 800, \"output_tokens\": 100, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": 200,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": 1100,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "complete",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "available",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-price-unavailable-20260925-v1"
+      }
+    },
+    {
+      "name": "tier-fast",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "fast"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": 800, \"output_tokens\": 100, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": 200,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": 1100,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "complete",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "available",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "fast",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-openai-gpt-6-astra-fast-20260903-v1"
+      }
+    },
+    {
+      "name": "tier-future",
+      "run": {
+        "id": "ins-0123456789abcdef",
+        "model": "gpt-6-astra",
+        "resolved_model": null
+      },
+      "options": {
+        "codex_home": "/synthetic/insight-home",
+        "service_tier": "future"
+      },
+      "usage_json": "{\"input_tokens\": 1000, \"cached_input_tokens\": 800, \"output_tokens\": 100, \"reasoning_output_tokens\": 40}",
+      "at": "2026-09-28T12:00:00+00:00",
+      "line": 1,
+      "expected": {
+        "usage_record_id": "4c6457e2131e793f87dee640b75db6b8e4fc60ab734a5ad9b6da859102125b2e",
+        "source_record_id": "ins-0123456789abcdef",
+        "source_line": 1,
+        "occurred_at": "2026-09-28T12:00:00+00:00",
+        "raw_model": "gpt-6-astra",
+        "input_tokens": 200,
+        "output_tokens": 100,
+        "cache_write_tokens": null,
+        "cache_read_tokens": 800,
+        "reasoning_tokens": 40,
+        "source_total_tokens": null,
+        "total_tokens": 1100,
+        "total_semantics": "codex_exec_turn_total;source_input_includes_cache_read;normalized_non_cached_input_plus_output_plus_cache_read;reasoning_subset_of_output",
+        "aggregation_scope": "direct",
+        "capability_state": "complete",
+        "capability": {
+          "input_tokens": "available",
+          "cached_input_tokens": "available",
+          "output_tokens": "available",
+          "reasoning_output_tokens": "available",
+          "usage_source": "codex_exec_turn_completed",
+          "usage_evidence": "run_stream",
+          "context_scope": "turn_total",
+          "model_resolution": "selected_unverified",
+          "service_tier": "future",
+          "service_tier_source": "frozen_run_setting",
+          "cache_write_tokens": "not_supported",
+          "insight_run_id": "ins-0123456789abcdef"
+        },
+        "normalized_model": "gpt-6-astra",
+        "price_snapshot_id": "official-price-unavailable-20260925-v1"
+      }
+    }
+  ]
+}

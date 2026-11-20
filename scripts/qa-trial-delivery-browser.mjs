@@ -1,3 +1,4 @@
+import {fixture} from './native-qa-fixture.mjs';
 // Verify public desktop entries against an owned synthetic backend only.
 // node scripts/qa-trial-delivery-browser.mjs [outside-repository evidence directory]
 import {spawn} from 'node:child_process';
@@ -17,8 +18,7 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const checks = [], exceptions = [], failedRequests = [];
 let base;
 const assert = (value, name) => {if (!value) throw new Error(name); checks.push(name);};
-const backend = spawn(process.env.LOCALBRAIN_QA_PYTHON || join(repository, '.venv/bin/python'),
-  [join(repository, 'tests/ui_state_fixture.py'), runtime, 'desktop'], {cwd:repository, stdio:['ignore','ignore','pipe']});
+const backend = fixture(repository, runtime, 'desktop');
 let backendError = '';
 backend.stderr.on('data', chunk => {backendError = (backendError + chunk.toString()).slice(-4000);});
 backend.on('error', error => {backendError = error.message;});

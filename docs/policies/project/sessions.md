@@ -167,7 +167,7 @@ selects primary work metadata without pagination, age cutoff or body/source-file
 reads. `parse_timestamp` normalizes valid `started_at`/`last_event_at` to UTC;
 the latest valid value anchors the point. Only metadata-undated rows need an
 Event-time fallback. Those Session IDs are read in bounded batches of 500;
-timestamps retain the same Python parsing and UTC min/max rules, without body
+timestamps retain the retained source-compatible parsing and UTC min/max rules, without body
 reads or a lexicographic SQL minimum. The Chart never calls activity-segment construction.
 
 `GET /sessions/{id}/chart-activity` admits only an existing primary work Session
@@ -253,6 +253,6 @@ Existing Claude `/subagents/` links redirect to that route, which still reads th
 
 ## Implementation Ownership
 
-- `src/localbrain/sessions/subagents.py`: lazy Claude Subsession compatibility discovery over the source-native `subagents/` directory
+- `crates/core/src/backend/sessions/subagents.rs`: lazy Claude Subsession compatibility discovery over the source-native `subagents/` directory
 
-- `src/localbrain/sessions/chart_preferences.py`: scoped, bounded user-selected Chart visibility in the private primary DB, independent of observations and browser camera state
+- `crates/core/src/backend/sessions/mod.rs`: scoped, bounded user-selected Chart visibility in the private primary DB, independent of observations and browser camera state

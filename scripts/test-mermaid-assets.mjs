@@ -8,8 +8,8 @@ import {
   clampSchemaZoom,
   schemaAnchoredScroll,
   schemaZoomFromWheel,
-} from "../src/localbrain/static/schema-explorer.js";
-import { schemaMermaidAttempts } from "../src/localbrain/static/mermaid-adapter.js";
+} from "../apps/web/static/schema-explorer.js";
+import { schemaMermaidAttempts } from "../apps/web/static/mermaid-adapter.js";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const BUILDER = join(ROOT, "scripts/build-mermaid-assets.mjs");
@@ -37,7 +37,7 @@ try {
   assert.match(`${staleResult.stdout}${staleResult.stderr}`, /stale/);
 
   const adapter = await readFile(
-    join(ROOT, "src/localbrain/static/mermaid-adapter.js"),
+    join(ROOT, "apps/web/static/mermaid-adapter.js"),
     "utf8",
   );
   assert.match(adapter, /securityLevel:\s*"strict"/);

@@ -1,0 +1,40 @@
+[package]
+name = "localbrain-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+localbrain-models = { path = "../models" }
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+libc.workspace = true
+rusqlite.workspace = true
+chrono.workspace = true
+jiff.workspace = true
+regex.workspace = true
+uuid.workspace = true
+url.workspace = true
+base64.workspace = true
+tempfile.workspace = true
+sha1.workspace = true
+zip.workspace = true
+zstd.workspace = true
+walkdir.workspace = true
+rust_decimal.workspace = true
+unicode-normalization.workspace = true
+unicode-general-category.workspace = true
+pulldown-cmark.workspace = true
+markdown.workspace = true
+ammonia.workspace = true
+latex2mathml.workspace = true
+syntect.workspace = true
+shlex.workspace = true
+yaml-rust2.workspace = true
+roxmltree.workspace = true
+fancy-regex.workspace = true
+num-bigint.workspace = true
+num-traits.workspace = true
+reqwest.workspace = true
+md-5.workspace = true

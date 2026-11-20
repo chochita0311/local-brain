@@ -1,3 +1,4 @@
+import {fixture} from './native-qa-fixture.mjs';
 // Verify web and macOS titlebar presentation against an owned synthetic backend only.
 // node scripts/qa-navigation-browser.mjs [outside-repository evidence directory]
 import {spawn} from 'node:child_process';
@@ -19,8 +20,7 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const checks = [], exceptions = [], failedRequests = [];
 let base;
 const assert = (value, name) => {if (!value) throw new Error(name); checks.push(name);};
-const backend = spawn(process.env.LOCALBRAIN_QA_PYTHON || join(repository, '.venv/bin/python'),
-  [join(repository, 'tests/ui_state_fixture.py'), runtime, 'web', 'navigation'], {cwd:repository, stdio:['ignore','ignore','pipe']});
+const backend = fixture(repository, runtime, 'web', 'navigation');
 let backendError = '';
 backend.stderr.on('data', chunk => {backendError = (backendError + chunk.toString()).slice(-4000);});
 backend.on('error', error => {backendError = error.message;});
@@ -290,7 +290,7 @@ try {
       if(route==='/sessions'||route==='/sessions-dashboard')await capture('shared-search-'+route.slice(1)+'-'+width);
     }
   }
-  const bootstrap=await readFile(join(repository,'desktop/ui/window-shell.js'),'utf8');
+  const bootstrap=await readFile(join(repository,'apps/desktop/ui/window-shell.js'),'utf8');
   const dragPath=process.env.LOCALBRAIN_QA_TAURI_DRAG_SCRIPT;
   const drag=dragPath?(await readFile(dragPath,'utf8')).replaceAll('__TEMPLATE_os_name__',"'macos'"):'';
   const native=await send('Page.addScriptToEvaluateOnNewDocument',{source:bootstrap+`\nwindow.__qa.nativeCalls=[];window.__TAURI_INTERNALS__={invoke:command=>{__qa.nativeCalls.push(command);return Promise.resolve();}};\n`+drag});

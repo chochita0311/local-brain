@@ -13,21 +13,23 @@ Original Claude and Codex JSONL remains the authoritative input for native parsi
 
 ### Ingestion Module Ownership
 
-- `ingest/contracts.py` owns parsed DTOs and provider revision metadata. It imports
-  neither native adapters nor synchronization services. `common.py` owns shared
+- `crates/core/src/backend/ingest/contracts.rs` owns parsed DTOs and provider revision metadata. It imports
+  neither native adapters nor synchronization services. `common.rs` owns shared
   identity, JSONL, text/title helpers and the existing maintenance classifier.
 - `ingest/providers/` decodes Codex and Claude native formats. Provider-specific
   replay, source-adjacent configuration and pricing selection remain here.
-- `ingest/evidence/` extracts reference candidates, approved tool-result evidence
-  and skill signals from source data. It does not reconcile persisted evidence.
-- `ingest/sync/sessions.py` orchestrates one admitted Session source;
-  `session_store.py` owns Session/activity/Usage persistence and lifecycle;
-  `session_files.py` owns independent native-presence observations and legacy
-  path mappings, excluding independently owned ephemeral-analysis accounting;
-  `ingest/sync/contexts.py` owns folder/file/Notes ingestion; `storage.py` owns shared
-  source/file/workspace/search operations and revision admission; `control.py`
-  owns the single cancellation context and callback-safe progress delivery.
-- `ingest/scanner.py` composes adapters, resolves registered sources, reports
+- `ingest/evidence.rs` extracts reference candidates and approved tool-result
+  evidence from source data. `ingest/skills.rs` extracts skill observations.
+  Persisted evidence reconciliation belongs to its source and registry owners.
+- `crates/core/src/backend/ingest/sessions.rs` orchestrates each admitted Session
+  source and its native-file presence observations and legacy path mappings.
+  `session_store.rs` owns Session, activity and Usage persistence and lifecycle.
+  Ephemeral-analysis accounting retains its separate owner.
+  `crates/core/src/backend/contexts/scan.rs` owns folder, file and Notes ingestion.
+  `ingest/storage.rs` owns shared source, file, workspace and search operations and
+  revision admission. `ingest/control.rs` owns the cancellation context and
+  callback-safe progress delivery.
+- `crates/core/src/backend/ingest/scanner.rs` composes adapters, resolves registered sources, reports
   outcomes and owns the outer transactions. Each registered Session source
   commits independently. Normal Context collection keeps its existing grouped
   transaction; direct `scan_context_root(connection, ...)` uses the caller's
@@ -64,7 +66,7 @@ rebuilt and replaced. New revision admission does not retrofit old executables.
 - Treat Atlassian URL evidence as a derived locator: retain the owning source identity, event/line/occurrence, observed URL, and only allowlisted bounded result fields, never a copied excerpt or opaque tool payload.
 - Treat source-neutral Session reference evidence as a separate derived projection from Activity Events, shared Resource metadata, remote content, and organization links. Retain only aggregate scan/version state plus deterministic target identity, event/line/ordinal, bounded observed identity, safe normalized destination, and approved tool-call outcome fields; never copy message excerpts or opaque tool payloads.
 - Route standard Atlassian URL-family recognition through the shared
-  `references/atlassian.py` owner before consumer-specific admission. The owner performs no
+  `crates/core/src/backend/references/atlassian.rs` owner before consumer-specific admission. The owner performs no
   SQLite, filesystem, Provider, capability, runner, model, connected-discovery,
   Refresh, or network work and returns only `item`, `structure`, `site`,
   `unsupported`, or `unsafe`. Recognized output drops fragment and arbitrary
@@ -78,7 +80,7 @@ rebuilt and replaced. New revision admission does not retrofit old executables.
   later reparse, and keeps structure/site as generic URL targets. Pure
   classification and Session projection create no Atlassian structure-reference
   or Site row; explicit Sync owns the separate admission below.
-- `references/urls.py::parse_url` recognizes URL forms without registered Sites, bindings or items. Sessions store only a shared `resource_id` plus their own observed evidence and safe locator; an Atlassian registration cannot replace the identity or destination. A bare tool ID resolves only when exactly one known shared URL matches the product/key; all admitted URLs in the bounded candidate set participate before resolving hints. Different domains remain distinct. The optional Atlassian ingestion observer records its own sightings on the caller connection, independently from Session resolution. Savepoint failure retains prior Session evidence and records error/stale state. Additional grammars can be added to `references/`; Slack classification is not implemented.
+- `crates/core/src/backend/references/mod.rs::parse_url` recognizes URL forms without registered Sites, bindings or items. Sessions store only a shared `resource_id` plus their own observed evidence and safe locator; an Atlassian registration cannot replace the identity or destination. A bare tool ID resolves only when exactly one known shared URL matches the product/key; all admitted URLs in the bounded candidate set participate before resolving hints. Different domains remain distinct. The optional Atlassian ingestion observer records its own sightings on the caller connection, independently from Session resolution. Savepoint failure retains prior Session evidence and records error/stale state. Additional grammars can be added to `references/`; Slack classification is not implemented.
 - Explicit Atlassian local evidence Sync may consume that retained Session URL
   projection without reopening its source. It merge-inserts only missing
   Atlassian sightings, never advances or cleans Session-owned Atlassian scan
@@ -156,6 +158,11 @@ bounded source failure-health recording still occurs.
 
 The Sessions inventory owns a Session-only incremental synchronization action. It scans every validated source in the ordered private Session-source registry—the user’s enabled Codex/Claude profiles—regardless of the selected inventory filter, and does not scan Local Context sources. Each accepted file carries independent Session-projection, Usage-normalizer, and generalized-reference versions. After successful Session revision admission, a stale contract reparses the source files needed by that concern but writes only the owned derived lane; a natural file change, missing Session mapping, forced scan, or eligibility repair still refreshes every affected lane. Each source has an independent transaction, source-file set, retained-history lifecycle boundary, and persistent latest attempt/success/status/error health. Unavailable or invalid sources skip stale reconciliation and retain their normalized data; an unexpected failure rolls back only that source. The JSON request API queues or joins the common collector; its status API exposes the bounded per-source report plus complete, partial, or failed aggregate outcome. An additive NDJSON endpoint emits bounded source ID/label, repair kinds, and throttled file counts to the same Sessions result region; it emits no paths or content, and callback/display failure cannot change synchronization. The development-web Sources inventory owns the wider scan that appends every enabled Local Context root without weakening those Session-source commit boundaries. Both web actions retain the source-file freshness check. An otherwise-current source is reparsed only when its versioned Atlassian evidence scan or enabled configured-Site fingerprint is missing or changed; once all owned contracts are current, the source is skipped.
 
+Interrupting `localbrain scan` exits with status 130. An interrupt observed
+before commit rolls back the active source. Previously committed sources keep
+their records. An interruption during the optional search refresh preserves the
+committed imports and stops that refresh.
+
 The shared backend schedules Session and Local Context collection independently,
 defaulting to 10 and 30 minutes after each domain's completion. The Sync settings
 use 10/20/30/60-minute or Off choices and preserve existing saved intervals.
@@ -206,9 +213,7 @@ eligibility corrections remain separate, evidence-backed cleanup branches.
 ### Adapter-specific Rules
 
 - Codex capture admits native `.jsonl` and `.jsonl.zst` rollouts under each
-  registered source root. Zstandard is streamed through Python's file API
-  (`compression.zstd` on Python 3.14+, the declared `backports.zstd` dependency on
-  older supported Python); collection requires no external `zstd` executable and
+  registered source root. Zstandard is streamed through the native Rust decoder; collection requires no external `zstd` executable and
   creates no extracted transcript. Source path/size/mtime identify the actual
   container; source line numbers and native identities refer to its decompressed
   JSONL. When both same-directory, same-basename forms are files, `.jsonl` takes
@@ -260,7 +265,7 @@ owns source signals; the analytical sections own ranking and analysis Runs.
 
 ### Skill Observation Capture
 
-Session Insights retains native invocation/context, completed instruction reads, named references and identifiable skill script executions. `ingest/evidence/skill_loads.py` correlates calls/results and request provenance. `ingest/evidence/skill_usage.py` matches source-established skill identifiers and unambiguous plugin aliases in normalized visible user/assistant messages without interpreting use wording or language. Generated catalogs/instructions and tool-output text are not conversation references. Script evidence uses completed native Codex CommandExecution records or non-error Claude Bash results, checking a literal executable or supported interpreter script argument within a known skill root's `scripts/` directory. Dynamic commands and heredoc bodies are excluded from this bounded command grammar; logged commands are never executed. Names/locators come from the same Session's native loads or completed reads, not current installed inventory.
+Session Insights retains native invocation/context, completed instruction reads, named references and identifiable skill script executions. `crates/core/src/backend/ingest/skills.rs` correlates calls/results and request provenance. `crates/core/src/backend/ingest/skills.rs` matches source-established skill identifiers and unambiguous plugin aliases in normalized visible user/assistant messages without interpreting use wording or language. Generated catalogs/instructions and tool-output text are not conversation references. Script evidence uses completed native Codex CommandExecution records or non-error Claude Bash results, checking a literal executable or supported interpreter script argument within a known skill root's `scripts/` directory. Dynamic commands and heredoc bodies are excluded from this bounded command grammar; logged commands are never executed. Names/locators come from the same Session's native loads or completed reads, not current installed inventory.
 
 Scanner persists source-scoped evidence during changed-file ingestion, and Session parser upgrades backfill available files without recomputing Usage prices. The [skill observation ledger](data-model/workspace-and-session-activity.md#skill_observations) owns native/fallback identity, request provenance, signal vocabulary, row-preserving migration, corrections, maintenance exclusion and retained history. Historical declarations remain references; the parser generates no new declarations. Source message text is not copied into this ledger.
 
@@ -297,27 +302,26 @@ example. [Data Center URL guidance](https://support.atlassian.com/confluence/kb/
 separately documents `pages/viewpage.action?pageId=123` and page-ID paths.
 LocalBrain admits its tested title/no-title and legacy forms without registration,
 but does not merge equal page IDs across domains or infer that a particular old
-link redirects to a Cloud link. The parser and `test_reference_urls.py` /
-`test_shared_resources.py` define the supported subset; these examples are not an
-exhaustive URL grammar for every Atlassian deployment.
+link redirects to a Cloud link. The parser and `native_storage_references.rs` and
+`native_storage_shared_resources.rs` cover the tested subset. Other Atlassian
+deployments can use different URL forms.
 
 ## Implementation Ownership
 
-- `src/localbrain/ingest/`: source parsing, normalization, scanning, and deduplication
+- `crates/core/src/backend/ingest/`: source parsing, normalization, scanning, and deduplication
 
-- `src/localbrain/sources/registry.py`: private TOML bootstrap, validation, bounded
+- `crates/core/src/backend/sources/registry.rs`: private TOML bootstrap, validation, bounded
   diagnostics, and non-destructive local Session-source registry reconciliation
 
-- `src/localbrain/references/`: pure URL interpretation shared by ingestion,
-  Sessions and optional integrations. `urls.py` owns generic HTTP(S) safety,
-  token trimming and the common parse result; `atlassian.py` owns Jira/Confluence
-  URL grammar and its existing versioned identity; `contracts.py` owns the
-  storage-independent locator description. It imports no feature, DB or ingest code.
+- `crates/core/src/backend/references/mod.rs` owns generic HTTP(S) safety, token
+  trimming and the common parse result shared by ingestion, Sessions and optional
+  integrations. `atlassian.rs` owns Jira and Confluence grammar, its versioned
+  identity and the storage-independent locator description.
 
-- `src/localbrain/resources/catalog.py`: common URL/path/note identities and existing-document/bookmark/external-ID bindings; no optional feature imports.
+- `crates/core/src/backend/references/catalog.rs`: common URL/path/note identities and existing-document/bookmark/external-ID bindings; no optional feature imports.
 
-- `src/localbrain/sessions/references.py`: shared-resource resolution, file-scoped observation replacement, Session-level bounds/fingerprints, and database-only detail projection.
+- `crates/core/src/backend/sessions/references.rs`: shared-resource resolution, file-scoped observation replacement, Session-level bounds/fingerprints, and database-only detail projection.
 
-- `src/localbrain/ingest/extensions.py`: scoped optional observers; `atlassian/ingestion.py` owns source-specific evidence maintenance and `app/reference_integrations.py` owns explicit installation and read callbacks.
+- `crates/core/src/backend/ingest/observers.rs`: scoped optional observers; `crates/core/src/backend/atlassian/ingestion.rs` owns source-specific evidence maintenance and `crates/core/src/backend/integrations.rs` owns explicit installation and read callbacks.
 
-- `src/localbrain/persistence/migrations/resources.py`: preserving shared-identity migration and verified recovery copy.
+- `crates/core/src/backend/storage/migrations/resources.rs`: preserving shared-identity migration and verified recovery copy.

@@ -2,93 +2,134 @@
 
 ## Prerequisites
 
-- macOS for the current Apple Notes integration and default data location
-- Python 3.11 recommended; package metadata accepts Python 3.9 or later
-- `uv` for dependency and virtual environment management
+- Apple Silicon macOS 14+ for the currently supported source, web-bundle and native-app delivery
+- Rust/Cargo with workspace minimum 1.90 and Xcode Command Line Tools for source builds
+- Python3.11+ for repository build/check scripts, which use the standard library only
+- Node/npm for browser-asset, public Terminal-payload and Tauri builds
 - Claude CLI only for Claude-backed maintenance Runs
 - Codex CLI for personal improvement analysis Runs or when selecting Codex for external synchronization
 
-The source/web instructions below target macOS. The current runtime uses Unix
-file-locking APIs, and the native builder targets Apple Silicon macOS. Python-version
-compatibility does not establish Windows installation or execution support.
+The application backend, CLI, settings, ingestion and local inference are native
+Rust. Running a finished app or web bundle requires no Python, virtual environment,
+PyTorch, Transformers or Sentence Transformers. Python is a repository build/check
+tool, not a runtime prerequisite. The source runtime uses Unix facilities and the
+current native builders target Apple Silicon macOS; these facts do not establish
+Windows or Intel-Mac support.
 
 ## Setup And Run
 
 Use [macOS Installation And Local Storage](installation-and-storage.md) for a
-new machine, packaged app installation, optional models, and recovery retention.
-
+new machine, packaged app installation, optional model assets and recovery retention.
 Activate the repository-owned pre-commit hook after cloning:
 
 ```bash
 git config core.hooksPath .githooks
 ```
 
-Install dependencies:
+Build the locked native workspace:
 
 ```bash
-uv sync --python 3.11 --frozen
+cargo build --workspace --locked
 ```
 
-Initialize or refresh indexed sources:
+Inspect readiness, then start the development web server:
 
 ```bash
-uv run localbrain scan --full
+./target/debug/localbrain doctor
+./target/debug/localbrain serve --access-log
 ```
 
-Run the development server:
+Open `http://127.0.0.1:8000`. The server accepts loopback hosts only. With registered
+sources, explicitly initialize or refresh their collected content using:
 
 ```bash
-uv run --no-sync localbrain serve
+./target/debug/localbrain scan --full
 ```
 
-Open `http://127.0.0.1:8000`.
+The same commands are available through
+`cargo run --locked -p localbrain-api --bin localbrain -- <command>` or an installed
+native bundle's `bin/localbrain`. `lb` is the corresponding CLI alias. Rebuild and
+restart after source changes; the native host has no Uvicorn/Python reload process.
+The root workspace contains the shared core, pinned-model crate, Terminal helper
+and API/CLI host. Normal settings execute in process; no separate common-runtime
+build, interpreter callback or Python dependency installation is required.
 
-For source reload during development, use
-`uv run --no-sync uvicorn localbrain.main:app --host 127.0.0.1 --reload --no-access-log`.
+A successful web server start prints its listening URL and the `access log: on`
+or `access log: off` state to the terminal. Plain `serve` writes access logs to
+stderr by default. Each line shows the client socket address, method, actual request path,
+HTTP version, status and time until response headers are ready. Path parameters
+and paths returning 404 are visible. A session request produces a line like this.
 
-Source reload does not update the frozen backend inside a previously built
-`LocalBrain.app`. App and web backends using the same data directory share the
-normalized database and synchronization health. Their writer lock serializes
-collection. Current runtimes additionally reject a source whose stored numeric
-Session revision is newer; unmodified older builds lack that admission check and
-can still reparse newer results. After a parser update,
-stop incompatible older backends or rebuild and restart the app before allowing
-both to collect into that store. Then run ordinary Session Sync with the updated
-backend. A corrected source checkout or one successful web Sync alone does not
+```text
+INFO:     127.0.0.1:53218 - "GET /sessions/123 HTTP/1.1" 200 OK 1.234ms
+```
+
+`serve --no-access-log` disables request logs. The older `--access-log` flag works
+with existing aliases, and the quiet flag takes precedence if both are supplied.
+Restart the rebuilt executable to use the current format. Existing aliases work
+as written. Query strings, headers, cookies and bodies stay out of the logs. The
+server creates no log file. Desktop uses its structured readiness protocol.
+In the example, `53218` is the client's TCP port. The server listens on the
+port in the startup banner.
+
+The browser reads Session sync status from `GET /api/sessions/sync/status`.
+It schedules the next read after 1.5 seconds while work is running or queued
+and after 15 seconds when idle. A manual POST or the application scheduler
+starts collection. The separate `/api/health` endpoint serves host health
+checks.
+
+Source edits do not update a running backend or a previously built `LocalBrain.app`.
+App and development-web backends using the same data directory share normalized
+records and synchronization health, while their writer lock serializes collection.
+Current runtimes refuse a source whose stored numeric Session revision is newer;
+unmodified older builds lack that admission check and can still reparse newer
+results. After a parser update, stop incompatible older backends or rebuild and
+restart the app before allowing both to collect into the same store. Then run
+ordinary Session Sync with the updated backend. One successful web Sync does not
 update the packaged app or prevent a later old-version reparse.
 
-Install optional local-model dependencies with
-`uv sync --python 3.11 --extra local-models --frozen`;
-`uv run --no-sync localbrain models install embedding` verifies public model
-assets and records LocalBrain's installation metadata. `uv run --no-sync localbrain doctor` and
-`uv run --no-sync localbrain models status` inspect readiness without reading sources or
-downloading/running models.
+Native inference libraries are built with the application; optional weights remain
+separate. `localbrain models install embedding` explicitly verifies/downloads the
+pinned public assets and publishes LocalBrain's registration. `localbrain doctor`
+and `localbrain models status` inspect readiness without collecting sources,
+downloading assets or loading/running a model. Use the executable path above in a
+checkout. A runtime fingerprint change refuses incompatible cached vectors; follow
+[search preparation](#search-sessions-and-local-context) for rebuilding.
 
 ## Optional macOS Terminal
 
 On Apple Silicon macOS, build the self-contained public payload with
-`python scripts/build-terminal-runtime.py`; Cargo and Node/npm are build tools,
-not installed-app requirements. The builder pins Node24.15.0 and verifies its
+`python3 scripts/build-terminal-runtime.py`; Cargo and Node/npm are build tools,
+not installed-app requirements. The builder pins Node24.15.0, verifies its
 official SHA256 list, installs the runtime lock with scripts disabled and signs
 native bytes. `scripts/build-desktop.py` performs this step before packaging.
 To reuse a verified official download, pass `--node-archive` and `--node-checksums`.
-The checkout host discovers `desktop/terminal/runtime`; installed web hosts use
-trusted `LOCALBRAIN_TERMINAL_BUNDLE` (and optionally an absolute
-`LOCALBRAIN_TERMINAL_RUNTIME`) environment, never browser-supplied context.
+The checkout host discovers `apps/desktop/terminal/runtime`; a native web bundle
+may carry `terminal/runtime` beside its `web` and `bin` directories. Trusted host
+`LOCALBRAIN_TERMINAL_BUNDLE` and optional absolute `LOCALBRAIN_TERMINAL_RUNTIME`
+select a separate verified bundle/helper, never browser-supplied context.
 
-Rust owns setup/service/settings rules, manager IPC/stream and process inspection;
-Python retains HTTP/WS/CLI transport and the one generic TOML writer. The legacy
-runtime is a frozen parity fixture. The [Terminal contract](terminal.md) owns
-lifetime, bounds, app-less management and safe update/removal.
+Rust owns Terminal setup, settings, service/control and HTTP/WebSocket/CLI
+transports, manager IPC/stream and process inspection. The independent Node/PTY
+manager and Rust helper retain their immutable payload and lifetime contracts.
+Common/Terminal settings use native TOML and OS-zone adapters and publish under
+the caller's operations lease. Explicit recovery and other files keep their own
+writers. The [Terminal contract](terminal.md) owns lifetime, bounds, app-less
+management and safe update/removal.
 
-Use `cargo test --locked --manifest-path rust/Cargo.toml` for core boundaries and
-`LOCALBRAIN_TERMINAL_TEST_BUNDLE=/absolute/public/runtime python -m unittest discover -s tests -p test_terminal_runtime_parity.py -v`
-for isolated real Rust/PTY cases. The same bundle environment drives
-`scripts/qa-terminal-workspace-browser.mjs`. The legacy fixture separately accepts
-`LOCALBRAIN_TERMINAL_TEST_ENGINE` containing both Darwin helpers, as its original
-readiness contract required. Tests isolate HOME/data/cache and clean their jobs.
+Use `cargo test --locked -p localbrain-core` and
+`cargo test --locked -p localbrain-api` for native contracts. For isolated real
+Rust/PTY browser cases, build the opt-in native fixture and supply the public
+Terminal bundle:
 
-For a built app, run `python scripts/qa-terminal-native.py /absolute/LocalBrain.app --evidence /absolute/private-evidence`.
+```bash
+cargo build --locked -p localbrain-api --example ui-state-fixture
+LOCALBRAIN_TERMINAL_TEST_BUNDLE=/absolute/public/runtime node scripts/qa-terminal-workspace-browser.mjs
+```
+
+The native QA fixture isolates HOME/data/cache and cleans up its owned jobs.
+For a built app, run
+`python3 scripts/qa-terminal-native.py /absolute/LocalBrain.app --evidence /absolute/private-evidence`.
 It copies the app, uses synthetic roots and shell HOME, and exercises the actual
 macOS host. An unlocked screen and existing accessibility permission are needed
 for UI/IME checks; the harness never requests grants or unlocks the Mac.
@@ -134,7 +175,8 @@ Prepare a reviewed JSON packet and import it explicitly:
 localbrain learning import /path/to/lessons.json --reviewed
 ```
 
-Prefix the command with `uv run --no-sync` in a source checkout. The
+Use `./target/debug/localbrain` after a checkout build, or the native bundle’s
+`bin/localbrain`. The
 [learning contract and synthetic packet](work-grounded-learning.md) and
 [version-2 scene contract](code-command-learning.md) own content, review and
 version conditions; import validates structure rather than factual truth.
@@ -143,17 +185,20 @@ Source collection and embedding search do not generate or update lessons.
 ### Search Sessions And Local Context
 
 Use the shared header or `/natural-search`. Keyword mode needs no model. For AI
-search in a source checkout, install the [optional model runtime](installation-and-storage.md#install-the-local-model-runtime), then run:
+search, use the included native [model runtime](installation-and-storage.md#native-local-model-runtime) and explicitly prepare its optional assets:
 
 ```bash
-uv run --no-sync localbrain models install embedding
-uv run --no-sync localbrain search prepare
-uv run --no-sync localbrain search status
+localbrain models install embedding
+localbrain search prepare
+localbrain search status
 ```
 
-Installed Python/web applications use the same commands without `uv run --no-sync`.
+In a checkout, use `./target/debug/localbrain`; a native web bundle exposes the
+same commands through `bin/localbrain`.
 After preparation, select **AI 검색** and try `만들던 앱 관련 세션을 보여줘`.
-Restart a running server after changing code or model dependencies. First
+Restart a running server after changing native code. An index built by the old
+Python encoder has a different runtime identity and requires native preparation;
+it cannot be silently reused. First
 preparation reads all eligible primary-work Sessions and enabled, readable Local
 Context bodies; long histories can take substantial time. Maintenance and
 subsessions are excluded. Enabled search refreshes after collected material
@@ -193,68 +238,74 @@ the simulation's 30-day derived state retain separate lifecycles.
 
 ## Build An Installable Distribution
 
-Build from a reviewed source checkout:
+Build a standalone native web directory from a reviewed source checkout:
 
 ```bash
 ./scripts/check-repo-privacy.sh
-uv build
+python3 scripts/build-api.py --output dist/api
 ```
 
-The wheel and source archive are written to `dist/`. The wheel contains the
-application code, templates, browser assets, schema and package guides. Runtime
-data and model weights stay outside the checkout
-and distribution. Do not add local settings, exports or generated reports to a
-package. Follow the [standalone installation guide](installation-and-storage.md#install-a-distribution-wheel)
-to install the wheel in a separate environment and working directory before
-publishing it. Check startup, the empty-source pages, static assets and optional
-model prerequisites from that environment; a source-checkout run alone does not
-establish that a distribution works. Building a wheel does not publish a release
-or provide a native macOS executable.
+The Apple Silicon builder produces `dist/api/bin/localbrain`, `bin/lb`, a sibling
+`web/` asset tree, `BUILD-INFO.json` and dependency notices. The executable and
+assets stay together. To include an already built public Terminal payload, pass
+`--terminal-bundle /absolute/public/runtime`. Ordinary execution needs neither
+a checkout nor Rust, Node/npm or Python installation; Terminal has its own
+bundled Node runtime when supplied. No wheel or Python dependency environment is
+part of native delivery.
+
+Use [native web installation](installation-and-storage.md#alternative-prebuilt-app-and-native-web-installation)
+to test the produced directory in a separate working location before publication.
+Check startup, empty-source pages, static assets and optional model readiness
+there; a checkout test alone does not establish distribution behavior. Runtime
+data, local settings, exports, generated reports and weights stay outside the
+checkout and deliverable. A local build does not publish a release or establish
+that a downloadable artifact already exists.
 
 ### Build The macOS App
 
-Build on an Apple Silicon Mac with Xcode Command Line Tools, Rust stable and
-Node. The initial [agent-assisted source installer](installation-and-storage.md#agent-assisted-local-build)
-needs these tools as well as Git and uv/Python 3.11. Someone running a finished
-`.app` does not need the build tools. Windows source builds still require the
-planned runtime port and actual target validation.
+Build on an Apple Silicon Mac with Xcode Command Line Tools, Rust/Cargo, Node/npm
+and Python for standard-library build scripts. The initial
+[agent-assisted source installer](installation-and-storage.md#agent-assisted-local-build)
+also needs Git. Finished-app users need none of these build tools. Windows builds
+still require the planned runtime port and actual target validation.
 
 Cargo must be available in the build shell's PATH. After a rustup installation,
 open its configured shell or run `source "$HOME/.cargo/env"` before building;
-the build does not rewrite shell profiles. See the [official Rust setup](https://rust-lang.github.io/rustup/installation/).
+the builder does not rewrite shell profiles. See the
+[official Rust setup](https://rust-lang.github.io/rustup/installation/).
 
 ```bash
-uv sync --python 3.11 --extra local-models --extra desktop-build --frozen
-npm ci --prefix desktop
-uv run --no-sync python scripts/build-desktop.py
+npm ci --prefix apps/desktop
+python3 scripts/build-desktop.py
 ```
 
 Outputs are `dist/LocalBrain-apple-silicon.zip`, its matching `.sha256`, and the
-unpacked app folder. The build includes the source package and execution
-libraries without copying private runtime folders or shared public model weights.
-The [desktop runtime contract](desktop-app-and-settings.md#runtime-and-product-boundary)
-owns bundled Python path resolution and rejection of private build paths,
-including compressed Python code. Data and settings stay under each user's home.
-Rust compilation also remaps builder-home, checkout and temporary paths while
-preserving configured compiler flags. The resulting app is scanned before ZIP
-creation; a detected private path fails the build rather than producing a new archive.
+unpacked app folder. The builder assembles the public Terminal payload, native
+`localbrain-backend`, shared web assets and Tauri shell. It includes native
+inference code, without copying private runtime directories or shared model
+weights. The [desktop runtime contract](desktop-app-and-settings.md#runtime-and-product-boundary)
+owns private-path exclusion and absence of Python runtime content/linkage. Data
+and settings remain under each user's home. Rust compilation remaps builder-home,
+checkout and temporary paths while preserving configured compiler flags. Final
+native bytes/resources are checked before ZIP publication; a detected private
+build path fails the build.
+
 The [test distribution guide](standalone-test-app-guide.md) owns first launch,
 supported-environment evidence, manual replacement and recipient validation.
-Uploading the program ZIP to a delivery channel and notifying teammates are separate
-delivery actions.
+Uploading a ZIP and notifying others remain separate delivery actions.
 
-After changing ingestion, restart the development server unless it runs with
-reload, and rebuild/replace the native app before testing against the same data
-directory. A source edit does not update an already running process or frozen
-backend. Current Session revisions live in `ingest/contracts.py` as positive
-integers; increase the affected provider's number when stored Session results
-must be repaired. Explain the rule change in its owner document and execution
-record rather than encoding that description into the constant value. Usage and
-reference freshness remain independent. Higher stored Session revisions refuse
-Sync and reconnection until the running application is updated; force does not
-bypass this check. See [the storage contract](data-model/source-registry-and-scans.md#source_files)
-for legacy-token conversion and [Architecture](session-ingestion.md#ingestion-module-ownership)
-for module ownership.
+After changing ingestion, rebuild/restart the development server and replace the
+native app before testing both against the same data directory. Source edits do
+not update a running process or packaged backend. Current Session revisions live
+in `crates/core/src/backend/ingest/contracts.rs` as positive integers;
+increase the affected provider's number when stored Session results require
+repair. Explain the rule change in its owner and execution record rather than
+inside the constant value. Usage and reference freshness remain independent.
+Higher stored Session revisions refuse Sync and reconnection until the app is
+updated; force does not bypass this check. See
+[the storage contract](data-model/source-registry-and-scans.md#source_files) for
+legacy-token conversion and [Architecture](architecture.md#package-ownership)
+for native module ownership.
 
 ### Build Provenance
 
@@ -271,23 +322,30 @@ publication and restored if replacement fails; an unowned destination is refused
 
 ## Dependency Certificate Troubleshooting
 
-The default `uv sync` command verifies PyPI with uv's bundled certificate roots and should work on a normal network. If it fails with `UnknownIssuer` on a managed network, a proxy or security product may be using a certificate authority trusted by macOS but not included in uv's bundled roots.
+Keep TLS verification enabled for Cargo/npm dependencies, the official public
+Node payload and model downloads. On a managed network, use its approved local
+certificate/trust configuration for the tool reporting the error; never disable
+certificate checks. The native downloader uses the pinned reqwest/rustls platform
+verifier and the OS trust store, without embedding a company certificate.
+Python SSL, urllib3 and `uv` environment repair are not backend requirements.
+Dependency-download trust does not change the private data/storage boundary.
 
-Retry the failed installation using the macOS system certificate store:
+## Native Runtime And Build-Tool Compatibility
+
+The root workspace and Tauri host declare Rust 1.90 as their minimum. Verify that
+minimum as well as the normal toolchain when changing native dependencies:
 
 ```bash
-uv sync --system-certs
+cargo +1.90.0 check --workspace --all-targets --locked
+cargo +1.90.0 check --manifest-path apps/desktop/src-tauri/Cargo.toml --locked
 ```
 
-The flag applies to that command only. If later `uv` commands also need network access through the same managed network, set `UV_SYSTEM_CERTS=true` for the current shell before running them. Do not disable TLS verification. This setting affects dependency downloads only; it does not change where LocalBrain stores or processes indexed data.
-
-## Python Runtime Compatibility
-
-Use the uv-managed Python 3.11 environment shown above for installation and
-verification.
-Package metadata accepts Python 3.9 or later; it does not establish that every
-system-provided runtime has been verified. See [LibreSSL environment repair](installation-and-storage.md#repair-an-existing-libressl-based-environment)
-when the interpreter, rather than server logging, needs replacement.
+Current build, generation and verification scripts and their tests use the
+Python standard library. Historical research commands remain documented under
+their retired procedures. Product tools must neither import nor launch an
+application Python backend. Native runtime, model and packaging checks remain
+required. Other architectures and operating systems need their own execution
+evidence. [Retired research procedures](../../plans/research/retired-python-research-tools.md)
 
 ## Configuration
 
@@ -330,7 +388,7 @@ analysis creates a new Run and preserves earlier reports. The selected profile
 and model are retained with each Run; the default model is `gpt-6-astra`.
 
 This optional development-web analyzer uses a Codex CLI execution profile.
-`LOCALBRAIN_INSIGHT_CODEX_HOME` takes priority over `CODEX_HOME`; without either setting, an existing `~/.codex-company` home is preferred to `~/.codex`. A new Run freezes that home, selected model, exact prompt and the [guide/result bundle](personal-insights.md#guide-bundle-and-result-contract), including independent core/playbook versions and digests and the response schema. That canonical contract owns current versions and historical report compatibility. Changing environment settings or the package guide affects future Runs only. The guide sources are `src/localbrain/personal_insight_guides/`; private evidence, prompts, responses, validated results, diagnostics, and reports are kept under `<LOCALBRAIN_DATA_DIR>/personal-insight-runs/<id>/`, outside Git. An explicit Run start sends selected Session excerpts to the configured model service; opening the screen or a past report does not.
+`LOCALBRAIN_INSIGHT_CODEX_HOME` takes priority over `CODEX_HOME`; without either setting, an existing `~/.codex-company` home is preferred to `~/.codex`. A new Run freezes that home, selected model, exact prompt and the [guide/result bundle](personal-insights.md#guide-bundle-and-result-contract), including independent core/playbook versions and digests and the response schema. That canonical contract owns current versions and historical report compatibility. Changing environment settings or the package guide affects future Runs only. The guide sources are `crates/core/src/backend/insights/resources/`; private evidence, prompts, responses, validated results, diagnostics, and reports are kept under `<LOCALBRAIN_DATA_DIR>/personal-insight-runs/<id>/`, outside Git. An explicit Run start sends selected Session excerpts to the configured model service; opening the screen or a past report does not.
 
 Run creation requires exactly one Codex Source row whose resolved root
 matches the resolved `<selected-home>/sessions` path; missing or ambiguous matches
@@ -398,14 +456,14 @@ which dependent edits belong in the task and to diagnose unexpected behavior
 changes. The implementation practices below remain owned by this guide.
 
 - Read the touched modules, tests, and owner docs first.
-- Reuse current FastAPI, SQLite, Jinja2, and local helper patterns before introducing a new abstraction.
+- Reuse current Axum, SQLite, MiniJinja and shared Rust service patterns before introducing a new abstraction.
 - Keep migrations additive by default. An approved structural repair must be separately bounded and supply backup, preflight, rollback, exact preservation, idempotency, and fresh/compatible parity evidence until a deliberate migration framework replaces the startup path.
 - Preserve source IDs, timestamps, provenance, and user review state when changing ingestion or relationships.
 - Keep maintenance artifacts excluded from ordinary Session and Local Context ingestion.
 
 ### Schema Documentation Changes
 
-- `src/localbrain/schema.sql` owns fresh-database DDL. `src/localbrain/persistence/bootstrap.py` orders startup and `persistence/migrations/` owns compatible changes and runtime-only indexes; `persistence/db.py` retains the public connection/init/transaction API. This split introduces no migration registry or new execution system.
+- `crates/core/resources/schema.sql` owns fresh-database DDL. `backend/storage/migrations.rs` orders startup, its `migrations/` modules own compatible changes and runtime-only indexes, and `backend/db.rs` retains public connection/initialization helpers. HTTP/CLI transaction boundaries remain host-owned. This split introduces no migration registry or new execution system.
 - The [Data Model](data-model.md) and its subject-area catalogs are the complete current human-readable baseline.
 - Keep later planning and execution artifacts delta-scoped: name only the affected schema objects, contract behavior, migrations, tests, and owner documents.
 - Update the affected subject-area catalog in place so durable data-model documentation continues to describe the complete current state. Do not copy unrelated tables or domains into each later change artifact.
@@ -417,7 +475,7 @@ changes. The implementation practices below remain owned by this guide.
 
 - LocalBrain pins Mermaid `11.16.0` and the official `@mermaid-js/layout-elk` `0.2.2` loader as project dependencies and esbuild `0.28.1` as its build-only bundler in the repository-owned `package.json` and `package-lock.json`.
 - The packages come from the public npm distributions named `mermaid`, `@mermaid-js/layout-elk`, `elkjs`, and `esbuild`. Mermaid, the layout loader, and esbuild are MIT-licensed; the transitive `elkjs` `0.9.3` engine is EPL-2.0. Reviewed copies of all four licenses are emitted with the browser asset and the lockfile retains exact integrity metadata.
-- For Mermaid rendering, Node.js `20` or later and npm are required only when installing or updating its browser build inputs. This rendering path does not invoke Node, npm, a CDN, or an external renderer from the Python application, installed `localbrain` command, or web runtime. The [optional macOS terminal](#optional-macos-terminal) has a separate bundled Node runtime and explicit offline preparation.
+- For Mermaid rendering, Node.js `20` or later and npm are required only when installing or updating its browser build inputs. This rendering path does not invoke Node, npm, a CDN, or an external renderer from the native backend, installed `localbrain` command, or web runtime. The [optional macOS terminal](#optional-macos-terminal) has a separate bundled Node runtime and explicit offline preparation.
 - Install the exact lockfile graph and generate the reviewed output set with:
 
 ```bash
@@ -425,7 +483,7 @@ npm ci --no-audit
 npm run build:mermaid
 ```
 
-- Generated browser outputs belong under `src/localbrain/static/vendor/mermaid/`. The asset manifest records the lockfile digest, exact direct versions, licenses, and output digests. The Python package includes this directory through `src/localbrain/static/` ownership.
+- Generated browser outputs belong under `apps/web/static/vendor/mermaid/`. The asset manifest records the lockfile digest, exact direct versions, licenses, and output digests. The native web/app builders include this directory through `apps/web/static/` ownership.
 - Verify both freshness and the deliberate stale-output failure path with:
 
 ```bash
@@ -433,7 +491,7 @@ npm run check:mermaid
 npm run test:mermaid
 ```
 
-- Application screens consume `src/localbrain/static/mermaid-adapter.js`, not npm paths directly. The adapter initializes Mermaid once with strict security, registers the locally bundled official ELK loaders, never scans the page automatically, and renders only application-owned nodes marked `data-localbrain-mermaid="owned"` whose source is LocalBrain-authored markup. Schema-owned nodes additionally request ELK; one failed ELK attempt retries the unchanged source with Dagre, then preserves the textual fallback. Other Mermaid consumers remain on their existing default. Imported documents, Session content, persisted rows, request/query values, and arbitrary user text must never be inserted into those source nodes.
+- Application screens consume `apps/web/static/mermaid-adapter.js`, not npm paths directly. The adapter initializes Mermaid once with strict security, registers the locally bundled official ELK loaders, never scans the page automatically, and renders only application-owned nodes marked `data-localbrain-mermaid="owned"` whose source is LocalBrain-authored markup. Schema-owned nodes additionally request ELK; one failed ELK attempt retries the unchanged source with Dagre, then preserves the textual fallback. Other Mermaid consumers remain on their existing default. Imported documents, Session content, persisted rows, request/query values, and arbitrary user text must never be inserted into those source nodes.
 - To update Mermaid, change its exact version in `package.json`, regenerate `package-lock.json` against the public npm registry, run the build and test commands, review dependency and license changes, then commit the manifest and all generated outputs together. Never commit `node_modules`, npm caches, temporary builds, or browser downloads.
 
 ### Schema Presentation Data
@@ -442,26 +500,26 @@ npm run test:mermaid
 - After an approved schema or Data Model change passes its owner checks, regenerate and verify the derived package data:
 
 ```bash
-uv run python scripts/check-data-model-docs.py
+python3 scripts/check-data-model-docs.py
 node scripts/check-data-model-mermaid.mjs
-uv run python scripts/build-schema-presentation.py build
-uv run python scripts/build-schema-presentation.py check
+python3 scripts/build-schema-presentation.py build
+python3 scripts/build-schema-presentation.py check
 ```
 
 - Generation uses SQLite `:memory:` and invokes compatible structure/index migrations with data migrations disabled. It must not open the configured database, inspect Context roots, read runtime rows, or serialize machine state.
-- Commit `src/localbrain/schema-presentation.json` with the source change. Later application screens load it only through `localbrain.persistence.schema_presentation.load_schema_presentation`; missing or invalid package data stays a bounded unavailable state and never triggers runtime introspection.
+- Commit `crates/core/resources/schema-presentation.json` with the source change. Later application screens load it only through `backend::schema`; missing or invalid package data stays a bounded unavailable state and never triggers runtime introspection.
 
 ### Data Model Value Dictionaries
 
-- `src/localbrain/value-registry.json` is the executable authority for bounded physical values, logical axes, complete presentation modes, fallbacks, labels, and visible-consumer inventory.
-- [Value Dictionaries](data-model/value-dictionaries.md) and its eleven subject companions are generated projections. Runtime templates and handlers use `localbrain.persistence.value_registry`; they do not parse Markdown.
+- `crates/core/resources/value-registry.json` is the executable authority for bounded physical values, logical axes, complete presentation modes, fallbacks, labels, and visible-consumer inventory.
+- [Value Dictionaries](data-model/value-dictionaries.md) and its eleven subject companions are generated projections. Runtime templates and handlers use `backend::value_registry`; they do not parse Markdown.
 - A family uses exactly one complete mode: `direct`, `logical-label`, or `internal-only`. If any allowed value needs interpretation, map the complete family. Missing values never fall back to raw tokens.
 - After changing a covered schema constraint, application constant, derived family, boolean-like field, mapping, or visible consumer, rebuild and check:
 
 ```bash
-uv run python scripts/build-data-model-value-dictionaries.py build
-uv run python scripts/build-data-model-value-dictionaries.py check
-uv run python scripts/check-data-model-docs.py
+python3 scripts/build-data-model-value-dictionaries.py build
+python3 scripts/build-data-model-value-dictionaries.py check
+python3 scripts/check-data-model-docs.py
 ```
 
 - Commit the registry and all generated dictionaries together. `check-data-model-docs.py` compares schema `CHECK` vocabularies, selected application constants, required boolean and derived inventories, reciprocal links, consumer declarations, and generated bytes.
@@ -492,7 +550,10 @@ For private names, project titles, URLs, or phrases that generic detection canno
 Run the full current suite:
 
 ```bash
-uv run python -m unittest discover -s tests -v
+cargo +1.90.0 test --workspace --all-targets --locked
+python3 -B -m unittest discover -s tests -v
+npm run test:terminal
+npm run test:workflow-map
 ```
 
 For parser, schema, ingestion, retrieval, or Task Runner changes, add focused tests for the changed contract. For user-facing changes, start the server and verify affected routes and states in a browser.
@@ -501,15 +562,17 @@ For initial settings, setup recovery, long pinned paths and empty Run output, ru
 the synthetic browser regressions with Node 22+ and Chrome:
 
 ```bash
+cargo build --locked -p localbrain-api --example ui-state-fixture
 node scripts/qa-ui-states-browser.mjs
 ```
 
 The command starts its own loopback backend with isolated settings, source files,
 database and browser profile outside the repository. It does not use the running
 app's data, collect personal sources, download models or execute agents. The
-fixture is [tests/ui_state_fixture.py](../../../tests/ui_state_fixture.py); it is
-not a production route. Set `LOCALBRAIN_CHROME_PATH` or `LOCALBRAIN_QA_PYTHON` only
-when Chrome or the repository virtualenv Python is elsewhere.
+fixture is [apps/api/examples/ui-state-fixture.rs](../../../apps/api/examples/ui-state-fixture.rs),
+launched by `scripts/native-qa-fixture.mjs`; its private test routes are absent
+from production. Set `LOCALBRAIN_CHROME_PATH` or `LOCALBRAIN_QA_EXECUTABLE` only
+when Chrome or the built native fixture is elsewhere.
 
 The checks sample preference labels and content position before and after a held
 read, real synthetic registry corruption and retry, model-read failure and polling
@@ -554,9 +617,10 @@ Do not claim full verification when a required local source, macOS permission, C
 
 ## Local Model Development Tools
 
-Use [Model Tool Operations](development/model-tools.md) for optional-runtime setup,
-private evaluation ownership, search comparisons, full-history simulation and
-the separate quoted-context, source-claim and model-free reconstruction trials.
-These guides retain each tool's source limits, invocation, replay and admission
-conditions. Running a tool does not approve a product consumer or renew a closed
-candidate's budget.
+Use [Model Tool Operations](development/model-tools.md) for native model commands,
+search verification, full-history simulation and inference-performance limits.
+Current product regression tests are native Rust; Python tests cover the active
+build/check tools. Obsolete Python research implementations, comparisons,
+compatibility launchers and their tests are retired. Their former procedures live
+in [the research record](../../plans/research/retired-python-research-tools.md),
+not a runnable fallback. Retirement does not reactivate paused or blocked trials.

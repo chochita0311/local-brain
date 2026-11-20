@@ -13,21 +13,21 @@ This directory separates current project contracts from project plans and approv
 ## User Guides
 
 The distributed app's Korean-default and switchable English user guides live in
-`src/localbrain/content/docs/` and are read through **Docs** in the app. Korean
-bodies live under [`ko/`](../src/localbrain/content/docs/ko/); the guide links below
+`apps/web/content/docs/` and are read through **Docs** in the app. Korean
+bodies live under [`ko/`](../apps/web/content/docs/ko/); the guide links below
 point to their English counterparts. They own ordinary screen usage and
 settings procedures; [In-App Documentation](policies/project/app-documentation.md)
 owns their content and delivery rules.
 
 | Guide | Responsibility |
 | --- | --- |
-| [Getting Started](../src/localbrain/content/docs/getting-started.md) | Setup, first use, quitting and updates |
-| [Settings](../src/localbrain/content/docs/settings.md) | Preferences, source registration, synchronization, backup and recovery |
-| [Sessions](../src/localbrain/content/docs/sessions.md) | Conversations, projects, pins and Chart |
-| [Sessions Dashboard](../src/localbrain/content/docs/sessions-dashboard.md) | Usage, cost estimates and coverage |
-| [Local Contexts](../src/localbrain/content/docs/local-contexts.md) | Document sources, reading and format limits |
-| [Search](../src/localbrain/content/docs/search.md) | Keyword/meaning search, models and readiness |
-| [Terminal](../src/localbrain/content/docs/terminal.md) | Conditional macOS app/development-web guide: workspaces, tabs, panes, background work and service commands |
+| [Getting Started](../apps/web/content/docs/getting-started.md) | Setup, first use, quitting and updates |
+| [Settings](../apps/web/content/docs/settings.md) | Preferences, source registration, synchronization, backup and recovery |
+| [Sessions](../apps/web/content/docs/sessions.md) | Conversations, projects, pins and Chart |
+| [Sessions Dashboard](../apps/web/content/docs/sessions-dashboard.md) | Usage, cost estimates and coverage |
+| [Local Contexts](../apps/web/content/docs/local-contexts.md) | Document sources, reading and format limits |
+| [Search](../apps/web/content/docs/search.md) | Keyword/meaning search, models and readiness |
+| [Terminal](../apps/web/content/docs/terminal.md) | Conditional macOS app/development-web guide: workspaces, tabs, panes, background work and service commands |
 
 The [macOS test distribution guide](policies/project/standalone-test-app-guide.md)
 owns artifact-specific first-launch requirements and distribution verification
@@ -40,7 +40,7 @@ Durable rules and current contracts live under `docs/policies/`.
 
 - [Product Model](policies/project/product.md): product purpose, scope, terminology, source roles, and user-facing organization rules
 - [Project Architecture](policies/project/architecture.md): stack, runtime boundaries, source adapters, storage model, and current capability ownership
-- [macOS Installation And Local Storage](policies/project/installation-and-storage.md): installed wheel/archive setup, optional models, configurable private storage, updates, migration and cleanup
+- [macOS Installation And Local Storage](policies/project/installation-and-storage.md): native app and web bundle setup, optional models, configurable private storage, updates, migration and cleanup
 - [Terminal](policies/project/terminal.md): macOS app/development-web workspace, process ownership, background lifecycle, bundled runtime and CLI
 - [Local Natural Language Search](policies/project/natural-language-search.md): eligible sources, molecularization, model roles, query interpretation, ranking, refresh and evidence navigation
 - [Source Claims And Work State](policies/project/source-claims-and-work-state.md): pure supplied-claim state projection and inferred provenance; not an admitted source extractor or map producer
@@ -88,7 +88,7 @@ maps runtime responsibilities. Their detailed current contracts are:
 | Explicit simulation, passive affinity and sample inspection | [Auto Work](policies/project/auto-work.md) |
 | Isolated model-free comparison | [Work Reconstruction](policies/project/work-reconstruction.md) |
 | Quoted model protocols and diagnostics | [Work Context Inference](policies/project/work-context-inference.md) |
-| Explicit model setup, comparisons, trials and replay | [Model Tool Operations](policies/project/development/model-tools.md) |
+| Native model/search operations and simulation | [Model Tool Operations](policies/project/development/model-tools.md); former Python trial procedures are retired research records |
 
 Runtime versions, supported legacy formats, immutable content fingerprints and
 failure/migration conditions remain current contracts. Per-trial approvals,
@@ -130,7 +130,7 @@ Project plans, sequencing, unresolved work, approvals, change history, and execu
 ## Ownership Rules
 
 - `README.md` owns the public product overview, installation entry and short first-use path; detailed screen usage belongs to the app guides above.
-- `src/localbrain/content/docs/` owns the distributed app's user-guide bodies. Update the relevant guide with a public behavior change, following [In-App Documentation](policies/project/app-documentation.md).
+- `apps/web/content/docs/` owns the distributed app's user-guide bodies. Update the relevant guide with a public behavior change, following [In-App Documentation](policies/project/app-documentation.md).
 - `AGENTS.md` routes contributors and agents without duplicating deeper contracts.
 - `docs/policies/` owns current definitions, behavior, constraints, and operational contracts. Project approval, delivery, and evaluation chronology does not belong in policy bodies or appendices.
 - `docs/plans/` owns project plans, priorities, unresolved work, approvals, changes, and execution/evaluation records, including completed historical facts. Records reference canonical current contracts rather than owning their definitions.

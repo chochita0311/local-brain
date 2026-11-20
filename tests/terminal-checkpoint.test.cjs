@@ -6,7 +6,7 @@ const {Terminal: Browser} = require('@xterm/xterm');
 const {Unicode11Addon} = require('@xterm/addon-unicode11');
 const Headless = process.env.LOCALBRAIN_TERMINAL_TEST_ENGINE
   ? require(path.join(process.env.LOCALBRAIN_TERMINAL_TEST_ENGINE, 'node_modules/@xterm/headless')).Terminal : Browser;
-const checkpoint = require('../src/localbrain/terminal/checkpoint.cjs');
+const checkpoint = require('../crates/runtime/engine/checkpoint.cjs');
 const E = '\x1b';
 const make = Type => {
   const t = new Type({cols: 30, rows: 8, scrollback: 1000, allowProposedApi: true});

@@ -1,0 +1,1922 @@
+[
+  {
+    "provider": "claude",
+    "raw": "{\"type\": \"user\", \"sessionId\": [true, null, false, 123456789012345678901234567890], \"message\": {\"content\": \"Keep source message\"}}\n",
+    "expected": {
+      "external_id": "[True, None, False, 123456789012345678901234567890]",
+      "source_path": "/synthetic/claude-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "d38d3769c53ac7f77ca41f60611c9e3dc715b5bb6b2ba37f9a209ff673e91198",
+          "sequence": 10,
+          "source_line": 1,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "primary",
+      "parent_external_id": null,
+      "usage_records": [],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "claude",
+    "raw": "{\"type\": \"user\", \"sessionId\": {\"z\": false, \"a\": [null, \"single'\", \"double\\\"\", \"both'\\\"\"]}, \"message\": {\"content\": \"Keep source message\"}}\n",
+    "expected": {
+      "external_id": "{'z': False, 'a': [None, \"single'\", 'double\"', 'both\\'\"']}",
+      "source_path": "/synthetic/claude-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "17c2e53be4465c46f5aac146edd66a393afa8bb18b71aeb3d9397657357cfb86",
+          "sequence": 10,
+          "source_line": 1,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "primary",
+      "parent_external_id": null,
+      "usage_records": [],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "claude",
+    "raw": "{\"type\": \"user\", \"sessionId\": [\"\\t\\n\\r\\\\\", \"\\u00a0\\u200b\\u2028\", \"\\ud83e\\udee8\", \"\\ud55c\\uae00\"], \"message\": {\"content\": \"Keep source message\"}}\n",
+    "expected": {
+      "external_id": "['\\t\\n\\r\\\\', '\\xa0\\u200b\\u2028', '\\U0001fae8', '\ud55c\uae00']",
+      "source_path": "/synthetic/claude-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "49fc4dd96bc44f7692af2a62c4f263ad3bdde97b578539693b447fae7abb0643",
+          "sequence": 10,
+          "source_line": 1,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "primary",
+      "parent_external_id": null,
+      "usage_records": [],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "claude",
+    "raw": "{\"type\": \"user\", \"sessionId\": {\"$serde_json::private::Number\": \"NaN\"}, \"message\": {\"content\": \"Keep source message\"}}\n",
+    "expected": {
+      "external_id": "{'$serde_json::private::Number': 'NaN'}",
+      "source_path": "/synthetic/claude-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "548b44797b1e9ebc3355a008554f03c9a136f8ae3a4f6aba016977f9b8fc850c",
+          "sequence": 10,
+          "source_line": 1,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "primary",
+      "parent_external_id": null,
+      "usage_records": [],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "claude",
+    "raw": "{\"type\": \"user\", \"sessionId\": [NaN, Infinity, -Infinity, -0.0, 1e-05, 1e+16], \"message\": {\"content\": \"Keep source message\"}}\n",
+    "expected": {
+      "external_id": "[nan, inf, -inf, -0.0, 1e-05, 1e+16]",
+      "source_path": "/synthetic/claude-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "1642b6d6afe08bec522aa45eb7fdf71078ca7769fe04ef7bb083ae34ee8dd787",
+          "sequence": 10,
+          "source_line": 1,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "primary",
+      "parent_external_id": null,
+      "usage_records": [],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "claude",
+    "raw": "{\"type\": \"user\", \"sessionId\": [\"\\ud800\"], \"message\": {\"content\": \"Keep source message\"}}\n{\"type\": \"assistant\", \"message\": {\"id\": [\"\\ud800\"], \"model\": \"claude-sonnet-4-5\", \"usage\": {\"input_tokens\": 1, \"output_tokens\": 2}, \"content\": [{\"type\": \"text\", \"text\": \"Source assistant\"}]}}\n",
+    "expected": {
+      "external_id": "['\\ud800']",
+      "source_path": "/synthetic/claude-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "53ed126b0f7a9527adc41e9c71f49b6bfdde33ac07a2ce56de222f2713292eaa",
+          "sequence": 10,
+          "source_line": 1,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        },
+        {
+          "event_id": "e1769f64568bb51eb6adad5776b7d4ca103eae97a3d1fdf3942492cf4345a680",
+          "sequence": 20,
+          "source_line": 2,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "assistant",
+          "text": "Source assistant",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "primary",
+      "parent_external_id": null,
+      "usage_records": [
+        {
+          "usage_record_id": "cb4a6a897b6dbc9b7c620cc33d5567aca4f447117c88067b4b848ae022ca3b99",
+          "source_record_id": "['\\ud800']",
+          "source_line": 2,
+          "occurred_at": null,
+          "raw_model": "claude-sonnet-4-5",
+          "input_tokens": 1,
+          "output_tokens": 2,
+          "cache_write_tokens": 0,
+          "cache_read_tokens": 0,
+          "reasoning_tokens": null,
+          "source_total_tokens": null,
+          "total_tokens": 3,
+          "total_semantics": "normalized_non_cached_input_plus_output_plus_cache_write_plus_cache_read;reasoning_not_separately_reported",
+          "aggregation_scope": "direct",
+          "capability_state": "complete",
+          "capability": {
+            "input_tokens": "available",
+            "output_tokens": "available",
+            "cache_write_source": "default_zero",
+            "cache_write_tokens": "available",
+            "cache_read_tokens": "available",
+            "source_total_tokens": "not_reported",
+            "model": "available",
+            "reasoning_tokens": "not_separately_reported"
+          },
+          "normalized_model": null,
+          "price_snapshot_id": "official-price-unavailable-20260925-v1"
+        }
+      ],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "claude",
+    "raw": "{\"type\": \"user\", \"sessionId\": [\"\\udfff\"], \"message\": {\"content\": \"Keep source message\"}}\n{\"type\": \"assistant\", \"message\": {\"id\": [\"\\udfff\"], \"model\": \"claude-sonnet-4-5\", \"usage\": {\"input_tokens\": 1, \"output_tokens\": 2}, \"content\": [{\"type\": \"text\", \"text\": \"Source assistant\"}]}}\n",
+    "expected": {
+      "external_id": "['\\udfff']",
+      "source_path": "/synthetic/claude-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "f80c5ed75b7cbfde902f3d726f8d60d6aca81594b7ceb80e2b844ee280770eac",
+          "sequence": 10,
+          "source_line": 1,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        },
+        {
+          "event_id": "1bd63c2a35a03d285f6c6d04801066bae22e107361a055d3809a12927593c7eb",
+          "sequence": 20,
+          "source_line": 2,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "assistant",
+          "text": "Source assistant",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "primary",
+      "parent_external_id": null,
+      "usage_records": [
+        {
+          "usage_record_id": "4d4f2a52c691860655e40033fac29057ce1ff46f5a1d5e41db1ac93ceb84565a",
+          "source_record_id": "['\\udfff']",
+          "source_line": 2,
+          "occurred_at": null,
+          "raw_model": "claude-sonnet-4-5",
+          "input_tokens": 1,
+          "output_tokens": 2,
+          "cache_write_tokens": 0,
+          "cache_read_tokens": 0,
+          "reasoning_tokens": null,
+          "source_total_tokens": null,
+          "total_tokens": 3,
+          "total_semantics": "normalized_non_cached_input_plus_output_plus_cache_write_plus_cache_read;reasoning_not_separately_reported",
+          "aggregation_scope": "direct",
+          "capability_state": "complete",
+          "capability": {
+            "input_tokens": "available",
+            "output_tokens": "available",
+            "cache_write_source": "default_zero",
+            "cache_write_tokens": "available",
+            "cache_read_tokens": "available",
+            "source_total_tokens": "not_reported",
+            "model": "available",
+            "reasoning_tokens": "not_separately_reported"
+          },
+          "normalized_model": null,
+          "price_snapshot_id": "official-price-unavailable-20260925-v1"
+        }
+      ],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "claude",
+    "raw": "{\"type\": \"user\", \"sessionId\": {\"\\ud800\": \"\\udfff\", \"\\udfff\": [\"\\ud801\", {\"x\\ud802y\": \"\\ud800\\udc00\"}]}, \"message\": {\"content\": \"Keep source message\"}}\n{\"type\": \"assistant\", \"message\": {\"id\": {\"\\ud800\": \"\\udfff\", \"\\udfff\": [\"\\ud801\", {\"x\\ud802y\": \"\\ud800\\udc00\"}]}, \"model\": \"claude-sonnet-4-5\", \"usage\": {\"input_tokens\": 1, \"output_tokens\": 2}, \"content\": [{\"type\": \"text\", \"text\": \"Source assistant\"}]}}\n",
+    "expected": {
+      "external_id": "{'\\ud800': '\\udfff', '\\udfff': ['\\ud801', {'x\\ud802y': '\ud800\udc00'}]}",
+      "source_path": "/synthetic/claude-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "32ac6870c0a5be6e87c9434c07b3be0dbe4cf674febedb74ef0b6a4597975a40",
+          "sequence": 10,
+          "source_line": 1,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        },
+        {
+          "event_id": "c76fc817aefa852ecbf9dec6bc86d14cffc3106996e96afebff9096f7996a053",
+          "sequence": 20,
+          "source_line": 2,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "assistant",
+          "text": "Source assistant",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "primary",
+      "parent_external_id": null,
+      "usage_records": [
+        {
+          "usage_record_id": "eb93af15548daa1d9fa9e2463bd168d1540898378949e167fa307b86a2593997",
+          "source_record_id": "{'\\ud800': '\\udfff', '\\udfff': ['\\ud801', {'x\\ud802y': '\ud800\udc00'}]}",
+          "source_line": 2,
+          "occurred_at": null,
+          "raw_model": "claude-sonnet-4-5",
+          "input_tokens": 1,
+          "output_tokens": 2,
+          "cache_write_tokens": 0,
+          "cache_read_tokens": 0,
+          "reasoning_tokens": null,
+          "source_total_tokens": null,
+          "total_tokens": 3,
+          "total_semantics": "normalized_non_cached_input_plus_output_plus_cache_write_plus_cache_read;reasoning_not_separately_reported",
+          "aggregation_scope": "direct",
+          "capability_state": "complete",
+          "capability": {
+            "input_tokens": "available",
+            "output_tokens": "available",
+            "cache_write_source": "default_zero",
+            "cache_write_tokens": "available",
+            "cache_read_tokens": "available",
+            "source_total_tokens": "not_reported",
+            "model": "available",
+            "reasoning_tokens": "not_separately_reported"
+          },
+          "normalized_model": null,
+          "price_snapshot_id": "official-price-unavailable-20260925-v1"
+        }
+      ],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "claude",
+    "raw": "{\"type\": \"user\", \"sessionId\": [\"\\ud800x\\udc00\"], \"message\": {\"content\": \"Keep source message\"}}\n{\"type\": \"assistant\", \"message\": {\"id\": [\"\\ud800x\\udc00\"], \"model\": \"claude-sonnet-4-5\", \"usage\": {\"input_tokens\": 1, \"output_tokens\": 2}, \"content\": [{\"type\": \"text\", \"text\": \"Source assistant\"}]}}\n",
+    "expected": {
+      "external_id": "['\\ud800x\\udc00']",
+      "source_path": "/synthetic/claude-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "af9283fde817007dd59931a1fbba5c76d280e8c8948812ea0c4b8592e3615bfd",
+          "sequence": 10,
+          "source_line": 1,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        },
+        {
+          "event_id": "bb0924e6bec1849d49751a54290a8f6629f01246a6fb3605692e01acd941dbc1",
+          "sequence": 20,
+          "source_line": 2,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "assistant",
+          "text": "Source assistant",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "primary",
+      "parent_external_id": null,
+      "usage_records": [
+        {
+          "usage_record_id": "8d720bb517ee2c4546157b867ab4620bfe4f911670bbf10a6f30ab7b1223077e",
+          "source_record_id": "['\\ud800x\\udc00']",
+          "source_line": 2,
+          "occurred_at": null,
+          "raw_model": "claude-sonnet-4-5",
+          "input_tokens": 1,
+          "output_tokens": 2,
+          "cache_write_tokens": 0,
+          "cache_read_tokens": 0,
+          "reasoning_tokens": null,
+          "source_total_tokens": null,
+          "total_tokens": 3,
+          "total_semantics": "normalized_non_cached_input_plus_output_plus_cache_write_plus_cache_read;reasoning_not_separately_reported",
+          "aggregation_scope": "direct",
+          "capability_state": "complete",
+          "capability": {
+            "input_tokens": "available",
+            "output_tokens": "available",
+            "cache_write_source": "default_zero",
+            "cache_write_tokens": "available",
+            "cache_read_tokens": "available",
+            "source_total_tokens": "not_reported",
+            "model": "available",
+            "reasoning_tokens": "not_separately_reported"
+          },
+          "normalized_model": null,
+          "price_snapshot_id": "official-price-unavailable-20260925-v1"
+        }
+      ],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "claude",
+    "raw": "{\"type\": \"user\", \"sessionId\": [\"\\ud800\\ud800\\udc00\", \"\\ud800\\udc00\\udfff\"], \"message\": {\"content\": \"Keep source message\"}}\n{\"type\": \"assistant\", \"message\": {\"id\": [\"\\ud800\\ud800\\udc00\", \"\\ud800\\udc00\\udfff\"], \"model\": \"claude-sonnet-4-5\", \"usage\": {\"input_tokens\": 1, \"output_tokens\": 2}, \"content\": [{\"type\": \"text\", \"text\": \"Source assistant\"}]}}\n",
+    "expected": {
+      "external_id": "['\\ud800\ud800\udc00', '\ud800\udc00\\udfff']",
+      "source_path": "/synthetic/claude-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "8fa43e5cca6feaf6eab2aa33f4628e55aabf886cf7344910b8cf824164cabd8a",
+          "sequence": 10,
+          "source_line": 1,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        },
+        {
+          "event_id": "0b615cd091e37e69a943e781d093be9f2901949dcf7573461b2ec9b7e86cd280",
+          "sequence": 20,
+          "source_line": 2,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "assistant",
+          "text": "Source assistant",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "primary",
+      "parent_external_id": null,
+      "usage_records": [
+        {
+          "usage_record_id": "6b1cd165fdef95f589d3e696567a56e72f40403f691c5996445fbc836bac0f05",
+          "source_record_id": "['\\ud800\ud800\udc00', '\ud800\udc00\\udfff']",
+          "source_line": 2,
+          "occurred_at": null,
+          "raw_model": "claude-sonnet-4-5",
+          "input_tokens": 1,
+          "output_tokens": 2,
+          "cache_write_tokens": 0,
+          "cache_read_tokens": 0,
+          "reasoning_tokens": null,
+          "source_total_tokens": null,
+          "total_tokens": 3,
+          "total_semantics": "normalized_non_cached_input_plus_output_plus_cache_write_plus_cache_read;reasoning_not_separately_reported",
+          "aggregation_scope": "direct",
+          "capability_state": "complete",
+          "capability": {
+            "input_tokens": "available",
+            "output_tokens": "available",
+            "cache_write_source": "default_zero",
+            "cache_write_tokens": "available",
+            "cache_read_tokens": "available",
+            "source_total_tokens": "not_reported",
+            "model": "available",
+            "reasoning_tokens": "not_separately_reported"
+          },
+          "normalized_model": null,
+          "price_snapshot_id": "official-price-unavailable-20260925-v1"
+        }
+      ],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "claude",
+    "raw": "{\"type\": \"user\", \"sessionId\": [\"\\ud800\\udc00\", \"\\udbff\\udfff\"], \"message\": {\"content\": \"Keep source message\"}}\n{\"type\": \"assistant\", \"message\": {\"id\": [\"\\ud800\\udc00\", \"\\udbff\\udfff\"], \"model\": \"claude-sonnet-4-5\", \"usage\": {\"input_tokens\": 1, \"output_tokens\": 2}, \"content\": [{\"type\": \"text\", \"text\": \"Source assistant\"}]}}\n",
+    "expected": {
+      "external_id": "['\ud800\udc00', '\\U0010ffff']",
+      "source_path": "/synthetic/claude-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "c3ecbe66d645d9c2c3729199f1662a3d4b708e0d01f4f0f08bddc2eb1e63b95f",
+          "sequence": 10,
+          "source_line": 1,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        },
+        {
+          "event_id": "8abe227d8c7efe7f206a15c7ea05d48e0cbeb1d19230f32af4c7e84fd1662637",
+          "sequence": 20,
+          "source_line": 2,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "assistant",
+          "text": "Source assistant",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "primary",
+      "parent_external_id": null,
+      "usage_records": [
+        {
+          "usage_record_id": "058037376f41f539b8749cafd63dea7d9c26d9eff684ebeabbc241eb4a9c3620",
+          "source_record_id": "['\ud800\udc00', '\\U0010ffff']",
+          "source_line": 2,
+          "occurred_at": null,
+          "raw_model": "claude-sonnet-4-5",
+          "input_tokens": 1,
+          "output_tokens": 2,
+          "cache_write_tokens": 0,
+          "cache_read_tokens": 0,
+          "reasoning_tokens": null,
+          "source_total_tokens": null,
+          "total_tokens": 3,
+          "total_semantics": "normalized_non_cached_input_plus_output_plus_cache_write_plus_cache_read;reasoning_not_separately_reported",
+          "aggregation_scope": "direct",
+          "capability_state": "complete",
+          "capability": {
+            "input_tokens": "available",
+            "output_tokens": "available",
+            "cache_write_source": "default_zero",
+            "cache_write_tokens": "available",
+            "cache_read_tokens": "available",
+            "source_total_tokens": "not_reported",
+            "model": "available",
+            "reasoning_tokens": "not_separately_reported"
+          },
+          "normalized_model": null,
+          "price_snapshot_id": "official-price-unavailable-20260925-v1"
+        }
+      ],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "claude",
+    "raw": "{\"type\": \"user\", \"sessionId\": [\"\\\\ud800\", \"\\ud800\", \"\\\\uDFFF\", \"\\udfff\"], \"message\": {\"content\": \"Keep source message\"}}\n{\"type\": \"assistant\", \"message\": {\"id\": [\"\\\\ud800\", \"\\ud800\", \"\\\\uDFFF\", \"\\udfff\"], \"model\": \"claude-sonnet-4-5\", \"usage\": {\"input_tokens\": 1, \"output_tokens\": 2}, \"content\": [{\"type\": \"text\", \"text\": \"Source assistant\"}]}}\n",
+    "expected": {
+      "external_id": "['\\\\ud800', '\\ud800', '\\\\uDFFF', '\\udfff']",
+      "source_path": "/synthetic/claude-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "e1206672bf52f4e12e7a7fe74425626110e1a2f600044da4ec88eb862ee0a8da",
+          "sequence": 10,
+          "source_line": 1,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        },
+        {
+          "event_id": "0dc944fc4ca15707a31ed761c5978cd3a3609ca2545c0651fff3c42d1eeffdcb",
+          "sequence": 20,
+          "source_line": 2,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "assistant",
+          "text": "Source assistant",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "primary",
+      "parent_external_id": null,
+      "usage_records": [
+        {
+          "usage_record_id": "f2a37d7a07079d36549f2b51e1972e59de3f4f2fb1324bd51aec0cbee903ef90",
+          "source_record_id": "['\\\\ud800', '\\ud800', '\\\\uDFFF', '\\udfff']",
+          "source_line": 2,
+          "occurred_at": null,
+          "raw_model": "claude-sonnet-4-5",
+          "input_tokens": 1,
+          "output_tokens": 2,
+          "cache_write_tokens": 0,
+          "cache_read_tokens": 0,
+          "reasoning_tokens": null,
+          "source_total_tokens": null,
+          "total_tokens": 3,
+          "total_semantics": "normalized_non_cached_input_plus_output_plus_cache_write_plus_cache_read;reasoning_not_separately_reported",
+          "aggregation_scope": "direct",
+          "capability_state": "complete",
+          "capability": {
+            "input_tokens": "available",
+            "output_tokens": "available",
+            "cache_write_source": "default_zero",
+            "cache_write_tokens": "available",
+            "cache_read_tokens": "available",
+            "source_total_tokens": "not_reported",
+            "model": "available",
+            "reasoning_tokens": "not_separately_reported"
+          },
+          "normalized_model": null,
+          "price_snapshot_id": "official-price-unavailable-20260925-v1"
+        }
+      ],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "claude",
+    "raw": "{\"type\": \"user\", \"sessionId\": {\"literal\": \"\\\\ud800\", \"actual\": \"\\ud800\", \"quote\": \"can't\", \"quotes\": \"'\\\"\"}, \"message\": {\"content\": \"Keep source message\"}}\n{\"type\": \"assistant\", \"message\": {\"id\": {\"literal\": \"\\\\ud800\", \"actual\": \"\\ud800\", \"quote\": \"can't\", \"quotes\": \"'\\\"\"}, \"model\": \"claude-sonnet-4-5\", \"usage\": {\"input_tokens\": 1, \"output_tokens\": 2}, \"content\": [{\"type\": \"text\", \"text\": \"Source assistant\"}]}}\n",
+    "expected": {
+      "external_id": "{'literal': '\\\\ud800', 'actual': '\\ud800', 'quote': \"can't\", 'quotes': '\\'\"'}",
+      "source_path": "/synthetic/claude-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "711e190cf1d7568a817f19ad24e3f0b4ac4a89f3e1d08bf07d71ea8aafe66a34",
+          "sequence": 10,
+          "source_line": 1,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        },
+        {
+          "event_id": "b3ba48bd0920f168af5a3dc412dd4638b1fa1902d19d430e4aa1b8388d543ce1",
+          "sequence": 20,
+          "source_line": 2,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "assistant",
+          "text": "Source assistant",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "primary",
+      "parent_external_id": null,
+      "usage_records": [
+        {
+          "usage_record_id": "d59a5eb8beaf8b1806cf9c13f1a81eec5de89b52c609112865a98869e6ffcedf",
+          "source_record_id": "{'literal': '\\\\ud800', 'actual': '\\ud800', 'quote': \"can't\", 'quotes': '\\'\"'}",
+          "source_line": 2,
+          "occurred_at": null,
+          "raw_model": "claude-sonnet-4-5",
+          "input_tokens": 1,
+          "output_tokens": 2,
+          "cache_write_tokens": 0,
+          "cache_read_tokens": 0,
+          "reasoning_tokens": null,
+          "source_total_tokens": null,
+          "total_tokens": 3,
+          "total_semantics": "normalized_non_cached_input_plus_output_plus_cache_write_plus_cache_read;reasoning_not_separately_reported",
+          "aggregation_scope": "direct",
+          "capability_state": "complete",
+          "capability": {
+            "input_tokens": "available",
+            "output_tokens": "available",
+            "cache_write_source": "default_zero",
+            "cache_write_tokens": "available",
+            "cache_read_tokens": "available",
+            "source_total_tokens": "not_reported",
+            "model": "available",
+            "reasoning_tokens": "not_separately_reported"
+          },
+          "normalized_model": null,
+          "price_snapshot_id": "official-price-unavailable-20260925-v1"
+        }
+      ],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "claude",
+    "raw": "{\"type\": \"user\", \"sessionId\": [\"\\u0000d800\\u0000\", \"\\u0001dfff\\u0001\", \"\\ud800\"], \"message\": {\"content\": \"Keep source message\"}}\n{\"type\": \"assistant\", \"message\": {\"id\": [\"\\u0000d800\\u0000\", \"\\u0001dfff\\u0001\", \"\\ud800\"], \"model\": \"claude-sonnet-4-5\", \"usage\": {\"input_tokens\": 1, \"output_tokens\": 2}, \"content\": [{\"type\": \"text\", \"text\": \"Source assistant\"}]}}\n",
+    "expected": {
+      "external_id": "['\\x00d800\\x00', '\\x01dfff\\x01', '\\ud800']",
+      "source_path": "/synthetic/claude-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "04d6b37d91ed287ea6f47ee4412c1b033032b47172e6eb8506fa6d84261dc4b5",
+          "sequence": 10,
+          "source_line": 1,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        },
+        {
+          "event_id": "767aab093069e87e80189af856d78718f2dab6ccec00d85531342bd5a89ab7b2",
+          "sequence": 20,
+          "source_line": 2,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "assistant",
+          "text": "Source assistant",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "primary",
+      "parent_external_id": null,
+      "usage_records": [
+        {
+          "usage_record_id": "12dde6e9001700d8d0249041299c660313962a36c65c7c1fdcf2a17609bb7989",
+          "source_record_id": "['\\x00d800\\x00', '\\x01dfff\\x01', '\\ud800']",
+          "source_line": 2,
+          "occurred_at": null,
+          "raw_model": "claude-sonnet-4-5",
+          "input_tokens": 1,
+          "output_tokens": 2,
+          "cache_write_tokens": 0,
+          "cache_read_tokens": 0,
+          "reasoning_tokens": null,
+          "source_total_tokens": null,
+          "total_tokens": 3,
+          "total_semantics": "normalized_non_cached_input_plus_output_plus_cache_write_plus_cache_read;reasoning_not_separately_reported",
+          "aggregation_scope": "direct",
+          "capability_state": "complete",
+          "capability": {
+            "input_tokens": "available",
+            "output_tokens": "available",
+            "cache_write_source": "default_zero",
+            "cache_write_tokens": "available",
+            "cache_read_tokens": "available",
+            "source_total_tokens": "not_reported",
+            "model": "available",
+            "reasoning_tokens": "not_separately_reported"
+          },
+          "normalized_model": null,
+          "price_snapshot_id": "official-price-unavailable-20260925-v1"
+        }
+      ],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "claude",
+    "raw": "{\"type\": \"user\", \"sessionId\": [\"\\ud800\", \"\\ud801\", \"\\udfff\"], \"message\": {\"content\": \"Keep source message\"}}\n{\"type\": \"assistant\", \"message\": {\"id\": [\"\\ud800\", \"\\ud801\", \"\\udfff\"], \"model\": \"claude-sonnet-4-5\", \"usage\": {\"input_tokens\": 1, \"output_tokens\": 2}, \"content\": [{\"type\": \"text\", \"text\": \"Source assistant\"}]}}\n{\"type\": \"ignored_collision_inventory\", \"value\": \"\\u0000\\u0001\\u0002\\u0003\\u0004\\u0005\\u0006\\u0007\\b\\t\\n\\u000b\\f\\r\\u000e\\u000f\\u0010\\u0011\\u0012\\u0013\\u0014\\u0015\\u0016\\u0017\\u0018\\u0019\\u001a\\u001b\\u001c\\u001d\\u001e\\u001f\\u007f\\u0080\\u0081\\u0082\\u0083\\u0084\\u0085\\u0086\\u0087\\u0088\\u0089\\u008a\\u008b\\u008c\\u008d\\u008e\\u008f\\u0090\\u0091\\u0092\\u0093\\u0094\\u0095\\u0096\\u0097\\u0098\\u0099\\u009a\\u009b\\u009c\\u009d\\u009e\\u009f\\ufffe\\uffff\"}\n",
+    "expected": {
+      "external_id": "['\\ud800', '\\ud801', '\\udfff']",
+      "source_path": "/synthetic/claude-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "aaab75af1ef1a5f35495a987eee7312fe964c96b3102690a2408cfddfc414373",
+          "sequence": 10,
+          "source_line": 1,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        },
+        {
+          "event_id": "00c3050d7e6671c020fdba7115a42967360c0b9c81da2e2aec8318a554ce9ce8",
+          "sequence": 20,
+          "source_line": 2,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "assistant",
+          "text": "Source assistant",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "primary",
+      "parent_external_id": null,
+      "usage_records": [
+        {
+          "usage_record_id": "64c70a4933be584065c6a7b6ef7865b2276ddbe2bb32667d2b825020f49b0aec",
+          "source_record_id": "['\\ud800', '\\ud801', '\\udfff']",
+          "source_line": 2,
+          "occurred_at": null,
+          "raw_model": "claude-sonnet-4-5",
+          "input_tokens": 1,
+          "output_tokens": 2,
+          "cache_write_tokens": 0,
+          "cache_read_tokens": 0,
+          "reasoning_tokens": null,
+          "source_total_tokens": null,
+          "total_tokens": 3,
+          "total_semantics": "normalized_non_cached_input_plus_output_plus_cache_write_plus_cache_read;reasoning_not_separately_reported",
+          "aggregation_scope": "direct",
+          "capability_state": "complete",
+          "capability": {
+            "input_tokens": "available",
+            "output_tokens": "available",
+            "cache_write_source": "default_zero",
+            "cache_write_tokens": "available",
+            "cache_read_tokens": "available",
+            "source_total_tokens": "not_reported",
+            "model": "available",
+            "reasoning_tokens": "not_separately_reported"
+          },
+          "normalized_model": null,
+          "price_snapshot_id": "official-price-unavailable-20260925-v1"
+        }
+      ],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "claude",
+    "raw": "{\"type\": \"user\", \"sessionId\": [[{\"\\udc00\": [\"a\\ud800\", \"\\\\ud800\"]}], {\"\\ud800\": false}], \"message\": {\"content\": \"Keep source message\"}}\n{\"type\": \"assistant\", \"message\": {\"id\": [[{\"\\udc00\": [\"a\\ud800\", \"\\\\ud800\"]}], {\"\\ud800\": false}], \"model\": \"claude-sonnet-4-5\", \"usage\": {\"input_tokens\": 1, \"output_tokens\": 2}, \"content\": [{\"type\": \"text\", \"text\": \"Source assistant\"}]}}\n",
+    "expected": {
+      "external_id": "[[{'\\udc00': ['a\\ud800', '\\\\ud800']}], {'\\ud800': False}]",
+      "source_path": "/synthetic/claude-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "5c4d50fa100a96b72a6f05bf9dd6eb50f8d1a0c759c0b3ee143ed4c3254c3a2a",
+          "sequence": 10,
+          "source_line": 1,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        },
+        {
+          "event_id": "d4cabc1f3f1755fa12815c8ce99f548a0ec65353db86377aab5a331f389927bf",
+          "sequence": 20,
+          "source_line": 2,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "assistant",
+          "text": "Source assistant",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "primary",
+      "parent_external_id": null,
+      "usage_records": [
+        {
+          "usage_record_id": "5528f760e1eb56af3ce1c94df7545faf634c39b142cf672332b1cf6e3713ee68",
+          "source_record_id": "[[{'\\udc00': ['a\\ud800', '\\\\ud800']}], {'\\ud800': False}]",
+          "source_line": 2,
+          "occurred_at": null,
+          "raw_model": "claude-sonnet-4-5",
+          "input_tokens": 1,
+          "output_tokens": 2,
+          "cache_write_tokens": 0,
+          "cache_read_tokens": 0,
+          "reasoning_tokens": null,
+          "source_total_tokens": null,
+          "total_tokens": 3,
+          "total_semantics": "normalized_non_cached_input_plus_output_plus_cache_write_plus_cache_read;reasoning_not_separately_reported",
+          "aggregation_scope": "direct",
+          "capability_state": "complete",
+          "capability": {
+            "input_tokens": "available",
+            "output_tokens": "available",
+            "cache_write_source": "default_zero",
+            "cache_write_tokens": "available",
+            "cache_read_tokens": "available",
+            "source_total_tokens": "not_reported",
+            "model": "available",
+            "reasoning_tokens": "not_separately_reported"
+          },
+          "normalized_model": null,
+          "price_snapshot_id": "official-price-unavailable-20260925-v1"
+        }
+      ],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "claude",
+    "raw": "{\"type\": \"user\", \"sessionId\": [\"{\\\"value\\\": \\\"\\\\ud800\\\"}\", \"\\ud800\"], \"message\": {\"content\": \"Keep source message\"}}\n{\"type\": \"assistant\", \"message\": {\"id\": [\"{\\\"value\\\": \\\"\\\\ud800\\\"}\", \"\\ud800\"], \"model\": \"claude-sonnet-4-5\", \"usage\": {\"input_tokens\": 1, \"output_tokens\": 2}, \"content\": [{\"type\": \"text\", \"text\": \"Source assistant\"}]}}\n",
+    "expected": {
+      "external_id": "['{\"value\": \"\\\\ud800\"}', '\\ud800']",
+      "source_path": "/synthetic/claude-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "9767ddb120100dcba20e3f7b9e2d02131d0072542ee7f31040dac17f40224341",
+          "sequence": 10,
+          "source_line": 1,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        },
+        {
+          "event_id": "4b228e108523ea78190e67bed9b25e9e08c82fa5f5cf12ec74eb1d24d1e5aea9",
+          "sequence": 20,
+          "source_line": 2,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "assistant",
+          "text": "Source assistant",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "primary",
+      "parent_external_id": null,
+      "usage_records": [
+        {
+          "usage_record_id": "ddc02a365a2ac3d750e430b993c03de4e4e85903633d7271978413cdb7dd8ee4",
+          "source_record_id": "['{\"value\": \"\\\\ud800\"}', '\\ud800']",
+          "source_line": 2,
+          "occurred_at": null,
+          "raw_model": "claude-sonnet-4-5",
+          "input_tokens": 1,
+          "output_tokens": 2,
+          "cache_write_tokens": 0,
+          "cache_read_tokens": 0,
+          "reasoning_tokens": null,
+          "source_total_tokens": null,
+          "total_tokens": 3,
+          "total_semantics": "normalized_non_cached_input_plus_output_plus_cache_write_plus_cache_read;reasoning_not_separately_reported",
+          "aggregation_scope": "direct",
+          "capability_state": "complete",
+          "capability": {
+            "input_tokens": "available",
+            "output_tokens": "available",
+            "cache_write_source": "default_zero",
+            "cache_write_tokens": "available",
+            "cache_read_tokens": "available",
+            "source_total_tokens": "not_reported",
+            "model": "available",
+            "reasoning_tokens": "not_separately_reported"
+          },
+          "normalized_model": null,
+          "price_snapshot_id": "official-price-unavailable-20260925-v1"
+        }
+      ],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "codex",
+    "raw": "{\"type\": \"session_meta\", \"payload\": {\"id\": [true, null, false, 123456789012345678901234567890], \"parent_thread_id\": [true, null, false, 123456789012345678901234567890]}}\n{\"type\": \"event_msg\", \"payload\": {\"type\": \"user_message\", \"message\": \"Keep source message\"}}\n",
+    "expected": {
+      "external_id": "[True, None, False, 123456789012345678901234567890]",
+      "source_path": "/synthetic/codex-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "8fb8742deccb9a62d306c0988d025809789ffa5afc3a66b7f6b3b1b18c631307",
+          "sequence": 20,
+          "source_line": 2,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "subsession",
+      "parent_external_id": "[True, None, False, 123456789012345678901234567890]",
+      "usage_records": [],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "codex",
+    "raw": "{\"type\": \"session_meta\", \"payload\": {\"id\": {\"z\": false, \"a\": [null, \"single'\", \"double\\\"\", \"both'\\\"\"]}, \"parent_thread_id\": {\"z\": false, \"a\": [null, \"single'\", \"double\\\"\", \"both'\\\"\"]}}}\n{\"type\": \"event_msg\", \"payload\": {\"type\": \"user_message\", \"message\": \"Keep source message\"}}\n",
+    "expected": {
+      "external_id": "{'z': False, 'a': [None, \"single'\", 'double\"', 'both\\'\"']}",
+      "source_path": "/synthetic/codex-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "92901ae2dafb04a67101eb911398906c74171d73ed20a29066f395fec9972222",
+          "sequence": 20,
+          "source_line": 2,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "subsession",
+      "parent_external_id": "{'z': False, 'a': [None, \"single'\", 'double\"', 'both\\'\"']}",
+      "usage_records": [],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "codex",
+    "raw": "{\"type\": \"session_meta\", \"payload\": {\"id\": [\"\\t\\n\\r\\\\\", \"\\u00a0\\u200b\\u2028\", \"\\ud83e\\udee8\", \"\\ud55c\\uae00\"], \"parent_thread_id\": [\"\\t\\n\\r\\\\\", \"\\u00a0\\u200b\\u2028\", \"\\ud83e\\udee8\", \"\\ud55c\\uae00\"]}}\n{\"type\": \"event_msg\", \"payload\": {\"type\": \"user_message\", \"message\": \"Keep source message\"}}\n",
+    "expected": {
+      "external_id": "['\\t\\n\\r\\\\', '\\xa0\\u200b\\u2028', '\\U0001fae8', '\ud55c\uae00']",
+      "source_path": "/synthetic/codex-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "b7781ab77ade2d95259b6cac4ee5e8bdb347d6161cbc2f2357bc28d9c5c4f81d",
+          "sequence": 20,
+          "source_line": 2,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "subsession",
+      "parent_external_id": "['\\t\\n\\r\\\\', '\\xa0\\u200b\\u2028', '\\U0001fae8', '\ud55c\uae00']",
+      "usage_records": [],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "codex",
+    "raw": "{\"type\": \"session_meta\", \"payload\": {\"id\": {\"$serde_json::private::Number\": \"NaN\"}, \"parent_thread_id\": {\"$serde_json::private::Number\": \"NaN\"}}}\n{\"type\": \"event_msg\", \"payload\": {\"type\": \"user_message\", \"message\": \"Keep source message\"}}\n",
+    "expected": {
+      "external_id": "{'$serde_json::private::Number': 'NaN'}",
+      "source_path": "/synthetic/codex-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "c868a8193e911cf1bf967ea9a4d1094a7cc1120c098eb86d85b7a257ec45489c",
+          "sequence": 20,
+          "source_line": 2,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "subsession",
+      "parent_external_id": "{'$serde_json::private::Number': 'NaN'}",
+      "usage_records": [],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "codex",
+    "raw": "{\"type\": \"session_meta\", \"payload\": {\"id\": [NaN, Infinity, -Infinity, -0.0, 1e-05, 1e+16], \"parent_thread_id\": [NaN, Infinity, -Infinity, -0.0, 1e-05, 1e+16]}}\n{\"type\": \"event_msg\", \"payload\": {\"type\": \"user_message\", \"message\": \"Keep source message\"}}\n",
+    "expected": {
+      "external_id": "[nan, inf, -inf, -0.0, 1e-05, 1e+16]",
+      "source_path": "/synthetic/codex-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "8f929b7669e6de9eed7dd8227d1de594a38a63ac594142861cf209c7d47d8a87",
+          "sequence": 20,
+          "source_line": 2,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "subsession",
+      "parent_external_id": "[nan, inf, -inf, -0.0, 1e-05, 1e+16]",
+      "usage_records": [],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "codex",
+    "raw": "{\"type\": \"session_meta\", \"payload\": {\"id\": [\"\\ud800\"], \"parent_thread_id\": [\"\\ud800\"]}}\n{\"type\": \"turn_context\", \"payload\": {\"turn_id\": [\"\\ud800\"]}}\n{\"type\": \"event_msg\", \"payload\": {\"type\": \"user_message\", \"message\": \"Keep source message\"}}\n{\"type\": \"response_item\", \"payload\": {\"type\": \"message\", \"role\": \"user\", \"content\": [{\"type\": \"input_text\", \"text\": \"Keep source message\"}], \"internal_chat_message_metadata_passthrough\": {\"turn_id\": [\"\\ud800\"]}}}\n",
+    "expected": {
+      "external_id": "['\\ud800']",
+      "source_path": "/synthetic/codex-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "c39fa4a11b1cde013d6acc7df8d280b7cc77debe31de8cba327bf761d6e487de",
+          "sequence": 30,
+          "source_line": 3,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "subsession",
+      "parent_external_id": "['\\ud800']",
+      "usage_records": [],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "codex",
+    "raw": "{\"type\": \"session_meta\", \"payload\": {\"id\": [\"\\udfff\"], \"parent_thread_id\": [\"\\udfff\"]}}\n{\"type\": \"turn_context\", \"payload\": {\"turn_id\": [\"\\udfff\"]}}\n{\"type\": \"event_msg\", \"payload\": {\"type\": \"user_message\", \"message\": \"Keep source message\"}}\n{\"type\": \"response_item\", \"payload\": {\"type\": \"message\", \"role\": \"user\", \"content\": [{\"type\": \"input_text\", \"text\": \"Keep source message\"}], \"internal_chat_message_metadata_passthrough\": {\"turn_id\": [\"\\udfff\"]}}}\n",
+    "expected": {
+      "external_id": "['\\udfff']",
+      "source_path": "/synthetic/codex-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "1f0101b6a636936c60385e234ca429dd67e1d0c09d2f8511c5ce97926dd2d99d",
+          "sequence": 30,
+          "source_line": 3,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "subsession",
+      "parent_external_id": "['\\udfff']",
+      "usage_records": [],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "codex",
+    "raw": "{\"type\": \"session_meta\", \"payload\": {\"id\": {\"\\ud800\": \"\\udfff\", \"\\udfff\": [\"\\ud801\", {\"x\\ud802y\": \"\\ud800\\udc00\"}]}, \"parent_thread_id\": {\"\\ud800\": \"\\udfff\", \"\\udfff\": [\"\\ud801\", {\"x\\ud802y\": \"\\ud800\\udc00\"}]}}}\n{\"type\": \"turn_context\", \"payload\": {\"turn_id\": {\"\\ud800\": \"\\udfff\", \"\\udfff\": [\"\\ud801\", {\"x\\ud802y\": \"\\ud800\\udc00\"}]}}}\n{\"type\": \"event_msg\", \"payload\": {\"type\": \"user_message\", \"message\": \"Keep source message\"}}\n{\"type\": \"response_item\", \"payload\": {\"type\": \"message\", \"role\": \"user\", \"content\": [{\"type\": \"input_text\", \"text\": \"Keep source message\"}], \"internal_chat_message_metadata_passthrough\": {\"turn_id\": {\"\\ud800\": \"\\udfff\", \"\\udfff\": [\"\\ud801\", {\"x\\ud802y\": \"\\ud800\\udc00\"}]}}}}\n",
+    "expected": {
+      "external_id": "{'\\ud800': '\\udfff', '\\udfff': ['\\ud801', {'x\\ud802y': '\ud800\udc00'}]}",
+      "source_path": "/synthetic/codex-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "00560312a3f09721e01dc68a28cc7ad3e137197d51ef32058159584b3f565f2b",
+          "sequence": 30,
+          "source_line": 3,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "subsession",
+      "parent_external_id": "{'\\ud800': '\\udfff', '\\udfff': ['\\ud801', {'x\\ud802y': '\ud800\udc00'}]}",
+      "usage_records": [],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "codex",
+    "raw": "{\"type\": \"session_meta\", \"payload\": {\"id\": [\"\\ud800x\\udc00\"], \"parent_thread_id\": [\"\\ud800x\\udc00\"]}}\n{\"type\": \"turn_context\", \"payload\": {\"turn_id\": [\"\\ud800x\\udc00\"]}}\n{\"type\": \"event_msg\", \"payload\": {\"type\": \"user_message\", \"message\": \"Keep source message\"}}\n{\"type\": \"response_item\", \"payload\": {\"type\": \"message\", \"role\": \"user\", \"content\": [{\"type\": \"input_text\", \"text\": \"Keep source message\"}], \"internal_chat_message_metadata_passthrough\": {\"turn_id\": [\"\\ud800x\\udc00\"]}}}\n",
+    "expected": {
+      "external_id": "['\\ud800x\\udc00']",
+      "source_path": "/synthetic/codex-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "1c9fa2f4e2a6bce2825659e3368916ed818df23943dd409a97bfe96681342f70",
+          "sequence": 30,
+          "source_line": 3,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "subsession",
+      "parent_external_id": "['\\ud800x\\udc00']",
+      "usage_records": [],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "codex",
+    "raw": "{\"type\": \"session_meta\", \"payload\": {\"id\": [\"\\ud800\\ud800\\udc00\", \"\\ud800\\udc00\\udfff\"], \"parent_thread_id\": [\"\\ud800\\ud800\\udc00\", \"\\ud800\\udc00\\udfff\"]}}\n{\"type\": \"turn_context\", \"payload\": {\"turn_id\": [\"\\ud800\\ud800\\udc00\", \"\\ud800\\udc00\\udfff\"]}}\n{\"type\": \"event_msg\", \"payload\": {\"type\": \"user_message\", \"message\": \"Keep source message\"}}\n{\"type\": \"response_item\", \"payload\": {\"type\": \"message\", \"role\": \"user\", \"content\": [{\"type\": \"input_text\", \"text\": \"Keep source message\"}], \"internal_chat_message_metadata_passthrough\": {\"turn_id\": [\"\\ud800\\ud800\\udc00\", \"\\ud800\\udc00\\udfff\"]}}}\n",
+    "expected": {
+      "external_id": "['\\ud800\ud800\udc00', '\ud800\udc00\\udfff']",
+      "source_path": "/synthetic/codex-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "363f545dacfd58de12e1ad7fc7a98e217a5a211b0748013829b7e8b66b4949da",
+          "sequence": 30,
+          "source_line": 3,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "subsession",
+      "parent_external_id": "['\\ud800\ud800\udc00', '\ud800\udc00\\udfff']",
+      "usage_records": [],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "codex",
+    "raw": "{\"type\": \"session_meta\", \"payload\": {\"id\": [\"\\ud800\\udc00\", \"\\udbff\\udfff\"], \"parent_thread_id\": [\"\\ud800\\udc00\", \"\\udbff\\udfff\"]}}\n{\"type\": \"turn_context\", \"payload\": {\"turn_id\": [\"\\ud800\\udc00\", \"\\udbff\\udfff\"]}}\n{\"type\": \"event_msg\", \"payload\": {\"type\": \"user_message\", \"message\": \"Keep source message\"}}\n{\"type\": \"response_item\", \"payload\": {\"type\": \"message\", \"role\": \"user\", \"content\": [{\"type\": \"input_text\", \"text\": \"Keep source message\"}], \"internal_chat_message_metadata_passthrough\": {\"turn_id\": [\"\\ud800\\udc00\", \"\\udbff\\udfff\"]}}}\n",
+    "expected": {
+      "external_id": "['\ud800\udc00', '\\U0010ffff']",
+      "source_path": "/synthetic/codex-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "532e5c83c089c9052ff2a7509c60bfdcc038111c39681e2b0914d1b80a9f6f1f",
+          "sequence": 30,
+          "source_line": 3,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "subsession",
+      "parent_external_id": "['\ud800\udc00', '\\U0010ffff']",
+      "usage_records": [],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "codex",
+    "raw": "{\"type\": \"session_meta\", \"payload\": {\"id\": [\"\\\\ud800\", \"\\ud800\", \"\\\\uDFFF\", \"\\udfff\"], \"parent_thread_id\": [\"\\\\ud800\", \"\\ud800\", \"\\\\uDFFF\", \"\\udfff\"]}}\n{\"type\": \"turn_context\", \"payload\": {\"turn_id\": [\"\\\\ud800\", \"\\ud800\", \"\\\\uDFFF\", \"\\udfff\"]}}\n{\"type\": \"event_msg\", \"payload\": {\"type\": \"user_message\", \"message\": \"Keep source message\"}}\n{\"type\": \"response_item\", \"payload\": {\"type\": \"message\", \"role\": \"user\", \"content\": [{\"type\": \"input_text\", \"text\": \"Keep source message\"}], \"internal_chat_message_metadata_passthrough\": {\"turn_id\": [\"\\\\ud800\", \"\\ud800\", \"\\\\uDFFF\", \"\\udfff\"]}}}\n",
+    "expected": {
+      "external_id": "['\\\\ud800', '\\ud800', '\\\\uDFFF', '\\udfff']",
+      "source_path": "/synthetic/codex-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "4c701a430f386b090fa48728c8ccddc0a5a825255a5a96d046dc21b7d0b9e06e",
+          "sequence": 30,
+          "source_line": 3,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "subsession",
+      "parent_external_id": "['\\\\ud800', '\\ud800', '\\\\uDFFF', '\\udfff']",
+      "usage_records": [],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "codex",
+    "raw": "{\"type\": \"session_meta\", \"payload\": {\"id\": {\"literal\": \"\\\\ud800\", \"actual\": \"\\ud800\", \"quote\": \"can't\", \"quotes\": \"'\\\"\"}, \"parent_thread_id\": {\"literal\": \"\\\\ud800\", \"actual\": \"\\ud800\", \"quote\": \"can't\", \"quotes\": \"'\\\"\"}}}\n{\"type\": \"turn_context\", \"payload\": {\"turn_id\": {\"literal\": \"\\\\ud800\", \"actual\": \"\\ud800\", \"quote\": \"can't\", \"quotes\": \"'\\\"\"}}}\n{\"type\": \"event_msg\", \"payload\": {\"type\": \"user_message\", \"message\": \"Keep source message\"}}\n{\"type\": \"response_item\", \"payload\": {\"type\": \"message\", \"role\": \"user\", \"content\": [{\"type\": \"input_text\", \"text\": \"Keep source message\"}], \"internal_chat_message_metadata_passthrough\": {\"turn_id\": {\"literal\": \"\\\\ud800\", \"actual\": \"\\ud800\", \"quote\": \"can't\", \"quotes\": \"'\\\"\"}}}}\n",
+    "expected": {
+      "external_id": "{'literal': '\\\\ud800', 'actual': '\\ud800', 'quote': \"can't\", 'quotes': '\\'\"'}",
+      "source_path": "/synthetic/codex-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "99204af284ffa194a96907891792ff0e27b09c283208b24a960417f075864a6e",
+          "sequence": 30,
+          "source_line": 3,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "subsession",
+      "parent_external_id": "{'literal': '\\\\ud800', 'actual': '\\ud800', 'quote': \"can't\", 'quotes': '\\'\"'}",
+      "usage_records": [],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "codex",
+    "raw": "{\"type\": \"session_meta\", \"payload\": {\"id\": [\"\\u0000d800\\u0000\", \"\\u0001dfff\\u0001\", \"\\ud800\"], \"parent_thread_id\": [\"\\u0000d800\\u0000\", \"\\u0001dfff\\u0001\", \"\\ud800\"]}}\n{\"type\": \"turn_context\", \"payload\": {\"turn_id\": [\"\\u0000d800\\u0000\", \"\\u0001dfff\\u0001\", \"\\ud800\"]}}\n{\"type\": \"event_msg\", \"payload\": {\"type\": \"user_message\", \"message\": \"Keep source message\"}}\n{\"type\": \"response_item\", \"payload\": {\"type\": \"message\", \"role\": \"user\", \"content\": [{\"type\": \"input_text\", \"text\": \"Keep source message\"}], \"internal_chat_message_metadata_passthrough\": {\"turn_id\": [\"\\u0000d800\\u0000\", \"\\u0001dfff\\u0001\", \"\\ud800\"]}}}\n",
+    "expected": {
+      "external_id": "['\\x00d800\\x00', '\\x01dfff\\x01', '\\ud800']",
+      "source_path": "/synthetic/codex-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "e6dceefee2e4cb64940b4cad90249765cd884b54765ef6e5c91569ebadb58044",
+          "sequence": 30,
+          "source_line": 3,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "subsession",
+      "parent_external_id": "['\\x00d800\\x00', '\\x01dfff\\x01', '\\ud800']",
+      "usage_records": [],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "codex",
+    "raw": "{\"type\": \"session_meta\", \"payload\": {\"id\": [\"\\ud800\", \"\\ud801\", \"\\udfff\"], \"parent_thread_id\": [\"\\ud800\", \"\\ud801\", \"\\udfff\"]}}\n{\"type\": \"turn_context\", \"payload\": {\"turn_id\": [\"\\ud800\", \"\\ud801\", \"\\udfff\"]}}\n{\"type\": \"event_msg\", \"payload\": {\"type\": \"user_message\", \"message\": \"Keep source message\"}}\n{\"type\": \"response_item\", \"payload\": {\"type\": \"message\", \"role\": \"user\", \"content\": [{\"type\": \"input_text\", \"text\": \"Keep source message\"}], \"internal_chat_message_metadata_passthrough\": {\"turn_id\": [\"\\ud800\", \"\\ud801\", \"\\udfff\"]}}}\n{\"type\": \"ignored_collision_inventory\", \"value\": \"\\u0000\\u0001\\u0002\\u0003\\u0004\\u0005\\u0006\\u0007\\b\\t\\n\\u000b\\f\\r\\u000e\\u000f\\u0010\\u0011\\u0012\\u0013\\u0014\\u0015\\u0016\\u0017\\u0018\\u0019\\u001a\\u001b\\u001c\\u001d\\u001e\\u001f\\u007f\\u0080\\u0081\\u0082\\u0083\\u0084\\u0085\\u0086\\u0087\\u0088\\u0089\\u008a\\u008b\\u008c\\u008d\\u008e\\u008f\\u0090\\u0091\\u0092\\u0093\\u0094\\u0095\\u0096\\u0097\\u0098\\u0099\\u009a\\u009b\\u009c\\u009d\\u009e\\u009f\\ufffe\\uffff\"}\n",
+    "expected": {
+      "external_id": "['\\ud800', '\\ud801', '\\udfff']",
+      "source_path": "/synthetic/codex-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "bec6b8b3e71f000d3854ecfe54ad938e7f6311a6b6fdc9bad17b3462d5a5c8cc",
+          "sequence": 30,
+          "source_line": 3,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "subsession",
+      "parent_external_id": "['\\ud800', '\\ud801', '\\udfff']",
+      "usage_records": [],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "codex",
+    "raw": "{\"type\": \"session_meta\", \"payload\": {\"id\": [[{\"\\udc00\": [\"a\\ud800\", \"\\\\ud800\"]}], {\"\\ud800\": false}], \"parent_thread_id\": [[{\"\\udc00\": [\"a\\ud800\", \"\\\\ud800\"]}], {\"\\ud800\": false}]}}\n{\"type\": \"turn_context\", \"payload\": {\"turn_id\": [[{\"\\udc00\": [\"a\\ud800\", \"\\\\ud800\"]}], {\"\\ud800\": false}]}}\n{\"type\": \"event_msg\", \"payload\": {\"type\": \"user_message\", \"message\": \"Keep source message\"}}\n{\"type\": \"response_item\", \"payload\": {\"type\": \"message\", \"role\": \"user\", \"content\": [{\"type\": \"input_text\", \"text\": \"Keep source message\"}], \"internal_chat_message_metadata_passthrough\": {\"turn_id\": [[{\"\\udc00\": [\"a\\ud800\", \"\\\\ud800\"]}], {\"\\ud800\": false}]}}}\n",
+    "expected": {
+      "external_id": "[[{'\\udc00': ['a\\ud800', '\\\\ud800']}], {'\\ud800': False}]",
+      "source_path": "/synthetic/codex-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "53385d2d48a0e514aae98100493ac44200b82881b22d6f545fdbc02f52bad20f",
+          "sequence": 30,
+          "source_line": 3,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "subsession",
+      "parent_external_id": "[[{'\\udc00': ['a\\ud800', '\\\\ud800']}], {'\\ud800': False}]",
+      "usage_records": [],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "codex",
+    "raw": "{\"type\": \"session_meta\", \"payload\": {\"id\": [\"{\\\"value\\\": \\\"\\\\ud800\\\"}\", \"\\ud800\"], \"parent_thread_id\": [\"{\\\"value\\\": \\\"\\\\ud800\\\"}\", \"\\ud800\"]}}\n{\"type\": \"turn_context\", \"payload\": {\"turn_id\": [\"{\\\"value\\\": \\\"\\\\ud800\\\"}\", \"\\ud800\"]}}\n{\"type\": \"event_msg\", \"payload\": {\"type\": \"user_message\", \"message\": \"Keep source message\"}}\n{\"type\": \"response_item\", \"payload\": {\"type\": \"message\", \"role\": \"user\", \"content\": [{\"type\": \"input_text\", \"text\": \"Keep source message\"}], \"internal_chat_message_metadata_passthrough\": {\"turn_id\": [\"{\\\"value\\\": \\\"\\\\ud800\\\"}\", \"\\ud800\"]}}}\n",
+    "expected": {
+      "external_id": "['{\"value\": \"\\\\ud800\"}', '\\ud800']",
+      "source_path": "/synthetic/codex-structured.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "Keep source message",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "5fae66af1749170c3cafe01b941a0d0ba3d40230c87e036c5d43cd0b9f8d6ca5",
+          "sequence": 30,
+          "source_line": 3,
+          "event_type": "message",
+          "occurred_at": null,
+          "role": "user",
+          "text": "Keep source message",
+          "tool_name": null,
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "subsession",
+      "parent_external_id": "['{\"value\": \"\\\\ud800\"}', '\\ud800']",
+      "usage_records": [],
+      "skill_observations": [],
+      "url_evidence": [],
+      "reference_candidates": []
+    }
+  },
+  {
+    "provider": "claude",
+    "raw": "{\"type\": \"assistant\", \"sessionId\": \"nested-scalars\", \"message\": {\"content\": [{\"type\": \"tool_use\", \"id\": \"call-nested\", \"name\": \"mcp_gateway.gateway_dispatch\", \"input\": \"{\\\"capability\\\": \\\"jira__searchIssuesByJql\\\", \\\"arguments\\\": \\\"{\\\\\\\"j\\\\\\\\ud800ql\\\\\\\": \\\\\\\"key = SYN-7\\\\\\\", \\\\\\\"ignored\\\\\\\": NaN}\\\", \\\"ignored\\\": NaN}\"}]}}\n{\"type\": \"user\", \"sessionId\": \"nested-scalars\", \"message\": {\"content\": [{\"type\": \"tool_result\", \"tool_use_id\": \"call-nested\", \"content\": \"{\\\"iss\\\\ud800ues\\\": [{\\\"u\\\\udc00rl\\\": \\\"https://jira.example.test/browse/SYN-7\\\", \\\"i\\\\ud800d\\\": \\\"77\\\", \\\"\\\\udfffsummary\\\": \\\"Synthetic nested scalar\\\"}], \\\"ignored\\\": NaN}\"}]}}\n",
+    "expected": {
+      "external_id": "nested-scalars",
+      "source_path": "/synthetic/nested-workspace/claude-normalized-keys.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "nested-workspace",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "59da9a1552748eb93019b6752d95b796fe9fa8d3954d80b25fd0d284732d98d6",
+          "sequence": 11,
+          "source_line": 1,
+          "event_type": "tool_call",
+          "occurred_at": null,
+          "role": "assistant",
+          "text": null,
+          "tool_name": "mcp_gateway.gateway_dispatch",
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "primary",
+      "parent_external_id": null,
+      "usage_records": [],
+      "skill_observations": [],
+      "url_evidence": [
+        {
+          "observed_url": "https://jira.example.test/browse/SYN-7",
+          "source_line": 2,
+          "url_ordinal": 1,
+          "source_channel": "approved_tool_result",
+          "source_event_id": "21346f9d4bf41c8eabe5bd089e993c93f960eb7016fe27fcf17ee235d49bfbb8",
+          "observed_at": null,
+          "observed_remote_id": "77",
+          "observed_title": "Synthetic nested scalar"
+        }
+      ],
+      "reference_candidates": [
+        {
+          "reference_kind": "url",
+          "reference": "https://jira.example.test/browse/SYN-7",
+          "evidence_kind": "tool_result",
+          "source_line": 2,
+          "evidence_ordinal": 1,
+          "source_event_id": "21346f9d4bf41c8eabe5bd089e993c93f960eb7016fe27fcf17ee235d49bfbb8",
+          "observed_at": null,
+          "tool_name": "mcp_gateway.gateway_dispatch",
+          "tool_call_id": "call-nested",
+          "read_outcome": null
+        },
+        {
+          "reference_kind": "jira_key",
+          "reference": "SYN-7",
+          "evidence_kind": "resource_read",
+          "source_line": 2,
+          "evidence_ordinal": 2,
+          "source_event_id": "21346f9d4bf41c8eabe5bd089e993c93f960eb7016fe27fcf17ee235d49bfbb8",
+          "observed_at": null,
+          "tool_name": "mcp_gateway.gateway_dispatch",
+          "tool_call_id": "call-nested",
+          "read_outcome": "success"
+        },
+        {
+          "reference_kind": "url",
+          "reference": "https://jira.example.test/browse/SYN-7",
+          "evidence_kind": "resource_read",
+          "source_line": 2,
+          "evidence_ordinal": 3,
+          "source_event_id": "21346f9d4bf41c8eabe5bd089e993c93f960eb7016fe27fcf17ee235d49bfbb8",
+          "observed_at": null,
+          "tool_name": "mcp_gateway.gateway_dispatch",
+          "tool_call_id": "call-nested",
+          "read_outcome": "success"
+        }
+      ]
+    }
+  },
+  {
+    "provider": "codex",
+    "raw": "{\"type\": \"session_meta\", \"payload\": {\"id\": \"nested-scalars\"}}\n{\"type\": \"response_item\", \"payload\": {\"type\": \"function_call\", \"call_id\": \"call-nested\", \"name\": \"mcp_gateway.gateway_dispatch\", \"arguments\": \"{\\\"capability\\\": \\\"jira__searchIssuesByJql\\\", \\\"arguments\\\": \\\"{\\\\\\\"j\\\\\\\\ud800ql\\\\\\\": \\\\\\\"key = SYN-7\\\\\\\", \\\\\\\"ignored\\\\\\\": NaN}\\\", \\\"ignored\\\": NaN}\"}}\n{\"type\": \"response_item\", \"payload\": {\"type\": \"function_call_output\", \"call_id\": \"call-nested\", \"output\": \"{\\\"iss\\\\ud800ues\\\": [{\\\"u\\\\udc00rl\\\": \\\"https://jira.example.test/browse/SYN-7\\\", \\\"i\\\\ud800d\\\": \\\"77\\\", \\\"\\\\udfffsummary\\\": \\\"Synthetic nested scalar\\\"}], \\\"ignored\\\": NaN}\"}}\n",
+    "expected": {
+      "external_id": "nested-scalars",
+      "source_path": "/synthetic/nested-workspace/codex-normalized-keys.jsonl",
+      "cwd_raw": null,
+      "git_branch": null,
+      "title": "codex-normalized-keys",
+      "started_at": null,
+      "ended_at": null,
+      "last_event_at": null,
+      "events": [
+        {
+          "event_id": "bc00b79fa3011b9985e167f724f797d8a2e9fb2d20a5a97b151269f536f79e46",
+          "sequence": 20,
+          "source_line": 2,
+          "event_type": "tool_call",
+          "occurred_at": null,
+          "role": "assistant",
+          "text": null,
+          "tool_name": "mcp_gateway.gateway_dispatch",
+          "message_phase": null
+        }
+      ],
+      "skipped_lines": 0,
+      "session_class": "work",
+      "index_policy": "full",
+      "maintenance_run_id": null,
+      "session_role": "primary",
+      "parent_external_id": null,
+      "usage_records": [],
+      "skill_observations": [],
+      "url_evidence": [
+        {
+          "observed_url": "https://jira.example.test/browse/SYN-7",
+          "source_line": 3,
+          "url_ordinal": 1,
+          "source_channel": "approved_tool_result",
+          "source_event_id": "89199453f7da2b5b66009920db07b70b3ab2d3500fe196192132bab6578bfd10",
+          "observed_at": null,
+          "observed_remote_id": "77",
+          "observed_title": "Synthetic nested scalar"
+        }
+      ],
+      "reference_candidates": [
+        {
+          "reference_kind": "url",
+          "reference": "https://jira.example.test/browse/SYN-7",
+          "evidence_kind": "tool_result",
+          "source_line": 3,
+          "evidence_ordinal": 1,
+          "source_event_id": "89199453f7da2b5b66009920db07b70b3ab2d3500fe196192132bab6578bfd10",
+          "observed_at": null,
+          "tool_name": "mcp_gateway.gateway_dispatch",
+          "tool_call_id": "call-nested",
+          "read_outcome": null
+        },
+        {
+          "reference_kind": "jira_key",
+          "reference": "SYN-7",
+          "evidence_kind": "resource_read",
+          "source_line": 3,
+          "evidence_ordinal": 2,
+          "source_event_id": "89199453f7da2b5b66009920db07b70b3ab2d3500fe196192132bab6578bfd10",
+          "observed_at": null,
+          "tool_name": "mcp_gateway.gateway_dispatch",
+          "tool_call_id": "call-nested",
+          "read_outcome": "success"
+        },
+        {
+          "reference_kind": "url",
+          "reference": "https://jira.example.test/browse/SYN-7",
+          "evidence_kind": "resource_read",
+          "source_line": 3,
+          "evidence_ordinal": 3,
+          "source_event_id": "89199453f7da2b5b66009920db07b70b3ab2d3500fe196192132bab6578bfd10",
+          "observed_at": null,
+          "tool_name": "mcp_gateway.gateway_dispatch",
+          "tool_call_id": "call-nested",
+          "read_outcome": "success"
+        }
+      ]
+    }
+  }
+]

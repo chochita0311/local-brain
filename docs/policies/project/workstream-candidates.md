@@ -32,7 +32,7 @@ This contract owns the pure supplied-fact candidate boundary, eligibility, ident
 
 ## Workstream Candidate Contract
 
-- `workflow/candidates.py` owns `localbrain.workstream-candidate.v1`.
+- `crates/core/src/backend/workflow/candidates.rs` owns `localbrain.workstream-candidate.v1`.
   Producers supply canonical artifact/Session/reference facts and proposed
   pairs. The module validates their evidence; it neither enumerates a corpus
   nor resolves a URL, path, Site, or alias through I/O.
@@ -181,6 +181,6 @@ promotion consumer, table, route, cache, schedule, model or organization mutatio
 
 ## Implementation Ownership
 
-- `src/localbrain/workflow/candidates.py`: pure candidate identity, supplied
+- `crates/core/src/backend/workflow/candidates.rs`: pure candidate identity, supplied
   pair/member validation, revisions, evidence/time/coverage descriptors, and
   bounded serialization; no database discovery or organization mutation

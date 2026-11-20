@@ -11,20 +11,13 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 import data_model_value_registry as checker  # noqa: E402
-from localbrain.persistence.value_registry import (
-    ValueRegistryError,
-    display_value_label,
-    load_value_registry,
-    validate_value_registry,
-    visible_value_label,
-    visible_value_help,
-)
+from value_registry_validation import ValueRegistryError, validate_value_registry
 
 
 class ValueRegistryContractTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.registry = load_value_registry()
+        cls.registry = checker.load_registry()
 
     def test_registry_covers_eleven_subjects_and_current_required_inventories(self):
         self.assertEqual(len(self.registry["subjects"]), 11)
@@ -48,32 +41,7 @@ class ValueRegistryContractTests(unittest.TestCase):
         )
         self.assertEqual(source_type["presentation"]["mode"], "logical-label")
         self.assertEqual(source_type["visible_consumers"], [])
-        self.assertEqual(
-            visible_value_label("atlassian-space.coverage", "selected-content"),
-            "선택한 항목만",
-        )
-        self.assertEqual(
-            visible_value_label("external-capability.availability", None),
-            "확인 전",
-        )
-        with self.assertRaisesRegex(ValueRegistryError, "not visible"):
-            visible_value_label("session.index-policy", "full")
-        self.assertEqual(
-            visible_value_label(
-                "atlassian-space.coverage",
-                "raw-future-token",
-                fallback="unknown",
-            ),
-            "범위 알 수 없음",
-        )
-        self.assertEqual(
-            display_value_label("workspace.exists-now", "unexpected"),
-            "표시할 수 없음",
-        )
-        self.assertEqual(
-            visible_value_help("atlassian-space.coverage"),
-            "",
-        )
+        # Native label/help/fallback behavior is covered by native_value_registry.rs.
 
     def test_schema_value_drift_is_named(self):
         changed = copy.deepcopy(self.registry)
@@ -118,7 +86,7 @@ class ValueRegistryContractTests(unittest.TestCase):
         )
 
     def test_ordinary_templates_do_not_restore_known_raw_token_output(self):
-        template_root = ROOT / "src/localbrain/templates"
+        template_root = ROOT / "apps/web/templates"
         documents = "\n".join(
             path.read_text(encoding="utf-8")
             for path in sorted(template_root.glob("*.html"))
@@ -137,7 +105,7 @@ class ValueRegistryContractTests(unittest.TestCase):
         ):
             self.assertIsNone(re.search(raw_expression, documents))
         self.assertNotIn("status.textContent = current.status;", (
-            ROOT / "src/localbrain/static/app.js"
+            ROOT / "apps/web/static/app.js"
         ).read_text(encoding="utf-8"))
 
 

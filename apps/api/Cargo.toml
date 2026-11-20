@@ -1,0 +1,44 @@
+[package]
+name = "localbrain-api"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+default-run = "localbrain"
+
+[[bin]]
+name = "localbrain"
+path = "src/main.rs"
+
+[[bin]]
+name = "lb"
+path = "src/bin/lb.rs"
+
+[[bin]]
+name = "localbrain-backend"
+path = "src/bin/desktop.rs"
+
+[dependencies]
+localbrain-core = { path = "../../crates/core" }
+localbrain-models = { path = "../../crates/models" }
+serde.workspace = true
+serde_json.workspace = true
+rusqlite.workspace = true
+chrono.workspace = true
+jiff.workspace = true
+uuid.workspace = true
+regex.workspace = true
+libc.workspace = true
+url.workspace = true
+base64.workspace = true
+sha2.workspace = true
+tempfile.workspace = true
+axum = { version = "=0.8.4", features = ["ws", "multipart", "form"] }
+tokio = { version = "=1.53.3", features = ["full"] }
+tower = { version = "=0.5.3", features = ["util"] }
+tower-http = { version = "=0.6.11", features = ["fs", "compression-gzip", "set-header"] }
+futures-util = "=0.3.32"
+minijinja = { version = "=3.1.0", features = ["serde", "json", "urlencode", "builtins", "preserve_order"] }
+minijinja-contrib = { version = "=3.1.0", features = ["pycompat"] }
+serde_urlencoded = "=0.7.1"
+mime_guess = "=2.0.5"
+subtle = "=2.6.1"

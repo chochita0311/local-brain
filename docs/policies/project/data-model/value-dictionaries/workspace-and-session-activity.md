@@ -1,4 +1,4 @@
-<!-- Generated from src/localbrain/value-registry.json by scripts/build-data-model-value-dictionaries.py. Do not edit. -->
+<!-- Generated from crates/core/resources/value-registry.json by scripts/build-data-model-value-dictionaries.py. Do not edit. -->
 # Workspace and Session activity Value Dictionary
 
 Durable table owner: [docs/policies/project/data-model/workspace-and-session-activity.md](../workspace-and-session-activity.md)
@@ -13,13 +13,13 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: current local path existence
 - Default: `0`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/ingest/scanner.py`
-- Consumers: `src/localbrain/sessions/queries.py`, `src/localbrain/templates/sessions.html`, `src/localbrain/templates/session.html`
+- Producers: `crates/core/src/backend/ingest/scanner.rs`
+- Consumers: `crates/core/src/backend/sessions/queries.rs`, `apps/web/templates/sessions.html`, `apps/web/templates/session.html`
 - Consequence: Missing paths remain historical but cannot be opened locally.
 - Presentation mode: `logical-label`
 - Labels: `0` → 현재 경로 없음; `1` → 현재 경로 있음
 - Help: 마지막 스캔 시점의 로컬 경로 존재 여부입니다.
-- Visible consumer inventory: `src/localbrain/templates/sessions.html` (registry-backed); `src/localbrain/templates/session.html` (registry-backed)
+- Visible consumer inventory: `apps/web/templates/sessions.html` (registry-backed); `apps/web/templates/session.html` (registry-backed)
 
 ## `session.class`
 
@@ -29,8 +29,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: session ownership class
 - Default: `work`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/ingest/providers/codex.py`, `src/localbrain/ingest/scanner.py`, `src/localbrain/workstreams/runner.py`
-- Consumers: `src/localbrain/sessions/queries.py`, `src/localbrain/workstreams/retrieval.py`
+- Producers: `crates/core/src/backend/ingest/providers/codex.rs`, `crates/core/src/backend/ingest/scanner.rs`, `crates/core/src/backend/workstreams/runner.rs`
+- Consumers: `crates/core/src/backend/sessions/queries.rs`, `crates/core/src/backend/workstreams/retrieval.rs`
 - Consequence: Maintenance Sessions, including recognized provider-internal helpers, are excluded from ordinary user Session surfaces.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
@@ -45,13 +45,13 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: session hierarchy role
 - Default: `primary`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/ingest/providers/claude.py`, `src/localbrain/ingest/providers/codex.py`
-- Consumers: `src/localbrain/sessions/queries.py`, `src/localbrain/templates/sessions.html`, `src/localbrain/templates/session.html`, `src/localbrain/templates/subsession.html`
+- Producers: `crates/core/src/backend/ingest/providers/claude.rs`, `crates/core/src/backend/ingest/providers/codex.rs`
+- Consumers: `crates/core/src/backend/sessions/queries.rs`, `apps/web/templates/sessions.html`, `apps/web/templates/session.html`, `apps/web/templates/subsession.html`
 - Consequence: Controls top-level inventory placement and Subsession navigation.
 - Presentation mode: `logical-label`
 - Labels: `primary` → Session; `subsession` → Subsession
 - Help: 원본 대화 계층에서의 역할입니다.
-- Visible consumer inventory: `src/localbrain/templates/sessions.html` (registry-backed); `src/localbrain/templates/session.html` (registry-backed); `src/localbrain/templates/subsession.html` (registry-backed)
+- Visible consumer inventory: `apps/web/templates/sessions.html` (registry-backed); `apps/web/templates/session.html` (registry-backed); `apps/web/templates/subsession.html` (registry-backed)
 
 ## `session.index-policy`
 
@@ -61,8 +61,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: search indexing policy
 - Default: `full`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/ingest/providers/codex.py`, `src/localbrain/ingest/scanner.py`, `src/localbrain/workstreams/runner.py`
-- Consumers: `src/localbrain/workstreams/retrieval.py`
+- Producers: `crates/core/src/backend/ingest/providers/codex.rs`, `crates/core/src/backend/ingest/scanner.rs`, `crates/core/src/backend/workstreams/runner.rs`
+- Consumers: `crates/core/src/backend/workstreams/retrieval.rs`
 - Consequence: Metadata-only Sessions never expose conversation content to search.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
@@ -77,8 +77,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: assistant response phase normalized from explicit source signals
 - Default: `NULL`
 - Fallbacks: `null`: internal; `unknown`: internal; `invalid`: reject; `future`: internal
-- Producers: `src/localbrain/ingest/providers/claude.py`, `src/localbrain/ingest/providers/codex.py`, `src/localbrain/ingest/scanner.py`
-- Consumers: `src/localbrain/sessions/queries.py`, `src/localbrain/sessions/reading.py`, `src/localbrain/templates/_conversation.html`
+- Producers: `crates/core/src/backend/ingest/providers/claude.rs`, `crates/core/src/backend/ingest/providers/codex.rs`, `crates/core/src/backend/ingest/scanner.rs`
+- Consumers: `crates/core/src/backend/sessions/queries.rs`, `crates/core/src/backend/sessions/reading.rs`, `apps/web/templates/_conversation.html`
 - Consequence: Native Codex final_answer phases and Claude end_turn responses select a neutral conversation frame without implying task success. Claude tool_use maps to commentary; split records share signals within the same native API message ID. Missing, conflicting, malformed or error signals keep the ordinary assistant presentation.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
@@ -93,8 +93,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: skill evidence source adapter
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/ingest/scanner.py`
-- Consumers: `src/localbrain/sessions/skills.py`
+- Producers: `crates/core/src/backend/ingest/scanner.rs`
+- Consumers: `crates/core/src/backend/sessions/skills.rs`
 - Consequence: Retains the original Claude or Codex parser family even when the current Source row is unavailable.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
@@ -109,8 +109,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: skill invocation, read, reference or script evidence
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/ingest/providers/claude.py`, `src/localbrain/ingest/providers/codex.py`
-- Consumers: `src/localbrain/sessions/skills.py`
+- Producers: `crates/core/src/backend/ingest/providers/claude.rs`, `crates/core/src/backend/ingest/providers/codex.rs`
+- Consumers: `crates/core/src/backend/sessions/skills.rs`
 - Consequence: Distinguishes native calls/contexts, completed reads, named conversation references, identifiable skill script executions and retained historical declarations. All observed kinds count at most once per source/native Session/skill. No application-phrase classification or proof of success/benefit.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
@@ -125,8 +125,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: historical observation validity
 - Default: `observed`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/sessions/skills.py`, `src/localbrain/ingest/scanner.py`
-- Consumers: `src/localbrain/sessions/skills.py`
+- Producers: `crates/core/src/backend/sessions/skills.rs`, `crates/core/src/backend/ingest/scanner.rs`
+- Consumers: `crates/core/src/backend/sessions/skills.rs`
 - Consequence: Only observed rows enter the ranking; maintenance or later proven-invalid records remain inspectable without counting.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
@@ -141,8 +141,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: Session reference reconciliation state
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/ingest/scanner.py`
-- Consumers: `src/localbrain/sessions/queries.py`
+- Producers: `crates/core/src/backend/ingest/scanner.rs`
+- Consumers: `crates/core/src/backend/sessions/queries.rs`
 - Consequence: Distinguishes complete, safety-bounded, and stale-after-error reference evidence.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
@@ -157,8 +157,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: Session reference evidence provenance
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: label → 참조 근거 알 수 없음; `invalid`: reject; `future`: label → 새 참조 근거
-- Producers: `src/localbrain/ingest/scanner.py`
-- Consumers: `src/localbrain/sessions/queries.py`
+- Producers: `crates/core/src/backend/ingest/scanner.rs`
+- Consumers: `crates/core/src/backend/sessions/queries.rs`
 - Consequence: Explains whether the Session mentioned, observed, or read the target.
 - Presentation mode: `logical-label`
 - Labels: `user_mention` → 사용자 메시지에서 언급; `assistant_mention` → Agent 응답에서 언급; `tool_result` → 도구 결과에서 확인; `resource_read` → MCP 조회
@@ -173,8 +173,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: completed approved resource read outcome
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: label → 조회 결과 알 수 없음; `invalid`: reject; `future`: label → 새 조회 결과
-- Producers: `src/localbrain/ingest/scanner.py`
-- Consumers: `src/localbrain/sessions/queries.py`
+- Producers: `crates/core/src/backend/ingest/scanner.rs`
+- Consumers: `crates/core/src/backend/sessions/queries.rs`
 - Consequence: A success requires one matched completed non-error call; failure never implies remote content or freshness.
 - Presentation mode: `logical-label`
 - Labels: `success` → MCP 조회; `failure` → MCP 조회 실패
@@ -187,4 +187,4 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 | --- | --- | --- |
 | `activity_events.event_type and activity_events.role` | source parser contracts | Open source-native event vocabulary; not a bounded product family. |
 | `session_pins row presence and pinned_at` | session pin persistence | Pin state is represented by row presence and a timestamp, not by a bounded status value. |
-| `numeric, range, shape, length, null-correlation, and composite CHECK constraints` | src/localbrain/schema.sql | Structural invariants are documented by table owners but do not define selectable value vocabularies. |
+| `numeric, range, shape, length, null-correlation, and composite CHECK constraints` | crates/core/resources/schema.sql | Structural invariants are documented by table owners but do not define selectable value vocabularies. |

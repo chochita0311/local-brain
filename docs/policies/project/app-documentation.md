@@ -6,9 +6,9 @@ In-app Docs have six common bundled Korean and English guides for people using
 LocalBrain, plus a conditional Terminal guide in the macOS app and development web. This policy defines their content ownership, page boundaries,
 reader behavior and delivery contract.
 
-- Korean-default and switchable English user guidance for the distributed app lives in `src/localbrain/content/docs/`. These Markdown bodies are the canonical content; do not copy the repository's policy or planning tree into the app.
+- Korean-default and switchable English user guidance for the distributed app lives in `apps/web/content/docs/`. These Markdown bodies are the canonical content; do not copy the repository's policy or planning tree into the app.
 - The root [README](../../../README.md) owns the public product overview, installation entry and short first-use path. It directs users to in-app Docs rather than accumulating screen contracts, development progress or build internals. The [Documentation Map](../../README.md) routes maintainers to internal owners; the [test distribution guide](standalone-test-app-guide.md) owns artifact-specific first-launch requirements and release verification limits.
-- `src/localbrain/app/docs.py` owns the fixed page registry, titles, descriptions and corresponding content filenames. User input never selects a filesystem path.
+- `apps/api/src/routes/guides.rs` owns the fixed page registry, titles, descriptions and corresponding content filenames. User input never selects a filesystem path.
 - The six pages cover Getting Started, Settings, Sessions Dashboard, Sessions, Local Contexts and Search. They explain the distributed app as ordinary downloaded, installed software. Development-only functionality, unfinished-feature lists, personal-environment details and internal execution evidence remain outside the guide.
 - The initial source-build trial lets Getting Started briefly point to the README's agent-assisted installation entry and explain pull → rebuild → replace for updates. Toolchain/build commands stay with the installation/developer guides. After installation, ordinary use and offline Docs do not depend on the checkout or that external link; this entry does not expose the development web edition as the trial app.
 - Settings owns option meaning, registration and Storage procedures, including backup, restore and cache cleanup. Search owns model preparation, download requirements and readiness. Sessions, Local Contexts and Dashboard own visibility/coverage checks; Getting Started owns installation, quitting and updates. Other pages link to the owning explanation rather than repeating a separate Troubleshooting page.
@@ -24,7 +24,7 @@ data. The six common guides retain their existing product scope.
 ## Routes And Reading
 
 - `/help` is Getting Started. The remaining routes are `/help/settings`, `/help/sessions-dashboard`, `/help/sessions`, `/help/local-contexts` and `/help/search`. The retired `/help/troubleshooting` route returns 404 and has no packaged body.
-- The existing FastAPI `/docs` API-reference route is unchanged. Product Docs are a separate destination.
+- The web edition retains `/docs`, `/redoc`, `/docs/oauth2-redirect` and `/openapi.json` through native API-reference adapters. Desktop excludes them. Product Docs remain the separate `/help` destination.
 - A Docs link appears immediately above Settings in the shared sidebar footer. Both remain reachable in the compact layout. Docs use the existing app shell, reading tokens, local assets and current-page semantics.
 - The reader has no per-guide Settings action or release-version badge. Shared app Settings remains available. The Settings guide omits About, app-versus-data-format version explanations and fixed path-label rules as part of its content boundary. Sessions explains home-directory path labels beside its conversation metadata, preserving the distinction between display, saved locations and historical Project attribution.
 - First-use setup does not automatically cover a Docs page. Docs remain available from the shared sidebar; reading a guide does not complete onboarding or register a source. The existing explicit setup request and normal app startup retain their behavior.
@@ -40,7 +40,7 @@ data. The six common guides retain their existing product scope.
 
 ## Delivery And Privacy
 
-- Content, templates, styles and required assets ship in the Python package. The existing PyInstaller `collect_data_files('localbrain')` recipe collects these package-owned files for the desktop app.
+- Content, templates, styles and required assets ship from `apps/web` into the native web bundle and the desktop backend resource. `scripts/build-api.py` and `scripts/build-desktop.py` own that inclusion; no Python package or PyInstaller payload is shipped.
 - Guide rendering reads package content, not repository-relative files. No checkout, model, network or registered personal source is required for ordinary reading.
 - Desktop Docs routes retain the loopback, per-launch authentication and development-feature restrictions. A Docs request causes no source collection, model setup, preference change or personal search indexing.
 - Keep examples synthetic. Add no telemetry or external content dependency. A release provides one guide matching its running version; update the relevant content in the same change as a public behavior change.
@@ -54,7 +54,7 @@ data. The six common guides retain their existing product scope.
 
 ## Implementation Ownership
 
-- `app/docs.py`, package `content/docs/`, `templates/app-docs.html` and `static/app-docs.css`: fixed user-guide registry, canonical Korean/English content and in-app reader. [In-App Documentation](app-documentation.md) owns the product routes, shared Markdown link exception, package delivery and content boundary.
+- `apps/api/src/routes/guides.rs`, `apps/web/content/docs/`, `apps/web/templates/app-docs.html` and `apps/web/static/app-docs.css`: fixed user-guide registry, canonical Korean/English content and in-app reader. [In-App Documentation](app-documentation.md) owns the product routes, shared Markdown link exception, package delivery and content boundary.
 
 ## Language Contract
 

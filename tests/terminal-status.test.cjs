@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const {shellStatus} = require('../src/localbrain/terminal/status.cjs');
+const {shellStatus} = require('../crates/runtime/engine/status.cjs');
 
 test('a quiet live shell and ordinary output do not establish command state', () => {
   const status = shellStatus();
@@ -35,7 +35,7 @@ test('aborted command line is not completion and omitted exit result stays unkno
 });
 
 test('shell descriptions preserve missing signals, process exit and unseen versus seen completion', async () => {
-  const {terminalStatus} = await import('../src/localbrain/static/terminal-state.js');
+  const {terminalStatus} = await import('../apps/web/static/terminal-state.js');
   const live = {state: 'running', activity: {state: 'unknown', completion: 0, exitCode: null}};
   assert.equal(terminalStatus(live).key, 'unknown');
   assert.equal(terminalStatus(live).icon, 'circle');
@@ -54,7 +54,7 @@ test('shell descriptions preserve missing signals, process exit and unseen versu
 });
 
 test('program title frames stay independent of shell running and do not consume ordinary title text', async () => {
-  const {programTitle, terminalStatus} = await import('../src/localbrain/static/terminal-state.js');
+  const {programTitle, terminalStatus} = await import('../apps/web/static/terminal-state.js');
   const running = {state:'running',activity:{state:'running',completion:0}};
   const frames = ['⠋ Synthetic Agent', '⠙ Synthetic Agent', 'Synthetic Agent'];
   assert.deepEqual(frames.map(name=>programTitle(name)), [
@@ -65,7 +65,7 @@ test('program title frames stay independent of shell running and do not consume 
 });
 
 test('unselected marks require reported prompt/running and aggregate mixed panes without inventing idle', async () => {
-  const {terminalIndicator} = await import('../src/localbrain/static/terminal-state.js');
+  const {terminalIndicator} = await import('../apps/web/static/terminal-state.js');
   const term = activity => ({state:'running',activity:{state:activity}});
   const unknown=term('unknown'), prompt=term('prompt'), running=term('running');
   assert.equal(terminalIndicator([unknown]).icon, null);
@@ -80,7 +80,7 @@ test('unselected marks require reported prompt/running and aggregate mixed panes
 });
 
 test('selection/hidden marks take precedence while program title activity remains independent', async () => {
-  const {terminalIndicator,programTitle} = await import('../src/localbrain/static/terminal-state.js');
+  const {terminalIndicator,programTitle} = await import('../apps/web/static/terminal-state.js');
   for (const state of ['unknown','prompt','running','finished']) {
     const terms=[{state:'running',name:'⠋ Agent',activity:{state}}];
     assert.equal(terminalIndicator(terms,{current:true}).icon, 'check');
@@ -90,7 +90,7 @@ test('selection/hidden marks take precedence while program title activity remain
 });
 
 test('confirmed shell cleanup retires every exit code, preserving genuine faults', async () => {
-  const {cleanShellExit} = await import('../src/localbrain/static/terminal-state.js');
+  const {cleanShellExit} = await import('../apps/web/static/terminal-state.js');
   const exited = {state:'exited',exitCode:0};
   for (const exitCode of [0,7,null]) assert.equal(cleanShellExit({...exited,exitCode}), true);
   for (const change of [{state:'running'}, {closing:true}, {error:'unknown child'}, {inputError:'partial input'}]) {
@@ -99,14 +99,14 @@ test('confirmed shell cleanup retires every exit code, preserving genuine faults
 });
 
 test('view order survives new/removed tabs without changing manager arrays', async () => {
-  const {orderedTabs} = await import('../src/localbrain/static/terminal-state.js');
+  const {orderedTabs} = await import('../apps/web/static/terminal-state.js');
   const tabs = [{id:'a'},{id:'b'},{id:'new'}];
   assert.deepEqual(orderedTabs(tabs,['gone','b','a']).map(tab=>tab.id), ['b','a','new']);
   assert.deepEqual(tabs.map(tab=>tab.id), ['a','b','new']);
 });
 
 test('workspace membership keeps empty groups and different-root hidden tabs in view order', async () => {
-  const {workspaceGroups} = await import('../src/localbrain/static/terminal-state.js');
+  const {workspaceGroups} = await import('../apps/web/static/terminal-state.js');
   const tabs = [{id:'a', cwd:'/demo/a', terminals:['one']}, {id:'b', cwd:'/demo/a', hidden:true, terminals:['two']}, {id:'c', cwd:'/demo/b', terminals:['three']}];
   const workspaces = {items:[{id:'mixed', name:'Mixed', cwd:'', tabs:['c','a','b']}, {id:'empty', name:'Later', cwd:'/demo/a', tabs:[]}]};
   const groups = workspaceGroups(workspaces, tabs);
@@ -115,7 +115,7 @@ test('workspace membership keeps empty groups and different-root hidden tabs in 
 });
 
 test('a delayed list response cannot regress newer stream status within one generation', async () => {
-  const {latestTerminal} = await import('../src/localbrain/static/terminal-state.js');
+  const {latestTerminal} = await import('../apps/web/static/terminal-state.js');
   const stream = {id:'one',seq:12,activity:{state:'running',completion:2}};
   const stale = {id:'one',seq:11,activity:{state:'prompt',completion:2}};
   assert.equal(latestTerminal(stream,stale), stream);

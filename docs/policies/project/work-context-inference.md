@@ -1,6 +1,10 @@
 # Work Context Inference
 
-This contract owns quoted model input/output, generation identity, strategy behavior and synthetic protocol diagnostics. [Model Trial Operations](development/work-context-trials.md) owns invocation; a valid protocol is not semantic model admission.
+This contract owns the retained quoted input/output, identity, strategy and
+synthetic-diagnostic requirements. The Python strategies and trial suites are
+retired; no quoted extractor or diagnostic command is currently available.
+[Trial status](development/work-context-trials.md) routes the complete historical
+procedures. These rules do not admit a model or a private/product consumer.
 
 ## Quoted Work-Context Model Contract
 
@@ -36,8 +40,11 @@ a shared topic without established same-goal continuity or distinct outcomes;
 evidence remains `uncertain`. Structural quote validation cannot prove these
 semantic judgments. Output retains `authority: inferred` and the prompt version.
 
-The generator verifies an installed allowlisted model/revision and its assets
-before use. `auto` selects MPS when available, otherwise CUDA, otherwise CPU;
+The following device/dtype/attention and Python-runtime identity rules retain
+the retired quoted-research generator's reproduction contract. They do not
+describe Candle or an available quoted adapter. That generator verifies an
+installed allowlisted model/revision and its assets before use. `auto` selects
+MPS when available, otherwise CUDA, otherwise CPU;
 explicit `mps`, `cuda` and `cpu` remain available. CPU uses float32, other devices
 bfloat16; MPS uses eager attention and other devices use SDPA. Model/revision,
 asset fingerprint, device, dtype, attention, Python/Torch/Transformers versions,
@@ -46,7 +53,7 @@ part of the compatible inference identity. Public pinned 4B and 8B installations
 retain separate identities; neither a default model label nor cache relocation
 can substitute for verified assets.
 
-| Generation setting | Current accepted value |
+| Retained research generation setting | Required value |
 | --- | --- |
 | `thinking` / decoding | Actual boolean; `greedy` or `sampled`, with thinking allowed only with sampled decoding |
 | Non-thinking token budgets | Combined default/ceiling 8,192; generated default/ceiling 2,048 |
@@ -72,88 +79,73 @@ into truth. Their packet/case bounds and protocol/admission operations are in th
 [Developer Guide](development/work-context-trials.md#operations). No quoted
 strategy is admitted to a private-history or product reconstruction consumer.
 
+## Retained Strategy And Diagnostic Requirements
+
+Any reintroduced quoted strategy must retain role/locator attribution; valid
+quotes are not entailment. Staged inference validates intermediate original
+quotes and keeps the full original context without filling missing evidence.
+Strategy/stage/runtime cache identities and independent development/holdout
+gates remain separate. A verified 4B default cannot label an 8B result.
+
+Classified source roles and work membership remain separate from serialization;
+source spans are not work-unit boundaries. Unknown membership, ambiguous spans
+and packet/case overflow refuse without disguising lost source as complete
+reconstruction. Selected mode chooses whole-conversation anchors before field
+evidence and preserves them without supplying missing citations or changing the
+classified comparator. The finite decoder constrains syntax, not truth.
+
+Evidence-first assessment examines literal facets before grouping independently
+resumable outcomes. Pairwise anchor/membership checks refuse ambiguous bridges;
+unit audits compare proposed fields with original records. Continuation requires
+model-selected goal support, compatible scope and explicit linkage. Missing or
+conflicting support judged by the model withholds a relation; this cannot
+guarantee recognition of semantic mistakes. Only model-selected facts serialize.
+Semantic-label codes admit 32 characters, legacy codes eight, both with the
+same eight-token/EOS grammar. Hashed terminal failures remain replayable;
+changed configurations/corrupt caches refuse and incomplete-case retries stay
+bounded. Original development/compositional gates are independent. Holdout needs
+a complete identity-matched report with revalidated observations/split scores
+and primary semantic review; syntax, withholding or same-model audits do not
+admit a product consumer.
+
+Protocol diagnosis remains separate from extraction/admission. A frozen matrix
+must independently control option order/numeric mapping while label/text
+responses retain the same original context and alternatives. Semantic, protocol
+and literal-citation results stay distinct. Prompt/template hashes and actual
+answer token IDs remain auditable. Completed wrong/invalid/refused observations
+replay; configuration changes refuse; cumulative calls/time survive clean
+interruption and unknown in-flight reservations block restart. Completeness
+admits no model, database, holdout, new dependency or UI use.
+
+Matched role-formulation diagnosis compares independent questions with a
+complete role-set choice on identical focused spans, including changed later
+context, compound roles and canonical/reversed options. Score role sets per
+context, not incompatible raw call counts; score relationship controls
+separately. A meter may wrap the unchanged `choose` decoder without changing
+existing strategies: every choice reserves cumulative calls/time, incomplete
+observations have bounded attempts and completed errors/refusals are hashed and
+replayed under the existing private owner/lock/expiry rules. These are synthetic
+diagnostics, never training, private-source discovery or model admission.
+
 ## Implementation Ownership
 
-- `experiments/context/contract.py`, `experiments/context/staged.py`,
-  `experiments/context/classified.py`, `experiments/context/selected.py`, and
-  `experiments/context/evaluation.py`:
-  exact quoted work-unit/pair-relation contracts and synthetic-only admission
-  evaluation, using explicit public-model installation and independently verified
-  offline generation from `models/generation.py`, with finite decoding from
-  `models/choices.py`. The current [quoted work-context contract](#quoted-work-context-model-contract)
-  owns the model, packet, generation and output boundaries. The evaluation opens no source
-  DB and introduces no product consumer, training, organization write or automatic
-  inference. Quoted fields retain role and locator; validity is not entailment.
-  Staged inference validates intermediate source quotes and keeps full original
-  context; it never fills missing output evidence. Thinking-mode protocol strips
-  reasoning before decoding/storage. Strategy/stage/runtime identities separate
-  caches; development and holdout gates are independent.
-  MPS generation uses eager attention; the attention implementation is part of
-  the runtime fingerprint.
-  The installer admits only the allowlisted pinned 4B/8B catalog. Verification
-  resolves the owner and model-specific assets, and inference identity uses that
-  verified model; a 4B default must not label an 8B result.
-  `models/cache.py` resolves public pretrained assets in the user-wide Hugging
-  Face Hub cache. Installation metadata remains in the explicit private model
-  root: the directory owner marker stays v1, while a
-  `localbrain.work-context-model.v2` model manifest has a Hub-relative snapshot.
-  Legacy v1 manifests remain readable. Verification confines selected assets to
-  their model repository and preserves their pinned hashes and inference identity.
-  `models/catalog.py` pins the supported public identities and feature requirements;
-  `models/installation.py` owns independent LocalBrain embedding setup with a
-  `localbrain.semantic-model/v1` Hub-relative manifest. The embedding adapter
-  also accepts compatible older app-local and Hub-relative snapshot manifests.
-  Private vectors and outputs remain in LocalBrain's runtime storage.
-  App cleanup never owns deletion of shared public weights.
-  Future trained adapters/checkpoints require separate durable project storage
-  under the privacy policy.
-  The opt-in classified strategy separates model-selected source roles and work
-  membership from serialization. Its finite answer-code decoder constrains syntax,
-  not truth; source spans are not work-unit boundaries. Original context and
-  explicit model-selected citations feed the existing quote validators. Unknown
-  membership, ambiguous spans and packet/case bounds fail without source loss
-  being disguised as complete reconstruction. No private producer consumes it yet.
-  The separate selected strategy chooses whole-conversation anchors before their
-  field evidence through the same bounded decoder; it preserves anchors without
-  silently filling missing citations or changing the classified comparator.
-  The opt-in `experiments/context/evidence.py` strategy assesses literal source facets
-  before grouping independently resumable outcomes. Pairwise anchor/membership
-  checks refuse ambiguous bridges; unit audits inspect proposed fields against
-  original records. Continuation requires model-selected goal support,
-  compatible scope and explicit linkage, with automatic uncertainty on support
-  the model judges missing or conflicting. This does not guarantee recognition
-  of semantic errors. Only model-selected facts are serialized. Its semantic
-  label decoder explicitly admits up to 32 characters while legacy default codes
-  remain bounded to eight; both keep the eight-token/EOS grammar.
-  Evidence evaluation has failure-preserving, hashed terminal observations,
-  changed-config/corrupt-cache refusal and bounded incomplete-case retries.
-  Original development and compositional gates are separate. Holdout requires a
-  complete identity-matched report whose observations/split scores are revalidated;
-  primary semantic review remains required. No product consumer is admitted by
-  valid syntax, automatic withholding or same-model auditing alone.
+`crates/models/src/` owns current native pinned assets, tokenization, generation
+and finite-choice primitives; `crates/core/src/backend/models/` owns application
+model setup. Neither provides the retired quoted strategies or trial consumers.
+The retained installation contract admits only the allowlisted pinned 4B/8B
+catalog. Verification resolves the owner and model-specific assets; a default
+4B label cannot identify an 8B result. The directory owner marker stays v1;
+`localbrain.work-context-model.v2` uses a Hub-relative snapshot and legacy v1
+app-local manifests remain readable. Selected assets remain confined to their
+model repository with pinned hashes and inference identity preserved.
+`crates/models/src/assets.rs` owns independent embedding setup with a
+`localbrain.semantic-model/v1` Hub-relative manifest and compatible older
+app-local/Hub-relative snapshot manifests. Private vectors and outputs keep
+LocalBrain's runtime owner. Public pretrained assets remain in the shared Hub
+cache and app cleanup never deletes shared weights. Future trained
+adapters/checkpoints need separate durable project storage and backups under
+the privacy policy.
 
-
-- `experiments/context/diagnostic.py`: opt-in fixed-model synthetic protocol diagnosis,
-  separate from extraction/admission and any product producer. Its frozen matrix
-  independently controls option order and numeric mapping; label/text responses
-  keep the same source context and alternative meanings. Semantic, protocol and
-  literal-citation results are distinct. Prompt/template hashes and actual answer
-  token IDs make rendering auditable. Completed wrong/invalid/refused observations
-  remain cached, changed configurations refuse reuse, and cumulative attempt/time
-  budgets survive clean interruption. An unclean in-flight reservation blocks
-  automatic restart. Diagnostic completeness never grants model admission.
-  No database, holdout, new dependency, model or UI is involved.
-
-
-- `experiments/context/role_comparison.py`: a separate matched synthetic formulation diagnostic.
-  It reuses unchanged evidence-first facet definitions and relation inference,
-  contrasting independent questions with one complete role-set decision. Compound
-  roles, identical focused spans with different later context, and canonical/
-  reversed option orders remain explicit. Scoring compares role sets per context,
-  not incompatible raw call counts; relationship controls are scored separately.
-  An execution meter wraps existing `choose` without changing the decoder or
-  existing strategies. Every choice reserves cumulative call/time accounting;
-  incomplete observations have bounded attempts, while completed refusals/errors
-  are hashed and replayed. Existing private evaluation storage ownership applies.
-  Prompt/template/token audits are synthetic diagnostics, not private-source
-  discovery, model admission, training or a product producer.
+The [former implementation explanation](../../plans/research/retired-python-research-tools.md#work-context-implementation)
+retains exact retired source ownership, model-manifest generations and strategy
+mechanics. No unavailable Python module is a current implementation owner.

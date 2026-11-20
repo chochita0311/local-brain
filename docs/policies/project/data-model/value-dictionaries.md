@@ -1,4 +1,4 @@
-<!-- Generated from src/localbrain/value-registry.json by scripts/build-data-model-value-dictionaries.py. Do not edit. -->
+<!-- Generated from crates/core/resources/value-registry.json by scripts/build-data-model-value-dictionaries.py. Do not edit. -->
 # Data Model Value Dictionaries
 
 This index projects the executable bounded-value authority into eleven subject-owned dictionaries. The existing subject catalogs continue to own tables, columns, relationships, lifecycle, deletion, and recovery.
@@ -9,7 +9,7 @@ This index projects the executable bounded-value authority into eleven subject-o
 - `logical-label`: every allowed value and permitted fallback uses the complete mapping.
 - `internal-only`: the complete family stays off ordinary product screens.
 
-A family never mixes modes. Runtime code loads `src/localbrain/value-registry.json`; it does not parse these Markdown files.
+A family never mixes modes. Runtime code loads `crates/core/resources/value-registry.json`; it does not parse these Markdown files.
 
 ## Subject Dictionaries
 
@@ -30,6 +30,6 @@ A family never mixes modes. Runtime code loads `src/localbrain/value-registry.js
 ## Verification
 
 ```bash
-uv run python scripts/build-data-model-value-dictionaries.py check
-uv run python scripts/check-data-model-docs.py
+python3 scripts/build-data-model-value-dictionaries.py check
+python3 scripts/check-data-model-docs.py
 ```

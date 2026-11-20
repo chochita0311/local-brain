@@ -1,4 +1,4 @@
-<!-- Generated from src/localbrain/value-registry.json by scripts/build-data-model-value-dictionaries.py. Do not edit. -->
+<!-- Generated from crates/core/resources/value-registry.json by scripts/build-data-model-value-dictionaries.py. Do not edit. -->
 # Atlassian source memory Value Dictionary
 
 Durable table owner: [docs/policies/project/data-model/atlassian-source-memory.md](../atlassian-source-memory.md)
@@ -13,13 +13,13 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: Atlassian content service
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: label → 알 수 없는 서비스; `invalid`: reject; `future`: label → 새 서비스
-- Producers: `src/localbrain/atlassian/catalog.py`, `src/localbrain/atlassian/registration.py`, `src/localbrain/atlassian/structure_references.py`
-- Consumers: `src/localbrain/atlassian/browse.py`, `src/localbrain/atlassian/structure_references.py`, `src/localbrain/templates/atlassian.html`, `src/localbrain/templates/atlassian-connections.html`, `src/localbrain/templates/search.html`
+- Producers: `crates/core/src/backend/atlassian/catalog/mod.rs`, `crates/core/src/backend/atlassian/registration/mod.rs`, `crates/core/src/backend/atlassian/structure_references.rs`
+- Consumers: `crates/core/src/backend/atlassian/browse.rs`, `crates/core/src/backend/atlassian/structure_references.rs`, `apps/web/templates/atlassian.html`, `apps/web/templates/atlassian-connections.html`, `apps/web/templates/search.html`
 - Consequence: Keeps Space, Item, and URL-derived structure-reference identity service-scoped.
 - Presentation mode: `logical-label`
 - Labels: `jira` → Jira; `confluence` → Confluence
 - Help: none
-- Visible consumer inventory: `src/localbrain/templates/search.html` (registry-backed)
+- Visible consumer inventory: `apps/web/templates/search.html` (registry-backed)
 
 ## `atlassian-structure-reference.kind`
 
@@ -29,8 +29,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: URL-derived Atlassian structure family
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/atlassian/structure_references.py`
-- Consumers: `src/localbrain/atlassian/structure_references.py`, `src/localbrain/atlassian/browse.py`
+- Producers: `crates/core/src/backend/atlassian/structure_references.rs`
+- Consumers: `crates/core/src/backend/atlassian/structure_references.rs`, `crates/core/src/backend/atlassian/browse.rs`
 - Consequence: Selects stable semantic identity, family label, and read-only Explorer/Search projection without creating an Item or Space.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
@@ -45,13 +45,13 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: Space management coverage
 - Default: `selected-content`
 - Fallbacks: `null`: reject; `unknown`: label → 범위 알 수 없음; `invalid`: reject; `future`: label → 새 관리 범위
-- Producers: `src/localbrain/atlassian/registration.py`
-- Consumers: `src/localbrain/atlassian/registration.py`, `src/localbrain/templates/atlassian-connections.html`, `src/localbrain/templates/atlassian-refresh.html`
+- Producers: `crates/core/src/backend/atlassian/registration/mod.rs`
+- Consumers: `crates/core/src/backend/atlassian/registration/mod.rs`, `apps/web/templates/atlassian-connections.html`, `apps/web/templates/atlassian-refresh.html`
 - Consequence: Selected content limits management to explicitly registered Items; full content permits Space-wide inventory.
 - Presentation mode: `logical-label`
 - Labels: `selected-content` → 선택한 항목만; `full-content` → Space 전체
 - Help: none
-- Visible consumer inventory: `src/localbrain/templates/atlassian-connections.html` (registry-backed); `src/localbrain/templates/atlassian-refresh.html` (registry-backed)
+- Visible consumer inventory: `apps/web/templates/atlassian-connections.html` (registry-backed); `apps/web/templates/atlassian-refresh.html` (registry-backed)
 
 ## `atlassian-item.type`
 
@@ -61,13 +61,13 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: Atlassian Item shape
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: label → 알 수 없는 항목; `invalid`: reject; `future`: label → 새 항목 유형
-- Producers: `src/localbrain/atlassian/catalog.py`
-- Consumers: `src/localbrain/atlassian/browse.py`, `src/localbrain/templates/_atlassian-item-preview.html`, `src/localbrain/templates/atlassian-item.html`, `src/localbrain/templates/search.html`
+- Producers: `crates/core/src/backend/atlassian/catalog/mod.rs`
+- Consumers: `crates/core/src/backend/atlassian/browse.rs`, `apps/web/templates/_atlassian-item-preview.html`, `apps/web/templates/atlassian-item.html`, `apps/web/templates/search.html`
 - Consequence: Selects identity validation and detail semantics.
 - Presentation mode: `logical-label`
 - Labels: `jira_issue` → Jira 티켓; `confluence_page` → Confluence Page
 - Help: none
-- Visible consumer inventory: `src/localbrain/templates/_atlassian-item-preview.html` (registry-backed); `src/localbrain/templates/atlassian-item.html` (registry-backed); `src/localbrain/templates/search.html` (registry-backed)
+- Visible consumer inventory: `apps/web/templates/_atlassian-item-preview.html` (registry-backed); `apps/web/templates/atlassian-item.html` (registry-backed); `apps/web/templates/search.html` (registry-backed)
 
 ## `atlassian-item.coverage`
 
@@ -77,13 +77,13 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: locally retained content coverage
 - Default: `reference`
 - Fallbacks: `null`: reject; `unknown`: label → 범위 알 수 없음; `invalid`: reject; `future`: label → 새 저장 범위
-- Producers: `src/localbrain/atlassian/catalog.py`
-- Consumers: `src/localbrain/atlassian/browse.py`, `src/localbrain/templates/_atlassian-item-preview.html`, `src/localbrain/templates/atlassian.html`, `src/localbrain/templates/atlassian-item.html`, `src/localbrain/templates/atlassian-refresh.html`, `src/localbrain/templates/search.html`
+- Producers: `crates/core/src/backend/atlassian/catalog/mod.rs`
+- Consumers: `crates/core/src/backend/atlassian/browse.rs`, `apps/web/templates/_atlassian-item-preview.html`, `apps/web/templates/atlassian.html`, `apps/web/templates/atlassian-item.html`, `apps/web/templates/atlassian-refresh.html`, `apps/web/templates/search.html`
 - Consequence: Reference stores identity only, metadata stores bounded fields, indexed also stores approved normalized content.
 - Presentation mode: `logical-label`
 - Labels: `reference` → 링크만; `metadata` → 기본 정보; `indexed` → 본문 검색 가능
 - Help: LocalBrain DB에 보관하는 정보의 범위입니다.
-- Visible consumer inventory: `src/localbrain/templates/_atlassian-item-preview.html` (registry-backed); `src/localbrain/templates/atlassian.html` (registry-backed); `src/localbrain/templates/atlassian-item.html` (registry-backed); `src/localbrain/templates/atlassian-refresh.html` (registry-backed); `src/localbrain/templates/search.html` (registry-backed)
+- Visible consumer inventory: `apps/web/templates/_atlassian-item-preview.html` (registry-backed); `apps/web/templates/atlassian.html` (registry-backed); `apps/web/templates/atlassian-item.html` (registry-backed); `apps/web/templates/atlassian-refresh.html` (registry-backed); `apps/web/templates/search.html` (registry-backed)
 
 ## `atlassian-item.attention`
 
@@ -93,13 +93,13 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: owner attention state
 - Default: `normal`
 - Fallbacks: `null`: reject; `unknown`: label → 상태 알 수 없음; `invalid`: reject; `future`: label → 새 관심 상태
-- Producers: `src/localbrain/atlassian/browse.py`
-- Consumers: `src/localbrain/atlassian/browse.py`, `src/localbrain/templates/_atlassian-item-preview.html`, `src/localbrain/templates/atlassian.html`, `src/localbrain/templates/atlassian-item.html`, `src/localbrain/templates/search.html`
+- Producers: `crates/core/src/backend/atlassian/browse.rs`
+- Consumers: `crates/core/src/backend/atlassian/browse.rs`, `apps/web/templates/_atlassian-item-preview.html`, `apps/web/templates/atlassian.html`, `apps/web/templates/atlassian-item.html`, `apps/web/templates/search.html`
 - Consequence: Pinned sorts first; archived is hidden from ordinary browse unless explicitly requested.
 - Presentation mode: `logical-label`
 - Labels: `normal` → 일반; `pinned` → 고정됨; `ignored` → 관심 없음; `archived` → 보관됨
 - Help: 로컬에서만 관리되는 관심 상태입니다.
-- Visible consumer inventory: `src/localbrain/templates/_atlassian-item-preview.html` (registry-backed); `src/localbrain/templates/atlassian.html` (registry-backed); `src/localbrain/templates/atlassian-item.html` (registry-backed); `src/localbrain/templates/search.html` (registry-backed)
+- Visible consumer inventory: `apps/web/templates/_atlassian-item-preview.html` (registry-backed); `apps/web/templates/atlassian.html` (registry-backed); `apps/web/templates/atlassian-item.html` (registry-backed); `apps/web/templates/search.html` (registry-backed)
 
 ## `atlassian-item.url-role`
 
@@ -109,8 +109,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: normalized URL identity role
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/atlassian/catalog.py`, `src/localbrain/atlassian/structure_references.py`
-- Consumers: `src/localbrain/atlassian/catalog.py`, `src/localbrain/atlassian/structure_references.py`
+- Producers: `crates/core/src/backend/atlassian/catalog/mod.rs`, `crates/core/src/backend/atlassian/structure_references.rs`
+- Consumers: `crates/core/src/backend/atlassian/catalog/mod.rs`, `crates/core/src/backend/atlassian/structure_references.rs`
 - Consequence: Canonical URL is the stable display target while Item and structure-reference aliases preserve observed identity.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
@@ -125,13 +125,13 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: last approved remote read result
 - Default: `NULL`
 - Fallbacks: `null`: label → 조회 전; `unknown`: label → 결과 알 수 없음; `invalid`: reject; `future`: label → 새 조회 결과
-- Producers: `src/localbrain/atlassian/catalog.py`, `src/localbrain/atlassian/sync.py`
-- Consumers: `src/localbrain/atlassian/catalog.py`, `src/localbrain/templates/_atlassian-item-preview.html`, `src/localbrain/templates/atlassian-item.html`, `src/localbrain/templates/atlassian-refresh.html`
+- Producers: `crates/core/src/backend/atlassian/catalog/mod.rs`, `crates/core/src/backend/atlassian/sync.rs`
+- Consumers: `crates/core/src/backend/atlassian/catalog/mod.rs`, `apps/web/templates/_atlassian-item-preview.html`, `apps/web/templates/atlassian-item.html`, `apps/web/templates/atlassian-refresh.html`
 - Consequence: Failures retain prior known data and expose a bounded error state.
 - Presentation mode: `logical-label`
 - Labels: `resolved` → 조회됨; `unchanged` → 변경 없음; `changed` → 변경됨; `unavailable` → 조회 불가; `not_found` → 원격에서 찾을 수 없음; `error` → 조회 오류
 - Help: 마지막으로 승인한 원격 조회의 결과입니다.
-- Visible consumer inventory: `src/localbrain/templates/_atlassian-item-preview.html` (registry-backed); `src/localbrain/templates/atlassian-item.html` (registry-backed); `src/localbrain/templates/atlassian-refresh.html` (registry-backed)
+- Visible consumer inventory: `apps/web/templates/_atlassian-item-preview.html` (registry-backed); `apps/web/templates/atlassian-item.html` (registry-backed); `apps/web/templates/atlassian-refresh.html` (registry-backed)
 
 ## `atlassian-item.known-changed`
 
@@ -141,8 +141,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: known remote change marker
 - Default: `0`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/atlassian/catalog.py`
-- Consumers: `src/localbrain/atlassian/catalog.py`
+- Producers: `crates/core/src/backend/atlassian/catalog/mod.rs`
+- Consumers: `crates/core/src/backend/atlassian/catalog/mod.rs`
 - Consequence: Marks an observed change without replacing local user state.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
@@ -157,8 +157,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: search projection repair marker
 - Default: `0`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/atlassian/catalog.py`
-- Consumers: `src/localbrain/atlassian/catalog.py`
+- Producers: `crates/core/src/backend/atlassian/catalog/mod.rs`
+- Consumers: `crates/core/src/backend/atlassian/catalog/mod.rs`
 - Consequence: Requests deterministic local projection repair.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
@@ -173,13 +173,13 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: local classification kind
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: label → 분류; `invalid`: reject; `future`: label → 새 분류
-- Producers: `src/localbrain/atlassian/browse.py`
-- Consumers: `src/localbrain/atlassian/browse.py`, `src/localbrain/templates/atlassian-item.html`
+- Producers: `crates/core/src/backend/atlassian/browse.rs`
+- Consumers: `crates/core/src/backend/atlassian/browse.rs`, `apps/web/templates/atlassian-item.html`
 - Consequence: Topics may carry descriptions; Tags remain name-only.
 - Presentation mode: `logical-label`
 - Labels: `topic` → Topic; `tag` → Tag
 - Help: LocalBrain 안에서만 관리되는 분류입니다.
-- Visible consumer inventory: `src/localbrain/templates/atlassian-item.html` (registry-backed)
+- Visible consumer inventory: `apps/web/templates/atlassian-item.html` (registry-backed)
 
 ## `atlassian-evidence-scan.status`
 
@@ -189,8 +189,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: local evidence extraction result
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/atlassian/evidence.py`
-- Consumers: `src/localbrain/atlassian/evidence.py`
+- Producers: `crates/core/src/backend/atlassian/evidence.rs`
+- Consumers: `crates/core/src/backend/atlassian/evidence.rs`
 - Consequence: Errors preserve bounded diagnostics without creating unconfirmed Items.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
@@ -205,8 +205,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: evidence provenance channel
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/atlassian/evidence.py`, `src/localbrain/atlassian/structure_references.py`
-- Consumers: `src/localbrain/atlassian/evidence.py`, `src/localbrain/atlassian/structure_references.py`
+- Producers: `crates/core/src/backend/atlassian/evidence.rs`, `crates/core/src/backend/atlassian/structure_references.rs`
+- Consumers: `crates/core/src/backend/atlassian/evidence.rs`, `crates/core/src/backend/atlassian/structure_references.rs`
 - Consequence: Only visible text and explicitly approved tool results may produce evidence.
 - Presentation mode: `internal-only`
 - Labels: none; the family is not visible on ordinary screens.
@@ -221,13 +221,13 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: remote memory freshness
 - Default: `unknown`
 - Fallbacks: `null`: label → 조회 전; `unknown`: label → 조회 전; `invalid`: reject; `future`: label → 새 상태
-- Producers: `src/localbrain/atlassian/catalog.py`
-- Consumers: `src/localbrain/atlassian/browse.py`, `src/localbrain/templates/_atlassian-item-preview.html`, `src/localbrain/templates/atlassian.html`, `src/localbrain/templates/atlassian-item.html`, `src/localbrain/templates/atlassian-refresh.html`, `src/localbrain/templates/search.html`
+- Producers: `crates/core/src/backend/atlassian/catalog/mod.rs`
+- Consumers: `crates/core/src/backend/atlassian/browse.rs`, `apps/web/templates/_atlassian-item-preview.html`, `apps/web/templates/atlassian.html`, `apps/web/templates/atlassian-item.html`, `apps/web/templates/atlassian-refresh.html`, `apps/web/templates/search.html`
 - Consequence: Due and stale invite an explicit refresh; unavailable retains last-known facts.
 - Presentation mode: `logical-label`
 - Labels: `unknown` → 조회 전; `current` → 최신; `due` → 조회 권장; `stale` → 다시 조회 필요; `unavailable` → 조회 불가
 - Help: 마지막 승인 조회와 서비스별 주기를 기준으로 계산합니다.
-- Visible consumer inventory: `src/localbrain/templates/_atlassian-item-preview.html` (registry-backed); `src/localbrain/templates/atlassian.html` (registry-backed); `src/localbrain/templates/atlassian-item.html` (registry-backed); `src/localbrain/templates/atlassian-refresh.html` (registry-backed); `src/localbrain/templates/search.html` (registry-backed)
+- Visible consumer inventory: `apps/web/templates/_atlassian-item-preview.html` (registry-backed); `apps/web/templates/atlassian.html` (registry-backed); `apps/web/templates/atlassian-item.html` (registry-backed); `apps/web/templates/atlassian-refresh.html` (registry-backed); `apps/web/templates/search.html` (registry-backed)
 
 ## Explicit Exclusions
 

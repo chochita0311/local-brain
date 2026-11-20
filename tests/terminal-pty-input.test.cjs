@@ -2,7 +2,7 @@
 const {test} = require('node:test');
 const assert = require('node:assert/strict');
 const {EventEmitter} = require('node:events');
-const {PtyInput, LIMIT} = require('../src/localbrain/terminal/pty-input.cjs');
+const {PtyInput, LIMIT} = require('../crates/runtime/engine/pty-input.cjs');
 
 function fixture() {
   const calls = [], output = [], errors = [];

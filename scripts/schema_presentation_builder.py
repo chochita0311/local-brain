@@ -10,16 +10,12 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple
 
 from schema_migration_sources import migration_source_digest, migration_source_files
+from native_schema import effective_schema_sql
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PACKAGE_OUTPUT = ROOT / "src/localbrain/schema-presentation.json"
+PACKAGE_OUTPUT = ROOT / "crates/core/resources/schema-presentation.json"
 ENTRY_PATH = ROOT / "docs/policies/project/data-model.md"
-
-if str(ROOT / "src") not in sys.path:
-    sys.path.insert(0, str(ROOT / "src"))
-
-from localbrain.persistence.migrations.compatible import _run_compatible_migrations
 
 
 class PresentationBuildError(RuntimeError):
@@ -228,10 +224,7 @@ def effective_connection(root: Path) -> sqlite3.Connection:
     connection = sqlite3.connect(":memory:")
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys = ON")
-    connection.executescript(
-        (root / "src/localbrain/schema.sql").read_text(encoding="utf-8")
-    )
-    _run_compatible_migrations(connection, include_data_migrations=False)
+    connection.executescript(";\n".join(effective_schema_sql(root)))
     return connection
 
 
@@ -384,7 +377,7 @@ def build_manifest(root: Path = ROOT) -> dict:
     expected_migration_digest = re.search(
         r"^- Migration sources SHA-256: `([0-9a-f]{64})`$", entry, re.MULTILINE
     )
-    schema_path = root / "src/localbrain/schema.sql"
+    schema_path = root / "crates/core/resources/schema.sql"
     if not expected_schema_digest or expected_schema_digest.group(1) != sha256(schema_path):
         raise PresentationBuildError("Data Model schema.sql baseline digest is stale")
     if not expected_migration_digest or expected_migration_digest.group(1) != migration_source_digest(root):
@@ -489,7 +482,7 @@ def build_manifest(root: Path = ROOT) -> dict:
                 "subject_count": len(subjects),
                 "sources": [
                     {
-                        "path": "src/localbrain/schema.sql",
+                        "path": "crates/core/resources/schema.sql",
                         "role": "fresh-schema-truth",
                         "sha256": sha256(schema_path),
                     },

@@ -11,7 +11,7 @@ import {
   workflowPath,
   workflowWheelOwnsZoom,
   workflowZoomFromWheel,
-} from "../src/localbrain/static/workflow-map.js";
+} from "../apps/web/static/workflow-map.js";
 
 
 const payload = {

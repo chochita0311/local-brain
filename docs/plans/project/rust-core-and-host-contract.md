@@ -210,6 +210,15 @@ If the response is lost after commit, reread revision/values; never blindly repl
 a stale patch. Settings do not change existing jobs. Future Rust generic writer
 requires a separate common-writer cutover and full unknown-value/format parity.
 
+The later [Run259 common-settings contract](rust-common-settings-cutover-contract.md)
+now selects that cutover: Rust owns known settings rules/ordered merge/normal
+commit, with inherited operations.lock and explicitly retained Python syntax/
+OS-zone adapters. It defines independent common runtime delivery and refusal.
+This is a passed contract outcome under FEAT-0178. The later human-approved
+FEAT-0179/Run260 implements it: the first-slice description above is historical,
+and current settings/architecture policies own the Rust normal-commit boundary.
+Run260's evaluation separately owns actual delivery, native and parity evidence.
+
 ## Source To Target Map
 
 Public routes remain registered at their existing paths:

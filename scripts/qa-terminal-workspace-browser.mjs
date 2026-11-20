@@ -1,3 +1,4 @@
+import {fixture} from './native-qa-fixture.mjs';
 // Real xterm/PTY checks in a synthetic HOME and owned backend. Never use a live-user server.
 // LOCALBRAIN_TERMINAL_TEST_BUNDLE=/path/to/built/public/runtime node scripts/qa-terminal-workspace-browser.mjs [outside-repo evidence parent]
 import {spawn} from 'node:child_process';
@@ -26,8 +27,7 @@ let busyRetireTarget = null, injectedRetireBusy = 0;
 let holdNextTabStop = false, heldTabStop = null, failReadAfterOrder = false;
 const creationRequests = [];
 const dialogs = [];
-const backend = spawn(process.env.LOCALBRAIN_QA_PYTHON || join(repository, '.venv/bin/python'),
-  [join(repository, 'tests/ui_state_fixture.py'), runtime, 'web', 'terminal'], {cwd:repository, stdio:['ignore','ignore','pipe']});
+const backend = fixture(repository, runtime, 'web', 'terminal');
 let backendError = '';
 backend.stderr.on('data', chunk => {backendError = (backendError + chunk.toString()).slice(-4000);});
 backend.on('error', error => {backendError = error.message;});
@@ -116,7 +116,7 @@ try {
       else if (url.pathname.endsWith('.woff2') && holdFonts) {held.add(requestId);return;}
       else if (url.pathname === '/api/terminal' && failList && !responseStatusCode) action = send('Fetch.fulfillRequest',{requestId,responseCode:503,responseHeaders:[{name:'Content-Type',value:'application/json'}],body:Buffer.from('{"detail":"Synthetic connection failure"}').toString('base64')});
       else action = send('Fetch.continueRequest',{requestId});
-      void action.catch(error => failures.push(error.message));
+      void action.catch(error => failures.push(`${request.method} ${url.pathname}: ${error.message}`));
     }
   });
   evaluate = async expression => {
@@ -153,10 +153,11 @@ try {
     const result = await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
     await writeFile(join(output,name+'.png'),Buffer.from(result.data,'base64'));
   };
+  const waitForDocument = previous => wait(`typeof window.__terminalQaId==='number' && window.__terminalQaId!==${JSON.stringify(previous)} && document.readyState!=='loading' && !!document.querySelector('.app-main')`);
   const navigate = async path => {
     const previous = await evaluate('window.__terminalQaId');
     await send('Page.navigate',{url:base+path});
-    await wait(`typeof window.__terminalQaId==='number' && window.__terminalQaId!==${JSON.stringify(previous)} && document.readyState!=='loading' && !!document.querySelector('.app-main')`);
+    await waitForDocument(previous);
   };
   const ensureRail = async () => {
     if(await evaluate(`document.querySelector('[data-terminal-rail-toggle]').getAttribute('aria-expanded')==='false'`)) await click('[data-terminal-rail-toggle]');
@@ -332,6 +333,7 @@ try {
     await send('Input.dispatchMouseEvent',{type:'mouseMoved',...points.from});
     await send('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',buttons:1,clickCount:1,...points.from});
     for(let i=1;i<=10;i++){await send('Input.dispatchMouseEvent',{type:'mouseMoved',button:'left',buttons:1,x:points.from.x+(points.to.x-points.from.x)*i/10,y:points.to.y});await delay(20);}
+    await wait(`document.querySelector('[data-terminal-tab="${to}"]').classList.contains('${before?'drop-before':'drop-after'}')`);
     await send('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',buttons:0,clickCount:1,...points.to});
   };
   const beforeReorder=await state();
@@ -344,6 +346,8 @@ try {
   await evaluate(`document.querySelector('[data-terminal-focus="tab:${firstTab.id}"]').focus()`);await key('ArrowLeft','ArrowLeft',9,37);
   await wait(`fetch('/api/terminal').then(r=>r.json()).then(s=>s.presentation.order[0]==='${firstTab.id}')`);
   assert(JSON.stringify(await tabOrder())===JSON.stringify([firstTab.id,secondTab.id]),'Alt Shift Arrow reorders with no pointer');
+  await click(`[data-terminal-focus="tab:${firstTab.id}"] svg`);
+  await wait(`document.querySelector('[aria-selected="true"]').dataset.terminalFocus==='tab:${firstTab.id}' && !document.querySelector('[data-terminal-move="right"]').disabled`);
   failOrder=true;failReadAfterOrder=true;await dragTab(firstTab.id,secondTab.id,false);
   await wait(`document.querySelector('[data-terminal-error]').textContent.includes('Synthetic connection failure')`);
   await delay(100);
@@ -494,7 +498,10 @@ try {
   failFonts=true;await navigate('/terminal');
   await wait(`!document.querySelector('[data-terminal-font-retry]').hidden`);
   assert(await evaluate(`document.querySelector('[data-terminal-new]').disabled&&!document.querySelector('.terminal-pane')`),'font failure has retry and does not render fallback');
-  failFonts=false;await click('[data-terminal-font-retry]');await wait(`document.querySelector('[data-terminal-new]')?.disabled===false`);
+  const failedFontDocument = await evaluate('window.__terminalQaId');
+  failFonts=false;await click('[data-terminal-font-retry]');
+  await waitForDocument(failedFontDocument);
+  await wait(`document.querySelector('[data-terminal-new]')?.disabled===false`);
   assert((await state()).terminals.length===ids.length,'failure and recovery do not terminate or duplicate work');
   await ensureRail();await click(`[data-terminal-focus="task:${other.id}"]`);
   await wait(`!!document.querySelector('[data-terminal-focus="close:${otherTab.id}"]')`);

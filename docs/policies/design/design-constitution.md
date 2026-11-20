@@ -15,7 +15,7 @@ Keep reusable law here. Do not add implementation sequencing, migration notes, p
 - **Primary jobs:** learn from personal work evidence, resume interrupted work, reconstruct a Session-backed work flow, organize evidence into Workstreams and Threads, inspect source activity, search local context, review Suggestions, and monitor maintenance Runs.
 - **Interaction character:** workflow-heavy and read-heavy. The interface must support fast scanning and sustained detail reading without separating evidence from state.
 - **Device priority:** desktop-first local browser UI. Narrow viewports preserve access and comprehension but do not redefine the product as mobile-first.
-- **Technical constraints:** FastAPI, server-rendered Jinja2, small JSON interactions, SQLite and FTS5, locally served assets, no external CDN, and no interface that implies unsupported backend behavior.
+- **Technical constraints:** native Axum, server-rendered MiniJinja with the retained HTML templates, small JSON interactions, SQLite and FTS5, locally served assets, no external CDN, and no interface that implies unsupported backend behavior.
 - **Starting source-set type:** screen-plus-context.
 
 ## 2. Source Reconciliation And Provenance

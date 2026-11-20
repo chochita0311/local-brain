@@ -41,6 +41,27 @@ behavior are recorded separately in Feature and Run evidence.
   malformed files are reported without overwriting them. Writes validate the
   complete result, use an expected content revision, a local exclusive lock and
   same-directory atomic replacement with private file permissions.
+  Publication keeps the original POSIX sequence: `fsync` the completed temporary
+  file, rename it, then `fsync` its parent directory. The shared native metadata
+  writer uses the same sequence. On Apple platforms, Rust's `sync_all` requests
+  the stronger `F_FULLFSYNC`; that extra flush was an unintended migration cost,
+  so these writers use the explicit POSIX primitive. Independent Terminal payload
+  writers retain their separate synchronization contract.
+- Rust owns the seven fields' rules/default selection, ordered merge, content
+  revision, lossless TOML syntax, OS time-zone lookup and normal `settings.toml`
+  commit. The persistent native host calls the core directly, holding the common
+  operations lease and flock through atomic publication. Common save reads back
+  after releasing the lease; Terminal save reads back inside it. Explicit recovery
+  and helpers writing other files retain their own owners.
+- Apple Silicon/macOS14 native web and desktop deliveries carry their backend
+  executable and reviewed web resources independently of Terminal. Startup
+  validates configuration and required feature bindings before initializing services;
+  it refuses an incomplete installation instead of launching a Python fallback.
+  Runtime failures remain unavailable503, distinct from malformed-content409 and
+  presentation recovery. The removed one-operation child and syntax callbacks no
+  longer impose their40-second IPC deadline. A lost acknowledgement or post-rename
+  failure still requires current-state readback before retry, without automatic
+  rollback or replay.
 - Startup choice applies at next app launch. Time zone applies
   on the next rendered view; schedule changes apply to the next scheduling
   decision, without interrupting an active collection.
@@ -72,7 +93,7 @@ lock and atomic writer while remaining outside the common preference value set.
 General saves preserve this section; Terminal saves preserve common and unknown
 values. Its conditional Settings pane/API need no running terminal engine, and
 saving defaults never restarts existing work. Both editions expose the same pane.
-Rust validates terminal values; Python retains the sole shared TOML commit. Native
+Rust validates terminal values and owns their shared common settings commit. Native
 HTTP/WebSocket require the per-launch token and exact local-origin boundaries.
 
 ## First-Use Setup
@@ -209,14 +230,12 @@ HTTP/WebSocket require the per-launch token and exact local-origin boundaries.
 ## App Information And Version
 
 - About shows the existing LocalBrain mark, product name and `v` plus the running
-  application version. Keep it concise. [Getting Started](../../../src/localbrain/content/docs/getting-started.md)
-  owns quitting and updates; [Settings](../../../src/localbrain/content/docs/settings.md#synchronization)
+  application version. Keep it concise. [Getting Started](../../../apps/web/content/docs/getting-started.md)
+  owns quitting and updates; [Settings](../../../apps/web/content/docs/settings.md#synchronization)
   owns background synchronization. Artifact-specific launch and distribution checks
   remain in the [test distribution guide](standalone-test-app-guide.md). Do not add
   invented build, copyright or license claims from a reference screen.
-- The initial application release version is `0.0.1`. The Python constant owns
-  About and FastAPI version rendering; Python distribution/lock, desktop package/
-  lock, Cargo package/lock and Tauri configuration declare the same release.
+- The initial application release version is `0.0.1`. Native template/API-reference metadata, desktop package/lock and Tauri configuration declare that product release. Shared Rust crates use their independent `0.1.0` component version.
   Delivered native Info.plist and BUILD-INFO version must match. Dependency
   versions, bundle identifier, storage locations and data schemas are independent.
 
@@ -385,6 +404,8 @@ their existing explicit authority. Picking does not persist a path independently
   A busy writer retains one pending manual request until its own domain completion
   satisfies it. Context cancellation rolls back its transaction; directory/note
   iteration checks cancellation and the Notes reader subprocess is stopped on exit.
+  Lock access errors surface in the existing Sessions result area and leave its
+  manual button available for retry. Failed requests do not start a collection.
 - Health files retain the latest separate outcomes; source/file/root health stays
   in the existing DB tables. Failed collection preserves imported records and the
   latest successful collection time. No new data root or DB schema. AI-index
@@ -441,17 +462,14 @@ their existing explicit authority. Picking does not persist a path independently
   cached and sends no referrer; boundary JSON errors explicitly declare UTF-8.
 - No autostart, background daemon, cloud sync, app encryption, paid signing or
   automatic updater is introduced. Program ZIPs contain no personal runtime data.
-- Frozen Python installation metadata resolves against the running bundled
-  interpreter prefix. Build-time user-home and checkout paths must not remain
-  in shipped metadata, including compressed Python constants. Packaging checks
-  raw files and compressed Python/stdlib archives before creating the ZIP.
-  This does not change application data/settings ownership under each user's home.
-- On macOS/Python 3.10+, the dedicated UI model-download worker uses the OS trust
-  store through truststore, while retaining TLS certificate verification. This
-  honors locally trusted managed-network certificates without bundling a company
-  certificate or disabling HTTPS checks. The worker owns the early application-level
-  initialization recommended by [truststore](https://truststore.readthedocs.io/en/stable/).
-  A parent-lifetime pipe ends the download worker if the backend exits or crashes.
+- Native bundles record the source identity and final signed executable hashes.
+  Rust build paths are remapped to stable public aliases, and delivery checks scan
+  native bytes, raw/compressed resources, symlinks and archive members for private
+  build paths and Python runtime content before publishing build outputs.
+- The dedicated native model-download worker uses certificate-verified HTTPS and
+  the platform trust verifier. Locally trusted managed-network certificates remain
+  OS-owned; no company certificate is bundled and verification is never disabled.
+  Parent-lifetime cancellation ends the worker if the backend exits or crashes.
 
 ## Local Recovery
 
@@ -461,6 +479,11 @@ their existing explicit authority. Picking does not persist a path independently
   screens or replay commands; generated shell-integration startup files are excluded.
   Backups exclude external originals, Hub weights, caches, credentials and logs. Restore validates archive paths, ownership/schema and DB
   integrity and the application schema fingerprint before replacing state under the shared operation lock.
+  Restore validates full TOML syntax and the schema version of each settings file
+  when present. `settings.toml` requires integer 1 and `session-sources.toml`
+  accepts integer 1 or 2. Restore publishes the original bytes, including unknown
+  fields with TOML dates, nonfinite numbers or large integers. The usual startup
+  compatibility migrations run separately after restore.
 - Restore is same-Mac recovery, with a recovery copy and rollback on failure.
   A restart reopens restored state. Cache cleanup is explicit, limited to owned
   inactive derived data and must never follow symlinks into external content.
@@ -483,6 +506,12 @@ their existing explicit authority. Picking does not persist a path independently
   `profile_color`/`profile_position`; omitted retained profiles follow configured
   ones. A missing v2 color uses the provider default, never a previously cached DB
   color. Reloading settings or the next collection applies valid manual edits.
+  In a readable registry with a supported schema, invalid profile values
+  produce per-profile diagnostics and eligible siblings can still be collected.
+  A file-level syntax or schema error prevents registry loading. A write using
+  the latest revision of a file with entry errors returns 409 with a repair
+  message. A stale revision returns 409 with reload guidance. Both preserve
+  the saved file and existing inventory.
 - Name, color and order are editable presentation. Provider determines CX/CL;
   `sources.id` is the sole profile identifier. `sources.kind` is removed; there is
   no replacement string key or alias table. Source filter toggles show the saved
@@ -523,19 +552,18 @@ their existing explicit authority. Picking does not persist a path independently
 
 ## Implementation Ownership
 
-- `foundation/preferences.py`, `sources/settings.py`, `app/settings.py`: shared local preferences,
-  optimistic configuration revisions, source registration/reconnection and UI APIs.
-
-- `sources/sync.py`, `sources/session_sync.py`, `sources/context_sync.py`, `foundation/operations.py`: independent
-  completion-based Session and Context scheduling, persisted health outside the main DB,
+- `crates/core/src/backend/preferences.rs`, native preferences/TOML
+  modules, `sources/settings.rs` and `apps/api/src/routes/settings.rs`: common
+  settings, revisions, registration/reconnection and UI APIs.
+- Core `ingest/sync_service.rs`, `storage/operations.rs` and source/context owners:
+  independent completion-based scheduling, persisted health outside the main DB,
   and process/thread exclusion for mutations.
-
-- `app/edition.py`, `desktop.py`, `desktop/src-tauri/`: route/runtime admission, per-launch
-  local authentication, native window/process lifecycle and bundled resources.
-
-- `search/keyword.py`, `models/setup.py`, `app/storage/recovery.py`: model-free eligible
-  FTS retrieval, explicit cancellable public-model installation, private backup,
-  restart-only restore and bounded owned-cache cleanup.
+- `apps/api/src/boundary.rs`, `host.rs` and `apps/desktop/src-tauri/`: edition and
+  route admission, per-launch authentication, native window/backend lifecycle
+  and bundled resources.
+- Core `search/keyword.rs`, `models/setup.rs` and `storage/recovery.rs`:
+  model-free eligible FTS, explicit cancellable public-model installation,
+  private backup, restart-only restore and owned-cache cleanup.
 
 ## Shared Back Navigation
 

@@ -138,9 +138,9 @@ erDiagram
   whether created by one-URL Add, explicit strict-URL Sync, or later remote
   confirmation. Remote Site ID and display metadata can be confirmed again but
   do not replace the local Site owner.
-- Producers: `atlassian/catalog.py` domain-first Site registration and URL-backed stub
-  registration; `atlassian/registration.py` composes URL-only registration and
-  separate access binding; `atlassian/evidence_sync.py` may invoke only the
+- Producers: `crates/core/src/backend/atlassian/catalog/mod.rs` domain-first Site registration and URL-backed stub
+  registration; `crates/core/src/backend/atlassian/registration/mod.rs` composes URL-only registration and
+  separate access binding; `crates/core/src/backend/atlassian/evidence_sync/mod.rs` may invoke only the
   local normalized-domain registration path for a strict Jira Issue or
   Confluence Page candidate.
 - Consumers: Space and Item identity, local inventory, URL collision checks, access binding, and registration or refresh previews.
@@ -165,7 +165,7 @@ Constraints: compatibility uniqueness on `(source_instance_id, normalized_domain
 
 - Purpose and authority: explicit many-to-many access relation between one local Site and one independently configured Source Instance. Provider, Jira/Confluence service, actual configuration reference, enabled state, and capability remain owned by the Source Instance.
 - Lifecycle: user-curated and non-rebuildable access intent. Legacy Site ownership is backfilled as a binding; local-only Sites may have zero rows.
-- Producers: `atlassian/catalog.py` idempotent binding and access-resolution services; `atlassian/registration.py` separate access setup.
+- Producers: `crates/core/src/backend/atlassian/catalog/mod.rs` idempotent binding and access-resolution services; `crates/core/src/backend/atlassian/registration/mod.rs` separate access setup.
 - Consumers: connected discovery, refresh authorization, evidence recognition, connection management, and access-scoped inventory filters.
 - Relations and deletion: required cascading FKs to Site and Source Instance. Removing either owner removes only the binding; Site descendants and Source Instance capability follow their own owners.
 - Recovery: LocalBrain database backup or an explicit user rebind using the real approved configuration reference.
@@ -184,7 +184,7 @@ Constraints: `UNIQUE(site_id, source_instance_id)`. Explicit index: `idx_atlassi
 
 - Purpose and authority: optional Jira project or Confluence Space containment within one Site and service, with optional current access ownership.
 - Lifecycle: external last-known identity. It can be re-read when access survives, but stable local containment and unavailable historical labels are not assumed recoverable.
-- Producers: `atlassian/catalog.py` validated Space registration and `atlassian/registration.py` direct-URL or explicitly confirmed partial-catalog registration.
+- Producers: `crates/core/src/backend/atlassian/catalog/mod.rs` validated Space registration and `crates/core/src/backend/atlassian/registration/mod.rs` direct-URL or explicitly confirmed partial-catalog registration.
 - Consumers: Item containment, registration inventory, hierarchy, explicit coverage display, and refresh scope.
 - Relations and deletion: required Site FK with `ON DELETE RESTRICT`; nullable Source Instance FK with `ON DELETE SET NULL`; referenced by Items with `ON DELETE SET NULL`, so explicit Space or access removal keeps Item identity.
 - Recovery: database backup or a later explicit external read when the Space remains accessible.
@@ -210,10 +210,10 @@ Constraints: service and coverage vocabularies; at least one of `remote_id` or `
 
 - Purpose and authority: strict one-to-one Atlassian extension of one stable External Resource, with Site containment, optional current access ownership, and independent coverage/attention axes.
 - Lifecycle: non-rebuildable local identity and organization. Remote identifiers can be re-read, but the stable External Resource binding, coverage, attention, and existing relations must survive.
-- Producers: `atlassian/catalog.py` URL stub registration, in-place remote binding,
+- Producers: `crates/core/src/backend/atlassian/catalog/mod.rs` URL stub registration, in-place remote binding,
   explicit axis changes, and explicit destructive purge;
-  `atlassian/registration.py` recognizes strict service-specific URLs before
-  invoking the stub contract; `atlassian/evidence_sync.py` may invoke that same
+  `crates/core/src/backend/atlassian/registration/mod.rs` recognizes strict service-specific URLs before
+  invoking the stub contract; `crates/core/src/backend/atlassian/evidence_sync/mod.rs` may invoke that same
   local Site-scoped stub path for strict Issue/Page evidence.
 - Consumers: Workstream/Thread/checkpoint links through `external_resources.id`, registration inventory, refresh target resolution, freshness/content state, FTS projection, and Atlassian browse/detail.
 - Relations and deletion: primary key is an FK to `external_resources.id` with `ON DELETE CASCADE`; Site deletion is `RESTRICT`; Source Instance and Space deletion are `SET NULL`. The explicit purge API first removes the Item's FTS row and polymorphic Workstream, Thread, and checkpoint references, then removes the External Resource and all source-specific extension rows. Ordinary refresh never deletes the Resource.
@@ -242,9 +242,9 @@ Constraints: strict service/item-type pairing; coverage and attention vocabulari
 
 - Purpose and authority: exact observed Atlassian links and normalized Site-scoped canonical/alias identity for one Item.
 - Lifecycle: external last-known URL evidence. Observed spellings are retained even when canonical navigation changes.
-- Producers: `atlassian/catalog.py` stub registration and atomic canonical URL
+- Producers: `crates/core/src/backend/atlassian/catalog/mod.rs` stub registration and atomic canonical URL
   transition during remote binding, composed by one-URL registration and
-  strict persisted-only Sync; `atlassian/evidence_sync.py` may also retain the
+  strict persisted-only Sync; `crates/core/src/backend/atlassian/evidence_sync/mod.rs` may also retain the
   latest exact spelling observed during changed persisted-Document
   reconciliation.
 - Consumers: deduplication, safe navigation, alias resolution, FTS path
@@ -273,7 +273,7 @@ Constraints: canonical/alias vocabulary; non-empty URL values; `UNIQUE(site_id, 
 
 - Purpose and authority: bounded remote metadata and explicit check/version/failure evidence, separate from body content and local Resource fields.
 - Lifecycle: external last-known state. Successful reads can replace it, but failures retain the prior metadata/version and only append current availability evidence.
-- Producers: `atlassian/catalog.py` application of host-validated external-sync target results, coordinated atomically for explicit refresh by `atlassian/refresh.py`.
+- Producers: `crates/core/src/backend/atlassian/catalog/mod.rs` application of host-validated external-sync target results, coordinated atomically for explicit refresh by `crates/core/src/backend/atlassian/refresh/mod.rs`.
 - Consumers: freshness derivation, refresh preview, Item detail, change gating, and diagnostics.
 - Relations and deletion: primary key is an FK to `atlassian_items.external_resource_id` with `ON DELETE CASCADE`, enforcing zero-or-one state row per Item.
 - Recovery: explicit approved external read when still accessible; otherwise database backup is the only source for unavailable last-known facts.
@@ -303,7 +303,7 @@ Constraints: outcome vocabulary; boolean flags; unsuccessful outcomes require a 
 
 - Purpose and authority: reusable user-managed Topic or Tag definition for local Atlassian organization; it is independent from Workstream membership and remote labels.
 - Lifecycle: non-rebuildable local vocabulary. Case-insensitive reuse preserves one normalized Topic/Tag identity, while display spelling and Topic description remain locally editable.
-- Producers: `atlassian/browse.py` local-only Item detail update.
+- Producers: `crates/core/src/backend/atlassian/browse.rs` local-only Item detail update.
 - Consumers: browse filters, Item detail editing, local-role FTS projection, and grouped Atlassian search results.
 - Relations and deletion: parent of membership rows with `ON DELETE CASCADE`; deleting a definition removes only its local Item assignments and never deletes an Item or alters remote state.
 - Recovery: LocalBrain database backup. Remote labels and provider metadata are not substitutes for local Topic/Tag intent.
@@ -325,7 +325,7 @@ Constraints: kind vocabulary; bounded non-empty names and normalized names; opti
 
 - Purpose and authority: user-confirmed many-to-many Topic/Tag assignment for one stable Atlassian Item.
 - Lifecycle: non-rebuildable local organization. Saving an Item replaces only that Item's assignment set; remote refresh and evidence scans do not mutate it.
-- Producers: `atlassian/browse.py` atomic local-only Item detail update.
+- Producers: `crates/core/src/backend/atlassian/browse.rs` atomic local-only Item detail update.
 - Consumers: browse Topic/Tag filters, Item detail, local-role FTS projection, and grouped Atlassian search.
 - Relations and deletion: cascading FKs to `atlassian_items.external_resource_id` and `atlassian_classifications.id`; deletion of either owner removes only the membership row.
 - Recovery: LocalBrain database backup. Assignments cannot be inferred authoritatively from remote labels, Workstream links, or search text.
@@ -347,8 +347,8 @@ Constraints: composite primary key `(external_resource_id, classification_id)`. 
   Item evidence while recording only a bounded code/message. Explicit local
   evidence Sync may advance the Document row only after a complete persisted-body
   pass. It never reads, advances, replaces, or creates a Session row.
-- Producers: `atlassian/evidence.py` through Session and Local Context scanner
-  hooks, plus `atlassian/evidence_sync.py` for complete persisted Document
+- Producers: `crates/core/src/backend/atlassian/evidence.rs` through Session and Local Context scanner
+  hooks, plus `crates/core/src/backend/atlassian/evidence_sync/mod.rs` for complete persisted Document
   reconciliation only.
 - Consumers: scanner skip/retry logic and evidence diagnostics.
 - Relations and deletion: nullable FKs to Session and Document, each `ON DELETE CASCADE`, with an exactly-one-source check. Session scan identity is unique by Session plus source path because one normalized Session may span several JSONL files; Document scan identity remains one-to-one. Source deletion therefore removes its scan state without affecting the Atlassian Item.
@@ -381,7 +381,7 @@ Constraints: exactly one source FK; `UNIQUE(session_id, source_path)` and unique
   Site and Item. Shared locator `structure` and `site` results are not Item-
   evidence producers and cannot create a row in this table.
 - Lifecycle: fully derived per owning source. A successful changed scan upserts current sightings and removes obsolete sightings from that source, but never deletes the stable Item, remote state/content, or local organization. Explicit local evidence Sync is a narrow Session exception: it consumes the bounded retained Session-reference URL projection, merge-inserts only missing sightings, and never deletes Session evidence or changes Session scan state. The authoritative Session scanner remains the sole cleanup owner. A complete persisted Document Sync still owns bounded replacement; an unavailable or failed pass retains prior evidence.
-- Producers: `atlassian/evidence.py` after URL recognition and stable Item-stub reuse under the identity contract above, plus the explicit persisted-only orchestration in `atlassian/evidence_sync.py`.
+- Producers: `crates/core/src/backend/atlassian/evidence.rs` after URL recognition and stable Item-stub reuse under the identity contract above, plus the explicit persisted-only orchestration in `crates/core/src/backend/atlassian/evidence_sync/mod.rs`.
 - Consumers: Item detail and Atlassian evidence navigation. The primary Session related-material projection reads shared Session reference evidence independently of this Item evidence table. No refresh or remote-identity path may treat a sighting as successful remote confirmation.
 - Relations and deletion: required cascading Item FK plus exactly one cascading Session or Document FK. Session evidence requires a stable event/location identifier; Document evidence uses line and URL occurrence without an excerpt.
 - Recovery: rescan the owning local source. If the source is gone, the evidence is intentionally unavailable; Item identity and user state remain in their own tables.
@@ -415,7 +415,7 @@ Constraints: exactly one source FK; Session location parity; source-channel voca
 
 - Purpose and authority: stable local identity for one standard Atlassian structure URL family, scoped by Site and service. It records only URL-derived Project, Board, filter, dashboard, service-portal/project, or Confluence Space identity and never claims a registered Space, Item, remote confirmation, access binding, or user organization.
 - Lifecycle: explicit local evidence Sync creates or reuses the row. Loss of all owning evidence archives it as a derived presentation state but does not delete or renumber it; later rediscovery reactivates the same identity.
-- Producers: `atlassian/structure_references.py` within the per-source savepoint owned by `atlassian/evidence_sync.py`.
+- Producers: `crates/core/src/backend/atlassian/structure_references.rs` within the per-source savepoint owned by `crates/core/src/backend/atlassian/evidence_sync/mod.rs`.
 - Consumers: Atlassian Explorer hierarchy/list/preview/detail, shared Search projection, and the bounded Sync report. Refresh, Connections, classification, local edits, and Workstream organization do not consume it as an Item.
 - Relations and deletion: required Site FK uses `ON DELETE RESTRICT`; Site/service/kind/identity is unique. URL and evidence children cascade only if an explicit owner deletion removes the stable reference.
 - Recovery: rescan retained Session/Local Context evidence to rediscover current references; database backup is required to preserve an archived row's exact stable ID and historical aliases after explicit deletion.
@@ -437,7 +437,7 @@ Constraints: `UNIQUE(site_id, service, reference_kind, reference_identity)`, com
 
 - Purpose and authority: privacy-safe canonical and alias locator ownership for one stable structure reference. The first safe locator remains canonical; later recognized variants remain aliases rather than replacing identity.
 - Lifecycle: created or observation-refreshed only by explicit local evidence Sync. Evidence cleanup never deletes canonical or alias history, including when the parent becomes archived.
-- Producers: `atlassian/structure_references.py` after the shared static locator returns a safe structure locator.
+- Producers: `crates/core/src/backend/atlassian/structure_references.rs` after the shared static locator returns a safe structure locator.
 - Consumers: Explorer rows/preview/detail, shared Search paths, direct external-open links, and exact local reuse.
 - Relations and deletion: composite `(reference_id, site_id)` FK cascades from the matching reference/Site pair. A safe locator is unique within one Site and cannot silently move to a different reference.
 - Recovery: rediscovery can recreate semantic ownership, but database backup preserves the original canonical choice, row IDs, and alias observation history.
@@ -459,7 +459,7 @@ Constraints: canonical/alias vocabulary, bounded safe locator, `UNIQUE(site_id, 
 
 - Purpose and authority: derived, source-separated evidence that one eligible Session or Local Context Document contained a recognized standard structure locator. It carries only safe locator, optional non-authoritative container hint, provenance location, and timestamps; it never copies source text or confirms remote state.
 - Lifecycle: Session projection is merge-only and scanner-owned for cleanup. A complete changed Document Sync replaces that Document's bounded evidence set; unavailable or failed sources retain prior rows. Removing the final row archives, but never deletes, the parent reference.
-- Producers: `atlassian/structure_references.py` through the explicit persisted-only orchestration in `atlassian/evidence_sync.py`.
+- Producers: `crates/core/src/backend/atlassian/structure_references.rs` through the explicit persisted-only orchestration in `crates/core/src/backend/atlassian/evidence_sync/mod.rs`.
 - Consumers: bounded reference preview/detail evidence, availability/lifecycle derivation, hierarchy grouping-hint consensus, and Sync counts. Evidence text is not a Search body owner.
 - Relations and deletion: required reference FK plus exactly one cascading Session or Document FK. Session evidence requires source path/event identity; Document evidence uses line and URL ordinal without an excerpt.
 - Recovery: rescan the owning persisted projection or Document. If a source is unavailable, retained evidence remains labeled unavailable; source deletion removes only that evidence and may archive the reference.

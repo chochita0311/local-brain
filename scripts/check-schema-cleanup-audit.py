@@ -14,7 +14,7 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_MANIFEST = ROOT / "src/localbrain/schema-presentation.json"
+DEFAULT_MANIFEST = ROOT / "crates/core/resources/schema-presentation.json"
 DEFAULT_DECISIONS = ROOT / "docs/plans/evaluation/audit-0029-schema-decisions.json"
 DEFAULT_LEDGER = ROOT / "docs/plans/evaluation/audit-0029-schema-object-ledger.md"
 VALID_DECISIONS = {"keep", "change", "remove", "defer"}
@@ -336,7 +336,10 @@ def _validate_contract(
             raise AuditError(f"{table_id}: empty test evidence")
         for path in paths:
             candidate = ROOT / path
-            if not candidate.is_file() or not path.startswith("tests/"):
+            test_owners = ("tests/", "crates/core/tests/",
+                           "crates/models/tests/", "apps/api/tests/")
+            if (not candidate.is_file() or not path.startswith(test_owners)
+                    or ".." in Path(path).parts):
                 raise AuditError(f"{table_id}: invalid test evidence {path}")
 
     required_dimensions = {
@@ -365,7 +368,7 @@ def _validate_contract(
 def _runtime_references(table_id: str) -> list[str]:
     pattern = re.compile(rf"\b{re.escape(table_id)}\b")
     paths = []
-    for path in sorted((ROOT / "src/localbrain").rglob("*.py")):
+    for path in sorted(path for owner in (ROOT / "crates/core/src/backend", ROOT / "apps/api/src") for path in owner.rglob("*.rs")):
         if pattern.search(path.read_text(encoding="utf-8")):
             paths.append(str(path.relative_to(ROOT)))
     return paths

@@ -3,15 +3,19 @@
 # personal-path, email, and Git identity checks still apply to every path. Add
 # one path per line only after confirming it contains no private local or company
 # information. Blank lines and comments are ignored.
-src/localbrain/static/vendor/mermaid/mermaid.esm.min.js
+apps/web/static/vendor/mermaid/mermaid.esm.min.js
 
 # LocalBrain app icons generated from the existing public SVG favicon.
-desktop/src-tauri/icons/icon.png
-desktop/src-tauri/icons/icon.icns
+apps/desktop/src-tauri/icons/icon.png
+apps/desktop/src-tauri/icons/icon.icns
 
 # Reviewed public Google Material Symbols paths, bundled for offline navigation.
-src/localbrain/static/icons/material-symbols.svg
+apps/web/static/icons/material-symbols.svg
 
 # Unmodified public NAVER D2Coding webfonts, pinned with OFL/provenance beside them.
-src/localbrain/static/vendor/xterm/fonts/D2Coding-Regular.woff2
-src/localbrain/static/vendor/xterm/fonts/D2Coding-Bold.woff2
+apps/web/static/vendor/xterm/fonts/D2Coding-Regular.woff2
+apps/web/static/vendor/xterm/fonts/D2Coding-Bold.woff2
+
+# Generated public Unicode14 ranges; a hexadecimal boundary collides with a
+# machine-local private word pattern. Global path/email/identity checks apply.
+crates/core/src/backend/search/unicode_patterns.rs

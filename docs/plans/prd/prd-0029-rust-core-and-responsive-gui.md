@@ -6,12 +6,19 @@
 - Status: `approved`
 - Owner role: `human`
 - Created: `2026-11-12`
-- Updated: `2026-11-12`
-- Approval scope: human explicitly approved completing created FEAT-0167/0168; their contract outcomes passed Run247/248. Actual port, UI/native integration and deployment require their separate product boundaries
+- Updated: `2026-11-19`
+- Approval scope: human initially approved completing FEAT-0167/0168; their contracts passed Run247/248. The later explicit full-backend/layout approval selects FEAT-0180/Spec0180/Run261 for implementation and delegated verification. Live user-app replacement and publication remain separate.
+- Common-settings approval: FEAT-0178 contract-only boundary approved on `2026-11-17`; Run259/Eval0175 passed. User approved implementation FEAT-0179 on `2026-11-18`; Run260/Eval0176 pass the bounded settings increment, with remaining Python/Node, latency and platform/physical limits explicit.
+- Final backend target: user clarified on `2026-11-18` that completion means removing Python from the backend; retained Python in passed slices is intermediate. [Runtime exit conditions and approved app layout](../project/python-free-backend-target.md) own the current target.
 
 ## Request Summary
 
 LocalBrain의 Python 백엔드를 Rust 중심 실행 구조로 전환하는 제품 경계를 정한다.
+2026-11-18 사용자는 완료 목표가 **백엔드에서 Python을 제거하는 것**임을
+명시했다. HTTP/CLI·템플릿 실행·TOML/시간대 adapter·선택형 모델 worker에 Python이
+남아 있으면 전체 전환은 미완료다. 기존 first-slice의 Python 유지 결정은 과도기
+경계로 보존하며 최종 예외로 해석하지 않는다. 개발·검증용 Python 도구와 legacy
+비교 fixture는 배포 백엔드 runtime과 구별한다.
 사용자는 macOS 앱 터미널과 함께 PRD 작성을 요청했고, 후속 답변으로 두 주제를
 함께 검토하도록 확인했다. 이어서 Herdr 등의 UI 기술, 웹·앱 반응성, 전환 시
 호환 요소를 질문하며 사람이 보기 좋은 화면도 필요하다고 명시했다.
@@ -33,11 +40,13 @@ FEAT-0167/0168의 완료를 명시적으로 승인했고 두 계약 결과가 Ru
 
 | 출처 | 사용하는 사실 또는 요구 | 근거 한계 |
 | --- | --- | --- |
-| 생성한 Feature들을 끝까지 진행하라는 최신 명시 지시 | FEAT-0167/0168의 권장 경계와 계약 실행을 승인. Run247/248에서 first slice/host/runtime/helper/관리 계약 완료 | 실제 Rust 포팅·화면/앱 통합·사용자 서비스 제어·배포를 수행한 사실은 아니며 후속 product 경계는 별도 |
+| `2026-11-18` 완료 목표 정정과 구조 질문 | backend Python 제거가 최종 목표이며 설정 성능 퇴행을 해결해야 함. `apps/api`·`apps/web` 같은 역할 분리를 제안 | 폴더 이전·전체 native backend·성능 개선을 이미 수행한 사실이 아님. 실행 도구/legacy fixture와 backend runtime을 구별하고 UI/VT·자료 계약을 유지 |
+| 최초 생성한 Feature들을 끝까지 진행하라는 명시 지시 | FEAT-0167/0168의 권장 경계와 계약 실행을 승인. Run247/248에서 first slice/host/runtime/helper/관리 계약 완료 | 실제 Rust 포팅·화면/앱 통합·사용자 서비스 제어·배포를 수행한 사실은 아니며 후속 product 경계는 별도 |
 | 기획 검토 뒤의 사용자 진행 지시 | 합의한 공통 Rust 코어·앱 중심 GUI와 앱 터미널 방향에서 다음 작업으로 진행 | 상위 방향/Feature 기획 승인으로 기록. 새 first-slice/runtime 권장안·개별 Feature 경계·배포를 자동 승인하지 않음 |
-| 현재 사용자 요청과 후속 답변 | Rust 전환과 macOS 앱 터미널의 공동 기획, GUI 품질·반응성·호환 검토. 공통 업무 코드의 Tauri 분리 확인, 앱 중심 일상 사용·개발 확인용 웹·장기 기능 동등성. 후속으로 일관된 앱 종료/잠자기 후 terminal 유지와 시스템 종료 시 프로세스 종료를 선택 | 모든 실행 구성요소의 Rust 재작성이나 UI 프레임워크·전송·manager 공유를 선택한 것은 아님. terminal 수명 결정과 표시/숨김 UX 추천은 PRD-0030이 소유 |
-| [Architecture](../../policies/project/architecture.md), [Python manifest](../../../pyproject.toml) | Python/FastAPI·Jinja2, SQLite/FTS5, 도메인·수집·검색·모델 책임 | Rust 동등 구현이나 성능 향상의 증거가 아님 |
-| [Tauri manifest](../../../desktop/src-tauri/Cargo.toml), [lock](../../../desktop/src-tauri/Cargo.lock), [config](../../../desktop/src-tauri/tauri.conf.json), [호스트](../../../desktop/src-tauri/src/main.rs), [빌드](../../../scripts/build-desktop.py) | 이미 Rust인 Tauri 호스트와 동봉 Python 백엔드, 앱 수명·번들 경계 | 선언된 최소 OS와 실제 검증 환경을 구별해야 함 |
+| 최초 사용자 요청과 후속 답변 | Rust 전환과 macOS 앱 터미널의 공동 기획, GUI 품질·반응성·호환 검토. 공통 업무 코드의 Tauri 분리 확인, 앱 중심 일상 사용·개발 확인용 웹·장기 기능 동등성. 후속으로 일관된 앱 종료/잠자기 후 terminal 유지와 시스템 종료 시 프로세스 종료를 선택 | 모든 실행 구성요소의 Rust 재작성이나 UI 프레임워크·전송·manager 공유를 선택한 것은 아님. terminal 수명 결정과 표시/숨김 UX 추천은 PRD-0030이 소유 |
+| 최초 Python 구현과 당시 `pyproject.toml` | 당시 Python/FastAPI·Jinja2, SQLite/FTS5, 도메인·수집·검색·모델 책임 | 현재 제품 package는 제거됨. 원본 고정 baseline과 Run261 대응표로 추적하며 당시 소스만으로 Rust 동등 구현이나 성능 향상을 입증하지 않음 |
+| [현재 Architecture](../../policies/project/architecture.md), [Rust workspace](../../../Cargo.toml) | 현재 Rust/Axum·MiniJinja와 native 저장·수집·검색·모델 책임 | 실제 행동·배포·성능 검증은 Run261에서 별도로 확인 |
+| [Tauri manifest](../../../apps/desktop/src-tauri/Cargo.toml), [lock](../../../apps/desktop/src-tauri/Cargo.lock), [config](../../../apps/desktop/src-tauri/tauri.conf.json), [호스트](../../../apps/desktop/src-tauri/src/main.rs), [빌드](../../../scripts/build-desktop.py) | 기존 Rust Tauri의 앱 수명·번들 경계. 당시 동봉 Python 백엔드는 Run261의 native backend로 대체 | 선언된 최소 OS와 실제 검증 환경을 구별해야 함 |
 | [Desktop/settings](../../policies/project/desktop-app-and-settings.md), [Storage](../../policies/project/installation-and-storage.md), [Data model](../../policies/project/data-model.md) | 현재 데이터·설정·복구·인증·설치 계약 | 새 스키마나 교차 버전 복원을 승인하지 않음 |
 | [Session ingestion](../../policies/project/session-ingestion.md), [Usage](../../policies/project/usage-and-cost.md), [Search](../../policies/project/natural-language-search.md), [Privacy](../../policies/project/privacy-and-data.md) | 원본 보존·수집 의미, 비용 스냅샷, 검색 적격성·모델·외부 전송 경계 | 언어 전환을 이유로 계약을 축소할 수 없음 |
 | [Trial capabilities](../../policies/project/trial-capabilities.md), [Availability](../project/feature-availability.md), [PRD-0027](prd-0027-early-access-distribution-and-bilingual-docs.md) | 웹/앱의 서로 다른 제공 범위, 중단 기능, 별도 Windows 전달 경계 | Rust 전환이 기능 재개나 Windows 포팅 완료를 뜻하지 않음 |
@@ -60,7 +69,9 @@ FEAT-0167/0168의 완료를 명시적으로 승인했고 두 계약 결과가 Ru
 유지할 의무는 없다. 과도기의 실제 기능 차이와 미편입 항목은 명시한다.
 
 Rust 전환의 기대 효과는 실행 구성·자원 관리·처리 경로 개선의 **검증 대상**이다.
-아직 속도·메모리·앱 크기 개선을 측정하지 않았다. 화면의 JavaScript·레이아웃,
+[Run261/Eval0177](../evaluation/eval-0177-python-free-backend.md)에서 최종 배포본의
+네 가지 HTTP 지연을 같은 조건으로 비교했고 모두 개선됐다. 메모리·앱 크기·물리
+입력·전체 시작 비용의 전후 개선까지 판정한 것은 아니다. 화면의 JavaScript·레이아웃,
 SQL, 디스크 I/O, 모델 추론, 전달량이 병목이면 백엔드 언어 변경만으로 해결되지 않는다.
 
 TUI는 터미널의 글자 칸으로 만드는 조작 화면이고, GUI는 창·글꼴·목록·버튼·이미지
@@ -69,6 +80,9 @@ TUI는 터미널의 글자 칸으로 만드는 조작 화면이고, GUI는 창·
 제품 전체를 TUI로 바꾸는 선택과 backend 언어 선택은 연결된 의무가 아니다.
 
 ## Current Baseline And Meaning Of The Transition
+
+다음 표의 현재 상태와 제안은 PRD 착수 시점의 baseline이다. 현재 구현·검증 상태는
+[Eval0177](../evaluation/eval-0177-python-free-backend.md)과 아키텍처가 소유한다.
 
 | 부분 | 현재 상태 | 전환 경계의 제안 |
 | --- | --- | --- |
@@ -79,12 +93,19 @@ TUI는 터미널의 글자 칸으로 만드는 조작 화면이고, GUI는 창·
 | 선택형 로컬 모델 | Python의 Torch·Transformers·Sentence Transformers와 pinned 모델/토크나이저·인덱스 | 별도 Python worker 유지와 Rust 추론 전환은 OP-03. 키워드 검색에 모델을 필수화하지 않음 |
 | 터미널 | Python 제어/bridge·프로세스 검사 + 독립 Node/node-pty·headless xterm + 브라우저 xterm | Rust로 제어 경계를 옮겨도 Node/headless가 자동 제거되지는 않음. 엔진 교체 여부는 OP-04 |
 
-현재 구조를 설명하는 표이지 전환 설계를 승인한 표가 아니다. Python 모델을
+이 표는 PRD 착수 시점의 baseline이며 이후 Terminal/설정의 실제 전환은 각 Run과
+[현재 아키텍처](../../policies/project/architecture.md)가 소유한다. 전환 설계를 승인한 표가 아니다. Python 모델을
 남기는 선택은 ‘Python 완전 제거’와 다르고, Node 터미널을 남기는 선택은 ‘모든
 runtime을 Rust 하나로 통합’과 다르다. 완료 보고도 이 차이를 명시해야 한다.
 
 ## Confirmed Scope
 
+- 최종 backend는 Python interpreter/helper/모델 worker 없이 실행·배포한다.
+  기존 기능·자료·권한·호환 조건을 보존하며, Python 제거를 기능 삭제로 대신하지 않는다.
+  사용자 승인 `apps/api`·`apps/web`·`apps/desktop`과 shared `crates` 구조 및
+  [전환 목표](../project/python-free-backend-target.md)는 Run261에서 구현했다.
+  실제 디렉터리·native runtime·배포본·검증 결과는 Eval0177이 소유하며, 최초
+  제안 단계의 설명과 현재 실행 완료를 구분한다.
 - Rust 백엔드 전환과 앱 터미널을 함께 기획하되 각 PRD의 수락·승인을 구별한다.
 - **업무 코드는 Tauri에 종속시키지 않고 웹 서버·앱이 공통 Rust 코드로 사용한다.**
   앱은 일상 사용 대상, 웹은 개발 확인 경로이며 장기 기능 동등성을 전달 목표로 둔다.
@@ -112,6 +133,8 @@ HTTP/API, 앱은 승인된 host 연결을 통해 같은 업무 규칙을 사용�
 이 안의 backend 대상은 HTTP/CLI 경계와 설정·수집·저장·조회·검색 조정·서비스 수명이다.
 첫 전환의 활성 기능 목록과 제외된 기능의 포팅 시점은 OP-01의 승인 대상이다.
 기존 Python 구현 전체를 지웠다는 사실로 완료를 정의하지 않는다.
+반대로 backend runtime에 Python을 유지한 채 공통 Rust 모듈을 호출하는 상태도
+최종 완료가 아니다. Python 없는 전달·실행과 기존 동작 보존을 모두 확인한다.
 
 ### GUI Responsiveness And Compatibility
 
@@ -149,7 +172,9 @@ HTTP/API, 앱은 승인된 host 연결을 통해 같은 업무 규칙을 사용�
 ## Excluded Scope
 
 - 승인되지 않은 Feature에서 Spec·실제 포팅·benchmark·기존 사용자 데이터 migration,
-  설치 앱 교체·commit/push를 시작하는 일. 현재 완료 범위는 두 foundation 계약이며 실제 포팅/앱 통합은 후속 product 경계다.
+  설치 앱 교체·commit/push를 시작하는 일. 첫 계약 단계에서는 두 foundation까지만 완료했다.
+  이후 포팅과 앱 통합은 승인된 Feature별로 진행했으며, 현재 완료 범위는
+  [전환 계획](../refactoring/refactor-0006-rust-core-transition.md)에 기록한다.
 - TUI로 제품을 대체하거나 디자인을 제거하는 일, Rust 전환을 이유로 UI 전면 재작성·
   새 프레임워크·DB·모델·터미널 엔진을 자동 채택하는 일. UI 전면 전환은 OP-02의 별도 경계다.
 - 클라우드/다중 사용자·자동 외부 AI·원격 실행·개인 자료 전송 확대, 중단 기능 재개.
@@ -165,6 +190,11 @@ OP-01~05/08의 **첫 전환 범위**와 runtime/host/호환 선택은 아래 결
 [공통 코어 계약](../project/rust-core-and-host-contract.md)이 소유한다.
 이를 미결정으로 다시 묻지 않는다. 전체 이후 포팅 목록/별도 제품 수락과 native
 측정 수치는 해당 product Feature 승인 전에 고정하며, 계약 PASS로 구현을 대체하지 않는다.
+
+아래 표의 **1차 결정**은 통과한 첫 slice의 경계다. 2026-11-18 사용자가 명시한
+최종 Python 제거 목표에 따라 OP-02/03/05의 Python host·문법·모델 실행 유지는
+과도기 상태로 한정한다. 기존 화면·HTTP/WS·모델 자료의 호환 의무는 유지하되
+최종 backend runtime에서 Python 실행을 계속 허용한 것으로 읽지 않는다.
 
 | ID | 선택 / 남은 질문 | 결정·근거 / 최초 검토 |
 | --- | --- | --- |
@@ -219,6 +249,7 @@ OP-01~05/08의 **첫 전환 범위**와 runtime/host/호환 선택은 아래 결
 | A-08 | 실제 빌드/설치된 앱과 웹/CLI 배포물, 라이선스·자산·버전/지문·업데이트 후 기동을 확인한다. 컴파일이나 소스 tests 통과를 installed-app/다른 기기/Windows·물리 입력 수락으로 확대하지 않는다. |
 | A-09 | 앱 터미널은 PRD-0030의 별도 수락을 충족한다. Rust 전환 완료나 그 반대 하나만으로 다른 PRD가 충족됐다고 판정하지 않는다. |
 | A-10 | 설치 앱과 개발용 웹이 Tauri에 종속되지 않은 공통 업무 코드를 사용한다. 승인된 공통 기능 목록의 앱/웹 차이·미편입 상태를 명시하고 장기 동등성에서 빠진 기능을 조용히 제외하지 않는다. 웹 개발 확인을 앱의 실제 수락 증거로 대신하지 않는다. |
+| A-11 | 최종 backend와 배포물의 Python interpreter/helper/model-worker 의존이0이며, Python 없는 환경에서 앱·웹·CLI의 실제 기능을 검증한다. 일반 요청은 상주 Rust backend에서 공통 업무 함수를 직접 호출한다. 설정 호출의 측정된 성능 퇴행은 해결하고 동일 자료·부하에서 전후 지연을 비교하며, 부분 이전이나 컴파일 성공을 전체 완료로 보고하지 않는다. |
 
 ## Candidate Features
 
@@ -241,6 +272,50 @@ Run247에서 계약 PASS를 받았다. 아래 나머지 후보는 아직 Feature
 기능을 만들거나 이 표를 실행 순서로 취급하지 않는다.
 
 ## Continuity Notes
+
+- `2026-11-19` 전체 backend 구현·전달 완료: 사용자 승인
+  [FEAT-0180/Run261](../run/run-20261118-261-python-free-backend.md)이
+  [Eval0177](../evaluation/eval-0177-python-free-backend.md) PASS를 받았다.
+  apps/api·web·desktop 및 crates 구조, native host/CLI/codec/저장·수집·검색·모델과
+  Python 제품249모듈·PyInstaller/bridge retirement를 완료했다. 실제 Rust 1.90
+  412개/실패0, 앱·웹·CLI/Python 차단 환경, 실제 창16·브라우저26·저장 실패6검사와
+  서브에이전트 독립 검토가 통과했다. 같은 조건의 최종 HTTP 네 항목 모두 순수
+  Python과 중간 전환본보다 빨랐다. 원래 POSIX fsync 동작을 보존해 설정 저장
+  퇴행을 해결했으며 검증용 Python·독립 Node는 제품 backend Python과 구별한다.
+  전체 strict parity, macOS14 실기기/Windows·물리 입력·장시간/자원·대형 모델 품질과
+  별도 Feature177 수락은 남은 증거 한계다. 이 결과가 상위 PRD 전체 수락이나
+  설치 앱·사용자 자료·서비스 교체/Git publication을 뜻하지 않는다.
+
+- `2026-11-18` 완료 범위 정정: 사용자는 backend Python 제거가 목표이며 부분
+  이전으로 전체 완료를 대신할 수 없다고 명확히 했다. 공통 설정의 측정된 성능
+  저하도 해결 대상이다. Python host/codec/model 유지 문구는 첫 slice의 실제
+  과도기 상태로 한정한다. [현재 목표와 권장 apps 구조](../project/python-free-backend-target.md)를
+  추가했으며, 기존 통과 기록은 부분 결과로 보존한다. 폴더 이동·새 Rust host 및
+  성능 개선이 완료됐다는 주장은 하지 않는다.
+
+- `2026-11-18` 공통 설정 구현: 승인된 [FEAT-0179/Run260](../run/run-20261118-260-rust-common-settings-runtime.md)은
+  [Eval0176](../evaluation/eval-0176-rust-common-settings-runtime.md) 계약·기능 PASS다.
+  Rust가 공통/Terminal 정상 설정 규칙·병합·revision·commit을 소유하고, 독립
+  common 실행파일을 source·platform wheel·최종 서명 앱에 전달했다. 실제 앱
+  설정 저장·재열기·Quit/재시작까지 확인했다. 문법/OS-zone·기존 Python host와
+  Node는 유지한다. 표본 읽기/저장은 기존 Python보다 느리며 최소 compiler/OS,
+  물리 입력·장기 검증, 나머지 backend와 Terminal177 별도 수락은 남는다.
+  설치 앱/사용자 서비스 교체나 Git publication은 수행하지 않았다.
+
+- `2026-11-17` 공통 설정 계약 실행: 사용자의 후속 “진행”으로 FEAT-0178을 승인하고
+  Spec0178/Run259/Eval0175에서 계약 PASS를 받았다. Rust가 known-value 규칙·
+  병합·정상 commit을 소유하며, 부모 lock descriptor를 상속하고 Python 문법/
+  OS-zone adapter를 명시적으로 유지한다. 독립 common runtime 전달/호환·거부도
+  확정했다. 실제 포팅은 새 [FEAT-0179](../feature/feat-0179-rust-common-settings-runtime.md)
+  초안으로 분리했으며 아직 승인/코드 변경은 없다. 전체 backend 및 Terminal177
+  native 수락은 완료하지 않았다.
+
+- `2026-11-17` Phase3 기획 재개: 사용자가 refactor에 반영된 나머지 Rust 전환을
+  계속하도록 요청했다. [기능·consumer inventory](../project/rust-backend-migration-inventory.md)와
+  의존 순서를 작성하고 [FEAT-0178 공통 설정 전환 계약](../feature/feat-0178-rust-common-settings-cutover-contract.md)을
+  첫 foundation으로 제안했다. 새 Feature는 draft이며 경계 승인은 아직 없다.
+  Spec/Run/실제 포팅은 시작하지 않았고, 기존 Terminal Rust 전달과 나머지 Python
+  기능군의 이관 의무를 구별한다. 최신 Feature177의 실제 창 검증은 기존 owner에 남는다.
 
 - `2026-11-12` 진행 지시: 합의한 제품 방향과 Feature 기획의 승인으로 반영했다.
   [FEAT-0167](../feature/feat-0167-rust-core-and-host-contract.md)에 첫 terminal control

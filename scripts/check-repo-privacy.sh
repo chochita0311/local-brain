@@ -12,6 +12,7 @@ fi
 
 candidate_list="$(mktemp)"
 content_list="$(mktemp)"
+email_content_list="$(mktemp)"
 local_content_list="$(mktemp)"
 regex_patterns="$(mktemp)"
 fixed_patterns="$(mktemp)"
@@ -19,13 +20,16 @@ local_patterns="$(mktemp)"
 matches="$(mktemp)"
 
 cleanup() {
-  rm -f "$candidate_list" "$content_list" "$local_content_list" "$regex_patterns" "$fixed_patterns" "$local_patterns" "$matches"
+  rm -f "$candidate_list" "$content_list" "$email_content_list" "$local_content_list" "$regex_patterns" "$fixed_patterns" "$local_patterns" "$matches"
 }
 trap cleanup EXIT
 
 git ls-files --cached --others --exclude-standard -z > "$candidate_list"
 
 failed=0
+candidate_count=0
+email_pattern='[[:alnum:]._%+-]+@[[:alnum:].-]+\.[A-Za-z]{2,}'
+email_fixture=""
 
 is_allowlisted() {
   local candidate="$1"
@@ -34,12 +38,19 @@ is_allowlisted() {
 }
 
 while IFS= read -r -d '' file; do
+  # Removed tracked paths are history, not files in the publication candidate.
+  [[ -e "$file" || -L "$file" ]] || continue
+  candidate_count=$((candidate_count + 1))
   case "$file" in
     .env|.env.*)
       if [[ "$file" != ".env.example" ]]; then
         printf 'forbidden environment file: %s\n' "$file" >&2
         failed=1
       fi
+      ;;
+    crates/core/src/backend/insights/runs/process.rs)
+      # Compiled source, not a generated Run artifact; content checks still apply.
+      :
       ;;
     data/*|*/data/*|runs/*|*/runs/*|exports/*|*/exports/*|artifacts/*|*/artifacts/*|playwright-report/*|*/playwright-report/*|test-results/*|*/test-results/*)
       printf 'forbidden runtime artifact: %s\n' "$file" >&2
@@ -60,6 +71,11 @@ while IFS= read -r -d '' file; do
 
   if [[ "$file" != "scripts/check-repo-privacy.sh" ]]; then
     printf '%s\0' "$file" >> "$content_list"
+    if [[ "$file" == "crates/core/tests/native_rendering_fixtures/code_literals.json" ]]; then
+      email_fixture="$file"
+    else
+      printf '%s\0' "$file" >> "$email_content_list"
+    fi
     if ! is_allowlisted "$file"; then
       printf '%s\0' "$file" >> "$local_content_list"
     fi
@@ -72,7 +88,6 @@ fi
 
 {
   printf '%s\n' '/Users/[[:alnum:]_.-]+/'
-  printf '%s\n' '[[:alnum:]._%+-]+@[[:alnum:].-]+\.[A-Za-z]{2,}'
   printf '%s\n' 'https://[^[:space:])]*(slack\.com|atlassian\.net)'
   printf '%s\n' 'AKIA[0-9A-Z]{16}'
   printf '%s\n' 'xox[baprs]-[A-Za-z0-9-]+'
@@ -104,6 +119,17 @@ if [[ -s "$content_list" ]]; then
   fi
 fi
 
+if [[ -s "$email_content_list" ]]; then
+  xargs -0 rg -l --no-messages -- "$email_pattern" < "$email_content_list" >> "$matches" || true
+fi
+if [[ -n "$email_fixture" ]]; then
+  # Review complete tokens so one allowed autolink cannot hide another address.
+  if rg -o --no-filename --no-messages -- "$email_pattern" "$email_fixture" \
+    | grep -Fvx -- 'person@example.test' >/dev/null; then
+    printf '%s\n' "$email_fixture" >> "$matches"
+  fi
+fi
+
 if [[ -s "$matches" ]]; then
   printf 'privacy check found sensitive content patterns in:\n' >&2
   sort -u "$matches" >&2
@@ -111,5 +137,4 @@ if [[ -s "$matches" ]]; then
   exit 1
 fi
 
-candidate_count="$(tr -cd '\0' < "$candidate_list" | wc -c | tr -d ' ')"
 printf 'privacy check passed (%s candidate files)\n' "$candidate_count"

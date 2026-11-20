@@ -2,8 +2,8 @@
   "schema": "localbrain.schema-cleanup-audit.v1",
   "review_status": "complete",
   "manifest": {
-    "path": "src/localbrain/schema-presentation.json",
-    "sha256": "ee60cb5fbdaa424c2da7df7c5dac4f4f7f27848a76748c4a48edf6548e63ecd6",
+    "path": "crates/core/resources/schema-presentation.json",
+    "sha256": "186cd038291113b85d0bb00eeb4d2b82b01b9936abdaecb6f164883a47ceb344",
     "expected": {
       "tables": 53,
       "columns": 560,
@@ -1023,221 +1023,258 @@
   },
   "test_evidence": {
     "learning_lessons": [
-      "tests/test_learning_contract.py"
+      "crates/core/tests/native_learning_contracts.rs"
     ],
     "learning_attempts": [
-      "tests/test_learning_contract.py"
+      "crates/core/tests/native_learning_contracts.rs"
     ],
     "learning_visibility": [
-      "tests/test_learning_contract.py"
+      "crates/core/tests/native_learning_contracts.rs"
     ],
     "skill_observations": [
-      "tests/test_skill_observations.py",
-      "tests/test_automatic_skill_loads.py"
+      "crates/core/tests/native_ingest_parsers.rs",
+      "crates/core/tests/native_ingest_sync.rs"
     ],
     "personal_insight_runs": [
-      "tests/test_personal_insight_run_guidance.py",
-      "tests/test_personal_insight_usage.py",
-      "tests/test_personal_insight_ui.py"
+      "crates/core/tests/native_insights_guidance.rs",
+      "crates/core/tests/native_insights_presentation.rs",
+      "crates/core/tests/native_insights_runs.rs",
+      "crates/core/tests/native_insights_usage.rs"
     ],
     "sources": [
-      "tests/test_ingest_policy.py",
-      "tests/test_session_contract.py",
-      "tests/test_usage_dashboard.py",
-      "tests/test_source_profiles.py",
-      "tests/test_session_source_settings.py"
+      "crates/core/tests/native_ingest_scan.rs",
+      "crates/core/tests/native_ingest_sync.rs",
+      "crates/core/tests/native_sessions.rs",
+      "crates/core/tests/native_storage.rs",
+      "crates/core/tests/native_usage_dashboard.rs",
+      "crates/core/tests/native_usage_dashboard_edges.rs"
     ],
     "source_files": [
-      "tests/test_session_contract.py",
-      "tests/test_usage_contract.py",
-      "tests/test_session_retention.py"
+      "crates/core/tests/native_ingest_sync.rs",
+      "crates/core/tests/native_sessions.rs",
+      "crates/core/tests/native_usage.rs"
     ],
     "external_source_instances": [
-      "tests/test_external_access.py"
+      "crates/core/tests/native_atlassian_access.rs"
     ],
     "external_source_capabilities": [
-      "tests/test_external_access.py"
+      "crates/core/tests/native_atlassian_access.rs"
     ],
     "workspaces": [
-      "tests/test_session_inventory.py",
-      "tests/test_workstreams.py",
-      "tests/test_usage_dashboard.py"
+      "crates/core/tests/native_ingest_scan.rs",
+      "crates/core/tests/native_usage_dashboard.rs",
+      "crates/core/tests/native_usage_dashboard_edges.rs",
+      "crates/core/tests/native_workstreams.rs",
+      "crates/core/tests/native_workstreams_golden.rs"
     ],
     "sessions": [
-      "tests/test_session_contract.py",
-      "tests/test_session_details.py",
-      "tests/test_session_inventory.py",
-      "tests/test_usage_contract.py",
-      "tests/test_session_retention.py"
+      "crates/core/tests/native_ingest_scan.rs",
+      "crates/core/tests/native_ingest_sync.rs",
+      "crates/core/tests/native_sessions.rs",
+      "crates/core/tests/native_usage.rs"
     ],
     "activity_events": [
-      "tests/test_activity_attribution.py",
-      "tests/test_session_details.py",
-      "tests/test_retrieval.py",
-      "tests/test_schema_migrations.py",
-      "tests/test_session_retention.py"
+      "crates/core/tests/native_clock.rs",
+      "crates/core/tests/native_ingest_sync.rs",
+      "crates/core/tests/native_schema.rs",
+      "crates/core/tests/native_search.rs",
+      "crates/core/tests/native_sessions.rs",
+      "crates/core/tests/native_storage_contracts.rs"
     ],
     "session_pins": [
-      "tests/test_session_pins.py"
+      "crates/core/tests/native_sessions.rs"
     ],
     "session_chart_preferences": [
-      "tests/test_session_chart.py"
+      "crates/core/tests/native_sessions.rs",
+      "crates/core/tests/native_usage_dashboard.rs"
     ],
     "session_reference_scans": [
-      "tests/test_session_reference_schema.py"
+      "crates/core/tests/native_storage_shared_resources.rs"
     ],
     "session_reference_evidence": [
-      "tests/test_session_reference_schema.py",
-      "tests/test_shared_resources.py"
+      "crates/core/tests/native_storage_shared_resources.rs"
     ],
     "workflow_assertions": [
-      "tests/test_workflow_assertions.py"
+      "crates/core/tests/native_workflow_assertions.rs"
     ],
     "usage_price_snapshots": [
-      "tests/test_usage_contract.py"
+      "crates/core/tests/native_usage.rs"
     ],
     "usage_model_prices": [
-      "tests/test_usage_contract.py"
+      "crates/core/tests/native_usage.rs"
     ],
     "usage_records": [
-      "tests/test_usage_contract.py",
-      "tests/test_usage_dashboard.py",
-      "tests/test_activity_attribution.py",
-      "tests/test_schema_migrations.py",
-      "tests/test_session_retention.py"
+      "crates/core/tests/native_clock.rs",
+      "crates/core/tests/native_ingest_sync.rs",
+      "crates/core/tests/native_schema.rs",
+      "crates/core/tests/native_sessions.rs",
+      "crates/core/tests/native_storage_contracts.rs",
+      "crates/core/tests/native_usage.rs",
+      "crates/core/tests/native_usage_dashboard.rs",
+      "crates/core/tests/native_usage_dashboard_edges.rs"
     ],
     "context_roots": [
-      "tests/test_context_roots.py",
-      "tests/test_session_contract.py"
+      "crates/core/tests/native_context_html.rs",
+      "crates/core/tests/native_context_scan.rs",
+      "crates/core/tests/native_ingest_sync.rs",
+      "crates/core/tests/native_sessions.rs"
     ],
     "context_documents": [
-      "tests/test_context_roots.py",
-      "tests/test_retrieval.py",
-      "tests/test_schema_migrations.py"
+      "crates/core/tests/native_context_html.rs",
+      "crates/core/tests/native_context_scan.rs",
+      "crates/core/tests/native_schema.rs",
+      "crates/core/tests/native_search.rs",
+      "crates/core/tests/native_storage_contracts.rs"
     ],
     "workstreams": [
-      "tests/test_workstreams.py",
-      "tests/test_runner.py"
+      "crates/core/tests/native_maintenance.rs",
+      "crates/core/tests/native_workstreams.rs",
+      "crates/core/tests/native_workstreams_golden.rs"
     ],
     "threads": [
-      "tests/test_workstreams.py",
-      "tests/test_runner.py",
-      "tests/test_retrieval.py"
+      "crates/core/tests/native_maintenance.rs",
+      "crates/core/tests/native_search.rs",
+      "crates/core/tests/native_workstreams.rs",
+      "crates/core/tests/native_workstreams_golden.rs"
     ],
     "workstream_links": [
-      "tests/test_workstreams.py",
-      "tests/test_retrieval.py"
+      "crates/core/tests/native_search.rs",
+      "crates/core/tests/native_workstreams.rs",
+      "crates/core/tests/native_workstreams_golden.rs"
     ],
     "thread_links": [
-      "tests/test_workstreams.py",
-      "tests/test_runner.py",
-      "tests/test_retrieval.py"
+      "crates/core/tests/native_maintenance.rs",
+      "crates/core/tests/native_search.rs",
+      "crates/core/tests/native_workstreams.rs",
+      "crates/core/tests/native_workstreams_golden.rs"
     ],
     "local_resources": [
-      "tests/test_runner.py",
-      "tests/test_workstreams.py",
-      "tests/test_schema_migrations.py"
+      "crates/core/tests/native_maintenance.rs",
+      "crates/core/tests/native_schema.rs",
+      "crates/core/tests/native_storage_contracts.rs",
+      "crates/core/tests/native_workstreams.rs",
+      "crates/core/tests/native_workstreams_golden.rs"
     ],
     "external_resources": [
-      "tests/test_runner.py",
-      "tests/test_workstreams.py",
-      "tests/test_atlassian_schema_migration.py"
+      "crates/core/tests/native_maintenance.rs",
+      "crates/core/tests/native_storage_contracts.rs",
+      "crates/core/tests/native_workstreams.rs",
+      "crates/core/tests/native_workstreams_golden.rs"
     ],
     "atlassian_sites": [
-      "tests/test_atlassian.py",
-      "tests/test_atlassian_schema_migration.py"
+      "crates/core/tests/native_atlassian_browse_golden.rs",
+      "crates/core/tests/native_atlassian_catalog.rs",
+      "crates/core/tests/native_storage_contracts.rs"
     ],
     "atlassian_site_bindings": [
-      "tests/test_atlassian.py",
-      "tests/test_atlassian_schema_migration.py"
+      "crates/core/tests/native_atlassian_browse_golden.rs",
+      "crates/core/tests/native_atlassian_catalog.rs",
+      "crates/core/tests/native_storage_contracts.rs"
     ],
     "atlassian_spaces": [
-      "tests/test_atlassian.py"
+      "crates/core/tests/native_atlassian_browse_golden.rs",
+      "crates/core/tests/native_atlassian_catalog.rs"
     ],
     "atlassian_items": [
-      "tests/test_atlassian.py",
-      "tests/test_atlassian_schema_migration.py"
+      "crates/core/tests/native_atlassian_browse_golden.rs",
+      "crates/core/tests/native_atlassian_catalog.rs",
+      "crates/core/tests/native_storage_contracts.rs"
     ],
     "atlassian_item_urls": [
-      "tests/test_atlassian.py"
+      "crates/core/tests/native_atlassian_browse_golden.rs",
+      "crates/core/tests/native_atlassian_catalog.rs"
     ],
     "atlassian_item_remote_state": [
-      "tests/test_atlassian.py"
+      "crates/core/tests/native_atlassian_browse_golden.rs",
+      "crates/core/tests/native_atlassian_catalog.rs"
     ],
     "external_resource_content": [
-      "tests/test_atlassian.py",
-      "tests/test_shared_resources.py"
+      "crates/core/tests/native_atlassian_browse_golden.rs",
+      "crates/core/tests/native_atlassian_catalog.rs",
+      "crates/core/tests/native_storage_shared_resources.rs"
     ],
     "external_resource_notes": [
-      "tests/test_atlassian_browse.py",
-      "tests/test_shared_resources.py"
+      "crates/core/tests/native_atlassian_browse_golden.rs",
+      "crates/core/tests/native_storage_shared_resources.rs"
     ],
     "atlassian_classifications": [
-      "tests/test_atlassian_browse.py"
+      "crates/core/tests/native_atlassian_browse_golden.rs"
     ],
     "atlassian_item_classifications": [
-      "tests/test_atlassian_browse.py"
+      "crates/core/tests/native_atlassian_browse_golden.rs"
     ],
     "atlassian_evidence_scans": [
-      "tests/test_atlassian_evidence.py",
-      "tests/test_parsers.py"
+      "crates/core/tests/native_atlassian_evidence.rs",
+      "crates/core/tests/native_ingest_parsers.rs"
     ],
     "atlassian_item_evidence": [
-      "tests/test_atlassian_evidence.py",
-      "tests/test_parsers.py"
+      "crates/core/tests/native_atlassian_evidence.rs",
+      "crates/core/tests/native_ingest_parsers.rs"
     ],
     "atlassian_structure_references": [
-      "tests/test_atlassian_structure_references.py",
-      "tests/test_atlassian_evidence_sync.py",
-      "tests/test_atlassian_browse.py"
+      "crates/core/tests/native_atlassian_browse_golden.rs",
+      "crates/core/tests/native_atlassian_evidence.rs",
+      "crates/core/tests/native_atlassian_evidence_sync.rs"
     ],
     "atlassian_structure_reference_urls": [
-      "tests/test_atlassian_structure_references.py",
-      "tests/test_atlassian_evidence_sync.py"
+      "crates/core/tests/native_atlassian_evidence.rs",
+      "crates/core/tests/native_atlassian_evidence_sync.rs"
     ],
     "atlassian_structure_reference_evidence": [
-      "tests/test_atlassian_structure_references.py",
-      "tests/test_atlassian_evidence_sync.py"
+      "crates/core/tests/native_atlassian_evidence.rs",
+      "crates/core/tests/native_atlassian_evidence_sync.rs"
     ],
     "suggestions": [
-      "tests/test_runner.py",
-      "tests/test_workstreams.py"
+      "crates/core/tests/native_maintenance.rs",
+      "crates/core/tests/native_workstreams.rs",
+      "crates/core/tests/native_workstreams_golden.rs"
     ],
     "checkpoints": [
-      "tests/test_workstreams.py",
-      "tests/test_schema_migrations.py"
+      "crates/core/tests/native_schema.rs",
+      "crates/core/tests/native_storage_contracts.rs",
+      "crates/core/tests/native_workstreams.rs",
+      "crates/core/tests/native_workstreams_golden.rs"
     ],
     "checkpoint_resource_refs": [
-      "tests/test_workstreams.py",
-      "tests/test_schema_migrations.py"
+      "crates/core/tests/native_schema.rs",
+      "crates/core/tests/native_storage_contracts.rs",
+      "crates/core/tests/native_workstreams.rs",
+      "crates/core/tests/native_workstreams_golden.rs"
     ],
     "maintenance_runs": [
-      "tests/test_runner.py",
-      "tests/test_external_sync.py",
-      "tests/test_schema_migrations.py"
+      "crates/core/tests/native_atlassian_runner.rs",
+      "crates/core/tests/native_atlassian_sync.rs",
+      "crates/core/tests/native_maintenance.rs",
+      "crates/core/tests/native_schema.rs",
+      "crates/core/tests/native_storage_contracts.rs",
+      "crates/core/tests/native_workstreams.rs"
     ],
     "external_sync_runs": [
-      "tests/test_external_sync.py",
-      "tests/test_schema_migrations.py"
+      "crates/core/tests/native_atlassian_runner.rs",
+      "crates/core/tests/native_atlassian_sync.rs",
+      "crates/core/tests/native_schema.rs",
+      "crates/core/tests/native_storage_contracts.rs"
     ],
     "search_index": [
-      "tests/test_retrieval.py",
-      "tests/test_context_roots.py",
-      "tests/test_ingest_policy.py",
-      "tests/test_atlassian.py",
-      "tests/test_atlassian_browse.py"
+      "crates/core/tests/native_atlassian_browse_golden.rs",
+      "crates/core/tests/native_atlassian_catalog.rs",
+      "crates/core/tests/native_context_html.rs",
+      "crates/core/tests/native_context_scan.rs",
+      "crates/core/tests/native_ingest_scan.rs",
+      "crates/core/tests/native_ingest_sync.rs",
+      "crates/core/tests/native_search.rs"
     ],
     "reference_resources": [
-      "tests/test_shared_resources.py"
+      "crates/core/tests/native_storage_shared_resources.rs"
     ],
     "resource_documents": [
-      "tests/test_shared_resources.py"
+      "crates/core/tests/native_storage_shared_resources.rs"
     ],
     "resource_local_paths": [
-      "tests/test_shared_resources.py"
+      "crates/core/tests/native_storage_shared_resources.rs"
     ],
     "resource_external_links": [
-      "tests/test_shared_resources.py"
+      "crates/core/tests/native_storage_shared_resources.rs"
     ]
   },
   "audit_dimensions": {

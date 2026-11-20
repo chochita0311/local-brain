@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Opt-in packaged-app checks in an owned relocated app and synthetic HOME/data/cache."""
 import argparse
+import base64
 import hashlib
 import json
 import os
@@ -17,8 +18,60 @@ import time
 import uuid
 import urllib.error
 import urllib.request
+from urllib.parse import urlsplit
 
 ROOT=Path(__file__).resolve().parents[1]
+
+
+def websocket_probe(base, path, cookie=None):
+    """Read one actual loopback WS frame with no optional Python client runtime."""
+    parsed = urlsplit(base)
+    key = base64.b64encode(os.urandom(16)).decode('ascii')
+    headers = [f'GET {path} HTTP/1.1', f'Host: {parsed.netloc}',
+               'Upgrade: websocket', 'Connection: Upgrade',
+               f'Sec-WebSocket-Key: {key}', 'Sec-WebSocket-Version: 13',
+               f'Origin: {base}']
+    if cookie:
+        headers.append('Cookie: ' + cookie)
+    with socket.create_connection((parsed.hostname, parsed.port), timeout=15) as stream:
+        stream.sendall(('\r\n'.join(headers) + '\r\n\r\n').encode('ascii'))
+        def read(size):
+            result = bytearray()
+            while len(result) < size:
+                piece = stream.recv(size - len(result))
+                if not piece:
+                    raise RuntimeError('native WS closed before its first frame')
+                result.extend(piece)
+            return bytes(result)
+        response = bytearray()
+        while not response.endswith(b'\r\n\r\n'):
+            if len(response) >= 16384:
+                raise RuntimeError('native WS response headers exceeded the probe bound')
+            response.extend(read(1))
+        lines = response.decode('latin1').split('\r\n')
+        status = int(lines[0].split(' ', 2)[1])
+        if status != 101:
+            return status, None
+        fields = {name.lower(): value.strip() for name, value in
+                  (line.split(':', 1) for line in lines[1:] if ':' in line)}
+        expected = base64.b64encode(hashlib.sha1(
+            (key + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11').encode('ascii')).digest()).decode('ascii')
+        if fields.get('sec-websocket-accept') != expected:
+            raise RuntimeError('native WS handshake did not accept the client key')
+        first, second = read(2)
+        if first != 0x81 or second & 0x80:
+            raise RuntimeError('native WS initial frame was not unmasked complete text')
+        size = second & 0x7f
+        if size == 126:
+            size = int.from_bytes(read(2), 'big')
+        elif size == 127:
+            size = int.from_bytes(read(8), 'big')
+        if size > 1024 * 1024:
+            raise RuntimeError('native WS initial frame exceeded the probe bound')
+        frame = json.loads(read(size))
+        # Client frames are masked, including the empty normal-close frame.
+        stream.sendall(b'\x88\x80' + os.urandom(4))
+        return status, frame
 
 
 def wait(test,seconds=30):
@@ -75,7 +128,7 @@ def main():
         zsh.chmod(0o700)
         (rt/"data/settings.toml").write_text('schema_version = 1\nonboarding_completed = true\nstartup_screen = "context"\ntimezone = "UTC"\nsession_sync_enabled = false\ncontext_sync_enabled = false\n[terminal]\ncwd = '+json.dumps(str(rt/"project-a"))+'\nshell = '+json.dumps(str(shell))+'\n')
         (rt/"data/settings.toml").chmod(0o600)
-        env={"PATH":"/usr/bin:/bin:/usr/sbin:/sbin","HOME":str(Path.home()),"SHELL":"/bin/sh","LANG":"en_US.UTF-8","TMPDIR":os.environ.get("TMPDIR",tempfile.gettempdir()+"/"),
+        env={"PATH":"/usr/bin:/bin:/usr/sbin:/sbin","HOME":str(rt/"home"),"SHELL":"/bin/sh","LANG":"en_US.UTF-8","TMPDIR":str(rt/"tmp")+"/",
              "LOCALBRAIN_DATA_DIR":str(rt/"data"),"LOCALBRAIN_CACHE_DIR":str(rt/"cache"),"LOCALBRAIN_DEVELOPMENT_DIR":str(rt/"development"),
              "LOCALBRAIN_CONTEXT_ROOT":str(rt/"context"),"LOCALBRAIN_CLAUDE_ROOT":str(rt/"claude"),"LOCALBRAIN_CODEX_ROOT":str(rt/"codex/sessions"),
              "HF_HOME":str(rt/"hub"),"HF_HUB_CACHE":str(rt/"hub/cache"),"HUGGINGFACE_HUB_CACHE":str(rt/"hub/cache"),"HF_HUB_OFFLINE":"1","TRANSFORMERS_OFFLINE":"1"}
@@ -193,16 +246,11 @@ def main():
                 started=time.monotonic();api();samples.append((time.monotonic()-started)*1000)
             timings["sixTerminalListMs"]={"samples":len(samples),"median":round(statistics.median(samples),2),"p95":round(sorted(samples)[18],2)}
             checks.append("packaged native API cold offline create, repeated last-stop/recreate and grouped tabs/four panes; no UI claim")
-            from websockets.sync.client import connect
-            from websockets.exceptions import InvalidStatus
-            url=base.replace("http:","ws:")+"/api/terminal/terminals/"+state["terminals"][0]["id"]+"/stream?unicode=11&checkpoint=xterm6-v3"
-            try:
-                with connect(url,origin=base,open_timeout=10):pass
-                raise RuntimeError("native WS admitted missing credential")
-            except InvalidStatus:pass
-            with connect(url,origin=base,additional_headers={"Cookie":"localbrain-desktop="+token},open_timeout=10) as connection:
-                frame=json.loads(connection.recv(timeout=15))
-                if frame["type"]=="error":raise RuntimeError("authenticated native WS failed")
+            path="/api/terminal/terminals/"+state["terminals"][0]["id"]+"/stream?unicode=11&checkpoint=xterm6-v3"
+            status,_=websocket_probe(base,path)
+            if status not in (401,403):raise RuntimeError("native WS did not refuse missing credential")
+            status,frame=websocket_probe(base,path,"localbrain-desktop="+token)
+            if status!=101 or frame["type"]=="error":raise RuntimeError("authenticated native WS failed")
             checks.append("actual packaged native WS rejects missing credential and accepts per-launch cookie with exact Origin")
         else:
             ui("screenshot",evidence/"startup-native.png",required=False)
@@ -213,6 +261,7 @@ def main():
             if service.exists():raise RuntimeError("Terminal navigation prepared runtime")
             ui("press","새 터미널 탭");state=wait(lambda:count_ready(1))
             wait(lambda:ui("has","입력 가능",required=False))
+            wait(lambda:rpc("read",{"id":state["terminals"][0]["id"],"after":-1})["data"].endswith("native> "))
             checks.append("actual Tauri WebView cold New prepares offline and connects authenticated WS")
             if not args.skip_ime:
                 ui("ime");terminal=state["terminals"][0]
@@ -276,6 +325,10 @@ def main():
             moving_tab=next(tab for tab in move_before["tabs"] if tab["cwd"]==str(rt/"project-b"))
             original_space=moving_tab["workspaceId"]
             first_space=next(item["id"] for item in move_before["workspaces"]["items"] if item["name"]=="project-a")
+            if original_space==first_space:raise RuntimeError("native move fixture workspaces were not distinct")
+            original_label=next(item["name"] for item in move_before["workspaces"]["items"] if item["id"]==original_space)+" 작업공간"
+            first_label=next(item["name"] for item in move_before["workspaces"]["items"] if item["id"]==first_space)+" 작업공간"
+            wait(lambda:ui("terminal-ready",original_label,required=False))
             # From terminal input: Shift+Escape reaches the pane menu; three
             # reverse Tabs pass down/right split controls to the tab menu.
             ui("pane-menu");ui("backtab");ui("backtab");ui("backtab")
@@ -284,6 +337,7 @@ def main():
             ui("up");ui("enter")
             wait(lambda:any(tab["id"]==moving_tab["id"] and tab["workspaceId"]==first_space for tab in api()["tabs"]))
             if not same(api(),move_before):raise RuntimeError("native menu move changed execution")
+            wait(lambda:ui("terminal-ready",first_label,required=False))
             # From terminal input: Shift+Escape reaches the pane menu; three
             # reverse Tabs pass down/right split controls to the tab menu.
             ui("pane-menu");ui("backtab");ui("backtab");ui("backtab")
@@ -291,8 +345,12 @@ def main():
             ui("down");ui("enter")
             wait(lambda:any(tab["id"]==moving_tab["id"] and tab["workspaceId"]==original_space for tab in api()["tabs"]))
             if not same(api(),move_before):raise RuntimeError("native menu return changed execution")
+            wait(lambda:ui("terminal-ready",original_label,required=False))
             checks.append("actual WebView same-panel workspace move uses checked-current keyboard navigation and retains exact generation/PTY PIDs in both directions")
-            ui("press","project-a 작업공간");ui("press","project-a","","AXRadioButton")
+            ui("press","project-a 작업공간")
+            wait(lambda:ui("has","project-a · 현재 선택","","AXButton",required=False))
+            ui("press","project-a · 현재 선택","","AXButton")
+            wait(lambda:ui("terminal-ready","project-a 작업공간",required=False))
             if not ui("screenshot",evidence/"terminal-native.png",required=False):checks.append("owned screenshot unavailable; AX/PTY checks remain separate")
         starting=api();target=starting["tabs"][1]
         created=api("/api/terminal/terminals",{"key":"native-zsh-"+uuid.uuid4().hex,"workspaceId":target["workspaceId"],"tabId":target["id"],"direction":"right","cwd":str(rt/"project-b"),"shell":str(zsh)})
@@ -346,11 +404,14 @@ def main():
         removed.rename(app)
         checks.append("normal Quit and source-app removal preserve app-less cached management and exact work")
         manager=standalone["service"]["pid"]
-        expected_birth=json.loads((service/"identity.json").read_text())["born"]
+        manager_identity=json.loads((service/"identity.json").read_text())
+        expected_birth=manager_identity["born"]
         def manager_birth():
             stamp=subprocess.run(["/bin/ps","-p",str(manager),"-o","lstart="],capture_output=True,text=True,env={**env,"LC_ALL":"C","TZ":"UTC"})
             return " ".join(stamp.stdout.split()) if stamp.returncode==0 else None
-        if manager_birth()!=expected_birth:raise RuntimeError("owned manager identity changed before suspension")
+        observed_birth=manager_birth()
+        (evidence/"owned-manager-identity.json").write_text(json.dumps({"managerPid":manager,"recordedPid":manager_identity["pid"],"birthFormat":manager_identity["birthFormat"],"expectedBirth":expected_birth,"observedBirth":observed_birth},indent=2)+"\n")
+        if manager_identity["pid"]!=manager or manager_identity["birthFormat"]!="utc-lstart-v1" or observed_birth!=expected_birth:raise RuntimeError("owned manager identity changed before suspension")
         os.kill(manager,signal.SIGSTOP)
         try:time.sleep(.5)
         finally:

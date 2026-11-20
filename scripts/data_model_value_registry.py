@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import ast
 import copy
 import json
 import re
@@ -10,16 +9,9 @@ from typing import Any, Iterable, Mapping
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE_ROOT = ROOT / "src"
-if str(SOURCE_ROOT) not in sys.path:
-    sys.path.insert(0, str(SOURCE_ROOT))
-
-from localbrain.persistence.value_registry import (
-    REGISTRY_PATH,
-    ValueRegistryError,
-    validate_value_registry,
+from value_registry_validation import (
+    REGISTRY_PATH, ValueRegistryError, validate_value_registry,
 )
-
 
 DICTIONARY_ROOT = ROOT / "docs/policies/project/data-model/value-dictionaries"
 DICTIONARY_ENTRY = ROOT / "docs/policies/project/data-model/value-dictionaries.md"
@@ -99,7 +91,7 @@ def _sql_literal_values(source: str) -> set[Any]:
 
 
 def schema_check_families(root: Path = ROOT) -> dict[str, set[Any]]:
-    schema = (root / "src/localbrain/schema.sql").read_text(encoding="utf-8")
+    schema = (root / "crates/core/resources/schema.sql").read_text(encoding="utf-8")
     result: dict[str, set[Any]] = {}
     for table_match in re.finditer(
         r"CREATE TABLE IF NOT EXISTS\s+(\w+)\s*\((.*?)(?=\n\);)",
@@ -119,46 +111,48 @@ def schema_check_families(root: Path = ROOT) -> dict[str, set[Any]]:
     return result
 
 
-def _assignment_nodes(path: Path) -> dict[str, ast.AST]:
-    module = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-    assignments: dict[str, ast.AST] = {}
-    for node in module.body:
-        if isinstance(node, ast.Assign) and len(node.targets) == 1:
-            target = node.targets[0]
-            if isinstance(target, ast.Name):
-                assignments[target.id] = node.value
-    return assignments
-
-
-def _literal_family(node: ast.AST, assignments: Mapping[str, ast.AST]) -> set[Any]:
-    if isinstance(node, ast.Constant):
-        return {node.value}
-    if isinstance(node, (ast.Set, ast.List, ast.Tuple)):
-        result: set[Any] = set()
-        for element in node.elts:
-            result.update(_literal_family(element, assignments))
-        return result
-    if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
-        if node.func.id in {"frozenset", "set", "tuple", "list"} and len(node.args) == 1:
-            return _literal_family(node.args[0], assignments)
-    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.BitOr):
-        return _literal_family(node.left, assignments) | _literal_family(
-            node.right, assignments
-        )
-    if isinstance(node, ast.Name) and node.id in assignments:
-        return _literal_family(assignments[node.id], assignments)
-    raise RegistryCheckError("constant is not a bounded literal family")
-
-
-def python_constant_values(root: Path, path: str, names: Iterable[str]) -> set[Any]:
-    absolute = root / path
-    assignments = _assignment_nodes(absolute)
-    values: set[Any] = set()
+def rust_constant_values(root: Path, path: str, names: Iterable[str]) -> set[Any]:
+    """Read only scalar strings and bounded string arrays; other Rust fails closed."""
+    document = (root / path).read_text(encoding="utf-8")
+    result: set[Any] = set()
     for name in names:
-        if name not in assignments:
+        declaration = re.search(
+            rf"^[ \t]*(?:pub(?:\([^)]*\))?\s+)?const\s+{re.escape(name)}\s*:[^=]+?=\s*",
+            document, flags=re.MULTILINE,
+        )
+        if declaration is None:
             raise RegistryCheckError(f"{path} does not declare {name}")
-        values.update(_literal_family(assignments[name], assignments))
-    return values
+        raw = document[declaration.end():].lstrip()
+        if raw.startswith('&'):
+            raw = raw[1:].lstrip()
+        if raw.startswith('['):
+            raw = raw[1:].lstrip()
+            values = []
+            while not raw.startswith(']'):
+                try:
+                    value, end = json.JSONDecoder().raw_decode(raw)
+                except ValueError as error:
+                    raise RegistryCheckError(f"{path}:{name} is not a literal string array") from error
+                if not isinstance(value, str):
+                    raise RegistryCheckError(f"{path}:{name} is not a literal string array")
+                values.append(value)
+                raw = raw[end:].lstrip()
+                if raw.startswith(','):
+                    raw = raw[1:].lstrip()
+                elif not raw.startswith(']'):
+                    raise RegistryCheckError(f"{path}:{name} is not a literal string array")
+            if not raw[1:].lstrip().startswith(';'):
+                raise RegistryCheckError(f"{path}:{name} is not a bounded literal")
+            result.update(values)
+        else:
+            try:
+                value, end = json.JSONDecoder().raw_decode(raw)
+            except ValueError as error:
+                raise RegistryCheckError(f"{path}:{name} is not a literal string") from error
+            if not isinstance(value, str) or not raw[end:].lstrip().startswith(';'):
+                raise RegistryCheckError(f"{path}:{name} is not a literal string")
+            result.add(value)
+    return result
 
 
 def validate_registry(
@@ -168,7 +162,7 @@ def validate_registry(
     errors: list[str] = []
     if registry is None:
         try:
-            registry = load_registry(root / "src/localbrain/value-registry.json")
+            registry = load_registry(root / "crates/core/resources/value-registry.json")
         except (OSError, json.JSONDecodeError, ValueRegistryError) as error:
             return [f"value registry is invalid: {error}"]
     else:
@@ -192,33 +186,17 @@ def validate_registry(
                 if field in registry_schema_sources:
                     errors.append(f"{field} has duplicate schema-check owners")
                 registry_schema_sources[field] = (family["id"], family_values)
-            elif kind == "python-constant":
+            elif kind in {"rust-constant", "rust-constants"}:
+                names = [source["name"]] if kind == "rust-constant" else source["names"]
                 try:
-                    actual = python_constant_values(
-                        root, source["path"], [source["name"]]
-                    )
-                except (OSError, SyntaxError, RegistryCheckError) as error:
+                    actual = rust_constant_values(root, source["path"], names)
+                except (OSError, RegistryCheckError) as error:
                     errors.append(f"{family['id']} constant check failed: {error}")
                     continue
                 if actual != family_values:
                     errors.append(
-                        f"{family['id']} differs from {source['path']}:{source['name']}: "
-                        f"registry={sorted(map(str, family_values))} "
-                        f"code={sorted(map(str, actual))}"
-                    )
-            elif kind == "python-constants":
-                try:
-                    actual = python_constant_values(
-                        root, source["path"], source["names"]
-                    )
-                except (OSError, SyntaxError, RegistryCheckError) as error:
-                    errors.append(f"{family['id']} constant check failed: {error}")
-                    continue
-                if actual != family_values:
-                    errors.append(
-                        f"{family['id']} differs from {source['path']}:{source['names']}: "
-                        f"registry={sorted(map(str, family_values))} "
-                        f"code={sorted(map(str, actual))}"
+                        f"{family['id']} differs from {source['path']}:{names}: "
+                        f"registry={sorted(map(str, family_values))} code={sorted(map(str, actual))}"
                     )
 
         for consumer in family.get("visible_consumers", []):
@@ -238,17 +216,16 @@ def validate_registry(
                 )
                 continue
             if state == "registry-backed":
-                marker = f'value_label("{family["id"]}"'
-                alternate = f"value_label('{family['id']}'"
                 document = path.read_text(encoding="utf-8")
-                if marker not in document and alternate not in document:
+                marker = rf"value_labels?\(\s*[\"']{re.escape(family['id'])}[\"']"
+                if not re.search(marker, document):
                     errors.append(
                         f"{family['id']} registry-backed consumer lacks a "
                         f"value_label marker: {consumer['path']}"
                     )
 
     used_visible_pairs: set[tuple[str, str]] = set()
-    templates_root = root / "src/localbrain/templates"
+    templates_root = root / "apps/web/templates"
     if templates_root.is_dir():
         for path in templates_root.glob("*.html"):
             document = path.read_text(encoding="utf-8")
@@ -342,7 +319,7 @@ def _display_fallbacks(fallbacks: Mapping[str, Mapping[str, str]]) -> str:
 
 def _generated_notice() -> str:
     return (
-        "<!-- Generated from src/localbrain/value-registry.json by "
+        "<!-- Generated from crates/core/resources/value-registry.json by "
         "scripts/build-data-model-value-dictionaries.py. Do not edit. -->"
     )
 
@@ -376,7 +353,7 @@ def render_entry(registry: Mapping[str, Any]) -> str:
         "- `internal-only`: the complete family stays off ordinary product screens.",
         "",
         "A family never mixes modes. Runtime code loads "
-        "`src/localbrain/value-registry.json`; it does not parse these Markdown files.",
+        "`crates/core/resources/value-registry.json`; it does not parse these Markdown files.",
         "",
         "## Subject Dictionaries",
         "",
@@ -396,8 +373,8 @@ def render_entry(registry: Mapping[str, Any]) -> str:
             "## Verification",
             "",
             "```bash",
-            "uv run python scripts/build-data-model-value-dictionaries.py check",
-            "uv run python scripts/check-data-model-docs.py",
+            "python3 scripts/build-data-model-value-dictionaries.py check",
+            "python3 scripts/check-data-model-docs.py",
             "```",
             "",
         ]
@@ -503,7 +480,7 @@ def rendered_documents(
 
 
 def write_documents(root: Path = ROOT) -> None:
-    registry = load_registry(root / "src/localbrain/value-registry.json")
+    registry = load_registry(root / "crates/core/resources/value-registry.json")
     errors = validate_registry(root, registry)
     if errors:
         raise RegistryCheckError("\n".join(errors))
@@ -514,7 +491,7 @@ def write_documents(root: Path = ROOT) -> None:
 
 def check_documents(root: Path = ROOT) -> list[str]:
     try:
-        registry = load_registry(root / "src/localbrain/value-registry.json")
+        registry = load_registry(root / "crates/core/resources/value-registry.json")
     except (OSError, json.JSONDecodeError, ValueRegistryError) as error:
         return [f"value registry is invalid: {error}"]
     errors = validate_registry(root, registry)

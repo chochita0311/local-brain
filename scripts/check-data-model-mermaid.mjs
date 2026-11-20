@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import mermaid from "../src/localbrain/static/vendor/mermaid/mermaid.esm.min.js";
+import mermaid from "../apps/web/static/vendor/mermaid/mermaid.esm.min.js";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const DOCUMENTS = [

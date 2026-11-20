@@ -1,3 +1,4 @@
+import {fixture} from './native-qa-fixture.mjs';
 // Repeat the initial-state regressions against an owned synthetic backend only.
 // node scripts/qa-ui-states-browser.mjs [outside-repository evidence directory]
 import {spawn} from 'node:child_process';
@@ -16,8 +17,7 @@ const runtime = join(output, 'runtime'), profile = join(output, 'chrome-profile'
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const checks = [], exceptions = [];
 const assert = (value, name) => {if (!value) throw new Error(name); checks.push(name);};
-const backend = spawn(process.env.LOCALBRAIN_QA_PYTHON || join(repository, '.venv/bin/python'),
-  [join(repository, 'tests/ui_state_fixture.py'), runtime], {cwd:repository, stdio:['ignore','ignore','pipe']});
+const backend = fixture(repository, runtime);
 let backendError = '';
 backend.stderr.on('data', chunk => {backendError = (backendError + chunk.toString()).slice(-4000);});
 backend.on('error', error => {backendError = error.message;});
@@ -145,8 +145,8 @@ try {
   assert(!searchDependency.startupDisabled&&!searchDependency.syncDisabled&&!searchDependency.sourceAddDisabled&&!searchDependency.contextAddDisabled&&!searchDependency.modelInstallDisabled,'confirmed settings actions usable while only search readiness is pending');
   assert(searchDependency.modelPrepareDisabled,'search-dependent preparation waits for search readiness');
   await click('[data-settings-tab="search"]');
-  const searchPending = await evaluate(`({text:document.querySelector('[data-search-state]').textContent,retryHidden:document.querySelector('[data-onboarding-retry]').hidden})`);
-  assert(searchPending.text.includes('검색 상태를 확인하고 있습니다.')&&searchPending.retryHidden,'pending search is not presented as a failed read');
+  const searchPending = await evaluate(`({text:document.querySelector('[data-search-state]').textContent,state:document.querySelector('[data-search-state]').dataset.state,retryHidden:document.querySelector('[data-onboarding-retry]').hidden})`);
+  assert(searchPending.state==='loading'&&searchPending.retryHidden,'pending search is not presented as a failed read');
   await evaluate('__qa.searchHold=false;__qa.searchRelease.splice(0).forEach(resolve=>resolve())');
   await wait(`!document.querySelector('[data-model-action="prepare"]').disabled`);
   assert(await evaluate(`!document.querySelector('[data-model-action="prepare"]').disabled`),'search readiness enables dependent preparation');

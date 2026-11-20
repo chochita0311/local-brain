@@ -56,12 +56,12 @@
 - [아키텍처](../../policies/project/architecture.md)는 Jinja2 서버 렌더링과 작은
   JSON 상호작용을 사용한다. 조회한 자체 관리 template/static 소스에서 공통
   `skeleton` 구현은 찾지 못했다. 이름 검색만으로 모든 중간 표시가 없다고 판단하지 않는다.
-- [설정 코드](../../../src/localbrain/static/settings.js)의 `open()`은
+- [설정 코드](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/src/localbrain/static/settings.js)의 `open()`은
   `showModal()` → category 선택 → 로딩 안내 → `load()` 순서다. `load()`는 진행 중인
   일반 설정 저장을 기다린 뒤 `/api/settings`를 읽고 값과 목록을 렌더링한다.
-  [로딩 안내](../../../src/localbrain/templates/_settings.html)는 본문 위에 있으며,
-  [CSS](../../../src/localbrain/static/settings.css)는 비어 있으면 숨긴다.
-- [기존 UI contract tests](../../../tests/test_ui_contract.py)는 설정의 구조·저장·복구·
+  [로딩 안내](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/src/localbrain/templates/_settings.html)는 본문 위에 있으며,
+  [CSS](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/src/localbrain/static/settings.css)는 비어 있으면 숨긴다.
+- [기존 UI contract tests](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/tests/test_ui_contract.py)는 설정의 구조·저장·복구·
   크기·스크롤 계약 등을 검사하지만, 브라우저의 순간 paint를 입증하지 않는다.
   [기존 native 설정 평가](../evaluation/eval-0139-design-standalone-test-app.md)는
   여러 개별 전달 범위의 증거다. 이를 전체 설정 진입 프레임의 통과로 확대하지 않는다.
@@ -102,8 +102,8 @@ Sessions/Projects/List/Chart, Session/Subsession 읽기, Sessions Dashboard,
 Local Context/문서 preview, keyword/AI 검색, Docs를 조사한다. 그 다음 개발 웹에
 노출되는 Dashboard/학습 reader, Workstreams/Thread/Suggestion, Sources, Atlassian,
 Schema, Run/Insights, Auto Work 및 연결된 기존 workflow 읽기 화면까지 목록화한다.
-전체 route 목록은 [application assembly](../../../src/localbrain/app/routes.py),
-[Settings](../../../src/localbrain/app/settings.py), Docs/learning route 등록과 실제
+전체 route 목록은 [application assembly](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/src/localbrain/app/routes.py),
+[Settings](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/src/localbrain/app/settings.py), Docs/learning route 등록과 실제
 navigation을 대조해 확정한다. 목록·링크로 빠진 화면이 없도록 하되 유사 route는
 공통 패턴 대표와 고유 상태로 묶고 제외 이유를 기록한다.
 
@@ -146,10 +146,10 @@ workflow 검토도 기존 읽기/표시 증거에 한정하며 중단된 계산�
 | 항목 | 현재 판정 | 다음 조사 |
 | --- | --- | --- |
 | 설정 로딩 안내의 삽입/제거와 첫 진입 빈 선택값 | 위 조건에서 재현 | 모든 설정 category, shortcut, `/settings`, 재열기 및 native host에서 같은 소유자를 확인 |
-| Chart의 fallback→explorer handoff | 소스상 후보. [_session_chart.html](../../../src/localbrain/templates/_session_chart.html)은 fallback을 먼저 표시하고 explorer를 숨김. [JS](../../../src/localbrain/static/session-chart.js)가 렌더링 후 전환 | 정상 cold paint에서 실패처럼 읽히는 안내가 먼저 보이는지, JS 지연/실패 때 유효한 fallback인지 분리 |
-| 시각·profile 등 초기 HTML의 클라이언트 보정 | 소스상 후보. [app.js](../../../src/localbrain/static/app.js)는 시각을 포맷하고 [profiles.js](../../../src/localbrain/static/profiles.js)는 표시값/순서를 갱신 | 원시 timestamp·기본 label·폭/순서 변화의 노출 여부. 최종 값의 정확성과 별개로 검사 |
+| Chart의 fallback→explorer handoff | 소스상 후보. [_session_chart.html](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/src/localbrain/templates/_session_chart.html)은 fallback을 먼저 표시하고 explorer를 숨김. [JS](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/src/localbrain/static/session-chart.js)가 렌더링 후 전환 | 정상 cold paint에서 실패처럼 읽히는 안내가 먼저 보이는지, JS 지연/실패 때 유효한 fallback인지 분리 |
+| 시각·profile 등 초기 HTML의 클라이언트 보정 | 소스상 후보. [app.js](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/src/localbrain/static/app.js)는 시각을 포맷하고 [profiles.js](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/src/localbrain/static/profiles.js)는 표시값/순서를 갱신 | 원시 timestamp·기본 label·폭/순서 변화의 노출 여부. 최종 값의 정확성과 별개로 검사 |
 | Context preview·Dashboard 등의 부분 갱신 | 소스상 기존 content를 유지하고 교체하는 경로 있음. 전환 품질 미평가 | 빠른 연속 선택, 응답 역전, 실패 fallback, shell/scroll/focus 유지와 재바인딩 |
-| native startup→인증 redirect→저장된 화면/onboarding | [startup 화면](../../../desktop/ui/index.html)과 [native host](../../../desktop/src-tauri/src/main.rs)에 별도 handoff 존재. 이번 runtime 미검증 | cold/retained launch, retry, 자산 준비와 첫 의미 있는 화면까지의 전체 과정 |
+| native startup→인증 redirect→저장된 화면/onboarding | [startup 화면](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/desktop/ui/index.html)과 [native host](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/desktop/src-tauri/src/main.rs)에 별도 handoff 존재. 이번 runtime 미검증 | cold/retained launch, retry, 자산 준비와 첫 의미 있는 화면까지의 전체 과정 |
 | 빈 상태와 조회 실패의 혼동 | 미확인 후보. 설정 `render()`는 `session_sources`가 없을 때도 빈 목록 안내를 만들 수 있음 | 합성 partial/error 응답에서 실제 빈 등록과 읽기 실패를 혼동하는지 확인 |
 
 후보를 확정 결함으로 승격하려면 실제 route와 입력·데이터·응답 순서를 재현해야 한다.

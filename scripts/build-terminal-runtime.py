@@ -12,12 +12,11 @@ import subprocess
 import sys
 import tarfile
 import tempfile
-import urllib.request
 import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "desktop"))
-from build_support import rust_build_environment
+sys.path.insert(0, str(ROOT / "apps/desktop"))
+from build_support import rust_build_environment, runtime_inputs
 
 NODE_VERSION = "24.15.0"
 ARCHIVE = "node-v" + NODE_VERSION + "-darwin-arm64.tar.gz"
@@ -35,10 +34,7 @@ def digest(path):
 
 
 def input_identity():
-    paths = [ROOT / "rust/Cargo.toml", ROOT / "rust/Cargo.lock", Path(__file__)]
-    for folder in (ROOT / "rust/localbrain-core", ROOT / "rust/localbrain-runtime", ROOT / "src/localbrain/terminal"):
-        paths += [p for p in folder.rglob("*") if p.is_file() and not p.is_symlink()
-                  and p.suffix in {".rs", ".cjs", ".toml", ".json"} and "__pycache__" not in p.parts]
+    paths = runtime_inputs(ROOT) | {Path(__file__), ROOT / "apps/desktop/build_support.py"}
     value = hashlib.sha256()
     for path in sorted(set(paths)):
         value.update(path.relative_to(ROOT).as_posix().encode() + b"\0" + path.read_bytes())
@@ -79,8 +75,12 @@ def finalize(payload, *, provenance=None):
 
 
 def download(url, path):
-    with urllib.request.urlopen(url, timeout=90) as response, path.open("xb") as output:
-        shutil.copyfileobj(response, output)
+    # macOS curl uses platform trust, including managed certificates. Do not
+    # depend on the build Python's separate CA bundle or disable verification.
+    with path.open("xb") as output:
+        run(["/usr/bin/curl", "--disable", "--fail", "--location", "--silent",
+             "--show-error", "--proto", "=https", "--proto-redir", "=https",
+             "--connect-timeout", "20", "--max-time", "90", url], stdout=output)
 
 
 def output_path(destination):
@@ -148,16 +148,16 @@ def build(destination, archive=None, checksums=None):
         (payload / "bin/node").chmod(0o700)
         env = rust_build_environment(os.environ, (Path.home(), ROOT, work))
         env["MACOSX_DEPLOYMENT_TARGET"] = "14.0"
-        compiled = run(["cargo", "build", "--locked", "--release", "--target", "aarch64-apple-darwin", "--message-format=json-render-diagnostics", "--manifest-path", ROOT / "rust/Cargo.toml"], env=env, capture_output=True, text=True)
+        compiled = run(["cargo", "build", "--locked", "--release", "--target", "aarch64-apple-darwin", "-p", "localbrain-runtime", "--message-format=json-render-diagnostics", "--manifest-path", ROOT / "Cargo.toml"], env=env, capture_output=True, text=True)
         executable = cargo_artifact(compiled.stdout)
         if subprocess.check_output(["/usr/bin/lipo", "-archs", str(executable)], text=True).strip() != "arm64":
             raise ValueError("The Rust helper is not the declared arm64 target")
         shutil.copyfile(executable, payload / "bin/localbrain-runtime")
         (payload / "bin/localbrain-runtime").chmod(0o700)
-        for path in (ROOT / "src/localbrain/terminal").glob("*.cjs"):
+        for path in (ROOT / "crates/runtime/engine").glob("*.cjs"):
             shutil.copyfile(path, payload / "manager" / path.name)
         for name in ("package.json", "package-lock.json"):
-            shutil.copyfile(ROOT / "src/localbrain/terminal/runtime" / name, payload / "engine" / name)
+            shutil.copyfile(ROOT / "crates/runtime/engine" / name, payload / "engine" / name)
         run(["npm", "ci", "--ignore-scripts", "--omit=dev", "--no-audit", "--no-fund"], cwd=payload / "engine")
         bin_links = payload / "engine/node_modules/.bin"
         if bin_links.exists():
@@ -167,6 +167,22 @@ def build(destination, archive=None, checksums=None):
         for folder in prebuilds.iterdir():
             if folder.name != "darwin-arm64":
                 shutil.rmtree(folder)
+        # Runtime uses lib/ and the pinned native prebuild. Upstream's Windows
+        # build/ship sources include Python developer scripts; preserve their
+        # notices, then exclude those build-only inputs from this macOS payload.
+        pty = payload / "engine/node_modules/node-pty"
+        notices = []
+        for folder in ("deps", "third_party"):
+            for path in sorted((pty / folder).rglob("*")):
+                if path.is_file() and path.name.lower().startswith(("license", "licence", "copying", "notice", "copyright")):
+                    notices.append(path.relative_to(pty).as_posix() + "\n\n" + path.read_text(errors="replace"))
+        (payload / "licenses/node-pty-build-NOTICES.txt").write_text("\n\n".join(notices) + "\n")
+        for name in ("binding.gyp", "deps", "scripts", "src", "third_party", "typings"):
+            path = pty / name
+            if path.is_dir():
+                shutil.rmtree(path)
+            else:
+                path.unlink(missing_ok=True)
         for path in payload.rglob("*"):
             if path.is_symlink():
                 raise ValueError("Unexpected dependency symlink")
@@ -180,7 +196,7 @@ def build(destination, archive=None, checksums=None):
         if probe != {"version": NODE_VERSION, "abi": 137, "napi": 10, "platform": "darwin", "arch": "arm64"}:
             raise ValueError("Node ABI probe failed")
         # Preserve full public upstream texts without recording registry/build paths.
-        metadata = json.loads(subprocess.check_output(["cargo", "metadata", "--locked", "--offline", "--format-version", "1", "--manifest-path", str(ROOT / "rust/Cargo.toml")], text=True))
+        metadata = json.loads(subprocess.check_output(["cargo", "metadata", "--locked", "--offline", "--format-version", "1", "--manifest-path", str(ROOT / "Cargo.toml")], text=True))
         notices = []
         for package in sorted(metadata["packages"], key=lambda p: (p["name"], p["version"])):
             if not package["source"]:
@@ -221,7 +237,7 @@ def build(destination, archive=None, checksums=None):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", type=Path, default=ROOT / "desktop/terminal/runtime")
+    parser.add_argument("--output", type=Path, default=ROOT / "apps/desktop/terminal/runtime")
     parser.add_argument("--node-archive", type=Path)
     parser.add_argument("--node-checksums", type=Path)
     args = parser.parse_args()

@@ -78,8 +78,25 @@ func main() throws -> Int32 {
     guard let raw = environment["LOCALBRAIN_QA_APP_PATH"],
           running.executableURL?.standardizedFileURL.path == URL(fileURLWithPath:raw).appendingPathComponent("Contents/MacOS/localbrain-desktop").standardizedFileURL.path else { throw ProbeError.failed("unexpected app executable") }
     guard AXIsProcessTrusted() else { throw ProbeError.failed("AX permission unavailable") }
+    if mode == "terminal-ready" {
+        guard NSWorkspace.shared.frontmostApplication?.processIdentifier == pid else { throw ProbeError.failed("owned app lost focus") }
+        let own = AXUIElementCreateApplication(pid)
+        var value: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(own,kAXFocusedUIElementAttribute as CFString,&value) == .success,
+              let value = value, CFGetTypeID(value) == AXUIElementGetTypeID() else { throw ProbeError.failed("terminal focus unavailable") }
+        let focused = value as! AXUIElement
+        var owner: pid_t = 0
+        guard AXUIElementGetPid(focused,&owner) == .success, owner == pid,
+              (attribute(focused,kAXRoleAttribute) as? String) == "AXTextArea",
+              (attribute(focused,kAXTitleAttribute) as? String) == "Terminal input" || (attribute(focused,kAXDescriptionAttribute) as? String) == "Terminal input" else { throw ProbeError.failed("owned terminal input not focused") }
+        if arguments.count > 2 {
+            guard let workspace = find(own,target:arguments[2],role:"AXCheckBox"),
+                  (attribute(workspace,kAXValueAttribute) as? NSNumber)?.intValue == 1 else { throw ProbeError.failed("target workspace not selected") }
+        }
+        return 0
+    }
     if mode == "quit" { guard running.terminate() else { throw ProbeError.failed("normal quit refused") };return 0 }
-    if !["has","enabled","visible","screenshot-inactive"].contains(mode) { _ = running.activate(options:[]);usleep(150000) }
+    if !["has","enabled","visible","screenshot-inactive","terminal-ready"].contains(mode) { _ = running.activate(options:[]);usleep(150000) }
     let app = AXUIElementCreateApplication(pid)
     AXUIElementSetMessagingTimeout(app, 2)
     _ = AXUIElementSetAttributeValue(app,"AXEnhancedUserInterface" as CFString,kCFBooleanTrue)

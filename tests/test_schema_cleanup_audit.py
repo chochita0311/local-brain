@@ -6,20 +6,20 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from localbrain.persistence.migrations.compatible import _run_compatible_migrations
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+from native_schema import effective_schema_sql
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SCHEMA = ROOT / "src/localbrain/schema.sql"
-MANIFEST = ROOT / "src/localbrain/schema-presentation.json"
+SCHEMA = ROOT / "crates/core/resources/schema.sql"
+MANIFEST = ROOT / "crates/core/resources/schema-presentation.json"
 
 
 def fresh_connection() -> sqlite3.Connection:
     connection = sqlite3.connect(":memory:")
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys = ON")
-    connection.executescript(SCHEMA.read_text(encoding="utf-8"))
-    _run_compatible_migrations(connection, include_data_migrations=False)
+    connection.executescript(";\n".join(effective_schema_sql(ROOT)))
     return connection
 
 
@@ -160,50 +160,6 @@ class SchemaCleanupAuditTests(unittest.TestCase):
                     for row in connection.execute("EXPLAIN QUERY PLAN " + query, (1,))
                 )
                 self.assertIn(name, plan)
-
-    def test_schema_only_additions_leave_data_repairs_disabled(self):
-        connection = fresh_connection()
-        connection.execute("PRAGMA foreign_keys = OFF")
-        connection.execute("DROP INDEX idx_maintenance_runs_workstream")
-        connection.execute("DROP INDEX idx_maintenance_runs_status")
-        for table, column in (
-            ("usage_records", "attribution_basis"),
-            ("usage_records", "attributed_at"),
-            ("checkpoints", "updated_at"),
-            ("maintenance_runs", "workstream_id"),
-            ("maintenance_runs", "updated_at"),
-        ):
-            connection.execute(f"ALTER TABLE {table} DROP COLUMN {column}")
-        _run_compatible_migrations(connection, include_data_migrations=False)
-
-        usage_sql = connection.execute(
-            "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'usage_records'"
-        ).fetchone()["sql"]
-        self.assertNotIn("attribution_basis IN", usage_sql)
-        usage_columns = {
-            row["name"]: row for row in connection.execute("PRAGMA table_info('usage_records')")
-        }
-        self.assertEqual(usage_columns["attributed_at"]["notnull"], 0)
-
-        checkpoint_columns = {
-            row["name"]: row for row in connection.execute("PRAGMA table_info('checkpoints')")
-        }
-        self.assertEqual(checkpoint_columns["updated_at"]["notnull"], 0)
-        self.assertIsNone(checkpoint_columns["updated_at"]["dflt_value"])
-
-        maintenance_columns = {
-            row["name"]: row
-            for row in connection.execute("PRAGMA table_info('maintenance_runs')")
-        }
-        self.assertEqual(maintenance_columns["updated_at"]["notnull"], 0)
-        self.assertIsNone(maintenance_columns["updated_at"]["dflt_value"])
-        workstream_foreign_keys = [
-            row
-            for row in connection.execute("PRAGMA foreign_key_list('maintenance_runs')")
-            if row["from"] == "workstream_id"
-        ]
-        self.assertEqual(workstream_foreign_keys, [])
-
 
 if __name__ == "__main__":
     unittest.main()

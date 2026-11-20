@@ -7,13 +7,14 @@ import sys
 from pathlib import Path
 
 from data_model_value_registry import check_documents
-from schema_migration_sources import migration_source_digest, migration_source_files
+from schema_migration_sources import migration_source_digest
+from schema_presentation_builder import effective_connection
 
 
 ROOT = Path(__file__).resolve().parents[1]
 ENTRY = ROOT / "docs/policies/project/data-model.md"
 SUBJECT_ROOT = ROOT / "docs/policies/project/data-model"
-SCHEMA_PATH = ROOT / "src/localbrain/schema.sql"
+SCHEMA_PATH = ROOT / "crates/core/resources/schema.sql"
 
 SUBJECTS = {
     "source-registry-and-scans.md": (
@@ -139,10 +140,7 @@ def main() -> int:
     errors: list[str] = []
     entry = ENTRY.read_text(encoding="utf-8")
     schema_sql = SCHEMA_PATH.read_text(encoding="utf-8")
-    db_source = "\n".join(
-        (ROOT / source["path"]).read_text(encoding="utf-8")
-        for source in migration_source_files(ROOT)
-    )
+
 
     connection = sqlite3.connect(":memory:")
     connection.executescript(schema_sql)
@@ -200,15 +198,10 @@ def main() -> int:
             "SELECT name, tbl_name FROM sqlite_schema WHERE type = 'index' AND sql IS NOT NULL"
         )
     }
-    runtime_indexes = {
-        name: table
-        for name, table in re.findall(
-            r"CREATE INDEX IF NOT EXISTS\s+(\w+)\s+ON\s+(\w+)",
-            db_source,
-            flags=re.IGNORECASE,
-        )
-    }
-    effective_indexes = {**fresh_indexes, **runtime_indexes}
+    with effective_connection(ROOT) as effective:
+        effective_indexes = dict(effective.execute(
+            "SELECT name, tbl_name FROM sqlite_schema WHERE type = 'index' AND sql IS NOT NULL"
+        ))
     if len(fresh_indexes) != 43:
         errors.append(f"expected 43 fresh explicit indexes, found {len(fresh_indexes)}")
     if len(effective_indexes) != 51:

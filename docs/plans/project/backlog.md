@@ -232,7 +232,7 @@ single linked checkbox in the detailed backlog below.
   migration-copy retirement follow [Installation And Local Storage](../../policies/project/installation-and-storage.md).
   The [local recovery contract](../../policies/project/desktop-app-and-settings.md#local-recovery)
   owns backup, restart-only restore and bounded cache cleanup; the
-  [Settings guide](../../../src/localbrain/content/docs/settings.md#storage) owns their user procedures.
+  [Settings guide](../../../apps/web/content/docs/settings.md#storage) owns their user procedures.
   Local Tauri/Apple Silicon packaging is implemented. Direct native interactions
   and teammate download/run acceptance remain open under
   [PRD-0021](../prd/prd-0021-macos-standalone-test-app-and-local-settings.md).
@@ -424,16 +424,19 @@ and execution from the shared ZIP remain distinct from local verification.
 
 - [ ] Close FEAT-0019's direct rendered evidence gap at `1440`, `700`, and `320`, including selector geometry, same-row containment, and the Session-only source summary.
 - [ ] Capture the Sessions `동기화` working, success, failure, focus, and scope-preservation states from a browser after a warm-cache revisit; versioned assets, local HTTP synchronization, and human PRD-0002 acceptance are complete, so this is non-blocking regression evidence.
-- [ ] Decide whether packaged development reload is needed. The installed `localbrain serve` command, loopback host/port options and source-independent wheel setup are delivered under the [installation contract](../../policies/project/installation-and-storage.md); source reload uses the documented explicit Uvicorn command.
+- [ ] Decide whether packaged development reload is needed. The native web bundle
+  supports `localbrain serve` with loopback host and port options. Source changes
+  use the explicit rebuild and restart in the [Developer Guide](../../policies/project/developer-guide.md).
 - [ ] Add browser-level tests for Workstream, Thread, source browsing, Suggestion review, and Run workflows.
 - [ ] Build a synthetic graphical regression matrix for the current screen families at `1440`, `920`, `700`, and `320`, covering representative long-content, empty, unavailable, error, and active-interaction states without tracking private runtime content. The [initial-state and transition audit plan](../design/initial-state-and-transition-audit-plan.md) has [audit and repair results](../design/initial-state-and-transition-audit-results.md): 240 original route/width observations, F1–F6 corrections and a reusable synthetic browser regression command. Actual Tauri, delayed chart/time presentation decisions and remaining positive/active states are open; this does not complete the broader matrix or update the packaged app.
 - [ ] Add performance tests using large synthetic Session and document sets.
 - [ ] Audit keyboard navigation, focus, contrast, empty states, long text, and narrow viewports.
 - [ ] Add a default `<meta name="description">` to the shared server-rendered shell and recheck Lighthouse SEO.
 - [ ] Add structured migrations and release compatibility checks before distributing builds.
-- [x] Build and locally exercise the selected Tauri/Apple Silicon app with its
-  bundled Python runtime. Recorded local environment evidence does not establish
-  compatibility across all supported OS/memory configurations.
+- [x] Build and locally exercise the original Tauri/Apple Silicon app with its
+  bundled Python runtime. The later [native cutover](../evaluation/eval-0177-python-free-backend.md)
+  supersedes that packaging. Both sets of observations retain their tested host
+  and OS/memory bounds.
 - [ ] Prepare a ZIP containing the standalone test `.app`, ad-hoc signing,
   first-launch guidance, local packaged-app evidence and a teammate's execution
   of the same ZIP downloaded from internal Drive. Share the program only and

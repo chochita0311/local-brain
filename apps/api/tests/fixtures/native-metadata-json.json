@@ -1,0 +1,26 @@
+[
+  {
+    "input": "{\"z\":\"é한글<>&'😀/\\u2028\",\"a\":[NaN,Infinity,-Infinity,-0.0,1e-7,1e20,12345678901234567890123456789012345678901234567890]}",
+    "expected": "{\n  \"a\": [\n    NaN,\n    Infinity,\n    -Infinity,\n    -0.0,\n    1e-07,\n    1e+20,\n    12345678901234567890123456789012345678901234567890\n  ],\n  \"z\": \"\\u00e9\\ud55c\\uae00\\u003c\\u003e\\u0026\\u0027\\ud83d\\ude00/\\u2028\"\n}"
+  },
+  {
+    "input": "{\"$serde_json::private::Number\":{\"n\":NaN},\"zero\":0.0,\"text\":\"\\\\u003c\",\"empty\":[{},[]]}",
+    "expected": "{\n  \"$serde_json::private::Number\": {\n    \"n\": NaN\n  },\n  \"empty\": [\n    {},\n    []\n  ],\n  \"text\": \"\\\\u003c\",\n  \"zero\": 0.0\n}"
+  },
+  {
+    "input": "{}",
+    "expected": "{}"
+  },
+  {
+    "input": "[]",
+    "expected": "[]"
+  },
+  {
+    "input": "NaN",
+    "expected": "NaN"
+  },
+  {
+    "input": "null",
+    "expected": "null"
+  }
+]

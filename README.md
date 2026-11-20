@@ -56,7 +56,10 @@ versioned xterm screen restoration are shared. See the conditional Terminal
 Docs guide or the [terminal contract](docs/policies/project/terminal.md).
 For checkout development, build the public payload with
 `python scripts/build-terminal-runtime.py` after installing the build tools.
-Rust owns terminal control; other application features still use Python.
+The backend, HTTP/WebSocket host, CLI, settings, ingestion and optional model
+execution run in Rust. Finished web and desktop bundles need no Python runtime.
+Python remains only in current repository build/check tools and their tests;
+finished applications contain no Python runtime or research implementation.
 
 ## Install from source with an agent
 
@@ -131,6 +134,10 @@ Open **Docs** in the app to read the shared guides offline. Terminal adds its gu
 | Search | Keyword/meaning search, models, and readiness |
 
 ## Development
+
+The repository separates `apps/api` (Rust API and CLI), `apps/web` (shared
+HTML/CSS/JavaScript) and `apps/desktop` (Tauri window, OS integration and packaging).
+Shared domain, storage, model and Terminal services live under `crates/`.
 
 For source setup, the development web application, tests, and builds, use the
 [Developer Guide](docs/policies/project/developer-guide.md). The

@@ -1,0 +1,18 @@
+[
+  {
+    "raw": "{\"z\":NaN,\"a\":Infinity,\"negative\":-Infinity,\"overflow\":1e999,\"zero\":-0.0,\"small\":1e-5,\"large\":1e16,\"integer\":10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,\"words\":[\"NaN\",\"Infinity\",\"-Infinity\"],\"unicode\":\"한글\\u0000\\u2028\"}",
+    "expected": "{\n  \"z\": NaN,\n  \"a\": Infinity,\n  \"negative\": -Infinity,\n  \"overflow\": Infinity,\n  \"zero\": -0.0,\n  \"small\": 1e-05,\n  \"large\": 1e+16,\n  \"integer\": 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,\n  \"words\": [\n    \"NaN\",\n    \"Infinity\",\n    \"-Infinity\"\n  ],\n  \"unicode\": \"한글\\u0000 \"\n}"
+  },
+  {
+    "raw": "{\"$serde_json::private::Number\":\"NaN\",\"x\":[{\"\\u0024serde_json::private::Number\":\"1\"}],\"n\":123456789012345678901234567890}",
+    "expected": "{\n  \"$serde_json::private::Number\": \"NaN\",\n  \"x\": [\n    {\n      \"$serde_json::private::Number\": \"1\"\n    }\n  ],\n  \"n\": 123456789012345678901234567890\n}"
+  },
+  {
+    "raw": "{\"a\":1,\"a\":2,\"b\":{\"x\":1,\"x\":3}}",
+    "expected": "{\n  \"a\": 2,\n  \"b\": {\n    \"x\": 3\n  }\n}"
+  },
+  {
+    "raw": "{\"quote\": \"single'double\\\"slash\\\\\", \"tiny\": 1.234567891234568e-19}",
+    "expected": "{\n  \"quote\": \"single'double\\\"slash\\\\\",\n  \"tiny\": 1.234567891234568e-19\n}"
+  }
+]

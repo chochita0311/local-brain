@@ -1,3 +1,4 @@
+import {fixture} from './native-qa-fixture.mjs';
 // Verify public desktop entries against an owned synthetic backend only.
 // node scripts/qa-navigation-browser.mjs [outside-repository evidence directory]
 import {spawn} from 'node:child_process';
@@ -17,8 +18,7 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const checks = [], exceptions = [], failedRequests = [];
 let base;
 const assert = (value, name) => {if (!value) throw new Error(name); checks.push(name);};
-const backend = spawn(process.env.LOCALBRAIN_QA_PYTHON || join(repository, '.venv/bin/python'),
-  [join(repository, 'tests/ui_state_fixture.py'), runtime, 'desktop', 'navigation'], {cwd:repository, stdio:['ignore','ignore','pipe']});
+const backend = fixture(repository, runtime, 'desktop', 'navigation');
 let backendError = '';
 backend.stderr.on('data', chunk => {backendError = (backendError + chunk.toString()).slice(-4000);});
 backend.on('error', error => {backendError = error.message;});
@@ -60,6 +60,8 @@ try {
   socket = new WebSocket(target.webSocketDebuggerUrl);
   await new Promise((resolve,reject) => {socket.addEventListener('open',resolve,{once:true}); socket.addEventListener('error',reject,{once:true});});
   let sequence = 0, failSetupScript = false, failChartPreference = false;
+  let holdUsagePath = null, heldUsageRequest = null;
+  let committedDocument = null;
   const visibilityWrites = [], traversalSamples = [];
   send = (method, params={}) => new Promise((resolve,reject) => {
     const id = ++sequence, timer = setTimeout(() => {pending.delete(id); reject(new Error('CDP timeout: '+method));},20000);
@@ -71,13 +73,16 @@ try {
       const waiter = pending.get(value.id); if (!waiter) return;
       pending.delete(value.id); clearTimeout(waiter.timer);
       value.error ? waiter.reject(new Error(JSON.stringify(value.error))) : waiter.resolve(value.result);
-    } else if (value.method === 'Runtime.consoleAPICalled' && value.params.args?.[0]?.value === '__navigation_sample__') traversalSamples.push(JSON.parse(value.params.args[1].value));
+    } else if (value.method === 'Page.frameNavigated' && !value.params.frame.parentId) committedDocument = value.params.frame.url;
+    else if (value.method === 'Runtime.consoleAPICalled' && value.params.args?.[0]?.value === '__navigation_sample__') traversalSamples.push(JSON.parse(value.params.args[1].value));
     else if (value.method === 'Network.requestWillBeSent' && value.params.request.method === 'PUT' && value.params.request.url.includes('/sessions/chart/project-visibility')) visibilityWrites.push(value.params.request.url);
     else if (value.method === 'Runtime.exceptionThrown') exceptions.push(value.params.exceptionDetails.text);
     else if(value.method==='Network.responseReceived' && value.params.response.status>=400) failedRequests.push({url:value.params.response.url,status:value.params.response.status});
     else if (value.method === 'Fetch.requestPaused') {
       const requestId = value.params.requestId;
-      if (failChartPreference && value.params.responseStatusCode) {
+      if (new URL(value.params.request.url).pathname === holdUsagePath) {
+        heldUsageRequest = requestId;
+      } else if (failChartPreference && value.params.responseStatusCode) {
         void (async () => {
           const response = await send('Fetch.getResponseBody', {requestId});
           const html = response.base64Encoded ? Buffer.from(response.body, 'base64').toString() : response.body;
@@ -218,7 +223,44 @@ try {
   await back(firstReaderUrl);
   await wait(`document.querySelector('[data-document-reader-content]').dataset.documentId===${JSON.stringify(first.id)} && document.querySelector('[data-document-reader-content]').getAttribute('aria-busy')==='false'`);
   assert(true,'full reader partial Back restores its document');
+  const dashboardAuth = { Authorization:'Bearer synthetic-qa-token' };
+  const warmed = await fetch(base+'/sessions-dashboard/refresh',{headers:dashboardAuth});
+  assert(warmed.ok,'default dashboard summary prepared');
+  await warmed.arrayBuffer();
+  const changed = await fetch(base+'/sessions/1/title',{
+    headers:{...dashboardAuth,Origin:base}, method:'POST', redirect:'manual',
+    body:new URLSearchParams({display_title:'Synthetic summary refresh',return_to:'/sessions'}),
+  });
+  assert(changed.status===303,'fixture write advances the database revision');
+  holdUsagePath = '/sessions-dashboard/refresh';
+  await send('Fetch.enable',{patterns:[{urlPattern:'*/sessions-dashboard/refresh'}]});
   await navigate('/sessions-dashboard');
+  for (let i=0;i<100&&!heldUsageRequest;i++) await delay(25);
+  assert(!!heldUsageRequest,'stale default schedules a separate refresh request');
+  assert(await evaluate('!!document.querySelector("[data-usage-control=metric]")'),'last summary is visible while refresh is delayed');
+  const usageHeadingText = 'document.querySelector(".usage-dashboard-heading").innerText';
+  const staleHeadingText = await evaluate(usageHeadingText);
+  assert(staleHeadingText.includes('등록된 로컬 AI 소스') && !staleHeadingText.includes('최신 사용량 확인 중'),'dashboard keeps its description while saved usage refreshes');
+  await send('Emulation.setDeviceMetricsOverride',{width:480,height:880,deviceScaleFactor:1,mobile:false});
+  const chartScroll = await evaluate('(()=>{const chart=document.querySelector(".usage-history-scroll");chart.scrollLeft=120;return chart.scrollLeft;})()');
+  assert(chartScroll>0,'stale history is horizontally scrollable at a narrow viewport');
+  const summaryTop = 'document.querySelector(".usage-summary").getBoundingClientRect().top + scrollY';
+  const staleTop = await evaluate(summaryTop);
+  await evaluate('Object.assign(__qa,{usageHeading:document.querySelector(".usage-dashboard-heading"),usageSummary:document.querySelector(".usage-summary")}); true');
+  const dashboardHistory = await evaluate('history.length');
+  await capture('dashboard-refresh-pending');
+  holdUsagePath = null;
+  await send('Fetch.continueRequest',{requestId:heldUsageRequest});
+  await send('Fetch.disable');
+  await wait('!document.querySelector("[data-usage-refresh-status]") && !!document.querySelector("[data-usage-control=metric]")');
+  assert(await evaluate(usageHeadingText)===staleHeadingText,'dashboard description stays the same after the refresh');
+  const summaryShift = (await evaluate(summaryTop)) - staleTop;
+  assert(Math.abs(summaryShift) <= 1,`dashboard summary stays in place through refresh (shift ${summaryShift}px)`);
+  assert(await evaluate('__qa.usageHeading===document.querySelector(".usage-dashboard-heading") && __qa.usageSummary===document.querySelector(".usage-summary")'),'refresh retains heading and unchanged summary nodes');
+  assert(await evaluate(`document.querySelector(".usage-history-scroll").scrollLeft===${chartScroll}`),'background refresh preserves history horizontal scroll');
+  assert(await evaluate(`history.length===${dashboardHistory} && location.pathname+location.search==='/sessions-dashboard'`),'automatic refresh keeps the active route and history');
+  await capture('dashboard-refresh-ready');
+  await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
   const usageStart=await evaluate('location.pathname+location.search');
   const metricHref=await evaluate(`Array.from(document.querySelectorAll('[data-usage-control="metric"]')).find(a=>!a.hasAttribute('aria-current')).getAttribute('href')`);
   await click(`[data-usage-control="metric"][href=${JSON.stringify(metricHref)}]`);
@@ -227,6 +269,84 @@ try {
   await back(usageStart);
   await wait('document.querySelector("[data-usage-dashboard]").getAttribute("aria-busy")==="false"');
   assert(true,'Dashboard filter Back settles target view');
+  await navigate(metricHref);
+  await send('Emulation.setDeviceMetricsOverride',{width:480,height:430,deviceScaleFactor:1,mobile:false});
+  await rm(join(runtime,'cache','sessions-dashboard.json'));
+  const beforeCost = await evaluate(`(()=>{
+    const control=document.querySelector('[data-usage-control="metric"][data-usage-value="cost"]');
+    control.focus({preventScroll:true});
+    window.scrollTo(0,180);
+    return window.scrollY;
+  })()`);
+  await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13,nativeVirtualKeyCode:13,text:'\r'});
+  await send('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13,nativeVirtualKeyCode:13});
+  await wait(`document.querySelector('[data-usage-control="metric"][data-usage-value="cost"][aria-current]') && document.querySelector('[data-usage-dashboard]').getAttribute('aria-busy')==='false'`);
+  await delay(140);
+  assert(await evaluate('document.activeElement?.dataset.usageValue==="cost"'),'keyboard metric switch restores focus without a saved default');
+  assert(beforeCost>0 && await evaluate(`Math.abs(scrollY-${beforeCost})<=2`),'keyboard metric switch restores scroll without a saved default');
+
+  await send('Emulation.setDeviceMetricsOverride',{width:480,height:880,deviceScaleFactor:1,mobile:false});
+  await navigate('/sessions');
+  await rm(join(runtime,'cache','sessions-dashboard.json'));
+  const usageSampler = await send('Page.addScriptToEvaluateOnNewDocument',{source:`
+    if (location.pathname === '/sessions-dashboard' && !location.search) {
+      __qa.usageFrames = [];
+      function sampleUsage() {
+        const heading = document.querySelector('.usage-dashboard-heading');
+        if (heading && getComputedStyle(heading).display === 'flex') {
+          __qa.usageFrames.push({
+            description: heading.innerText.includes('등록된 로컬 AI 소스'),
+            values: [...document.querySelectorAll('.usage-summary strong')].map(node => node.innerText.trim()),
+            chart: !!document.querySelector('.usage-history-chart')?.getClientRects().length,
+            placeholder: !!document.querySelector('[data-usage-loading], [data-usage-dashboard][aria-busy="true"]'),
+          });
+        }
+        if (__qa.usageFrames.length < 12) requestAnimationFrame(sampleUsage);
+      }
+      requestAnimationFrame(sampleUsage);
+    }
+  `});
+  heldUsageRequest = null;
+  holdUsagePath = '/sessions-dashboard';
+  await capture('dashboard-cold-before-click');
+  await send('Fetch.enable',{patterns:[{urlPattern:'*/sessions-dashboard',resourceType:'Document'}]});
+  await click('.lnb-nav a[href="/sessions-dashboard"]');
+  for (let i=0;i<100&&!heldUsageRequest;i++) await delay(25);
+  assert(!!heldUsageRequest,'a cold dashboard click requests its document');
+  await delay(220);
+  assert(committedDocument===base+'/sessions','Sessions remains the committed document while the cold dashboard request is delayed');
+  holdUsagePath = null;
+  await send('Fetch.continueRequest',{requestId:heldUsageRequest});
+  await send('Fetch.disable');
+  for (let i=0;i<100&&committedDocument!==base+'/sessions-dashboard';i++) await delay(25);
+  assert(committedDocument===base+'/sessions-dashboard','complete dashboard replaces the Sessions document');
+  await wait('__qa.usageFrames?.length === 12');
+  const frames = await evaluate('__qa.usageFrames');
+  assert(frames.every(frame => frame.description && frame.values.length===4 && frame.values.every(Boolean) && frame.chart && !frame.placeholder),'cold dashboard shows the description, four values and chart together in the first 12 styled samples');
+  assert(await evaluate('!document.querySelector("[data-usage-dashboard]").hasAttribute("data-usage-refresh")'),'first complete dashboard needs no second refresh');
+  await capture('dashboard-cold-ready');
+  await send('Page.removeScriptToEvaluateOnNewDocument',{identifier:usageSampler.identifier});
+
+  const invalidated = await fetch(base+'/sessions/1/title',{
+    headers:{...dashboardAuth,Origin:base},method:'POST',redirect:'manual',
+    body:new URLSearchParams({display_title:'Synthetic refresh retry',return_to:'/sessions'}),
+  });
+  assert(invalidated.status===303,'fixture write prepares a refresh failure');
+  heldUsageRequest = null;
+  holdUsagePath = '/sessions-dashboard/refresh';
+  await send('Fetch.enable',{patterns:[{urlPattern:'*/sessions-dashboard/refresh'}]});
+  await navigate('/sessions-dashboard');
+  for (let i=0;i<100&&!heldUsageRequest;i++) await delay(25);
+  assert(!!heldUsageRequest,'saved dashboard starts a refresh before the injected failure');
+  holdUsagePath = null;
+  await send('Fetch.failRequest',{requestId:heldUsageRequest,errorReason:'Failed'});
+  await send('Fetch.disable');
+  await wait('!!document.querySelector("[data-usage-refresh-caption]:not([hidden]) a")?.getClientRects().length');
+  assert(await evaluate(usageHeadingText)===staleHeadingText && await evaluate('!!document.querySelector(".usage-history-chart")'),'failed background refresh leaves heading and saved results readable');
+  await click('[data-usage-refresh-retry]');
+  await wait('location.search==="?refresh=1" && !!document.querySelector(".usage-history-chart") && !document.querySelector("[data-usage-refresh-caption]")');
+  assert(true,'retry opens a complete dashboard and clears the notice');
+  await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
   await navigate('/sessions?display=chart');
   await wait('!!document.querySelector(".session-chart-node")');
   await click('.session-chart-node');await delay(120);

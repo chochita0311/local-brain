@@ -7,7 +7,7 @@ readable, registered Local Context documents. This contract defines source
 eligibility, indexed text fragments, model roles, query interpretation, ranking,
 preparation, recovery and evidence navigation. Code and schema remain
 implementation truth; ordinary setup and readiness guidance belongs to the
-[Search guide](../../../src/localbrain/content/docs/search.md).
+[Search guide](../../../apps/web/content/docs/search.md).
 
 The shared-header search entry chooses its engine from current settings, with no
 keyword/AI selector. An installed, enabled AI search uses the local embedding
@@ -94,8 +94,10 @@ allowed result slots. Snippets, scores, ordering and evidence URLs are unchanged
 - First activation is explicit (CLI prepare or local prepare action). Page visits do not download models. Missing assets direct to the existing explicit model installation command. Offline inference reads verified local assets with telemetry disabled.
 - Preparation has one writer lock. Build into a separate resumable generation, reuse compatible input hashes, commit bounded batches, then atomically publish the complete generation. Readers continue with the current complete index during rebuild and recheck current source permission/revision. Retire only owned inactive generations after publication. Interrupted work is resumable; a nonblocking lock probe distinguishes an external CLI writer from stale progress. An unchanged source/profile snapshot preserves its generation and skips molecularization. Incremental refresh splits only changed parents and reuses compatible vectors. Explicit `search prepare --rebuild` bypasses vector reuse only after ownership/binding validation; malformed or non-finite vector data is rejected and recoverable.
 - After activation the running app observes changes to the normalized DB after Sync, queues coalesced refreshes and prioritizes foreground query encoding between background batches (default 8 molecules). It does not watch unobserved original files. CLI scan also completes/schedules refresh explicitly. Startup catches changes made while the app was stopped and warms an enabled nonempty search model after checking the index. Empty corpora skip model loading. Disabling a source removes it at query time even before regeneration.
+- CLI and browser queries, evidence reads and automatic refresh use the device and batch size recorded by the active native generation. They continue to validate the full model, profile and runtime identity before reading vectors. A host without the recorded device can build a replacement using its available runtime.
 - State: disabled, model-missing, preparing, partial, ready, failed, no-data. A completed eligible corpus with no matches is a distinct result state. Cache loss preserves activation and source data, triggers preparation and exposes recovery state. Failure keeps a prior compatible generation usable with an explicit limitation.
 - Storage accounting separates active index, in-progress generation/journal, total/allocated disk, public weights and prior application DB/caches. Measure peak RSS and completed MPS work, not vector bytes as a RAM estimate. A single index generation has no arbitrary source quota.
+- During CLI `search query`, `Ctrl+C` reaches model verification and the encoder's cancellation checkpoints. A query interrupted before output prints `SEARCH_INTERRUPTED` and exits with code `130`. The active index remains available for retry.
 
 ### Desktop And Shared Settings Integration
 
@@ -134,8 +136,8 @@ flowchart TD
     Publish --> Cache[Private search cache]
 ```
 
-`source.py` reads the canonical normalized data without editing it. `molecules.py`
-keeps original text offsets while `index.py` owns resumable staging and publication.
+`source.rs` reads the canonical normalized data without editing it. `molecules.rs`
+keeps original text offsets while `index.rs` owns resumable staging and publication.
 `SearchService` notices normalized Sync changes; it does not scan original files
 independently. Readers use the last complete compatible generation while a refresh
 runs. Changed or disabled parents are withheld immediately when the next query
@@ -166,9 +168,9 @@ flowchart TD
 ```
 
 The shared encoder gives a waiting foreground query priority between background
-batches. The splitter has separate tokenizer state. Neither the query path nor
-the preparation path calls Laya or a reranker in the installed default. Those
-models run only in the explicit comparison scripts. Exact vector lookup covers
+batches. The splitter has separate tokenizer state. Query and preparation use
+the pinned native Qwen embedding. The former Laya and reranker comparison
+scripts are retired. Exact vector lookup covers
 the eligible indexed corpus; the lexical top 500 and result page size limit
 candidates and display, not which sources may be indexed.
 
@@ -210,13 +212,14 @@ AI query/preparation failures are not capability changes.
 
 ## Implementation Ownership
 
-- `natural_search/`: eligible read-only source snapshot, original-span molecularization,
+- `crates/core/src/backend/search/`: eligible read-only source snapshot, original-span molecularization,
   private SQLite/FTS/vector generations, persistent offline Qwen encoder, explicit
   condition interpretation, parent-ranked retrieval and Sync refresh worker.
-  `natural_search/web.py` owns loopback handlers; `app/routes.py` registers them
-  and `app/lifecycle.py` owns startup/shutdown. Templates and `natural-search.js`
+  `apps/api/src/routes/search.rs` owns loopback handlers; `apps/api/src/routes/mod.rs` registers them
+  and `apps/api/src/state.rs` owns startup/shutdown. Templates and `natural-search.js`
   own the shared header and evidence navigation. Current activation and model
   availability choose the engine. The legacy `/search` URL redirects to this entry in
   the desktop edition and remains compatible in development web. [Natural-Language Search](natural-language-search.md)
   owns the detailed source, score, input-budget, refresh and recovery contracts.
-  Laya and Qwen Reranker are development comparisons, not runtime dependencies.
+  The historical Laya and Qwen Reranker comparison procedures are retained by
+  the [retired comparison owner](development/search-comparisons.md#retired-comparison-procedures).

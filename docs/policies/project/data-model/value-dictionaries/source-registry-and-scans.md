@@ -1,4 +1,4 @@
-<!-- Generated from src/localbrain/value-registry.json by scripts/build-data-model-value-dictionaries.py. Do not edit. -->
+<!-- Generated from crates/core/resources/value-registry.json by scripts/build-data-model-value-dictionaries.py. Do not edit. -->
 # Source registry and scans Value Dictionary
 
 Durable table owner: [docs/policies/project/data-model/source-registry-and-scans.md](../source-registry-and-scans.md)
@@ -13,13 +13,13 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: user-selected profile color
 - Default: `NULL`
 - Fallbacks: `null`: label → 기본 색상; `unknown`: label → 알 수 없는 색상; `invalid`: reject; `future`: label → 새 색상
-- Producers: `src/localbrain/sources/registry.py`
-- Consumers: `src/localbrain/sources/profiles.py`
+- Producers: `crates/core/src/backend/sources/registry.rs`
+- Consumers: `crates/core/src/backend/sources/profiles.rs`
 - Consequence: Projects the configured profile color without changing provider or imported identity.
 - Presentation mode: `logical-label`
 - Labels: `green` → 녹색; `blue` → 파란색; `orange` → 주황색; `yellow` → 노란색; `red` → 빨간색; `gray` → 회색
 - Help: 프로필을 구분하는 색상입니다.
-- Visible consumer inventory: `src/localbrain/sources/profiles.py` (registry-backed)
+- Visible consumer inventory: `crates/core/src/backend/sources/profiles.rs` (registry-backed)
 
 ## `source.provider-kind`
 
@@ -29,13 +29,13 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: local source adapter family
 - Default: `unknown`
 - Fallbacks: `null`: reject; `unknown`: label → 알 수 없는 어댑터; `invalid`: reject; `future`: label → 새 어댑터
-- Producers: `src/localbrain/ingest/scanner.py`, `src/localbrain/persistence/migrations/sources.py`
-- Consumers: `src/localbrain/ingest/scanner.py`, `src/localbrain/usage/queries.py`, `src/localbrain/sources/web.py`
+- Producers: `crates/core/src/backend/ingest/scanner.rs`, `crates/core/src/backend/storage/migrations/revisions.rs`
+- Consumers: `crates/core/src/backend/ingest/scanner.rs`, `crates/core/src/backend/usage/queries.rs`, `apps/api/src/routes/sources.rs`
 - Consequence: Selects parser, Usage normalizer, and provider-specific reconciliation without defining user-facing source scope.
 - Presentation mode: `logical-label`
 - Labels: `claude` → Claude; `codex` → Codex; `context` → Local Context; `unknown` → 알 수 없는 어댑터
 - Help: 같은 어댑터를 사용하는 여러 로컬 소스를 구분해 처리합니다.
-- Visible consumer inventory: `src/localbrain/templates/sources.html` (registry-backed)
+- Visible consumer inventory: `apps/web/templates/sources.html` (registry-backed)
 
 ## `source.scan-status`
 
@@ -45,13 +45,13 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: latest source synchronization outcome
 - Default: `NULL`
 - Fallbacks: `null`: label → 동기화 전; `unknown`: label → 상태 확인 필요; `invalid`: reject; `future`: label → 새 상태
-- Producers: `src/localbrain/ingest/scanner.py`
-- Consumers: `src/localbrain/sources/queries.py`, `src/localbrain/usage/queries.py`, `src/localbrain/templates/sessions.html`, `src/localbrain/templates/sessions_dashboard.html`, `src/localbrain/templates/sources.html`
+- Producers: `crates/core/src/backend/ingest/scanner.rs`
+- Consumers: `crates/core/src/backend/sources/mod.rs`, `crates/core/src/backend/usage/queries.rs`, `apps/web/templates/sessions.html`, `apps/web/templates/sessions_dashboard.html`, `apps/web/templates/sources.html`
 - Consequence: Distinguishes successful, empty, unavailable, configuration, and scan-failure outcomes without changing retained source ownership.
 - Presentation mode: `logical-label`
 - Labels: `completed` → 완료; `empty` → 비어 있음; `unavailable` → 경로 확인 필요; `configuration_error` → 설정 확인 필요; `scan_failed` → 동기화 실패
 - Help: 마지막 동기화 시도에서 이 소스가 처리된 결과입니다.
-- Visible consumer inventory: `src/localbrain/templates/sessions.html` (registry-backed); `src/localbrain/templates/sources.html` (registry-backed)
+- Visible consumer inventory: `apps/web/templates/sessions.html` (registry-backed); `apps/web/templates/sources.html` (registry-backed)
 
 ## `source-file.status`
 
@@ -61,8 +61,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: last local scan result
 - Default: `ok`
 - Fallbacks: `null`: reject; `unknown`: label → 상태 확인 필요; `invalid`: reject; `future`: label → 새 상태
-- Producers: `src/localbrain/ingest/scanner.py`
-- Consumers: `src/localbrain/sources/queries.py`, `src/localbrain/usage/queries.py`
+- Producers: `crates/core/src/backend/ingest/scanner.rs`
+- Consumers: `crates/core/src/backend/sources/mod.rs`, `crates/core/src/backend/usage/queries.rs`
 - Consequence: Stale or error rows reduce freshness and require a rescan.
 - Presentation mode: `logical-label`
 - Labels: `ok` → 최신; `stale` → 다시 동기화 필요; `error` → 동기화 오류
@@ -77,13 +77,13 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: last verified native Session original presence
 - Default: `UNKNOWN`
 - Fallbacks: `null`: reject; `unknown`: label → 원본 확인 불가; `invalid`: reject; `future`: label → 새 원본 상태
-- Producers: `src/localbrain/ingest/sync/session_files.py`
-- Consumers: `src/localbrain/sessions/source_presence.py`, `src/localbrain/templates/_session_source_presence.html`, `src/localbrain/insights/skills.py`
+- Producers: `crates/core/src/backend/ingest/storage.rs`
+- Consumers: `crates/core/src/backend/sessions/metadata.rs`, `apps/web/templates/_session_source_presence.html`, `crates/core/src/backend/insights/skills.rs`
 - Consequence: Original absence or failed inspection preserves stored Session history and never establishes a parser upgrade.
 - Presentation mode: `logical-label`
 - Labels: `PRESENT` → 원본 있음; `MISSING` → 원본 없음; `UNKNOWN` → 원본 확인 불가
 - Help: 마지막으로 확인한 원본 파일 상태이며 수집 성공 여부와 별개입니다.
-- Visible consumer inventory: `src/localbrain/templates/_session_source_presence.html` (registry-backed)
+- Visible consumer inventory: `apps/web/templates/_session_source_presence.html` (registry-backed)
 
 ## `external-source.provider`
 
@@ -93,13 +93,13 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: MCP connection method
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: label → 알 수 없는 연결 방식; `invalid`: reject; `future`: label → 새 연결 방식
-- Producers: `src/localbrain/atlassian/access.py`
-- Consumers: `src/localbrain/atlassian/registration.py`, `src/localbrain/templates/atlassian-connections.html`
+- Producers: `crates/core/src/backend/atlassian/access.rs`
+- Consumers: `crates/core/src/backend/atlassian/registration/mod.rs`, `apps/web/templates/atlassian-connections.html`
 - Consequence: Selects the approved MCP dispatch adapter.
 - Presentation mode: `logical-label`
 - Labels: `mcp_gateway` → 회사 MCP Gateway; `atlassian_cloud` → 공식 Atlassian MCP
 - Help: 같은 사이트도 연결 방식별로 별도 등록됩니다.
-- Visible consumer inventory: `src/localbrain/templates/atlassian-connections.html` (registry-backed)
+- Visible consumer inventory: `apps/web/templates/atlassian-connections.html` (registry-backed)
 
 ## `external-source.service`
 
@@ -109,8 +109,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: Atlassian product service
 - Default: `NULL`
 - Fallbacks: `null`: reject; `unknown`: label → 알 수 없는 서비스; `invalid`: reject; `future`: label → 새 서비스
-- Producers: `src/localbrain/atlassian/access.py`
-- Consumers: `src/localbrain/atlassian/registration.py`, `src/localbrain/templates/atlassian-connections.html`
+- Producers: `crates/core/src/backend/atlassian/access.rs`
+- Consumers: `crates/core/src/backend/atlassian/registration/mod.rs`, `apps/web/templates/atlassian-connections.html`
 - Consequence: Limits calls and identities to one Atlassian service.
 - Presentation mode: `logical-label`
 - Labels: `jira` → Jira; `confluence` → Confluence
@@ -125,13 +125,13 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: registered connection availability
 - Default: `1`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/atlassian/access.py`
-- Consumers: `src/localbrain/atlassian/registration.py`, `src/localbrain/templates/atlassian-connections.html`
+- Producers: `crates/core/src/backend/atlassian/access.rs`
+- Consumers: `crates/core/src/backend/atlassian/registration/mod.rs`, `apps/web/templates/atlassian-connections.html`
 - Consequence: Disabled connections cannot authorize external reads.
 - Presentation mode: `logical-label`
 - Labels: `0` → 사용 안 함; `1` → 사용
 - Help: 사용 안 함으로 바꾸면 등록 정보는 유지되고 조회만 막힙니다.
-- Visible consumer inventory: `src/localbrain/templates/atlassian-connections.html` (registry-backed)
+- Visible consumer inventory: `apps/web/templates/atlassian-connections.html` (registry-backed)
 
 ## `external-capability.availability`
 
@@ -141,8 +141,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: last explicit capability inspection
 - Default: `NULL`
 - Fallbacks: `null`: label → 확인 전; `unknown`: label → 알 수 없음; `invalid`: reject; `future`: label → 새 상태
-- Producers: `src/localbrain/atlassian/access.py`
-- Consumers: `src/localbrain/atlassian/access.py`, `src/localbrain/atlassian/registration.py`
+- Producers: `crates/core/src/backend/atlassian/access.rs`
+- Consumers: `crates/core/src/backend/atlassian/access.rs`, `crates/core/src/backend/atlassian/registration/mod.rs`
 - Consequence: Only a current available observation can authorize a read.
 - Presentation mode: `logical-label`
 - Labels: `available` → 사용 가능; `unavailable` → 사용 불가; `unauthorized` → 권한 없음; `error` → 확인 오류
@@ -157,13 +157,13 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: usable capability state
 - Default: `unknown`
 - Fallbacks: `null`: label → 확인 전; `unknown`: label → 확인 전; `invalid`: reject; `future`: label → 새 상태
-- Producers: `src/localbrain/atlassian/access.py`
-- Consumers: `src/localbrain/atlassian/registration.py`, `src/localbrain/templates/atlassian-connections.html`, `src/localbrain/templates/atlassian-refresh.html`
+- Producers: `crates/core/src/backend/atlassian/access.rs`
+- Consumers: `crates/core/src/backend/atlassian/registration/mod.rs`, `apps/web/templates/atlassian-connections.html`, `apps/web/templates/atlassian-refresh.html`
 - Consequence: Combines registration, freshness, and availability before dispatch.
 - Presentation mode: `logical-label`
 - Labels: `unknown` → 확인 전; `current` → 연결됨; `stale` → 다시 확인 필요; `disabled` → 사용 안 함; `unavailable` → 사용 불가; `unauthorized` → 권한 없음; `error` → 확인 오류
 - Help: 현재 조회에 사용할 수 있는 연결인지 나타냅니다.
-- Visible consumer inventory: `src/localbrain/templates/atlassian-connections.html` (registry-backed); `src/localbrain/templates/atlassian-refresh.html` (registry-backed)
+- Visible consumer inventory: `apps/web/templates/atlassian-connections.html` (registry-backed); `apps/web/templates/atlassian-refresh.html` (registry-backed)
 
 ## Explicit Exclusions
 

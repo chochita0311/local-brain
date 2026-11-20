@@ -114,7 +114,7 @@ the route renders the resulting payload.
 
 ### Workflow Projection Contract
 
-- `workflow/projection.py` owns the versioned, pure descriptor boundary for
+- `crates/core/src/backend/workflow/projection.rs` owns the versioned, pure descriptor boundary for
   workflow Episodes, directional relations, reasons, and omission diagnostics.
   Importing or calling this contract performs no SQLite, filesystem, source,
   connector, network, model, embedding, or maintenance work.
@@ -140,7 +140,7 @@ the route renders the resulting payload.
 
 ### Workflow Focus Read Model
 
-- `workflow/focus.py` is the sole initial database-backed producer of the
+- `crates/core/src/backend/workflow/focus.rs` is the sole initial database-backed producer of the
   versioned Session Focus payload. It accepts one local Session ID, validates
   primary-work meaningful eligibility, and returns `ready`, `missing`, or
   `ineligible` without adding a route or persistence owner.
@@ -158,7 +158,7 @@ the route renders the resulting payload.
 - The relation producer creates adjacent `continues` candidates and nearest-
   earlier `branches-from` candidates, selects at most one derived incoming edge
   per Episode, emits no heuristic `merged-into`, and delegates forward-time,
-  reason, and acyclic validation to `workflow/projection.py`.
+  reason, and acyclic validation to `crates/core/src/backend/workflow/projection.rs`.
 - Stable outward traversal owns the 24-Episode, four-branch-root, and four-
   Episodes-per-branch limits. Evidence assembly reuses the stricter Related
   Materials destination boundary, groups source families with a five-item
@@ -171,7 +171,7 @@ the route renders the resulting payload.
 
 ### Workflow Assertion Ledger And Overlay
 
-- `workflow/assertions.py` owns the only workflow-correction mutation and
+- `crates/core/src/backend/workflow/assertions.rs` owns the only workflow-correction mutation and
   overlay boundary. The `workflow_assertions` table is append-only application
   state keyed by a digest of stable Episode identity; nullable Session foreign
   keys are current lookup aids with `ON DELETE SET NULL`, and one unique
@@ -197,8 +197,8 @@ the route renders the resulting payload.
 
 ### Session Workflow Focus Route
 
-- `workflow/map.py` is the pure presentation adapter for one validated
-  `WorkflowFocusProjection`; `workflow/correction_view.py` adds registry-backed
+- `crates/core/src/backend/workflow/map.rs` is the pure presentation adapter for one validated
+  `WorkflowFocusProjection`; `crates/core/src/backend/workflow/correction_view.rs` adds registry-backed
   active-assertion summaries, stable boundary identities, exact consequence
   previews, and only currently valid actions without querying a second
   authority. `GET /sessions/{id}/workflow` opens one SQLite connection, invokes
@@ -217,7 +217,7 @@ the route renders the resulting payload.
   JavaScript runs. Missing, ineligible, and unexpected projection states render
   bounded local destinations with `404`, `422`, and `500` respectively; a
   connected or unconnected ready projection is `200`.
-- `workflow/correction.py` owns the strict `application/x-www-form-urlencoded`
+- `crates/core/src/backend/workflow/correction.rs` owns the strict `application/x-www-form-urlencoded`
   boundary for `POST /sessions/{id}/workflow/corrections`: at most 16 KiB and
   eight fields, exact action-specific shapes, one optimistic projection
   revision, bounded note, strict percent decoding, and same-origin Fetch

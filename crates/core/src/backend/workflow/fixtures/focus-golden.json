@@ -1,0 +1,1860 @@
+{
+  "source": "Frozen Python3.11 workflow.focus/assertions; all SQLite inputs synthetic; membership metadata times fixed",
+  "cases": [
+    {
+      "name": "unconnected",
+      "selected_session_id": 7,
+      "setup_sql": "INSERT INTO \"sessions\" VALUES(7,1,1,'native-7','/private/source-7.jsonl','/private/work-one','main','Single episode',NULL,'2026-09-14T07:00:00Z',NULL,'2026-09-14T07:00:00Z',1,0,0,'work','primary',NULL,NULL,'full',NULL,'2026-11-18 07:50:26');\nINSERT INTO \"sources\" VALUES(1,'codex','Codex','/synthetic/codex',NULL,2147483647,NULL,NULL,NULL,NULL,'2026-09-14T00:00:00Z');\nINSERT INTO \"sources\" VALUES(2,'codex','Company','/synthetic/company',NULL,2147483647,NULL,NULL,NULL,NULL,'2026-09-14T00:00:00Z');\nINSERT INTO \"sources\" VALUES(3,'context','Context','/synthetic/context',NULL,2147483647,NULL,NULL,NULL,NULL,'2026-09-14T00:00:00Z');\nINSERT INTO \"workspaces\" VALUES(1,'/private/work-one','Work One','/private/repo-secret',1,NULL,'2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"workspaces\" VALUES(2,'/private/work-two','Work Two','/private/repo-secret',1,NULL,'2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"workspaces\" VALUES(3,'/private/unrelated','Unrelated','/private/other',1,NULL,'2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');",
+      "expected": {
+        "status": "ready",
+        "selected_episode_key": "session:8c718bd883eb383f7bcdf2716cfb1658ba5e84fee026d62b75a7923385350cdf",
+        "episodes": [
+          {
+            "episode": {
+              "episode_key": "session:8c718bd883eb383f7bcdf2716cfb1658ba5e84fee026d62b75a7923385350cdf",
+              "session_id": 7,
+              "source_id": 1,
+              "destination": "/sessions/7",
+              "observed_start_at": "2026-09-14T07:00:00+00:00",
+              "last_observed_at": "2026-09-14T07:00:00+00:00",
+              "display_title": "Single episode",
+              "workspace_id": 1,
+              "workspace_name": "Work One",
+              "git_branch": "main",
+              "intent": null,
+              "outcome": null,
+              "next_action": null,
+              "evidence_counts": {
+                "references": 0,
+                "subsessions": 0,
+                "threads": 0,
+                "workstreams": 0
+              },
+              "activity_state": "unknown",
+              "lifecycle_state": "unknown",
+              "closure_reason": null,
+              "authority": "observed",
+              "projection_version": "localbrain.workflow-projection.v1"
+            },
+            "evidence_groups": [],
+            "evidence_retained_total": 0,
+            "evidence_observed_total": 0,
+            "evidence_partial": false
+          }
+        ],
+        "relations": [],
+        "diagnostics": [],
+        "candidate_observed_total": 0,
+        "candidate_retained_total": 0,
+        "episode_observed_total": 1,
+        "episode_retained_total": 1,
+        "branch_root_observed_total": 0,
+        "branch_root_retained_total": 0,
+        "projection_version": "localbrain.workflow-focus.v1",
+        "base_relations": [],
+        "base_episode_lifecycle": [
+          {
+            "episode_key": "session:8c718bd883eb383f7bcdf2716cfb1658ba5e84fee026d62b75a7923385350cdf",
+            "lifecycle_state": "unknown",
+            "closure_reason": null,
+            "authority": "observed"
+          }
+        ],
+        "assertions": [],
+        "assertion_diagnostics": [],
+        "assertion_revision": "workflow-revision:02bdb817fb60fed27d6671de1dd067e0360bb63e4508f360a650d1feab130142",
+        "assertion_overlay_version": "localbrain.workflow-assertion-overlay.v1"
+      }
+    },
+    {
+      "name": "user-thread-continuations",
+      "selected_session_id": 11,
+      "setup_sql": "INSERT INTO \"sessions\" VALUES(10,1,1,'native-10','/private/source-10.jsonl','/private/work-one','main','Session 10',NULL,'2026-09-14T01:00:00Z',NULL,'2026-09-14T01:00:00Z',1,0,0,'work','primary',NULL,NULL,'full',NULL,'2026-11-18 07:50:26');\nINSERT INTO \"sessions\" VALUES(11,1,1,'native-11','/private/source-11.jsonl','/private/work-one','main','Session 11',NULL,'2026-09-14T02:00:00Z',NULL,'2026-09-14T02:00:00Z',1,0,0,'work','primary',NULL,NULL,'full',NULL,'2026-11-18 07:50:26');\nINSERT INTO \"sessions\" VALUES(12,1,1,'native-12','/private/source-12.jsonl','/private/work-one','main','Session 12',NULL,'2026-09-14T03:00:00Z',NULL,'2026-09-14T03:00:00Z',1,0,0,'work','primary',NULL,NULL,'full',NULL,'2026-11-18 07:50:26');\nINSERT INTO \"sources\" VALUES(1,'codex','Codex','/synthetic/codex',NULL,2147483647,NULL,NULL,NULL,NULL,'2026-09-14T00:00:00Z');\nINSERT INTO \"sources\" VALUES(2,'codex','Company','/synthetic/company',NULL,2147483647,NULL,NULL,NULL,NULL,'2026-09-14T00:00:00Z');\nINSERT INTO \"sources\" VALUES(3,'context','Context','/synthetic/context',NULL,2147483647,NULL,NULL,NULL,NULL,'2026-09-14T00:00:00Z');\nINSERT INTO \"thread_links\" VALUES(1,1,'session','10',NULL,'related-to',NULL,'user','2026-09-14T00:00:00Z');\nINSERT INTO \"thread_links\" VALUES(2,1,'session','11',NULL,'related-to',NULL,'user','2026-09-14T00:00:00Z');\nINSERT INTO \"thread_links\" VALUES(3,1,'session','12',NULL,'related-to',NULL,'user','2026-09-14T00:00:00Z');\nINSERT INTO \"threads\" VALUES(1,1,'Synthetic Thread','active',NULL,NULL,NULL,NULL,0,'2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"workspaces\" VALUES(1,'/private/work-one','Work One','/private/repo-secret',1,NULL,'2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"workspaces\" VALUES(2,'/private/work-two','Work Two','/private/repo-secret',1,NULL,'2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"workspaces\" VALUES(3,'/private/unrelated','Unrelated','/private/other',1,NULL,'2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"workstreams\" VALUES(1,'Synthetic Workflow','active',NULL,NULL,'2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');",
+      "expected": {
+        "status": "ready",
+        "selected_episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+        "episodes": [
+          {
+            "episode": {
+              "episode_key": "session:a587f4e26116ace50190c127af52bc1c0433499b13c8a45642e5aa790540feda",
+              "session_id": 10,
+              "source_id": 1,
+              "destination": "/sessions/10",
+              "observed_start_at": "2026-09-14T01:00:00+00:00",
+              "last_observed_at": "2026-09-14T01:00:00+00:00",
+              "display_title": "Session 10",
+              "workspace_id": 1,
+              "workspace_name": "Work One",
+              "git_branch": "main",
+              "intent": null,
+              "outcome": null,
+              "next_action": null,
+              "evidence_counts": {
+                "references": 0,
+                "subsessions": 0,
+                "threads": 1,
+                "workstreams": 1
+              },
+              "activity_state": "unknown",
+              "lifecycle_state": "unknown",
+              "closure_reason": null,
+              "authority": "observed",
+              "projection_version": "localbrain.workflow-projection.v1"
+            },
+            "evidence_groups": [
+              {
+                "source_family": "organization",
+                "items": [
+                  {
+                    "evidence_key": "organization:1:thread:1",
+                    "source_family": "organization",
+                    "identity": "Synthetic Thread",
+                    "destination": "/workstreams/1#thread-1",
+                    "source_id": null,
+                    "evidence_kind": "thread-membership",
+                    "admission_reasons": [
+                      "thread-membership"
+                    ],
+                    "observed_at": "2026-09-14T00:00:00+00:00",
+                    "availability": "available",
+                    "authority": "explicit-organization"
+                  }
+                ],
+                "retained_total": 1,
+                "observed_total": 1,
+                "partial": false,
+                "stale": false
+              }
+            ],
+            "evidence_retained_total": 1,
+            "evidence_observed_total": 1,
+            "evidence_partial": false
+          },
+          {
+            "episode": {
+              "episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+              "session_id": 11,
+              "source_id": 1,
+              "destination": "/sessions/11",
+              "observed_start_at": "2026-09-14T02:00:00+00:00",
+              "last_observed_at": "2026-09-14T02:00:00+00:00",
+              "display_title": "Session 11",
+              "workspace_id": 1,
+              "workspace_name": "Work One",
+              "git_branch": "main",
+              "intent": null,
+              "outcome": null,
+              "next_action": null,
+              "evidence_counts": {
+                "references": 0,
+                "subsessions": 0,
+                "threads": 1,
+                "workstreams": 1
+              },
+              "activity_state": "unknown",
+              "lifecycle_state": "unknown",
+              "closure_reason": null,
+              "authority": "observed",
+              "projection_version": "localbrain.workflow-projection.v1"
+            },
+            "evidence_groups": [
+              {
+                "source_family": "organization",
+                "items": [
+                  {
+                    "evidence_key": "organization:1:thread:1",
+                    "source_family": "organization",
+                    "identity": "Synthetic Thread",
+                    "destination": "/workstreams/1#thread-1",
+                    "source_id": null,
+                    "evidence_kind": "thread-membership",
+                    "admission_reasons": [
+                      "thread-membership"
+                    ],
+                    "observed_at": "2026-09-14T00:00:00+00:00",
+                    "availability": "available",
+                    "authority": "explicit-organization"
+                  }
+                ],
+                "retained_total": 1,
+                "observed_total": 1,
+                "partial": false,
+                "stale": false
+              }
+            ],
+            "evidence_retained_total": 1,
+            "evidence_observed_total": 1,
+            "evidence_partial": false
+          },
+          {
+            "episode": {
+              "episode_key": "session:8f14d7fe2a0a48524578656f863445efe226c886d63f89e8f5bc0d09fae12e2c",
+              "session_id": 12,
+              "source_id": 1,
+              "destination": "/sessions/12",
+              "observed_start_at": "2026-09-14T03:00:00+00:00",
+              "last_observed_at": "2026-09-14T03:00:00+00:00",
+              "display_title": "Session 12",
+              "workspace_id": 1,
+              "workspace_name": "Work One",
+              "git_branch": "main",
+              "intent": null,
+              "outcome": null,
+              "next_action": null,
+              "evidence_counts": {
+                "references": 0,
+                "subsessions": 0,
+                "threads": 1,
+                "workstreams": 1
+              },
+              "activity_state": "unknown",
+              "lifecycle_state": "unknown",
+              "closure_reason": null,
+              "authority": "observed",
+              "projection_version": "localbrain.workflow-projection.v1"
+            },
+            "evidence_groups": [
+              {
+                "source_family": "organization",
+                "items": [
+                  {
+                    "evidence_key": "organization:1:thread:1",
+                    "source_family": "organization",
+                    "identity": "Synthetic Thread",
+                    "destination": "/workstreams/1#thread-1",
+                    "source_id": null,
+                    "evidence_kind": "thread-membership",
+                    "admission_reasons": [
+                      "thread-membership"
+                    ],
+                    "observed_at": "2026-09-14T00:00:00+00:00",
+                    "availability": "available",
+                    "authority": "explicit-organization"
+                  }
+                ],
+                "retained_total": 1,
+                "observed_total": 1,
+                "partial": false,
+                "stale": false
+              }
+            ],
+            "evidence_retained_total": 1,
+            "evidence_observed_total": 1,
+            "evidence_partial": false
+          }
+        ],
+        "relations": [
+          {
+            "source_episode_key": "session:a587f4e26116ace50190c127af52bc1c0433499b13c8a45642e5aa790540feda",
+            "target_episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+            "kind": "continues",
+            "authority": "deterministic-candidate",
+            "reasons": [
+              {
+                "kind": "thread-membership",
+                "identity": "thread:1",
+                "observed_at": null
+              }
+            ],
+            "source_observed_at": "2026-09-14T01:00:00+00:00",
+            "target_observed_at": "2026-09-14T02:00:00+00:00",
+            "projection_version": "localbrain.workflow-projection.v1"
+          },
+          {
+            "source_episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+            "target_episode_key": "session:8f14d7fe2a0a48524578656f863445efe226c886d63f89e8f5bc0d09fae12e2c",
+            "kind": "continues",
+            "authority": "deterministic-candidate",
+            "reasons": [
+              {
+                "kind": "thread-membership",
+                "identity": "thread:1",
+                "observed_at": null
+              }
+            ],
+            "source_observed_at": "2026-09-14T02:00:00+00:00",
+            "target_observed_at": "2026-09-14T03:00:00+00:00",
+            "projection_version": "localbrain.workflow-projection.v1"
+          }
+        ],
+        "diagnostics": [],
+        "candidate_observed_total": 2,
+        "candidate_retained_total": 2,
+        "episode_observed_total": 3,
+        "episode_retained_total": 3,
+        "branch_root_observed_total": 0,
+        "branch_root_retained_total": 0,
+        "projection_version": "localbrain.workflow-focus.v1",
+        "base_relations": [
+          {
+            "source_episode_key": "session:a587f4e26116ace50190c127af52bc1c0433499b13c8a45642e5aa790540feda",
+            "target_episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+            "kind": "continues",
+            "authority": "deterministic-candidate",
+            "reasons": [
+              {
+                "kind": "thread-membership",
+                "identity": "thread:1",
+                "observed_at": null
+              }
+            ],
+            "source_observed_at": "2026-09-14T01:00:00+00:00",
+            "target_observed_at": "2026-09-14T02:00:00+00:00",
+            "projection_version": "localbrain.workflow-projection.v1"
+          },
+          {
+            "source_episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+            "target_episode_key": "session:8f14d7fe2a0a48524578656f863445efe226c886d63f89e8f5bc0d09fae12e2c",
+            "kind": "continues",
+            "authority": "deterministic-candidate",
+            "reasons": [
+              {
+                "kind": "thread-membership",
+                "identity": "thread:1",
+                "observed_at": null
+              }
+            ],
+            "source_observed_at": "2026-09-14T02:00:00+00:00",
+            "target_observed_at": "2026-09-14T03:00:00+00:00",
+            "projection_version": "localbrain.workflow-projection.v1"
+          }
+        ],
+        "base_episode_lifecycle": [
+          {
+            "episode_key": "session:8f14d7fe2a0a48524578656f863445efe226c886d63f89e8f5bc0d09fae12e2c",
+            "lifecycle_state": "unknown",
+            "closure_reason": null,
+            "authority": "observed"
+          },
+          {
+            "episode_key": "session:a587f4e26116ace50190c127af52bc1c0433499b13c8a45642e5aa790540feda",
+            "lifecycle_state": "unknown",
+            "closure_reason": null,
+            "authority": "observed"
+          },
+          {
+            "episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+            "lifecycle_state": "unknown",
+            "closure_reason": null,
+            "authority": "observed"
+          }
+        ],
+        "assertions": [],
+        "assertion_diagnostics": [],
+        "assertion_revision": "workflow-revision:47e21e7228918e2b24fba48a7a2247b48a87ed8565756433eae32b743de872b8",
+        "assertion_overlay_version": "localbrain.workflow-assertion-overlay.v1"
+      }
+    },
+    {
+      "name": "references-and-branches",
+      "selected_session_id": 11,
+      "setup_sql": "INSERT INTO \"reference_resources\" VALUES(1,'url:shared','url','https://example.test/shared',NULL,NULL,'2026-09-14T00:00:00Z');\nINSERT INTO \"session_reference_evidence\" VALUES(1,10,'/private/source-10.jsonl','event-10-1',1,1,1,'url:shared','user_mention',NULL,'https://example.test/shared','https://example.test/shared',NULL,NULL,'2026-09-14T01:30:00Z','synthetic-v1','762dce9147540b777484d6a414ff6138f0cd99d53805d7d3906d7ff0476cd798','2026-09-14T01:30:00Z','2026-09-14T01:30:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"session_reference_evidence\" VALUES(2,11,'/private/source-11.jsonl','event-11-1',1,1,1,'url:shared','user_mention',NULL,'https://example.test/shared','https://example.test/shared',NULL,NULL,'2026-09-14T01:30:00Z','synthetic-v1','051ce7fd9802f98c89a95dc7910518b6512ccb216978f9f0ef46b1e7c3dfe2a6','2026-09-14T01:30:00Z','2026-09-14T01:30:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"session_reference_evidence\" VALUES(3,12,'/private/source-12.jsonl','event-12-1',1,1,1,'url:shared','user_mention',NULL,'https://example.test/shared','https://example.test/shared',NULL,NULL,'2026-09-14T01:30:00Z','synthetic-v1','891db2634c2e172fa2dc8563233d7e62cfad18b3a985c1ffdb45b2711760b72f','2026-09-14T01:30:00Z','2026-09-14T01:30:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"sessions\" VALUES(10,1,1,'native-10','/private/source-10.jsonl','/private/work-one','main','Session 10',NULL,'2026-09-14T01:00:00Z',NULL,'2026-09-14T01:00:00Z',1,0,0,'work','primary',NULL,NULL,'full',NULL,'2026-11-18 07:50:26');\nINSERT INTO \"sessions\" VALUES(11,1,1,'native-11','/private/source-11.jsonl','/private/work-one','feature/one','Session 11',NULL,'2026-09-14T02:00:00Z',NULL,'2026-09-14T02:00:00Z',1,0,0,'work','primary',NULL,NULL,'full',NULL,'2026-11-18 07:50:26');\nINSERT INTO \"sessions\" VALUES(12,1,1,'native-12','/private/source-12.jsonl','/private/work-one','feature/one','Session 12',NULL,'2026-09-14T03:00:00Z',NULL,'2026-09-14T03:00:00Z',1,0,0,'work','primary',NULL,NULL,'full',NULL,'2026-11-18 07:50:26');\nINSERT INTO \"sources\" VALUES(1,'codex','Codex','/synthetic/codex',NULL,2147483647,NULL,NULL,NULL,NULL,'2026-09-14T00:00:00Z');\nINSERT INTO \"sources\" VALUES(2,'codex','Company','/synthetic/company',NULL,2147483647,NULL,NULL,NULL,NULL,'2026-09-14T00:00:00Z');\nINSERT INTO \"sources\" VALUES(3,'context','Context','/synthetic/context',NULL,2147483647,NULL,NULL,NULL,NULL,'2026-09-14T00:00:00Z');\nINSERT INTO \"workspaces\" VALUES(1,'/private/work-one','Work One','/private/repo-secret',1,NULL,'2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"workspaces\" VALUES(2,'/private/work-two','Work Two','/private/repo-secret',1,NULL,'2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"workspaces\" VALUES(3,'/private/unrelated','Unrelated','/private/other',1,NULL,'2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"workstream_links\" VALUES(1,1,'session','10',NULL,'related-to',NULL,'user','2026-09-14T00:00:00Z');\nINSERT INTO \"workstream_links\" VALUES(2,1,'session','11',NULL,'related-to',NULL,'user','2026-09-14T00:00:00Z');\nINSERT INTO \"workstream_links\" VALUES(3,1,'session','12',NULL,'related-to',NULL,'user','2026-09-14T00:00:00Z');\nINSERT INTO \"workstreams\" VALUES(1,'Synthetic Workflow','active',NULL,NULL,'2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');",
+      "expected": {
+        "status": "ready",
+        "selected_episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+        "episodes": [
+          {
+            "episode": {
+              "episode_key": "session:a587f4e26116ace50190c127af52bc1c0433499b13c8a45642e5aa790540feda",
+              "session_id": 10,
+              "source_id": 1,
+              "destination": "/sessions/10",
+              "observed_start_at": "2026-09-14T01:00:00+00:00",
+              "last_observed_at": "2026-09-14T01:00:00+00:00",
+              "display_title": "Session 10",
+              "workspace_id": 1,
+              "workspace_name": "Work One",
+              "git_branch": "main",
+              "intent": null,
+              "outcome": null,
+              "next_action": null,
+              "evidence_counts": {
+                "references": 1,
+                "subsessions": 0,
+                "threads": 0,
+                "workstreams": 1
+              },
+              "activity_state": "unknown",
+              "lifecycle_state": "unknown",
+              "closure_reason": null,
+              "authority": "observed",
+              "projection_version": "localbrain.workflow-projection.v1"
+            },
+            "evidence_groups": [
+              {
+                "source_family": "external",
+                "items": [
+                  {
+                    "evidence_key": "related:url:shared",
+                    "source_family": "external",
+                    "identity": "example.test/shared",
+                    "destination": "https://example.test/shared",
+                    "source_id": 1,
+                    "evidence_kind": "user_mention",
+                    "admission_reasons": [
+                      "direct-reference"
+                    ],
+                    "observed_at": "2026-09-14T01:30:00+00:00",
+                    "availability": "available",
+                    "authority": "observed"
+                  }
+                ],
+                "retained_total": 1,
+                "observed_total": 1,
+                "partial": false,
+                "stale": false
+              },
+              {
+                "source_family": "organization",
+                "items": [
+                  {
+                    "evidence_key": "organization:1:workstream",
+                    "source_family": "organization",
+                    "identity": "Synthetic Workflow",
+                    "destination": "/workstreams/1",
+                    "source_id": null,
+                    "evidence_kind": "workstream-membership",
+                    "admission_reasons": [
+                      "workstream-membership"
+                    ],
+                    "observed_at": "2026-09-14T00:00:00+00:00",
+                    "availability": "available",
+                    "authority": "explicit-organization"
+                  }
+                ],
+                "retained_total": 1,
+                "observed_total": 1,
+                "partial": false,
+                "stale": false
+              }
+            ],
+            "evidence_retained_total": 2,
+            "evidence_observed_total": 2,
+            "evidence_partial": false
+          },
+          {
+            "episode": {
+              "episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+              "session_id": 11,
+              "source_id": 1,
+              "destination": "/sessions/11",
+              "observed_start_at": "2026-09-14T02:00:00+00:00",
+              "last_observed_at": "2026-09-14T02:00:00+00:00",
+              "display_title": "Session 11",
+              "workspace_id": 1,
+              "workspace_name": "Work One",
+              "git_branch": "feature/one",
+              "intent": null,
+              "outcome": null,
+              "next_action": null,
+              "evidence_counts": {
+                "references": 1,
+                "subsessions": 0,
+                "threads": 0,
+                "workstreams": 1
+              },
+              "activity_state": "unknown",
+              "lifecycle_state": "unknown",
+              "closure_reason": null,
+              "authority": "observed",
+              "projection_version": "localbrain.workflow-projection.v1"
+            },
+            "evidence_groups": [
+              {
+                "source_family": "external",
+                "items": [
+                  {
+                    "evidence_key": "related:url:shared",
+                    "source_family": "external",
+                    "identity": "example.test/shared",
+                    "destination": "https://example.test/shared",
+                    "source_id": 1,
+                    "evidence_kind": "user_mention",
+                    "admission_reasons": [
+                      "direct-reference"
+                    ],
+                    "observed_at": "2026-09-14T01:30:00+00:00",
+                    "availability": "available",
+                    "authority": "observed"
+                  }
+                ],
+                "retained_total": 1,
+                "observed_total": 1,
+                "partial": false,
+                "stale": false
+              },
+              {
+                "source_family": "organization",
+                "items": [
+                  {
+                    "evidence_key": "organization:1:workstream",
+                    "source_family": "organization",
+                    "identity": "Synthetic Workflow",
+                    "destination": "/workstreams/1",
+                    "source_id": null,
+                    "evidence_kind": "workstream-membership",
+                    "admission_reasons": [
+                      "workstream-membership"
+                    ],
+                    "observed_at": "2026-09-14T00:00:00+00:00",
+                    "availability": "available",
+                    "authority": "explicit-organization"
+                  }
+                ],
+                "retained_total": 1,
+                "observed_total": 1,
+                "partial": false,
+                "stale": false
+              }
+            ],
+            "evidence_retained_total": 2,
+            "evidence_observed_total": 2,
+            "evidence_partial": false
+          },
+          {
+            "episode": {
+              "episode_key": "session:8f14d7fe2a0a48524578656f863445efe226c886d63f89e8f5bc0d09fae12e2c",
+              "session_id": 12,
+              "source_id": 1,
+              "destination": "/sessions/12",
+              "observed_start_at": "2026-09-14T03:00:00+00:00",
+              "last_observed_at": "2026-09-14T03:00:00+00:00",
+              "display_title": "Session 12",
+              "workspace_id": 1,
+              "workspace_name": "Work One",
+              "git_branch": "feature/one",
+              "intent": null,
+              "outcome": null,
+              "next_action": null,
+              "evidence_counts": {
+                "references": 1,
+                "subsessions": 0,
+                "threads": 0,
+                "workstreams": 1
+              },
+              "activity_state": "unknown",
+              "lifecycle_state": "unknown",
+              "closure_reason": null,
+              "authority": "observed",
+              "projection_version": "localbrain.workflow-projection.v1"
+            },
+            "evidence_groups": [
+              {
+                "source_family": "external",
+                "items": [
+                  {
+                    "evidence_key": "related:url:shared",
+                    "source_family": "external",
+                    "identity": "example.test/shared",
+                    "destination": "https://example.test/shared",
+                    "source_id": 1,
+                    "evidence_kind": "user_mention",
+                    "admission_reasons": [
+                      "direct-reference"
+                    ],
+                    "observed_at": "2026-09-14T01:30:00+00:00",
+                    "availability": "available",
+                    "authority": "observed"
+                  }
+                ],
+                "retained_total": 1,
+                "observed_total": 1,
+                "partial": false,
+                "stale": false
+              },
+              {
+                "source_family": "organization",
+                "items": [
+                  {
+                    "evidence_key": "organization:1:workstream",
+                    "source_family": "organization",
+                    "identity": "Synthetic Workflow",
+                    "destination": "/workstreams/1",
+                    "source_id": null,
+                    "evidence_kind": "workstream-membership",
+                    "admission_reasons": [
+                      "workstream-membership"
+                    ],
+                    "observed_at": "2026-09-14T00:00:00+00:00",
+                    "availability": "available",
+                    "authority": "explicit-organization"
+                  }
+                ],
+                "retained_total": 1,
+                "observed_total": 1,
+                "partial": false,
+                "stale": false
+              }
+            ],
+            "evidence_retained_total": 2,
+            "evidence_observed_total": 2,
+            "evidence_partial": false
+          }
+        ],
+        "relations": [
+          {
+            "source_episode_key": "session:a587f4e26116ace50190c127af52bc1c0433499b13c8a45642e5aa790540feda",
+            "target_episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+            "kind": "branches-from",
+            "authority": "deterministic-candidate",
+            "reasons": [
+              {
+                "kind": "same-git-root",
+                "identity": "git-root:e7bfdd4a718b5dc7d9542107f3d13a93bacbaa124dc3da3750367bae48ae2f0c",
+                "observed_at": null
+              },
+              {
+                "kind": "shared-reference",
+                "identity": "reference:url:url:shared",
+                "observed_at": null
+              }
+            ],
+            "source_observed_at": "2026-09-14T01:00:00+00:00",
+            "target_observed_at": "2026-09-14T02:00:00+00:00",
+            "projection_version": "localbrain.workflow-projection.v1"
+          },
+          {
+            "source_episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+            "target_episode_key": "session:8f14d7fe2a0a48524578656f863445efe226c886d63f89e8f5bc0d09fae12e2c",
+            "kind": "continues",
+            "authority": "deterministic-candidate",
+            "reasons": [
+              {
+                "kind": "shared-reference",
+                "identity": "reference:url:url:shared",
+                "observed_at": null
+              },
+              {
+                "kind": "workstream-membership",
+                "identity": "workstream:1",
+                "observed_at": null
+              }
+            ],
+            "source_observed_at": "2026-09-14T02:00:00+00:00",
+            "target_observed_at": "2026-09-14T03:00:00+00:00",
+            "projection_version": "localbrain.workflow-projection.v1"
+          }
+        ],
+        "diagnostics": [],
+        "candidate_observed_total": 2,
+        "candidate_retained_total": 2,
+        "episode_observed_total": 3,
+        "episode_retained_total": 3,
+        "branch_root_observed_total": 1,
+        "branch_root_retained_total": 1,
+        "projection_version": "localbrain.workflow-focus.v1",
+        "base_relations": [
+          {
+            "source_episode_key": "session:a587f4e26116ace50190c127af52bc1c0433499b13c8a45642e5aa790540feda",
+            "target_episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+            "kind": "branches-from",
+            "authority": "deterministic-candidate",
+            "reasons": [
+              {
+                "kind": "same-git-root",
+                "identity": "git-root:e7bfdd4a718b5dc7d9542107f3d13a93bacbaa124dc3da3750367bae48ae2f0c",
+                "observed_at": null
+              },
+              {
+                "kind": "shared-reference",
+                "identity": "reference:url:url:shared",
+                "observed_at": null
+              }
+            ],
+            "source_observed_at": "2026-09-14T01:00:00+00:00",
+            "target_observed_at": "2026-09-14T02:00:00+00:00",
+            "projection_version": "localbrain.workflow-projection.v1"
+          },
+          {
+            "source_episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+            "target_episode_key": "session:8f14d7fe2a0a48524578656f863445efe226c886d63f89e8f5bc0d09fae12e2c",
+            "kind": "continues",
+            "authority": "deterministic-candidate",
+            "reasons": [
+              {
+                "kind": "shared-reference",
+                "identity": "reference:url:url:shared",
+                "observed_at": null
+              },
+              {
+                "kind": "workstream-membership",
+                "identity": "workstream:1",
+                "observed_at": null
+              }
+            ],
+            "source_observed_at": "2026-09-14T02:00:00+00:00",
+            "target_observed_at": "2026-09-14T03:00:00+00:00",
+            "projection_version": "localbrain.workflow-projection.v1"
+          }
+        ],
+        "base_episode_lifecycle": [
+          {
+            "episode_key": "session:8f14d7fe2a0a48524578656f863445efe226c886d63f89e8f5bc0d09fae12e2c",
+            "lifecycle_state": "unknown",
+            "closure_reason": null,
+            "authority": "observed"
+          },
+          {
+            "episode_key": "session:a587f4e26116ace50190c127af52bc1c0433499b13c8a45642e5aa790540feda",
+            "lifecycle_state": "unknown",
+            "closure_reason": null,
+            "authority": "observed"
+          },
+          {
+            "episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+            "lifecycle_state": "unknown",
+            "closure_reason": null,
+            "authority": "observed"
+          }
+        ],
+        "assertions": [],
+        "assertion_diagnostics": [],
+        "assertion_revision": "workflow-revision:1b55a90e1aeda04dda38560f6fa9763376c621242db668cac5c8067c4a69de0d",
+        "assertion_overlay_version": "localbrain.workflow-assertion-overlay.v1"
+      }
+    },
+    {
+      "name": "bounded-evidence",
+      "selected_session_id": 20,
+      "setup_sql": "INSERT INTO \"atlassian_sites\" VALUES(1,NULL,'jira.example.test',NULL,NULL,'https://jira.example.test','2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"atlassian_structure_reference_evidence\" VALUES(1,1,20,'/private/source-20.jsonl',NULL,'visible_text','structure-event',99,1,'https://jira.example.test/projects/SYN',NULL,'2026-09-14T04:00:00Z','synthetic-v1','bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb','2026-09-14T04:00:00Z','2026-09-14T04:00:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"atlassian_structure_references\" VALUES(1,1,'jira','jira_project','SYN','2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"context_documents\" VALUES(100,3,1,1,'/synthetic/context/doc-0.md','doc-0.md','Document 0','private body','text/markdown',12,1,'hash-0','2026-11-18 07:50:26');\nINSERT INTO \"context_documents\" VALUES(101,3,1,1,'/synthetic/context/doc-1.md','doc-1.md','Document 1','private body','text/markdown',12,2,'hash-1','2026-11-18 07:50:26');\nINSERT INTO \"context_documents\" VALUES(102,3,1,1,'/synthetic/context/doc-2.md','doc-2.md','Document 2','private body','text/markdown',12,3,'hash-2','2026-11-18 07:50:26');\nINSERT INTO \"context_documents\" VALUES(103,3,1,1,'/synthetic/context/doc-3.md','doc-3.md','Document 3','private body','text/markdown',12,4,'hash-3','2026-11-18 07:50:26');\nINSERT INTO \"context_documents\" VALUES(104,3,1,1,'/synthetic/context/doc-4.md','doc-4.md','Document 4','private body','text/markdown',12,5,'hash-4','2026-11-18 07:50:26');\nINSERT INTO \"context_documents\" VALUES(105,3,1,1,'/synthetic/context/doc-5.md','doc-5.md','Document 5','private body','text/markdown',12,6,'hash-5','2026-11-18 07:50:26');\nINSERT INTO \"context_documents\" VALUES(106,3,1,1,'/synthetic/context/doc-6.md','doc-6.md','Document 6','private body','text/markdown',12,7,'hash-6','2026-11-18 07:50:26');\nINSERT INTO \"context_roots\" VALUES(1,'/synthetic/context','Context',NULL,'folder',1,'ready',NULL,1,NULL,'2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"reference_resources\" VALUES(1,'path:4da1afd7ce84ef64840ee866643ff19753be59a683bbd52e6096ea685a50a3a5','path','/synthetic/context/doc-0.md',NULL,NULL,'2026-09-14T00:00:00Z');\nINSERT INTO \"reference_resources\" VALUES(2,'path:15309ee15d44e1ebd4523b009c53c12ac9c7f8b6617762fd6721a8d6de034242','path','/synthetic/context/doc-1.md',NULL,NULL,'2026-09-14T00:00:00Z');\nINSERT INTO \"reference_resources\" VALUES(3,'path:d61ee477307c0f3f74c678aea974499e00ea707b72a5eb08cad6548a580188c2','path','/synthetic/context/doc-2.md',NULL,NULL,'2026-09-14T00:00:00Z');\nINSERT INTO \"reference_resources\" VALUES(4,'path:936727030e663cf19173b62274cd24ceb9ae46551e276fe33d6f35e50a566c96','path','/synthetic/context/doc-3.md',NULL,NULL,'2026-09-14T00:00:00Z');\nINSERT INTO \"reference_resources\" VALUES(5,'path:a393e6d9550089d4102b2b060e1f0c4e29615d5e1f0e8bcd16b03e93482a45ba','path','/synthetic/context/doc-4.md',NULL,NULL,'2026-09-14T00:00:00Z');\nINSERT INTO \"reference_resources\" VALUES(6,'path:492df905056adc0144379b8fe69480a026d093f9fa2f0803c83ad3832217ef9b','path','/synthetic/context/doc-5.md',NULL,NULL,'2026-09-14T00:00:00Z');\nINSERT INTO \"reference_resources\" VALUES(7,'path:9230fabe5a66068e7ee278c559bffd0e4b72756637180f69cc4bd93b43ab3013','path','/synthetic/context/doc-6.md',NULL,NULL,'2026-09-14T00:00:00Z');\nINSERT INTO \"resource_documents\" VALUES(100,1);\nINSERT INTO \"resource_documents\" VALUES(101,2);\nINSERT INTO \"resource_documents\" VALUES(102,3);\nINSERT INTO \"resource_documents\" VALUES(103,4);\nINSERT INTO \"resource_documents\" VALUES(104,5);\nINSERT INTO \"resource_documents\" VALUES(105,6);\nINSERT INTO \"resource_documents\" VALUES(106,7);\nINSERT INTO \"session_reference_evidence\" VALUES(1,20,'/private/source-20.jsonl','event-20-1',1,1,1,'document:100','user_mention',NULL,'Document 0',NULL,NULL,NULL,'2026-09-14T01:30:00Z','synthetic-v1','9f6e3f1579e015df63566a53bf3d409586a6ef8974da61a18711a9fc5be8d61b','2026-09-14T01:30:00Z','2026-09-14T01:30:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"session_reference_evidence\" VALUES(2,20,'/private/source-20.jsonl','event-20-2',2,1,2,'document:101','user_mention',NULL,'Document 1',NULL,NULL,NULL,'2026-09-14T01:30:00Z','synthetic-v1','75be14de24855351aad7b06b7d45e58b9883889efde9e5032b049f6e59dee6bb','2026-09-14T01:30:00Z','2026-09-14T01:30:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"session_reference_evidence\" VALUES(3,20,'/private/source-20.jsonl','event-20-3',3,1,3,'document:102','user_mention',NULL,'Document 2',NULL,NULL,NULL,'2026-09-14T01:30:00Z','synthetic-v1','6a8b8b3c6d183e5262f9f4a45a42ef8345458f2a376a30751f4b05dd6d44d841','2026-09-14T01:30:00Z','2026-09-14T01:30:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"session_reference_evidence\" VALUES(4,20,'/private/source-20.jsonl','event-20-4',4,1,4,'document:103','user_mention',NULL,'Document 3',NULL,NULL,NULL,'2026-09-14T01:30:00Z','synthetic-v1','2c44343bf006ba19c5cdd050ce3b78edc14647787e67b6c6861ed6686db990e3','2026-09-14T01:30:00Z','2026-09-14T01:30:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"session_reference_evidence\" VALUES(5,20,'/private/source-20.jsonl','event-20-5',5,1,5,'document:104','user_mention',NULL,'Document 4',NULL,NULL,NULL,'2026-09-14T01:30:00Z','synthetic-v1','24424c6ef4ed6c3b61b6662003383453f7c330094a4d0dbd901c3d121e2f2095','2026-09-14T01:30:00Z','2026-09-14T01:30:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"session_reference_evidence\" VALUES(6,20,'/private/source-20.jsonl','event-20-6',6,1,6,'document:105','user_mention',NULL,'Document 5',NULL,NULL,NULL,'2026-09-14T01:30:00Z','synthetic-v1','387164066a84c5279b016639959e3c59cf82c6b4f182a91be04fe2d36f4b59bf','2026-09-14T01:30:00Z','2026-09-14T01:30:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"session_reference_evidence\" VALUES(7,20,'/private/source-20.jsonl','event-20-7',7,1,7,'document:106','user_mention',NULL,'Document 6',NULL,NULL,NULL,'2026-09-14T01:30:00Z','synthetic-v1','f433d4d0f7d7b0d942f5be2ab05d534f4e91a1816cbd940e9d23e654465b8bcb','2026-09-14T01:30:00Z','2026-09-14T01:30:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"session_reference_scans\" VALUES(20,'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa','synthetic-v1','partial',101,100,NULL,NULL,'2026-09-14T05:00:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"sessions\" VALUES(20,1,1,'native-20','/private/source-20.jsonl','/private/work-one','main','Anchor',NULL,'2026-09-14T20:00:00Z',NULL,'2026-09-14T20:00:00Z',1,0,0,'work','primary',NULL,NULL,'full',NULL,'2026-11-18 07:50:26');\nINSERT INTO \"sessions\" VALUES(200,1,1,'native-200','/private/source-200.jsonl','/private/work-one','main','Child 0',NULL,'2026-09-14T08:00:00Z',NULL,'2026-09-14T08:00:00Z',1,0,0,'work','subsession',NULL,20,'full',NULL,'2026-11-18 07:50:26');\nINSERT INTO \"sessions\" VALUES(201,1,1,'native-201','/private/source-201.jsonl','/private/work-one','main','Child 1',NULL,'2026-09-14T09:00:00Z',NULL,'2026-09-14T09:00:00Z',1,0,0,'work','subsession',NULL,20,'full',NULL,'2026-11-18 07:50:26');\nINSERT INTO \"sessions\" VALUES(202,1,1,'native-202','/private/source-202.jsonl','/private/work-one','main','Child 2',NULL,'2026-09-14T10:00:00Z',NULL,'2026-09-14T10:00:00Z',1,0,0,'work','subsession',NULL,20,'full',NULL,'2026-11-18 07:50:26');\nINSERT INTO \"sessions\" VALUES(203,1,1,'native-203','/private/source-203.jsonl','/private/work-one','main','Child 3',NULL,'2026-09-14T11:00:00Z',NULL,'2026-09-14T11:00:00Z',1,0,0,'work','subsession',NULL,20,'full',NULL,'2026-11-18 07:50:26');\nINSERT INTO \"sessions\" VALUES(204,1,1,'native-204','/private/source-204.jsonl','/private/work-one','main','Child 4',NULL,'2026-09-14T12:00:00Z',NULL,'2026-09-14T12:00:00Z',1,0,0,'work','subsession',NULL,20,'full',NULL,'2026-11-18 07:50:26');\nINSERT INTO \"sessions\" VALUES(205,1,1,'native-205','/private/source-205.jsonl','/private/work-one','main','Child 5',NULL,'2026-09-14T13:00:00Z',NULL,'2026-09-14T13:00:00Z',1,0,0,'work','subsession',NULL,20,'full',NULL,'2026-11-18 07:50:26');\nINSERT INTO \"sessions\" VALUES(206,1,1,'native-206','/private/source-206.jsonl','/private/work-one','main','Child 6',NULL,'2026-09-14T14:00:00Z',NULL,'2026-09-14T14:00:00Z',1,0,0,'work','subsession',NULL,20,'full',NULL,'2026-11-18 07:50:26');\nINSERT INTO \"sources\" VALUES(1,'codex','Codex','/synthetic/codex',NULL,2147483647,NULL,NULL,NULL,NULL,'2026-09-14T00:00:00Z');\nINSERT INTO \"sources\" VALUES(2,'codex','Company','/synthetic/company',NULL,2147483647,NULL,NULL,NULL,NULL,'2026-09-14T00:00:00Z');\nINSERT INTO \"sources\" VALUES(3,'context','Context','/synthetic/context',NULL,2147483647,NULL,NULL,NULL,NULL,'2026-09-14T00:00:00Z');\nINSERT INTO \"thread_links\" VALUES(1,1,'session','20',NULL,'related-to',NULL,'user','2026-09-14T00:00:00Z');\nINSERT INTO \"threads\" VALUES(1,1,'Synthetic Thread','active',NULL,NULL,NULL,NULL,0,'2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"workspaces\" VALUES(1,'/private/work-one','Work One','/private/repo-secret',1,NULL,'2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"workspaces\" VALUES(2,'/private/work-two','Work Two','/private/repo-secret',1,NULL,'2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"workspaces\" VALUES(3,'/private/unrelated','Unrelated','/private/other',1,NULL,'2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"workstreams\" VALUES(1,'Synthetic Workflow','active',NULL,NULL,'2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');",
+      "expected": {
+        "status": "ready",
+        "selected_episode_key": "session:136cc551baa14a08d458ff8745d753bfd9824019ba0476ae11e74503604691b5",
+        "episodes": [
+          {
+            "episode": {
+              "episode_key": "session:136cc551baa14a08d458ff8745d753bfd9824019ba0476ae11e74503604691b5",
+              "session_id": 20,
+              "source_id": 1,
+              "destination": "/sessions/20",
+              "observed_start_at": "2026-09-14T20:00:00+00:00",
+              "last_observed_at": "2026-09-14T20:00:00+00:00",
+              "display_title": "Anchor",
+              "workspace_id": 1,
+              "workspace_name": "Work One",
+              "git_branch": "main",
+              "intent": null,
+              "outcome": null,
+              "next_action": null,
+              "evidence_counts": {
+                "references": 7,
+                "subsessions": 7,
+                "threads": 1,
+                "workstreams": 1
+              },
+              "activity_state": "unknown",
+              "lifecycle_state": "unknown",
+              "closure_reason": null,
+              "authority": "observed",
+              "projection_version": "localbrain.workflow-projection.v1"
+            },
+            "evidence_groups": [
+              {
+                "source_family": "atlassian",
+                "items": [
+                  {
+                    "evidence_key": "atlassian-structure:1",
+                    "source_family": "atlassian",
+                    "identity": "SYN",
+                    "destination": "/atlassian/references/1",
+                    "source_id": null,
+                    "evidence_kind": "structure-reference",
+                    "admission_reasons": [
+                      "structure-reference"
+                    ],
+                    "observed_at": "2026-09-14T04:00:00+00:00",
+                    "availability": "available",
+                    "authority": "observed"
+                  }
+                ],
+                "retained_total": 1,
+                "observed_total": 1,
+                "partial": false,
+                "stale": false
+              },
+              {
+                "source_family": "local-context",
+                "items": [
+                  {
+                    "evidence_key": "related:document:100",
+                    "source_family": "local-context",
+                    "identity": "Document 0",
+                    "destination": "/documents/100",
+                    "source_id": 1,
+                    "evidence_kind": "user_mention",
+                    "admission_reasons": [
+                      "direct-reference"
+                    ],
+                    "observed_at": "2026-09-14T01:30:00+00:00",
+                    "availability": "available",
+                    "authority": "observed"
+                  },
+                  {
+                    "evidence_key": "related:document:101",
+                    "source_family": "local-context",
+                    "identity": "Document 1",
+                    "destination": "/documents/101",
+                    "source_id": 1,
+                    "evidence_kind": "user_mention",
+                    "admission_reasons": [
+                      "direct-reference"
+                    ],
+                    "observed_at": "2026-09-14T01:30:00+00:00",
+                    "availability": "available",
+                    "authority": "observed"
+                  },
+                  {
+                    "evidence_key": "related:document:102",
+                    "source_family": "local-context",
+                    "identity": "Document 2",
+                    "destination": "/documents/102",
+                    "source_id": 1,
+                    "evidence_kind": "user_mention",
+                    "admission_reasons": [
+                      "direct-reference"
+                    ],
+                    "observed_at": "2026-09-14T01:30:00+00:00",
+                    "availability": "available",
+                    "authority": "observed"
+                  },
+                  {
+                    "evidence_key": "related:document:103",
+                    "source_family": "local-context",
+                    "identity": "Document 3",
+                    "destination": "/documents/103",
+                    "source_id": 1,
+                    "evidence_kind": "user_mention",
+                    "admission_reasons": [
+                      "direct-reference"
+                    ],
+                    "observed_at": "2026-09-14T01:30:00+00:00",
+                    "availability": "available",
+                    "authority": "observed"
+                  },
+                  {
+                    "evidence_key": "related:document:104",
+                    "source_family": "local-context",
+                    "identity": "Document 4",
+                    "destination": "/documents/104",
+                    "source_id": 1,
+                    "evidence_kind": "user_mention",
+                    "admission_reasons": [
+                      "direct-reference"
+                    ],
+                    "observed_at": "2026-09-14T01:30:00+00:00",
+                    "availability": "available",
+                    "authority": "observed"
+                  }
+                ],
+                "retained_total": 7,
+                "observed_total": 7,
+                "partial": true,
+                "stale": false
+              },
+              {
+                "source_family": "organization",
+                "items": [
+                  {
+                    "evidence_key": "organization:1:thread:1",
+                    "source_family": "organization",
+                    "identity": "Synthetic Thread",
+                    "destination": "/workstreams/1#thread-1",
+                    "source_id": null,
+                    "evidence_kind": "thread-membership",
+                    "admission_reasons": [
+                      "thread-membership"
+                    ],
+                    "observed_at": "2026-09-14T00:00:00+00:00",
+                    "availability": "available",
+                    "authority": "explicit-organization"
+                  }
+                ],
+                "retained_total": 1,
+                "observed_total": 1,
+                "partial": false,
+                "stale": false
+              },
+              {
+                "source_family": "session",
+                "items": [
+                  {
+                    "evidence_key": "subsession:201",
+                    "source_family": "session",
+                    "identity": "Child 1",
+                    "destination": "/sessions/201",
+                    "source_id": 1,
+                    "evidence_kind": "subsession",
+                    "admission_reasons": [
+                      "subsession"
+                    ],
+                    "observed_at": "2026-09-14T09:00:00+00:00",
+                    "availability": "available",
+                    "authority": "observed"
+                  },
+                  {
+                    "evidence_key": "subsession:202",
+                    "source_family": "session",
+                    "identity": "Child 2",
+                    "destination": "/sessions/202",
+                    "source_id": 1,
+                    "evidence_kind": "subsession",
+                    "admission_reasons": [
+                      "subsession"
+                    ],
+                    "observed_at": "2026-09-14T10:00:00+00:00",
+                    "availability": "available",
+                    "authority": "observed"
+                  },
+                  {
+                    "evidence_key": "subsession:203",
+                    "source_family": "session",
+                    "identity": "Child 3",
+                    "destination": "/sessions/203",
+                    "source_id": 1,
+                    "evidence_kind": "subsession",
+                    "admission_reasons": [
+                      "subsession"
+                    ],
+                    "observed_at": "2026-09-14T11:00:00+00:00",
+                    "availability": "available",
+                    "authority": "observed"
+                  },
+                  {
+                    "evidence_key": "subsession:204",
+                    "source_family": "session",
+                    "identity": "Child 4",
+                    "destination": "/sessions/204",
+                    "source_id": 1,
+                    "evidence_kind": "subsession",
+                    "admission_reasons": [
+                      "subsession"
+                    ],
+                    "observed_at": "2026-09-14T12:00:00+00:00",
+                    "availability": "available",
+                    "authority": "observed"
+                  },
+                  {
+                    "evidence_key": "subsession:205",
+                    "source_family": "session",
+                    "identity": "Child 5",
+                    "destination": "/sessions/205",
+                    "source_id": 1,
+                    "evidence_kind": "subsession",
+                    "admission_reasons": [
+                      "subsession"
+                    ],
+                    "observed_at": "2026-09-14T13:00:00+00:00",
+                    "availability": "available",
+                    "authority": "observed"
+                  }
+                ],
+                "retained_total": 7,
+                "observed_total": 7,
+                "partial": true,
+                "stale": false
+              },
+              {
+                "source_family": "unknown",
+                "items": [],
+                "retained_total": 0,
+                "observed_total": 94,
+                "partial": true,
+                "stale": false
+              }
+            ],
+            "evidence_retained_total": 16,
+            "evidence_observed_total": 110,
+            "evidence_partial": true
+          }
+        ],
+        "relations": [],
+        "diagnostics": [],
+        "candidate_observed_total": 0,
+        "candidate_retained_total": 0,
+        "episode_observed_total": 1,
+        "episode_retained_total": 1,
+        "branch_root_observed_total": 0,
+        "branch_root_retained_total": 0,
+        "projection_version": "localbrain.workflow-focus.v1",
+        "base_relations": [],
+        "base_episode_lifecycle": [
+          {
+            "episode_key": "session:136cc551baa14a08d458ff8745d753bfd9824019ba0476ae11e74503604691b5",
+            "lifecycle_state": "unknown",
+            "closure_reason": null,
+            "authority": "observed"
+          }
+        ],
+        "assertions": [],
+        "assertion_diagnostics": [],
+        "assertion_revision": "workflow-revision:6cfb7a282529f1b8aab613dbde4ae2fc3089681e6ea105f68f1243fec04f8bbe",
+        "assertion_overlay_version": "localbrain.workflow-assertion-overlay.v1"
+      }
+    },
+    {
+      "name": "stale-evidence",
+      "selected_session_id": 20,
+      "setup_sql": "INSERT INTO \"context_documents\" VALUES(100,3,1,1,'/synthetic/context/stale.md','stale.md','Stale document','body','text/markdown',4,1,'stale-hash','2026-11-18 07:50:26');\nINSERT INTO \"context_roots\" VALUES(1,'/synthetic/context','Context',NULL,'folder',1,'ready',NULL,1,NULL,'2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"reference_resources\" VALUES(1,'path:c37b9a1bd9bdb26c2319da03ba7378396dd389e81ab7f3f9b471e9d8b3b25952','path','/synthetic/context/stale.md',NULL,NULL,'2026-09-14T00:00:00Z');\nINSERT INTO \"resource_documents\" VALUES(100,1);\nINSERT INTO \"session_reference_evidence\" VALUES(1,20,'/private/source-20.jsonl','event-20-1',1,1,1,'document:100','user_mention',NULL,'Stale document',NULL,NULL,NULL,'2026-09-14T01:30:00Z','synthetic-v1','9f6e3f1579e015df63566a53bf3d409586a6ef8974da61a18711a9fc5be8d61b','2026-09-14T01:30:00Z','2026-09-14T01:30:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"session_reference_scans\" VALUES(20,'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc','synthetic-v1','error',1,1,'synthetic-error',NULL,'2026-09-14T05:00:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"sessions\" VALUES(20,1,1,'native-20','/private/source-20.jsonl','/private/work-one','main','Session 20',NULL,'2026-09-14T20:00:00Z',NULL,'2026-09-14T20:00:00Z',1,0,0,'work','primary',NULL,NULL,'full',NULL,'2026-11-18 07:50:26');\nINSERT INTO \"sources\" VALUES(1,'codex','Codex','/synthetic/codex',NULL,2147483647,NULL,NULL,NULL,NULL,'2026-09-14T00:00:00Z');\nINSERT INTO \"sources\" VALUES(2,'codex','Company','/synthetic/company',NULL,2147483647,NULL,NULL,NULL,NULL,'2026-09-14T00:00:00Z');\nINSERT INTO \"sources\" VALUES(3,'context','Context','/synthetic/context',NULL,2147483647,NULL,NULL,NULL,NULL,'2026-09-14T00:00:00Z');\nINSERT INTO \"workspaces\" VALUES(1,'/private/work-one','Work One','/private/repo-secret',1,NULL,'2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"workspaces\" VALUES(2,'/private/work-two','Work Two','/private/repo-secret',1,NULL,'2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"workspaces\" VALUES(3,'/private/unrelated','Unrelated','/private/other',1,NULL,'2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');",
+      "expected": {
+        "status": "ready",
+        "selected_episode_key": "session:136cc551baa14a08d458ff8745d753bfd9824019ba0476ae11e74503604691b5",
+        "episodes": [
+          {
+            "episode": {
+              "episode_key": "session:136cc551baa14a08d458ff8745d753bfd9824019ba0476ae11e74503604691b5",
+              "session_id": 20,
+              "source_id": 1,
+              "destination": "/sessions/20",
+              "observed_start_at": "2026-09-14T20:00:00+00:00",
+              "last_observed_at": "2026-09-14T20:00:00+00:00",
+              "display_title": "Session 20",
+              "workspace_id": 1,
+              "workspace_name": "Work One",
+              "git_branch": "main",
+              "intent": null,
+              "outcome": null,
+              "next_action": null,
+              "evidence_counts": {
+                "references": 1,
+                "subsessions": 0,
+                "threads": 0,
+                "workstreams": 0
+              },
+              "activity_state": "unknown",
+              "lifecycle_state": "unknown",
+              "closure_reason": null,
+              "authority": "observed",
+              "projection_version": "localbrain.workflow-projection.v1"
+            },
+            "evidence_groups": [
+              {
+                "source_family": "local-context",
+                "items": [
+                  {
+                    "evidence_key": "related:document:100",
+                    "source_family": "local-context",
+                    "identity": "Stale document",
+                    "destination": "/documents/100",
+                    "source_id": 1,
+                    "evidence_kind": "user_mention",
+                    "admission_reasons": [
+                      "direct-reference"
+                    ],
+                    "observed_at": "2026-09-14T01:30:00+00:00",
+                    "availability": "stale",
+                    "authority": "observed"
+                  }
+                ],
+                "retained_total": 1,
+                "observed_total": 1,
+                "partial": false,
+                "stale": true
+              }
+            ],
+            "evidence_retained_total": 1,
+            "evidence_observed_total": 1,
+            "evidence_partial": true
+          }
+        ],
+        "relations": [],
+        "diagnostics": [],
+        "candidate_observed_total": 0,
+        "candidate_retained_total": 0,
+        "episode_observed_total": 1,
+        "episode_retained_total": 1,
+        "branch_root_observed_total": 0,
+        "branch_root_retained_total": 0,
+        "projection_version": "localbrain.workflow-focus.v1",
+        "base_relations": [],
+        "base_episode_lifecycle": [
+          {
+            "episode_key": "session:136cc551baa14a08d458ff8745d753bfd9824019ba0476ae11e74503604691b5",
+            "lifecycle_state": "unknown",
+            "closure_reason": null,
+            "authority": "observed"
+          }
+        ],
+        "assertions": [],
+        "assertion_diagnostics": [],
+        "assertion_revision": "workflow-revision:6cfb7a282529f1b8aab613dbde4ae2fc3089681e6ea105f68f1243fec04f8bbe",
+        "assertion_overlay_version": "localbrain.workflow-assertion-overlay.v1"
+      }
+    },
+    {
+      "name": "assertion-overrides-with-base-provenance",
+      "selected_session_id": 10,
+      "setup_sql": "INSERT INTO \"sessions\" VALUES(10,1,1,'native-10','/synthetic/session-10.jsonl','/synthetic/work','main','Session 10',NULL,'2026-09-14T01:00:00Z',NULL,'2026-09-14T01:00:00Z',1,0,0,'work','primary',NULL,NULL,'full',NULL,'2026-11-18 07:50:26');\nINSERT INTO \"sessions\" VALUES(11,1,1,'native-11','/synthetic/session-11.jsonl','/synthetic/work','feature','Session 11',NULL,'2026-09-14T02:00:00Z',NULL,'2026-09-14T02:00:00Z',1,0,0,'work','primary',NULL,NULL,'full',NULL,'2026-11-18 07:50:26');\nINSERT INTO \"sources\" VALUES(1,'codex','Codex','/synthetic/codex',NULL,2147483647,NULL,NULL,NULL,NULL,'2026-09-14T00:00:00Z');\nINSERT INTO \"thread_links\" VALUES(1,1,'session','10',NULL,'related-to',NULL,'user','2026-09-14T00:00:00Z');\nINSERT INTO \"thread_links\" VALUES(2,1,'session','11',NULL,'related-to',NULL,'user','2026-09-14T00:00:00Z');\nINSERT INTO \"threads\" VALUES(1,1,'Synthetic Thread','active',NULL,NULL,NULL,NULL,0,'2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"workflow_assertions\" VALUES(1,'0a051ddc07b54c9b9dfe148cceb0d06cab6fd7a8045799139fb06e4970df2412',1,'relation','same-flow',0,'session:a587f4e26116ace50190c127af52bc1c0433499b13c8a45642e5aa790540feda','session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53',10,11,'relation:branches-from','relation:continues',NULL,NULL,'Synthetic confirmation','user-confirmed','localbrain.workflow-assertion.v1',NULL,'2026-09-15T01:00:00+00:00');\nINSERT INTO \"workspaces\" VALUES(1,'/synthetic/work','Synthetic Work','/synthetic/work',1,NULL,'2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"workstreams\" VALUES(1,'Synthetic Flow','active',NULL,NULL,'2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');",
+      "expected": {
+        "status": "ready",
+        "selected_episode_key": "session:a587f4e26116ace50190c127af52bc1c0433499b13c8a45642e5aa790540feda",
+        "episodes": [
+          {
+            "episode": {
+              "episode_key": "session:a587f4e26116ace50190c127af52bc1c0433499b13c8a45642e5aa790540feda",
+              "session_id": 10,
+              "source_id": 1,
+              "destination": "/sessions/10",
+              "observed_start_at": "2026-09-14T01:00:00+00:00",
+              "last_observed_at": "2026-09-14T01:00:00+00:00",
+              "display_title": "Session 10",
+              "workspace_id": 1,
+              "workspace_name": "Synthetic Work",
+              "git_branch": "main",
+              "intent": null,
+              "outcome": null,
+              "next_action": null,
+              "evidence_counts": {
+                "references": 0,
+                "subsessions": 0,
+                "threads": 1,
+                "workstreams": 1
+              },
+              "activity_state": "unknown",
+              "lifecycle_state": "unknown",
+              "closure_reason": null,
+              "authority": "observed",
+              "projection_version": "localbrain.workflow-projection.v1"
+            },
+            "evidence_groups": [
+              {
+                "source_family": "organization",
+                "items": [
+                  {
+                    "evidence_key": "organization:1:thread:1",
+                    "source_family": "organization",
+                    "identity": "Synthetic Thread",
+                    "destination": "/workstreams/1#thread-1",
+                    "source_id": null,
+                    "evidence_kind": "thread-membership",
+                    "admission_reasons": [
+                      "thread-membership"
+                    ],
+                    "observed_at": "2026-09-14T00:00:00+00:00",
+                    "availability": "available",
+                    "authority": "explicit-organization"
+                  }
+                ],
+                "retained_total": 1,
+                "observed_total": 1,
+                "partial": false,
+                "stale": false
+              }
+            ],
+            "evidence_retained_total": 1,
+            "evidence_observed_total": 1,
+            "evidence_partial": false
+          },
+          {
+            "episode": {
+              "episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+              "session_id": 11,
+              "source_id": 1,
+              "destination": "/sessions/11",
+              "observed_start_at": "2026-09-14T02:00:00+00:00",
+              "last_observed_at": "2026-09-14T02:00:00+00:00",
+              "display_title": "Session 11",
+              "workspace_id": 1,
+              "workspace_name": "Synthetic Work",
+              "git_branch": "feature",
+              "intent": null,
+              "outcome": null,
+              "next_action": null,
+              "evidence_counts": {
+                "references": 0,
+                "subsessions": 0,
+                "threads": 1,
+                "workstreams": 1
+              },
+              "activity_state": "unknown",
+              "lifecycle_state": "unknown",
+              "closure_reason": null,
+              "authority": "observed",
+              "projection_version": "localbrain.workflow-projection.v1"
+            },
+            "evidence_groups": [
+              {
+                "source_family": "organization",
+                "items": [
+                  {
+                    "evidence_key": "organization:1:thread:1",
+                    "source_family": "organization",
+                    "identity": "Synthetic Thread",
+                    "destination": "/workstreams/1#thread-1",
+                    "source_id": null,
+                    "evidence_kind": "thread-membership",
+                    "admission_reasons": [
+                      "thread-membership"
+                    ],
+                    "observed_at": "2026-09-14T00:00:00+00:00",
+                    "availability": "available",
+                    "authority": "explicit-organization"
+                  }
+                ],
+                "retained_total": 1,
+                "observed_total": 1,
+                "partial": false,
+                "stale": false
+              }
+            ],
+            "evidence_retained_total": 1,
+            "evidence_observed_total": 1,
+            "evidence_partial": false
+          }
+        ],
+        "relations": [
+          {
+            "source_episode_key": "session:a587f4e26116ace50190c127af52bc1c0433499b13c8a45642e5aa790540feda",
+            "target_episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+            "kind": "continues",
+            "authority": "user-confirmed",
+            "reasons": [
+              {
+                "kind": "user-assertion",
+                "identity": "assertion:1",
+                "observed_at": "2026-09-15T01:00:00+00:00"
+              }
+            ],
+            "source_observed_at": "2026-09-14T01:00:00+00:00",
+            "target_observed_at": "2026-09-14T02:00:00+00:00",
+            "projection_version": "localbrain.workflow-projection.v1"
+          }
+        ],
+        "diagnostics": [],
+        "candidate_observed_total": 1,
+        "candidate_retained_total": 1,
+        "episode_observed_total": 2,
+        "episode_retained_total": 2,
+        "branch_root_observed_total": 1,
+        "branch_root_retained_total": 1,
+        "projection_version": "localbrain.workflow-focus.v1",
+        "base_relations": [
+          {
+            "source_episode_key": "session:a587f4e26116ace50190c127af52bc1c0433499b13c8a45642e5aa790540feda",
+            "target_episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+            "kind": "branches-from",
+            "authority": "deterministic-candidate",
+            "reasons": [
+              {
+                "kind": "same-git-root",
+                "identity": "git-root:a0c70e4c124980c30a81606c37cb8a751e8530268cd9a2348543e1ea7491c0d7",
+                "observed_at": null
+              },
+              {
+                "kind": "thread-membership",
+                "identity": "thread:1",
+                "observed_at": null
+              }
+            ],
+            "source_observed_at": "2026-09-14T01:00:00+00:00",
+            "target_observed_at": "2026-09-14T02:00:00+00:00",
+            "projection_version": "localbrain.workflow-projection.v1"
+          }
+        ],
+        "base_episode_lifecycle": [
+          {
+            "episode_key": "session:a587f4e26116ace50190c127af52bc1c0433499b13c8a45642e5aa790540feda",
+            "lifecycle_state": "unknown",
+            "closure_reason": null,
+            "authority": "observed"
+          },
+          {
+            "episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+            "lifecycle_state": "unknown",
+            "closure_reason": null,
+            "authority": "observed"
+          }
+        ],
+        "assertions": [
+          {
+            "id": 1,
+            "boundary_key": "0a051ddc07b54c9b9dfe148cceb0d06cab6fd7a8045799139fb06e4970df2412",
+            "boundary_version": 1,
+            "boundary_kind": "relation",
+            "assertion_kind": "same-flow",
+            "is_undo": false,
+            "source_episode_key": "session:a587f4e26116ace50190c127af52bc1c0433499b13c8a45642e5aa790540feda",
+            "target_episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+            "before_meaning": "relation:branches-from",
+            "after_meaning": "relation:continues",
+            "before_closure_reason": null,
+            "after_closure_reason": null,
+            "note": "Synthetic confirmation",
+            "authority": "user-confirmed",
+            "contract_version": "localbrain.workflow-assertion.v1",
+            "supersedes_assertion_id": null,
+            "created_at": "2026-09-15T01:00:00+00:00",
+            "resolution": "applied",
+            "resolution_reason": null,
+            "base_relation": {
+              "source_episode_key": "session:a587f4e26116ace50190c127af52bc1c0433499b13c8a45642e5aa790540feda",
+              "target_episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+              "kind": "branches-from",
+              "authority": "deterministic-candidate",
+              "reasons": [
+                {
+                  "kind": "same-git-root",
+                  "identity": "git-root:a0c70e4c124980c30a81606c37cb8a751e8530268cd9a2348543e1ea7491c0d7",
+                  "observed_at": null
+                },
+                {
+                  "kind": "thread-membership",
+                  "identity": "thread:1",
+                  "observed_at": null
+                }
+              ],
+              "source_observed_at": "2026-09-14T01:00:00+00:00",
+              "target_observed_at": "2026-09-14T02:00:00+00:00",
+              "projection_version": "localbrain.workflow-projection.v1"
+            },
+            "restored_assertion_id": null
+          }
+        ],
+        "assertion_diagnostics": [],
+        "assertion_revision": "workflow-revision:63e9b351b31f84105207ee293655f945f402ac873c7c2c6cdbb0118e76d27db8",
+        "assertion_overlay_version": "localbrain.workflow-assertion-overlay.v1"
+      }
+    },
+    {
+      "name": "first-undo-restores-base-authority",
+      "selected_session_id": 10,
+      "setup_sql": "INSERT INTO \"sessions\" VALUES(10,1,1,'native-10','/synthetic/session-10.jsonl','/synthetic/work','main','Session 10',NULL,'2026-09-14T01:00:00Z',NULL,'2026-09-14T01:00:00Z',1,0,0,'work','primary',NULL,NULL,'full',NULL,'2026-11-18 07:50:26');\nINSERT INTO \"sessions\" VALUES(11,1,1,'native-11','/synthetic/session-11.jsonl','/synthetic/work','feature','Session 11',NULL,'2026-09-14T02:00:00Z',NULL,'2026-09-14T02:00:00Z',1,0,0,'work','primary',NULL,NULL,'full',NULL,'2026-11-18 07:50:26');\nINSERT INTO \"sources\" VALUES(1,'codex','Codex','/synthetic/codex',NULL,2147483647,NULL,NULL,NULL,NULL,'2026-09-14T00:00:00Z');\nINSERT INTO \"thread_links\" VALUES(1,1,'session','10',NULL,'related-to',NULL,'user','2026-09-14T00:00:00Z');\nINSERT INTO \"thread_links\" VALUES(2,1,'session','11',NULL,'related-to',NULL,'user','2026-09-14T00:00:00Z');\nINSERT INTO \"threads\" VALUES(1,1,'Synthetic Thread','active',NULL,NULL,NULL,NULL,0,'2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"workflow_assertions\" VALUES(1,'0a051ddc07b54c9b9dfe148cceb0d06cab6fd7a8045799139fb06e4970df2412',1,'relation','same-flow',0,'session:a587f4e26116ace50190c127af52bc1c0433499b13c8a45642e5aa790540feda','session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53',10,11,'relation:branches-from','relation:continues',NULL,NULL,'Synthetic confirmation','user-confirmed','localbrain.workflow-assertion.v1',NULL,'2026-09-15T01:00:00+00:00');\nINSERT INTO \"workflow_assertions\" VALUES(2,'0a051ddc07b54c9b9dfe148cceb0d06cab6fd7a8045799139fb06e4970df2412',2,'relation','same-flow',1,'session:a587f4e26116ace50190c127af52bc1c0433499b13c8a45642e5aa790540feda','session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53',10,11,'relation:continues','relation:branches-from',NULL,NULL,NULL,'user-confirmed','localbrain.workflow-assertion.v1',1,'2026-09-15T02:00:00+00:00');\nINSERT INTO \"workspaces\" VALUES(1,'/synthetic/work','Synthetic Work','/synthetic/work',1,NULL,'2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"workstreams\" VALUES(1,'Synthetic Flow','active',NULL,NULL,'2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');",
+      "expected": {
+        "status": "ready",
+        "selected_episode_key": "session:a587f4e26116ace50190c127af52bc1c0433499b13c8a45642e5aa790540feda",
+        "episodes": [
+          {
+            "episode": {
+              "episode_key": "session:a587f4e26116ace50190c127af52bc1c0433499b13c8a45642e5aa790540feda",
+              "session_id": 10,
+              "source_id": 1,
+              "destination": "/sessions/10",
+              "observed_start_at": "2026-09-14T01:00:00+00:00",
+              "last_observed_at": "2026-09-14T01:00:00+00:00",
+              "display_title": "Session 10",
+              "workspace_id": 1,
+              "workspace_name": "Synthetic Work",
+              "git_branch": "main",
+              "intent": null,
+              "outcome": null,
+              "next_action": null,
+              "evidence_counts": {
+                "references": 0,
+                "subsessions": 0,
+                "threads": 1,
+                "workstreams": 1
+              },
+              "activity_state": "unknown",
+              "lifecycle_state": "unknown",
+              "closure_reason": null,
+              "authority": "observed",
+              "projection_version": "localbrain.workflow-projection.v1"
+            },
+            "evidence_groups": [
+              {
+                "source_family": "organization",
+                "items": [
+                  {
+                    "evidence_key": "organization:1:thread:1",
+                    "source_family": "organization",
+                    "identity": "Synthetic Thread",
+                    "destination": "/workstreams/1#thread-1",
+                    "source_id": null,
+                    "evidence_kind": "thread-membership",
+                    "admission_reasons": [
+                      "thread-membership"
+                    ],
+                    "observed_at": "2026-09-14T00:00:00+00:00",
+                    "availability": "available",
+                    "authority": "explicit-organization"
+                  }
+                ],
+                "retained_total": 1,
+                "observed_total": 1,
+                "partial": false,
+                "stale": false
+              }
+            ],
+            "evidence_retained_total": 1,
+            "evidence_observed_total": 1,
+            "evidence_partial": false
+          },
+          {
+            "episode": {
+              "episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+              "session_id": 11,
+              "source_id": 1,
+              "destination": "/sessions/11",
+              "observed_start_at": "2026-09-14T02:00:00+00:00",
+              "last_observed_at": "2026-09-14T02:00:00+00:00",
+              "display_title": "Session 11",
+              "workspace_id": 1,
+              "workspace_name": "Synthetic Work",
+              "git_branch": "feature",
+              "intent": null,
+              "outcome": null,
+              "next_action": null,
+              "evidence_counts": {
+                "references": 0,
+                "subsessions": 0,
+                "threads": 1,
+                "workstreams": 1
+              },
+              "activity_state": "unknown",
+              "lifecycle_state": "unknown",
+              "closure_reason": null,
+              "authority": "observed",
+              "projection_version": "localbrain.workflow-projection.v1"
+            },
+            "evidence_groups": [
+              {
+                "source_family": "organization",
+                "items": [
+                  {
+                    "evidence_key": "organization:1:thread:1",
+                    "source_family": "organization",
+                    "identity": "Synthetic Thread",
+                    "destination": "/workstreams/1#thread-1",
+                    "source_id": null,
+                    "evidence_kind": "thread-membership",
+                    "admission_reasons": [
+                      "thread-membership"
+                    ],
+                    "observed_at": "2026-09-14T00:00:00+00:00",
+                    "availability": "available",
+                    "authority": "explicit-organization"
+                  }
+                ],
+                "retained_total": 1,
+                "observed_total": 1,
+                "partial": false,
+                "stale": false
+              }
+            ],
+            "evidence_retained_total": 1,
+            "evidence_observed_total": 1,
+            "evidence_partial": false
+          }
+        ],
+        "relations": [
+          {
+            "source_episode_key": "session:a587f4e26116ace50190c127af52bc1c0433499b13c8a45642e5aa790540feda",
+            "target_episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+            "kind": "branches-from",
+            "authority": "deterministic-candidate",
+            "reasons": [
+              {
+                "kind": "same-git-root",
+                "identity": "git-root:a0c70e4c124980c30a81606c37cb8a751e8530268cd9a2348543e1ea7491c0d7",
+                "observed_at": null
+              },
+              {
+                "kind": "thread-membership",
+                "identity": "thread:1",
+                "observed_at": null
+              }
+            ],
+            "source_observed_at": "2026-09-14T01:00:00+00:00",
+            "target_observed_at": "2026-09-14T02:00:00+00:00",
+            "projection_version": "localbrain.workflow-projection.v1"
+          }
+        ],
+        "diagnostics": [],
+        "candidate_observed_total": 1,
+        "candidate_retained_total": 1,
+        "episode_observed_total": 2,
+        "episode_retained_total": 2,
+        "branch_root_observed_total": 1,
+        "branch_root_retained_total": 1,
+        "projection_version": "localbrain.workflow-focus.v1",
+        "base_relations": [
+          {
+            "source_episode_key": "session:a587f4e26116ace50190c127af52bc1c0433499b13c8a45642e5aa790540feda",
+            "target_episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+            "kind": "branches-from",
+            "authority": "deterministic-candidate",
+            "reasons": [
+              {
+                "kind": "same-git-root",
+                "identity": "git-root:a0c70e4c124980c30a81606c37cb8a751e8530268cd9a2348543e1ea7491c0d7",
+                "observed_at": null
+              },
+              {
+                "kind": "thread-membership",
+                "identity": "thread:1",
+                "observed_at": null
+              }
+            ],
+            "source_observed_at": "2026-09-14T01:00:00+00:00",
+            "target_observed_at": "2026-09-14T02:00:00+00:00",
+            "projection_version": "localbrain.workflow-projection.v1"
+          }
+        ],
+        "base_episode_lifecycle": [
+          {
+            "episode_key": "session:a587f4e26116ace50190c127af52bc1c0433499b13c8a45642e5aa790540feda",
+            "lifecycle_state": "unknown",
+            "closure_reason": null,
+            "authority": "observed"
+          },
+          {
+            "episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+            "lifecycle_state": "unknown",
+            "closure_reason": null,
+            "authority": "observed"
+          }
+        ],
+        "assertions": [
+          {
+            "id": 2,
+            "boundary_key": "0a051ddc07b54c9b9dfe148cceb0d06cab6fd7a8045799139fb06e4970df2412",
+            "boundary_version": 2,
+            "boundary_kind": "relation",
+            "assertion_kind": "same-flow",
+            "is_undo": true,
+            "source_episode_key": "session:a587f4e26116ace50190c127af52bc1c0433499b13c8a45642e5aa790540feda",
+            "target_episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+            "before_meaning": "relation:continues",
+            "after_meaning": "relation:branches-from",
+            "before_closure_reason": null,
+            "after_closure_reason": null,
+            "note": null,
+            "authority": "user-confirmed",
+            "contract_version": "localbrain.workflow-assertion.v1",
+            "supersedes_assertion_id": 1,
+            "created_at": "2026-09-15T02:00:00+00:00",
+            "resolution": "applied",
+            "resolution_reason": null,
+            "base_relation": {
+              "source_episode_key": "session:a587f4e26116ace50190c127af52bc1c0433499b13c8a45642e5aa790540feda",
+              "target_episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+              "kind": "branches-from",
+              "authority": "deterministic-candidate",
+              "reasons": [
+                {
+                  "kind": "same-git-root",
+                  "identity": "git-root:a0c70e4c124980c30a81606c37cb8a751e8530268cd9a2348543e1ea7491c0d7",
+                  "observed_at": null
+                },
+                {
+                  "kind": "thread-membership",
+                  "identity": "thread:1",
+                  "observed_at": null
+                }
+              ],
+              "source_observed_at": "2026-09-14T01:00:00+00:00",
+              "target_observed_at": "2026-09-14T02:00:00+00:00",
+              "projection_version": "localbrain.workflow-projection.v1"
+            },
+            "restored_assertion_id": null
+          }
+        ],
+        "assertion_diagnostics": [],
+        "assertion_revision": "workflow-revision:93ed0a685912058246a7d3947ec8017f54501dde71657248ba53160273c2a0a6",
+        "assertion_overlay_version": "localbrain.workflow-assertion-overlay.v1"
+      }
+    },
+    {
+      "name": "user-closure",
+      "selected_session_id": 12,
+      "setup_sql": "INSERT INTO \"sessions\" VALUES(10,1,1,'native-10','/synthetic/session-10.jsonl','/synthetic/work','main','Session 10',NULL,'2026-09-14T01:00:00Z',NULL,'2026-09-14T01:00:00Z',1,0,0,'work','primary',NULL,NULL,'full',NULL,'2026-11-18 07:50:26');\nINSERT INTO \"sessions\" VALUES(11,1,1,'native-11','/synthetic/session-11.jsonl','/synthetic/work','main','Session 11',NULL,'2026-09-14T02:00:00Z',NULL,'2026-09-14T02:00:00Z',1,0,0,'work','primary',NULL,NULL,'full',NULL,'2026-11-18 07:50:26');\nINSERT INTO \"sessions\" VALUES(12,1,1,'native-12','/synthetic/session-12.jsonl','/synthetic/work','main','Session 12',NULL,'2026-09-14T03:00:00Z',NULL,'2026-09-14T03:00:00Z',1,0,0,'work','primary',NULL,NULL,'full',NULL,'2026-11-18 07:50:26');\nINSERT INTO \"sources\" VALUES(1,'codex','Codex','/synthetic/codex',NULL,2147483647,NULL,NULL,NULL,NULL,'2026-09-14T00:00:00Z');\nINSERT INTO \"thread_links\" VALUES(1,1,'session','10',NULL,'related-to',NULL,'user','2026-09-14T00:00:00Z');\nINSERT INTO \"thread_links\" VALUES(2,1,'session','11',NULL,'related-to',NULL,'user','2026-09-14T00:00:00Z');\nINSERT INTO \"thread_links\" VALUES(3,1,'session','12',NULL,'related-to',NULL,'user','2026-09-14T00:00:00Z');\nINSERT INTO \"threads\" VALUES(1,1,'Synthetic Thread','active',NULL,NULL,NULL,NULL,0,'2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"workflow_assertions\" VALUES(1,'567bd8a27ef8366192d449ab575035ef641c065e55709cc44f3e1d61821e11d2',1,'lifecycle','close',0,'session:8f14d7fe2a0a48524578656f863445efe226c886d63f89e8f5bc0d09fae12e2c',NULL,12,NULL,'lifecycle:unknown','lifecycle:closed',NULL,'completed',NULL,'user-confirmed','localbrain.workflow-assertion.v1',NULL,'2026-09-15T03:00:00+00:00');\nINSERT INTO \"workspaces\" VALUES(1,'/synthetic/work','Synthetic Work','/synthetic/work',1,NULL,'2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');\nINSERT INTO \"workstreams\" VALUES(1,'Synthetic Flow','active',NULL,NULL,'2026-09-14T00:00:00Z','2026-09-14T00:00:00Z');",
+      "expected": {
+        "status": "ready",
+        "selected_episode_key": "session:8f14d7fe2a0a48524578656f863445efe226c886d63f89e8f5bc0d09fae12e2c",
+        "episodes": [
+          {
+            "episode": {
+              "episode_key": "session:a587f4e26116ace50190c127af52bc1c0433499b13c8a45642e5aa790540feda",
+              "session_id": 10,
+              "source_id": 1,
+              "destination": "/sessions/10",
+              "observed_start_at": "2026-09-14T01:00:00+00:00",
+              "last_observed_at": "2026-09-14T01:00:00+00:00",
+              "display_title": "Session 10",
+              "workspace_id": 1,
+              "workspace_name": "Synthetic Work",
+              "git_branch": "main",
+              "intent": null,
+              "outcome": null,
+              "next_action": null,
+              "evidence_counts": {
+                "references": 0,
+                "subsessions": 0,
+                "threads": 1,
+                "workstreams": 1
+              },
+              "activity_state": "unknown",
+              "lifecycle_state": "unknown",
+              "closure_reason": null,
+              "authority": "observed",
+              "projection_version": "localbrain.workflow-projection.v1"
+            },
+            "evidence_groups": [
+              {
+                "source_family": "organization",
+                "items": [
+                  {
+                    "evidence_key": "organization:1:thread:1",
+                    "source_family": "organization",
+                    "identity": "Synthetic Thread",
+                    "destination": "/workstreams/1#thread-1",
+                    "source_id": null,
+                    "evidence_kind": "thread-membership",
+                    "admission_reasons": [
+                      "thread-membership"
+                    ],
+                    "observed_at": "2026-09-14T00:00:00+00:00",
+                    "availability": "available",
+                    "authority": "explicit-organization"
+                  }
+                ],
+                "retained_total": 1,
+                "observed_total": 1,
+                "partial": false,
+                "stale": false
+              }
+            ],
+            "evidence_retained_total": 1,
+            "evidence_observed_total": 1,
+            "evidence_partial": false
+          },
+          {
+            "episode": {
+              "episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+              "session_id": 11,
+              "source_id": 1,
+              "destination": "/sessions/11",
+              "observed_start_at": "2026-09-14T02:00:00+00:00",
+              "last_observed_at": "2026-09-14T02:00:00+00:00",
+              "display_title": "Session 11",
+              "workspace_id": 1,
+              "workspace_name": "Synthetic Work",
+              "git_branch": "main",
+              "intent": null,
+              "outcome": null,
+              "next_action": null,
+              "evidence_counts": {
+                "references": 0,
+                "subsessions": 0,
+                "threads": 1,
+                "workstreams": 1
+              },
+              "activity_state": "unknown",
+              "lifecycle_state": "unknown",
+              "closure_reason": null,
+              "authority": "observed",
+              "projection_version": "localbrain.workflow-projection.v1"
+            },
+            "evidence_groups": [
+              {
+                "source_family": "organization",
+                "items": [
+                  {
+                    "evidence_key": "organization:1:thread:1",
+                    "source_family": "organization",
+                    "identity": "Synthetic Thread",
+                    "destination": "/workstreams/1#thread-1",
+                    "source_id": null,
+                    "evidence_kind": "thread-membership",
+                    "admission_reasons": [
+                      "thread-membership"
+                    ],
+                    "observed_at": "2026-09-14T00:00:00+00:00",
+                    "availability": "available",
+                    "authority": "explicit-organization"
+                  }
+                ],
+                "retained_total": 1,
+                "observed_total": 1,
+                "partial": false,
+                "stale": false
+              }
+            ],
+            "evidence_retained_total": 1,
+            "evidence_observed_total": 1,
+            "evidence_partial": false
+          },
+          {
+            "episode": {
+              "episode_key": "session:8f14d7fe2a0a48524578656f863445efe226c886d63f89e8f5bc0d09fae12e2c",
+              "session_id": 12,
+              "source_id": 1,
+              "destination": "/sessions/12",
+              "observed_start_at": "2026-09-14T03:00:00+00:00",
+              "last_observed_at": "2026-09-14T03:00:00+00:00",
+              "display_title": "Session 12",
+              "workspace_id": 1,
+              "workspace_name": "Synthetic Work",
+              "git_branch": "main",
+              "intent": null,
+              "outcome": null,
+              "next_action": null,
+              "evidence_counts": {
+                "references": 0,
+                "subsessions": 0,
+                "threads": 1,
+                "workstreams": 1
+              },
+              "activity_state": "unknown",
+              "lifecycle_state": "closed",
+              "closure_reason": "completed",
+              "authority": "user-confirmed",
+              "projection_version": "localbrain.workflow-projection.v1"
+            },
+            "evidence_groups": [
+              {
+                "source_family": "organization",
+                "items": [
+                  {
+                    "evidence_key": "organization:1:thread:1",
+                    "source_family": "organization",
+                    "identity": "Synthetic Thread",
+                    "destination": "/workstreams/1#thread-1",
+                    "source_id": null,
+                    "evidence_kind": "thread-membership",
+                    "admission_reasons": [
+                      "thread-membership"
+                    ],
+                    "observed_at": "2026-09-14T00:00:00+00:00",
+                    "availability": "available",
+                    "authority": "explicit-organization"
+                  }
+                ],
+                "retained_total": 1,
+                "observed_total": 1,
+                "partial": false,
+                "stale": false
+              }
+            ],
+            "evidence_retained_total": 1,
+            "evidence_observed_total": 1,
+            "evidence_partial": false
+          }
+        ],
+        "relations": [
+          {
+            "source_episode_key": "session:a587f4e26116ace50190c127af52bc1c0433499b13c8a45642e5aa790540feda",
+            "target_episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+            "kind": "continues",
+            "authority": "deterministic-candidate",
+            "reasons": [
+              {
+                "kind": "thread-membership",
+                "identity": "thread:1",
+                "observed_at": null
+              }
+            ],
+            "source_observed_at": "2026-09-14T01:00:00+00:00",
+            "target_observed_at": "2026-09-14T02:00:00+00:00",
+            "projection_version": "localbrain.workflow-projection.v1"
+          },
+          {
+            "source_episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+            "target_episode_key": "session:8f14d7fe2a0a48524578656f863445efe226c886d63f89e8f5bc0d09fae12e2c",
+            "kind": "continues",
+            "authority": "deterministic-candidate",
+            "reasons": [
+              {
+                "kind": "thread-membership",
+                "identity": "thread:1",
+                "observed_at": null
+              }
+            ],
+            "source_observed_at": "2026-09-14T02:00:00+00:00",
+            "target_observed_at": "2026-09-14T03:00:00+00:00",
+            "projection_version": "localbrain.workflow-projection.v1"
+          }
+        ],
+        "diagnostics": [],
+        "candidate_observed_total": 2,
+        "candidate_retained_total": 2,
+        "episode_observed_total": 3,
+        "episode_retained_total": 3,
+        "branch_root_observed_total": 0,
+        "branch_root_retained_total": 0,
+        "projection_version": "localbrain.workflow-focus.v1",
+        "base_relations": [
+          {
+            "source_episode_key": "session:a587f4e26116ace50190c127af52bc1c0433499b13c8a45642e5aa790540feda",
+            "target_episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+            "kind": "continues",
+            "authority": "deterministic-candidate",
+            "reasons": [
+              {
+                "kind": "thread-membership",
+                "identity": "thread:1",
+                "observed_at": null
+              }
+            ],
+            "source_observed_at": "2026-09-14T01:00:00+00:00",
+            "target_observed_at": "2026-09-14T02:00:00+00:00",
+            "projection_version": "localbrain.workflow-projection.v1"
+          },
+          {
+            "source_episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+            "target_episode_key": "session:8f14d7fe2a0a48524578656f863445efe226c886d63f89e8f5bc0d09fae12e2c",
+            "kind": "continues",
+            "authority": "deterministic-candidate",
+            "reasons": [
+              {
+                "kind": "thread-membership",
+                "identity": "thread:1",
+                "observed_at": null
+              }
+            ],
+            "source_observed_at": "2026-09-14T02:00:00+00:00",
+            "target_observed_at": "2026-09-14T03:00:00+00:00",
+            "projection_version": "localbrain.workflow-projection.v1"
+          }
+        ],
+        "base_episode_lifecycle": [
+          {
+            "episode_key": "session:8f14d7fe2a0a48524578656f863445efe226c886d63f89e8f5bc0d09fae12e2c",
+            "lifecycle_state": "unknown",
+            "closure_reason": null,
+            "authority": "observed"
+          },
+          {
+            "episode_key": "session:a587f4e26116ace50190c127af52bc1c0433499b13c8a45642e5aa790540feda",
+            "lifecycle_state": "unknown",
+            "closure_reason": null,
+            "authority": "observed"
+          },
+          {
+            "episode_key": "session:dc4f7bdac33ce698ac7d7aead6e2ccccc2ec370d0f289730b646aa3b0c79fc53",
+            "lifecycle_state": "unknown",
+            "closure_reason": null,
+            "authority": "observed"
+          }
+        ],
+        "assertions": [
+          {
+            "id": 1,
+            "boundary_key": "567bd8a27ef8366192d449ab575035ef641c065e55709cc44f3e1d61821e11d2",
+            "boundary_version": 1,
+            "boundary_kind": "lifecycle",
+            "assertion_kind": "close",
+            "is_undo": false,
+            "source_episode_key": "session:8f14d7fe2a0a48524578656f863445efe226c886d63f89e8f5bc0d09fae12e2c",
+            "target_episode_key": null,
+            "before_meaning": "lifecycle:unknown",
+            "after_meaning": "lifecycle:closed",
+            "before_closure_reason": null,
+            "after_closure_reason": "completed",
+            "note": null,
+            "authority": "user-confirmed",
+            "contract_version": "localbrain.workflow-assertion.v1",
+            "supersedes_assertion_id": null,
+            "created_at": "2026-09-15T03:00:00+00:00",
+            "resolution": "applied",
+            "resolution_reason": null,
+            "base_relation": null,
+            "restored_assertion_id": null
+          }
+        ],
+        "assertion_diagnostics": [],
+        "assertion_revision": "workflow-revision:39df09b57b519400bddef6b90c5f42e4bc9304208c0a779c3297816d0f1c3b5b",
+        "assertion_overlay_version": "localbrain.workflow-assertion-overlay.v1"
+      }
+    }
+  ]
+}

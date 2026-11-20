@@ -15,7 +15,6 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 import schema_presentation_builder as builder  # noqa: E402
-from localbrain.persistence.schema_presentation import SCHEMA_PRESENTATION_PATH, load_schema_presentation
 from schema_migration_sources import migration_source_digest, migration_source_files
 
 
@@ -75,28 +74,28 @@ class SchemaPresentationBuildTests(unittest.TestCase):
     def test_domain_migration_change_is_fingerprinted_without_entrypoint_change(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            shutil.copytree(ROOT / "src/localbrain/persistence", root / "src/localbrain/persistence",
-                            ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+            owner = Path("crates/core/src/backend")
+            (root / owner / "storage").mkdir(parents=True)
+            shutil.copyfile(ROOT / owner / "db.rs", root / owner / "db.rs")
+            shutil.copyfile(ROOT / owner / "storage/migrations.rs", root / owner / "storage/migrations.rs")
+            shutil.copytree(ROOT / owner / "storage/migrations", root / owner / "storage/migrations")
             before = migration_source_digest(root)
-            entrypoint = (root / "src/localbrain/persistence/db.py").read_bytes()
-            migration = root / "src/localbrain/persistence/migrations/resources.py"
-            migration.write_text(migration.read_text() + "\n# Synthetic migration revision\n")
+            entrypoint = (root / owner / "db.rs").read_bytes()
+            migration = root / owner / "storage/migrations/resources.rs"
+            migration.write_text(migration.read_text() + "\n// Synthetic migration revision\n")
             self.assertNotEqual(migration_source_digest(root), before)
-            self.assertEqual((root / "src/localbrain/persistence/db.py").read_bytes(), entrypoint)
-            self.assertIn("src/localbrain/persistence/migrations/resources.py",
+            self.assertEqual((root / owner / "db.rs").read_bytes(), entrypoint)
+            self.assertIn(str(owner / "storage/migrations/resources.rs"),
                           {row["path"] for row in migration_source_files(root)})
 
-    def test_generation_uses_only_in_memory_sqlite_and_skips_data_migrations(self):
+    def test_generation_rehydrates_native_disposable_schema_in_memory(self):
+        statements = builder.effective_schema_sql(ROOT)
         real_connect = sqlite3.connect
-        with mock.patch.object(
-            builder.sqlite3, "connect", side_effect=real_connect
-        ) as connect_mock, mock.patch(
-            "localbrain.persistence.migrations.compatible._migrate_context_roots",
-            side_effect=AssertionError("data migration must stay disabled"),
-        ):
+        with mock.patch.object(builder, "effective_schema_sql", return_value=statements) as native, \
+                mock.patch.object(builder.sqlite3, "connect", side_effect=real_connect) as connection:
             builder.build_manifest(ROOT)
-
-        connect_mock.assert_called_once_with(":memory:")
+        native.assert_called_once_with(ROOT)
+        connection.assert_called_once_with(":memory:")
 
     def test_mermaid_definitions_are_exact_document_transformations(self):
         entry_path = ROOT / "docs/policies/project/data-model.md"
@@ -208,56 +207,6 @@ Constraints: first constraint
         self.assertEqual(set(re.findall(r'https://[^\s)"\\]+', serialized)), public_citations)
         for source in self.manifest["baseline"]["sources"]:
             self.assertFalse(Path(source["path"]).is_absolute(), source["path"])
-
-
-class SchemaPresentationLoaderTests(unittest.TestCase):
-    def test_packaged_manifest_loads(self):
-        result = load_schema_presentation()
-
-        self.assertTrue(result.available)
-        self.assertIsNone(result.error_code)
-        self.assertEqual(
-            result.manifest["schema"], "localbrain.schema-presentation.v1"
-        )
-
-    def test_missing_manifest_is_bounded_unavailable_state(self):
-        with tempfile.TemporaryDirectory() as directory:
-            result = load_schema_presentation(Path(directory) / "missing.json")
-
-        self.assertFalse(result.available)
-        self.assertIsNone(result.manifest)
-        self.assertEqual(result.error_code, "manifest-unavailable")
-
-    def test_malformed_or_wrong_version_manifest_is_bounded_invalid_state(self):
-        with tempfile.TemporaryDirectory() as directory:
-            output = Path(directory) / "schema-presentation.json"
-            output.write_text("not-json", encoding="utf-8")
-            malformed = load_schema_presentation(output)
-
-            document = json.loads(SCHEMA_PRESENTATION_PATH.read_text(encoding="utf-8"))
-            document["schema"] = "localbrain.schema-presentation.v2"
-            output.write_text(json.dumps(document), encoding="utf-8")
-            wrong_version = load_schema_presentation(output)
-
-            document = json.loads(SCHEMA_PRESENTATION_PATH.read_text(encoding="utf-8"))
-            del document["global"]
-            output.write_text(json.dumps(document), encoding="utf-8")
-            missing_required_shape = load_schema_presentation(output)
-
-            document = json.loads(SCHEMA_PRESENTATION_PATH.read_text(encoding="utf-8"))
-            document["subjects"][0]["table_ids"].pop()
-            output.write_text(json.dumps(document), encoding="utf-8")
-            invalid_ownership = load_schema_presentation(output)
-
-        for result in (
-            malformed,
-            wrong_version,
-            missing_required_shape,
-            invalid_ownership,
-        ):
-            self.assertFalse(result.available)
-            self.assertIsNone(result.manifest)
-            self.assertEqual(result.error_code, "manifest-invalid")
 
 
 if __name__ == "__main__":

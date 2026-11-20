@@ -1,7 +1,7 @@
 'use strict';
 const {test} = require('node:test');
 const assert = require('node:assert/strict');
-const {attachKoreanInput} = require('../src/localbrain/terminal/korean-input.cjs');
+const {attachKoreanInput} = require('../crates/runtime/engine/korean-input.cjs');
 
 function fixture(ua = 'AppleWebKit/605.1.15') {
   const callbacks = new Map(), sent = [], children = [];

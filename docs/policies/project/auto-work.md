@@ -44,7 +44,7 @@ assessment; production replacement still cannot.
 
 ## Full-History Simulation Producer
 
-`auto_work/simulation.py`, its verified local encoder and ordered grouping engine
+`crates/core/src/backend/auto_work/simulation.rs`, its verified local encoder and ordered grouping engine
 produce the private input for observation-only affinity inspection. Preparation
 is explicit; browsing cannot invoke it. It accounts for all stored Sessions and
 processes all nonempty user/assistant messages of admitted primary/full work
@@ -70,9 +70,9 @@ publication, so concurrent change refuses a new current report.
 | `seed` | Integer 0 by default |
 
 An encoding execution verifies model files before private input is read;
-inventory-only/status/purge do not invoke an encoder. Local-files-only,
-offline/telemetry controls and the existing outbound Python socket guard precede
-inference; they are not an OS network sandbox. No model download, training,
+inventory-only/status/purge do not invoke an encoder. Native inference admits only integrity-verified local tensor/tokenizer files,
+loads no remote code and makes no network/telemetry request. These application
+controls are not an OS network sandbox. No model download, training,
 external inference or source modification follows from simulation. New vectors
 are finite, correctly dimensioned and normalized. Cache reads check dimension
 times four bytes, finite values and a nonzero norm. Missing/corrupt vectors are
@@ -142,7 +142,7 @@ Shared Back, bounded entry identity and scroll restoration follow [App Navigatio
 
 ### Auto Work Inspection Read Model
 
-`GET /auto-work` defaults to the current `auto_work/affinity.py` consumer. The
+`GET /auto-work` defaults to the current `crates/core/src/backend/auto_work/affinity.rs` consumer. The
 server renders complete native text navigation and exact evidence; optional
 `affinity-map.js` draws a viewport-bounded temporal SVG and owns zoom/pan plus cancellable
 same-route navigation. History retains only viewport/Trace coordinates and edge
@@ -264,7 +264,7 @@ evidence page. Paging text or evidence never partitions that map.
 
 ### Sample Inspection
 
-The separate `auto_work/preview.py` preview adapter consumes the experimentally verified
+The separate `crates/core/src/backend/auto_work/preview.rs` preview adapter consumes the experimentally verified
 preparation/extraction shape, not the Focus projection. `GET /auto-work?mode=sample` reads
 one owner-checked, 10-MiB-bounded, seven-day runtime file, revalidates current
 source eligibility and frozen hashes through the read-only input adapter, and
@@ -288,8 +288,8 @@ template/server updates; a server restart activates the new route.
 
 ## Implementation Ownership
 
-- `auto_work/simulation.py` and `auto_work/graph.py`, using shared
-  `models/embedding.py`: explicitly invoked full-Session experiment;
+- `crates/core/src/backend/auto_work/simulation.rs` and `crates/core/src/backend/auto_work/graph.rs`, using shared
+  `crates/models/src/embedding.rs`: explicitly invoked full-Session experiment;
   source-read-only inventory, separately owned replayable cache, verified local
   embeddings and experimental two-resolution affinity communities. The
   [simulation producer contract](#full-history-simulation-producer)
@@ -310,7 +310,7 @@ template/server updates; a server restart activates the new route.
   otherwise compatible cached embedding vectors.
 
 
-- `auto_work/affinity.py`: passive whole-history simulation consumer. It validates
+- `crates/core/src/backend/auto_work/affinity.rs`: passive whole-history simulation consumer. It validates
   the existing source-bound owner under a shared nonblocking lock and rechecks
   the full admitted source manifest. One process-memory index is invalidated by
   report or source DB/WAL file changes; it creates no second runtime owner,

@@ -314,30 +314,30 @@ Current external-access foundation:
 
 ## Implementation Ownership
 
-- `src/localbrain/atlassian/access.py`: stable external Source Instance registration, rebuildable capability observations, version-controlled Atlassian read policy, and fail-closed dispatch construction; it performs no external call
+- `crates/core/src/backend/atlassian/access.rs`: stable external Source Instance registration, rebuildable capability observations, version-controlled Atlassian read policy, and fail-closed dispatch construction; it performs no external call
 
-- `src/localbrain/atlassian/sync.py`: source-neutral external-sync manifest/result validation, atomic query-envelope preparation, approved host-dispatch evidence validation, and source-fact authority separation
+- `crates/core/src/backend/atlassian/sync.rs`: source-neutral external-sync manifest/result validation, atomic query-envelope preparation, approved host-dispatch evidence validation, and source-fact authority separation
 
-- `src/localbrain/atlassian/catalog.py`: stable External Resource-backed Site/Space/Item identity, scoped URL aliases, remote/local ownership, derived freshness, deterministic body normalization, and hash-gated FTS projection; it performs no external call
+- `crates/core/src/backend/atlassian/catalog/mod.rs`: stable External Resource-backed Site/Space/Item identity, scoped URL aliases, remote/local ownership, derived freshness, deterministic body normalization, and hash-gated FTS projection; it performs no external call
 
-- `src/localbrain/atlassian/browse.py`: local Atlassian inventory filters,
+- `crates/core/src/backend/atlassian/browse.rs`: local Atlassian inventory filters,
   grouped search, canonical-URL-owned Site-first hierarchy descriptors, Item
   detail, user note/Topic/Tag mutation, and existing Workstream/Thread link
   projection; it performs no external or model call
 
-- `src/localbrain/atlassian/evidence.py`: configured Site-scoped Item URL
+- `crates/core/src/backend/atlassian/evidence.rs`: configured Site-scoped Item URL
   recognition plus source-owned bounded scan/evidence reconciliation
 
-- `src/localbrain/atlassian/evidence_sync.py`: explicit persisted-only Session
+- `crates/core/src/backend/atlassian/evidence_sync/mod.rs`: explicit persisted-only Session
   projection and chunked Local Context Document evidence reconciliation,
   strict Jira Issue/Confluence Page admission with normalized-domain local
   Site/Item reuse, source-isolated transactions, commit-published resolver
   overlays, fixed outcome reports, and process-local single-flight; it performs
   no source, filesystem, external, model, or Refresh work
 
-- `src/localbrain/atlassian/registration.py`: strict Jira/Confluence URL
+- `crates/core/src/backend/atlassian/registration/mod.rs`: strict Jira/Confluence URL
   recognition, normalized-domain Site resolution, read-only URL container
   descriptors, local-only Item/Space registration, inventory projection, and
   explicit one-call partial Space-candidate maintenance composition
 
-- `src/localbrain/atlassian/refresh.py`: local Item/Space/Thread/Workstream/all-known scope resolution, freshness-aware preview, mixed-instance bounded Run preparation, and atomic validated result application
+- `crates/core/src/backend/atlassian/refresh/mod.rs`: local Item/Space/Thread/Workstream/all-known scope resolution, freshness-aware preview, mixed-instance bounded Run preparation, and atomic validated result application

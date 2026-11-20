@@ -2,15 +2,16 @@
 
 ## Ownership And Admission Boundary
 
-`experiments/claims/state.py` owns the pure experimental in-memory source/state contracts.
-The unchanged `localbrain.source-claim-state.v1` uses `synthetic-supplied.v1`
-interpretations; the model-aware v2 records actual model-producer lineage
-and scoped inferred lifecycle effects. Both projection functions remain pure,
-with no filesystem, database, clock or model call. The standalone synthetic trial
-below is the only v2 adapter consumer, not an application route, persistent ledger,
-private source reader or production integration. This policy describes implemented
-behavior, not successful model quality or permission to process private sources.
-
+The pure experimental Python projector, model-aware adapter, trial and fixtures
+are retired. No current native source-claim/state projector or trial command is
+shipped. This document retains their required design/protocol and admission
+boundaries, not a claim that those implementations remain available.
+`localbrain.source-claim-state.v1` uses `synthetic-supplied.v1` interpretations;
+the v2 design records actual model-producer lineage and scoped inferred effects.
+Both specified v1/v2 projection functions remain pure: no filesystem, database,
+clock or model call. The former synthetic adapter was not an application route,
+persistent ledger, private source reader or production integration. No successful model
+quality or private-source permission follows from the design.
 Source anchors establish wording. Claims interpret that wording. Bindings assign
 claims to scoped targets. A projection reconciles the **reported** state supported
 by those supplied objects. Valid structure/citations do not prove interpretation,
@@ -24,7 +25,8 @@ source-attributed reports, not interactive product confirmation.
 
 ## Public Boundary
 
-This section describes unchanged v1; the model-aware extension is specified below.
+This section specifies retained v1; the model-aware extension is below. These
+interface names describe the retired experiment, not current exported APIs.
 
 - `project_work_state(packet)` returns a new JSON-compatible projection or raises
   `WorkStateError` with a fixed content-free code. It does not mutate input or
@@ -152,9 +154,10 @@ that remains the future producer's separately measured responsibility.
 
 ## Verification Contract
 
-The fixture suite declares expected states independently of the reducer. Passing
+The retired fixture suite declared expected states independently of the reducer.
+Any replacement verification must preserve that independence. Passing
 the pure contract establishes supplied-claim behavior, not semantic model quality
-or source-extractor admission. The model adapter below remains synthetic-only:
+or source-extractor admission. The model-adapter design below remains synthetic-only:
 private all-history use, production storage/identity and map integration are not
 admitted. Passing this pure contract does not admit the rejected work-context
 model configurations.
@@ -189,7 +192,7 @@ execution obligation, but whether it truly does so is an upstream semantic
 judgment, not proven by this structural check. Missing support rejects the effect;
 unresolved/contradicted judgments remain visible without creating live state.
 
-`experiments/claims/contract.py` implements the separately invoked two-stage adapter:
+The retired two-stage adapter established this required extraction/binding pipeline:
 
 1. Extract atomic source roles and exact quoted spans, with explicit occurrence
    for repeated wording. The host owns offsets, revision, attribution and source
@@ -205,7 +208,7 @@ Strict JSON validation does not guarantee model output grammar or semantic truth
 Invalid or truncated outputs fail without quote repair, retries or self-approval.
 Whole-input bounds remain explicit; an adapter packet is not a corpus-size cap.
 
-`experiments/claims/assessment.py` and `experiments/claims/trial.py` own frozen synthetic comparison
+The retained assessment/trial design requires frozen synthetic comparison
 and failure-preserving replay. Reference-conditioned binding receives correct
 claims/targets and is labeled conditional evidence; end-to-end generation receives
 neither. Expected claims, grouping, effects and states are independently declared
@@ -213,7 +216,8 @@ synthetic references, not private-work ground truth. A correct final status with
 wrong premises still fails, and terminal-scope/continuation safety failures cannot
 hide in the positive percentage threshold. Primary semantic review remains required.
 
-The CLI accepts only the fixed synthetic suite and verified installed 8B assets.
+The retired CLI accepted only the fixed synthetic suite and verified installed
+8B assets; this restriction does not make it available or admit a replacement.
 Completed wrong/invalid/refused observations are retained in a separately owned
 finite-lived evaluation namespace outside Git. Config or cache mismatch refuses;
 clean resumes generate only missing observations within cumulative limits, while
@@ -223,7 +227,7 @@ generation. Conditional holdout requires the same revalidated development report
 and a report-bound primary review receipt. There is no automatic private consumer.
 
 The [Developer Guide](development/source-claim-trials.md#operations)
-owns current invocation and numerical trial limits, including cumulative budgets,
+routes the historical invocation and retained numerical trial limits, including cumulative budgets,
 replay and holdout refusal conditions. Trial-specific admission and consumed allowance belong to the
 [owning Run](../../plans/run/run-20260923-112-source-claim-extraction-and-binding-trial.md#retained-admission-disposition).
 This contract establishes no successful semantic quality result, admits no
@@ -231,17 +235,16 @@ private-source or UI consumer, and grants no fresh trial or budget reset.
 
 ## Implementation Ownership
 
-- `experiments/claims/state.py`: pure source-claim/reported-state projection: unchanged
-  synthetic-supplied v1 plus model-aware v2 provenance/lifecycle effects, governed
-  by [Source Claims And Work State](source-claims-and-work-state.md).
-  Separates exact anchors, attributed interpretations, scoped target bindings and
-  current state; preserves historical pending claims, partial order, corrections,
-  unresolved support and replay identities. The projector has no source reader,
-  model call, persistent ledger, automatic target discovery or product consumer.
-  It cannot certify the truth of a supplied interpretation or unblock admission.
+No active native module implements this experimental projector or its model
+adapter. The [former implementation explanation](../../plans/research/retired-python-research-tools.md#source-claim-implementation)
+retains the pure v1/v2 ownership and synthetic adapter/scoring/replay separation.
+The [retired trial procedures](../../plans/research/retired-python-research-tools.md#source-claim-trials)
+retain their exact candidate, call/time, replay and report-bound holdout limits.
 
-- `experiments/claims/contract.py`, `experiments/claims/assessment.py`, `experiments/claims/trial.py`: separately
-  invoked synthetic-only extraction/binding adapter, conditional versus end-to-end
-  scoring and bounded failure-preserving evaluation. No private or UI consumer.
-  This adapter invokes the installed generative model during explicit trials;
-  it is separate from the pure state projector and the affinity-map producer.
+`crates/core/src/backend/workflow/` owns the existing native Workflow assertion
+behavior, and `crates/core/src/backend/workstreams/` owns reviewed organization;
+neither is a replacement source-claim projector or an automatic lifecycle
+producer. Durable user-confirmed Episode corrections remain governed by
+[Workflow Assertions](data-model/workflow-assertions.md). All source-authority,
+scope/time/state, pure replay, bounded refusal and no-admission rules above
+remain binding for any separately approved future implementation.

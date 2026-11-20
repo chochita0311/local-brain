@@ -1,6 +1,6 @@
 # Data Model
 
-This is the durable human entry point for LocalBrain's effective SQLite model. Implementation truth remains [schema.sql](../../../src/localbrain/schema.sql) for a fresh database, [bootstrap.py](../../../src/localbrain/persistence/bootstrap.py) for initialization order, and [compatible.py](../../../src/localbrain/persistence/migrations/compatible.py) with the domain migration modules for startup changes and runtime-only indexes. The documents here explain ownership, meaning, lifecycle, and recovery; they do not replace DDL or approve cleanup.
+This is the durable human entry point for LocalBrain's effective SQLite model. Implementation truth remains [schema.sql](../../../crates/core/resources/schema.sql) for a fresh database, [db.rs](../../../crates/core/src/backend/db.rs) for initialization order, and [storage migrations](../../../crates/core/src/backend/storage/migrations.rs) with the domain migration modules for startup changes and runtime-only indexes. The documents here explain ownership, meaning, lifecycle, and recovery; they do not replace DDL or approve cleanup.
 
 [Value Dictionaries](data-model/value-dictionaries.md) map bounded physical values, logical meaning, complete presentation modes, and visible-consumer ownership without duplicating the table catalogs below.
 
@@ -13,9 +13,9 @@ This is the durable human entry point for LocalBrain's effective SQLite model. I
 - Effective explicitly named indexes: `51`
 - Focused subject areas: `11`
 - `schema.sql` SHA-256: `552c13cfb620e3fe3304235888011152b8f93d07c842e3232765e1868ac9acc7`
-- Migration sources SHA-256: `3899e24eed8520a0ddbba36f2cb684dd87ecbf7d11a1816e008e38b56c1b3657`
+- Migration sources SHA-256: `ed210c229c967d73ea03c4eca0884e6ce4b68a253d9f3a8fcd0a3926b50a93b8`
 
-SQLite primary-key and uniqueness autoindexes and FTS5 shadow tables are implementation internals and are not counted as primary objects or explicitly named indexes. Validation applies `schema.sql` only to an in-memory database; no user database or runtime row is read.
+SQLite primary-key and uniqueness autoindexes and FTS5 shadow tables are implementation internals and are not counted as primary objects or explicitly named indexes. Validation compares the fresh schema with effective DDL emitted by native initialization in a disposable synthetic directory, then inspects that DDL in memory; no user database or runtime row is read.
 
 Primary database path protection and bounded migration recovery-copy retirement
 are governed by [macOS Installation And Local Storage](installation-and-storage.md).
@@ -264,12 +264,12 @@ database backup. The [Session title contract](sessions.md#user-owned-titles) own
 its independent write boundary and backup-backed physical-order upgrade.
 
 - `schema.sql` creates all 52 ordinary tables, `search_index`, all physical constraints, and 43 explicit indexes for a new database. Its idempotent application also creates the reviewed learning revisions, attempts and visibility, retained skill-observation ledger, Session pin, scoped Chart visibility preference, Session reference scan/evidence, append-only Workflow assertion ledger, external-source capability, external-sync, independent personal-insight Run, Atlassian source-memory and optional Site-binding, local-classification, bounded Item evidence, and stable structure-reference identity/URL/evidence tables on older databases without rewriting existing objects.
-- `persistence/migrations/resources.py` preserves a verified private recovery copy, backfills shared URL/path identities and bindings, and atomically rebuilds Session evidence and external body/note ownership. It retains legacy metadata IDs and observations; feature/index deletion no longer cascades Session evidence.
-- `persistence/migrations/compatible.py` idempotently adds columns introduced after older installations, including Source latest-success/status/error health, Session-file owner and independent Session/Usage/reference contract mapping, Atlassian Space canonical URL, coverage, and nullable Item/Space access ownership, backup-rebuilds the Source registry to use only its numeric PK while converting structured references and preserving Source/record IDs and descendants, removes redundant `sources.kind` and the legacy unused `sources.enabled` field and obsolete `workspaces.git_branch`, removes the legacy Activity Event metadata column only after an all-null preflight, backfills non-null continuity and attribution values, migrates Context root associations only for previously indexed documents (fresh installations require explicit registration), and performs the approved backup-backed Usage attribution, Maintenance Run Workstream FK, Maintenance Session, External Resource URL-scope, and Atlassian optional-access repairs without changing retained rows or polymorphic relations. The Atlassian repair makes the legacy Site parent nullable, creates explicit bindings, and backfills current Item/Space access.
+- `crates/core/src/backend/storage/migrations/resources.rs` preserves a verified private recovery copy, backfills shared URL/path identities and bindings, and atomically rebuilds Session evidence and external body/note ownership. It retains legacy metadata IDs and observations; feature/index deletion no longer cascades Session evidence.
+- `crates/core/src/backend/storage/migrations/compatible.rs` idempotently adds columns introduced after older installations, including Source latest-success/status/error health, Session-file owner and independent Session/Usage/reference contract mapping, Atlassian Space canonical URL, coverage, and nullable Item/Space access ownership, backup-rebuilds the Source registry to use only its numeric PK while converting structured references and preserving Source/record IDs and descendants, removes redundant `sources.kind` and the legacy unused `sources.enabled` field and obsolete `workspaces.git_branch`, removes the legacy Activity Event metadata column only after an all-null preflight, backfills non-null continuity and attribution values, migrates Context root associations only for previously indexed documents (fresh installations require explicit registration), and performs the approved backup-backed Usage attribution, Maintenance Run Workstream FK, Maintenance Session, External Resource URL-scope, and Atlassian optional-access repairs without changing retained rows or polymorphic relations. The Atlassian repair makes the legacy Site parent nullable, creates explicit bindings, and backfills current Item/Space access.
 - The approved profile upgrade removes `sources.kind` and the retained skill ledger’s string source key in favor of `sources.id`. It preserves Source/Session/Event/Usage IDs and frozen attribution, remaps structured Chart/Workflow/analysis references, and adds the non-cascading skill Source FK. Source color/order and Context display order are independent user presentation attributes. The database-compatible path and known-version TOML upgrade preserve unrelated values and stop on ambiguous identity; the [source owner](data-model/source-registry-and-scans.md) records the detailed lifecycle.
 - Startup detects the legacy `usage_facts` table before fresh DDL, refuses an ambiguous database where it coexists with `usage_records`, and otherwise renames it in place while replacing only the three explicit legacy index names. Rows, identifiers, columns, constraints, and foreign-key validity remain unchanged.
-- Schema presentation generation invokes the same compatible structural and index path with data migrations disabled, so its in-memory database cannot inspect Context paths or mutate rows; normal application startup retains data migrations by default.
-- `persistence/migrations/compatible.py` converges the fresh index declarations safely and contributes eight effective runtime-only names: `idx_sessions_class`, `idx_sessions_role`, `idx_sessions_parent`, `idx_maintenance_runs_workstream`, `idx_maintenance_runs_status`, `idx_suggestions_origin_run`, `idx_documents_context_root`, and `idx_source_files_session`.
+- Schema presentation generation asks the native initializer to create a fresh disposable synthetic database with isolated Context, source, cache and model paths, emits DDL only, and rehydrates that DDL in memory. It never loads user configuration or opens an application database. Normal application startup still runs all preserving data migrations against its explicitly selected database.
+- `crates/core/src/backend/storage/migrations/compatible.rs` converges the fresh index declarations safely and contributes eight effective runtime-only names: `idx_sessions_class`, `idx_sessions_role`, `idx_sessions_parent`, `idx_maintenance_runs_workstream`, `idx_maintenance_runs_status`, `idx_suggestions_origin_run`, `idx_documents_context_root`, and `idx_source_files_session`.
 - The union is 51 effective explicit index names. A duplicate declaration is not a second index.
 - `usage.ensure_default_price_snapshot` seeds immutable pricing rows after schema and compatible migrations complete. It is a data producer, not DDL ownership.
 
@@ -296,10 +296,10 @@ Every schema implementation change must update its durable owner in the same app
 The packaged, deterministic consumer form of this baseline is defined by [Schema Presentation](schema-presentation.md). Product surfaces consume that derived v1 manifest and do not parse these documents independently.
 
 ```bash
-uv run python scripts/check-data-model-docs.py
+python3 scripts/check-data-model-docs.py
 node scripts/check-data-model-mermaid.mjs
-uv run python scripts/build-schema-presentation.py check
-uv run python -m unittest discover -s tests -v
+python3 scripts/build-schema-presentation.py check
+cargo test --locked --workspace
 ./scripts/check-repo-privacy.sh
 ```
 

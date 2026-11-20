@@ -1,9 +1,0 @@
-[package]
-name = "localbrain-runtime"
-version.workspace = true
-edition.workspace = true
-rust-version.workspace = true
-
-[dependencies]
-localbrain-core = { path = "../localbrain-core" }
-serde_json.workspace = true

@@ -411,12 +411,12 @@ Out of scope unless explicitly planned:
 
 | Guide | Responsibility |
 | --- | --- |
-| [Getting Started](../../../src/localbrain/content/docs/getting-started.md) | Setup, first use, quitting and updates |
-| [Settings](../../../src/localbrain/content/docs/settings.md) | Preferences, source registration, synchronization, backup and recovery |
-| [Sessions](../../../src/localbrain/content/docs/sessions.md) | Conversations, projects, pins and Chart |
-| [Sessions Dashboard](../../../src/localbrain/content/docs/sessions-dashboard.md) | Usage, cost estimates and coverage |
-| [Local Contexts](../../../src/localbrain/content/docs/local-contexts.md) | Document sources, reading and format limits |
-| [Search](../../../src/localbrain/content/docs/search.md) | Keyword/meaning search, Context Search answers, models and readiness |
+| [Getting Started](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/src/localbrain/content/docs/getting-started.md) | Setup, first use, quitting and updates |
+| [Settings](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/src/localbrain/content/docs/settings.md) | Preferences, source registration, synchronization, backup and recovery |
+| [Sessions](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/src/localbrain/content/docs/sessions.md) | Conversations, projects, pins and Chart |
+| [Sessions Dashboard](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/src/localbrain/content/docs/sessions-dashboard.md) | Usage, cost estimates and coverage |
+| [Local Contexts](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/src/localbrain/content/docs/local-contexts.md) | Document sources, reading and format limits |
+| [Search](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/src/localbrain/content/docs/search.md) | Keyword/meaning search, Context Search answers, models and readiness |
 
 ### Former docs/README.md
 

@@ -7,7 +7,8 @@
 
 ## Ownership
 
-- `src/localbrain/rendering/markdown.py` owns the shared renderer implementation.
+- `crates/core/src/backend/rendering/markdown.rs` owns the shared renderer implementation.
+- Its private `markdown/parser.rs` adapter configures the display grammar with source HTML disabled; native parsing still handles Markdown inside escaped tags, autolinks and angle-bracket link destinations. Presentation and reference rules remain owned by the shared renderer.
 - Authoritative Document and Activity Event text remains owned by its source record and is never replaced by rendered HTML.
 - Rendered HTML is derived runtime presentation. It is not persisted, indexed, or treated as source evidence.
 - Reviewed changes to this shared renderer contract may extend the allowlist, but consumers must not create page-local Markdown parsers or trust rules.
@@ -22,7 +23,7 @@ The shared baseline uses CommonMark parsing with selected GitHub Flavored Markdo
 - ordered, unordered, and nested lists
 - blockquotes
 - inline code
-- fenced code blocks with optional language labels
+- fenced code blocks with optional language labels, and indented code blocks
 - Markdown links
 - basic pipe tables
 - horizontal rules
@@ -38,6 +39,10 @@ The approved Obsidian-compatible extension adds:
 
 This is an explicit LocalBrain syntax allowlist. Obsidian and third-party plugin code is never loaded or executed; a new plugin-specific syntax requires its own reviewed allowlist extension.
 
+Footnotes include named definitions and inline `^[...]` notes, with shared reference numbering and the existing case-sensitive label rules. Code spans and blocks preserve their literal source, including indentation, nested containers and delimiter lengths; extension-looking text inside code is never expanded.
+
+Inline-note preparation permits at most64 active nested notes. Deeper nesting returns the complete escaped body in the existing `fallback` state before another recursive descent. This bounds native stack use without truncating or changing the authoritative text.
+
 ## Trust And Source Contract
 
 - Source HTML is disabled and remains escaped text.
@@ -50,7 +55,7 @@ This is an explicit LocalBrain syntax allowlist. Obsidian and third-party plugin
 
 ## Code Highlighting
 
-- Pygments runs locally for an explicit allowlist covering shell, Python, Java, Go, JavaScript, TypeScript, JSON, YAML, SQL, HTML, CSS, Markdown, and diff families.
+- The native Syntect highlighter runs locally with the existing token classes for an explicit allowlist covering shell, Python, Java, Go, JavaScript, TypeScript, JSON, YAML, SQL, HTML, CSS, Markdown, and diff families.
 - Lexer guessing is disabled.
 - Missing, text-like, unknown, or failed language handling uses escaped generic code.
 - Generated highlighting uses classes rather than inline style values; visible consumers own the Design Constitution-compatible presentation.
@@ -101,4 +106,4 @@ This is an explicit LocalBrain syntax allowlist. Obsidian and third-party plugin
 
 - Tracked fixtures use synthetic content.
 - Contract tests cover every supported baseline and Obsidian-compatible type, raw HTML, unsafe and external links, one-source containment, missing and ambiguous references, root escape, stable fragments, deferred images and attachments, known and unknown languages, local MathML and failure, properties, note embed selection and bounds, renderer failure, empty input, Unicode, and unchanged source.
-- Dependency bounds retain the project's declared Python compatibility.
+- Dependency bounds retain the project's declared Rust minimum and target compatibility.

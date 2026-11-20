@@ -1,0 +1,3818 @@
+{
+  "source": "Frozen Python3.11 workflow.candidates; synthetic tests only",
+  "cases": [
+    {
+      "name": "two_anchors_two_sessions",
+      "artifacts": [
+        {
+          "kind": "context-document",
+          "source_scope": "synthetic-context",
+          "source_identity": "goal.md",
+          "title": "Synthetic improvement effort",
+          "identity_state": "resolved",
+          "enabled": true,
+          "is_container": false,
+          "availability": "available",
+          "freshness": "current"
+        },
+        {
+          "kind": "wiki-item",
+          "source_scope": "example.test",
+          "source_identity": "42",
+          "title": "Synthetic design",
+          "identity_state": "resolved",
+          "enabled": true,
+          "is_container": false,
+          "availability": "available",
+          "freshness": "current"
+        }
+      ],
+      "sessions": [
+        {
+          "id": 1,
+          "source_id": 1,
+          "external_id": "native-session-1",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 1",
+          "workspace_id": 1,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 2,
+          "source_id": 1,
+          "external_id": "native-session-2",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 2",
+          "workspace_id": 2,
+          "ended_at": "2030-01-01T00:00:00Z"
+        }
+      ],
+      "references": [
+        {
+          "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:dae8aaa2d267f430d0c49f602d407edf398c9c7624fa07d447f1ae508effc1df",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:dae8aaa2d267f430d0c49f602d407edf398c9c7624fa07d447f1ae508effc1df",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        }
+      ],
+      "pairs": [
+        [
+          "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063"
+        ]
+      ],
+      "coverage": null,
+      "expected": {
+        "candidates": [
+          {
+            "candidate_key": "candidate:c40f0df76fe72d4e7d7c6faf07afd7f206c335998595b8670c86939ae2f6830c",
+            "anchors": [
+              {
+                "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                "kind": "wiki-item",
+                "source_scope_key": "source:69892f8164a3d2169418182427e03bcbb8cdc738d376890976e5630f530eda00",
+                "display_title": "Synthetic design",
+                "identity_state": "resolved",
+                "enabled": true,
+                "is_container": false,
+                "availability": "available",
+                "freshness": "current"
+              },
+              {
+                "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                "kind": "context-document",
+                "source_scope_key": "source:2eee63d1ccac59772aed71c50ee59f9049f2f4aa811b02c255300552167b1ebc",
+                "display_title": "Synthetic improvement effort",
+                "identity_state": "resolved",
+                "enabled": true,
+                "is_container": false,
+                "availability": "available",
+                "freshness": "current"
+              }
+            ],
+            "label": "Synthetic improvement effort",
+            "label_authority": "source-metadata",
+            "label_artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+            "members": [
+              {
+                "session": {
+                  "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+                  "session_id": 1,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 1",
+                  "destination": "/sessions/1"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:bf43cd818af7ec0ee58739725f6001d84f5b100a2b28dbc32bbfc0024fcef067",
+                        "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:21a47b6fc1f7cbb86e226b1beca6b7baf03a110008a2de01d50f4f02075736a5",
+                        "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:dae8aaa2d267f430d0c49f602d407edf398c9c7624fa07d447f1ae508effc1df",
+                  "session_id": 2,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 2",
+                  "destination": "/sessions/2"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:8a05ba74f5920138471e8811fe42555e833791fc51f9873d015da22e8ccf1a68",
+                        "episode_key": "session:dae8aaa2d267f430d0c49f602d407edf398c9c7624fa07d447f1ae508effc1df",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:86f61a05f2f132ed5573b9c41158396d3f99ad51dbaa78b1875d8f4791f18ece",
+                        "episode_key": "session:dae8aaa2d267f430d0c49f602d407edf398c9c7624fa07d447f1ae508effc1df",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              }
+            ],
+            "membership_revision": "membership:64e6c337d94c3e0b111bcf3d0a6b98efd73273e9833954387e65afd44c583e99",
+            "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+            "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+            "latest_observations": [
+              {
+                "reference_key": "reference:21a47b6fc1f7cbb86e226b1beca6b7baf03a110008a2de01d50f4f02075736a5",
+                "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+                "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                "evidence_kind": "user_mention",
+                "read_outcome": null,
+                "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                "authority": "observed"
+              },
+              {
+                "reference_key": "reference:86f61a05f2f132ed5573b9c41158396d3f99ad51dbaa78b1875d8f4791f18ece",
+                "episode_key": "session:dae8aaa2d267f430d0c49f602d407edf398c9c7624fa07d447f1ae508effc1df",
+                "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                "evidence_kind": "user_mention",
+                "read_outcome": null,
+                "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                "authority": "observed"
+              },
+              {
+                "reference_key": "reference:8a05ba74f5920138471e8811fe42555e833791fc51f9873d015da22e8ccf1a68",
+                "episode_key": "session:dae8aaa2d267f430d0c49f602d407edf398c9c7624fa07d447f1ae508effc1df",
+                "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                "evidence_kind": "user_mention",
+                "read_outcome": null,
+                "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                "authority": "observed"
+              },
+              {
+                "reference_key": "reference:bf43cd818af7ec0ee58739725f6001d84f5b100a2b28dbc32bbfc0024fcef067",
+                "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+                "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                "evidence_kind": "user_mention",
+                "read_outcome": null,
+                "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                "authority": "observed"
+              }
+            ],
+            "latest_observation_count": 4,
+            "unknown_time_count": 0,
+            "overlaps": [],
+            "overlap_count": 0,
+            "authority": "deterministic-candidate",
+            "outcome": null,
+            "next_action": null,
+            "activity_state": "unknown",
+            "lifecycle_state": "unknown",
+            "closure_reason": null,
+            "contract_version": "localbrain.workstream-candidate.v1"
+          }
+        ],
+        "diagnostics": [],
+        "coverage": {
+          "complete": false,
+          "unexamined_session_count": null
+        },
+        "revision": "projection:6a1896d88adac301e71c8884ff979016ec394e61b70d3c890fba42182c65493d",
+        "scope": "supplied-facts",
+        "contract_version": "localbrain.workstream-candidate.v1"
+      }
+    },
+    {
+      "name": "twenty_six_members_exceed_focus_bound",
+      "artifacts": [
+        {
+          "kind": "context-document",
+          "source_scope": "synthetic-context",
+          "source_identity": "goal.md",
+          "title": "Synthetic improvement effort",
+          "identity_state": "resolved",
+          "enabled": true,
+          "is_container": false,
+          "availability": "available",
+          "freshness": "current"
+        },
+        {
+          "kind": "wiki-item",
+          "source_scope": "example.test",
+          "source_identity": "42",
+          "title": "Synthetic design",
+          "identity_state": "resolved",
+          "enabled": true,
+          "is_container": false,
+          "availability": "available",
+          "freshness": "current"
+        }
+      ],
+      "sessions": [
+        {
+          "id": 1,
+          "source_id": 1,
+          "external_id": "native-session-1",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 1",
+          "workspace_id": 1,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 2,
+          "source_id": 1,
+          "external_id": "native-session-2",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 2",
+          "workspace_id": 2,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 3,
+          "source_id": 1,
+          "external_id": "native-session-3",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 3",
+          "workspace_id": 3,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 4,
+          "source_id": 1,
+          "external_id": "native-session-4",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 4",
+          "workspace_id": 4,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 5,
+          "source_id": 1,
+          "external_id": "native-session-5",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 5",
+          "workspace_id": 5,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 6,
+          "source_id": 1,
+          "external_id": "native-session-6",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 6",
+          "workspace_id": 6,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 7,
+          "source_id": 1,
+          "external_id": "native-session-7",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 7",
+          "workspace_id": 7,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 8,
+          "source_id": 1,
+          "external_id": "native-session-8",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 8",
+          "workspace_id": 8,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 9,
+          "source_id": 1,
+          "external_id": "native-session-9",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 9",
+          "workspace_id": 9,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 10,
+          "source_id": 1,
+          "external_id": "native-session-10",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 10",
+          "workspace_id": 10,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 11,
+          "source_id": 1,
+          "external_id": "native-session-11",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 11",
+          "workspace_id": 11,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 12,
+          "source_id": 1,
+          "external_id": "native-session-12",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 12",
+          "workspace_id": 12,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 13,
+          "source_id": 1,
+          "external_id": "native-session-13",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 13",
+          "workspace_id": 13,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 14,
+          "source_id": 1,
+          "external_id": "native-session-14",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 14",
+          "workspace_id": 14,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 15,
+          "source_id": 1,
+          "external_id": "native-session-15",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 15",
+          "workspace_id": 15,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 16,
+          "source_id": 1,
+          "external_id": "native-session-16",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 16",
+          "workspace_id": 16,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 17,
+          "source_id": 1,
+          "external_id": "native-session-17",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 17",
+          "workspace_id": 17,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 18,
+          "source_id": 1,
+          "external_id": "native-session-18",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 18",
+          "workspace_id": 18,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 19,
+          "source_id": 1,
+          "external_id": "native-session-19",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 19",
+          "workspace_id": 19,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 20,
+          "source_id": 1,
+          "external_id": "native-session-20",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 20",
+          "workspace_id": 20,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 21,
+          "source_id": 1,
+          "external_id": "native-session-21",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 21",
+          "workspace_id": 21,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 22,
+          "source_id": 1,
+          "external_id": "native-session-22",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 22",
+          "workspace_id": 22,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 23,
+          "source_id": 1,
+          "external_id": "native-session-23",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 23",
+          "workspace_id": 23,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 24,
+          "source_id": 1,
+          "external_id": "native-session-24",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 24",
+          "workspace_id": 24,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 25,
+          "source_id": 1,
+          "external_id": "native-session-25",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 25",
+          "workspace_id": 25,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 26,
+          "source_id": 1,
+          "external_id": "native-session-26",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 26",
+          "workspace_id": 26,
+          "ended_at": "2030-01-01T00:00:00Z"
+        }
+      ],
+      "references": [
+        {
+          "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:dae8aaa2d267f430d0c49f602d407edf398c9c7624fa07d447f1ae508effc1df",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:dae8aaa2d267f430d0c49f602d407edf398c9c7624fa07d447f1ae508effc1df",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:2b3de26c3d1e253a37ef16e0393dfd3d0ef23a575616ba3d8cb14a288b5e0ec4",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:2b3de26c3d1e253a37ef16e0393dfd3d0ef23a575616ba3d8cb14a288b5e0ec4",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:d1280310cea28cfe58f7175d8aa127efdf2a3d14c5587d53c2d2a32eff153741",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:d1280310cea28cfe58f7175d8aa127efdf2a3d14c5587d53c2d2a32eff153741",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:e330d75240251d138ecad653abf2551c05f7aa97b1399e68b0d9739468943bdf",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:e330d75240251d138ecad653abf2551c05f7aa97b1399e68b0d9739468943bdf",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:0b5d608b7db3fb4ad5134f853ba83f279bd6d68894e8a6c6c9515fca13eeb26c",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:0b5d608b7db3fb4ad5134f853ba83f279bd6d68894e8a6c6c9515fca13eeb26c",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:a2a42d3bfe02991852e1e1ad5a553efaeb78bac725110cf4170115dce1cc3950",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:a2a42d3bfe02991852e1e1ad5a553efaeb78bac725110cf4170115dce1cc3950",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:4bdd6e4cf12fb70c8e6d22bcd2233670897ae240b2da69a8eff31890151900a8",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:4bdd6e4cf12fb70c8e6d22bcd2233670897ae240b2da69a8eff31890151900a8",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:41879e7df04f0000b9128c761981991f9df8dc9941b448f58ecacc0909a4614b",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:41879e7df04f0000b9128c761981991f9df8dc9941b448f58ecacc0909a4614b",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:fade64dbab67740184c94c1bbdf4bf29e2eba2736d9fb5096cab240094645516",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:fade64dbab67740184c94c1bbdf4bf29e2eba2736d9fb5096cab240094645516",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:8140b9f8d21c40d787dd515e792410b141d99e50a566589f5708de5a36e1c687",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:8140b9f8d21c40d787dd515e792410b141d99e50a566589f5708de5a36e1c687",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:9d73a287747aeb4b5fc1b156c657b3173edf4e0fdee8f5a93d506940bd111d7f",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:9d73a287747aeb4b5fc1b156c657b3173edf4e0fdee8f5a93d506940bd111d7f",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:98f0322b8e6c6cdd077f2fc7a55145ff82e8f45449452ce662eb1488315df745",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:98f0322b8e6c6cdd077f2fc7a55145ff82e8f45449452ce662eb1488315df745",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:f931a3b86dbf89c6958be516c239ae565e090e7fd449e7a31a9896061eca8c9b",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:f931a3b86dbf89c6958be516c239ae565e090e7fd449e7a31a9896061eca8c9b",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:37b8583dcf1d9cc8acb2062fad9087d8ad5563bae9e27ba37bf1d6b217976e94",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:37b8583dcf1d9cc8acb2062fad9087d8ad5563bae9e27ba37bf1d6b217976e94",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:14b44fc05afe86e8062b8d5c310976769d435b6197c14698ba2c62cd8c1300c3",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:14b44fc05afe86e8062b8d5c310976769d435b6197c14698ba2c62cd8c1300c3",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:1b15811f7b1637a6652eb390bfaf64afec081c3d58ae734ac9d89e0c1dcad955",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:1b15811f7b1637a6652eb390bfaf64afec081c3d58ae734ac9d89e0c1dcad955",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:fb1f0528924ab29543852433b1036f187fc81421032ab16310936d072b97eb92",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:fb1f0528924ab29543852433b1036f187fc81421032ab16310936d072b97eb92",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:6b5ea198c2b1d9cb7d60364ad4b046635a69debfcfeb23d8fe43042960f627ba",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:6b5ea198c2b1d9cb7d60364ad4b046635a69debfcfeb23d8fe43042960f627ba",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:ae5d492c9783d630ac581697b666ea2a851e7d58c61351c6a3f7fc5247f90f66",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:ae5d492c9783d630ac581697b666ea2a851e7d58c61351c6a3f7fc5247f90f66",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:155043d8a8076138395fc0cdf2703ebfb402bafead99184a0e888038fd87bed7",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:155043d8a8076138395fc0cdf2703ebfb402bafead99184a0e888038fd87bed7",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:3b5b9a89ed906a849900ae53d2df2b6ece4da90d6f62205e4ea407d62ae8f1d2",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:3b5b9a89ed906a849900ae53d2df2b6ece4da90d6f62205e4ea407d62ae8f1d2",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:6626d71fa3ff42f5f1a37c13d94be46a344028e554eba2d60f0d971587b0f425",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:6626d71fa3ff42f5f1a37c13d94be46a344028e554eba2d60f0d971587b0f425",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:89d20c44bae5c9a116cb312ee5db59fbb82c5f8fddae04dd6654c3f31741f2fc",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:89d20c44bae5c9a116cb312ee5db59fbb82c5f8fddae04dd6654c3f31741f2fc",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:7d5724dedc1f6bb35f775b0e5a0333fdf79e7127ca1815e80786d1ea1b9104b6",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:7d5724dedc1f6bb35f775b0e5a0333fdf79e7127ca1815e80786d1ea1b9104b6",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:100467c6a14514c36d9d7a1be9b161df2ccf16a6fe48d3751ba9cd2c79752910",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:100467c6a14514c36d9d7a1be9b161df2ccf16a6fe48d3751ba9cd2c79752910",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        }
+      ],
+      "pairs": [
+        [
+          "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063"
+        ]
+      ],
+      "coverage": {
+        "complete": false,
+        "unexamined_session_count": 25
+      },
+      "expected": {
+        "candidates": [
+          {
+            "candidate_key": "candidate:c40f0df76fe72d4e7d7c6faf07afd7f206c335998595b8670c86939ae2f6830c",
+            "anchors": [
+              {
+                "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                "kind": "wiki-item",
+                "source_scope_key": "source:69892f8164a3d2169418182427e03bcbb8cdc738d376890976e5630f530eda00",
+                "display_title": "Synthetic design",
+                "identity_state": "resolved",
+                "enabled": true,
+                "is_container": false,
+                "availability": "available",
+                "freshness": "current"
+              },
+              {
+                "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                "kind": "context-document",
+                "source_scope_key": "source:2eee63d1ccac59772aed71c50ee59f9049f2f4aa811b02c255300552167b1ebc",
+                "display_title": "Synthetic improvement effort",
+                "identity_state": "resolved",
+                "enabled": true,
+                "is_container": false,
+                "availability": "available",
+                "freshness": "current"
+              }
+            ],
+            "label": "Synthetic improvement effort",
+            "label_authority": "source-metadata",
+            "label_artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+            "members": [
+              {
+                "session": {
+                  "episode_key": "session:0b5d608b7db3fb4ad5134f853ba83f279bd6d68894e8a6c6c9515fca13eeb26c",
+                  "session_id": 6,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 6",
+                  "destination": "/sessions/6"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:11c8acb43d406b99acb013e9abaf9b08da2ad13195f7ea3a3e1f50dd0e3f8f0c",
+                        "episode_key": "session:0b5d608b7db3fb4ad5134f853ba83f279bd6d68894e8a6c6c9515fca13eeb26c",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:16296dbcdeb84d51b6e4c3382ba0573280317e144dac235ddf4ff291459aba0c",
+                        "episode_key": "session:0b5d608b7db3fb4ad5134f853ba83f279bd6d68894e8a6c6c9515fca13eeb26c",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:100467c6a14514c36d9d7a1be9b161df2ccf16a6fe48d3751ba9cd2c79752910",
+                  "session_id": 26,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 26",
+                  "destination": "/sessions/26"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:bdc715726888576f71ea4bb1bbbd7aa4e6282ce0835b51fbefa1f665eda1b05f",
+                        "episode_key": "session:100467c6a14514c36d9d7a1be9b161df2ccf16a6fe48d3751ba9cd2c79752910",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:c418d5804aa04738bbc63a80d0a347988cfb1d796084aa08c6a17213d3109f0a",
+                        "episode_key": "session:100467c6a14514c36d9d7a1be9b161df2ccf16a6fe48d3751ba9cd2c79752910",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:14b44fc05afe86e8062b8d5c310976769d435b6197c14698ba2c62cd8c1300c3",
+                  "session_id": 16,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 16",
+                  "destination": "/sessions/16"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:7d514d968c7737f335206bb5fbd0872c10ed9a2fb7d24b81ab044959d5a5605f",
+                        "episode_key": "session:14b44fc05afe86e8062b8d5c310976769d435b6197c14698ba2c62cd8c1300c3",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:9d0963647251852a78f6be6481fca66200a7a0d7381d6dab4da35d0b06e48662",
+                        "episode_key": "session:14b44fc05afe86e8062b8d5c310976769d435b6197c14698ba2c62cd8c1300c3",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:155043d8a8076138395fc0cdf2703ebfb402bafead99184a0e888038fd87bed7",
+                  "session_id": 21,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 21",
+                  "destination": "/sessions/21"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:f5a11f163411196338e675abb4606aed42b63dbe038b60f1b4ddd2075e6d2c64",
+                        "episode_key": "session:155043d8a8076138395fc0cdf2703ebfb402bafead99184a0e888038fd87bed7",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:1fe012b03e5c7ace22643a33aeffe8bec03c05a48d95da182b50a896523caab5",
+                        "episode_key": "session:155043d8a8076138395fc0cdf2703ebfb402bafead99184a0e888038fd87bed7",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:1b15811f7b1637a6652eb390bfaf64afec081c3d58ae734ac9d89e0c1dcad955",
+                  "session_id": 17,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 17",
+                  "destination": "/sessions/17"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:a95c9d5a48f62797f84942c0fdf3201f5965b9cf0862536c87df5fd6df7ed6c0",
+                        "episode_key": "session:1b15811f7b1637a6652eb390bfaf64afec081c3d58ae734ac9d89e0c1dcad955",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:d8b8dfc8b3e0fea15f1f4564364529104dcb04e5185ab734a37f62ca8ac5acea",
+                        "episode_key": "session:1b15811f7b1637a6652eb390bfaf64afec081c3d58ae734ac9d89e0c1dcad955",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:2b3de26c3d1e253a37ef16e0393dfd3d0ef23a575616ba3d8cb14a288b5e0ec4",
+                  "session_id": 3,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 3",
+                  "destination": "/sessions/3"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:73867a39f3a9fadea5d44fbf0a69987214d13e59e5fadf2d861e693d67c1d395",
+                        "episode_key": "session:2b3de26c3d1e253a37ef16e0393dfd3d0ef23a575616ba3d8cb14a288b5e0ec4",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:e59087b8a2982bdc79c30160279f1703a46260b8aea06a75bffb5cb5ef14f4f3",
+                        "episode_key": "session:2b3de26c3d1e253a37ef16e0393dfd3d0ef23a575616ba3d8cb14a288b5e0ec4",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+                  "session_id": 1,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 1",
+                  "destination": "/sessions/1"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:bf43cd818af7ec0ee58739725f6001d84f5b100a2b28dbc32bbfc0024fcef067",
+                        "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:21a47b6fc1f7cbb86e226b1beca6b7baf03a110008a2de01d50f4f02075736a5",
+                        "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:37b8583dcf1d9cc8acb2062fad9087d8ad5563bae9e27ba37bf1d6b217976e94",
+                  "session_id": 15,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 15",
+                  "destination": "/sessions/15"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:2fa04ec4a05beeb398904aedc6bf6bf2d63cf70b4cecf50c491c4b291b6e5cab",
+                        "episode_key": "session:37b8583dcf1d9cc8acb2062fad9087d8ad5563bae9e27ba37bf1d6b217976e94",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:70c0bba4e3fb80ccc410a63ce12fbbd54aaae7f2db4aaeb95573e8cb8a3388e7",
+                        "episode_key": "session:37b8583dcf1d9cc8acb2062fad9087d8ad5563bae9e27ba37bf1d6b217976e94",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:3b5b9a89ed906a849900ae53d2df2b6ece4da90d6f62205e4ea407d62ae8f1d2",
+                  "session_id": 22,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 22",
+                  "destination": "/sessions/22"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:393f49daa9b165155b09011f80f8b3003d85fdba09275a483563b148c44ab113",
+                        "episode_key": "session:3b5b9a89ed906a849900ae53d2df2b6ece4da90d6f62205e4ea407d62ae8f1d2",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:28c1f7fb66031db77aac70661cf7209bc0a967488c2ba5b2b417fac249fe30bc",
+                        "episode_key": "session:3b5b9a89ed906a849900ae53d2df2b6ece4da90d6f62205e4ea407d62ae8f1d2",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:41879e7df04f0000b9128c761981991f9df8dc9941b448f58ecacc0909a4614b",
+                  "session_id": 9,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 9",
+                  "destination": "/sessions/9"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:3b2fb08a00b4e316b7ed6d55f35a5fc75f127fb8f04bec68e95bc759ff2a8ae4",
+                        "episode_key": "session:41879e7df04f0000b9128c761981991f9df8dc9941b448f58ecacc0909a4614b",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:d8da20b3f059dd4a80ef3f820cca3812ba42a6e73422bf283cc08b97c4286a23",
+                        "episode_key": "session:41879e7df04f0000b9128c761981991f9df8dc9941b448f58ecacc0909a4614b",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:4bdd6e4cf12fb70c8e6d22bcd2233670897ae240b2da69a8eff31890151900a8",
+                  "session_id": 8,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 8",
+                  "destination": "/sessions/8"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:d03d181cafff974eef13f780d7c84479d225289bfb1bd5d90a6c4c78e6a689b3",
+                        "episode_key": "session:4bdd6e4cf12fb70c8e6d22bcd2233670897ae240b2da69a8eff31890151900a8",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:e9dce8120eaffd2ab680aa7bc58d3154e90600fbfc47762b66feb568904fbe52",
+                        "episode_key": "session:4bdd6e4cf12fb70c8e6d22bcd2233670897ae240b2da69a8eff31890151900a8",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:6626d71fa3ff42f5f1a37c13d94be46a344028e554eba2d60f0d971587b0f425",
+                  "session_id": 23,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 23",
+                  "destination": "/sessions/23"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:f6dd9da3ecd87ed69ce321b5e6de5102bfa6f40f99abc32e593588fd82a8be1b",
+                        "episode_key": "session:6626d71fa3ff42f5f1a37c13d94be46a344028e554eba2d60f0d971587b0f425",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:d11b950a6e6e9c49d83c3208471878a0cca8f1bee38def75273aab69220ed924",
+                        "episode_key": "session:6626d71fa3ff42f5f1a37c13d94be46a344028e554eba2d60f0d971587b0f425",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:6b5ea198c2b1d9cb7d60364ad4b046635a69debfcfeb23d8fe43042960f627ba",
+                  "session_id": 19,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 19",
+                  "destination": "/sessions/19"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:0d24617c8a438a539881c47b59029742ee4c0cb995547d1760664df143a8b12d",
+                        "episode_key": "session:6b5ea198c2b1d9cb7d60364ad4b046635a69debfcfeb23d8fe43042960f627ba",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:6e8949e2726201227d29a6ee7253c611192acdb5774538776fa5a400ab90887e",
+                        "episode_key": "session:6b5ea198c2b1d9cb7d60364ad4b046635a69debfcfeb23d8fe43042960f627ba",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:7d5724dedc1f6bb35f775b0e5a0333fdf79e7127ca1815e80786d1ea1b9104b6",
+                  "session_id": 25,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 25",
+                  "destination": "/sessions/25"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:1d06419e5dd3afffa6af91f281c7799c20c97667b3ec3468fb357e24149cf37a",
+                        "episode_key": "session:7d5724dedc1f6bb35f775b0e5a0333fdf79e7127ca1815e80786d1ea1b9104b6",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:545310a026cdbfeefee971928dc9786f44840a1fe7c95d73ea4be704875a595b",
+                        "episode_key": "session:7d5724dedc1f6bb35f775b0e5a0333fdf79e7127ca1815e80786d1ea1b9104b6",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:8140b9f8d21c40d787dd515e792410b141d99e50a566589f5708de5a36e1c687",
+                  "session_id": 11,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 11",
+                  "destination": "/sessions/11"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:55122be92a03e2f741a6b64643c6bba0c47052b53df1b9aa3c24a33229e47f14",
+                        "episode_key": "session:8140b9f8d21c40d787dd515e792410b141d99e50a566589f5708de5a36e1c687",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:ab27d243966dae3aed671aeca8ace87851b3f082d21d42b705cef952ee545999",
+                        "episode_key": "session:8140b9f8d21c40d787dd515e792410b141d99e50a566589f5708de5a36e1c687",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:89d20c44bae5c9a116cb312ee5db59fbb82c5f8fddae04dd6654c3f31741f2fc",
+                  "session_id": 24,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 24",
+                  "destination": "/sessions/24"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:de676bea06cac4a682d20be3e93a435256aa62a94f56764fe4e819b37b94f673",
+                        "episode_key": "session:89d20c44bae5c9a116cb312ee5db59fbb82c5f8fddae04dd6654c3f31741f2fc",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:34901b5503e58f9cdbe53205f7f4823d59fb4688cb4a9accbcf2d595ce9a404e",
+                        "episode_key": "session:89d20c44bae5c9a116cb312ee5db59fbb82c5f8fddae04dd6654c3f31741f2fc",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:98f0322b8e6c6cdd077f2fc7a55145ff82e8f45449452ce662eb1488315df745",
+                  "session_id": 13,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 13",
+                  "destination": "/sessions/13"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:43aa54f17af89f3518c0c1671844cf8b0f6923493d3630e1c223f10011a56622",
+                        "episode_key": "session:98f0322b8e6c6cdd077f2fc7a55145ff82e8f45449452ce662eb1488315df745",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:b9a323b15dabdc6880b319ab71cdaebaf57865a7a4dac031428b4cd66fa9997a",
+                        "episode_key": "session:98f0322b8e6c6cdd077f2fc7a55145ff82e8f45449452ce662eb1488315df745",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:9d73a287747aeb4b5fc1b156c657b3173edf4e0fdee8f5a93d506940bd111d7f",
+                  "session_id": 12,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 12",
+                  "destination": "/sessions/12"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:00482373695ebaab37efbd81939784356cae268bdac1be205d8095114fc60346",
+                        "episode_key": "session:9d73a287747aeb4b5fc1b156c657b3173edf4e0fdee8f5a93d506940bd111d7f",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:50d28c76c5634c7e0c68c3aa4b4d7b5fa04d4b830e0c918b35f030aa68f561fd",
+                        "episode_key": "session:9d73a287747aeb4b5fc1b156c657b3173edf4e0fdee8f5a93d506940bd111d7f",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:a2a42d3bfe02991852e1e1ad5a553efaeb78bac725110cf4170115dce1cc3950",
+                  "session_id": 7,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 7",
+                  "destination": "/sessions/7"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:0cc570282189e84a3bdecc9c5d1e9f7be7dde6d068412b758c5b4271cad44d8b",
+                        "episode_key": "session:a2a42d3bfe02991852e1e1ad5a553efaeb78bac725110cf4170115dce1cc3950",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:8aeb7f143b3d3e32adc6d94dde808134ea2d4f6d41d00fafd904305047d8a4f2",
+                        "episode_key": "session:a2a42d3bfe02991852e1e1ad5a553efaeb78bac725110cf4170115dce1cc3950",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:ae5d492c9783d630ac581697b666ea2a851e7d58c61351c6a3f7fc5247f90f66",
+                  "session_id": 20,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 20",
+                  "destination": "/sessions/20"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:d14e38c04e3c9e4bacc7e4701dc57675c797bb77582a96d2fd9a8aca6dc17e34",
+                        "episode_key": "session:ae5d492c9783d630ac581697b666ea2a851e7d58c61351c6a3f7fc5247f90f66",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:b2f46710847a3c52a90ff9853c2a6270d75b0f624a94dbf76be580421b229302",
+                        "episode_key": "session:ae5d492c9783d630ac581697b666ea2a851e7d58c61351c6a3f7fc5247f90f66",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:d1280310cea28cfe58f7175d8aa127efdf2a3d14c5587d53c2d2a32eff153741",
+                  "session_id": 4,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 4",
+                  "destination": "/sessions/4"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:94d658ab88fbab9cc81827ba621647c70b99b34b8652a960fb63164dc0f22ddd",
+                        "episode_key": "session:d1280310cea28cfe58f7175d8aa127efdf2a3d14c5587d53c2d2a32eff153741",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:b607086567124a17d025ba2c3c433067c56cc50a60681637c55a58107bcdaa2c",
+                        "episode_key": "session:d1280310cea28cfe58f7175d8aa127efdf2a3d14c5587d53c2d2a32eff153741",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:dae8aaa2d267f430d0c49f602d407edf398c9c7624fa07d447f1ae508effc1df",
+                  "session_id": 2,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 2",
+                  "destination": "/sessions/2"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:8a05ba74f5920138471e8811fe42555e833791fc51f9873d015da22e8ccf1a68",
+                        "episode_key": "session:dae8aaa2d267f430d0c49f602d407edf398c9c7624fa07d447f1ae508effc1df",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:86f61a05f2f132ed5573b9c41158396d3f99ad51dbaa78b1875d8f4791f18ece",
+                        "episode_key": "session:dae8aaa2d267f430d0c49f602d407edf398c9c7624fa07d447f1ae508effc1df",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:e330d75240251d138ecad653abf2551c05f7aa97b1399e68b0d9739468943bdf",
+                  "session_id": 5,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 5",
+                  "destination": "/sessions/5"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:4dc358ca99c5992c7bb3170ae35ce6a9f2a47619f179e0e0db496665d0032c27",
+                        "episode_key": "session:e330d75240251d138ecad653abf2551c05f7aa97b1399e68b0d9739468943bdf",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:54803ac015458338ad80a8dfa93bc224923c7632957091f2107b12fd09de5c42",
+                        "episode_key": "session:e330d75240251d138ecad653abf2551c05f7aa97b1399e68b0d9739468943bdf",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:f931a3b86dbf89c6958be516c239ae565e090e7fd449e7a31a9896061eca8c9b",
+                  "session_id": 14,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 14",
+                  "destination": "/sessions/14"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:ba3f6cdf2b7226eab12f563087aeb7f318d882fcdb4b61a3b9e10c15e29609be",
+                        "episode_key": "session:f931a3b86dbf89c6958be516c239ae565e090e7fd449e7a31a9896061eca8c9b",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:912d9187d193bca7db580e235cf1e6dec38b3c8c61bf2c5d3b3f2b8e6f2f92ff",
+                        "episode_key": "session:f931a3b86dbf89c6958be516c239ae565e090e7fd449e7a31a9896061eca8c9b",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:fade64dbab67740184c94c1bbdf4bf29e2eba2736d9fb5096cab240094645516",
+                  "session_id": 10,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 10",
+                  "destination": "/sessions/10"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:cfb94f5f1533c74e32d1cac96e3333fb43183b9af77bba644fe6338580ccd4fe",
+                        "episode_key": "session:fade64dbab67740184c94c1bbdf4bf29e2eba2736d9fb5096cab240094645516",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:851dfd21bfc0b4b36f72160be5708aa600dafa5efc95e98f2c1b54183245f68d",
+                        "episode_key": "session:fade64dbab67740184c94c1bbdf4bf29e2eba2736d9fb5096cab240094645516",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:fb1f0528924ab29543852433b1036f187fc81421032ab16310936d072b97eb92",
+                  "session_id": 18,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 18",
+                  "destination": "/sessions/18"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:8a731f8664b8d509a7c1e4e2199236c3c7b45b6e80291c1c2c7ca16b05b772ea",
+                        "episode_key": "session:fb1f0528924ab29543852433b1036f187fc81421032ab16310936d072b97eb92",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:9d8c2b385b8170b392f8ca5b9cdb59918a254278d6a143c7bb63c937b83cfb30",
+                        "episode_key": "session:fb1f0528924ab29543852433b1036f187fc81421032ab16310936d072b97eb92",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              }
+            ],
+            "membership_revision": "membership:ef85ff69d275d8287c4e283f9b377e0f33864cb4a5c341a55fef1bf19980c415",
+            "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+            "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+            "latest_observations": [
+              {
+                "reference_key": "reference:00482373695ebaab37efbd81939784356cae268bdac1be205d8095114fc60346",
+                "episode_key": "session:9d73a287747aeb4b5fc1b156c657b3173edf4e0fdee8f5a93d506940bd111d7f",
+                "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                "evidence_kind": "user_mention",
+                "read_outcome": null,
+                "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                "authority": "observed"
+              },
+              {
+                "reference_key": "reference:0cc570282189e84a3bdecc9c5d1e9f7be7dde6d068412b758c5b4271cad44d8b",
+                "episode_key": "session:a2a42d3bfe02991852e1e1ad5a553efaeb78bac725110cf4170115dce1cc3950",
+                "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                "evidence_kind": "user_mention",
+                "read_outcome": null,
+                "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                "authority": "observed"
+              },
+              {
+                "reference_key": "reference:0d24617c8a438a539881c47b59029742ee4c0cb995547d1760664df143a8b12d",
+                "episode_key": "session:6b5ea198c2b1d9cb7d60364ad4b046635a69debfcfeb23d8fe43042960f627ba",
+                "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                "evidence_kind": "user_mention",
+                "read_outcome": null,
+                "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                "authority": "observed"
+              },
+              {
+                "reference_key": "reference:11c8acb43d406b99acb013e9abaf9b08da2ad13195f7ea3a3e1f50dd0e3f8f0c",
+                "episode_key": "session:0b5d608b7db3fb4ad5134f853ba83f279bd6d68894e8a6c6c9515fca13eeb26c",
+                "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                "evidence_kind": "user_mention",
+                "read_outcome": null,
+                "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                "authority": "observed"
+              },
+              {
+                "reference_key": "reference:16296dbcdeb84d51b6e4c3382ba0573280317e144dac235ddf4ff291459aba0c",
+                "episode_key": "session:0b5d608b7db3fb4ad5134f853ba83f279bd6d68894e8a6c6c9515fca13eeb26c",
+                "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                "evidence_kind": "user_mention",
+                "read_outcome": null,
+                "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                "authority": "observed"
+              }
+            ],
+            "latest_observation_count": 52,
+            "unknown_time_count": 0,
+            "overlaps": [],
+            "overlap_count": 0,
+            "authority": "deterministic-candidate",
+            "outcome": null,
+            "next_action": null,
+            "activity_state": "unknown",
+            "lifecycle_state": "unknown",
+            "closure_reason": null,
+            "contract_version": "localbrain.workstream-candidate.v1"
+          }
+        ],
+        "diagnostics": [],
+        "coverage": {
+          "complete": false,
+          "unexamined_session_count": 25
+        },
+        "revision": "projection:30b319f2c78bb72d77187686a9e2bb6584f55f50cb2d0e621df290dc6f2d77c7",
+        "scope": "supplied-facts",
+        "contract_version": "localbrain.workstream-candidate.v1"
+      }
+    },
+    {
+      "name": "bounded_samples_full_revisions_overlaps",
+      "artifacts": [
+        {
+          "kind": "context-document",
+          "source_scope": "synthetic-context",
+          "source_identity": "goal.md",
+          "title": "Synthetic improvement effort",
+          "identity_state": "resolved",
+          "enabled": true,
+          "is_container": false,
+          "availability": "available",
+          "freshness": "current"
+        },
+        {
+          "kind": "wiki-item",
+          "source_scope": "example.test",
+          "source_identity": "42",
+          "title": "Synthetic design",
+          "identity_state": "resolved",
+          "enabled": true,
+          "is_container": false,
+          "availability": "available",
+          "freshness": "current"
+        },
+        {
+          "kind": "jira-item",
+          "source_scope": "tracker.example.test",
+          "source_identity": "Q-7",
+          "title": "Issue title",
+          "identity_state": "resolved",
+          "enabled": true,
+          "is_container": false,
+          "availability": "available",
+          "freshness": "current"
+        }
+      ],
+      "sessions": [
+        {
+          "id": 1,
+          "source_id": 1,
+          "external_id": "native-session-1",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 1",
+          "workspace_id": 1,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 2,
+          "source_id": 1,
+          "external_id": "native-session-2",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 2",
+          "workspace_id": 2,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 3,
+          "source_id": 1,
+          "external_id": "native-session-3",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 3",
+          "workspace_id": 3,
+          "ended_at": "2030-01-01T00:00:00Z"
+        }
+      ],
+      "references": [
+        {
+          "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:dae8aaa2d267f430d0c49f602d407edf398c9c7624fa07d447f1ae508effc1df",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:dae8aaa2d267f430d0c49f602d407edf398c9c7624fa07d447f1ae508effc1df",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:2b3de26c3d1e253a37ef16e0393dfd3d0ef23a575616ba3d8cb14a288b5e0ec4",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:2b3de26c3d1e253a37ef16e0393dfd3d0ef23a575616ba3d8cb14a288b5e0ec4",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+          "artifact_key": "artifact:d849b7236d2c3d59d49bc6dda9a81c159377c792492ae4eb7b0d029082d85e47",
+          "reference_identity": "jira-read",
+          "evidence_kind": "resource_read",
+          "read_outcome": "success",
+          "observed_at": "2026-09-14T11:30:00+09:00"
+        },
+        {
+          "episode_key": "session:dae8aaa2d267f430d0c49f602d407edf398c9c7624fa07d447f1ae508effc1df",
+          "artifact_key": "artifact:d849b7236d2c3d59d49bc6dda9a81c159377c792492ae4eb7b0d029082d85e47",
+          "reference_identity": "jira-read",
+          "evidence_kind": "resource_read",
+          "read_outcome": "success",
+          "observed_at": "2026-09-14T11:30:00+09:00"
+        },
+        {
+          "episode_key": "session:2b3de26c3d1e253a37ef16e0393dfd3d0ef23a575616ba3d8cb14a288b5e0ec4",
+          "artifact_key": "artifact:d849b7236d2c3d59d49bc6dda9a81c159377c792492ae4eb7b0d029082d85e47",
+          "reference_identity": "jira-read",
+          "evidence_kind": "resource_read",
+          "read_outcome": "success",
+          "observed_at": "2026-09-14T11:30:00+09:00"
+        },
+        {
+          "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "additional-0",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": null
+        },
+        {
+          "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "additional-1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-15T00:00:01Z"
+        },
+        {
+          "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "additional-2",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-15T00:00:02Z"
+        },
+        {
+          "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "additional-3",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-15T00:00:03Z"
+        },
+        {
+          "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "additional-4",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-15T00:00:04Z"
+        },
+        {
+          "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "additional-5",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-15T00:00:05Z"
+        },
+        {
+          "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "additional-6",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-15T00:00:06Z"
+        },
+        {
+          "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "additional-7",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-15T00:00:07Z"
+        }
+      ],
+      "pairs": [
+        [
+          "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063"
+        ],
+        [
+          "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "artifact:d849b7236d2c3d59d49bc6dda9a81c159377c792492ae4eb7b0d029082d85e47"
+        ],
+        [
+          "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "artifact:d849b7236d2c3d59d49bc6dda9a81c159377c792492ae4eb7b0d029082d85e47"
+        ]
+      ],
+      "coverage": {
+        "complete": true,
+        "unexamined_session_count": 0
+      },
+      "expected": {
+        "candidates": [
+          {
+            "candidate_key": "candidate:141c29ebff4b49e6443109a193e7a5bda9e7a33834498be1395b989d7c81b9fd",
+            "anchors": [
+              {
+                "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                "kind": "wiki-item",
+                "source_scope_key": "source:69892f8164a3d2169418182427e03bcbb8cdc738d376890976e5630f530eda00",
+                "display_title": "Synthetic design",
+                "identity_state": "resolved",
+                "enabled": true,
+                "is_container": false,
+                "availability": "available",
+                "freshness": "current"
+              },
+              {
+                "artifact_key": "artifact:d849b7236d2c3d59d49bc6dda9a81c159377c792492ae4eb7b0d029082d85e47",
+                "kind": "jira-item",
+                "source_scope_key": "source:0f93975ee20a523520d607e2d264657061b68be983a2024943d9070c6e671bb8",
+                "display_title": "Issue title",
+                "identity_state": "resolved",
+                "enabled": true,
+                "is_container": false,
+                "availability": "available",
+                "freshness": "current"
+              }
+            ],
+            "label": "Synthetic design",
+            "label_authority": "source-metadata",
+            "label_artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+            "members": [
+              {
+                "session": {
+                  "episode_key": "session:2b3de26c3d1e253a37ef16e0393dfd3d0ef23a575616ba3d8cb14a288b5e0ec4",
+                  "session_id": 3,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 3",
+                  "destination": "/sessions/3"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:73867a39f3a9fadea5d44fbf0a69987214d13e59e5fadf2d861e693d67c1d395",
+                        "episode_key": "session:2b3de26c3d1e253a37ef16e0393dfd3d0ef23a575616ba3d8cb14a288b5e0ec4",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:d849b7236d2c3d59d49bc6dda9a81c159377c792492ae4eb7b0d029082d85e47",
+                    "references": [
+                      {
+                        "reference_key": "reference:4a993b33be6ab57097e26c2ef542dbadbd79d05311e2ed988736d4bea5c2bab4",
+                        "episode_key": "session:2b3de26c3d1e253a37ef16e0393dfd3d0ef23a575616ba3d8cb14a288b5e0ec4",
+                        "artifact_key": "artifact:d849b7236d2c3d59d49bc6dda9a81c159377c792492ae4eb7b0d029082d85e47",
+                        "evidence_kind": "resource_read",
+                        "read_outcome": "success",
+                        "observed_at": "2026-09-14T02:30:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T02:30:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T02:30:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+                  "session_id": 1,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 1",
+                  "destination": "/sessions/1"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:bf43cd818af7ec0ee58739725f6001d84f5b100a2b28dbc32bbfc0024fcef067",
+                        "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:d849b7236d2c3d59d49bc6dda9a81c159377c792492ae4eb7b0d029082d85e47",
+                    "references": [
+                      {
+                        "reference_key": "reference:0234f0bdee02facc16c2be445fa01d068949842720d48ceebee04012ea70b350",
+                        "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+                        "artifact_key": "artifact:d849b7236d2c3d59d49bc6dda9a81c159377c792492ae4eb7b0d029082d85e47",
+                        "evidence_kind": "resource_read",
+                        "read_outcome": "success",
+                        "observed_at": "2026-09-14T02:30:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T02:30:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T02:30:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:dae8aaa2d267f430d0c49f602d407edf398c9c7624fa07d447f1ae508effc1df",
+                  "session_id": 2,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 2",
+                  "destination": "/sessions/2"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:8a05ba74f5920138471e8811fe42555e833791fc51f9873d015da22e8ccf1a68",
+                        "episode_key": "session:dae8aaa2d267f430d0c49f602d407edf398c9c7624fa07d447f1ae508effc1df",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:d849b7236d2c3d59d49bc6dda9a81c159377c792492ae4eb7b0d029082d85e47",
+                    "references": [
+                      {
+                        "reference_key": "reference:e42fa9b92f8be49ddbbce57c245944e5dca2291217f274320c5c8805f1925809",
+                        "episode_key": "session:dae8aaa2d267f430d0c49f602d407edf398c9c7624fa07d447f1ae508effc1df",
+                        "artifact_key": "artifact:d849b7236d2c3d59d49bc6dda9a81c159377c792492ae4eb7b0d029082d85e47",
+                        "evidence_kind": "resource_read",
+                        "read_outcome": "success",
+                        "observed_at": "2026-09-14T02:30:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T02:30:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T02:30:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              }
+            ],
+            "membership_revision": "membership:fa6832afdf55af3c5709522deeebbecb8bf62abe613a54fc8bb106ca83fa21dc",
+            "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+            "last_observed_at": "2026-09-14T02:30:00.000000+00:00",
+            "latest_observations": [
+              {
+                "reference_key": "reference:0234f0bdee02facc16c2be445fa01d068949842720d48ceebee04012ea70b350",
+                "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+                "artifact_key": "artifact:d849b7236d2c3d59d49bc6dda9a81c159377c792492ae4eb7b0d029082d85e47",
+                "evidence_kind": "resource_read",
+                "read_outcome": "success",
+                "observed_at": "2026-09-14T02:30:00.000000+00:00",
+                "authority": "observed"
+              },
+              {
+                "reference_key": "reference:4a993b33be6ab57097e26c2ef542dbadbd79d05311e2ed988736d4bea5c2bab4",
+                "episode_key": "session:2b3de26c3d1e253a37ef16e0393dfd3d0ef23a575616ba3d8cb14a288b5e0ec4",
+                "artifact_key": "artifact:d849b7236d2c3d59d49bc6dda9a81c159377c792492ae4eb7b0d029082d85e47",
+                "evidence_kind": "resource_read",
+                "read_outcome": "success",
+                "observed_at": "2026-09-14T02:30:00.000000+00:00",
+                "authority": "observed"
+              },
+              {
+                "reference_key": "reference:e42fa9b92f8be49ddbbce57c245944e5dca2291217f274320c5c8805f1925809",
+                "episode_key": "session:dae8aaa2d267f430d0c49f602d407edf398c9c7624fa07d447f1ae508effc1df",
+                "artifact_key": "artifact:d849b7236d2c3d59d49bc6dda9a81c159377c792492ae4eb7b0d029082d85e47",
+                "evidence_kind": "resource_read",
+                "read_outcome": "success",
+                "observed_at": "2026-09-14T02:30:00.000000+00:00",
+                "authority": "observed"
+              }
+            ],
+            "latest_observation_count": 3,
+            "unknown_time_count": 0,
+            "overlaps": [
+              {
+                "candidate_key": "candidate:c40f0df76fe72d4e7d7c6faf07afd7f206c335998595b8670c86939ae2f6830c",
+                "shared_artifact_count": 1,
+                "shared_session_count": 3
+              },
+              {
+                "candidate_key": "candidate:d79393955aa9ac65f521ead02c546452194f0e621e3e2eed1dbe03c36a4dea07",
+                "shared_artifact_count": 1,
+                "shared_session_count": 3
+              }
+            ],
+            "overlap_count": 2,
+            "authority": "deterministic-candidate",
+            "outcome": null,
+            "next_action": null,
+            "activity_state": "unknown",
+            "lifecycle_state": "unknown",
+            "closure_reason": null,
+            "contract_version": "localbrain.workstream-candidate.v1"
+          },
+          {
+            "candidate_key": "candidate:c40f0df76fe72d4e7d7c6faf07afd7f206c335998595b8670c86939ae2f6830c",
+            "anchors": [
+              {
+                "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                "kind": "wiki-item",
+                "source_scope_key": "source:69892f8164a3d2169418182427e03bcbb8cdc738d376890976e5630f530eda00",
+                "display_title": "Synthetic design",
+                "identity_state": "resolved",
+                "enabled": true,
+                "is_container": false,
+                "availability": "available",
+                "freshness": "current"
+              },
+              {
+                "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                "kind": "context-document",
+                "source_scope_key": "source:2eee63d1ccac59772aed71c50ee59f9049f2f4aa811b02c255300552167b1ebc",
+                "display_title": "Synthetic improvement effort",
+                "identity_state": "resolved",
+                "enabled": true,
+                "is_container": false,
+                "availability": "available",
+                "freshness": "current"
+              }
+            ],
+            "label": "Synthetic improvement effort",
+            "label_authority": "source-metadata",
+            "label_artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+            "members": [
+              {
+                "session": {
+                  "episode_key": "session:2b3de26c3d1e253a37ef16e0393dfd3d0ef23a575616ba3d8cb14a288b5e0ec4",
+                  "session_id": 3,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 3",
+                  "destination": "/sessions/3"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:73867a39f3a9fadea5d44fbf0a69987214d13e59e5fadf2d861e693d67c1d395",
+                        "episode_key": "session:2b3de26c3d1e253a37ef16e0393dfd3d0ef23a575616ba3d8cb14a288b5e0ec4",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:e59087b8a2982bdc79c30160279f1703a46260b8aea06a75bffb5cb5ef14f4f3",
+                        "episode_key": "session:2b3de26c3d1e253a37ef16e0393dfd3d0ef23a575616ba3d8cb14a288b5e0ec4",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+                  "session_id": 1,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 1",
+                  "destination": "/sessions/1"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:bf43cd818af7ec0ee58739725f6001d84f5b100a2b28dbc32bbfc0024fcef067",
+                        "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:4be1fc03f1339fe2e70c9876cfd73295f86376df8e948f3d2192c59814eb39db",
+                        "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-15T00:00:07.000000+00:00",
+                        "authority": "observed"
+                      },
+                      {
+                        "reference_key": "reference:5790133bcc0a0a0285e664b3832fcb5e750d8c969d63ce7add022a8a47fed03f",
+                        "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-15T00:00:06.000000+00:00",
+                        "authority": "observed"
+                      },
+                      {
+                        "reference_key": "reference:ba7bfffed02e907b6fcf06c68e5172ccdbb385a840bc13bb8476edfaae29cae1",
+                        "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-15T00:00:05.000000+00:00",
+                        "authority": "observed"
+                      },
+                      {
+                        "reference_key": "reference:bf88c5f96115de466e6089e7f8a20cf963dddf82a070af3118a68ac01cf0c62c",
+                        "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-15T00:00:04.000000+00:00",
+                        "authority": "observed"
+                      },
+                      {
+                        "reference_key": "reference:e3eb06724fccf43cfd290cd2e348c808bfddcf85ae4d709f74f81bc694d4ea58",
+                        "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-15T00:00:03.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 9,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-15T00:00:07.000000+00:00",
+                    "unknown_time_count": 1
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:dae8aaa2d267f430d0c49f602d407edf398c9c7624fa07d447f1ae508effc1df",
+                  "session_id": 2,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 2",
+                  "destination": "/sessions/2"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                    "references": [
+                      {
+                        "reference_key": "reference:8a05ba74f5920138471e8811fe42555e833791fc51f9873d015da22e8ccf1a68",
+                        "episode_key": "session:dae8aaa2d267f430d0c49f602d407edf398c9c7624fa07d447f1ae508effc1df",
+                        "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:86f61a05f2f132ed5573b9c41158396d3f99ad51dbaa78b1875d8f4791f18ece",
+                        "episode_key": "session:dae8aaa2d267f430d0c49f602d407edf398c9c7624fa07d447f1ae508effc1df",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              }
+            ],
+            "membership_revision": "membership:6d5052dbf4dfb1af64ad0d27189f207d2759cf965c3ea6d7e7a76c91c30dd086",
+            "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+            "last_observed_at": "2026-09-15T00:00:07.000000+00:00",
+            "latest_observations": [
+              {
+                "reference_key": "reference:4be1fc03f1339fe2e70c9876cfd73295f86376df8e948f3d2192c59814eb39db",
+                "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+                "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                "evidence_kind": "user_mention",
+                "read_outcome": null,
+                "observed_at": "2026-09-15T00:00:07.000000+00:00",
+                "authority": "observed"
+              }
+            ],
+            "latest_observation_count": 1,
+            "unknown_time_count": 1,
+            "overlaps": [
+              {
+                "candidate_key": "candidate:141c29ebff4b49e6443109a193e7a5bda9e7a33834498be1395b989d7c81b9fd",
+                "shared_artifact_count": 1,
+                "shared_session_count": 3
+              },
+              {
+                "candidate_key": "candidate:d79393955aa9ac65f521ead02c546452194f0e621e3e2eed1dbe03c36a4dea07",
+                "shared_artifact_count": 1,
+                "shared_session_count": 3
+              }
+            ],
+            "overlap_count": 2,
+            "authority": "deterministic-candidate",
+            "outcome": null,
+            "next_action": null,
+            "activity_state": "unknown",
+            "lifecycle_state": "unknown",
+            "closure_reason": null,
+            "contract_version": "localbrain.workstream-candidate.v1"
+          },
+          {
+            "candidate_key": "candidate:d79393955aa9ac65f521ead02c546452194f0e621e3e2eed1dbe03c36a4dea07",
+            "anchors": [
+              {
+                "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                "kind": "context-document",
+                "source_scope_key": "source:2eee63d1ccac59772aed71c50ee59f9049f2f4aa811b02c255300552167b1ebc",
+                "display_title": "Synthetic improvement effort",
+                "identity_state": "resolved",
+                "enabled": true,
+                "is_container": false,
+                "availability": "available",
+                "freshness": "current"
+              },
+              {
+                "artifact_key": "artifact:d849b7236d2c3d59d49bc6dda9a81c159377c792492ae4eb7b0d029082d85e47",
+                "kind": "jira-item",
+                "source_scope_key": "source:0f93975ee20a523520d607e2d264657061b68be983a2024943d9070c6e671bb8",
+                "display_title": "Issue title",
+                "identity_state": "resolved",
+                "enabled": true,
+                "is_container": false,
+                "availability": "available",
+                "freshness": "current"
+              }
+            ],
+            "label": "Synthetic improvement effort",
+            "label_authority": "source-metadata",
+            "label_artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+            "members": [
+              {
+                "session": {
+                  "episode_key": "session:2b3de26c3d1e253a37ef16e0393dfd3d0ef23a575616ba3d8cb14a288b5e0ec4",
+                  "session_id": 3,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 3",
+                  "destination": "/sessions/3"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:e59087b8a2982bdc79c30160279f1703a46260b8aea06a75bffb5cb5ef14f4f3",
+                        "episode_key": "session:2b3de26c3d1e253a37ef16e0393dfd3d0ef23a575616ba3d8cb14a288b5e0ec4",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:d849b7236d2c3d59d49bc6dda9a81c159377c792492ae4eb7b0d029082d85e47",
+                    "references": [
+                      {
+                        "reference_key": "reference:4a993b33be6ab57097e26c2ef542dbadbd79d05311e2ed988736d4bea5c2bab4",
+                        "episode_key": "session:2b3de26c3d1e253a37ef16e0393dfd3d0ef23a575616ba3d8cb14a288b5e0ec4",
+                        "artifact_key": "artifact:d849b7236d2c3d59d49bc6dda9a81c159377c792492ae4eb7b0d029082d85e47",
+                        "evidence_kind": "resource_read",
+                        "read_outcome": "success",
+                        "observed_at": "2026-09-14T02:30:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T02:30:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T02:30:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+                  "session_id": 1,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 1",
+                  "destination": "/sessions/1"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:4be1fc03f1339fe2e70c9876cfd73295f86376df8e948f3d2192c59814eb39db",
+                        "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-15T00:00:07.000000+00:00",
+                        "authority": "observed"
+                      },
+                      {
+                        "reference_key": "reference:5790133bcc0a0a0285e664b3832fcb5e750d8c969d63ce7add022a8a47fed03f",
+                        "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-15T00:00:06.000000+00:00",
+                        "authority": "observed"
+                      },
+                      {
+                        "reference_key": "reference:ba7bfffed02e907b6fcf06c68e5172ccdbb385a840bc13bb8476edfaae29cae1",
+                        "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-15T00:00:05.000000+00:00",
+                        "authority": "observed"
+                      },
+                      {
+                        "reference_key": "reference:bf88c5f96115de466e6089e7f8a20cf963dddf82a070af3118a68ac01cf0c62c",
+                        "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-15T00:00:04.000000+00:00",
+                        "authority": "observed"
+                      },
+                      {
+                        "reference_key": "reference:e3eb06724fccf43cfd290cd2e348c808bfddcf85ae4d709f74f81bc694d4ea58",
+                        "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-15T00:00:03.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 9,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-15T00:00:07.000000+00:00",
+                    "unknown_time_count": 1
+                  },
+                  {
+                    "artifact_key": "artifact:d849b7236d2c3d59d49bc6dda9a81c159377c792492ae4eb7b0d029082d85e47",
+                    "references": [
+                      {
+                        "reference_key": "reference:0234f0bdee02facc16c2be445fa01d068949842720d48ceebee04012ea70b350",
+                        "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+                        "artifact_key": "artifact:d849b7236d2c3d59d49bc6dda9a81c159377c792492ae4eb7b0d029082d85e47",
+                        "evidence_kind": "resource_read",
+                        "read_outcome": "success",
+                        "observed_at": "2026-09-14T02:30:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T02:30:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T02:30:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              },
+              {
+                "session": {
+                  "episode_key": "session:dae8aaa2d267f430d0c49f602d407edf398c9c7624fa07d447f1ae508effc1df",
+                  "session_id": 2,
+                  "source_id": 1,
+                  "display_title": "Synthetic task 2",
+                  "destination": "/sessions/2"
+                },
+                "supports": [
+                  {
+                    "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                    "references": [
+                      {
+                        "reference_key": "reference:86f61a05f2f132ed5573b9c41158396d3f99ad51dbaa78b1875d8f4791f18ece",
+                        "episode_key": "session:dae8aaa2d267f430d0c49f602d407edf398c9c7624fa07d447f1ae508effc1df",
+                        "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                        "evidence_kind": "user_mention",
+                        "read_outcome": null,
+                        "observed_at": "2026-09-14T01:00:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T01:00:00.000000+00:00",
+                    "unknown_time_count": 0
+                  },
+                  {
+                    "artifact_key": "artifact:d849b7236d2c3d59d49bc6dda9a81c159377c792492ae4eb7b0d029082d85e47",
+                    "references": [
+                      {
+                        "reference_key": "reference:e42fa9b92f8be49ddbbce57c245944e5dca2291217f274320c5c8805f1925809",
+                        "episode_key": "session:dae8aaa2d267f430d0c49f602d407edf398c9c7624fa07d447f1ae508effc1df",
+                        "artifact_key": "artifact:d849b7236d2c3d59d49bc6dda9a81c159377c792492ae4eb7b0d029082d85e47",
+                        "evidence_kind": "resource_read",
+                        "read_outcome": "success",
+                        "observed_at": "2026-09-14T02:30:00.000000+00:00",
+                        "authority": "observed"
+                      }
+                    ],
+                    "reference_count": 1,
+                    "observed_start_at": "2026-09-14T02:30:00.000000+00:00",
+                    "last_observed_at": "2026-09-14T02:30:00.000000+00:00",
+                    "unknown_time_count": 0
+                  }
+                ],
+                "authority": "deterministic-candidate"
+              }
+            ],
+            "membership_revision": "membership:d5e1f284cb624636a0860da05e89b2514869645a17b096be6e0c19ab6e016db9",
+            "observed_start_at": "2026-09-14T01:00:00.000000+00:00",
+            "last_observed_at": "2026-09-15T00:00:07.000000+00:00",
+            "latest_observations": [
+              {
+                "reference_key": "reference:4be1fc03f1339fe2e70c9876cfd73295f86376df8e948f3d2192c59814eb39db",
+                "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+                "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+                "evidence_kind": "user_mention",
+                "read_outcome": null,
+                "observed_at": "2026-09-15T00:00:07.000000+00:00",
+                "authority": "observed"
+              }
+            ],
+            "latest_observation_count": 1,
+            "unknown_time_count": 1,
+            "overlaps": [
+              {
+                "candidate_key": "candidate:141c29ebff4b49e6443109a193e7a5bda9e7a33834498be1395b989d7c81b9fd",
+                "shared_artifact_count": 1,
+                "shared_session_count": 3
+              },
+              {
+                "candidate_key": "candidate:c40f0df76fe72d4e7d7c6faf07afd7f206c335998595b8670c86939ae2f6830c",
+                "shared_artifact_count": 1,
+                "shared_session_count": 3
+              }
+            ],
+            "overlap_count": 2,
+            "authority": "deterministic-candidate",
+            "outcome": null,
+            "next_action": null,
+            "activity_state": "unknown",
+            "lifecycle_state": "unknown",
+            "closure_reason": null,
+            "contract_version": "localbrain.workstream-candidate.v1"
+          }
+        ],
+        "diagnostics": [],
+        "coverage": {
+          "complete": true,
+          "unexamined_session_count": 0
+        },
+        "revision": "projection:49124fe392440cb1c80333b856315141b23ac6bb22f89cfe0780ebd54db9de19",
+        "scope": "supplied-facts",
+        "contract_version": "localbrain.workstream-candidate.v1"
+      }
+    },
+    {
+      "name": "conflicts_and_invalid_pairs",
+      "artifacts": [
+        {
+          "kind": "context-document",
+          "source_scope": "synthetic-context",
+          "source_identity": "goal.md",
+          "title": "Synthetic improvement effort",
+          "identity_state": "resolved",
+          "enabled": true,
+          "is_container": false,
+          "availability": "available",
+          "freshness": "current"
+        },
+        {
+          "kind": "wiki-item",
+          "source_scope": "example.test",
+          "source_identity": "42",
+          "title": "Synthetic design",
+          "identity_state": "resolved",
+          "enabled": true,
+          "is_container": false,
+          "availability": "available",
+          "freshness": "current"
+        },
+        {
+          "kind": "context-document",
+          "source_scope": "synthetic-context",
+          "source_identity": "goal.md",
+          "title": "Conflicting title",
+          "identity_state": "resolved",
+          "enabled": true,
+          "is_container": false,
+          "availability": "available",
+          "freshness": "current"
+        }
+      ],
+      "sessions": [
+        {
+          "id": 1,
+          "source_id": 1,
+          "external_id": "native-session-1",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 1",
+          "workspace_id": 1,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 2,
+          "source_id": 1,
+          "external_id": "native-session-2",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 2",
+          "workspace_id": 2,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 1,
+          "source_id": 1,
+          "external_id": "native-session-1",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Conflicting session",
+          "workspace_id": 1,
+          "ended_at": "2030-01-01T00:00:00Z"
+        }
+      ],
+      "references": [
+        {
+          "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:dae8aaa2d267f430d0c49f602d407edf398c9c7624fa07d447f1ae508effc1df",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:dae8aaa2d267f430d0c49f602d407edf398c9c7624fa07d447f1ae508effc1df",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-17T00:00:00Z"
+        }
+      ],
+      "pairs": [
+        [
+          "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063"
+        ],
+        [],
+        [
+          "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0"
+        ],
+        "bad"
+      ],
+      "coverage": null,
+      "expected": {
+        "candidates": [],
+        "diagnostics": [
+          {
+            "code": "conflicting-artifact",
+            "count": 1
+          },
+          {
+            "code": "conflicting-reference",
+            "count": 1
+          },
+          {
+            "code": "conflicting-session",
+            "count": 1
+          },
+          {
+            "code": "invalid-pair",
+            "count": 3
+          },
+          {
+            "code": "missing-artifact",
+            "count": 1
+          },
+          {
+            "code": "missing-pair-anchor",
+            "count": 1
+          },
+          {
+            "code": "missing-session",
+            "count": 1
+          }
+        ],
+        "coverage": {
+          "complete": false,
+          "unexamined_session_count": null
+        },
+        "revision": "projection:20e953a2fbe00ad0198ab34776d50751c48af9334a46e7a653bfd58f6408fc36",
+        "scope": "supplied-facts",
+        "contract_version": "localbrain.workstream-candidate.v1"
+      }
+    },
+    {
+      "name": "excluded_and_ineligible",
+      "artifacts": [
+        {
+          "kind": "context-document",
+          "source_scope": "synthetic-context",
+          "source_identity": "goal.md",
+          "title": "Synthetic improvement effort",
+          "identity_state": "resolved",
+          "enabled": false,
+          "is_container": false,
+          "availability": "available",
+          "freshness": "current"
+        },
+        {
+          "kind": "wiki-item",
+          "source_scope": "example.test",
+          "source_identity": "42",
+          "title": "Synthetic design",
+          "identity_state": "resolved",
+          "enabled": true,
+          "is_container": false,
+          "availability": "available",
+          "freshness": "current"
+        }
+      ],
+      "sessions": [
+        {
+          "id": 1,
+          "source_id": 1,
+          "external_id": "native-session-1",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 1",
+          "workspace_id": 1,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 2,
+          "source_id": 1,
+          "external_id": "native-session-2",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 2",
+          "workspace_id": 2,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 9,
+          "source_id": 1,
+          "external_id": "native-session-9",
+          "session_class": "work",
+          "session_role": "subsession",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 9",
+          "workspace_id": 9,
+          "ended_at": "2030-01-01T00:00:00Z"
+        }
+      ],
+      "references": [
+        {
+          "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": "failure",
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:dae8aaa2d267f430d0c49f602d407edf398c9c7624fa07d447f1ae508effc1df",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:dae8aaa2d267f430d0c49f602d407edf398c9c7624fa07d447f1ae508effc1df",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        }
+      ],
+      "pairs": [
+        [
+          "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063"
+        ]
+      ],
+      "coverage": null,
+      "expected": {
+        "candidates": [],
+        "diagnostics": [
+          {
+            "code": "disabled-artifact",
+            "count": 1
+          },
+          {
+            "code": "excluded-pair",
+            "count": 1
+          },
+          {
+            "code": "excluded-reference",
+            "count": 2
+          },
+          {
+            "code": "ineligible-session",
+            "count": 1
+          }
+        ],
+        "coverage": {
+          "complete": false,
+          "unexamined_session_count": null
+        },
+        "revision": "projection:0194002687c78347ad14d6dda2f3ddbf069081145aca146d6f678eadd13cf592",
+        "scope": "supplied-facts",
+        "contract_version": "localbrain.workstream-candidate.v1"
+      }
+    },
+    {
+      "name": "weak_evidence_and_invalid_types",
+      "artifacts": [
+        {
+          "kind": "context-document",
+          "source_scope": "synthetic-context",
+          "source_identity": "goal.md",
+          "title": "Synthetic improvement effort",
+          "identity_state": "resolved",
+          "enabled": true,
+          "is_container": false,
+          "availability": "available",
+          "freshness": "current"
+        },
+        {
+          "kind": "wiki-item",
+          "source_scope": "example.test",
+          "source_identity": "42",
+          "title": "Synthetic design",
+          "identity_state": "resolved",
+          "enabled": true,
+          "is_container": false,
+          "availability": "available",
+          "freshness": "current"
+        }
+      ],
+      "sessions": [
+        {
+          "id": 1,
+          "source_id": 1,
+          "external_id": "native-session-1",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 1",
+          "workspace_id": 1,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 2,
+          "source_id": 1,
+          "external_id": "native-session-2",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": 2,
+          "title": "Synthetic task 2",
+          "workspace_id": 2,
+          "ended_at": "2030-01-01T00:00:00Z"
+        },
+        {
+          "id": 9,
+          "source_id": 1,
+          "external_id": "native-session-9",
+          "session_class": "work",
+          "session_role": "primary",
+          "index_policy": "full",
+          "event_count": true,
+          "title": "Synthetic task 9",
+          "workspace_id": 9,
+          "ended_at": "2030-01-01T00:00:00Z"
+        }
+      ],
+      "references": [
+        {
+          "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "resource_read",
+          "read_outcome": "failure",
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:37114a7b61e56e76ee9740185fb3609f98f69538a5bb7c29c9faeaf35a53ec86",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "invalid"
+        },
+        {
+          "episode_key": "session:dae8aaa2d267f430d0c49f602d407edf398c9c7624fa07d447f1ae508effc1df",
+          "artifact_key": "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        },
+        {
+          "episode_key": "session:dae8aaa2d267f430d0c49f602d407edf398c9c7624fa07d447f1ae508effc1df",
+          "artifact_key": "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063",
+          "reference_identity": "event-1:1",
+          "evidence_kind": "user_mention",
+          "read_outcome": null,
+          "observed_at": "2026-09-14T01:00:00Z"
+        }
+      ],
+      "pairs": [
+        [
+          "artifact:2154768fffb1e7a86f0dcc04d43739f01afd10be79befeae0a4a2be300e3dbd0",
+          "artifact:09e3373738f8401373d56b41dccd1611a3fc34dc2935118d6636af7ef2625063"
+        ]
+      ],
+      "coverage": null,
+      "expected": {
+        "candidates": [],
+        "diagnostics": [
+          {
+            "code": "insufficient-sessions",
+            "count": 1
+          },
+          {
+            "code": "invalid-session",
+            "count": 1
+          },
+          {
+            "code": "weak-reference",
+            "count": 1
+          }
+        ],
+        "coverage": {
+          "complete": false,
+          "unexamined_session_count": null
+        },
+        "revision": "projection:b2bfb4717b8d846dc109037870c8a22c370108c621ec8c5e733d3f0c7fd0fb34",
+        "scope": "supplied-facts",
+        "contract_version": "localbrain.workstream-candidate.v1"
+      }
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+<|im_start|>system
+# Tools
+
+You may call one or more functions to assist with the user query.
+
+You are provided with function signatures within <tools></tools> XML tags:
+<tools>
+{"type": "function", "function": {"name": "lookup", "parameters": {"type": "object", "properties": {"count": {"type": "integer", "minimum": 2, "maximum": 10}, "ratio": {"type": "number", "minimum": 0.25}, "wide": {"const": 18446744073709551616}}, "float_controls": [1e-06, 1e+16, 1000000000000000.0, -0.0]}}}
+</tools>
+
+For each function call, return a json object with function name and arguments within <tool_call></tool_call> XML tags:
+<tool_call>
+{"name": <function-name>, "arguments": <args-json-object>}
+</tool_call><|im_end|>
+<|im_start|>user
+Compute<|im_end|>
+<|im_start|>assistant
+<think>
+
+</think>
+
+<tool_call>
+{"name": "lookup", "arguments": {"count": 3, "ratio": 0.5}}
+</tool_call><|im_end|>
+<|im_start|>assistant
+<think>
+
+</think>
+

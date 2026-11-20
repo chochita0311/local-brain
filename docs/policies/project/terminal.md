@@ -7,15 +7,14 @@ web above Sessions. The new self-contained payload targets Apple Silicon/macOS14
 Intel/Windows delivery and external iTerm2 attachment are not established by this
 port. Other optional feature admission is unchanged. Terminal output never enters
 Session, Usage, search or source ingestion. The conditional bilingual
-[Terminal guide](../../../src/localbrain/content/docs/terminal.md) owns user procedures.
+[Terminal guide](../../../apps/web/content/docs/terminal.md) owns user procedures.
 
-`rust/localbrain-core` owns terminal value/path validation, immutable payload
-verification/preparation/retirement, manager IPC/stream state, process inspection
-and service control. `rust/localbrain-runtime` provides fixed host protocol1 and
-app-less management entrypoints, independent of Tauri. Python owns thin CLI/HTTP/WS
-transports, generic TOML parsing and its sole shared settings commit transaction.
-The old Python runtime/process helper remains a parity fixture; product web/CLI
-imports the Rust adapter. Unrelated Python feature families remain in place.
+`crates/core` owns Terminal validation, immutable payload
+verification/preparation/retirement, manager IPC/stream state, process inspection,
+service control and native settings/TOML transactions. `crates/runtime`
+provides fixed host protocol1 and app-less management independent of Tauri.
+`apps/api` owns Rust CLI/HTTP/WebSocket transports and calls the core directly.
+No Python runtime/process helper or interpreter callback is used by the product.
 
 The independent Node24.15.0 arm64 manager uses protocol2, node-pty1.1, xterm
 headless6, serialize0.14 and Unicode11 addon0.9. Browser xterm6/fit and D2Coding

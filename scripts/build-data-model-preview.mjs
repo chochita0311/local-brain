@@ -68,7 +68,7 @@ const html = `<!doctype html>
   </header>
   <main>${cards.join("\n")}</main>
   <script type="module">
-    import { renderLocalBrainMermaid } from "/src/localbrain/static/mermaid-adapter.js";
+    import { renderLocalBrainMermaid } from "/apps/web/static/mermaid-adapter.js";
     const allCards = [...document.querySelectorAll(".diagram-card")];
     const diagramParam = new URLSearchParams(location.search).get("diagram");
     const requestedIndex = diagramParam === null ? Number.NaN : Number(diagramParam);

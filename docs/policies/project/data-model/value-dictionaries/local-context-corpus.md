@@ -1,4 +1,4 @@
-<!-- Generated from src/localbrain/value-registry.json by scripts/build-data-model-value-dictionaries.py. Do not edit. -->
+<!-- Generated from crates/core/resources/value-registry.json by scripts/build-data-model-value-dictionaries.py. Do not edit. -->
 # Local Context corpus Value Dictionary
 
 Durable table owner: [docs/policies/project/data-model/local-context-corpus.md](../local-context-corpus.md)
@@ -13,8 +13,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: Local Context source shape
 - Default: `folder`
 - Fallbacks: `null`: reject; `unknown`: label → 알 수 없는 유형; `invalid`: reject; `future`: label → 새 유형
-- Producers: `src/localbrain/local_context/service.py`
-- Consumers: `src/localbrain/local_context/service.py`
+- Producers: `crates/core/src/backend/contexts/service.rs`
+- Consumers: `crates/core/src/backend/contexts/service.rs`
 - Consequence: Selects the local reader and lifecycle behavior.
 - Presentation mode: `logical-label`
 - Labels: `folder` → 폴더; `file` → 파일; `apple_notes` → Apple Notes
@@ -29,8 +29,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: local read permission
 - Default: `1`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/local_context/service.py`
-- Consumers: `src/localbrain/local_context/service.py`, `src/localbrain/templates/context.html`
+- Producers: `crates/core/src/backend/contexts/service.rs`
+- Consumers: `crates/core/src/backend/contexts/service.rs`, `apps/web/templates/context.html`
 - Consequence: Unreadable roots are retained but cannot be scanned.
 - Presentation mode: `logical-label`
 - Labels: `0` → 읽을 수 없음; `1` → 읽을 수 있음
@@ -45,13 +45,13 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: Local Context root state
 - Default: `ready`
 - Fallbacks: `null`: reject; `unknown`: label → 상태 알 수 없음; `invalid`: reject; `future`: label → 새 상태
-- Producers: `src/localbrain/local_context/service.py`, `src/localbrain/ingest/scanner.py`
-- Consumers: `src/localbrain/local_context/service.py`, `src/localbrain/templates/context.html`
+- Producers: `crates/core/src/backend/contexts/service.rs`, `crates/core/src/backend/ingest/scanner.rs`
+- Consumers: `crates/core/src/backend/contexts/service.rs`, `apps/web/templates/context.html`
 - Consequence: Only ready readable roots participate in ordinary scans.
 - Presentation mode: `logical-label`
 - Labels: `pending` → 확인 중; `ready` → 사용 가능; `unreadable` → 읽기 권한 없음; `error` → 확인 오류; `missing` → 원본 없음
 - Help: Local Context 원본의 현재 사용 가능 상태입니다.
-- Visible consumer inventory: `src/localbrain/templates/context.html` (registry-backed)
+- Visible consumer inventory: `apps/web/templates/context.html` (registry-backed)
 
 ## `context-root.enabled`
 
@@ -61,8 +61,8 @@ This companion owns bounded physical/logical/presentation mappings only. It does
 - Logical axis: Local Context scan participation
 - Default: `1`
 - Fallbacks: `null`: reject; `unknown`: reject; `invalid`: reject; `future`: reject
-- Producers: `src/localbrain/local_context/service.py`
-- Consumers: `src/localbrain/local_context/service.py`
+- Producers: `crates/core/src/backend/contexts/service.rs`
+- Consumers: `crates/core/src/backend/contexts/service.rs`
 - Consequence: Disabling removes the root from scans without deleting the original files.
 - Presentation mode: `logical-label`
 - Labels: `0` → 사용 안 함; `1` → 사용

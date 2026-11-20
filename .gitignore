@@ -22,6 +22,9 @@ data/
 runs/
 exports/
 artifacts/
+!/crates/core/src/backend/insights/runs/
+/crates/core/src/backend/insights/runs/*
+!/crates/core/src/backend/insights/runs/*.rs
 /.artifacts/
 playwright-report/
 test-results/
@@ -48,12 +51,13 @@ playwright/.cache/
 *.mobileprovision
 
 # Standalone application build outputs (never user data).
-desktop/backend/
-desktop/src-tauri/target/
-desktop/src-tauri/gen/schemas/
 dist/
 
-desktop/ui/app-styles.css
-desktop/node_modules/
-rust/target/
-desktop/terminal/
+/target/
+/apps/desktop/node_modules/
+/apps/desktop/src-tauri/target/
+/apps/desktop/src-tauri/gen/schemas/
+/apps/desktop/terminal/runtime/
+/apps/desktop/backend/
+/apps/desktop/ui/app-styles.css
+/crates/runtime/engine/node_modules/

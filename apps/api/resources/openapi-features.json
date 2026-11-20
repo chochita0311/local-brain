@@ -1,0 +1,507 @@
+{
+  "GET /settings": [
+    []
+  ],
+  "GET /onboarding": [
+    []
+  ],
+  "GET /api/settings": [
+    []
+  ],
+  "GET /api/settings/search": [
+    []
+  ],
+  "POST /api/settings/search": [
+    []
+  ],
+  "PATCH /api/settings/preferences": [
+    []
+  ],
+  "POST /api/settings/session-sources": [
+    []
+  ],
+  "POST /api/settings/choose-path": [
+    []
+  ],
+  "POST /api/settings/model/{action}": [
+    []
+  ],
+  "POST /api/settings/model-folder/{action}": [
+    []
+  ],
+  "POST /api/settings/model/{key}/{action}": [
+    []
+  ],
+  "GET /api/settings/storage": [
+    []
+  ],
+  "POST /api/settings/backup": [
+    []
+  ],
+  "POST /api/settings/backup/export": [
+    []
+  ],
+  "POST /api/settings/restore": [
+    []
+  ],
+  "POST /api/settings/cache/clear": [
+    []
+  ],
+  "GET /learning": [
+    []
+  ],
+  "GET /learning/{lesson_id}": [
+    []
+  ],
+  "GET /learning/{lesson_id}/note": [
+    []
+  ],
+  "POST /learning/{lesson_id}/attempts": [
+    []
+  ],
+  "POST /learning/{lesson_id}/assess": [
+    []
+  ],
+  "POST /learning/{lesson_id}/visibility": [
+    []
+  ],
+  "GET /help": [
+    []
+  ],
+  "GET /help/{slug}": [
+    []
+  ],
+  "GET /": [
+    []
+  ],
+  "GET /sessions-dashboard": [
+    []
+  ],
+  "GET /sessions-dashboard/insights": [
+    []
+  ],
+  "POST /sessions-dashboard/insights/runs": [
+    []
+  ],
+  "POST /sessions-dashboard/insights/runs/{run_id}/cancel": [
+    []
+  ],
+  "GET /sessions-dashboard/insights/runs/{run_id}/download": [
+    []
+  ],
+  "GET /api/insight-runs/{run_id}": [
+    []
+  ],
+  "GET /sessions": [
+    []
+  ],
+  "PUT /sessions/chart/project-visibility": [
+    []
+  ],
+  "GET /context": [
+    []
+  ],
+  "GET /projects": [
+    []
+  ],
+  "POST /sessions/sync": [
+    []
+  ],
+  "POST /sessions/{session_id}/pin": [
+    []
+  ],
+  "POST /sessions/{session_id}/unpin": [
+    []
+  ],
+  "POST /sessions/{session_id}/title": [
+    []
+  ],
+  "GET /sources": [
+    []
+  ],
+  "POST /sources/scan": [
+    []
+  ],
+  "GET /schema": [
+    []
+  ],
+  "GET /sessions/{session_id}/chart-activity": [
+    []
+  ],
+  "GET /sessions/{session_id}": [
+    []
+  ],
+  "GET /sessions/{session_id}/subsessions/{file_name}": [
+    []
+  ],
+  "GET /documents/{document_id}": [
+    []
+  ],
+  "GET /local-resources/{resource_id}": [
+    []
+  ],
+  "GET /natural-search": [
+    []
+  ],
+  "GET /api/natural-search/status": [
+    []
+  ],
+  "POST /natural-search/prepare": [
+    []
+  ],
+  "POST /natural-search/cancel": [
+    []
+  ],
+  "GET /natural-search/evidence/{rowid}": [
+    []
+  ],
+  "POST /api/context-roots": [
+    []
+  ],
+  "POST /api/context-files": [
+    []
+  ],
+  "POST /api/context-sources/apple-notes": [
+    []
+  ],
+  "POST /api/context-sources/order": [
+    []
+  ],
+  "DELETE /api/context-roots/{root_id}": [
+    []
+  ],
+  "DELETE /api/context-sources/{source_id}": [
+    []
+  ],
+  "POST /api/scan": [
+    []
+  ],
+  "POST /api/sessions/sync": [
+    []
+  ],
+  "GET /api/sessions/sync/status": [
+    []
+  ],
+  "POST /api/sessions/sync/stream": [
+    []
+  ],
+  "GET /api/health": [
+    []
+  ],
+  "GET /runs/{run_id}": [
+    [
+      "atlassian"
+    ],
+    [
+      "workstreams"
+    ]
+  ],
+  "GET /atlassian": [
+    [
+      "atlassian"
+    ]
+  ],
+  "POST /atlassian/sync": [
+    [
+      "atlassian"
+    ]
+  ],
+  "GET /atlassian/add": [
+    [
+      "atlassian"
+    ]
+  ],
+  "GET /atlassian/connections": [
+    [
+      "atlassian"
+    ]
+  ],
+  "POST /atlassian/register": [
+    [
+      "atlassian"
+    ]
+  ],
+  "POST /atlassian/access": [
+    [
+      "atlassian"
+    ]
+  ],
+  "GET /api/atlassian/registration-preview": [
+    [
+      "atlassian"
+    ]
+  ],
+  "POST /atlassian/connections/{source_instance_id}/sites/{site_id}": [
+    [
+      "atlassian"
+    ]
+  ],
+  "POST /atlassian/spaces/discover": [
+    [
+      "atlassian"
+    ]
+  ],
+  "POST /atlassian/spaces/register": [
+    [
+      "atlassian"
+    ]
+  ],
+  "GET /atlassian/items/{item_id}": [
+    [
+      "atlassian"
+    ]
+  ],
+  "GET /atlassian/references/{reference_id}": [
+    [
+      "atlassian"
+    ]
+  ],
+  "POST /atlassian/items/{item_id}/local": [
+    [
+      "atlassian"
+    ]
+  ],
+  "GET /atlassian/refresh": [
+    [
+      "atlassian"
+    ]
+  ],
+  "POST /atlassian/refresh": [
+    [
+      "atlassian"
+    ]
+  ],
+  "GET /search": [
+    [
+      "atlassian"
+    ]
+  ],
+  "GET /api/runs/{run_id}": [
+    [
+      "atlassian"
+    ],
+    [
+      "workstreams"
+    ]
+  ],
+  "POST /api/runs/{run_id}/cancel": [
+    [
+      "atlassian"
+    ],
+    [
+      "workstreams"
+    ]
+  ],
+  "GET /auto-work": [
+    [
+      "auto_work"
+    ]
+  ],
+  "POST /auto-work/refresh": [
+    [
+      "auto_work"
+    ]
+  ],
+  "GET /context-search": [
+    [
+      "context_search"
+    ]
+  ],
+  "GET /api/context-search/status": [
+    [
+      "context_search"
+    ]
+  ],
+  "POST /api/context-search/unload": [
+    [
+      "context_search"
+    ]
+  ],
+  "POST /api/context-search/answer": [
+    [
+      "context_search"
+    ]
+  ],
+  "GET /api/settings/google-drive": [
+    [
+      "google_drive"
+    ]
+  ],
+  "POST /api/settings/google-drive/connections": [
+    [
+      "google_drive"
+    ]
+  ],
+  "POST /api/settings/google-drive/{connection_id}/connect": [
+    [
+      "google_drive"
+    ]
+  ],
+  "POST /api/settings/google-drive/{connection_id}/browse": [
+    [
+      "google_drive"
+    ]
+  ],
+  "PATCH /api/settings/google-drive/{connection_id}/jobs/{job}": [
+    [
+      "google_drive"
+    ]
+  ],
+  "POST /api/settings/google-drive/{connection_id}/jobs/{job}/run": [
+    [
+      "google_drive"
+    ]
+  ],
+  "GET /terminal": [
+    [
+      "terminal"
+    ]
+  ],
+  "GET /api/terminal": [
+    [
+      "terminal"
+    ]
+  ],
+  "POST /api/terminal/workspaces/{action}": [
+    [
+      "terminal"
+    ]
+  ],
+  "POST /api/terminal/view-order": [
+    [
+      "terminal"
+    ]
+  ],
+  "POST /api/terminal/install": [
+    [
+      "terminal"
+    ]
+  ],
+  "GET /api/terminal/settings": [
+    [
+      "terminal"
+    ]
+  ],
+  "POST /api/terminal/settings": [
+    [
+      "terminal"
+    ]
+  ],
+  "POST /api/terminal/service/{action}": [
+    [
+      "terminal"
+    ]
+  ],
+  "POST /api/terminal/terminals": [
+    [
+      "terminal"
+    ]
+  ],
+  "POST /api/terminal/stop": [
+    [
+      "terminal"
+    ]
+  ],
+  "POST /api/terminal/terminals/{terminal_id}/stop": [
+    [
+      "terminal"
+    ]
+  ],
+  "POST /api/terminal/tabs/{tab_id}/{action}": [
+    [
+      "terminal"
+    ]
+  ],
+  "GET /sessions/{session_id}/workflow": [
+    [
+      "workflow"
+    ]
+  ],
+  "POST /sessions/{session_id}/workflow/corrections": [
+    [
+      "workflow"
+    ]
+  ],
+  "GET /workstreams": [
+    [
+      "workstreams"
+    ]
+  ],
+  "GET /workstreams/{workstream_id}": [
+    [
+      "workstreams"
+    ]
+  ],
+  "POST /api/workstreams": [
+    [
+      "workstreams"
+    ]
+  ],
+  "PUT /api/workstreams/{workstream_id}": [
+    [
+      "workstreams"
+    ]
+  ],
+  "POST /api/workstreams/{workstream_id}/threads": [
+    [
+      "workstreams"
+    ]
+  ],
+  "PUT /api/threads/{thread_id}": [
+    [
+      "workstreams"
+    ]
+  ],
+  "POST /api/workstreams/{workstream_id}/checkpoints": [
+    [
+      "workstreams"
+    ]
+  ],
+  "POST /api/links": [
+    [
+      "workstreams"
+    ]
+  ],
+  "DELETE /api/links/{scope_type}/{scope_id}/{link_id}": [
+    [
+      "workstreams"
+    ]
+  ],
+  "POST /api/external-resources": [
+    [
+      "workstreams"
+    ]
+  ],
+  "POST /api/local-resources": [
+    [
+      "workstreams"
+    ]
+  ],
+  "POST /api/workstreams/{workstream_id}/suggestions": [
+    [
+      "workstreams"
+    ]
+  ],
+  "POST /api/suggestions/{suggestion_id}/{action}": [
+    [
+      "workstreams"
+    ]
+  ],
+  "POST /api/workstreams/{workstream_id}/runs": [
+    [
+      "workstreams"
+    ]
+  ],
+  "POST /atlassian/items/{item_id}/links": [
+    [
+      "atlassian",
+      "workstreams"
+    ]
+  ],
+  "POST /atlassian/items/{item_id}/links/{scope_type}/{scope_id}/{link_id}": [
+    [
+      "atlassian",
+      "workstreams"
+    ]
+  ]
+}

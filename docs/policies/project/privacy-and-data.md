@@ -25,6 +25,17 @@ The Git repository must not contain:
 
 `.gitignore` is a fallback guard. The primary protection is keeping runtime data physically outside the repository.
 
+The privacy check distinguishes the exact compiled source
+`crates/core/src/backend/insights/runs/process.rs` from generated Run
+output. That one path remains subject to content scanning; it does not allow
+other files under `runs/`, runtime JSON/JSONL, logs or databases into Git.
+
+The Markdown code-literal oracle at
+`crates/core/tests/native_rendering_fixtures/code_literals.json`
+contains one reviewed synthetic email token for autolink behavior. The checker
+allows only that exact token at that exact path. Other addresses and all
+non-email sensitive-content checks remain enforced, including on that fixture.
+
 Public documentation describes LocalBrain's supported installation, behavior,
 and integration contracts. Names and relationships from an operator's private
 local project inventory belong in local context, including when documenting
@@ -60,9 +71,14 @@ Natural-language search keeps activation/settings in `<data>/natural-search.json
 and all derived text spans, provenance locators and vectors in
 `<cache>/natural-search/`. Shared public model weights never contain source text
 or queries. Model inference uses verified local assets offline; page visits
-cannot download them. No automatic query history or feedback archive is written,
-and packaged `serve` disables access logging so query URLs are not copied into
-server logs. Browser history can retain submitted URLs. The bounded [app navigation state](navigation-and-history.md) additionally keeps up to50 recent URLs, numeric scroll positions and view selections in window-scoped sessionStorage; it copies no conversation/document bodies and creates no DB or server-log archive. Private benchmark
+cannot download them. No automatic query history or feedback archive is written.
+Web `serve` logs requests to the console by default. `--no-access-log` disables
+the logs and takes precedence over the compatible `--access-log` flag. Logs show
+the client socket address, method, encoded path with its values, HTTP version,
+status and time to response headers on stderr. Paths that return 404 are visible.
+Query strings, headers, cookies and bodies stay out of access logs. The web
+startup line prints the loopback listening URL. The server creates no log file.
+Browser history can retain submitted URLs. The bounded [app navigation state](navigation-and-history.md) additionally keeps up to50 recent URLs, numeric scroll positions and view selections in window-scoped sessionStorage; it copies no conversation/document bodies and creates no DB or server-log archive. Private benchmark
 queries, judgments and raw results must remain in caller-owned private output
 outside Git; tracked fixtures and reports contain authored synthetic
 material. See [Natural-Language Search](natural-language-search.md) for current
@@ -199,16 +215,16 @@ replacement removes unused vectors; successful model replacement prunes old
 namespaces. Interrupted work retains checkpoints until resumed or purged.
 
 Only explicit local model inference is admitted, with verified already-installed
-asset fingerprints, local-files-only loading, no remote code, offline/telemetry
-controls and a Python outbound-socket guard. These controls are not an OS-level
-network sandbox. No training, asset download or external inference occurs.
+asset fingerprints and local-files-only native tensor/tokenizer loading. No remote
+code, network request or telemetry is used by inference. These application controls
+are not an OS-level network sandbox. No training, asset download or external inference occurs.
 CLI output is fixed codes unless `--show-counts` explicitly
 opts into aggregate disclosure. Model/library output is suppressed; private
 results remain local. This simulation does not change the old sampled comparator or
 authorize production organization, correction, migration or legacy retirement.
 
-Model setup is a separate explicit operation: LocalBrain's optional runtime and
-`models install embedding` own its Python dependencies and private
+Model setup is a separate explicit operation: the native optional-model runtime and
+`models install embedding` own pinned public assets and the private
 `localbrain.semantic-model/v1` manifest. Installation accepts only pinned public
 assets and no private content argument. The packaged simulation defaults to that
 manifest. Compatible existing installed-asset manifests can be supplied
@@ -229,12 +245,12 @@ quote or inventory enters tracked/browser-test evidence; fixtures are synthetic.
 
 ### Public Model Assets And Synthetic Trials
 
-The explicit [work-context model installation](installation-and-storage.md#optional-local-models)
-may install the allowlisted pinned public Qwen3-4B and Qwen3-8B assets
+Explicit [native model installation](installation-and-storage.md#optional-local-models)
+can install the allowlisted pinned public Qwen3-4B and Qwen3-8B assets
 into the user-wide Hugging Face Hub cache, with distinct explicitly selected
 owned installation-metadata directories outside Git.
 Unknown models, unpinned revisions and mismatched existing ownership are rejected;
-installing the comparison does not replace or purge the baseline.
+Installing an additional model preserves the existing registrations and assets.
 Installation takes no private-source arguments,
 uses no authentication token, and contacts only the official public model host
 and its asset delivery endpoints. The shared cache holds only public base-model
@@ -249,15 +265,26 @@ Future trained LoRA adapters, checkpoints, and merged models require durable
 private project storage and backups including base-model revision and training
 provenance; they must not overwrite shared public weights or be treated as
 disposable download cache. No training functionality is introduced here.
-Interrupted public downloads are resumable installation state, not source data.
-Optional Xet transport uses a new empty private task-owned directory, selected
+Interrupted public downloads are resumable installation state. The current
+installer uses HTTPS. The legacy `--xet-cache` registration argument validates
+an empty owned directory only when uncached files need transfer. Current
+inference runs separately against verified local assets. [Native model operations](development/model-tools.md)
+
+#### Retired synthetic trial procedures
+
+The following controls describe the historical Python model trials and their
+retained evidence. The native runtime has its own installation and inference
+contract. [Retired work-context trials](../../plans/research/retired-python-research-tools.md#work-context-trials)
+
+The former optional Xet transport used a new empty private task-owned directory, selected
 before the client import, with chunk/shard caches disabled. Its public transfer
 diagnostics are temporary: remove only the verified task-owned scratch after the
 installer process exits. Durable model assets must not depend on that directory.
 
-Inference is a separate operation with offline/telemetry controls, an outbound
-Python socket guard, local-files-only safetensors and no remote code. The
-work-context evaluation accepts only repository-owned synthetic cases, not a database path.
+In those trials, inference ran separately with offline and telemetry controls,
+an outbound Python socket guard and local safetensors. The work-context
+evaluation admitted only repository-owned synthetic cases and refused database
+paths and remote code.
 Quoted outputs and model identity stay in an owner/lock-protected private report
 and per-case checkpoint with 30-day inactivity expiry; unknown files prevent
 cleanup or adoption. Fixed CLI diagnostics disclose no prompts/output. Every

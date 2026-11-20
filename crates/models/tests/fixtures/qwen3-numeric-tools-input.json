@@ -1,0 +1,55 @@
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": "Compute",
+      "count": 7
+    },
+    {
+      "role": "assistant",
+      "content": "",
+      "tool_calls": [
+        {
+          "function": {
+            "name": "lookup",
+            "arguments": {
+              "count": 3,
+              "ratio": 0.5
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "lookup",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "count": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 10
+            },
+            "ratio": {
+              "type": "number",
+              "minimum": 0.25
+            },
+            "wide": {
+              "const": 18446744073709551616
+            }
+          },
+          "float_controls": [
+            1e-06,
+            1e+16,
+            1000000000000000.0,
+            -0.0
+          ]
+        }
+      }
+    }
+  ]
+}

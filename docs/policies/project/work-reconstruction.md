@@ -1,10 +1,16 @@
 # Work Reconstruction Experiment
 
-This contract owns the bounded, model-free comparison, source admission, input/output shapes, independent assessment and resource limits. It does not admit production reconstruction or replace current Workstream organization.
+This contract retains bounded model-free reconstruction, source admission,
+input/output, assessment and resource rules. Native Auto Work sample inspection
+uses the reconstruction/selection/preparation subset described below. The
+standalone Python comparison/scoring command and its fixtures are retired;
+comparison and quality-gate requirements do not claim an available native
+end-to-end evaluator. No production reconstruction or replacement Workstream
+organization is admitted.
 
 ## Experimental Scope And Authority
 
-The explicit local experiment compares the unchanged reference-pair contract
+The retained experimental design compares the unchanged reference-pair contract
 with a minimal deterministic Korean/English goal extractor. It groups exact
 normalized subject/change and compatible completion criteria, keeps activity
 phases subordinate, attributes source wording, and leaves unsupported meaning
@@ -14,25 +20,28 @@ This is an experimental prototype, not a general semantic understanding capabili
 Comparison scores use separate source-bound expectations, not generated labels
 as truth. Processing coverage, synthetic correctness, local quality, and product
 viability remain distinct; missing private evidence cannot authorize replacement
-UI. After explicit current-data scope selection, the command can freeze a bounded
-chronological sample across existing history. Its unassessed execution check
+UI. After explicit current-data scope selection, an explicitly admitted
+implementation may freeze a bounded chronological sample across existing
+history. Its unassessed execution check
 creates no answer key and cannot claim accuracy or useful automatic grouping.
 Population/sample counts and incomplete text stay distinct from quality.
 
 The comparison command changes no Workstream/Thread, Suggestion, assertion,
 or source. The [user-managed organization rules](product.md#workstream-centered-organization)
 remain runtime truth until an approved transition replaces them. [Experimental contract](#isolated-work-reconstruction-experiment)
-owns current input, processing and output bounds; the [Developer Guide](development/work-reconstruction.md#operations)
-owns invocation, and [Privacy](privacy-and-data.md#local-persistence) owns private
-input and review limits. This experiment performs neither product transition nor
+owns input, processing and output bounds; the [operation status](development/work-reconstruction.md#operations)
+routes the retired invocation history and native sample boundary, and
+[Privacy](privacy-and-data.md#local-persistence) owns private input and review
+limits. This experiment performs neither product transition nor
 legacy cleanup.
 
 ## Isolated Work Reconstruction Experiment
 
-- The `experiments/reconstruction/` modules own only the versioned experimental
-  `localbrain.work-reconstruction.v1` shape. Their only app consumer is the
-  [sample-mode Auto Work inspection adapter](auto-work.md#sample-inspection). They have no schema,
-  migration, schedule, production identity, or assertion-ledger ownership.
+- The native `crates/core/src/backend/auto_work/reconstruction/` contract owns
+  the versioned experimental `localbrain.work-reconstruction.v1` shape. Its only
+  app consumer is the [sample-mode Auto Work inspection adapter](auto-work.md#sample-inspection).
+  It has no schema, migration, schedule, production identity, or assertion-ledger
+  ownership.
 - Extraction consumes supplied bounded text. Evidence keys and offsets retain
   source attribution; normalized goal identity is separate from wording, labels,
   revisions, and experimental exact-scope corrections. Unknown goals and
@@ -216,19 +225,23 @@ production transition or product identity.
 
 ## Implementation Ownership
 
-- `src/localbrain/experiments/reconstruction/contract.py`: isolated experimental text extraction,
-  semantic grouping, exact synthetic corrections, and metadata-only comparator
+- `crates/core/src/backend/auto_work/reconstruction/contract.rs` owns native
+  snapshot validation and bounded text reconstruction with exact spans,
+  semantic grouping and exact-scope corrections.
+- `crates/core/src/backend/auto_work/reconstruction/input.rs` and `sql.rs` own
+  frozen selection validation and bounded read-only access to indexed records.
+- `crates/core/src/backend/auto_work/reconstruction/preparation.rs` owns explicit,
+  prediction-independent chronological preparation and omission accounting.
+- `crates/core/src/backend/auto_work/preview.rs` and `worker.rs` compose the
+  separately admitted sample-inspection path and its supervised worker. They do
+  not turn an unassessed sample into a scored comparison or a production identity.
+- `crates/core/tests/native_auto_work_preview.rs` and
+  `native_auto_work_preview_golden.rs` keep synthetic native sample/input and
+  frozen-output coverage. They do not establish private semantic quality.
 
-- `src/localbrain/experiments/reconstruction/scoring.py`: independent expectation
-  validation, integer quality measures, and identity/assignment replay measures
-
-- `src/localbrain/experiments/reconstruction/input.py`: explicit manifest validation and
-  bounded read-only access to already-indexed selected records
-
-- `src/localbrain/experiments/reconstruction/preparation.py`: explicitly invoked,
-  prediction-independent chronological sampling, frozen manifests, omission
-  accounting, and unknown-assessment placeholders; no independent answer key
-
-- `src/localbrain/experiments/reconstruction/experiment.py` and
-  `scripts/experiment-work-reconstruction.py`: opt-in local comparison command,
-  supervised resource bounds, and private owner/expiry-bound result publication
+The independent scoring/trial command and Python fixture suite are unavailable.
+Their [former implementation ownership](../../plans/research/retired-python-research-tools.md#reconstruction-implementation)
+and [complete operations](../../plans/research/retired-python-research-tools.md#work-reconstruction)
+are historical records. The assessment, review/expiry, refusal, source-authority
+and no-automatic-transition rules above remain binding; retirement grants no
+new private-data or human-review allowance.

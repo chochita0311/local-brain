@@ -53,9 +53,9 @@ URL × 4개 폭 = 100개**의 관찰이다. 자료가 있는 fixture도 Atlassia
   `312 → 236`이었다. dialog의 `720×560` 외곽은 고정되지만 로딩 안내의 삽입/제거로
   본문은 약 `76px` 이동한다. 재열기에서는 이전 값이 있어도 안내 영역이 재등장한다.
   reduced motion도 이 레이아웃 이동을 제거하지 않는다.
-- **Cause / owner:** [settings.js](../../../src/localbrain/static/settings.js)의
+- **Cause / owner:** [settings.js](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/src/localbrain/static/settings.js)의
   `open()`/`load()`/`renderGeneral()`과
-  [settings-message](../../../src/localbrain/static/settings.css).
+  [settings-message](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/src/localbrain/static/settings.css).
   값이 준비되기 전에 모달을 열고 본문 앞에 안내를 넣었다가 `render()`에서 제거한다.
 - **Repair candidate:** 일반 설정의 준비 상태와 본문 anchor를 함께 다룬다. 이미 읽은 값의
   재사용과 최초 조회의 의도된 표시를 비교하되, pending 저장 대기·오류 안내·진짜 지연을
@@ -73,7 +73,7 @@ URL × 4개 폭 = 100개**의 관찰이다. 자료가 있는 fixture도 Atlassia
   프로필을 다시 읽을 수 있다. 실제 등록을 지우는 동작은 일어나지 않았다.
 - **Cause / owner:** `render()`가 `session_sources=null`을 빈 목록처럼 렌더링하고,
   `tab()`이 공통 `message`를 지운다. 소유자는
-  [settings.js](../../../src/localbrain/static/settings.js)의 조회/목록/오류 상태다.
+  [settings.js](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/src/localbrain/static/settings.js)의 조회/목록/오류 상태다.
 - **Repair candidate:** 조회 미완료·읽기 실패·확인된 빈 등록을 구별하고, 오류가 다른
   category로 이동했다는 이유로 해제되지 않게 한다. 재조회/파일 수정 후 복구 경로를
   정의하되 기존 등록·revision·source identity는 유지한다.
@@ -86,7 +86,7 @@ URL × 4개 폭 = 100개**의 관찰이다. 자료가 있는 fixture도 Atlassia
   `모델 다운로드`, `AI 검색 준비`, `AI 검색 끄기`가 활성 상태다. 실제 fixture에는 설치된
   모델이 없으며 정상 응답 후에는 `AI 검색 준비`가 비활성화된다. 일반 설정 dropdown은
   조회 중 잠기므로 category 간 준비 상태도 일치하지 않는다.
-- **Cause / owner:** [template](../../../src/localbrain/templates/_settings.html)의 초기
+- **Cause / owner:** [template](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/src/localbrain/templates/_settings.html)의 초기
   버튼 상태와 `renderModel()`/`pollModel()`/`tab()`의 준비 상태 연결.
 - **Repair candidate:** 확인된 모델·검색 상태에 따라 동작 가능 여부를 표시하고, 상태를
   아직 모르는 시간과 실패를 빈 문구로 남기지 않는다. 단순히 버튼을 항상 잠그지 말고
@@ -103,8 +103,8 @@ URL × 4개 폭 = 100개**의 관찰이다. 자료가 있는 fixture도 Atlassia
   계속 `inert=true`다. 사용자는 본 화면을 보지만 해당 화면과 설정 버튼을 조작할 수
   없고, 페이지 안에 시작 실패 안내나 재시도 경로가 없다. script 로딩을 허용해
   새로고침하면 마법사가 열린다. 지연만 준 경우에는 배경이 먼저 보이다가 마법사가 나타난다.
-- **Cause / owner:** [base.html](../../../src/localbrain/templates/base.html)의 초기
-  배경 격리와 deferred [settings.js](../../../src/localbrain/static/settings.js)의 modal 초기화.
+- **Cause / owner:** [base.html](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/src/localbrain/templates/base.html)의 초기
+  배경 격리와 deferred [settings.js](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/src/localbrain/static/settings.js)의 modal 초기화.
   배경 격리 자체는 올바르다. JS 준비/실패 시 첫 활성 surface의 표시·복구가 별도 필요하다.
 - **Repair candidate:** backend startup 오류, settings API 오류와 client asset 실패를
   구별해 첫 표시/재시도 계약을 보완한다. 마법사 초기화 전에 배경의 `inert`만 제거하는
@@ -120,8 +120,8 @@ URL × 4개 폭 = 100개**의 관찰이다. 자료가 있는 fixture도 Atlassia
 - **Observed:** document `clientWidth=320`, `scrollWidth=480`. Pinned Sessions의
   패널 폭이 약 `466px`까지 커진다. 다른 데이터를 유지하고 합성 workspace path만
   `/synthetic/a`로 줄이면 `scrollWidth=320`으로 돌아온다. 빈 fixture에서는 발생하지 않았다.
-- **Cause / owner:** [Pinned list와 좁은 레이아웃](../../../src/localbrain/static/styles.css)의
-  intrinsic width와 [경로 heading](../../../src/localbrain/templates/sessions.html).
+- **Cause / owner:** [Pinned list와 좁은 레이아웃](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/src/localbrain/static/styles.css)의
+  intrinsic width와 [경로 heading](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/src/localbrain/templates/sessions.html).
   heading의 ellipsis만으로 부모 grid의 최소 너비를 제한하지 못한다.
 - **Repair candidate:** 긴 경로를 수용하는 부모/자식의 containment와 scroll 소유자를
   함께 검토한다. 경로 표시·pin·원본 접근성을 지우거나 문서 overflow를 잘라내지 않는다.
@@ -134,8 +134,8 @@ URL × 4개 폭 = 100개**의 관찰이다. 자료가 있는 fixture도 Atlassia
   파일이 없고 stderr 출력도 없는 합성 상태. 실제 agent job은 시작하지 않는다.
 - **Observed:** `/runs/synthetic-completed`의 상태 배지는 `완료`인데 console은
   `Claude 실행을 준비하고 있습니다.`로 표시된다. `1440px`와 `320px`에서 동일했다.
-- **Cause / owner:** [read_run_output()](../../../src/localbrain/maintenance/service.py)가
-  빈 문자열을 반환하고 [run.html](../../../src/localbrain/templates/run.html)이 Run의
+- **Cause / owner:** [read_run_output()](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/src/localbrain/maintenance/service.py)가
+  빈 문자열을 반환하고 [run.html](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/src/localbrain/templates/run.html)이 Run의
   lifecycle과 무관하게 빈 출력에 준비 문구를 사용한다.
 - **Repair candidate:** queued/running의 출력 대기와 완료·실패 후 출력 없음/유실을
   구별한다. 이 표시 수정으로 job을 재실행하거나 보존된 Run 상태를 바꾸지 않는다.
@@ -318,10 +318,10 @@ PRD/Feature의 승인·native acceptance를 변경하지 않는다.
 ### Repeatable Development Check
 
 [Browser command](../../../scripts/qa-ui-states-browser.mjs)와
-[synthetic backend](../../../tests/ui_state_fixture.py)를 저장소에 남겼다.
+[synthetic backend](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/tests/ui_state_fixture.py)를 저장소에 남겼다.
 [Developer Guide](../../policies/project/developer-guide.md#verification)가 실제 실행 조건,
 격리된 runtime/profile, 출력 보존과 정리 절차를 소유한다. bundled
-[Settings guide](../../../src/localbrain/content/docs/settings.md)에는 읽기/모델 상태 실패와
+[Settings guide](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/src/localbrain/content/docs/settings.md)에는 읽기/모델 상태 실패와
 재조회 절차를 반영했다. 공통 skeleton framework나 모든 화면의 고정 screenshot 체계는 아니다.
 
 개발 때 관련 변경의 안정된 계약은 이 명령으로 반복하고, 새로운 화면·지연·오류 상태는

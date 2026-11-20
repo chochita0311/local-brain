@@ -1,0 +1,18 @@
+[
+  {
+    "shell": "/bin/zsh",
+    "identity": "c10eace2afa250723a5ea538"
+  },
+  {
+    "shell": "/Volumes/a b'가/zsh",
+    "identity": "a9e6a607c29a4164851ef54a"
+  },
+  {
+    "shell": "/Volumes/é/😀/zsh",
+    "identity": "994c461d2427433cc61c10eb"
+  },
+  {
+    "shell": "/Volumes/$literal`q`/zsh",
+    "identity": "94e002fc25bb3cf42c41a5c3"
+  }
+]

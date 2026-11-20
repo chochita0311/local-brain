@@ -5,8 +5,8 @@ const path = require('node:path');
 const {Terminal: Browser} = require('@xterm/xterm');
 const Headless = process.env.LOCALBRAIN_TERMINAL_TEST_ENGINE
   ? require(path.join(process.env.LOCALBRAIN_TERMINAL_TEST_ENGINE, 'node_modules/@xterm/headless')).Terminal : Browser;
-const checkpoint = require('../src/localbrain/terminal/checkpoint.cjs');
-const {installColorReports, suppressColorReports} = require('../src/localbrain/terminal/colors.cjs');
+const checkpoint = require('../crates/runtime/engine/checkpoint.cjs');
+const {installColorReports, suppressColorReports} = require('../crates/runtime/engine/colors.cjs');
 const write = (t, text) => new Promise(resolve => t.write(text, resolve));
 const osc = data => '\x1b]' + data + '\x1b\\';
 

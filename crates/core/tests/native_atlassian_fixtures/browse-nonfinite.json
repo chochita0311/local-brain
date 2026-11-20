@@ -1,0 +1,966 @@
+[
+  {
+    "metadata_raw": "{\"title\":\"Synthetic nonfinite title\",\"values\":[NaN,Infinity,-Infinity],\"literal\":{\"$serde_json::private::Number\":\"not a number\"},\"large\":10000000000000000000000000000000000000000000000000000000000000000000001,\"html\":\"<script>synthetic</script>한글\"}",
+    "resource": 1,
+    "before": {
+      "atlassian_item_remote_state": [
+        {
+          "external_resource_id": 1,
+          "metadata_schema_version": "localbrain.atlassian-metadata.v1",
+          "metadata_json": "{\"title\":\"Synthetic nonfinite title\",\"values\":[NaN,Infinity,-Infinity],\"literal\":{\"$serde_json::private::Number\":\"not a number\"},\"large\":10000000000000000000000000000000000000000000000000000000000000000000001,\"html\":\"<script>synthetic</script>한글\"}",
+          "remote_version": null,
+          "remote_updated_at": null,
+          "last_attempted_at": null,
+          "last_successful_at": null,
+          "last_confirmed_at": null,
+          "last_outcome": null,
+          "last_error_code": null,
+          "known_changed": 0,
+          "projection_stale": 0,
+          "updated_at": "2026-11-19 00:57:37"
+        }
+      ],
+      "atlassian_item_urls": [
+        {
+          "id": 1,
+          "external_resource_id": 1,
+          "site_id": 1,
+          "url_role": "canonical",
+          "observed_url": "https://jira.synthetic.test/browse/NONFINITE-1",
+          "normalized_url": "https://jira.synthetic.test/browse/NONFINITE-1",
+          "first_observed_at": "2026-08-01T00:00:00Z",
+          "last_observed_at": "2026-08-01T00:00:00Z"
+        }
+      ],
+      "atlassian_items": [
+        {
+          "external_resource_id": 1,
+          "site_id": 1,
+          "source_instance_id": null,
+          "space_id": null,
+          "service": "jira",
+          "item_type": "jira_issue",
+          "remote_id": null,
+          "remote_key": null,
+          "coverage": "indexed",
+          "attention": "normal",
+          "confirmed_at": null,
+          "created_at": "2026-11-19 00:57:37",
+          "updated_at": "2026-08-01T00:00:00Z"
+        }
+      ],
+      "atlassian_sites": [
+        {
+          "id": 1,
+          "source_instance_id": null,
+          "normalized_domain": "jira.synthetic.test",
+          "display_name": null,
+          "remote_site_id": null,
+          "canonical_base_url": "https://jira.synthetic.test",
+          "created_at": "2026-11-19 00:57:37",
+          "updated_at": "2026-11-19T00:57:37.006270+00:00"
+        }
+      ],
+      "external_resources": [
+        {
+          "id": 1,
+          "resource_type": "jira",
+          "title": "Synthetic nonfinite title",
+          "url": "https://jira.synthetic.test/browse/NONFINITE-1",
+          "summary": null,
+          "source_role": "remote-reference",
+          "created_at": "2026-11-19 00:57:37",
+          "updated_at": "2026-08-01T00:00:00Z"
+        }
+      ],
+      "reference_resources": [
+        {
+          "id": 1,
+          "identity_key": "url:024d7cec5247f89561c196e4c8269f58b20ffb27e4a9875074430cdd34342c56",
+          "kind": "url",
+          "locator": "https://jira.synthetic.test/browse/NONFINITE-1",
+          "product": "jira",
+          "remote_key": "NONFINITE-1",
+          "created_at": "2026-11-19 00:57:37"
+        }
+      ],
+      "resource_external_links": [
+        {
+          "external_resource_id": 1,
+          "resource_id": 1
+        }
+      ],
+      "search_index": [
+        {
+          "__rowid__": 1,
+          "entity_type": "atlassian_item",
+          "entity_id": "1",
+          "source_kind": "atlassian:jira:identity",
+          "title": "Synthetic nonfinite title",
+          "body": "https://jira.synthetic.test/browse/NONFINITE-1",
+          "path": "https://jira.synthetic.test/browse/NONFINITE-1"
+        }
+      ]
+    },
+    "expected": {
+      "detail": {
+        "id": 1,
+        "service": "jira",
+        "item_type": "jira_issue",
+        "coverage": "indexed",
+        "attention": "normal",
+        "remote_id": null,
+        "remote_key": null,
+        "confirmed_at": null,
+        "item_updated_at": "2026-08-01T00:00:00Z",
+        "local_title": "Synthetic nonfinite title",
+        "local_summary": null,
+        "site_id": 1,
+        "site_name": null,
+        "normalized_domain": "jira.synthetic.test",
+        "space_id": null,
+        "space_name": null,
+        "space_key": null,
+        "source_instance_id": null,
+        "source_name": "로컬 전용",
+        "canonical_url": "https://jira.synthetic.test/browse/NONFINITE-1",
+        "remote_version": null,
+        "remote_updated_at": null,
+        "last_attempted_at": null,
+        "last_successful_at": null,
+        "last_outcome": null,
+        "last_error_code": null,
+        "known_changed": 0,
+        "projection_stale": 0,
+        "normalized_text": null,
+        "normalization_warning": null,
+        "content_applied_at": null,
+        "note": null,
+        "metadata": {
+          "title": "Synthetic nonfinite title",
+          "values": [
+            NaN,
+            Infinity,
+            -Infinity
+          ],
+          "literal": {
+            "$serde_json::private::Number": "not a number"
+          },
+          "large": 10000000000000000000000000000000000000000000000000000000000000000000001,
+          "html": "<script>synthetic</script>한글"
+        },
+        "freshness": "unknown",
+        "display_title": "Synthetic nonfinite title",
+        "entity_kind": "item",
+        "entity_id": 1,
+        "stable_key": "item:1",
+        "updated_at": "2026-08-01T00:00:00Z",
+        "container_kind": "url",
+        "container_label": "NONFINITE",
+        "container_service": "jira",
+        "container_cue": "Jira · URL 기준",
+        "container_structural_scope": "url:jira:NONFINITE",
+        "topics": [],
+        "tags": [],
+        "selected_topic_ids": [],
+        "memberships": [],
+        "evidence": [],
+        "latest_refresh_run": null,
+        "classification_options": {
+          "topics": [],
+          "tags": []
+        },
+        "workstreams": []
+      },
+      "inventory": {
+        "filters": {
+          "q": "",
+          "service": null,
+          "source_instance_id": null,
+          "site_id": null,
+          "space_id": null,
+          "structural_scope": null,
+          "item_type": null,
+          "coverage": null,
+          "freshness": null,
+          "attention": null,
+          "topic_id": null,
+          "tag_id": null,
+          "workstream_id": null
+        },
+        "items": [
+          {
+            "id": 1,
+            "service": "jira",
+            "item_type": "jira_issue",
+            "coverage": "indexed",
+            "attention": "normal",
+            "remote_id": null,
+            "remote_key": null,
+            "confirmed_at": null,
+            "item_updated_at": "2026-08-01T00:00:00Z",
+            "local_title": "Synthetic nonfinite title",
+            "local_summary": null,
+            "site_id": 1,
+            "site_name": null,
+            "normalized_domain": "jira.synthetic.test",
+            "space_id": null,
+            "space_name": null,
+            "space_key": null,
+            "source_instance_id": null,
+            "source_name": "로컬 전용",
+            "canonical_url": "https://jira.synthetic.test/browse/NONFINITE-1",
+            "remote_version": null,
+            "remote_updated_at": null,
+            "last_attempted_at": null,
+            "last_successful_at": null,
+            "last_outcome": null,
+            "last_error_code": null,
+            "known_changed": 0,
+            "projection_stale": 0,
+            "normalized_text": null,
+            "normalization_warning": null,
+            "content_applied_at": null,
+            "note": null,
+            "metadata": {
+              "title": "Synthetic nonfinite title",
+              "values": [
+                NaN,
+                Infinity,
+                -Infinity
+              ],
+              "literal": {
+                "$serde_json::private::Number": "not a number"
+              },
+              "large": 10000000000000000000000000000000000000000000000000000000000000000000001,
+              "html": "<script>synthetic</script>한글"
+            },
+            "freshness": "unknown",
+            "display_title": "Synthetic nonfinite title",
+            "entity_kind": "item",
+            "entity_id": 1,
+            "stable_key": "item:1",
+            "updated_at": "2026-08-01T00:00:00Z",
+            "container_kind": "url",
+            "container_label": "NONFINITE",
+            "container_service": "jira",
+            "container_cue": "Jira · URL 기준",
+            "container_structural_scope": "url:jira:NONFINITE",
+            "topics": [],
+            "tags": [],
+            "workstream_ids": []
+          }
+        ],
+        "references": [],
+        "entries": [
+          {
+            "id": 1,
+            "service": "jira",
+            "item_type": "jira_issue",
+            "coverage": "indexed",
+            "attention": "normal",
+            "remote_id": null,
+            "remote_key": null,
+            "confirmed_at": null,
+            "item_updated_at": "2026-08-01T00:00:00Z",
+            "local_title": "Synthetic nonfinite title",
+            "local_summary": null,
+            "site_id": 1,
+            "site_name": null,
+            "normalized_domain": "jira.synthetic.test",
+            "space_id": null,
+            "space_name": null,
+            "space_key": null,
+            "source_instance_id": null,
+            "source_name": "로컬 전용",
+            "canonical_url": "https://jira.synthetic.test/browse/NONFINITE-1",
+            "remote_version": null,
+            "remote_updated_at": null,
+            "last_attempted_at": null,
+            "last_successful_at": null,
+            "last_outcome": null,
+            "last_error_code": null,
+            "known_changed": 0,
+            "projection_stale": 0,
+            "normalized_text": null,
+            "normalization_warning": null,
+            "content_applied_at": null,
+            "note": null,
+            "metadata": {
+              "title": "Synthetic nonfinite title",
+              "values": [
+                NaN,
+                Infinity,
+                -Infinity
+              ],
+              "literal": {
+                "$serde_json::private::Number": "not a number"
+              },
+              "large": 10000000000000000000000000000000000000000000000000000000000000000000001,
+              "html": "<script>synthetic</script>한글"
+            },
+            "freshness": "unknown",
+            "display_title": "Synthetic nonfinite title",
+            "entity_kind": "item",
+            "entity_id": 1,
+            "stable_key": "item:1",
+            "updated_at": "2026-08-01T00:00:00Z",
+            "container_kind": "url",
+            "container_label": "NONFINITE",
+            "container_service": "jira",
+            "container_cue": "Jira · URL 기준",
+            "container_structural_scope": "url:jira:NONFINITE",
+            "topics": [],
+            "tags": [],
+            "workstream_ids": []
+          }
+        ],
+        "hierarchy": {
+          "eligible_count": 1,
+          "count": 1,
+          "item_count": 1,
+          "reference_count": 0,
+          "sites": [
+            {
+              "id": 1,
+              "name": "jira.synthetic.test",
+              "display_name": null,
+              "normalized_domain": "jira.synthetic.test",
+              "count": 1,
+              "item_count": 1,
+              "reference_count": 0,
+              "containers": [
+                {
+                  "kind": "url",
+                  "id": null,
+                  "structural_scope": "url:jira:NONFINITE",
+                  "name": "NONFINITE",
+                  "count": 1,
+                  "item_count": 1,
+                  "reference_count": 0,
+                  "service": "jira",
+                  "cue": "Jira · URL 기준"
+                }
+              ]
+            }
+          ]
+        },
+        "eligible_count": 1,
+        "eligible_item_count": 1,
+        "eligible_reference_count": 0,
+        "known_item_count": 1,
+        "known_reference_count": 0,
+        "known_count": 1,
+        "matching_count": 1,
+        "matching_item_count": 1,
+        "matching_reference_count": 0,
+        "has_filters": false,
+        "has_advanced_filters": false,
+        "active_filter_count": 0,
+        "active_structure": {
+          "kind": "root",
+          "label": "모든 도메인"
+        },
+        "options": {
+          "topics": [],
+          "tags": [],
+          "sources": [],
+          "sites": [
+            {
+              "id": 1,
+              "source_instance_id": null,
+              "normalized_domain": "jira.synthetic.test",
+              "display_name": null,
+              "service": "jira"
+            }
+          ],
+          "spaces": [],
+          "workstreams": []
+        }
+      },
+      "preview": {
+        "id": 1,
+        "eligible": true,
+        "service": "jira",
+        "item_type": "jira_issue",
+        "display_title": "Synthetic nonfinite title",
+        "local_title": "Synthetic nonfinite title",
+        "remote_key": null,
+        "source_instance_id": null,
+        "site_id": 1,
+        "site_name": null,
+        "normalized_domain": "jira.synthetic.test",
+        "space_id": null,
+        "space_name": null,
+        "space_key": null,
+        "container_kind": "url",
+        "container_label": "NONFINITE",
+        "container_service": "jira",
+        "container_cue": "Jira · URL 기준",
+        "container_structural_scope": "url:jira:NONFINITE",
+        "canonical_url": "https://jira.synthetic.test/browse/NONFINITE-1",
+        "coverage": "indexed",
+        "freshness": "unknown",
+        "attention": "normal",
+        "last_attempted_at": null,
+        "last_successful_at": null,
+        "last_outcome": null,
+        "remote_id": null,
+        "remote_version": null,
+        "remote_updated_at": null,
+        "last_error_code": null,
+        "metadata_summary": [
+          {
+            "path": "html",
+            "value": "<script>synthetic</script>한글",
+            "path_truncated": false,
+            "value_truncated": false
+          },
+          {
+            "path": "large",
+            "value": "10000000000000000000000000000000000000000000000000000000000000000000001",
+            "path_truncated": false,
+            "value_truncated": false
+          },
+          {
+            "path": "literal.$serde_json::private::Number",
+            "value": "not a number",
+            "path_truncated": false,
+            "value_truncated": false
+          },
+          {
+            "path": "values[0]",
+            "value": "NaN",
+            "path_truncated": false,
+            "value_truncated": false
+          },
+          {
+            "path": "values[1]",
+            "value": "Infinity",
+            "path_truncated": false,
+            "value_truncated": false
+          },
+          {
+            "path": "values[2]",
+            "value": "-Infinity",
+            "path_truncated": false,
+            "value_truncated": false
+          }
+        ],
+        "metadata_summary_total": 6,
+        "metadata_summary_truncated": false,
+        "content_excerpt": null,
+        "content_truncated": false,
+        "note_excerpt": null,
+        "note_truncated": false,
+        "topics": {
+          "items": [],
+          "total": 0,
+          "truncated": false
+        },
+        "tags": {
+          "items": [],
+          "total": 0,
+          "truncated": false
+        },
+        "evidence": {
+          "items": [],
+          "total": 0,
+          "truncated": false
+        },
+        "organization": {
+          "items": [],
+          "total": 0,
+          "truncated": false
+        },
+        "recent_refresh_run": null,
+        "history_scope": "recent-200",
+        "history_complete": false,
+        "history_absence": "not found in recent history"
+      }
+    },
+    "html_metadata": "{\n  \"html\": \"\\u003cscript\\u003esynthetic\\u003c/script\\u003e\\ud55c\\uae00\",\n  \"large\": 10000000000000000000000000000000000000000000000000000000000000000000001,\n  \"literal\": {\n    \"$serde_json::private::Number\": \"not a number\"\n  },\n  \"title\": \"Synthetic nonfinite title\",\n  \"values\": [\n    NaN,\n    Infinity,\n    -Infinity\n  ]\n}"
+  },
+  {
+    "metadata_raw": "{\"title\":NaN,\"values\":[NaN,Infinity,-Infinity],\"literal\":{\"$serde_json::private::Number\":\"not a number\"},\"large\":10000000000000000000000000000000000000000000000000000000000000000000001,\"html\":\"<script>synthetic</script>한글\"}",
+    "resource": 1,
+    "before": {
+      "atlassian_item_remote_state": [
+        {
+          "external_resource_id": 1,
+          "metadata_schema_version": "localbrain.atlassian-metadata.v1",
+          "metadata_json": "{\"title\":NaN,\"values\":[NaN,Infinity,-Infinity],\"literal\":{\"$serde_json::private::Number\":\"not a number\"},\"large\":10000000000000000000000000000000000000000000000000000000000000000000001,\"html\":\"<script>synthetic</script>한글\"}",
+          "remote_version": null,
+          "remote_updated_at": null,
+          "last_attempted_at": null,
+          "last_successful_at": null,
+          "last_confirmed_at": null,
+          "last_outcome": null,
+          "last_error_code": null,
+          "known_changed": 0,
+          "projection_stale": 0,
+          "updated_at": "2026-11-19 00:57:37"
+        }
+      ],
+      "atlassian_item_urls": [
+        {
+          "id": 1,
+          "external_resource_id": 1,
+          "site_id": 1,
+          "url_role": "canonical",
+          "observed_url": "https://jira.synthetic.test/browse/NONFINITE-1",
+          "normalized_url": "https://jira.synthetic.test/browse/NONFINITE-1",
+          "first_observed_at": "2026-08-01T00:00:00Z",
+          "last_observed_at": "2026-08-01T00:00:00Z"
+        }
+      ],
+      "atlassian_items": [
+        {
+          "external_resource_id": 1,
+          "site_id": 1,
+          "source_instance_id": null,
+          "space_id": null,
+          "service": "jira",
+          "item_type": "jira_issue",
+          "remote_id": null,
+          "remote_key": null,
+          "coverage": "indexed",
+          "attention": "normal",
+          "confirmed_at": null,
+          "created_at": "2026-11-19 00:57:37",
+          "updated_at": "2026-08-01T00:00:00Z"
+        }
+      ],
+      "atlassian_sites": [
+        {
+          "id": 1,
+          "source_instance_id": null,
+          "normalized_domain": "jira.synthetic.test",
+          "display_name": null,
+          "remote_site_id": null,
+          "canonical_base_url": "https://jira.synthetic.test",
+          "created_at": "2026-11-19 00:57:37",
+          "updated_at": "2026-11-19T00:57:37.006270+00:00"
+        }
+      ],
+      "external_resources": [
+        {
+          "id": 1,
+          "resource_type": "jira",
+          "title": "Synthetic nonfinite title",
+          "url": "https://jira.synthetic.test/browse/NONFINITE-1",
+          "summary": null,
+          "source_role": "remote-reference",
+          "created_at": "2026-11-19 00:57:37",
+          "updated_at": "2026-08-01T00:00:00Z"
+        }
+      ],
+      "reference_resources": [
+        {
+          "id": 1,
+          "identity_key": "url:024d7cec5247f89561c196e4c8269f58b20ffb27e4a9875074430cdd34342c56",
+          "kind": "url",
+          "locator": "https://jira.synthetic.test/browse/NONFINITE-1",
+          "product": "jira",
+          "remote_key": "NONFINITE-1",
+          "created_at": "2026-11-19 00:57:37"
+        }
+      ],
+      "resource_external_links": [
+        {
+          "external_resource_id": 1,
+          "resource_id": 1
+        }
+      ],
+      "search_index": [
+        {
+          "__rowid__": 1,
+          "entity_type": "atlassian_item",
+          "entity_id": "1",
+          "source_kind": "atlassian:jira:identity",
+          "title": "Synthetic nonfinite title",
+          "body": "https://jira.synthetic.test/browse/NONFINITE-1",
+          "path": "https://jira.synthetic.test/browse/NONFINITE-1"
+        }
+      ]
+    },
+    "expected": {
+      "detail": {
+        "id": 1,
+        "service": "jira",
+        "item_type": "jira_issue",
+        "coverage": "indexed",
+        "attention": "normal",
+        "remote_id": null,
+        "remote_key": null,
+        "confirmed_at": null,
+        "item_updated_at": "2026-08-01T00:00:00Z",
+        "local_title": "Synthetic nonfinite title",
+        "local_summary": null,
+        "site_id": 1,
+        "site_name": null,
+        "normalized_domain": "jira.synthetic.test",
+        "space_id": null,
+        "space_name": null,
+        "space_key": null,
+        "source_instance_id": null,
+        "source_name": "로컬 전용",
+        "canonical_url": "https://jira.synthetic.test/browse/NONFINITE-1",
+        "remote_version": null,
+        "remote_updated_at": null,
+        "last_attempted_at": null,
+        "last_successful_at": null,
+        "last_outcome": null,
+        "last_error_code": null,
+        "known_changed": 0,
+        "projection_stale": 0,
+        "normalized_text": null,
+        "normalization_warning": null,
+        "content_applied_at": null,
+        "note": null,
+        "metadata": {
+          "title": NaN,
+          "values": [
+            NaN,
+            Infinity,
+            -Infinity
+          ],
+          "literal": {
+            "$serde_json::private::Number": "not a number"
+          },
+          "large": 10000000000000000000000000000000000000000000000000000000000000000000001,
+          "html": "<script>synthetic</script>한글"
+        },
+        "freshness": "unknown",
+        "display_title": NaN,
+        "entity_kind": "item",
+        "entity_id": 1,
+        "stable_key": "item:1",
+        "updated_at": "2026-08-01T00:00:00Z",
+        "container_kind": "url",
+        "container_label": "NONFINITE",
+        "container_service": "jira",
+        "container_cue": "Jira · URL 기준",
+        "container_structural_scope": "url:jira:NONFINITE",
+        "topics": [],
+        "tags": [],
+        "selected_topic_ids": [],
+        "memberships": [],
+        "evidence": [],
+        "latest_refresh_run": null,
+        "classification_options": {
+          "topics": [],
+          "tags": []
+        },
+        "workstreams": []
+      },
+      "inventory": {
+        "filters": {
+          "q": "",
+          "service": null,
+          "source_instance_id": null,
+          "site_id": null,
+          "space_id": null,
+          "structural_scope": null,
+          "item_type": null,
+          "coverage": null,
+          "freshness": null,
+          "attention": null,
+          "topic_id": null,
+          "tag_id": null,
+          "workstream_id": null
+        },
+        "items": [
+          {
+            "id": 1,
+            "service": "jira",
+            "item_type": "jira_issue",
+            "coverage": "indexed",
+            "attention": "normal",
+            "remote_id": null,
+            "remote_key": null,
+            "confirmed_at": null,
+            "item_updated_at": "2026-08-01T00:00:00Z",
+            "local_title": "Synthetic nonfinite title",
+            "local_summary": null,
+            "site_id": 1,
+            "site_name": null,
+            "normalized_domain": "jira.synthetic.test",
+            "space_id": null,
+            "space_name": null,
+            "space_key": null,
+            "source_instance_id": null,
+            "source_name": "로컬 전용",
+            "canonical_url": "https://jira.synthetic.test/browse/NONFINITE-1",
+            "remote_version": null,
+            "remote_updated_at": null,
+            "last_attempted_at": null,
+            "last_successful_at": null,
+            "last_outcome": null,
+            "last_error_code": null,
+            "known_changed": 0,
+            "projection_stale": 0,
+            "normalized_text": null,
+            "normalization_warning": null,
+            "content_applied_at": null,
+            "note": null,
+            "metadata": {
+              "title": NaN,
+              "values": [
+                NaN,
+                Infinity,
+                -Infinity
+              ],
+              "literal": {
+                "$serde_json::private::Number": "not a number"
+              },
+              "large": 10000000000000000000000000000000000000000000000000000000000000000000001,
+              "html": "<script>synthetic</script>한글"
+            },
+            "freshness": "unknown",
+            "display_title": NaN,
+            "entity_kind": "item",
+            "entity_id": 1,
+            "stable_key": "item:1",
+            "updated_at": "2026-08-01T00:00:00Z",
+            "container_kind": "url",
+            "container_label": "NONFINITE",
+            "container_service": "jira",
+            "container_cue": "Jira · URL 기준",
+            "container_structural_scope": "url:jira:NONFINITE",
+            "topics": [],
+            "tags": [],
+            "workstream_ids": []
+          }
+        ],
+        "references": [],
+        "entries": [
+          {
+            "id": 1,
+            "service": "jira",
+            "item_type": "jira_issue",
+            "coverage": "indexed",
+            "attention": "normal",
+            "remote_id": null,
+            "remote_key": null,
+            "confirmed_at": null,
+            "item_updated_at": "2026-08-01T00:00:00Z",
+            "local_title": "Synthetic nonfinite title",
+            "local_summary": null,
+            "site_id": 1,
+            "site_name": null,
+            "normalized_domain": "jira.synthetic.test",
+            "space_id": null,
+            "space_name": null,
+            "space_key": null,
+            "source_instance_id": null,
+            "source_name": "로컬 전용",
+            "canonical_url": "https://jira.synthetic.test/browse/NONFINITE-1",
+            "remote_version": null,
+            "remote_updated_at": null,
+            "last_attempted_at": null,
+            "last_successful_at": null,
+            "last_outcome": null,
+            "last_error_code": null,
+            "known_changed": 0,
+            "projection_stale": 0,
+            "normalized_text": null,
+            "normalization_warning": null,
+            "content_applied_at": null,
+            "note": null,
+            "metadata": {
+              "title": NaN,
+              "values": [
+                NaN,
+                Infinity,
+                -Infinity
+              ],
+              "literal": {
+                "$serde_json::private::Number": "not a number"
+              },
+              "large": 10000000000000000000000000000000000000000000000000000000000000000000001,
+              "html": "<script>synthetic</script>한글"
+            },
+            "freshness": "unknown",
+            "display_title": NaN,
+            "entity_kind": "item",
+            "entity_id": 1,
+            "stable_key": "item:1",
+            "updated_at": "2026-08-01T00:00:00Z",
+            "container_kind": "url",
+            "container_label": "NONFINITE",
+            "container_service": "jira",
+            "container_cue": "Jira · URL 기준",
+            "container_structural_scope": "url:jira:NONFINITE",
+            "topics": [],
+            "tags": [],
+            "workstream_ids": []
+          }
+        ],
+        "hierarchy": {
+          "eligible_count": 1,
+          "count": 1,
+          "item_count": 1,
+          "reference_count": 0,
+          "sites": [
+            {
+              "id": 1,
+              "name": "jira.synthetic.test",
+              "display_name": null,
+              "normalized_domain": "jira.synthetic.test",
+              "count": 1,
+              "item_count": 1,
+              "reference_count": 0,
+              "containers": [
+                {
+                  "kind": "url",
+                  "id": null,
+                  "structural_scope": "url:jira:NONFINITE",
+                  "name": "NONFINITE",
+                  "count": 1,
+                  "item_count": 1,
+                  "reference_count": 0,
+                  "service": "jira",
+                  "cue": "Jira · URL 기준"
+                }
+              ]
+            }
+          ]
+        },
+        "eligible_count": 1,
+        "eligible_item_count": 1,
+        "eligible_reference_count": 0,
+        "known_item_count": 1,
+        "known_reference_count": 0,
+        "known_count": 1,
+        "matching_count": 1,
+        "matching_item_count": 1,
+        "matching_reference_count": 0,
+        "has_filters": false,
+        "has_advanced_filters": false,
+        "active_filter_count": 0,
+        "active_structure": {
+          "kind": "root",
+          "label": "모든 도메인"
+        },
+        "options": {
+          "topics": [],
+          "tags": [],
+          "sources": [],
+          "sites": [
+            {
+              "id": 1,
+              "source_instance_id": null,
+              "normalized_domain": "jira.synthetic.test",
+              "display_name": null,
+              "service": "jira"
+            }
+          ],
+          "spaces": [],
+          "workstreams": []
+        }
+      },
+      "preview": {
+        "id": 1,
+        "eligible": true,
+        "service": "jira",
+        "item_type": "jira_issue",
+        "display_title": NaN,
+        "local_title": "Synthetic nonfinite title",
+        "remote_key": null,
+        "source_instance_id": null,
+        "site_id": 1,
+        "site_name": null,
+        "normalized_domain": "jira.synthetic.test",
+        "space_id": null,
+        "space_name": null,
+        "space_key": null,
+        "container_kind": "url",
+        "container_label": "NONFINITE",
+        "container_service": "jira",
+        "container_cue": "Jira · URL 기준",
+        "container_structural_scope": "url:jira:NONFINITE",
+        "canonical_url": "https://jira.synthetic.test/browse/NONFINITE-1",
+        "coverage": "indexed",
+        "freshness": "unknown",
+        "attention": "normal",
+        "last_attempted_at": null,
+        "last_successful_at": null,
+        "last_outcome": null,
+        "remote_id": null,
+        "remote_version": null,
+        "remote_updated_at": null,
+        "last_error_code": null,
+        "metadata_summary": [
+          {
+            "path": "html",
+            "value": "<script>synthetic</script>한글",
+            "path_truncated": false,
+            "value_truncated": false
+          },
+          {
+            "path": "large",
+            "value": "10000000000000000000000000000000000000000000000000000000000000000000001",
+            "path_truncated": false,
+            "value_truncated": false
+          },
+          {
+            "path": "literal.$serde_json::private::Number",
+            "value": "not a number",
+            "path_truncated": false,
+            "value_truncated": false
+          },
+          {
+            "path": "values[0]",
+            "value": "NaN",
+            "path_truncated": false,
+            "value_truncated": false
+          },
+          {
+            "path": "values[1]",
+            "value": "Infinity",
+            "path_truncated": false,
+            "value_truncated": false
+          },
+          {
+            "path": "values[2]",
+            "value": "-Infinity",
+            "path_truncated": false,
+            "value_truncated": false
+          }
+        ],
+        "metadata_summary_total": 6,
+        "metadata_summary_truncated": false,
+        "content_excerpt": null,
+        "content_truncated": false,
+        "note_excerpt": null,
+        "note_truncated": false,
+        "topics": {
+          "items": [],
+          "total": 0,
+          "truncated": false
+        },
+        "tags": {
+          "items": [],
+          "total": 0,
+          "truncated": false
+        },
+        "evidence": {
+          "items": [],
+          "total": 0,
+          "truncated": false
+        },
+        "organization": {
+          "items": [],
+          "total": 0,
+          "truncated": false
+        },
+        "recent_refresh_run": null,
+        "history_scope": "recent-200",
+        "history_complete": false,
+        "history_absence": "not found in recent history"
+      }
+    },
+    "html_metadata": "{\n  \"html\": \"\\u003cscript\\u003esynthetic\\u003c/script\\u003e\\ud55c\\uae00\",\n  \"large\": 10000000000000000000000000000000000000000000000000000000000000000000001,\n  \"literal\": {\n    \"$serde_json::private::Number\": \"not a number\"\n  },\n  \"title\": NaN,\n  \"values\": [\n    NaN,\n    Infinity,\n    -Infinity\n  ]\n}"
+  }
+]

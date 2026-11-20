@@ -1,111 +1,71 @@
-# Natural-Language Search Comparisons
+# Native Natural-Language Search Operations
 
-Use the [shared model-tool prerequisites and private storage rules](model-tools.md) before these operations.
+Use the [native CLI prerequisites and private storage rules](model-tools.md).
+The examples use the built `./dist/api/bin/localbrain`; a source-only
+`cargo +1.90.0 build --locked -p localbrain-api --bin localbrain` produces
+`./target/debug/localbrain`, which can replace that path.
 
 ## Operations
 
-The product uses only the existing `local-models` extra and verified
-Qwen3-Embedding-0.6B checkpoint for natural search. Qwen3-Reranker-0.6B is a
-separate candidate scorer; Qwen3-4B/8B generation trials do not run in this path.
-The [search contract](../natural-language-search.md) owns the current default;
-public synthetic comparisons and private full-index measurements have distinct
-evidence scope. No private corpus is required to reproduce the public comparison.
-Use fresh private output directories for each command. Run GPU measurements
-sequentially without another model job; timings include completed MPS work.
+The native product uses its verified pinned Qwen3-Embedding-0.6B assets.
+Install or adopt those assets explicitly through the
+[optional-model operations](../installation-and-storage.md#optional-local-models)
+before preparing an index. Status and query do not select a Python backend.
+The [search contract](../natural-language-search.md) owns eligibility, the saved
+profile, ranking, index compatibility and reader states.
 
 ```bash
-uv run --no-sync python scripts/benchmark-natural-search.py --device mps --output "/absolute/private/search-comparison/retrieval"
-uv run --no-sync python scripts/benchmark-search-runtime.py --output "/absolute/private/search-comparison/runtime"
-uv run --no-sync python scripts/benchmark-search-throughput.py --output "/absolute/private/search-comparison/throughput"
+./dist/api/bin/localbrain search status
+./dist/api/bin/localbrain search prepare --device cpu --target 512 --dimension 512 --overlap 0 --cutoff 0.45 --batch-size 8
+./dist/api/bin/localbrain search query "find related work" --mode hybrid --limit 20
 ```
 
-The first command compares 256/512/768 body targets, 512/1024 dimensions, lexical,
-dense and hybrid retrieval including cutoff 0.7. It reuses full-dimension model
-outputs for the pinned model's Matryoshka prefix comparison; accuracy-loop query
-caching is disabled for latency. The runtime command evaluates the frozen default
-on separate authored topic families, then measures unchanged/incremental refresh
-and foreground searches during actual model preparation. The optional throughput
-command compares batch sizes and float16 explicitly; it does not alter app settings.
+Preparation is an explicit model/index operation over configured eligible local
+sources; do not run it without selecting the intended data/cache roots and model
+assets. `--rebuild` explicitly rebuilds the owned index. `--device` accepts
+`auto`, `cpu` or `mps` for search preparation. These commands do not download an
+unselected model, change source organization, or authorize private benchmark
+collection. Index status, stale evidence and cancellation retain the search
+contract's separate meanings.
 
-Current `hybrid` uses the original query and a conservative topic/action
-view, orders by their mean cosine and retains exact-identifier lexical admission.
-These commands use the current implementation. `dense` remains the original-query
-baseline. The dedicated precision comparator reconstructs the RRF and
-single-view cosine orderings on identical fragment scores, using dense mode plus
-unchanged hybrid admission for single identifiers:
+The current default is the original/focused dual-view cosine mean with admission
+from either view at the saved cutoff (default 0.45); `dense` is the original-query
+baseline. Exact single identifiers retain their separately explained lexical
+admission. The saved body target is 512 Qwen tokens, the selected vectors have
+512 dimensions, and overlap defaults to zero; dimensions are not token budgets.
+Qwen3-Reranker-0.6B, Laya and 4B/8B generation comparisons are not this product path.
+
+## Current Synthetic Checks
+
+The ordinary native fixtures use synthetic encoders or frozen JSON observations;
+they need no public weights, private corpus or model inference:
 
 ```bash
-uv run --no-sync python scripts/benchmark-search-precision.py --device mps --output "/absolute/private/search-comparison/precision"
+cargo +1.90.0 test -p localbrain-core --test native_search --test native_search_grammar --test native_search_legacy --locked
 ```
 
-This compares the fixed0/0.03/0.05/0.08 lexical-bonus grid on authored development
-and prior selection cases, then the frozen zero-bonus choice against the historical
-baseline on the fixed observed and holdout topic cohorts. It caches query vectors only
-for quality comparison and makes no query-latency claim. Synthetic indexes live
-in task-owned temporary directories and are removed automatically. The fresh
-private output retains fixture hashes, runtime and complete per-query judgments;
-these are authored labels, not private human ground truth.
+`crates/core/tests/native_search.rs` covers source policy, exhaustive chunking,
+index reuse/interruption/locking, stale evidence, exact-identifier admission and
+service lifecycle. `native_search_grammar.rs` covers frozen query/scope/focus and
+safe-return projections. `native_search_legacy.rs` covers legacy mixed-result and
+source-eligibility behavior. Profile and retrieval owners are
+`crates/core/src/backend/search/molecules.rs`, `retrieval.rs`, `source.rs` and
+`index.rs`. These checks establish their bounded contracts, not real-model
+semantic quality or end-to-end latency.
 
-The general-work comparator covers broad purposes, conversational descriptions,
-ambiguous terms and multiple relevant activities across work domains:
+## Retired Comparison Procedures
 
-```bash
-uv run --no-sync python scripts/benchmark-search-general.py --stage development --device mps --output "/absolute/private/search-comparison/general-development"
-uv run --no-sync python scripts/benchmark-search-general.py --stage holdout --selected equal --device mps --output "/absolute/private/search-comparison/general-holdout"
-```
+The Python engine benchmarks, judge/pipeline comparators, comparison-model setup
+and their reference fixtures have been removed. There is no native end-to-end
+replacement benchmark in this guide. The
+[complete historical procedures](../../../plans/research/retired-python-research-tools.md#search-comparisons)
+retain their fixture/selection identities, pinned runtime setup, grids, thresholds,
+quality-versus-latency distinctions and cleanup rules; all old commands there are
+unavailable.
 
-Freeze the selection after development and before observing a fresh holdout.
-The shipped holdout is now observed regression evidence, not an unseen test for
-future tuning. `equal` is the admitted default: original/focused cosine mean,
-with admission from either view. The script checks comparator/engine agreement
-and reports per-query/category metrics, including topic coverage for broad queries.
-It reuses vectors only for quality comparison; measure latency with fresh encoding.
-
-Laya and Qwen Reranker are optional development-only dependencies. Create a separate
-Python 3.11 environment outside the repository; do not replace the application's
-runtime. The frozen reproduction configuration uses `laya==0.4.4`, `torch==2.8.0`,
-`transformers==4.57.6`, `huggingface-hub==0.36.2`, `numpy==1.26.4` and
-`truststore==0.10.4`. The following setup downloads only pinned public assets into
-the shared Hub cache and writes a local hash manifest; `--offline` reuses existing
-assets. This explicit setup is the only network stage.
-
-The paths below describe a reproducible environment to create, not an inventory
-claim that a previous comparison environment is still installed. Shared public
-checkpoint retention and private comparison-runtime retention are independent.
-
-```bash
-uv venv --python 3.11 "/absolute/private/search-comparison/runtime-judge"
-uv pip install --system-certs --python "/absolute/private/search-comparison/runtime-judge/bin/python" laya==0.4.4 torch==2.8.0 transformers==4.57.6 huggingface-hub==0.36.2 numpy==1.26.4 truststore==0.10.4
-"/absolute/private/search-comparison/runtime-judge/bin/python" scripts/prepare-search-comparison-models.py --output "/absolute/private/search-comparison/assets"
-```
-
-Use that environment's Python to run `scripts/benchmark-search-judges.py` with
-`--assets <assets>/assets.json --candidates <retrieval>/candidates.json
---output <fresh-private-output> --role laya --device mps --laya-fp32`; repeat with
-`--role reranker` and omit `--laya-fp32`. Both score the same frozen parent texts
-at K10/20/50. Full-path measurement uses the application Python and
-`scripts/benchmark-search-pipeline.py --assets <assets>/assets.json
---output <fresh-private-output> --judge-python <runtime-judge>/bin/python
---role laya` (then `--role reranker`). This measures retrieval and the resident
-judge through local pipes, not an external service. Full-path trials use K20,
-retrieval cutoff0 and judge threshold0.5; their scores have a different contract
-from the product's cosine cutoff0.45.
-
-A checkpoint/runtime producing non-finite scores fails that attempt. Use
-`--laya-fp32` to disable Laya's MPS autocast explicitly; the Qwen Reranker uses float32
-and eager attention. Reports record these conditions, input budgets and truncation
-refusal. Laya's loader adaptation copies only metadata into its private evaluation
-owner and links immutable public weights; shared downloaded files stay unchanged.
-
-`tests/standalone_natural_search.py --output <fresh-private-output>` is an
-explicit real-model smoke for the installed wheel environment. Run it with the
-installed environment's Python from outside the checkout, after adding the
-`local-models` extra and caching the public embedding checkpoint. It uses the
-installed schema/code, registers assets offline, builds only its authored Session
-and Context data and asserts actual semantic matches. It refuses an existing
-output or an editable source import. It is separate from ordinary unit discovery.
-
-No script writes personal content to Git, collects background query history or
-changes source organization. Clean up task-owned outputs, synthetic DBs and
-isolated runtimes once their purpose ends; retained evidence needs an explicit
-private owner outside Git. Shared public checkpoints have a separate lifecycle.
+A future comparison still needs independently declared labels, a selection frozen
+before a fresh holdout is observed, and explicit public-synthetic versus private
+full-index scope. An already observed holdout is regression evidence. Quality
+vector reuse does not measure fresh-encoding latency. GPU timings require
+sequential jobs, completed device work and matched verification/device/batch/input
+boundaries. No such measurement is established by the native fixture tests.

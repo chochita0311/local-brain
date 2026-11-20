@@ -79,11 +79,11 @@ erDiagram
   without deleting collected Session history, only inside that Source ID. An unavailable root, invalid configuration,
   or unexpected source failure records bounded health separately and retains the
   source's existing descendants.
-- Producers: `ingest/sync/storage.py` through the `ingest/scanner.py` coordinator; `persistence/migrations/` reads provider kinds when migration changes must stale Session inputs.
-- Consumers: `sources/queries.py`, `sessions/activity.py`, `workstreams/retrieval.py`, `usage/queries.py`, `workstreams/service.py`, `maintenance/service.py`, `sources/web.py`, and CLI scan reporting.
+- Producers: `crates/core/src/backend/ingest/storage.rs` through the `crates/core/src/backend/ingest/scanner.rs` coordinator; `crates/core/src/backend/storage/migrations/` reads provider kinds when migration changes must stale Session inputs.
+- Consumers: `crates/core/src/backend/sources/profiles.rs`, `crates/core/src/backend/sessions/activity.rs`, `crates/core/src/backend/workstreams/retrieval.rs`, `crates/core/src/backend/usage/queries.rs`, `crates/core/src/backend/workstreams/service.rs`, `crates/core/src/backend/maintenance/mod.rs`, `apps/api/src/routes/sources.rs`, and CLI scan reporting.
 - Relations and deletion: physical parent of `source_files`, `sessions`, `usage_records`, and `context_documents`, all `ON DELETE CASCADE`, and retained `skill_observations` with `NO ACTION`. The latter prevents deleting a source with historical skill evidence. Deleting another source would remove normalized descendants and can invalidate application-enforced links or search rows, so no cleanup is implied.
 - Recovery: recreate registry rows through approved scans, then rescan source files. Preserve the database for user-curated links and review state that may refer to descendant IDs.
-- DDL ownership: complete fresh definition in `schema.sql`; `persistence/migrations/` performs a
+- DDL ownership: complete fresh definition in `schema.sql`; `crates/core/src/backend/storage/migrations/` performs a
   verified backup-backed compatible rebuild to remove `kind` and the retired
   `enabled` column, supplying `provider_kind` for older schemas. The transaction
   converts skill FKs, chart scopes, retained workflow boundaries and analysis
@@ -128,19 +128,19 @@ Explicit indexes: none.
   Session path whose parsed content has no Activity Event, Usage Record, or
   admitted skill observation is also omitted: any prior file row is removed, the native stub remains,
   and its lack of a freshness row makes later meaningful growth discoverable.
-- Producers: `ingest/sync/storage.py` inserts and updates scan results for Session and Context services, writes the
+- Producers: `crates/core/src/backend/ingest/storage.rs` inserts and updates scan results for Session and Context services, writes the
   resolved Session mapping and all three contract versions, and replaces mappings on
-  successful reparse; `ingest/sync/session_files.py` records independent native
+  successful reparse; `crates/core/src/backend/ingest/sessions.rs` records independent native
   presence and restores known legacy mappings without inventing parsed versions.
   Ephemeral analysis accounting parents have no native file registration.
-  `local_context/service.py` removes Context-owned rows when a root is
-  disabled; `persistence/migrations/` compatibly adds the optional Session mapping and three
+  `crates/core/src/backend/contexts/service.rs` removes Context-owned rows when a root is
+  disabled; `crates/core/src/backend/storage/migrations/` compatibly adds the optional Session mapping and three
   contract fields.
-- Consumers: `ingest/sync/sessions.py` and `ingest/sync/contexts.py` skip/retry logic, Usage version repair,
+- Consumers: `crates/core/src/backend/ingest/sessions.rs` and `crates/core/src/backend/contexts/scan.rs` skip/retry logic, Usage version repair,
   Session projection repair, multi-file Session-reference aggregation and
   partial/error sibling repair;
-  `sessions/references.py` uses the mapped current file set for aggregate
-  fingerprints; `sources/queries.py`, `usage/queries.py`, and `local_context/service.py` consume the
+  `crates/core/src/backend/sessions/references.rs` uses the mapped current file set for aggregate
+  fingerprints; `crates/core/src/backend/sources/profiles.rs`, `crates/core/src/backend/usage/queries.rs`, and `crates/core/src/backend/contexts/service.rs` consume the
   existing source-status and root lifecycle state. Legacy Atlassian evidence adds
   an independent extractor/Site fingerprint check before an otherwise-current
   file is skipped.
@@ -158,10 +158,10 @@ Explicit indexes: none.
   its unchanged successful-root document deletion. Configuration and
   root-availability failures never authorize normalized-history deletion.
 - Recovery: rescan available owning-source inputs to reconstruct current observations. Exact retained provenance for disappeared Session inputs, including prior parsed fingerprints, result versions and multi-file mappings, requires a database backup. An existing Session can restore a minimal legacy path mapping with scan status `stale`, without claiming parsed fingerprints or result versions; presence is observed independently. Errors and exact prior attempt times are operational history and are not reproduced exactly by a rescan.
-- DDL ownership: fresh table definition in `schema.sql`; `persistence/migrations/` compatibly adds
+- DDL ownership: fresh table definition in `schema.sql`; `crates/core/src/backend/storage/migrations/` compatibly adds
   `session_id`, `session_contract_version`, `usage_contract_version`, and
   `reference_contract_version`, separate presence/check/reason fields, and creates `idx_source_files_session` after
-  those columns exist. `persistence/migrations/session_revisions.py` rebuilds this table with a
+  those columns exist. `crates/core/src/backend/storage/migrations/revisions.rs` rebuilds this table with a
   positive-integer-or-null Session revision constraint. Startup validates exact
   known provider-specific legacy tokens, makes a verified private recovery copy,
   and converts only their revision numbers while preserving rows, IDs, mappings,
@@ -185,7 +185,7 @@ Explicit indexes: none.
   that repair does not reprice Usage. Unavailable inputs retain prior results and
   versions until actual reprocessing is possible.
 - Forward-only Session refresh: the provider revision is a positive integer in
-  `ingest/contracts.py`; the DB stores the revision that produced each file's
+  `crates/core/src/backend/ingest/contracts.rs`; the DB stores the revision that produced each file's
   results, not executable parser code. Before upserting a source or reconciling
   stale files, the scanner rejects a source containing a higher revision, even
   for forced scans, reports `session_revision_unsupported`, and retains its
@@ -225,8 +225,8 @@ also owns the composite source/path uniqueness autoindex.
 
 - Purpose and authority: one stable local registration per independently configured external access boundary. The user-managed `instance_key`, provider kind, service, display name, shape-validated configuration reference, and enabled state identify the boundary without storing credentials or remote content.
 - Lifecycle: user-curated and non-rebuildable. Local-only Atlassian URL registration does not create a Source Instance. Separate access setup creates or reuses one only when the user supplies a Provider and actual approved configuration reference. Idempotent registration and connection editing may update generated presentation and enabled state, but changing provider, service, or a bound configuration reference under an existing key is an identity conflict. Binding a validated reference invalidates any prior capability observation so site-scoped reads require an explicit recheck.
-- Producers: `atlassian/access.py` identity services and separate Atlassian access setup in `atlassian/registration.py`.
-- Consumers: `atlassian/access.py` resolves policy and capability state; source-neutral external synchronization and Atlassian registration, refresh, browse, and evidence services consume the stable ID.
+- Producers: `crates/core/src/backend/atlassian/access.rs` identity services and separate Atlassian access setup in `crates/core/src/backend/atlassian/registration/mod.rs`.
+- Consumers: `crates/core/src/backend/atlassian/access.rs` resolves policy and capability state; source-neutral external synchronization and Atlassian registration, refresh, browse, and evidence services consume the stable ID.
 - Relations and deletion: physical parent of at most one current `external_source_capabilities` row and any number of `atlassian_site_bindings`, both with `ON DELETE CASCADE`. Nullable compatibility/current-access references from Sites, Spaces, and Items use `ON DELETE SET NULL`, so removing an explicit access boundary does not delete local Atlassian identity or content. Deletion remains an explicit destructive local action and is not part of capability refresh.
 - Recovery: restore from the LocalBrain database backup or re-register through an explicit user action. External connector configuration alone is not equivalent because local identity and later user-managed relationships depend on the stable ID.
 - DDL ownership: complete fresh definition in `schema.sql`; normal startup creates the absent table on an older database through the same idempotent schema application. No explicit named index.
@@ -249,8 +249,8 @@ Constraints: unique `instance_key`; provider kind limited to `mcp_gateway` and `
 
 - Purpose and authority: the latest rebuildable capability observation for one Source Instance, including policy version, schema fingerprint, availability, canonical logical operations, check time, invalidation, and bounded failure evidence. It is operational evidence and never grants a target absent from version-controlled policy.
 - Lifecycle: rebuildable operational state. An explicit successful or failed capability check replaces the prior row; invalidation retains the last observation as stale. Startup, page load, search, and ordinary preview do not poll or rewrite it.
-- Producers: `atlassian/access.py` validates and stores canonical observations supplied by an explicit approved capability inspection. Ordinary application flows perform no implicit external call.
-- Consumers: `atlassian/access.py` intersects the row with static policy before producing a read dispatch; external maintenance execution consumes that validated dispatch.
+- Producers: `crates/core/src/backend/atlassian/access.rs` validates and stores canonical observations supplied by an explicit approved capability inspection. Ordinary application flows perform no implicit external call.
+- Consumers: `crates/core/src/backend/atlassian/access.rs` intersects the row with static policy before producing a read dispatch; external maintenance execution consumes that validated dispatch.
 - Relations and deletion: `source_instance_id` is both the primary key and an FK to `external_source_instances.id`, `ON DELETE CASCADE`, enforcing zero-or-one current observation per registration. The row cannot change Source Instance identity.
 - Recovery: discard and rebuild through an explicit capability inspection. Losing the row returns the Instance to `unknown` and authorizes no source-content operation.
 - DDL ownership: complete fresh definition in `schema.sql`; normal startup creates the absent table on an older database through the same idempotent schema application. No explicit named index.

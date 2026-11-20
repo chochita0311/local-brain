@@ -32,10 +32,12 @@ Out of scope unless explicitly planned:
 
 ## Codebase Map
 
-- `src/localbrain/`: stable entrypoints plus feature packages; [Architecture](docs/policies/project/architecture.md#package-ownership) owns the package/layer map
-- `src/localbrain/templates/`: server-rendered Jinja2 views
-- `src/localbrain/static/`: browser assets
-- `tests/`: unit and integration-oriented behavior tests
+- `apps/api/`: native Rust HTTP/WebSocket host, CLI and lifecycle wiring
+- `apps/web/`: shared templates, browser assets and app-guide content
+- `apps/desktop/`: Tauri shell, OS integration and app packaging
+- `crates/`: shared Rust domain/storage, model execution and Terminal runtime; [Architecture](docs/policies/project/architecture.md#package-ownership) owns the layer map
+- `crates/*/tests/`, `apps/api/tests/`: native behavior and differential tests
+- `tests/`: current build/check tooling tests and browser/Node contracts
 - `docs/agents/`: planning and execution roles, flows, operations, and profiles
 - `docs/policies/`: durable product, architecture, privacy, development, and operations contracts
 - `docs/plans/`: roadmap, backlog, PRDs, features, specs, Runs, evaluations, and fix artifacts
@@ -50,7 +52,7 @@ Agent harness experience uses the separate, ignored [consumer evidence layout](d
 
 - Keep `AGENTS.md` short and operational.
 - Keep the product overview and first-use path in `README.md`.
-- Keep detailed app usage in `src/localbrain/content/docs/`; [In-App Documentation](docs/policies/project/app-documentation.md) owns that guide set.
+- Keep detailed app usage in `apps/web/content/docs/`; [In-App Documentation](docs/policies/project/app-documentation.md) owns that guide set.
 - Keep durable rules, definitions, contracts, and guides under `docs/policies/`.
 - Keep sequencing, priorities, unresolved work, roadmaps, and project approval/change/execution records under `docs/plans/`.
 - Treat code and database schema as implementation truth; update their owner docs when behavior changes.
@@ -103,7 +105,8 @@ Agent harness experience uses the separate, ignored [consumer evidence layout](d
 
 ```bash
 ./scripts/check-repo-privacy.sh
-uv run python -m unittest discover -s tests -v
+cargo +1.90.0 test --workspace --all-targets --locked
+python3 -B -m unittest discover -s tests -v
 ```
 
 For UI behavior, also run the local server and verify the affected route in a browser.

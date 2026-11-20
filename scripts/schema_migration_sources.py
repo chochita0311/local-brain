@@ -5,9 +5,9 @@ import json
 
 
 def migration_source_files(root):
-    persistence = root / "src/localbrain/persistence"
-    paths = [persistence / "db.py", persistence / "bootstrap.py"]
-    paths.extend(sorted((persistence / "migrations").glob("*.py")))
+    backend = root / "crates/core/src/backend"
+    paths = [backend / "db.rs", backend / "storage/migrations.rs"]
+    paths.extend(sorted((backend / "storage/migrations").glob("*.rs")))
     return [{"path": path.relative_to(root).as_posix(),
              "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
             for path in paths]

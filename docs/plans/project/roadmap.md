@@ -618,7 +618,9 @@ Exit criteria:
 
 Work:
 
-- Tauri 2 wraps the shared frontend with a bundled Python runtime for Apple Silicon
+- Tauri 2 wraps the shared frontend for Apple Silicon. The first packaging phase
+  used a bundled Python runtime. The later [native backend cutover](../evaluation/eval-0177-python-free-backend.md)
+  supplies the current Rust host.
 - manage backend startup, shutdown, and local port lifecycle
 - add launcher or menu-bar behavior only when it improves daily use
 - expose data location, backup, export, and recovery controls

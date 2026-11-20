@@ -150,7 +150,7 @@ The Insights database projection groups all observed evidence once per source, n
 
 ## Personal Insight Evidence
 
-`insights/evidence.py` owns the read-only current evidence producer and
+`crates/core/src/backend/insights/evidence.rs` owns the read-only current evidence producer and
 reference reviewer. `build_insight_evidence_manifest(connection, *, mode,
 requested_at, question=None, source_ids=None, date_from=None, date_to=None,
 timezone="Asia/Seoul")` returns `personal-insight-evidence-v2`.
@@ -275,7 +275,7 @@ refuses execution.
 
 A validated result has at most three findings, an explicit no-finding outcome, or a bounded request for more evidence. Findings must cite IDs from the frozen manifest; recurrence requires independent Sessions.
 
-The Run stores CLI-observed usage before report validation and retains the private validated value, Markdown report, and source excerpts outside Git. `insights/usage.py` projects one latest usage summary per Run into canonical Usage Records using a metadata-only Maintenance Session with external identity `localbrain-insight:<Run ID>`. This accounting parent contains no messages, events, workspace, or search entry and remains excluded from work-Session counts and future analysis. Source attribution matches the frozen Codex home to the registered sessions root; Project attribution is unassigned because execution occurs in the private Run artifact directory, not an originating work repository. The dashboard excludes this Maintenance accounting from Project composition while retaining it in overall usage, history and Source/Model. Frozen attribution stays unchanged.
+The Run stores CLI-observed usage before report validation and retains the private validated value, Markdown report, and source excerpts outside Git. `crates/core/src/backend/insights/usage.rs` projects one latest usage summary per Run into canonical Usage Records using a metadata-only Maintenance Session with external identity `localbrain-insight:<Run ID>`. This accounting parent contains no messages, events, workspace, or search entry and remains excluded from work-Session counts and future analysis. Source attribution matches the frozen Codex home to the registered sessions root; Project attribution is unassigned because execution occurs in the private Run artifact directory, not an originating work repository. The dashboard excludes this Maintenance accounting from Project composition while retaining it in overall usage, history and Source/Model. Frozen attribution stays unchanged.
 
 New Runs explicitly select Standard service tier. Historical unmarked Runs use a labeled default-tier assumption. Input includes cache reads, so normalization subtracts cached input before pricing it separately; reasoning stays within output. Aggregate inputs above a request-price threshold remain partial because request-level context is unavailable.
 
@@ -283,7 +283,7 @@ Failure, cancellation, and interruption preserve any emitted usage; startup can 
 
 ### Guide Bundle And Result Contract
 
-`insights/guidance.py` selects the bounded package catalogue and validates
+`crates/core/src/backend/insights/guidance.rs` selects the bounded package catalogue and validates
 the report value. New Runs freeze core `personal-improvement-core-v8`, report
 `personal-improvement-report-v3`, all eleven playbooks, exact trusted text, a
 `route_reason='owner_goal_and_observed_friction'`, and separate SHA-256 digests
@@ -370,12 +370,12 @@ confirm benefit; the trusted guide and behavior evaluation own those checks.
 
 ## Implementation Ownership
 
-- `src/localbrain/sessions/skills.py`: durable skill evidence and event replay guards; `insights/skills.py` owns Insights use/reference Session ranking.
+- `crates/core/src/backend/sessions/skills.rs`: durable skill evidence and event replay guards; `crates/core/src/backend/insights/evidence.rs` owns Insights use/reference Session ranking.
 
-- `src/localbrain/insights/evidence.py`: read-only, bounded Claude/Codex primary-work message selection for later personal insight Runs; it produces a versioned private evidence value and reviews current references without a new table or model call
+- `crates/core/src/backend/insights/evidence.rs`: read-only, bounded Claude/Codex primary-work message selection for later personal insight Runs; it produces a versioned private evidence value and reviews current references without a new table or model call
 
-- `src/localbrain/insights/guidance.py` and `personal_insight_guides/`: product-neutral, versioned core and category playbooks, selective routing, and strict finding/no-finding/evidence-request values. `personal_insight_guide.md` is the historical v1 resource
+- `crates/core/src/backend/insights/guidance.rs` and `personal_insight_guides/`: product-neutral, versioned core and category playbooks, selective routing, and strict finding/no-finding/evidence-request values. `personal_insight_guide.md` is the historical v1 resource
 
-- `src/localbrain/insights/runs.py`: independent analysis-only Run lifecycle, frozen Session evidence and selected guide provenance, no-tools CLI invocation, validated results, and private Markdown artifact generation
+- `crates/core/src/backend/insights/runs.rs`: independent analysis-only Run lifecycle, frozen Session evidence and selected guide provenance, no-tools CLI invocation, validated results, and private Markdown artifact generation
 
-- `src/localbrain/insights/usage.py`: ephemeral analysis usage normalization, exact Codex source binding, metadata-only accounting projection, and retained-observation recovery
+- `crates/core/src/backend/insights/usage.rs`: ephemeral analysis usage normalization, exact Codex source binding, metadata-only accounting projection, and retained-observation recovery

@@ -57,9 +57,9 @@ not establish educational value.
 
 - 사용자 요구와 실제/제안 경계는 [PRD-0023](../prd/prd-0023-code-and-command-learning.md)이 소유한다.
 - [Current learning policy](../../policies/project/work-grounded-learning.md),
-  [current home](../../../src/localbrain/templates/dashboard.html),
-  [reader](../../../src/localbrain/templates/learning-reader.html),
-  [library](../../../src/localbrain/templates/learning-library.html)를 읽었다.
+  [current home](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/src/localbrain/templates/dashboard.html),
+  [reader](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/src/localbrain/templates/learning-reader.html),
+  [library](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/src/localbrain/templates/learning-library.html)를 읽었다.
 - 현재 home과 첫 reader를 브라우저로 열람했다. home은 4개 위젯과 복원한 제목이며,
   reader는 긴 텍스트 질문과 답변 폼을 먼저 보여 준다. 코드/명령의 독립된 읽기 영역은 없다.
 - [Design Constitution](../../policies/design/design-constitution.md),

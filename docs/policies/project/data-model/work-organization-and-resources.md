@@ -82,7 +82,7 @@ Session evidence points to `reference_resources`; it does not depend on Atlassia
 
 URL identity uses the pure safe locator grammar, including domain. Local path identity normalizes an absolute path without file reads, symlink resolution or content-hash merging; opaque Apple Notes locators remain distinct. Registering a bookmark never imports or indexes its contents. Same-path document reindexing restores its binding. Moving a file or crossing domains creates a separate identity unless a future explicit reconciliation defines otherwise.
 
-`persistence/migrations/resources.py` backs up an existing DB to `<database>-pre-shared-resources-v1.bak`, validates it with `quick_check`, and never overwrites that recovery copy. A savepoint covers identity backfill, organization bindings, Session evidence replacement and body/note transfer. It preserves existing IDs, provenance, timestamps and manual metadata; a conflict rolls the batch back. Unsupported unsafe legacy destinations remain inactive evidence, and unresolved historical organization links retain their original IDs with a NULL shared binding. Completed target counts are recomputed; partial sets become stale/error until recollected. Ordinary successful startup applies the existing bounded backup-retirement policy.
+`crates/core/src/backend/storage/migrations/resources.rs` backs up an existing DB to `<database>-pre-shared-resources-v1.bak`, validates it with `quick_check`, and never overwrites that recovery copy. A savepoint covers identity backfill, organization bindings, Session evidence replacement and body/note transfer. It preserves existing IDs, provenance, timestamps and manual metadata; a conflict rolls the batch back. Unsupported unsafe legacy destinations remain inactive evidence, and unresolved historical organization links retain their original IDs with a NULL shared binding. Completed target counts are recomputed; partial sets become stale/error until recollected. Ordinary successful startup applies the existing bounded backup-retirement policy.
 
 ## Catalog
 
@@ -90,7 +90,7 @@ URL identity uses the pure safe locator grammar, including domain. Local path id
 
 - Purpose and authority: user-created top-level organization with current status, summary, and activity marker.
 - Lifecycle: user-curated and non-rebuildable.
-- Producers: `workstreams/service.py` create/update/touch operations.
+- Producers: `crates/core/src/backend/workstreams/service.rs` create/update/touch operations.
 - Consumers: Dashboard and Workstream detail, retrieval scope, Runner context and Run association, Suggestions, Threads, checkpoints, and resource memberships.
 - Relations and deletion: physical parent of `threads`, `workstream_links`, and `checkpoints` with cascade; optional parent of `maintenance_runs` with set null. No ordinary delete workflow currently treats this as disposable.
 - Recovery: LocalBrain database backup; source rescans cannot recover names, summaries, statuses, or grouping intent.
@@ -112,11 +112,11 @@ Constraints: uniqueness of `name`; status vocabulary is application-enforced. Ex
 
 - Purpose and authority: ordered, nested work track inside one Workstream, including status, summary, goal, and next action.
 - Lifecycle: user-curated and non-rebuildable.
-- Producers: `workstreams/service.py` create and update operations.
+- Producers: `crates/core/src/backend/workstreams/service.rs` create and update operations.
 - Consumers: Workstream detail, retrieval scoping, Runner structured results, Suggestions, links, checkpoints, and membership queries.
 - Relations and deletion: Workstream deletion cascades; Thread deletion cascades `thread_links` and sets historical `checkpoint_resource_refs.thread_id` null.
 - Recovery: database backup. Recreating a title does not recreate identity, order, links, or checkpoint history.
-- DDL ownership: fresh definition and `idx_threads_workstream` in `schema.sql`; `persistence/migrations/` repeats the index idempotently.
+- DDL ownership: fresh definition and `idx_threads_workstream` in `schema.sql`; `crates/core/src/backend/storage/migrations/` repeats the index idempotently.
 
 | Column | Contract |
 | --- | --- |
@@ -138,11 +138,11 @@ Constraints: `UNIQUE(workstream_id, title)`; status vocabulary is application-en
 
 - Purpose and authority: one reviewed or generated relationship from a Workstream to a heterogeneous resource, shared by multiple Threads.
 - Lifecycle: user-curated and non-rebuildable; `linked_by` and `confidence` retain origin context.
-- Producers: `workstreams/service.py` validated add/update/remove operations and accepted suggestions.
+- Producers: `crates/core/src/backend/workstreams/service.rs` validated add/update/remove operations and accepted suggestions.
 - Consumers: Workstream detail, latest activity, memberships, Atlassian Item detail, retrieval exclusions/scope, Runner manifests, checkpoint snapshots, and suggestion deduplication.
 - Relations and deletion: Workstream deletion cascades. The shared resource FK restricts resource deletion; legacy target removal can leave historical/unresolved entity identity.
 - Recovery: database backup or accepted external workflow record; source scanning does not infer the same relation reliably.
-- DDL ownership: fresh definition and `idx_workstream_links_entity` in `schema.sql`; relation type compatible addition and repeated index in `persistence/migrations/`; shared `resource_id` addition/backfill in `persistence/migrations/resources.py`.
+- DDL ownership: fresh definition and `idx_workstream_links_entity` in `schema.sql`; relation type compatible addition and repeated index in `crates/core/src/backend/storage/migrations/`; shared `resource_id` addition/backfill in `crates/core/src/backend/storage/migrations/resources.rs`.
 
 | Column | Contract |
 | --- | --- |
@@ -162,11 +162,11 @@ Constraints: `UNIQUE(workstream_id, entity_type, entity_id)`. Explicit index: `i
 
 - Purpose and authority: one reviewed or generated relationship from a Thread to a heterogeneous resource.
 - Lifecycle: user-curated and non-rebuildable.
-- Producers: `workstreams/service.py` validated add/update/remove operations and accepted suggestions.
+- Producers: `crates/core/src/backend/workstreams/service.rs` validated add/update/remove operations and accepted suggestions.
 - Consumers: Workstream/Thread detail, activity, memberships, Atlassian Item detail, retrieval scope, Runner manifests, checkpoint snapshots, and suggestion deduplication.
 - Relations and deletion: Thread deletion cascades. The shared resource FK restricts resource deletion; legacy target relations have no SQLite cascade.
 - Recovery: database backup; inference may suggest a new link but cannot restore review provenance exactly.
-- DDL ownership: fresh definition and `idx_thread_links_entity` in `schema.sql`; `persistence/migrations/` repeats the index idempotently and `persistence/migrations/resources.py` adds/backfills `resource_id`.
+- DDL ownership: fresh definition and `idx_thread_links_entity` in `schema.sql`; `crates/core/src/backend/storage/migrations/` repeats the index idempotently and `crates/core/src/backend/storage/migrations/resources.rs` adds/backfills `resource_id`.
 
 | Column | Contract |
 | --- | --- |
@@ -186,7 +186,7 @@ Constraints: `UNIQUE(thread_id, entity_type, entity_id)`. Explicit index: `idx_t
 
 - Purpose and authority: user-visible repository, directory, file, or generic path bookmark. It does not own a document body; `resource_local_paths` joins it to the shared identity also used by a matching Context Document.
 - Lifecycle: user-curated and non-rebuildable as organization, even though existence can be rechecked.
-- Producers: `resources/store.py` canonical registration and update; Runner structured output can propose/register reviewed local resources.
+- Producers: `crates/core/src/backend/resources/store.rs` canonical registration and update; Runner structured output can propose/register reviewed local resources.
 - Consumers: resource picker/detail, Workstream/Thread link resolution, retrieval context, and Runner reference manifests.
 - Relations and deletion: legacy application target of organization/checkpoint links and physical parent of `resource_local_paths`. Bookmark deletion removes its binding, preserving shared identity, documents and Session evidence.
 - Recovery: database backup plus local filesystem. A path scan cannot reconstruct title, summary, discovery provenance, or memberships.
@@ -210,11 +210,11 @@ Constraints: uniqueness of `path`; resource-type vocabulary is application-enfor
 
 - Purpose and authority: user-visible external reference metadata such as Jira, Wiki, Slack, Git, document, or generic URL; storage does not imply external ingestion or writes.
 - Lifecycle: user-curated and non-rebuildable.
-- Producers: `resources/store.py` registration/update and reviewed Runner structured output; Atlassian registration owns its strict one-to-one source-specific extension.
+- Producers: `crates/core/src/backend/resources/store.rs` registration/update and reviewed Runner structured output; Atlassian registration owns its strict one-to-one source-specific extension.
 - Consumers: resource picker/detail, Atlassian browse/search/detail, link resolution, retrieval context, and Runner manifests.
 - Relations and deletion: parent of `resource_external_links`, `external_resource_content`, `external_resource_notes` and optional Atlassian extensions. Explicit External Resource deletion cascades those rows but preserves `reference_resources` and Session evidence. Approved integrations remain read-only unless separately planned.
 - Recovery: database backup or manual re-entry from the original reference system.
-- DDL ownership: fresh definition in `schema.sql`; `persistence/migrations/` performs the approved backup-backed compatible rebuild that removes only the former global URL uniqueness constraint while preserving every row, ID, and polymorphic relation. No explicit named index remains.
+- DDL ownership: fresh definition in `schema.sql`; `crates/core/src/backend/storage/migrations/` performs the approved backup-backed compatible rebuild that removes only the former global URL uniqueness constraint while preserving every row, ID, and polymorphic relation. No explicit named index remains.
 
 | Column | Contract |
 | --- | --- |
@@ -233,11 +233,11 @@ Constraints: resource type and generic exact-URL reuse are application-enforced.
 
 - Purpose and authority: source-preserving remote body plus deterministic normalized document/text, hashes, version evidence, and FTS projection fingerprint.
 - Lifecycle: external last-known content. Changed source replaces it only after validation; failure and `not_found` outcomes retain it.
-- Producers: `atlassian/catalog.py` deterministic Jira ADF and Confluence ADF/HTML/Markdown/plain normalization and hash-gated result application, coordinated atomically for explicit refresh by `atlassian/refresh.py`.
+- Producers: `crates/core/src/backend/atlassian/catalog/mod.rs` deterministic Jira ADF and Confluence ADF/HTML/Markdown/plain normalization and hash-gated result application, coordinated atomically for explicit refresh by `crates/core/src/backend/atlassian/refresh/mod.rs`.
 - Consumers: indexed-only `search_index` projection, Item detail, no-change detection, and deterministic FTS rebuild.
 - Relations and deletion: primary key is an FK to `external_resources.id` with `ON DELETE CASCADE`, enforcing zero-or-one current body per External Resource. Removing the optional Atlassian Item preserves the body; explicit full-resource purge deletes it.
 - Recovery: explicit approved external read when accessible or database backup. The normalized projection can be rebuilt from `source_body`; FTS can be rebuilt from the normalized row.
-- DDL ownership: fresh definition in `schema.sql`; `persistence/migrations/resources.py` copies every column from the former Atlassian-owned row; primary-key lookup needs no separate named index.
+- DDL ownership: fresh definition in `schema.sql`; `crates/core/src/backend/storage/migrations/resources.rs` copies every column from the former Atlassian-owned row; primary-key lookup needs no separate named index.
 
 | Column | Contract |
 | --- | --- |
@@ -262,11 +262,11 @@ Constraints: source-format vocabulary; 64-character source hash and optional pro
 
 - Purpose and authority: user-authored local note state for one stable External Resource, separate from every remotely replaceable field.
 - Lifecycle: non-rebuildable local memory. Remote refresh, unavailable results, coverage changes, and evidence reconciliation cannot replace or clear it.
-- Producers: `atlassian/browse.py` local-only Item detail update.
+- Producers: `crates/core/src/backend/atlassian/browse.rs` local-only Item detail update.
 - Consumers: Atlassian browse/detail, local-role FTS projection, and grouped Atlassian search results.
 - Relations and deletion: primary key is an FK to `external_resources.id` with `ON DELETE CASCADE`, enforcing zero-or-one note row per External Resource. Removing the optional Atlassian Item preserves it. Explicit full-resource purge removes the External Resource and cascades its note.
 - Recovery: LocalBrain database backup. Neither provider access nor local evidence rescans can reconstruct user-authored text.
-- DDL ownership: fresh definition in `schema.sql`; `persistence/migrations/resources.py` copies the former Atlassian-owned row without changing IDs, notes or timestamps.
+- DDL ownership: fresh definition in `schema.sql`; `crates/core/src/backend/storage/migrations/resources.rs` copies the former Atlassian-owned row without changing IDs, notes or timestamps.
 
 | Column | Contract |
 | --- | --- |
@@ -282,11 +282,11 @@ Constraints: note length at most 50,000 characters. Explicit indexes: none.
 
 - Purpose and authority: shared, stable identity for an observed URL, local path or opaque note locator; content remains with its own source.
 - Lifecycle: retained across optional feature, bookmark and document-index deletion. No automatic orphan cleanup.
-- Producers: `resources/catalog.py` during admitted Session reference collection, document indexing, local/external registration and the preserving migration.
+- Producers: `crates/core/src/backend/references/catalog.rs` during admitted Session reference collection, document indexing, local/external registration and the preserving migration.
 - Consumers: Session reference projection and feature-owned document, bookmark, external-link and organization mappings.
 - Relations and deletion: parent of mappings and Session evidence, all with `ON DELETE RESTRICT`; no FK to optional feature tables.
 - Recovery: database backup preserves identity and historical references. Recollection can recover currently available locators but cannot reconstruct every historical observation.
-- DDL ownership: `schema.sql`; compatible backfill and table migration in `persistence/migrations/resources.py`.
+- DDL ownership: `schema.sql`; compatible backfill and table migration in `crates/core/src/backend/storage/migrations/resources.rs`.
 
 | Column | Contract |
 | --- | --- |
@@ -304,11 +304,11 @@ Constraints: unique identity and checked kind/product. Explicit indexes: none; t
 
 - Purpose and authority: current indexed Local Context Document binding to a shared path or note resource.
 - Lifecycle: rebuilt by indexing; removing an index row removes only this binding.
-- Producers: `resources/catalog.py`, called by Local Context ingestion, exact Session Markdown resolution and migration.
+- Producers: `crates/core/src/backend/references/catalog.rs`, called by Local Context ingestion, exact Session Markdown resolution and migration.
 - Consumers: Session detail and feature-owned resource readers; no extra file read occurs during projection.
 - Relations and deletion: `document_id` cascades on document removal; `resource_id` restricts shared-resource deletion. A new Document ID at the same normalized path reuses the resource.
 - Recovery: reindex an explicitly registered, enabled source or restore database backup. Unregistered files are never automatically imported.
-- DDL ownership: `schema.sql` and `persistence/migrations/resources.py`.
+- DDL ownership: `schema.sql` and `crates/core/src/backend/storage/migrations/resources.rs`.
 
 | Column | Contract |
 | --- | --- |
@@ -321,11 +321,11 @@ Constraints: primary-key document mapping and unique resource mapping. Explicit 
 
 - Purpose and authority: preserves a local file/folder/repository bookmark's identity and metadata separately from any indexed document at its path.
 - Lifecycle: exists with the bookmark; its shared resource survives removal.
-- Producers: `resources/catalog.py` via bookmark registration, organization link binding and migration.
+- Producers: `crates/core/src/backend/references/catalog.rs` via bookmark registration, organization link binding and migration.
 - Consumers: organization mappings and shared path lookup.
 - Relations and deletion: bookmark FK cascades; shared resource FK restricts deletion. Does not require or create a Document.
 - Recovery: database backup preserves manual metadata; rerunning registration can recreate only the binding.
-- DDL ownership: `schema.sql` and `persistence/migrations/resources.py`.
+- DDL ownership: `schema.sql` and `crates/core/src/backend/storage/migrations/resources.rs`.
 
 | Column | Contract |
 | --- | --- |
@@ -338,11 +338,11 @@ Constraints: one binding per bookmark. Explicit indexes: none.
 
 - Purpose and authority: associates existing external metadata IDs with the canonical safe URL identity without merging titles, notes, source-specific access or registration metadata.
 - Lifecycle: exists with the external metadata row; unsafe legacy URLs keep their metadata without an active binding.
-- Producers: `resources/catalog.py` through generic/Atlassian registration, organization linking and migration.
+- Producers: `crates/core/src/backend/references/catalog.rs` through generic/Atlassian registration, organization linking and migration.
 - Consumers: optional source readers, reconstruction and organization mappings.
 - Relations and deletion: external metadata FK cascades; shared resource FK restricts deletion. Multiple source-specific registrations may point to one resource.
 - Recovery: restore database backup for manual metadata; bindings can be rederived from retained valid URLs.
-- DDL ownership: `schema.sql` and `persistence/migrations/resources.py`.
+- DDL ownership: `schema.sql` and `crates/core/src/backend/storage/migrations/resources.rs`.
 
 | Column | Contract |
 | --- | --- |

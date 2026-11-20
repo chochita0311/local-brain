@@ -53,7 +53,7 @@ for present implementation ownership; the old source layout is not a live path.
 | 2026-10-17 owner request | 실제 diff·명령, 코드 수준 설명, 원리와 공식 자료, 일일 질문, 생성·화면 재설계의 직접 근거 |
 | [Geoffrey Litt explain-diff](https://gist.github.com/geoffreylitt/a29df1b5f9865506e8952488eac3d524) | 저자 본문의 배경·직관·코드 순회·질문 구성과 주변 코드 조사 원칙을 참고. 댓글의 파생 프롬프트는 별도 출처이며 채택하지 않음 |
 | [Current learning contract](../../policies/project/work-grounded-learning.md) and [FEAT-0125](../feature/feat-0125-reviewed-learning-home.md) | 수동 수업, 출처, 판본, 답변·자기 평가의 현재 구현. 코드 중심 수집/학습의 완성 증거가 아님 |
-| [Schema](../../../src/localbrain/schema.sql), [Codex ingestion](https://github.com/chochita0311/local-brain/blob/81590bdc3d9857eca71d5d982dbb1354a3a49215/src/localbrain/ingest/codex.py), [Claude ingestion](https://github.com/chochita0311/local-brain/blob/81590bdc3d9857eca71d5d982dbb1354a3a49215/src/localbrain/ingest/claude.py) | 일반 도구 호출의 이름·위치와 메시지 텍스트가 존재함. 모든 명령 인자·출력·patch 또는 Git before/after 보존을 보장하지 않음 |
+| [Schema](https://github.com/chochita0311/local-brain/blob/e6958df0813b8652074c68a73ac61a8b551e59a8/src/localbrain/schema.sql), [Codex ingestion](https://github.com/chochita0311/local-brain/blob/81590bdc3d9857eca71d5d982dbb1354a3a49215/src/localbrain/ingest/codex.py), [Claude ingestion](https://github.com/chochita0311/local-brain/blob/81590bdc3d9857eca71d5d982dbb1354a3a49215/src/localbrain/ingest/claude.py) | 일반 도구 호출의 이름·위치와 메시지 텍스트가 존재함. 모든 명령 인자·출력·patch 또는 Git before/after 보존을 보장하지 않음 |
 | Selected private retirement work notes | 가역 중지와 폐기, 정확한 자원·namespace, 제어기와 재생성 경로가 학습 소재가 될 수 있음을 확인. 기록 일부만 읽었으며 실제 명령 재실행이나 전체 작업 진단은 하지 않음 |
 | [Design Constitution](../../policies/design/design-constitution.md) and current rendered home/reader | 화면·탐색·토큰의 기준. 이번 계획은 현재 화면과 제안 시안을 구분함 |
 

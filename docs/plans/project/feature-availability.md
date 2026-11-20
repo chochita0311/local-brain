@@ -6,7 +6,7 @@ that a feature is currently offered. Retired contracts for suspended features
 are preserved as historical snapshots
 in [Run230](../run/run-20261101-230-feature-availability-and-doc-boundary.md);
 they are not current product-guide entries. The default assembly is selected in
-`src/localbrain/app/features.py`, shared by the desktop app and development web.
+`crates/core/src/backend/config.rs`, shared by the desktop app and development web.
 
 ## macOS Terminal Admission — 2026-11-13
 

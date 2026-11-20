@@ -17,7 +17,7 @@ Each PRD, Feature, Spec, Run and Evaluation retains its detailed status and hist
 
 | Boundary | Current position and next review |
 | --- | --- |
-| [Rust core and responsive GUI](prd/prd-0029-rust-core-and-responsive-gui.md) | 계약 Run247/248에 이어 [FEAT-0170/Run251](run/run-20261113-251-rust-terminal-runtime.md)의 실제 Terminal Rust 제어·helper 전환이 [Eval0167](evaluation/eval-0167-rust-terminal-runtime.md)을 통과했다. HTML/CSS/xterm, Python HTTP/CLI·단일 TOML writer와 Node PTY/VT 경계를 유지한다. Rust11·실제 Rust/PTY14·브라우저54·Node73 및 Python1678(47 선택형 skip) 검증을 구분해 기록했다. [전환 계획](refactoring/refactor-0006-rust-core-transition.md)의 나머지 Python 기능군은 미전환이며 전체 parity·성능 향상을 주장하지 않는다. 사용자가 다음 세션 우선 대상으로 Phase3의 잔여 업무 백엔드 전환을 선택했으며, 기능별 하위 실행 Feature는 아직 생성하지 않았다. |
+| [Rust core and responsive GUI](prd/prd-0029-rust-core-and-responsive-gui.md) | [FEAT-0180/Run261](run/run-20261118-261-python-free-backend.md)이 [Eval0177](evaluation/eval-0177-python-free-backend.md) PASS로 backend Python 제거·apps/api·web·desktop/crates 구조 전환을 완료했다. 실제 Rust 1.90 412개/실패0, 최종 앱·웹·CLI·Python 차단 실행, 실제 창16·브라우저26·저장 실패6검사와 독립 감사가 통과했다. 최종 HTTP 네 항목의 중앙값/p95 모두 순수 Python·중간 전환본보다 빨랐다. 엄밀한 전체 동등성·물리/타 플랫폼·대형 모델 품질·별도 Terminal177 수락은 [전환 계획](refactoring/refactor-0006-rust-core-transition.md)에 구분한다. |
 | [macOS terminal work area](prd/prd-0030-macos-terminal-work-area.md) | 최신 [FEAT-0177/Run258](run/run-20261114-258-terminal-activity-and-background-rail.md)의 prompt/program 표시와 inline Background는 웹·번들·패키지 backend 검증을 마쳤지만, [Eval0174](evaluation/eval-0174-terminal-activity-and-background-rail.md)의 실제 앱 창 UI 검증은 미완료다. 이전 native 통과를 이 변경의 수락으로 사용하지 않는다. 앞선 전달 이력으로 앱 독립 runtime과 공통 rail·탭/4분할을 전달했다. [Run253/Eval0169](evaluation/eval-0169-terminal-everyday-interactions.md)의 종료 정리·백그라운드 분리·제목 직접 편집·drag 정렬·개별 즉시 종료·작업별 메뉴와 technical native-window 수락을 유지한다. 이전 작업공간 기준인 [Run254/Eval0170](evaluation/eval-0170-persistent-terminal-workspaces.md)은 이름 있는 영속 작업공간·여러 폴더의 탭/pane·빈 그룹/백업·컴팩트 검색/행·한 개의 panel toggle·새 zsh 자동 상태를 전달했다. 브라우저95·Python1700(49skip)·Node75·별도 zsh5 및 최종319파일 앱/실제 native12가 통과했다. 최소화/닫기·Dock 복귀·Quit/앱 경로 제거/재실행에서 새 zsh를 포함한 동일 실행과 순서를 유지한다. native modal AX 노출과 이전 native IME 자동 검사 미통과, 물리 입력·VoiceOver·Mac sleep·최소 OS·성능·사용자 화면 수락은 별도 한계다. Herdr 차이·OSC7501 미지원은 [Eval0168](evaluation/eval-0168-native-terminal-integration.md)에 보존한다. 검색바 높이는 후속 [Run255/Eval0171](evaluation/eval-0171-shared-compact-search-header.md)에서 모든 메뉴 공통으로 확장했으며, Codex의 등록 폴더 목록/기본 지정은 조사된 후속안으로 남는다. [Run256/Eval0172](evaluation/eval-0172-terminal-action-hierarchy.md)는 pane 헤더 분할·32/40px 메뉴·같은 패널의 작업공간 이동을 반영했다. 브라우저118·패키지 host10·319파일 및 잠금 해제 후 새 실제 앱 창13 검증이 통과했다. 기존 IME·AX·물리/플랫폼 수락 한계는 유지한다. |
 | [Web terminal work area](prd/prd-0028-web-terminal-work-area.md) | 승인한 macOS 웹 내부 터미널·탭당4분할·백그라운드/종료·lb CLI의 최종 [Run246](run/run-20261112-246-terminal-final-audit.md)/[Eval0162](evaluation/eval-0162-terminal-final-audit.md) 검수를 마쳤다. 세 sub-agent의 새 검수에서 발견한 입력·커서·색상 질의·프로세스/설치 문제와 수정 중 통합 문제를 보완했다. 당시1648 Python/67 Node 및 실제 브라우저·OS 입력기·launchd·대표 규모 검사를 통과했다. [Feature](feature/feat-0166-web-terminal-work-area.md)가 앞선 결과와 당시 수용 범위를 소유한다. D2Coding/OFL·13px 유지, 앱·외부 iTerm2·herdr-core 제외. Safari/물리 키보드·VoiceOver·복합 문자·Rosetta·장시간 검증 한계는 남는다. 사용 중인 작업을 마친 후 웹 서버/터미널 서비스를 명시적으로 재시작하고 새로고침해 반영한다. 최신 공통 frame·폴더 그룹·상태 표현은 [FEAT-0169/Run249](run/run-20261112-249-terminal-workspace.md)가 소유하며 Run246은 당시 runtime/input 감사 증거로 유지한다. |
 | [Early-access distribution](prd/prd-0027-early-access-distribution-and-bilingual-docs.md) | Mac 체험판의 숨김 기능 의존성·Docs 한국어/영어·저장공간과 공통 언어 메뉴·연속 Back/Forward·native/browser 툴바·아이콘 rail 구현을 마쳤다. [초기 통합 평가](evaluation/eval-0155-early-access-macos-delivery.md)와 [최신 툴바 Run](run/run-20261106-238-shared-window-toolbar.md)이 실제 전달·검증과 현재 closeout 수정을 소유한다. closeout의 Chart 복원·탐색 중복 수정과 새 Mac 빌드/검증도 그 Run에 기존 전달 결과와 구분해 기록했다. [Windows0160](feature/feat-0160-windows-x64-local-ai-trial.md)은 draft/예상안이며 실제 port·설치·선택형 AI 검증이 남아 있다. 수신자·물리 native 조작·OS IME·reference-app 직접 비교와 공개 서명/공증도 별도 수용 경계다. 소스 publication은 이 runtime 수용을 대신하지 않는다. |
@@ -51,23 +51,44 @@ evidence limits under [PRD-0018](prd/prd-0018-personal-ai-use-improvement-insigh
 
 ## Active Refactoring
 
-[Rust core transition](refactoring/refactor-0006-rust-core-transition.md) has completed
-its contract foundations and first executable Terminal slice in Run251. Run253
-closes Run252's actual window boundary and adds everyday interactions; technical
-native integration passes. Run254 adds persistent mixed-folder workspaces and
-host zsh integration without migrating another Python family. Native IME automation did not pass; physical/input
-acceptance and remaining Python families/whole-backend parity stay pending.
-Later Feature177/Run258 adds another actual-window UI gate that remains pending
-in [Eval0174](evaluation/eval-0174-terminal-activity-and-background-rail.md); older
-native passes do not close it. The next-session priority is Phase3's remaining
-application backend, beginning with its inventory and bounded Feature handoff.
-Completed tracks below retain their own
-parity, release and feature-removal limits.
+The Python-free backend/layout track is complete under
+[FEAT0180/Run261/Eval0177](evaluation/eval-0177-python-free-backend.md), including
+all native domain families, old-code/consumer retirement, actual Rust 1.90 and
+packaged runtime/performance qualification. The [target](project/python-free-backend-target.md)
+and [inventory](project/rust-backend-migration-inventory.md) distinguish completed
+implementation from exhaustive parity and platform/model-quality evidence.
+
+The November 19 follow-up shortened crate directories to `core`, `runtime`
+and `models`, retired obsolete Python research and benchmark tools and completed
+a scoped native embedding optimization. Paired synthetic comparisons preserved
+tested vectors, ranking and index reuse. Forward-pass and overall latency still
+depend on workload and device. [Model performance](../policies/project/development/model-tools.md#native-inference-performance)
+
+Web startup shows the listening URL and access-log setting. Ordinary `serve`
+logs the actual path, client address, HTTP version, status and duration.
+`--no-access-log` disables it. [Native server and logs](../policies/project/developer-guide.md#setup-and-run)
+
+The November 20 follow-up checked existing SQLite/TOML data and restored
+cancellation, bookmark, backup and settings behavior on the relevant flows.
+It also made the default dashboard entry show a complete summary. The later
+verified web and Apple Silicon builds are staged separately from the old live
+server with their device and parity bounds recorded.
+[Functional stability](refactoring/logs/2026-11-20_refactor-0006_functional-stability-merge-check.md)
+
+The separate [Feature177/Run258](run/run-20261114-258-terminal-activity-and-background-rail.md)
+retains its acceptance owner; Run261 supplies fresh native-window16 evidence,
+including title/Background/focus and lifecycle. Broader physical input/IME,
+minimum-OS hardware, Windows, long-soak/resource and real large-model quality
+remain explicit. Earlier Terminal/settings results retain their original scope;
+their retained Python and slower child boundary were intermediate states, now
+superseded by the Python-free runtime. App replacement and separate feature
+acceptance retain their own scope.
 
 ## Completed Refactoring
 
 | Track | Result and retained boundary |
 | --- | --- |
+| [Python-free backend and apps layout](refactoring/refactor-0006-rust-core-transition.md#phase-3c-python-free-backend-and-application-layout--passed-on-tested-host) | Run261/Eval0177 passes native implementation,0 LocalBrain Python runtime dependencies, retirement and tested delivery. Four matched HTTP surfaces improve. [Later scoped stability and dashboard evidence](refactoring/logs/2026-11-20_refactor-0006_functional-stability-merge-check.md) keeps broader parity and platform, physical, resource and model-quality acceptance explicit. |
 | [Session-centered packages](refactoring/refactor-0003-session-centered-package-boundaries.md) | Completed after the cache-boundary correction; strict parity remains provisional and Drive transport/native installation/whole-feature removal retain separate scopes. |
 | [Shared resources](refactoring/refactor-0005-shared-resource-ownership.md) | Completed shared identity/bindings and operational migration/restart preservation; whole-feature removal and deferred Drive checks remain separate. |
 | [Direct Session materials](refactoring/refactor-0004-direct-session-materials.md) | Completed direct-only detail behavior; Workstream/Thread data is preserved. |
@@ -119,6 +140,6 @@ Update this index when open boundaries, active execution or recent completion
 changes; keep detailed metadata and continuity with the owning artifacts.
 
 Regenerate [Artifact Catalog](artifact-catalog.md) with
-`uv run python scripts/build-plan-artifact-catalog.py build` when a catalog-managed
+`python3 scripts/build-plan-artifact-catalog.py build` when a catalog-managed
 PRD, Feature, Spec, Run, Evaluation, Fix or heuristic artifact is added, removed
 or renamed. Current contract-owner moves do not alter historical artifact IDs.

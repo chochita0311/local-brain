@@ -243,7 +243,7 @@ prints only inserted/unchanged counts; it never echoes lesson content on success
 
 ## Implementation Ownership
 
-- `learning/service.py`, `learning/cli.py`, `learning/web.py`: reviewed local packet
+- `crates/core/src/backend/learning/service.rs`, `apps/api/src/cli/mod.rs`, `apps/api/src/routes/learning.rs`: reviewed local packet
   intake, immutable lessons/source snapshots, personal attempts, deterministic
   daily selection and native home/library/reader forms. Durable state is in the
   main DB; this flow does not invoke search, generation or external retrieval.

@@ -8,28 +8,22 @@ below. This source installer needs build tools. The current native build is
 Apple Silicon macOS only; planned Windows x86_64 support remains unimplemented
 and unverified until its port and actual Windows checks are complete.
 
-LocalBrain also offers an Apple Silicon standalone test artifact and a Python/web
-installation. The `.app` bundles Tauri, Python and optional-search execution
-libraries; someone receiving a finished `.app` can unzip and launch it without
-installing development tools. Public model weights
-remain an explicit optional download. Use the [test app guide](standalone-test-app-guide.md)
-for first launch, ad-hoc signing, supported-environment evidence and manual updates.
-The [settings contract](desktop-app-and-settings.md) owns the shared preferences,
-source lifecycle and restart-only same-Mac recovery.
+LocalBrain also offers an Apple Silicon standalone test artifact and a native
+web/CLI bundle. The `.app` contains Tauri, the Rust backend and the independent
+Terminal payload. A finished app or web bundle runs without Python, development
+tools or a source checkout. Public model weights remain explicit optional
+downloads. The [test app guide](standalone-test-app-guide.md) owns ad-hoc signing,
+first launch, supported-environment evidence and manual updates; the
+[settings contract](desktop-app-and-settings.md) owns preferences, source lifecycle
+and restart-only same-Mac recovery.
 
-For the alternative local web installation, uv installs its Python
-environment and dependencies. Local models and authenticated CLI integrations
-are optional feature prerequisites; the base application can start with an
-empty database. Python 3.11 is the recommended installation and verification
-target; the base package metadata accepts Python 3.9+.
-A packaged wheel also owns
-the web assets, schema, guides, and commands below; it does not need the source
-checkout at runtime.
-
-Distributions constrain the verified FastAPI/Uvicorn release lines; the source
-lockfile additionally freezes exact dependency versions. Dependency upgrades
-must repeat the standalone wheel startup/page checks before widening those
-constraints, since an unconstrained newer framework can break template calls.
+The web edition can start with an empty database. Local models and authenticated
+CLI integrations have separate optional prerequisites. Cargo lockfiles freeze
+native dependencies, and desktop/Terminal Node lockfiles freeze their packages.
+Dependency upgrades must repeat native startup, route/template and delivered
+artifact checks before changing those locks. Python is a standard-library
+repository build/check tool; the product and native model execution need no
+Python research environment or optional Python model dependencies.
 
 ### Agent-Assisted Local Build
 
@@ -41,18 +35,18 @@ starting the broader development web edition as the installed trial app.
 | Stage | Expected action and result |
 | --- | --- |
 | Check the checkout | Identify the intended source revision and local changes. Preserve unrelated edits when updating; report dirty source as such. A pull does not replace or update a frozen app. |
-| Prepare tools | On Apple Silicon macOS, check Git, uv/Python 3.11, Xcode Command Line Tools, Rust/Cargo and Node/npm. Cargo must be available in the build shell. Install missing prerequisites as needed; an OS installer or permission prompt may need user participation. |
-| Build | Use [Build The macOS App](developer-guide.md#build-the-macos-app) and its frozen dependencies. Build the native app, including Python and optional-search execution libraries, without downloading model weights or collecting personal sources. |
+| Prepare tools | On Apple Silicon macOS, check Git, Python3.11+ for build/check scripts, Xcode Command Line Tools, Rust/Cargo1.90+ and Node/npm. Cargo must be available in the build shell. Install missing prerequisites as needed; an OS installer or permission prompt may need user participation. |
+| Build | Use [Build The macOS App](developer-guide.md#build-the-macos-app) and its frozen dependencies. Build the native app, including the Rust backend and native optional-model execution code, without downloading model weights or collecting personal sources. |
 | Install and launch | Fully quit an existing LocalBrain before replacing it. Open the generated `LocalBrain.app`; the existing output can run from its build folder or be placed in Applications. Record the actual app location and verify that the native app, rather than a separately running development server, launched. |
 | Check first use | Open Docs/settings, connect sources explicitly, synchronize and open a Session, and try model-free keyword search. Model download/index preparation stays an explicit optional action. Keep successful build, native launch and a usable first task as separate results. |
 | Report | Give the source revision/dirty state, OS/architecture, app version/location, actual build/installation/launch results and anything unverified. BUILD-INFO records the source commit, dirty state and a SHA256 fingerprint of explicit app/build inputs; it rejects inputs changed during packaging. Report actual native launch separately. |
 
 Build environments, dependency downloads and outputs need space in addition to
-the running app's storage. The checkout's `.venv`, `desktop/node_modules`, Cargo
+the running app's storage. The checkout's optional build/test environment, `apps/desktop/node_modules`, Cargo
 target and `dist` are build/install inputs or outputs, not the user's database,
 settings or search index. Keep private runtime state under its
 [storage owners](#storage-ownership-and-configuration). Shared public model
-weights also remain separate; building optional-search libraries is not permission
+weights also remain separate; building optional-model execution code is not permission
 to download a model. Settings storage totals do not include all build-tool caches.
 
 For updates, quit the app and any separate backend using the same data, preserve
@@ -74,42 +68,30 @@ builder or Unix-dependent runtime work on Windows. Report that boundary rather
 than silently offering the development web server or a speculative installer as
 a completed Windows app.
 
-### Alternative Prebuilt App And Python/Web Installation
+### Alternative Prebuilt App And Native Web Installation
 
-Use the supplied `.app` ZIP for the standalone test edition. The following steps
-install the alternative Python/web edition and its broader development features.
+Use the supplied `.app` ZIP for the standalone test edition. The alternative
+native web bundle exposes the broader development-web feature set; it is not the
+installed trial app. Its current target is Apple Silicon/macOS14+. These
+instructions do not imply that a public release artifact has been published.
+Unpublished source changes are absent from downloaded archives.
 
-1. Install uv using its [official macOS installer](https://docs.astral.sh/uv/getting-started/installation/):
+Place a supplied native web bundle in a chosen application folder, keeping its
+`bin/`, `web/`, notices and `BUILD-INFO.json` together. Add its `bin` directory to
+the current shell's `PATH`, or invoke that absolute binary path:
 
-   ```bash
-   curl -LsSf https://astral.sh/uv/install.sh | sh
-   source "$HOME/.local/bin/env"
-   uv python install 3.11
-   ```
+```bash
+localbrain doctor
+localbrain serve
+```
 
-2. Install a supplied LocalBrain distribution wheel using the next section.
-   If a wheel has not been published, use the public source archive fallback.
-   These instructions do not imply that a release artifact already exists.
-   Unpublished source changes are not included in GitHub downloads.
-
-3. Start the installed application:
-
-   ```bash
-   localbrain doctor
-   localbrain serve
-   ```
-
-   Open `http://127.0.0.1:8000`. The first startup creates one primary
-   `localbrain.db`, default `settings.toml` and a private Session-source configuration
-   outside the install directory. Empty or missing source directories do not prevent startup. Import
-   Sessions after explicitly registering sources in settings; automatic collection
-   defaults to 10 minutes after completion and the Sync action remains available.
-   Stop the server with `Ctrl+C`. Port selection is available with
-   `localbrain serve --port 8001`; the command permits only loopback addresses.
-
-If the executable is not on `PATH`, run `uv tool update-shell`, then open a new
-terminal. For a managed-network certificate error, add `--system-certs` to the
-failed uv install command. Never disable certificate verification.
+Open `http://127.0.0.1:8000`. First startup creates the primary `localbrain.db`,
+default `settings.toml` and private Session-source configuration outside the
+installation. Empty or missing source directories do not prevent startup.
+Register sources explicitly in Settings; automatic collection defaults to10
+minutes after completion and Sync remains available. Stop with `Ctrl+C`.
+`localbrain serve --port 8001` selects another port; only loopback addresses are
+accepted. No Python environment or package installer is involved in execution.
 
 ### Optional macOS Terminal
 
@@ -117,9 +99,7 @@ The app and development web share [Terminal](terminal.md). The Apple Silicon app
 includes Node24.15.0, Rust control/helper and pinned PTY/headless packages; users
 need no Node/npm installation. Checkout builders run
 `python scripts/build-terminal-runtime.py` with Cargo and Node/npm available.
-The app builder performs that step automatically. A Python wheel alone does not
-contain a native execution payload: configure a built public bundle with the
-trusted `LOCALBRAIN_TERMINAL_BUNDLE` host environment when using an installed wheel.
+The app builder performs that step automatically. The native web bundle can include that public payload with `scripts/build-api.py --terminal-bundle PATH`; otherwise set the trusted `LOCALBRAIN_TERMINAL_BUNDLE` host environment to a separately verified bundle. The API/CLI remains independent of the Node/PTY execution payload.
 
 New/Start/install explicitly verifies and copies the offline bundle to
 `<private-cache>/terminal-<scope>/payloads/<payloadId>`. Startup/list/status/page
@@ -149,104 +129,76 @@ uses the Rust retirement transaction only for verified, inactive payloads and
 reports protected live/unknown/loss-marked state while clearing eligible other caches.
 
 
-### Install A Distribution Wheel
+### Build A Native Web Distribution
 
-Download the supplied public wheel, then replace the example path below with
-its actual filename:
-
-```bash
-uv tool install --python 3.11 /absolute/path/localbrain-version-py3-none-any.whl
-```
-
-The tool environment owns the installed package, Python and dependencies.
-Templates, browser assets, schema presentation, guides and executable commands
-are package resources. Running the application needs no Git repository or source
-checkout. Installation does not copy a developer's DB, configuration, reports,
-model weights. Updates and optional extras use the selected
-distribution artifact, not a runtime dependency on its build checkout.
-
-### Public Source Archive Fallback
-
-Download the public source using GitHub's **Code → Download ZIP** and put the
-extracted project folder at `~/Applications/LocalBrain`. Git and a development
-checkout are not required. Then install it as an application:
+From a prepared source checkout or source archive with Cargo, Xcode Command Line
+Tools and build-script Python available:
 
 ```bash
-uv tool install --python 3.11 "$HOME/Applications/LocalBrain"
+python3 scripts/build-api.py --output dist/api
+./dist/api/bin/localbrain doctor
+./dist/api/bin/localbrain serve
 ```
 
-The source archive is installation input; `uv tool install` builds and installs
-the package. Normal execution uses that installed environment.
+Keep the complete output directory together when moving it. It owns native
+executables, web assets, schema/guide resources, notices and source/build identity;
+it includes no developer DB, configuration, reports or weights. The source archive
+is build input, and unpublished changes are not present in a public archive.
+An archive without Git metadata records its commit as unavailable instead of
+inventing provenance. No compiler or checkout is needed to run the finished bundle.
 
 ### Source Checkout And Development
 
-From the repository root:
-
 ```bash
-uv sync --python 3.11 --frozen
-uv run --no-sync localbrain doctor
-uv run --no-sync localbrain serve
+cargo build --locked -p localbrain-api
+./target/debug/localbrain doctor
+./target/debug/localbrain serve
 ```
 
-`uv sync` owns this checkout's environment. `uv tool install` owns a separately
-installed application. Choose one installation for normal use; installing the
-package twice is not necessary. Both use the configured runtime data location.
+See the [Developer Guide](developer-guide.md) for source setup, native optional
+model behavior, Terminal payload preparation and all configured checks. Choose
+one app or web installation for normal use; both use the configured runtime data
+location. Rebuilding a checkout does not update an installed app.
 
-### Repair An Existing LibreSSL-Based Environment
+### TLS And Historical Python Environments
 
-An urllib3 `NotOpenSSLWarning` identifying LibreSSL comes from the Python SSL
-runtime in the active environment. Recreate that environment with the recommended
-uv-managed Python 3.11. Suppressing server logs does not change its SSL library.
-For a source checkout, stop its running server and model jobs first, then run:
+Native downloads use certificate-verified HTTPS with platform trust. Keep managed
+certificates in the OS facility; never disable verification or bundle a private
+certificate. Old Python LibreSSL/urllib3 warnings and Uvicorn aliases belong to a
+retired Python installation or an explicitly selected historical research runtime,
+not the native backend. Use the native executable to identify the running version.
+Old Python environment changes do not update the native app, change model/index
+identity, establish search quality or alter a shell alias. A successful native
+web start prints its listening URL and request logging state to stderr.
+`localbrain serve` logs the client socket address, method, requested path, HTTP
+version, status and elapsed time to response headers by default. The requested
+path includes IDs, filenames and paths that return 404. `--no-access-log` disables
+these lines.
+The older `--access-log` remains accepted, with `--no-access-log` taking precedence
+if both are supplied. Query strings, headers and bodies stay out of the access
+logs. The server creates no log file. Existing processes keep their loaded
+executable. Rebuild and restart to use a changed native host.
 
-```bash
-uv python install 3.11
-uv sync --python 3.11 --extra local-models --frozen
-uv pip check --python .venv/bin/python --no-cache
-uv run --no-sync python -c 'import ssl; print(ssl.OPENSSL_VERSION)'
-uv run --no-sync localbrain serve
-```
-
-Keep the extras required by that installation; omit `--extra local-models` for a
-base-only checkout. With the base dependencies installed, also check
-`uv run --no-sync python -c 'import urllib3'` for the original warning; urllib3
-is a base dependency. If the managed interpreter and locked distributions are
-already cached, skip the Python download and add
-`--no-python-downloads --offline` to `uv sync`. For a separately installed app,
-repeat its selected wheel/archive installation with `--python 3.11` and the same
-extras instead of editing a checkout's `.venv`.
-
-This replaces Python packages, leaving the separately owned database, model
-weights and search cache in place. A frozen sync preserves the lockfile; packages
-selected by its Python-version conditions may differ. A running server must be
-restarted to use the replacement environment. Successful imports do not establish
-search quality or benchmark performance in the new runtime.
-
-Uvicorn's startup `INFO` message is normal. A shell alias that invokes Uvicorn
-directly can also keep its default request logging, including search URLs and
-periodic status requests. Changing `.venv` does not alter that alias or disable
-access logs. The packaged `localbrain serve` command owns its separate
-`access_log=False` behavior.
+Saved web links to Sessions, Projects, session detail, Sessions Dashboard,
+Local Contexts, documents and Natural Search redirect from a trailing slash to
+the canonical path with the original query string. The desktop host also
+redirects its Local Contexts and Natural Search links after authentication.
 
 ### Updates And Removal
 
-Stop the server before replacing the installed application. Preserve the
-original Python and extras for both source archive and wheel updates. With an
-updated source archive at the same location, repeat `uv tool install --reinstall`.
-For a base installation from a built wheel, install that wheel with
-`uv tool install --reinstall --python 3.11 /absolute/path/localbrain-version-py3-none-any.whl`.
-For a model-enabled installation, append `[local-models]` to the selected archive
-directory or wheel path and quote the complete argument, as shown under
-[Install The Local Model Runtime](#install-the-local-model-runtime).
-After an upgrade from the old storage layout, follow
-[Upgrade An Existing Storage Layout](#upgrade-an-existing-storage-layout)
-before restarting the app.
+Stop the app/backend using that data before replacement. Replace the complete
+native application or web bundle, preserving data, settings, originals and shared
+public weights. Source installs rebuild from the intended revision; a pull alone
+does not replace delivered bytes. Follow
+[Upgrade An Existing Storage Layout](#upgrade-an-existing-storage-layout) when
+upgrading an old data layout before normal use.
 
-`uv tool uninstall localbrain` removes the executable/environment. It preserves
-the primary database, private configuration, saved reports, and shared public
-model weights. Deliberate data deletion is a separate local operation. Build and
-release packages must contain code and reviewed public assets only; never copy
-the runtime directory, local profiles, or model cache into a distribution.
+Removing application files removes code and bundled resources, leaving the
+primary DB, private configuration, saved reports and shared public weights.
+Deliberate data deletion is a separate operation. Terminal services have their
+own lifetime: explicitly stop affected work before removing or updating their
+runtime. Distributions contain code and reviewed public assets only, never the
+runtime directory, local profiles or a model cache.
 
 ## Optional Local Models
 
@@ -259,11 +211,11 @@ model. Local inference does not train or update shared pretrained weights.
 | Session ingestion, reading, keyword search, deterministic views | None | None |
 | Natural-language Session / Local Context search | Qwen3-Embedding-0.6B | Same shared asset as affinity |
 | Prepared full-history affinity map | Qwen3-Embedding-0.6B | About 1.21 GB |
-| Explicit experimental context trials | Qwen3-4B or Qwen3-8B | About 8.06 GB or 16.40 GB |
+| Explicit native generation model setup | Qwen3-4B or Qwen3-8B | About 8.06 GB or 16.40 GB |
 
 Qwen3-Embedding-0.6B is the document/query encoder used by natural search.
-Installing trial models does not enable generation on ordinary app startup
-or an automatic workflow producer. Public originals remain in the resolved
+Installing a generation model leaves ordinary app startup and workflow
+production passive. Public originals remain in the resolved
 shared Hub cache, including `~/.cache/huggingface/hub` by default. App-owned
 registration manifests stay under `data/models`. Complete public caches can be
 registered locally without downloading; status checks are presence checks,
@@ -272,44 +224,30 @@ Claude/Codex-backed actions have their own CLI/authentication requirements and
 explicit external-service boundary; installing local models does not satisfy
 those requirements.
 
-Laya multilingual and Qwen3-Reranker-0.6B are separate optional development assets
-for natural-search comparisons. Their pinned snapshots
-use the same resolved public Hub cache as the Qwen embedding and 4B/8B assets,
-with separate model directories and weights. They are not part of the app's
-`local-models` extra or its default search path. The comparison's Python packages
-and private hash manifests have a separate development lifecycle. See the
-[comparison setup](development/search-comparisons.md#operations) for
-explicit installation and offline reproduction; a retained checkpoint alone is
-not a ready-to-run comparison environment.
+The former Laya and Qwen3-Reranker-0.6B comparison tools are retired. Their
+separate pinned public snapshots may remain in the shared Hub cache. The
+historical procedures record their Python dependencies, model-specific
+manifests and offline reproduction controls. [Retired comparisons](development/search-comparisons.md#retired-comparison-procedures)
 
-### Install The Local Model Runtime
+### Native Local Model Runtime
 
-For the installed application:
+Model installation and execution code is included in the native backend. Inspect
+readiness without loading weights or downloading anything:
 
 ```bash
-uv tool install --reinstall --python 3.11 "/absolute/path/localbrain-version-py3-none-any.whl[local-models]"
 localbrain models status
 ```
 
-For a source archive installation, use
-`uv tool install --reinstall --python 3.11 "$HOME/Applications/LocalBrain[local-models]"`.
-Use the same package version when adding extras.
-
-For a source checkout:
-
-```bash
-uv sync --python 3.11 --extra local-models --frozen
-uv run --no-sync localbrain models status
-```
-
-These commands install LocalBrain's PyTorch, Transformers, Sentence
-Transformers, and grouping dependencies in its application environment.
-The lockfile separates Intel macOS PyTorch/NumPy compatibility from Apple
-Silicon. Apple Silicon is the locally verified model runtime; Intel dependency
-resolution is covered, but model execution on an Intel Mac is not verified.
-The inference device is selected automatically, with CPU fallback. Large models
-need sufficient RAM in addition to the asset sizes above; CPU execution can be
-slow. Use `--device cpu` with simulation when necessary.
+No PyTorch, Transformers, Sentence Transformers or Python extras are needed by
+the product. The original pinned safetensors and tokenizer assets are consumed
+by Candle and Rust tokenizers. Apple Silicon CPU/Metal are the current native
+execution target; other platforms and real minimum-OS model execution require
+their own checks. Device selection supports automatic selection and CPU fallback.
+Large models need RAM beyond their asset sizes and can be slow on CPU; simulation
+accepts `--device cpu`. Historical Python comparison tools are retired; they are
+not an alternative product model runtime.
+Native runtime/index identity changes require rebuilding incompatible cached
+vectors; existing weights and private records are preserved.
 
 ### Install And Verify A Selected Model
 
@@ -344,6 +282,10 @@ installed-asset manifests with app-local or Hub-relative snapshots.
 Rerunning simulation reuses compatible vectors; model, runtime, source, and
 chunking changes can require recomputation. Cache location alone does not change
 model identity.
+Ctrl+C cancels active inventory and result verification before publication.
+The interrupted attempt is visible in `--status`, and the last successful
+report remains available. Once publication begins, the command finishes
+recording the result and reports its outcome once.
 
 ## Storage Ownership And Configuration
 
@@ -358,7 +300,7 @@ does not fetch sources or require a model; see [Learning](work-grounded-learning
 | Primary data | `~/Library/Application Support/LocalBrain` | One primary DB, source configuration, saved Runs/reports |
 | Model metadata | `<data>/models/<model-slug>` | Small LocalBrain installation manifests/locks |
 | Public pretrained assets | `~/.cache/huggingface/hub` | Shared within this PC's user account |
-| Private derived cache | `~/Library/Caches/LocalBrain` | Simulation, preview and natural-search generations; rebuildable |
+| Private derived cache | `~/Library/Caches/LocalBrain` | Rebuildable dashboard summary, simulation, preview and natural-search generations |
 
 `LOCALBRAIN_DATA_DIR` selects private application state. Paths inside a Git
 repository or the installed/source package are rejected before creating the DB.
@@ -441,7 +383,8 @@ offline mode; private inputs and results never enter the shared Hub cache.
 
 `localbrain search status` reports aggregate coverage; `localbrain search query
 "만들던 앱 관련 세션 보여줘"` explicitly prints local results. The engine does not
-persist search-query history; the packaged server disables URL access logging.
+persist search-query history. Console access logs omit the query string from
+the request path.
 Browser history still contains submitted queries. An unchanged refresh preserves
 the current generation without tokenizing or embedding it again.
 `localbrain search prepare --rebuild` recomputes an owned index when its vector
@@ -579,7 +522,7 @@ This policy covers only enumerated LocalBrain migration suffixes. Arbitrary
 manual backups and unrelated files are never discovered for automatic deletion.
 The automatic check runs after successful DB initialization. Backend startup
 and actual Session/Local Context scans, including scheduled and manual sync,
-call `init_db()`. An eligible copy can therefore be retired during a later sync
+call native `db::initialize()`. An eligible copy can therefore be retired during a later sync
 while the app remains running; restarting is not required. A due timer with no
 scan does not initialize the DB, and no independent seven-day cleanup timer is
 installed. Explicit eligible cleanup can also perform retirement. Initialization
@@ -616,7 +559,7 @@ data or rebuildable output, retention, cleanup trigger, and behavior after
 failure. Development diagnostics must have a private owner and cleanup condition;
 they must not become automatic per-startup production output. User-facing backup,
 restore and cache cleanup follow the [local recovery contract](desktop-app-and-settings.md#local-recovery);
-their procedures belong to the [Settings guide](../../../src/localbrain/content/docs/settings.md#storage).
+their procedures belong to the [Settings guide](../../../apps/web/content/docs/settings.md#storage).
 Native packaging and its verification limits belong to the
 [test distribution guide](standalone-test-app-guide.md). General export remains
 separate future work.
